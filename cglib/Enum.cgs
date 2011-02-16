@@ -1,0 +1,3 @@
+class Enum : java "org.cgsuite.lang.CgsuiteEnumValue"
+
+end

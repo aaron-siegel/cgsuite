@@ -1,0 +1,3 @@
+class Procedure : java "org.cgsuite.lang.CgsuiteProcedure"
+
+end

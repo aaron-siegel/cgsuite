@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="File">
+            <file name="org-cgsuite-ui-script-actions-OpenAction.instance">
+                <attr name="delegate" newvalue="org.cgsuite.ui.script.actions.OpenAction"/>
+                <attr name="displayName" bundlevalue="org.cgsuite.ui.script.actions.Bundle#CTL_OpenAction"/>
+                <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
+                <attr name="noIconInMenu" boolvalue="false"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="File">
+            <file name="org-cgsuite-ui-script-actions-OpenAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-cgsuite-ui-script-actions-OpenAction.instance"/>
+                <attr name="position" intvalue="1300"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Shortcuts">
+        <file name="D-O.shadow">
+            <attr name="originalFile" stringvalue="Actions/File/org-cgsuite-ui-script-actions-OpenAction.instance"/>
+        </file>
+    </folder>
+</filesystem>

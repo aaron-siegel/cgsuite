@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.cgsuite.ui.highlighting
+OpenIDE-Module-Layer: org/cgsuite/ui/highlighting/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/cgsuite/ui/highlighting/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

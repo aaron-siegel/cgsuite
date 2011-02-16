@@ -1,0 +1,3 @@
+class Boolean : java "org.cgsuite.lang.CgsuiteBoolean"
+
+end

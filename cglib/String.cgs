@@ -1,0 +1,3 @@
+class String : java "org.cgsuite.lang.CgsuiteString"
+
+end

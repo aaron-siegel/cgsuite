@@ -1,0 +1,5 @@
+class MultipleGame extends Game : java "org.cgsuite.MultipleGame"
+
+    public method Simplify() : java "simplify";
+
+end

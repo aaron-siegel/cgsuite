@@ -1,0 +1,3 @@
+class Collection : java "org.cgsuite.lang.CgsuiteCollection"
+
+end

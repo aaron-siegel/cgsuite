@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Window">
+            <file name="org-cgsuite-ui-browser-BrowserAction.instance">
+                <attr name="component" methodvalue="org.cgsuite.ui.browser.BrowserTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="org.cgsuite.ui.browser.Bundle#CTL_BrowserAction"/>
+                <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="Window">
+            <file name="BrowserAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-browser-BrowserAction.instance"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="BrowserTopComponent.settings" url="BrowserTopComponentSettings.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="explorer">
+                <file name="BrowserTopComponent.wstcref" url="BrowserTopComponentWstcref.xml"/>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

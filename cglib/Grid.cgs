@@ -1,0 +1,11 @@
+class Grid : java "org.cgsuite.Grid"
+
+    public method Grid(Number rows, Number columns) : java "Grid";
+    public method op[](Number row, Number col) : java "getAt(int,int)";
+    public method op[]:=(Number value, Number row, Number col) : java "putAt(int,int,int)";
+    public method Copy() : java "copy";
+
+    public property NumRows.get : java "getNumRows";
+    public property NumColumns.get : java "getNumColumns";
+
+end

@@ -1,0 +1,8 @@
+class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
+
+	public method op[]  (key)     : java "get(int)";
+	public method op[]:=(val,key) : java "set(org.cgsuite.lang.CgsuiteObject,int)";
+
+    public method Sort(Procedure comparator) : java "sort";
+
+end

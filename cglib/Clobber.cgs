@@ -1,0 +1,37 @@
+class Clobber extends Game : java "org.cgsuite.Game"
+
+    public method Clobber(Grid grid)
+        this.grid := grid;
+    end
+
+    public method Options(Player player)
+
+        r := [-1,0,1,0];
+        c := [0,-1,0,1];
+        options := {};
+
+        us := player.Ordinal+1;
+        them := (1-player.Ordinal)+1;
+
+        for m from 1 to this.grid.NumRows do
+            for n from 1 to this.grid.NumColumns do
+                if this.grid[m,n] == us then
+
+                    for k from 1 to 4 do
+                        if this.grid[m+r[k],n+c[k]] == them then
+                            copy := this.grid.Copy();
+                            copy[m,n] := 0;
+                            copy[m+r[k],n+c[k]] := us;
+                            options.Add(Clobber(copy));
+                        end
+                    end
+
+                end
+            end
+        end;
+
+        return options;
+
+    end
+
+end

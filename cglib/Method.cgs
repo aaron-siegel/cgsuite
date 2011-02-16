@@ -1,0 +1,3 @@
+class Method : java "org.cgsuite.lang.CgsuiteMethod"
+
+end

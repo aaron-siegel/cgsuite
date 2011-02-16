@@ -1,0 +1,14 @@
+class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
+
+    public property Size.get : java "size";
+    public property IsEmpty.get
+        return this.Size == 0;
+    end
+
+    public method Add(obj) : java "add";
+    public method AddAll(Collection obj) : java "addAll";
+    public method Remove(obj) : java "remove";
+    public method RemoveAll(Collection obj) : java "removeAll";
+    public method Copy() : java "copy";
+
+end

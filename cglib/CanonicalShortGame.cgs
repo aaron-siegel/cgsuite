@@ -1,0 +1,50 @@
+class CanonicalShortGame extends Game : java "org.cgsuite.CanonicalShortGame"
+
+	public method op neg() : java "getInverse";
+	public method op<=(CanonicalShortGame other) : java "leq";
+    public method op==(CanonicalShortGame other)
+        return this <= other and other <= this;
+    end
+	public method Heat(CanonicalShortGame t) : java "heat";
+	public method Overheat(CanonicalShortGame s, CanonicalShortGame t) : java "overheat";
+	public method Cool(Number t) : java "cool";
+	public method NortonMultiply(CanonicalShortGame h) : java "nortonMultiply";
+	public method ConwayMultiply(CanonicalShortGame h) : java "conwayMultiply";
+	public method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
+	public method Pow(Number n) : java "pow";
+	public method PowTo(Number n) : java "powTo";
+    public method Simplify() : java "simplify";
+
+	public property AtomicWeight.get : java "atomicWeight";
+	public property Birthday.get : java "birthday";
+	public property Companion.get : java "companion";
+	public property Diversity.get : java "diversity";
+    public property Freeze.get : java "freeze";
+	public property Incentives.get : java "incentives";
+	public property IsAllSmall.get : java "isAllSmall";
+	public property IsEven.get : java "isEven";
+	public property IsEvenTempered.get : java "isEvenTempered";
+	public property IsInfinitesimal.get : java "isInfinitesimal";
+	public property IsInteger.get : java "isInteger";
+	public property IsNimber.get : java "isNimber";
+	public property IsNumber.get : java "isNumber";
+	public property IsNumberish.get : java "isNumberish";
+	public property IsNumberTiny.get : java "isNumberTiny";
+	public property IsNumberUpStar.get : java "isNumberUpStar";
+	public property IsOdd.get : java "isOdd";
+	public property IsOddTempered.get : java "isOddTempered";
+	public property IsUptimal.get : java "isUptimal";
+	public property LeftIncentives.get : java "leftIncentives";
+	public property LeftOptions.get : java "getLeftOptions";
+	public property LeftStop.get : java "leftStop";
+	public property Mean.get : java "mean";
+    public property Miny.get : java "miny";
+	public property Rcf.get : java "rcf";
+	public property RightIncentives.get : java "rightIncentives";
+	public property RightOptions.get : java "getRightOptions";
+	public property RightStop.get : java "rightStop";
+	public property StopCount.get : java "stopCount";
+	public property Temperature.get : java "temperature";
+    public property Tiny.get : java "tiny";
+
+end

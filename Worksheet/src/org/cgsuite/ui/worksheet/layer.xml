@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="File">
+            <file name="org-cgsuite-ui-worksheet-actions-NewWorksheetAction.instance">
+                <attr name="delegate" newvalue="org.cgsuite.ui.worksheet.actions.NewWorksheetAction"/>
+                <attr name="displayName" bundlevalue="org.cgsuite.ui.worksheet.actions.Bundle#CTL_NewWorksheetAction"/>
+                <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
+                <attr name="noIconInMenu" boolvalue="false"/>
+            </file>
+            </folder>
+        <folder name="Window">
+            <file name="org-cgsuite-ui-worksheet-WorksheetAction.instance">
+                <attr name="component" methodvalue="org.cgsuite.ui.worksheet.WorksheetTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="org.cgsuite.ui.worksheet.Bundle#CTL_WorksheetAction"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/ui/worksheet/thermograph.png"/>
+                <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="File">
+            <file name="org-cgsuite-ui-worksheet-actions-NewWorksheetAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-cgsuite-ui-worksheet-actions-NewWorksheetAction.instance"/>
+                <attr name="position" intvalue="1200"/>
+            </file>
+            </folder>
+        <folder name="Window">
+            <file name="WorksheetAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-worksheet-WorksheetAction.instance"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="WorksheetTopComponent.settings" url="WorksheetTopComponentSettings.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="editor">
+                <file name="WorksheetTopComponent.wstcref" url="WorksheetTopComponentWstcref.xml"/>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

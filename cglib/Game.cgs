@@ -1,0 +1,36 @@
+class Game : java "org.cgsuite.Game"
+
+	public method op+ (Game obj) : java "buildSum";
+	public method op- (Game obj)
+		return this + (-obj);
+	end
+	public method op neg () : java "buildInverse";
+
+        public property LeftOptions.get
+            return this.Options(Player.Left);
+        end
+        public property RightOptions.get
+            return this.Options(Player.Right);
+        end
+
+        public property CanonicalForm.get
+            cg := Game.memory[this];
+            if nil != cg then
+                return cg;
+            end;
+            lo := this.LeftOptions;
+            ro := this.RightOptions;
+            clo := {};
+            cro := {};
+            for g in lo do
+                clo.Add(g.CanonicalForm);
+            end;
+            for g in ro do
+                cro.Add(g.CanonicalForm);
+            end;
+            cg := {clo|cro};
+            Game.memory[this] := cg;
+            return cg;
+        end
+
+end

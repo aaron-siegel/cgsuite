@@ -1,0 +1,5 @@
+class Class : java "org.cgsuite.lang.CgsuiteClass"
+
+	public property DeclNumber.get : java "getDeclNumber";
+
+end

@@ -1,0 +1,5 @@
+class InverseGame extends Game : java "org.cgsuite.InverseGame"
+
+	public method Simplify() : java "simplify";
+
+end

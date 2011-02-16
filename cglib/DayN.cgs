@@ -1,0 +1,130 @@
+class DayN
+
+    public method DayN(birthday, AllSmall ? false, Reduced ? false)
+
+        this.allSmall := AllSmall;
+        this.reduced := Reduced;
+
+        this.upcov := {=>};
+        this.lowcov := {=>};
+
+        if birthday == 0 then
+            this.elements := {0};
+        else
+            this.elements := {0};
+            prev := DayN(birthday-1, AllSmall, Reduced);
+            prevac := prev.Antichains;
+            if AllSmall then
+                prevac.Remove({});  // Remove empty set as a possibility
+            end;
+            for lo in prevac do
+                for ro in prevac do
+                    if Reduced then
+                        this.elements.Add({lo|ro}.Rcf);
+                    else
+                        this.elements.Add({lo|ro});
+                    end
+                end
+            end
+        end
+
+    end
+
+    public property Size.get
+
+        return this.elements.Size;
+
+    end
+
+    public property Elements.get
+
+        return this.elements;
+
+    end
+
+    public property Antichains.get
+
+        antichains := {{}};
+
+        for g in this.Elements do
+
+            newAntichains := {};
+
+            for ac in antichains do
+                if not this.IsComparableToAny(ac, g) then
+                    newac := ac.Copy();
+                    newac.Add(g);
+                    newAntichains.Add(newac);
+                end
+            end;
+
+            antichains.AddAll(newAntichains);
+
+        end;
+
+        return antichains;
+
+    end
+
+    private method IsComparableToAny(ac, g)
+
+        if this.reduced then
+            for h in ac do
+                if not g.Heat(*) <> h.Heat(*) then
+                    return true;
+                end
+            end
+        else
+            for h in ac do
+                if not g <> h then
+                    return true;
+                end
+            end;
+        end;
+
+        return false;
+
+    end
+
+    public method UpperCovers(g)
+
+        upcov := {};
+
+        for h in this.elements do
+            if h > g then
+                isNew := true;
+                dominated := {};
+                for j in upcov do
+                    if h > j then
+                        isNew := false;
+                        break;
+                    elseif j > h then
+                        dominated.Add(j);
+                    end
+                end;
+                if isNew then
+                    upcov.RemoveAll(dominated);
+                    upcov.Add(h);
+                end
+            end
+        end;
+
+        return upcov;
+
+    end
+
+    public property JoinIrreducibles.get
+
+        ji := {};
+
+        for g in this.elements do
+            if this.UpperCovers(-g).Size == 1 then
+                ji.Add(g);
+            end
+        end;
+
+        return ji;
+
+    end
+
+end

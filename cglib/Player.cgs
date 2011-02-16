@@ -1,0 +1,6 @@
+enum Player
+
+    Left,
+    Right;
+
+end
