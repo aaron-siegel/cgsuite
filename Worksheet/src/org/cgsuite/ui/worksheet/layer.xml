@@ -6,6 +6,7 @@
             <file name="org-cgsuite-ui-worksheet-actions-NewWorksheetAction.instance">
                 <attr name="delegate" newvalue="org.cgsuite.ui.worksheet.actions.NewWorksheetAction"/>
                 <attr name="displayName" bundlevalue="org.cgsuite.ui.worksheet.actions.Bundle#CTL_NewWorksheetAction"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/ui/worksheet/thermograph.png"/>
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
                 <attr name="noIconInMenu" boolvalue="false"/>
             </file>

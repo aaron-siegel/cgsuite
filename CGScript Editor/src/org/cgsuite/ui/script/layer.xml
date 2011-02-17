@@ -9,6 +9,10 @@
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
                 <attr name="noIconInMenu" boolvalue="false"/>
             </file>
+            <file name="org-openide-actions-SaveAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-SaveAction.instance"/>
+                <attr name="noIconInMenu" boolvalue="false"/>
+            </file>
         </folder>
     </folder>
     <folder name="Menu">
@@ -22,6 +26,9 @@
     <folder name="Shortcuts">
         <file name="D-O.shadow">
             <attr name="originalFile" stringvalue="Actions/File/org-cgsuite-ui-script-actions-OpenAction.instance"/>
+        </file>
+        <file name="D-S.shadow">
+            <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-SaveAction.instance"/>
         </file>
     </folder>
 </filesystem>

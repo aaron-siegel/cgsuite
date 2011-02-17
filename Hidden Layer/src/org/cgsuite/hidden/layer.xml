@@ -18,4 +18,11 @@
             <file name="org-netbeans-modules-editor-NbCodeFoldingAction.instance_hidden"/>
         </folder>
     </folder>
+    <folder name="Toolbars">
+        <file name="Build_hidden"/>
+        <folder name="File">
+            <file name="org-netbeans-modules-project-ui-NewProject.shadow_hidden"/>
+            <file name="org-netbeans-modules-project-ui-OpenProject.shadow_hidden"/>
+        </folder>
+    </folder>
 </filesystem>
