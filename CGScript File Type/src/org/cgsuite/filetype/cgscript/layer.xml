@@ -84,8 +84,12 @@
         <folder name="Other">
             <file name="CgscriptTemplate.cgs" url="CgscriptTemplate.cgs">
                 <attr name="displayName" bundlevalue="org.cgsuite.filetype.cgscript.Bundle#Templates/Other/CgscriptTemplate.cgs"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
                 <attr name="template" boolvalue="true"/>
             </file>
+        </folder>
+        <folder name="Recent">
+            
         </folder>
     </folder>
 </filesystem>
