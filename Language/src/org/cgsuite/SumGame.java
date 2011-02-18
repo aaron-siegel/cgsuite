@@ -3,9 +3,9 @@ package org.cgsuite;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.cgsuite.lang.CgsuiteClass;
 
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 
 public class SumGame extends Game
 {
@@ -13,7 +13,7 @@ public class SumGame extends Game
 
     public SumGame(CgsuiteObject x, CgsuiteObject y)
     {
-        super(CgsuiteClass.lookupClass("SumGame"));
+        super(CgsuitePackage.forceLookupClass("SumGame"));
 
         this.components = new ArrayList<CgsuiteObject>();
         this.components.add(x);
@@ -22,7 +22,7 @@ public class SumGame extends Game
 
     public SumGame(List<CgsuiteObject> components)
     {
-        super(CgsuiteClass.lookupClass("SumGame"));
+        super(CgsuitePackage.forceLookupClass("SumGame"));
 
         this.components = components;
     }

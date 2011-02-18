@@ -9,14 +9,14 @@ public class CgsuiteBoolean extends CgsuiteObject
 
     public CgsuiteBoolean(String literal)
     {
-        super(CgsuiteClass.lookupClass("Boolean"));
+        super(CgsuitePackage.forceLookupClass("Boolean"));
 
         this.booleanValue = "true".equals(literal);
     }
 
     public CgsuiteBoolean(boolean booleanValue)
     {
-        super(CgsuiteClass.lookupClass("Boolean"));
+        super(CgsuitePackage.forceLookupClass("Boolean"));
 
         this.booleanValue = booleanValue;
     }

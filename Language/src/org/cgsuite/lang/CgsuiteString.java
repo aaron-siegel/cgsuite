@@ -6,7 +6,7 @@ public class CgsuiteString extends CgsuiteObject
 
     public CgsuiteString(String str)
     {
-        super(CgsuiteClass.lookupClass("String"));
+        super(CgsuitePackage.forceLookupClass("String"));
 
         this.str = str;
     }

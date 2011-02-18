@@ -15,7 +15,7 @@ public class CgsuiteMap extends CgsuiteObject
 
     public CgsuiteMap()
     {
-        super(CgsuiteClass.lookupClass("Map"));
+        super(CgsuitePackage.forceLookupClass("Map"));
 
         this.map = new HashMap<CgsuiteObject,CgsuiteObject>();
     }

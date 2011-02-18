@@ -13,7 +13,7 @@ public class CgsuiteList extends CgsuiteCollection
 
     public CgsuiteList()
     {
-        super(CgsuiteClass.lookupClass("List"));
+        super(CgsuitePackage.forceLookupClass("List"));
 
         this.objects = new ArrayList<CgsuiteObject>();
     }

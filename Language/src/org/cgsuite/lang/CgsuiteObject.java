@@ -127,7 +127,7 @@ public class CgsuiteObject
 
         InstanceMethod(CgsuiteMethod method) throws CgsuiteException
         {
-            super(CgsuiteClass.lookupClass("InstanceMethod"));
+            super(CgsuitePackage.forceLookupClass("InstanceMethod"));
 
             this.method = method;
             this.thisCast = castForMethodCall(method);

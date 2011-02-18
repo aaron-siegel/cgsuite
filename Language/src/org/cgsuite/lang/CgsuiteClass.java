@@ -1,6 +1,10 @@
 package org.cgsuite.lang;
 
+import org.openide.filesystems.FileAttributeEvent;
+import org.openide.filesystems.FileChangeListener;
 import java.io.File;
+import org.openide.filesystems.FileEvent;
+import org.openide.filesystems.FileRenameEvent;
 import org.openide.filesystems.LocalFileSystem;
 import java.util.Collections;
 import org.cgsuite.RationalNumber;
@@ -22,11 +26,8 @@ import org.openide.filesystems.FileObject;
 
 import static org.cgsuite.lang.CgsuiteParser.*;
 
-public class CgsuiteClass extends CgsuiteObject
+public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
-    private static final Namespace CLASSES = new Namespace();
-    private static final FileObject ROOT_FO;
-
     public final static CgsuiteClass OBJECT;
     public final static CgsuiteClass CLASS;
 
@@ -41,32 +42,6 @@ public class CgsuiteClass extends CgsuiteObject
         CLASS.name = "Class";
         OBJECT.type = CLASS.type = CLASS;
         CgsuiteObject.NIL.type = OBJECT;
-
-        CLASSES.put("Object", OBJECT);
-        CLASSES.put("Class", CLASS);
-        
-        try
-        {
-            LocalFileSystem fs = new LocalFileSystem();
-            fs.setRootDirectory(new File("C:/Users/asiegel/Documents/NetBeansProjects/CGSuite/cglib/"));
-            ROOT_FO = fs.getRoot();
-            for (FileObject child : ROOT_FO.getChildren())
-            {
-                CgsuiteClass type = (CgsuiteClass) CLASSES.get(child.getName());
-                if (type == null)
-                    CLASSES.put(child.getName(), new CgsuiteClass(child));
-                else
-                    type.fo = child;
-            }
-            if (OBJECT.fo == null)
-                throw new RuntimeException("Never found Object.");
-            if (CLASS.fo == null)
-                throw new RuntimeException("Never found Class.");
-        }
-        catch (Exception exc)
-        {
-            throw new RuntimeException(exc);
-        }
     }
 
     private FileObject fo;
@@ -95,29 +70,21 @@ public class CgsuiteClass extends CgsuiteObject
     {
         super(CLASS);
 
-        this.fo = fo;
         this.name = fo.getName();
+        setFileObject(fo);
+    }
+
+    public final void setFileObject(FileObject fo)
+    {
+        if (!this.name.equals(fo.getName()))
+            throw new IllegalArgumentException(this.name + " != " + fo.getName());
+
+        if (this.fo != null)
+            this.fo.removeFileChangeListener(this);
+        
+        this.fo = fo;
+        this.fo.addFileChangeListener(this);
         this.loaded = false;
-    }
-
-    public static CgsuiteClass lookupClass(String name)
-    {
-        CgsuiteClass type = lookupClassGently(name);
-        if (type == null)
-        {
-            throw new CgsuiteException("Class not found: " + name);
-        }
-        return type;
-    }
-
-    public static CgsuiteClass lookupClassGently(String name)
-    {
-        return (CgsuiteClass) CLASSES.get(name);
-    }
-
-    public static void refresh()
-    {
-        ROOT_FO.refresh();
     }
 
     public Collection<CgsuiteClass> getParents()
@@ -334,7 +301,7 @@ public class CgsuiteClass extends CgsuiteObject
                 {
                     throw new CgsuiteException("Classname in file does not match filename: " + fo.getNameExt());
                 }
-                parents.add(lookupClass("Enum"));
+                parents.add(CgsuitePackage.getRootPackage().forceLookupClassInPackage("Enum"));
                 javaClassname = CgsuiteEnumValue.class.getName();
                 break;
 
@@ -352,7 +319,7 @@ public class CgsuiteClass extends CgsuiteObject
 
                 for (CgsuiteTree node : tree.getChildren())
                 {
-                    CgsuiteClass parent = lookupClass(node.getText());
+                    CgsuiteClass parent = CgsuitePackage.getRootPackage().forceLookupClassInPackage(node.getText());
                     assert parent != null : node.getText();
                     parents.add(parent);
                 }
@@ -533,14 +500,14 @@ public class CgsuiteClass extends CgsuiteObject
             case IDENTIFIER:
 
                 parameterName = tree.getText();
-                parameterType = (tree.getChildCount() > 0)? lookupClass(tree.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.getRootPackage().forceLookupClassInPackage(tree.getChild(0).getText()) : CgsuiteClass.OBJECT;
                 return new Parameter(parameterName, parameterType, false, null);
 
             case QUESTION:
 
                 CgsuiteTree subt = tree.getChild(0);
                 parameterName = subt.getText();
-                parameterType = (subt.getChildCount() > 0)? lookupClass(subt.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.getRootPackage().forceLookupClassInPackage(subt.getChild(0).getText()) : CgsuiteClass.OBJECT;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
                 return new Parameter(parameterName, parameterType, true, defaultValue);
 
@@ -548,5 +515,38 @@ public class CgsuiteClass extends CgsuiteObject
 
                 throw new RuntimeException();
         }
+    }
+
+    @Override
+    public void fileFolderCreated(FileEvent fe)
+    {
+    }
+
+    @Override
+    public void fileDataCreated(FileEvent fe)
+    {
+    }
+
+    @Override
+    public void fileChanged(FileEvent fe)
+    {
+        loaded = false;
+    }
+
+    @Override
+    public void fileDeleted(FileEvent fe)
+    {
+        loaded = false;
+    }
+
+    @Override
+    public void fileRenamed(FileRenameEvent fre)
+    {
+        loaded = false;
+    }
+
+    @Override
+    public void fileAttributeChanged(FileAttributeEvent fae)
+    {
     }
 }

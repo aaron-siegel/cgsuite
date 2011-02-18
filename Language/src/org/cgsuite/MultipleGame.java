@@ -5,8 +5,8 @@
 
 package org.cgsuite;
 
-import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 
 /**
  *
@@ -19,7 +19,7 @@ public class MultipleGame extends Game
 
     public MultipleGame(RationalNumber multiplier, CgsuiteObject g)
     {
-        super(CgsuiteClass.lookupClass("MultipleGame"));
+        super(CgsuitePackage.forceLookupClass("MultipleGame"));
 
         // TODO Some validation
 

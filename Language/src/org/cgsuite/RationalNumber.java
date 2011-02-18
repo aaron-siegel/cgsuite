@@ -2,7 +2,7 @@ package org.cgsuite;
 
 import java.math.BigInteger;
 
-import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuitePackage;
 
 public class RationalNumber extends Game implements Comparable<RationalNumber>
 {
@@ -18,7 +18,7 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
 
     public RationalNumber(BigInteger numerator, BigInteger denominator)
     {
-        super(CgsuiteClass.lookupClass("Number"));
+        super(CgsuitePackage.forceLookupClass("Number"));
         BigInteger gcd = numerator.gcd(denominator);
         if (denominator.compareTo(BigInteger.ZERO) < 0)
         {

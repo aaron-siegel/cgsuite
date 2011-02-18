@@ -33,9 +33,9 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
-import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteLexer;
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteParser;
 import org.cgsuite.lang.CgsuiteTree;
 import org.cgsuite.lang.CgsuiteTreeAdaptor;
@@ -163,7 +163,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
         CgsuiteTree tree = null;
         try
         {
-            CgsuiteClass.refresh();
+            CgsuitePackage.refreshAll();
             ANTLRStringStream input = new ANTLRStringStream(source.getText());
             CgsuiteLexer lexer = new CgsuiteLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);

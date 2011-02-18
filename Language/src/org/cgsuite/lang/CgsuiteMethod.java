@@ -28,7 +28,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     public CgsuiteMethod(CgsuiteClass declaringClass, String name, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
         throws CgsuiteException
     {
-        super(CgsuiteClass.lookupClass("Method"));
+        super(CgsuitePackage.forceLookupClass("Method"));
 
         this.name = name;
         this.declaringClass = declaringClass;

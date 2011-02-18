@@ -1,7 +1,7 @@
 package org.cgsuite;
 
-import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 
 
 public class InverseGame extends Game
@@ -10,7 +10,7 @@ public class InverseGame extends Game
 
     public InverseGame(Game g)
     {
-        super(CgsuiteClass.lookupClass("InverseGame"));
+        super(CgsuitePackage.forceLookupClass("InverseGame"));
 
         this.g = g;
     }

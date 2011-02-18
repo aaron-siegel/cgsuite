@@ -38,8 +38,8 @@ import java.util.Set;
 
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
-import org.cgsuite.lang.Domain;
 
 // TODO criticalTemperatures
 // TODO efficient nim multiplication
@@ -258,7 +258,7 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
 
     private CanonicalShortGame()
     {
-        super(CgsuiteClass.lookupClass("CanonicalShortGame"));
+        super(CgsuitePackage.forceLookupClass("CanonicalShortGame"));
     }
 
     /**

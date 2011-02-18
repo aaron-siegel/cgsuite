@@ -30,9 +30,8 @@
 package org.cgsuite;
 
 import java.util.EnumSet;
-import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.Domain;
+import org.cgsuite.lang.CgsuitePackage;
 
 /**
  * A two-dimensional array suitable for representing grid-based games.  The
@@ -73,12 +72,12 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     
     private Grid()
     {
-        super(CgsuiteClass.lookupClass("Grid"));
+        super(CgsuitePackage.forceLookupClass("Grid"));
     }
 
     public Grid(RationalNumber numRows, RationalNumber numColumns)
     {
-        super(CgsuiteClass.lookupClass("Grid"));
+        super(CgsuitePackage.forceLookupClass("Grid"));
 
         if (!numRows.isInteger() || !numColumns.isInteger())
             throw new IllegalArgumentException();
@@ -109,7 +108,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public Grid(int numRows, int numColumns, BitsPerEntry bitsPerEntry)
     {
-        super(CgsuiteClass.lookupClass("Grid"));
+        super(CgsuitePackage.forceLookupClass("Grid"));
         
         constructGrid(numRows, numColumns, bitsPerEntry);
     }

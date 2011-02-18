@@ -28,7 +28,7 @@ public class Domain
 
     public CgsuiteObject lookup(String str)
     {
-        CgsuiteClass type = CgsuiteClass.lookupClassGently(str);
+        CgsuiteClass type = CgsuitePackage.lookupClass(str);
         if (type != null)
         {
             return type;
