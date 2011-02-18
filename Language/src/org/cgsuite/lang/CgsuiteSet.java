@@ -14,14 +14,14 @@ public class CgsuiteSet extends CgsuiteCollection
 
     public CgsuiteSet()
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Set"));
+        super(CgsuiteClass.lookupClass("Set"));
 
         objects = new HashSet<CgsuiteObject>();
     }
 
     public CgsuiteSet(int capacity)
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Set"));
+        super(CgsuiteClass.lookupClass("Set"));
 
         objects = new HashSet<CgsuiteObject>(capacity);
     }

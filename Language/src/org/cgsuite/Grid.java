@@ -30,6 +30,7 @@
 package org.cgsuite;
 
 import java.util.EnumSet;
+import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.Domain;
 
@@ -72,12 +73,12 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     
     private Grid()
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Grid"));
+        super(CgsuiteClass.lookupClass("Grid"));
     }
 
     public Grid(RationalNumber numRows, RationalNumber numColumns)
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Grid"));
+        super(CgsuiteClass.lookupClass("Grid"));
 
         if (!numRows.isInteger() || !numColumns.isInteger())
             throw new IllegalArgumentException();
@@ -108,7 +109,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public Grid(int numRows, int numColumns, BitsPerEntry bitsPerEntry)
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Grid"));
+        super(CgsuiteClass.lookupClass("Grid"));
         
         constructGrid(numRows, numColumns, bitsPerEntry);
     }

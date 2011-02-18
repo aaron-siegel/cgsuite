@@ -1,15 +1,32 @@
 package org.cgsuite.lang;
 
+import java.io.File;
+import org.openide.filesystems.LocalFileSystem;
+import java.util.Collections;
+import org.cgsuite.RationalNumber;
+import org.cgsuite.lang.CgsuiteMethod.Parameter;
+import java.util.ArrayList;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.antlr.runtime.ANTLRInputStream;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.RecognitionException;
+import org.cgsuite.CgsuiteException;
+import org.openide.filesystems.FileObject;
+
+import static org.cgsuite.lang.CgsuiteParser.*;
 
 public class CgsuiteClass extends CgsuiteObject
 {
+    private static final Namespace CLASSES = new Namespace();
+    private static final FileObject ROOT_FO;
+
     public final static CgsuiteClass OBJECT;
     public final static CgsuiteClass CLASS;
 
@@ -20,16 +37,44 @@ public class CgsuiteClass extends CgsuiteObject
         OBJECT = new CgsuiteClass();
         CLASS = new CgsuiteClass();
 
+        OBJECT.name = "Object";
+        CLASS.name = "Class";
         OBJECT.type = CLASS.type = CLASS;
         CgsuiteObject.NIL.type = OBJECT;
 
-        OBJECT.init("Object", Collections.<CgsuiteClass>emptySet(), CgsuiteObject.class.getName());
-        CLASS.init("Class", Collections.singleton(OBJECT), CgsuiteClass.class.getName());
+        CLASSES.put("Object", OBJECT);
+        CLASSES.put("Class", CLASS);
+        
+        try
+        {
+            LocalFileSystem fs = new LocalFileSystem();
+            fs.setRootDirectory(new File("C:/Users/asiegel/Documents/NetBeansProjects/CGSuite/cglib/"));
+            ROOT_FO = fs.getRoot();
+            for (FileObject child : ROOT_FO.getChildren())
+            {
+                CgsuiteClass type = (CgsuiteClass) CLASSES.get(child.getName());
+                if (type == null)
+                    CLASSES.put(child.getName(), new CgsuiteClass(child));
+                else
+                    type.fo = child;
+            }
+            if (OBJECT.fo == null)
+                throw new RuntimeException("Never found Object.");
+            if (CLASS.fo == null)
+                throw new RuntimeException("Never found Class.");
+        }
+        catch (Exception exc)
+        {
+            throw new RuntimeException(exc);
+        }
     }
 
+    private FileObject fo;
     private String name;
     private boolean loaded;
-    private boolean declarationsLoaded;
+
+    private CgsuiteTree parseTree;
+
     private int declNumber;
     private Set<CgsuiteClass> parents;
     private Set<CgsuiteClass> ancestors;
@@ -46,99 +91,46 @@ public class CgsuiteClass extends CgsuiteObject
     {
     }
 
-    public CgsuiteClass(String name, Collection<CgsuiteClass> parents, String javaClassname)
+    public CgsuiteClass(FileObject fo)
     {
         super(CLASS);
 
-        init(name, parents, javaClassname);
+        this.fo = fo;
+        this.name = fo.getName();
+        this.loaded = false;
     }
 
-    private void init(String name, Collection<CgsuiteClass> parents, String javaClassname)
+    public static CgsuiteClass lookupClass(String name)
     {
-        this.name = name;
-        this.loaded = false;
-        this.declarationsLoaded = false;
-        this.declNumber = nextDeclNumber++;
-        this.parents = new HashSet<CgsuiteClass>();
-        this.ancestors = new HashSet<CgsuiteClass>();
-        this.methods = new HashMap<String,CgsuiteMethod>();
-        this.vars = new HashMap<String,CgsuiteVar>();
-        this.descendants = new HashSet<CgsuiteClass>();
-
-        this.parents.addAll(parents);
-        this.methods = new HashMap<String,CgsuiteMethod>();
-
-        for (CgsuiteClass parent : parents)
+        CgsuiteClass type = lookupClassGently(name);
+        if (type == null)
         {
-            this.ancestors.addAll(parent.ancestors);
-            for (CgsuiteMethod method : parent.methods.values())
-            {
-                if (methods.containsKey(method.getName()))
-                {
-                    if (methods.get(method.getName()) != method)
-                        throw new RuntimeException(); // XXX Refine
-                }
-                else
-                {
-                    methods.put(method.getName(), method);
-                }
-            }
+            throw new CgsuiteException("Class not found: " + name);
         }
+        return type;
+    }
 
-        for (CgsuiteClass ancestor : ancestors)
-        {
-            ancestor.descendants.add(this);
-        }
+    public static CgsuiteClass lookupClassGently(String name)
+    {
+        return (CgsuiteClass) CLASSES.get(name);
+    }
 
-        this.ancestors.add(this);
-
-        this.javaClassname = javaClassname;
+    public static void refresh()
+    {
+        ROOT_FO.refresh();
     }
 
     public Collection<CgsuiteClass> getParents()
     {
+        ensureLoaded();
         return parents;
     }
 
     @Override
     public CgsuiteObject resolve(String str)
     {
-        ensureFullyLoaded();
+        ensureLoaded();
         return super.resolve(str);
-    }
-
-    public void load()
-    {
-        if (loaded)
-            return;
-        
-        try
-        {
-            this.javaClass = Class.forName(javaClassname).asSubclass(CgsuiteObject.class);
-            try
-            {
-                this.defaultJavaConstructor = this.javaClass.getConstructor(CgsuiteClass.class);
-            }
-            catch (NoSuchMethodException exc)
-            {
-                this.defaultJavaConstructor = null;
-            }
-            this.loaded = true;
-        }
-        catch (ClassNotFoundException exc)
-        {
-            throw new IllegalArgumentException(exc);
-        }
-    }
-
-    public void ensureFullyLoaded()
-    {
-        load();
-        if (!declarationsLoaded)
-        {
-            Domain.CLASS_DOMAIN.loadDeclarations(this);
-            this.declarationsLoaded = true;
-        }
     }
 
     public boolean isLoaded()
@@ -153,6 +145,7 @@ public class CgsuiteClass extends CgsuiteObject
 
     public int getDeclNumber()
     {
+        ensureLoaded();
         return declNumber;
     }
 
@@ -176,45 +169,384 @@ public class CgsuiteClass extends CgsuiteObject
 
     public Class<? extends CgsuiteObject> getJavaClass()
     {
-        load();
+        ensureLoaded();
         return javaClass;
     }
 
     public Constructor<? extends CgsuiteObject> getDefaultJavaConstructor()
     {
+        ensureLoaded();
         return defaultJavaConstructor;
-    }
-
-    public void declareMethod(CgsuiteMethod method)
-    {
-        this.methods.put(method.getName(), method);
-
-        for (CgsuiteClass descendant : descendants)
-        {
-            descendant.declareMethod(method);
-        }
     }
 
     public CgsuiteObject lookup(String name)
     {
-        ensureFullyLoaded();
+        ensureLoaded();
         return methods.get(name);
     }
 
     public CgsuiteMethod lookupConstructor()
     {
-        ensureFullyLoaded();
+        ensureLoaded();
         // TODO Enforce class-named vars/methods are constructors
         return methods.get(this.name);
     }
 
     public Collection<CgsuiteMethod> allMethods()
     {
+        ensureLoaded();
         return methods.values();
     }
 
     public Collection<CgsuiteVar> allVars()
     {
+        ensureLoaded();
         return vars.values();
+    }
+
+    /////////////////////////////////
+    // Loader Logic
+
+    public void ensureLoaded()
+    {
+        if (!loaded)
+        {
+            load();
+        }
+    }
+
+    private void load()
+    {
+        try
+        {
+            ANTLRInputStream in = new SourcedAntlrInputStream(fo.getInputStream(), fo.getNameExt());
+            CgsuiteLexer lexer = new CgsuiteLexer(in);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CgsuiteParser parser = new CgsuiteParser(tokens);
+            parser.setTreeAdaptor(new CgsuiteTreeAdaptor());
+            CgsuiteParser.compilationUnit_return r = parser.compilationUnit();
+            if (parser.getNumberOfSyntaxErrors() == 0)
+            {
+                parseTree = (CgsuiteTree) r.getTree();
+                loaded = true;
+            }
+            else
+            {
+                throw new InputException("Syntax error(s) in " + fo.getNameExt() + ":\n" + parser.getErrorMessageString());
+            }
+        }
+        catch (IOException exc)
+        {
+            throw new InputException("I/O Error loading class file " + fo.getNameExt() + ".", exc);
+        }
+        catch (RecognitionException exc)
+        {
+            throw new InputException("Syntax error(s) in " + fo.getNameExt() + ".", exc);
+        }
+
+        this.parents = new HashSet<CgsuiteClass>();
+        this.ancestors = new HashSet<CgsuiteClass>();
+        this.methods = new HashMap<String,CgsuiteMethod>();
+        this.vars = new HashMap<String,CgsuiteVar>();
+        this.descendants = new HashSet<CgsuiteClass>();
+
+        this.declNumber = nextDeclNumber++;
+
+        classdef(parseTree.getChild(0));
+
+        for (CgsuiteClass parent : parents)
+        {
+            parent.ensureLoaded();
+            this.ancestors.addAll(parent.ancestors);
+            for (CgsuiteMethod method : parent.methods.values())
+            {
+                if (methods.containsKey(method.getName()))
+                {
+                    if (methods.get(method.getName()) != method)
+                        throw new RuntimeException(); // XXX Refine
+                }
+                else
+                {
+                    methods.put(method.getName(), method);
+                }
+            }
+        }
+
+        try
+        {
+            this.javaClass = Class.forName(javaClassname).asSubclass(CgsuiteObject.class);
+            try
+            {
+                this.defaultJavaConstructor = this.javaClass.getConstructor(CgsuiteClass.class);
+            }
+            catch (NoSuchMethodException exc)
+            {
+                this.defaultJavaConstructor = null;
+            }
+            this.loaded = true;
+        }
+        catch (ClassNotFoundException exc)
+        {
+            throw new InputException("Could not locate Java class for " + fo.getNameExt() + ": " + javaClassname);
+        }
+
+        declarations(parseTree.getChild(0));
+
+        this.loaded = true;
+
+        for (CgsuiteClass ancestor : ancestors)
+        {
+            ancestor.descendants.add(this);
+        }
+
+        this.ancestors.add(this);
+    }
+
+    private void classdef(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.getToken().getType())
+        {
+            case CgsuiteParser.CLASS:
+
+                if (!name.equals(tree.getChild(0).getText()))
+                {
+                    throw new CgsuiteException("Classname in file does not match filename: " + fo.getNameExt());
+                }
+                name = tree.getChild(0).getText();
+
+                int i = 1;
+
+                if (tree.getChild(i).getToken().getType() == EXTENDS)
+                    extendsClause(tree.getChild(i++));
+                else if (this != OBJECT)
+                    parents.add(OBJECT);
+
+                if (tree.getChild(i).getToken().getType() == JAVA)
+                    javaClassname = javaref(tree.getChild(i++));
+                else
+                    javaClassname = CgsuiteObject.class.getName();
+
+                break;
+
+            case CgsuiteParser.ENUM:
+
+                if (!name.equals(tree.getChild(1).getText()))
+                {
+                    throw new CgsuiteException("Classname in file does not match filename: " + fo.getNameExt());
+                }
+                parents.add(lookupClass("Enum"));
+                javaClassname = CgsuiteEnumValue.class.getName();
+                break;
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private void extendsClause(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.token.getType())
+        {
+            case EXTENDS:
+
+                for (CgsuiteTree node : tree.getChildren())
+                {
+                    CgsuiteClass parent = lookupClass(node.getText());
+                    assert parent != null : node.getText();
+                    parents.add(parent);
+                }
+                return;
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private String javaref(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.token.getType())
+        {
+            case JAVA:
+
+                String literal = tree.getChild(0).getText();
+                return literal.substring(1, literal.length()-1);
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private void declarations(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.getType())
+        {
+            case CgsuiteParser.CLASS:
+
+                classDeclarations(tree);
+                break;
+
+            case CgsuiteParser.ENUM:
+
+                enumDeclarations(tree);
+                break;
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private void classDeclarations(CgsuiteTree tree) throws CgsuiteException
+    {
+        for (int i = 0; i < tree.getChildCount(); i++)
+        {
+            switch (tree.getChild(i).getType())
+            {
+                case EXTENDS:
+                case JAVA:
+                case IDENTIFIER:
+                    break;
+
+                case METHOD:
+                case PROPERTY:
+                    declaration(tree.getChild(i));
+                    break;
+
+                default:
+                    throw new RuntimeException();
+            }
+        }
+    }
+
+    private void enumDeclarations(CgsuiteTree tree) throws CgsuiteException
+    {
+        int ordinal = 0;
+        for (int i = 2; i < tree.getChildCount(); i++)
+        {
+            String literal = tree.getChild(i).getText();
+            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, ordinal);
+            assign(literal, value);
+            value.assign("Ordinal", new RationalNumber(ordinal, 1));
+            ordinal++;
+        }
+    }
+
+    private void declaration(CgsuiteTree tree) throws CgsuiteException
+    {
+        String methodName;
+        String javaMethodName = null;
+        CgsuiteTree body = null;
+
+        switch (tree.token.getType())
+        {
+            case METHOD:
+
+                // TODO modifiers
+                methodName = methodName(tree.getChild(1));
+                List<Parameter> parameters = methodParameters(tree.getChild(2));
+
+                if (tree.getChild(3).getType() == JAVA)
+                    javaMethodName = javaref(tree.getChild(3));
+                else
+                    body = tree.getChild(3);
+
+                declareMethod(new CgsuiteMethod
+                    (this, methodName, parameters, body, javaMethodName));
+
+                return;
+
+            case PROPERTY:
+
+                methodName = tree.getChild(1).getText() + "$" + tree.getChild(2).getText();
+
+                if (tree.getChild(3).getType() == JAVA)
+                    javaMethodName = javaref(tree.getChild(3));
+                else
+                    body = tree.getChild(3);
+
+                declareMethod(new CgsuiteMethod
+                    (this, methodName, Collections.<Parameter>emptyList(), body, javaMethodName));
+
+                return;
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private void declareMethod(CgsuiteMethod method)
+    {
+        this.methods.put(method.getName(), method);
+    }
+
+    private String methodName(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.token.getType())
+        {
+            case IDENTIFIER:
+
+                return tree.getText();
+
+            case OP:
+
+                StringBuilder str = new StringBuilder("op ");
+                for (CgsuiteTree child : tree.getChildren())
+                    str.append(child.getText());
+                return str.toString();
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private List<Parameter> methodParameters(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.token.getType())
+        {
+            case METHOD_PARAMETER_LIST:
+
+                List<Parameter> parameters = new ArrayList<Parameter>(tree.getChildCount());
+                for (int i = 0; i < tree.getChildCount(); i++)
+                    parameters.add(methodParameter(tree.getChild(i)));
+
+                return parameters;
+
+            default:
+
+                throw new RuntimeException();
+        }
+    }
+
+    private Parameter methodParameter(CgsuiteTree tree) throws CgsuiteException
+    {
+        String parameterName;
+        CgsuiteClass parameterType;
+        CgsuiteTree defaultValue;
+
+        switch (tree.token.getType())
+        {
+            case IDENTIFIER:
+
+                parameterName = tree.getText();
+                parameterType = (tree.getChildCount() > 0)? lookupClass(tree.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                return new Parameter(parameterName, parameterType, false, null);
+
+            case QUESTION:
+
+                CgsuiteTree subt = tree.getChild(0);
+                parameterName = subt.getText();
+                parameterType = (subt.getChildCount() > 0)? lookupClass(subt.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
+                return new Parameter(parameterName, parameterType, true, defaultValue);
+
+            default:
+
+                throw new RuntimeException();
+        }
     }
 }

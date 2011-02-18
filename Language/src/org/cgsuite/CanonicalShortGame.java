@@ -258,7 +258,7 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
 
     private CanonicalShortGame()
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("CanonicalShortGame"));
+        super(CgsuiteClass.lookupClass("CanonicalShortGame"));
     }
 
     /**

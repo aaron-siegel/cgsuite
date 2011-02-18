@@ -37,7 +37,7 @@ public class Capsule implements FileChangeListener
     {
         if (!loaded)
         {
-            ANTLRInputStream in = new MyInputStream(fo.getInputStream(), fo.getNameExt());
+            ANTLRInputStream in = new SourcedAntlrInputStream(fo.getInputStream(), fo.getNameExt());
             CgsuiteLexer lexer = new CgsuiteLexer(in);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             CgsuiteParser parser = new CgsuiteParser(tokens);

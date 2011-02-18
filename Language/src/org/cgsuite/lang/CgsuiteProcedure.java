@@ -22,7 +22,7 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
 
     public CgsuiteProcedure(List<String> parameters, CgsuiteTree tree, Domain domain)
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Procedure"));
+        super(CgsuiteClass.lookupClass("Procedure"));
         this.parameters = parameters;
         this.tree = tree;
         this.domain = domain;

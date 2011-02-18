@@ -33,6 +33,7 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
+import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteLexer;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteParser;
@@ -47,6 +48,8 @@ import org.cgsuite.lang.InputException;
  */
 public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
 {
+    private final static Domain WORKSHEET_DOMAIN = new Domain();
+
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
     {
@@ -160,7 +163,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
         CgsuiteTree tree = null;
         try
         {
-            Domain.CLASS_DOMAIN.refresh();
+            CgsuiteClass.refresh();
             ANTLRStringStream input = new ANTLRStringStream(source.getText());
             CgsuiteLexer lexer = new CgsuiteLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -180,7 +183,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
             }
             else
             {
-                CgsuiteObject retval = Domain.CLASS_DOMAIN.script(tree);
+                CgsuiteObject retval = WORKSHEET_DOMAIN.script(tree);
                 output = new Output[]
                 {
                     new CoreIOHandler().createOutput(retval.invoke("Simplify"))

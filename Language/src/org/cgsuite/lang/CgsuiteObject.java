@@ -61,8 +61,6 @@ public class CgsuiteObject
 
     public CgsuiteObject resolve(String name) throws CgsuiteException
     {
-        type.ensureFullyLoaded();
-
         CgsuiteMethod getter = (CgsuiteMethod) type.lookup(name + "$get");
 
         if (getter != null)
@@ -129,7 +127,7 @@ public class CgsuiteObject
 
         InstanceMethod(CgsuiteMethod method) throws CgsuiteException
         {
-            super(Domain.CLASS_DOMAIN.lookupClass("InstanceMethod"));
+            super(CgsuiteClass.lookupClass("InstanceMethod"));
 
             this.method = method;
             this.thisCast = castForMethodCall(method);

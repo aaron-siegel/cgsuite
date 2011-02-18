@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.cgsuite.lang.CgsuiteClass;
 
 import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.Domain;
 
 public class ExplicitGame extends Game
 {
@@ -16,7 +16,7 @@ public class ExplicitGame extends Game
 
     public ExplicitGame(Set<CgsuiteObject> leftOptions, Set<CgsuiteObject> rightOptions)
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("ExplicitGame"));
+        super(CgsuiteClass.lookupClass("ExplicitGame"));
 
         this.leftOptions = leftOptions;
         this.rightOptions = rightOptions;

@@ -19,7 +19,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     private CgsuiteClass declaringClass;
     private boolean isConstructor;
 
-    private String javaMethodspec;
+    private String javaMethodSpec;
     private String javaMethodName;
     private Class<?>[] javaParameterTypes;
     private Method javaMethod;
@@ -28,12 +28,12 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     public CgsuiteMethod(CgsuiteClass declaringClass, String name, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
         throws CgsuiteException
     {
-        super(Domain.CLASS_DOMAIN.lookupClass("Method"));
+        super(CgsuiteClass.lookupClass("Method"));
 
         this.name = name;
         this.declaringClass = declaringClass;
         this.parameters = parameters;
-        this.javaMethodspec = javaMethodSpec;
+        this.javaMethodSpec = javaMethodSpec;
         this.isConstructor = name.equals(declaringClass.getName());
 
         for (Parameter p : parameters)
@@ -47,63 +47,64 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             nRequiredParameters++;
         }
 
-        if (tree == null)
+        this.tree = tree;
+    }
+
+    private void ensureLoaded()
+    {
+        if (tree != null || javaMethod != null)
+            return;
+
+        javaParameterTypes = new Class<?>[parameters.size()];
+        int parenpos = javaMethodSpec.indexOf('(');
+        if (parenpos == -1)
         {
-            javaParameterTypes = new Class<?>[parameters.size()];
-            int parenpos = javaMethodSpec.indexOf('(');
-            if (parenpos == -1)
+            // Implicit parameter types.
+            javaMethodName = javaMethodSpec;
+            for (int i = 0; i < javaParameterTypes.length; i++)
             {
-                // Implicit parameter types.
-                javaMethodName = javaMethodSpec;
-                for (int i = 0; i < javaParameterTypes.length; i++)
-                {
-                    javaParameterTypes[i] = parameters.get(i).type.getJavaClass();
-                }
+                javaParameterTypes[i] = parameters.get(i).type.getJavaClass();
             }
-            else try
+        }
+        else try
+        {
+            // TODO Validate closing paren
+            javaMethodName = javaMethodSpec.substring(0, parenpos);
+            String[] parameterNames = javaMethodSpec.substring(parenpos+1, javaMethodSpec.length()-1).split(",");
+            // TODO Validate number of parameters
+            for (int i = 0; i < parameterNames.length; i++)
             {
-                // TODO Validate closing paren
-                javaMethodName = javaMethodSpec.substring(0, parenpos);
-                String[] parameterNames = javaMethodSpec.substring(parenpos+1, javaMethodSpec.length()-1).split(",");
-                // TODO Validate number of parameters
-                for (int i = 0; i < parameterNames.length; i++)
-                {
-                    if ("int".equals(parameterNames[i]))
-                        javaParameterTypes[i] = int.class;
-                    else
-                        javaParameterTypes[i] = Class.forName(parameterNames[i]);
-                }
+                if ("int".equals(parameterNames[i]))
+                    javaParameterTypes[i] = int.class;
+                else
+                    javaParameterTypes[i] = Class.forName(parameterNames[i]);
             }
-            catch (ClassNotFoundException exc)
+        }
+        catch (ClassNotFoundException exc)
+        {
+            throw new IllegalArgumentException("Unknown Java class: " + exc.getMessage(), exc);
+        }
+        if (javaMethodSpec.equals(declaringClass.getName()))
+        {
+            try
             {
-                throw new IllegalArgumentException("Unknown Java class: " + exc.getMessage(), exc);
+                javaConstructor = declaringClass.getJavaClass().getConstructor(javaParameterTypes);
             }
-            if (javaMethodSpec.equals(declaringClass.getName()))
+            catch (NoSuchMethodException exc)
             {
-                try
-                {
-                    javaConstructor = declaringClass.getJavaClass().getConstructor(javaParameterTypes);
-                }
-                catch (NoSuchMethodException exc)
-                {
-                    throw new IllegalArgumentException("Java constructor not found: " + exc.getMessage(), exc);
-                }
-            }
-            else
-            {
-                try
-                {
-                    javaMethod = declaringClass.getJavaClass().getMethod(javaMethodName, javaParameterTypes);
-                }
-                catch (NoSuchMethodException exc)
-                {
-                    throw new IllegalArgumentException("Java method not found: " + exc.getMessage(), exc);
-                }
+                throw new IllegalArgumentException("Java constructor not found: " + exc.getMessage(), exc);
             }
         }
         else
         {
-            this.tree = tree;
+            try
+            {
+                javaMethod = declaringClass.getJavaClass().getMethod(javaMethodName, javaParameterTypes);
+            }
+            catch (NoSuchMethodException exc)
+            {
+                throw new IllegalArgumentException("Java method not found: " + exc.getMessage(), exc);
+            }
         }
     }
 
@@ -124,6 +125,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
     public Method getJavaMethod()
     {
+        ensureLoaded();
         return javaMethod;
     }
 
@@ -137,6 +139,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     public CgsuiteObject invoke(CgsuiteObject obj, List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
         throws CgsuiteException
     {
+        ensureLoaded();
+
         if (arguments.size() < nRequiredParameters || arguments.size() > parameters.size())
             throw new IllegalArgumentException();
 

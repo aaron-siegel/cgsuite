@@ -13,11 +13,11 @@ import org.antlr.runtime.ANTLRInputStream;
  *
  * @author asiegel
  */
-public class MyInputStream extends ANTLRInputStream
+public class SourcedAntlrInputStream extends ANTLRInputStream
 {
     private String source;
 
-    public MyInputStream(InputStream in, String source) throws IOException
+    public SourcedAntlrInputStream(InputStream in, String source) throws IOException
     {
         super(in);
         this.source = source;
