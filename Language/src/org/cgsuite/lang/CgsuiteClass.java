@@ -194,8 +194,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             CgsuiteParser.compilationUnit_return r = parser.compilationUnit();
             if (parser.getNumberOfSyntaxErrors() == 0)
             {
-                parseTree = (CgsuiteTree) r.getTree();
-                loaded = true;
+                this.parseTree = (CgsuiteTree) r.getTree();
             }
             else
             {
@@ -277,18 +276,18 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 if (!name.equals(tree.getChild(0).getText()))
                 {
-                    throw new CgsuiteException("Classname in file does not match filename: " + fo.getNameExt());
+                    throw new InputException(tree.getChild(0).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
                 }
                 name = tree.getChild(0).getText();
 
                 int i = 1;
 
-                if (tree.getChild(i).getToken().getType() == EXTENDS)
+                if (i < tree.getChildCount() && tree.getChild(i).getToken().getType() == EXTENDS)
                     extendsClause(tree.getChild(i++));
                 else if (this != OBJECT)
                     parents.add(OBJECT);
 
-                if (tree.getChild(i).getToken().getType() == JAVA)
+                if (i < tree.getChildCount() && tree.getChild(i).getToken().getType() == JAVA)
                     javaClassname = javaref(tree.getChild(i++));
                 else
                     javaClassname = CgsuiteObject.class.getName();
@@ -299,7 +298,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 if (!name.equals(tree.getChild(1).getText()))
                 {
-                    throw new CgsuiteException("Classname in file does not match filename: " + fo.getNameExt());
+                    throw new InputException(tree.getChild(1).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
                 }
                 parents.add(CgsuitePackage.getRootPackage().forceLookupClassInPackage("Enum"));
                 javaClassname = CgsuiteEnumValue.class.getName();
