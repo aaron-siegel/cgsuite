@@ -1,4 +1,4 @@
-// $ANTLR 3.3 Nov 30, 2010 12:45:30 C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g 2011-02-15 18:42:04
+// $ANTLR 3.3 Nov 30, 2010 12:45:30 C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g 2011-02-18 14:07:18
 
     package org.cgsuite.lang;
 
@@ -109,37 +109,39 @@ import java.util.ArrayList;
     public static final int ARRAY_REFERENCE=100;
     public static final int ARRAY_INDEX_LIST=101;
     public static final int ASN_ANTECEDENT=102;
-    public static final int EXPLICIT_LIST=103;
-    public static final int EXPLICIT_MAP=104;
-    public static final int EXPLICIT_SET=105;
-    public static final int EXPRESSION_LIST=106;
-    public static final int FUNCTION_CALL=107;
-    public static final int FUNCTION_CALL_ARGUMENT_LIST=108;
-    public static final int METHOD_PARAMETER_LIST=109;
-    public static final int MODIFIERS=110;
-    public static final int MULTI_CARET=111;
-    public static final int MULTI_VEE=112;
-    public static final int PROCEDURE_PARAMETER_LIST=113;
-    public static final int STATEMENT_SEQUENCE=114;
-    public static final int UNARY_AST=115;
-    public static final int UNARY_MINUS=116;
-    public static final int UNARY_PLUS=117;
-    public static final int IDENTIFIER=118;
-    public static final int STRING=119;
-    public static final int INTEGER=120;
-    public static final int CHAR=121;
-    public static final int SLASHES=122;
-    public static final int DIGIT=123;
-    public static final int LETTER=124;
-    public static final int ESCAPE_SEQ=125;
-    public static final int SLASH=126;
-    public static final int HEX_DIGIT=127;
-    public static final int UC_LETTER=128;
-    public static final int LC_LETTER=129;
-    public static final int NEWLINE=130;
-    public static final int WHITESPACE=131;
-    public static final int SL_COMMENT=132;
-    public static final int ML_COMMENT=133;
+    public static final int ENUM_ELEMENT=103;
+    public static final int ENUM_ELEMENT_LIST=104;
+    public static final int EXPLICIT_LIST=105;
+    public static final int EXPLICIT_MAP=106;
+    public static final int EXPLICIT_SET=107;
+    public static final int EXPRESSION_LIST=108;
+    public static final int FUNCTION_CALL=109;
+    public static final int FUNCTION_CALL_ARGUMENT_LIST=110;
+    public static final int METHOD_PARAMETER_LIST=111;
+    public static final int MODIFIERS=112;
+    public static final int MULTI_CARET=113;
+    public static final int MULTI_VEE=114;
+    public static final int PROCEDURE_PARAMETER_LIST=115;
+    public static final int STATEMENT_SEQUENCE=116;
+    public static final int UNARY_AST=117;
+    public static final int UNARY_MINUS=118;
+    public static final int UNARY_PLUS=119;
+    public static final int IDENTIFIER=120;
+    public static final int STRING=121;
+    public static final int INTEGER=122;
+    public static final int CHAR=123;
+    public static final int SLASHES=124;
+    public static final int DIGIT=125;
+    public static final int LETTER=126;
+    public static final int ESCAPE_SEQ=127;
+    public static final int SLASH=128;
+    public static final int HEX_DIGIT=129;
+    public static final int UC_LETTER=130;
+    public static final int LC_LETTER=131;
+    public static final int NEWLINE=132;
+    public static final int WHITESPACE=133;
+    public static final int SL_COMMENT=134;
+    public static final int ML_COMMENT=135;
 
     // delegates
     // delegators
@@ -2148,10 +2150,10 @@ import java.util.ArrayList;
         try {
             int _type = INTEGER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:564:10: ( ( DIGIT )+ )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:564:12: ( DIGIT )+
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:10: ( ( DIGIT )+ )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:12: ( DIGIT )+
             {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:564:12: ( DIGIT )+
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:12: ( DIGIT )+
             int cnt1=0;
             loop1:
             do {
@@ -2165,7 +2167,7 @@ import java.util.ArrayList;
 
                 switch (alt1) {
             	case 1 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:564:12: DIGIT
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:12: DIGIT
             	    {
             	    mDIGIT(); 
 
@@ -2197,11 +2199,11 @@ import java.util.ArrayList;
         try {
             int _type = IDENTIFIER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:566:12: ( LETTER ( LETTER | DIGIT )* )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:566:14: LETTER ( LETTER | DIGIT )*
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:574:12: ( LETTER ( LETTER | DIGIT )* )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:574:14: LETTER ( LETTER | DIGIT )*
             {
             mLETTER(); 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:566:21: ( LETTER | DIGIT )*
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:574:21: ( LETTER | DIGIT )*
             loop2:
             do {
                 int alt2=2;
@@ -2250,11 +2252,11 @@ import java.util.ArrayList;
         try {
             int _type = STRING;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:568:9: ( DQUOTE (~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )* DQUOTE )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:568:11: DQUOTE (~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )* DQUOTE
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:576:9: ( DQUOTE (~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )* DQUOTE )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:576:11: DQUOTE (~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )* DQUOTE
             {
             mDQUOTE(); 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:568:18: (~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )*
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:576:18: (~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )*
             loop3:
             do {
                 int alt3=3;
@@ -2270,7 +2272,7 @@ import java.util.ArrayList;
 
                 switch (alt3) {
             	case 1 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:568:19: ~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' )
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:576:19: ~ ( DQUOTE | BACKSLASH | '\\n' | '\\r' )
             	    {
             	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='\t')||(input.LA(1)>='\u000B' && input.LA(1)<='\f')||(input.LA(1)>='\u000E' && input.LA(1)<='!')||(input.LA(1)>='#' && input.LA(1)<='[')||(input.LA(1)>=']' && input.LA(1)<='\uFFFF') ) {
             	        input.consume();
@@ -2285,7 +2287,7 @@ import java.util.ArrayList;
             	    }
             	    break;
             	case 2 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:568:51: ESCAPE_SEQ
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:576:51: ESCAPE_SEQ
             	    {
             	    mESCAPE_SEQ(); 
 
@@ -2314,11 +2316,11 @@ import java.util.ArrayList;
         try {
             int _type = CHAR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:570:7: ( SQUOTE (~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ ) SQUOTE )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:570:9: SQUOTE (~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ ) SQUOTE
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:578:7: ( SQUOTE (~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ ) SQUOTE )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:578:9: SQUOTE (~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ ) SQUOTE
             {
             mSQUOTE(); 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:570:16: (~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:578:16: (~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' ) | ESCAPE_SEQ )
             int alt4=2;
             int LA4_0 = input.LA(1);
 
@@ -2336,7 +2338,7 @@ import java.util.ArrayList;
             }
             switch (alt4) {
                 case 1 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:570:17: ~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' )
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:578:17: ~ ( SQUOTE | BACKSLASH | '\\n' | '\\r' )
                     {
                     if ( (input.LA(1)>='\u0000' && input.LA(1)<='\t')||(input.LA(1)>='\u000B' && input.LA(1)<='\f')||(input.LA(1)>='\u000E' && input.LA(1)<='&')||(input.LA(1)>='(' && input.LA(1)<='[')||(input.LA(1)>=']' && input.LA(1)<='\uFFFF') ) {
                         input.consume();
@@ -2351,7 +2353,7 @@ import java.util.ArrayList;
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:570:49: ESCAPE_SEQ
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:578:49: ESCAPE_SEQ
                     {
                     mESCAPE_SEQ(); 
 
@@ -2377,10 +2379,10 @@ import java.util.ArrayList;
         try {
             int _type = SLASHES;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:10: ( ( SLASH )+ )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:12: ( SLASH )+
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:580:10: ( ( SLASH )+ )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:580:12: ( SLASH )+
             {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:12: ( SLASH )+
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:580:12: ( SLASH )+
             int cnt5=0;
             loop5:
             do {
@@ -2394,7 +2396,7 @@ import java.util.ArrayList;
 
                 switch (alt5) {
             	case 1 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:572:12: SLASH
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:580:12: SLASH
             	    {
             	    mSLASH(); 
 
@@ -2424,8 +2426,8 @@ import java.util.ArrayList;
     // $ANTLR start "DIGIT"
     public final void mDIGIT() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:575:8: ( '0' .. '9' )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:575:10: '0' .. '9'
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:583:8: ( '0' .. '9' )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:583:10: '0' .. '9'
             {
             matchRange('0','9'); 
 
@@ -2440,7 +2442,7 @@ import java.util.ArrayList;
     // $ANTLR start "HEX_DIGIT"
     public final void mHEX_DIGIT() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:578:11: ( '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:586:11: ( '0' .. '9' | 'A' .. 'F' | 'a' .. 'f' )
             // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:
             {
             if ( (input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='F')||(input.LA(1)>='a' && input.LA(1)<='f') ) {
@@ -2464,7 +2466,7 @@ import java.util.ArrayList;
     // $ANTLR start "LETTER"
     public final void mLETTER() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:581:9: ( UC_LETTER | LC_LETTER | UNDERSCORE )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:589:9: ( UC_LETTER | LC_LETTER | UNDERSCORE )
             // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:
             {
             if ( (input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
@@ -2488,8 +2490,8 @@ import java.util.ArrayList;
     // $ANTLR start "UC_LETTER"
     public final void mUC_LETTER() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:584:11: ( 'A' .. 'Z' )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:584:13: 'A' .. 'Z'
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:592:11: ( 'A' .. 'Z' )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:592:13: 'A' .. 'Z'
             {
             matchRange('A','Z'); 
 
@@ -2504,8 +2506,8 @@ import java.util.ArrayList;
     // $ANTLR start "LC_LETTER"
     public final void mLC_LETTER() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:587:11: ( 'a' .. 'z' )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:587:13: 'a' .. 'z'
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:595:11: ( 'a' .. 'z' )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:595:13: 'a' .. 'z'
             {
             matchRange('a','z'); 
 
@@ -2520,8 +2522,8 @@ import java.util.ArrayList;
     // $ANTLR start "SLASH"
     public final void mSLASH() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:590:8: ( '|' )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:590:10: '|'
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:598:8: ( '|' )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:598:10: '|'
             {
             match('|'); 
 
@@ -2536,11 +2538,11 @@ import java.util.ArrayList;
     // $ANTLR start "ESCAPE_SEQ"
     public final void mESCAPE_SEQ() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:593:12: ( BACKSLASH ( BACKSLASH | 'n' | 'r' | 't' | SQUOTE | DQUOTE | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT ) )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:593:14: BACKSLASH ( BACKSLASH | 'n' | 'r' | 't' | SQUOTE | DQUOTE | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:601:12: ( BACKSLASH ( BACKSLASH | 'n' | 'r' | 't' | SQUOTE | DQUOTE | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT ) )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:601:14: BACKSLASH ( BACKSLASH | 'n' | 'r' | 't' | SQUOTE | DQUOTE | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
             {
             mBACKSLASH(); 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:594:6: ( BACKSLASH | 'n' | 'r' | 't' | SQUOTE | DQUOTE | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:602:6: ( BACKSLASH | 'n' | 'r' | 't' | SQUOTE | DQUOTE | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
             int alt6=7;
             switch ( input.LA(1) ) {
             case '\\':
@@ -2587,49 +2589,49 @@ import java.util.ArrayList;
 
             switch (alt6) {
                 case 1 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:594:8: BACKSLASH
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:602:8: BACKSLASH
                     {
                     mBACKSLASH(); 
 
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:595:8: 'n'
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:603:8: 'n'
                     {
                     match('n'); 
 
                     }
                     break;
                 case 3 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:596:8: 'r'
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:604:8: 'r'
                     {
                     match('r'); 
 
                     }
                     break;
                 case 4 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:597:8: 't'
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:605:8: 't'
                     {
                     match('t'); 
 
                     }
                     break;
                 case 5 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:598:8: SQUOTE
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:606:8: SQUOTE
                     {
                     mSQUOTE(); 
 
                     }
                     break;
                 case 6 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:599:8: DQUOTE
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:8: DQUOTE
                     {
                     mDQUOTE(); 
 
                     }
                     break;
                 case 7 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:600:8: 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:608:8: 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
                     {
                     match('u'); 
                     mHEX_DIGIT(); 
@@ -2654,10 +2656,10 @@ import java.util.ArrayList;
     // $ANTLR start "NEWLINE"
     public final void mNEWLINE() throws RecognitionException {
         try {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:605:13: ( ( '\\r' )? '\\n' )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:605:15: ( '\\r' )? '\\n'
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:613:13: ( ( '\\r' )? '\\n' )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:613:15: ( '\\r' )? '\\n'
             {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:605:15: ( '\\r' )?
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:613:15: ( '\\r' )?
             int alt7=2;
             int LA7_0 = input.LA(1);
 
@@ -2666,7 +2668,7 @@ import java.util.ArrayList;
             }
             switch (alt7) {
                 case 1 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:605:15: '\\r'
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:613:15: '\\r'
                     {
                     match('\r'); 
 
@@ -2690,10 +2692,10 @@ import java.util.ArrayList;
         try {
             int _type = WHITESPACE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:14: ( ( ' ' | '\\t' | NEWLINE )+ )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:16: ( ' ' | '\\t' | NEWLINE )+
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:615:14: ( ( ' ' | '\\t' | NEWLINE )+ )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:615:16: ( ' ' | '\\t' | NEWLINE )+
             {
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:16: ( ' ' | '\\t' | NEWLINE )+
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:615:16: ( ' ' | '\\t' | NEWLINE )+
             int cnt8=0;
             loop8:
             do {
@@ -2720,21 +2722,21 @@ import java.util.ArrayList;
 
                 switch (alt8) {
             	case 1 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:17: ' '
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:615:17: ' '
             	    {
             	    match(' '); 
 
             	    }
             	    break;
             	case 2 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:23: '\\t'
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:615:23: '\\t'
             	    {
             	    match('\t'); 
 
             	    }
             	    break;
             	case 3 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:607:30: NEWLINE
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:615:30: NEWLINE
             	    {
             	    mNEWLINE(); 
 
@@ -2767,12 +2769,12 @@ import java.util.ArrayList;
         try {
             int _type = SL_COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:609:14: ( '//' (~ ( '\\r' | '\\n' ) )* NEWLINE )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:609:16: '//' (~ ( '\\r' | '\\n' ) )* NEWLINE
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:617:14: ( '//' (~ ( '\\r' | '\\n' ) )* NEWLINE )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:617:16: '//' (~ ( '\\r' | '\\n' ) )* NEWLINE
             {
             match("//"); 
 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:609:21: (~ ( '\\r' | '\\n' ) )*
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:617:21: (~ ( '\\r' | '\\n' ) )*
             loop9:
             do {
                 int alt9=2;
@@ -2785,7 +2787,7 @@ import java.util.ArrayList;
 
                 switch (alt9) {
             	case 1 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:609:21: ~ ( '\\r' | '\\n' )
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:617:21: ~ ( '\\r' | '\\n' )
             	    {
             	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='\t')||(input.LA(1)>='\u000B' && input.LA(1)<='\f')||(input.LA(1)>='\u000E' && input.LA(1)<='\uFFFF') ) {
             	        input.consume();
@@ -2823,12 +2825,12 @@ import java.util.ArrayList;
         try {
             int _type = ML_COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:12: ( '/*' (~ ( '*' ) | '*' ~ ( '/' ) )* ( '*/' )? )
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:14: '/*' (~ ( '*' ) | '*' ~ ( '/' ) )* ( '*/' )?
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:12: ( '/*' (~ ( '*' ) | '*' ~ ( '/' ) )* ( '*/' )? )
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:14: '/*' (~ ( '*' ) | '*' ~ ( '/' ) )* ( '*/' )?
             {
             match("/*"); 
 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:19: (~ ( '*' ) | '*' ~ ( '/' ) )*
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:19: (~ ( '*' ) | '*' ~ ( '/' ) )*
             loop10:
             do {
                 int alt10=3;
@@ -2850,7 +2852,7 @@ import java.util.ArrayList;
 
                 switch (alt10) {
             	case 1 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:21: ~ ( '*' )
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:21: ~ ( '*' )
             	    {
             	    if ( (input.LA(1)>='\u0000' && input.LA(1)<=')')||(input.LA(1)>='+' && input.LA(1)<='\uFFFF') ) {
             	        input.consume();
@@ -2865,7 +2867,7 @@ import java.util.ArrayList;
             	    }
             	    break;
             	case 2 :
-            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:30: '*' ~ ( '/' )
+            	    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:30: '*' ~ ( '/' )
             	    {
             	    match('*'); 
             	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='.')||(input.LA(1)>='0' && input.LA(1)<='\uFFFF') ) {
@@ -2886,7 +2888,7 @@ import java.util.ArrayList;
                 }
             } while (true);
 
-            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:45: ( '*/' )?
+            // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:45: ( '*/' )?
             int alt11=2;
             int LA11_0 = input.LA(1);
 
@@ -2895,7 +2897,7 @@ import java.util.ArrayList;
             }
             switch (alt11) {
                 case 1 :
-                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:611:45: '*/'
+                    // C:\\Users\\asiegel\\Documents\\NetBeansProjects\\CGSuite\\Language\\src\\org\\cgsuite\\lang\\Cgsuite.g:619:45: '*/'
                     {
                     match("*/"); 
 

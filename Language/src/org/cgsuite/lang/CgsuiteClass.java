@@ -2,10 +2,8 @@ package org.cgsuite.lang;
 
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
-import java.io.File;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileRenameEvent;
-import org.openide.filesystems.LocalFileSystem;
 import java.util.Collections;
 import org.cgsuite.RationalNumber;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
@@ -198,7 +196,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             }
             else
             {
-                throw new InputException("Syntax error(s) in " + fo.getNameExt() + ":\n" + parser.getErrorMessageString());
+                // TODO Improve this message.
+                throw new InputException("Syntax error(s) in " + fo.getNameExt() + ": " + parser.getErrorMessageString());
             }
         }
         catch (IOException exc)
@@ -389,14 +388,28 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void enumDeclarations(CgsuiteTree tree) throws CgsuiteException
     {
-        int ordinal = 0;
-        for (int i = 2; i < tree.getChildCount(); i++)
+        assert tree.getChild(2).getType() == ENUM_ELEMENT_LIST : tree.getChild(2).toStringTree();
+        for (int i = 0; i < tree.getChild(2).getChildCount(); i++)
         {
-            String literal = tree.getChild(i).getText();
-            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, ordinal);
+            assert tree.getChild(2).getChild(i).getType() == ENUM_ELEMENT : tree.getChild(2).toStringTree();
+            String literal = tree.getChild(2).getChild(i).getChild(0).getText();
+            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
             assign(literal, value);
-            value.assign("Ordinal", new RationalNumber(ordinal, 1));
-            ordinal++;
+            value.assign("Ordinal", new RationalNumber(i, 1));
+        }
+
+        for (int i = 3; i < tree.getChildCount(); i++)
+        {
+            switch (tree.getChild(i).getType())
+            {
+                case METHOD:
+                case PROPERTY:
+                    declaration(tree.getChild(i));
+                    break;
+
+                default:
+                    throw new RuntimeException();
+            }
         }
     }
 

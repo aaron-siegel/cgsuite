@@ -114,6 +114,8 @@ tokens
 	ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
 	ASN_ANTECEDENT;
+    ENUM_ELEMENT;
+    ENUM_ELEMENT_LIST;
 	EXPLICIT_LIST;
 	EXPLICIT_MAP;
 	EXPLICIT_SET;
@@ -217,7 +219,6 @@ declaration
 	: varDeclaration
 	| propertyDeclaration
 	| methodDeclaration
-    | enumDeclaration
 	;
 	
 varDeclaration
@@ -267,8 +268,15 @@ methodParameter
 	;
 
 enumDeclaration
-    : modifiers ENUM^ IDENTIFIER
-      (IDENTIFIER (COMMA! IDENTIFIER)*) SEMI!? END
+    : modifiers ENUM^ IDENTIFIER enumElementList declaration* END!
+    ;
+
+enumElementList
+    : (enumElement (COMMA enumElement)*) SEMI -> ^(ENUM_ELEMENT_LIST enumElement*)
+    ;
+
+enumElement
+    : IDENTIFIER (LPAREN (expression (COMMA expression)*)? RPAREN)? -> ^(ENUM_ELEMENT[$IDENTIFIER] IDENTIFIER expression*)
     ;
 
 script
