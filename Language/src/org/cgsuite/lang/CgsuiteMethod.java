@@ -262,24 +262,11 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
                 domain.put("this", newObj);
                 retval = newObj;
-                try
-                {
-                    domain.statementSequence(tree);
-                }
-                catch (ReturnException exc)
-                {
-                }
+                domain.invocation(tree);
             }
             else
             {
-                try
-                {
-                    retval = domain.statementSequence(tree);
-                }
-                catch (ReturnException exc)
-                {
-                    retval = exc.getRetval();
-                }
+                retval = domain.invocation(tree);
             }
         }
 

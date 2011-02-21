@@ -20,10 +20,12 @@ import org.cgsuite.RationalNumber;
 public class Domain
 {
     private Namespace namespace;
+    private Mode mode;
 
     public Domain()
     {
         namespace = new Namespace();
+        mode = Mode.NORMAL;
     }
 
     public CgsuiteObject lookup(String str)
@@ -60,7 +62,18 @@ public class Domain
         }
     }
 
-    public CgsuiteObject statementSequence(CgsuiteTree tree) throws CgsuiteException
+    public CgsuiteObject invocation(CgsuiteTree tree) throws CgsuiteException
+    {
+        CgsuiteObject retval = statementSequence(tree);
+        if (mode == Mode.RETURNING)
+        {
+            mode = Mode.NORMAL;
+            retval = returnValue;
+        }
+        return retval;
+    }
+
+    private CgsuiteObject statementSequence(CgsuiteTree tree) throws CgsuiteException
     {
         switch (tree.token.getType())
         {
@@ -68,7 +81,11 @@ public class Domain
 
                 CgsuiteObject retval = CgsuiteObject.NIL;
                 for (CgsuiteTree child : tree.getChildren())
+                {
                     retval = statement(child);
+                    if (mode != Mode.NORMAL)
+                        break;
+                }
                 return retval;
 
             default:
@@ -77,15 +94,15 @@ public class Domain
         }
     }
 
-    public CgsuiteObject statement(CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteObject statement(CgsuiteTree tree) throws CgsuiteException
     {
         switch (tree.token.getType())
         {
-            case BREAK:     throw new BreakException(false);
+            case BREAK:     mode = Mode.BREAKING; return null;
 
-            case CONTINUE:  throw new BreakException(true);
+            case CONTINUE:  mode = Mode.CONTINUING; return null;
 
-            case RETURN:    throw new ReturnException(expression(tree.getChild(0)));
+            case RETURN:    returnValue = expression(tree.getChild(0)); mode = Mode.RETURNING; return null;
 
             case CLEAR:     namespace.clear();  // XXX Clear classes?
                             return CgsuiteObject.NIL;
@@ -94,7 +111,7 @@ public class Domain
         }
     }
 
-    public void assignTo(CgsuiteTree tree, CgsuiteObject x) throws CgsuiteException
+    private void assignTo(CgsuiteTree tree, CgsuiteObject x) throws CgsuiteException
     {
         String id;
         CgsuiteObject obj;
@@ -117,7 +134,15 @@ public class Domain
 
                 obj = expression(tree.getChild(0));
                 id = tree.getChild(1).getText();
-                obj.assign(id, x);
+                try
+                {
+                    obj.assign(id, x);
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.token);
+                    throw exc;
+                }
                 return;
 
             default:
@@ -169,7 +194,7 @@ public class Domain
         return obj;
     }
 
-    public CgsuiteObject expression2(CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteObject expression2(CgsuiteTree tree) throws CgsuiteException
     {
         boolean cond;
         String id;
@@ -383,7 +408,7 @@ public class Domain
         }
     }
 
-    public List<String> procedureParameters(CgsuiteTree tree) throws CgsuiteException
+    private List<String> procedureParameters(CgsuiteTree tree) throws CgsuiteException
     {
         switch (tree.token.getType())
         {
@@ -499,17 +524,17 @@ public class Domain
 
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
-                try
+                retval = statementSequence(body);
+                if (mode == Mode.BREAKING)
                 {
-                    retval = statementSequence(body);
-                }
-                catch (BreakException exc)
-                {
+                    mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
-                    if (!exc.isContinue())
-                    {
-                        break;
-                    }
+                    break;
+                }
+                if (mode == Mode.CONTINUING)
+                {
+                    mode = Mode.NORMAL;
+                    retval = CgsuiteObject.NIL;
                 }
             }
 
@@ -549,17 +574,17 @@ public class Domain
         while (it.hasNext())
         {
             namespace.put(forId, it.next());
-            try
+            retval = statementSequence(body);
+            if (mode == Mode.BREAKING)
             {
-                retval = statementSequence(body);
-            }
-            catch (BreakException exc)
-            {
+                mode = Mode.NORMAL;
                 retval = CgsuiteObject.NIL;
-                if (!exc.isContinue())
-                {
-                    break;
-                }
+                break;
+            }
+            if (mode == Mode.CONTINUING)
+            {
+                mode = Mode.NORMAL;
+                retval = CgsuiteObject.NIL;
             }
         }
 
@@ -858,4 +883,14 @@ public class Domain
 
         return (CanonicalShortGame) x;
     }
+
+    private enum Mode
+    {
+        NORMAL,
+        BREAKING,
+        CONTINUING,
+        RETURNING;
+    }
+
+    private CgsuiteObject returnValue;
 }

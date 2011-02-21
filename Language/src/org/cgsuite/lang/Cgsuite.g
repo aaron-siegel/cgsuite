@@ -222,7 +222,7 @@ declaration
 	;
 	
 varDeclaration
-    : modifiers VAR^ IDENTIFIER SEMI!
+    : modifiers VAR^ IDENTIFIER (COMMA! IDENTIFIER)* SEMI!
     ;
 
 propertyDeclaration

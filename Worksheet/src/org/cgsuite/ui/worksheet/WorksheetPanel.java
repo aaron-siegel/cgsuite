@@ -77,6 +77,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
         label.setAlignmentY(Component.TOP_ALIGNMENT);
         EmbeddedTextArea textArea = new EmbeddedTextArea();
         textArea.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
         });
         /*

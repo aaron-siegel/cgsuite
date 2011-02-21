@@ -76,11 +76,19 @@ public class CgsuiteObject
         if (obj != null)
             return obj;
 
+        if (type.lookupVar(name) != null)
+            return CgsuiteObject.NIL;
+
         throw new InputException("Not a member variable, property, or method: " + name);
     }
 
     public void assign(String name, CgsuiteObject object)
     {
+        Variable var = type.lookupVar(name);
+        if (var == null)
+            throw new InputException("Unknown variable: " + name);
+        if (var.getModifiers().contains(Modifier.STATIC))
+            throw new InputException("Cannot reference static variable in dynamic context: " + name);
         objectNamespace.put(name, object);
     }
 
