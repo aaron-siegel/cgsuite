@@ -44,6 +44,11 @@ public class CgsuiteMap extends CgsuiteObject
         return buf.toString();
     }
 
+    public boolean isEmpty()
+    {
+        return map.isEmpty();
+    }
+
     public CgsuiteObject get(CgsuiteObject key)
     {
         return map.get(key);

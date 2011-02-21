@@ -1,5 +1,7 @@
 class Game : java "org.cgsuite.Game"
 
+    public static var memory := {=>};
+
 	public method op+ (Game obj) : java "buildSum";
 	public method op- (Game obj)
 		return this + (-obj);

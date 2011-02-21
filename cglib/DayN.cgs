@@ -1,5 +1,10 @@
 class DayN
 
+    private var allSmall, reduced;
+    private var elements;
+    
+    private var upcov, lowcov;
+
     public method DayN(birthday, AllSmall ? false, Reduced ? false)
 
         this.allSmall := AllSmall;

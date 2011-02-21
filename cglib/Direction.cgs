@@ -1,0 +1,30 @@
+enum Direction
+
+    North       (-1, 0),
+    Northeast   (-1, 1),
+    East        ( 0, 1),
+    Southeast   ( 1, 1),
+    South       ( 1, 0),
+    Southwest   ( 1,-1),
+    West        ( 0,-1),
+    Northwest   (-1,-1);
+
+    private var rowShift, colShift;
+
+    private method Direction(rowShift, colShift)
+        this.rowShift := rowShift;
+        this.colShift := colShift;
+    end
+
+    public property RowShift.get
+        return this.rowShift;
+    end
+
+    public property ColumnShift.get
+        return this.colShift;
+    end
+
+    public static var Orthogonal := { Direction.North, Direction.East, Direction.South, Direction.West };
+    public static var Diagonal   := { Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
+
+end

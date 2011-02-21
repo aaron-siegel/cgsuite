@@ -1,12 +1,13 @@
 package org.cgsuite.lang;
 
+import org.cgsuite.RationalNumber;
+import java.util.Map.Entry;
 import java.util.EnumSet;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileRenameEvent;
 import java.util.Collections;
-import org.cgsuite.RationalNumber;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
 import java.util.ArrayList;
 import java.io.IOException;
@@ -54,6 +55,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private Set<CgsuiteClass> ancestors;
     private Map<String,CgsuiteMethod> methods;
     private Map<String,Variable> vars;
+    private List<Variable> varsInOrder;
 
     private Set<CgsuiteClass> descendants;
 
@@ -93,10 +95,25 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     }
 
     @Override
-    public CgsuiteObject resolve(String str)
+    public CgsuiteObject resolve(String identifier)
     {
         ensureLoaded();
-        return super.resolve(str);
+        
+        CgsuiteMethod getter = (CgsuiteMethod) lookupMethod(identifier + "$get");
+
+        if (getter != null)
+        {
+            if (!getter.isStatic())
+                throw new InputException("Cannot reference non-static property in static context: " + identifier);
+            return getter.invoke((CgsuiteObject) null, CgsuiteObject.EMPTY_LIST, null);
+        }
+
+        CgsuiteMethod method = (CgsuiteMethod) lookupMethod(identifier);
+
+        if (method != null && method.isStatic())
+            return method;
+
+        return super.resolve(identifier);
     }
 
     public boolean isLoaded()
@@ -145,7 +162,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         return defaultJavaConstructor;
     }
 
-    public CgsuiteObject lookup(String name)
+    public CgsuiteObject lookupMethod(String name)
     {
         ensureLoaded();
         return methods.get(name);
@@ -175,16 +192,26 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         return methods.get(this.name);
     }
 
-    public Collection<CgsuiteMethod> allMethods()
+    public CgsuiteMap allMethods()
     {
         ensureLoaded();
-        return methods.values();
+        CgsuiteMap map = new CgsuiteMap();
+        for (Entry<String,CgsuiteMethod> e : methods.entrySet())
+        {
+            map.put(new CgsuiteString(e.getKey()), e.getValue());
+        }
+        return map;
     }
 
-    public Collection<Variable> allVars()
+    public CgsuiteMap allVars()
     {
         ensureLoaded();
-        return vars.values();
+        CgsuiteMap map = new CgsuiteMap();
+        for (Entry<String,Variable> e : vars.entrySet())
+        {
+            map.put(e.getValue(), new CgsuiteString(e.getKey()));
+        }
+        return map;
     }
 
     /////////////////////////////////
@@ -227,10 +254,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             throw new InputException("Syntax error(s) in " + fo.getNameExt() + ".", exc);
         }
 
+        this.objectNamespace.clear();
         this.parents = new HashSet<CgsuiteClass>();
         this.ancestors = new HashSet<CgsuiteClass>();
         this.methods = new HashMap<String,CgsuiteMethod>();
         this.vars = new HashMap<String,Variable>();
+        this.varsInOrder = new ArrayList<Variable>();
         this.descendants = new HashSet<CgsuiteClass>();
 
         this.declNumber = nextDeclNumber++;
@@ -243,14 +272,26 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             this.ancestors.addAll(parent.ancestors);
             for (CgsuiteMethod method : parent.methods.values())
             {
-                if (methods.containsKey(method.getName()))
+                if (!method.isPrivate())
                 {
-                    if (methods.get(method.getName()) != method)
-                        throw new RuntimeException(); // XXX Refine
+                    if (methods.containsKey(method.getName()))
+                    {
+                        if (methods.get(method.getName()) != method)
+                            throw new RuntimeException(); // XXX Refine
+                    }
+                    else
+                    {
+                        methods.put(method.getName(), method);
+                    }
                 }
-                else
+            }
+            for (Variable var : parent.vars.values())
+            {
+                // TODO Access check
+                if (!var.isPrivate())
                 {
-                    methods.put(method.getName(), method);
+                    vars.put(var.getName(), var);
+                    varsInOrder.add(var);
                 }
             }
         }
@@ -276,6 +317,27 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         declarations(parseTree.getChild(0));
 
         this.loaded = true;
+
+        // Populate statics and invoke static initializers
+
+        for (Variable var : varsInOrder)
+        {
+            if (var.isStatic())
+            {
+                CgsuiteObject initialValue = NIL;
+
+                if (var.getInitializer() != null)
+                    initialValue = new Domain().expression(var.getInitializer());
+                
+                objectNamespace.put(var.getName(), initialValue);
+
+                if (var.isEnumValue())
+                {
+                    initialValue.objectNamespace.put("literal", new CgsuiteString(var.getName()));
+                    initialValue.objectNamespace.put("ordinal", new RationalNumber(var.getDeclRank(), 1));
+                }
+            }
+        }
 
         for (CgsuiteClass ancestor : ancestors)
         {
@@ -317,7 +379,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 {
                     throw new InputException(tree.getChild(1).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
                 }
-                parents.add(CgsuitePackage.getRootPackage().forceLookupClassInPackage("Enum"));
+                parents.add(CgsuitePackage.forceLookupClass("Enum"));
                 javaClassname = CgsuiteEnumValue.class.getName();
                 break;
 
@@ -335,7 +397,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 for (CgsuiteTree node : tree.getChildren())
                 {
-                    CgsuiteClass parent = CgsuitePackage.getRootPackage().forceLookupClassInPackage(node.getText());
+                    CgsuiteClass parent = CgsuitePackage.forceLookupClass(node.getText());
                     assert parent != null : node.getText();
                     parents.add(parent);
                 }
@@ -407,16 +469,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void enumDeclarations(CgsuiteTree tree) throws CgsuiteException
     {
-        declareVar(new Variable(this, "Ordinal", EnumSet.of(Modifier.PUBLIC)));
         assert tree.getChild(2).getType() == ENUM_ELEMENT_LIST : tree.getChild(2).toStringTree();
         for (int i = 0; i < tree.getChild(2).getChildCount(); i++)
         {
             assert tree.getChild(2).getChild(i).getType() == ENUM_ELEMENT : tree.getChild(2).toStringTree();
-            String literal = tree.getChild(2).getChild(i).getChild(0).getText();
-            declareVar(new Variable(this, literal, EnumSet.of(Modifier.PUBLIC, Modifier.STATIC)));
-            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
-            assign(literal, value);
-            value.assign("Ordinal", new RationalNumber(i, 1));
+            String literal = tree.getChild(2).getChild(i).getChild(0).getChild(0).getText();
+            declareVar(literal, EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i);
+//            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
+//            assign(literal, value);
+//            value.assign("Ordinal", new RationalNumber(i, 1));
         }
 
         for (int i = 3; i < tree.getChildCount(); i++)
@@ -445,7 +506,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         try
         {
-            modifiers =  modifiers(tree.getChild(0));
+            modifiers = modifiers(tree.getChild(0));
         }
         catch (InputException exc)
         {
@@ -466,8 +527,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 else
                     body = tree.getChild(3);
 
-                declareMethod(new CgsuiteMethod
-                    (this, methodName, parameters, body, javaMethodName));
+                declareMethod(methodName, modifiers, parameters, body, javaMethodName);
 
                 return;
 
@@ -480,8 +540,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 else
                     body = tree.getChild(3);
 
-                declareMethod(new CgsuiteMethod
-                    (this, methodName, Collections.<Parameter>emptyList(), body, javaMethodName));
+                declareMethod(methodName, modifiers, Collections.<Parameter>emptyList(), body, javaMethodName);
 
                 return;
 
@@ -489,8 +548,21 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 for (int i = 1; i < tree.getChildCount(); i++)
                 {
-                    String varName = tree.getChild(i).getText();
-                    declareVar(new Variable(this, varName, modifiers));
+                    switch (tree.getChild(i).getType())
+                    {
+                        case IDENTIFIER:
+                            String varName = tree.getChild(i).getText();
+                            declareVar(varName, modifiers, null, -1);
+                            break;
+                            
+                        case ASSIGN:
+                            varName = tree.getChild(i).getChild(0).getText();
+                            declareVar(varName, modifiers, tree.getChild(i).getChild(1), -1);
+                            break;
+                            
+                        default:
+                            throw new MalformedParseTreeException(tree.getChild(i));
+                    }
                 }
 
                 return;
@@ -508,7 +580,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case MODIFIERS:
 
                 EnumSet<Modifier> mods = EnumSet.noneOf(Modifier.class);
-                boolean accessModifier = false;
+                boolean hasAccessModifier = false;
                 for (int i = 0; i < tree.getChildCount(); i++)
                 {
                     Modifier mod = modifier(tree.getChild(i));
@@ -520,14 +592,14 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                     if (Modifier.ACCESS_MODIFIERS.contains(mod))
                     {
-                        if (accessModifier)
+                        if (hasAccessModifier)
                             throw new InputException(tree.getChild(i).getToken(), "Redundant access modifier.");
-                        accessModifier = true;
+                        hasAccessModifier = true;
                     }
 
                     mods.add(mod);
                 }
-                if (!accessModifier)
+                if (!hasAccessModifier)
                     throw new InputException("Missing access modifier.");
                 return mods;
 
@@ -550,14 +622,16 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
     }
 
-    private void declareMethod(CgsuiteMethod method)
+    private void declareMethod(String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree body, String javaMethodName)
     {
-        this.methods.put(method.getName(), method);
+        this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName));
     }
 
-    private void declareVar(Variable var)
+    private void declareVar(String name, EnumSet<Modifier> modifiers, CgsuiteTree initializer, int declRank)
     {
-        this.vars.put(var.getName(), var);
+        Variable var = new Variable(this, name, modifiers, initializer, declRank);
+        this.vars.put(name, var);
+        this.varsInOrder.add(var);
     }
 
     private String methodName(CgsuiteTree tree) throws CgsuiteException

@@ -3,6 +3,7 @@ package org.cgsuite.lang;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,27 +13,30 @@ import org.cgsuite.RationalNumber;
 
 public class CgsuiteMethod extends CgsuiteObject implements Callable
 {
+    private CgsuiteClass declaringClass;
     private String name;
+    private EnumSet<Modifier> modifiers;
     private List<Parameter> parameters;
     private int nRequiredParameters;
     private CgsuiteTree tree;
-    private CgsuiteClass declaringClass;
     private boolean isConstructor;
 
     private String javaMethodSpec;
     private String javaMethodName;
-    private Class<?>[] javaParameterTypes;
     private Method javaMethod;
     private Constructor javaConstructor;
+    private Class<?>[] javaParameterTypes;
 
-    public CgsuiteMethod(CgsuiteClass declaringClass, String name, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
+    public CgsuiteMethod(CgsuiteClass declaringClass, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
         throws CgsuiteException
     {
         super(CgsuitePackage.forceLookupClass("Method"));
 
-        this.name = name;
         this.declaringClass = declaringClass;
+        this.name = name;
+        this.modifiers = modifiers;
         this.parameters = parameters;
+        this.tree = tree;
         this.javaMethodSpec = javaMethodSpec;
         this.isConstructor = name.equals(declaringClass.getName());
 
@@ -46,8 +50,6 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             nRequiredParameters++;
         }
-
-        this.tree = tree;
     }
 
     private void ensureLoaded()
@@ -108,19 +110,29 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
     }
 
+    public CgsuiteClass getDeclaringClass()
+    {
+        return declaringClass;
+    }
+
     public String getName()
     {
         return name;
     }
 
-    public void setDeclaringClass(CgsuiteClass declaringClass)
+    public EnumSet<Modifier> getModifiers()
     {
-        this.declaringClass = declaringClass;
+        return modifiers;
     }
 
-    public CgsuiteClass getDeclaringClass()
+    public boolean isStatic()
     {
-        return declaringClass;
+        return modifiers.contains(Modifier.STATIC);
+    }
+
+    public boolean isPrivate()
+    {
+        return modifiers.contains(Modifier.PRIVATE);
     }
 
     public Method getJavaMethod()
@@ -218,7 +230,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         else
         {
             Domain domain = new Domain();
-            domain.put("this", obj);
+            if (obj != null)
+                domain.put("this", obj);
 
             // TODO Validation
 

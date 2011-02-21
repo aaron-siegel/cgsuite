@@ -3,4 +3,7 @@ enum Player
     Left,
     Right;
 
+    private method Player()
+    end
+
 end

@@ -1,3 +1,17 @@
 class Enum : java "org.cgsuite.lang.CgsuiteEnumValue"
 
+    protected var ordinal, literal;
+
+    public property Ordinal.get
+        return this.ordinal;
+    end
+
+    public property Literal.get
+        return this.literal;
+    end
+
+    public method OrderLike(other)
+        return this.ordinal - other.ordinal;
+    end
+
 end

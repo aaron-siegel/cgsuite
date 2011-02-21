@@ -4,6 +4,7 @@ import static java.util.Collections.singleton;
 import static org.cgsuite.lang.CgsuiteLexer.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -335,8 +336,16 @@ public class Domain
             case FUNCTION_CALL:
 
                 x = expression(tree.getChild(0));
-                list = argumentList(tree.getChild(1));
-                argmap = optionalArgumentMap(tree.getChild(1));
+                if (tree.getChildCount() == 1)
+                {
+                    list = Collections.emptyList();
+                    argmap = null;
+                }
+                else
+                {
+                    list = argumentList(tree.getChild(1));
+                    argmap = optionalArgumentMap(tree.getChild(1));
+                }
                 Callable target = invocationTarget(x, tree);
                 try
                 {

@@ -1,13 +1,13 @@
 class Clobber extends Game : java "org.cgsuite.Game"
 
+    private var grid;
+
     public method Clobber(Grid grid)
         this.grid := grid;
     end
 
     public method Options(Player player)
 
-        r := [-1,0,1,0];
-        c := [0,-1,0,1];
         options := {};
 
         us := player.Ordinal+1;
@@ -17,11 +17,11 @@ class Clobber extends Game : java "org.cgsuite.Game"
             for n from 1 to this.grid.NumColumns do
                 if this.grid[m,n] == us then
 
-                    for k from 1 to 4 do
-                        if this.grid[m+r[k],n+c[k]] == them then
+                    for d in Direction.Orthogonal do
+                        if this.grid[m+d.RowShift,n+d.ColumnShift] == them then
                             copy := this.grid.Copy();
                             copy[m,n] := 0;
-                            copy[m+r[k],n+c[k]] := us;
+                            copy[m+d.RowShift,n+d.ColumnShift] := us;
                             options.Add(Clobber(copy));
                         end
                     end

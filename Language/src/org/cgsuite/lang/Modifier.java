@@ -17,7 +17,19 @@ public enum Modifier
     PROTECTED,
     PRIVATE,
     STATIC,
-    IMMUTABLE;
+    IMMUTABLE,
+    ENUM_VALUE;
 
     public static final EnumSet<Modifier> ACCESS_MODIFIERS = EnumSet.of(PUBLIC, PROTECTED, PRIVATE);
+
+    public static String toString(EnumSet<Modifier> modifiers)
+    {
+        StringBuilder str = new StringBuilder();
+        for (Modifier modifier : modifiers)
+        {
+            str.append(modifier.name().toLowerCase());
+            str.append(' ');
+        }
+        return str.toString();
+    }
 }

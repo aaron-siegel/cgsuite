@@ -30,7 +30,7 @@ public class CgsuiteObject
         {
             try
             {
-                CgsuiteObject obj = x.invoke("Order", y);
+                CgsuiteObject obj = x.invoke("Order", y).invoke("Simplify");
                 return ((RationalNumber) obj).intValue();
             }
             catch (CgsuiteException exc)
@@ -59,27 +59,35 @@ public class CgsuiteObject
         return type;
     }
 
-    public CgsuiteObject resolve(String name) throws CgsuiteException
+    public CgsuiteObject resolve(String identifier) throws CgsuiteException
     {
-        CgsuiteMethod getter = (CgsuiteMethod) type.lookup(name + "$get");
+        CgsuiteMethod getter = (CgsuiteMethod) type.lookupMethod(identifier + "$get");
 
         if (getter != null)
+        {
+            if (getter.isStatic())
+                throw new InputException("Cannot reference static property in dynamic context: " + identifier);
             return getter.invoke(castForMethodCall(getter), CgsuiteObject.EMPTY_LIST, null);
+        }
 
-        CgsuiteObject obj = type.lookup(name);
+        CgsuiteMethod method = (CgsuiteMethod) type.lookupMethod(identifier);
 
-        if (obj != null)
-            return new InstanceMethod((CgsuiteMethod) obj);
+        if (method != null)
+        {
+            if (method.isStatic())
+                throw new InputException("Cannot reference static method in dynamic context: " + identifier);
+            return new InstanceMethod(method);
+        }
 
-        obj = objectNamespace.get(name);
+        CgsuiteObject obj = objectNamespace.get(identifier);
 
         if (obj != null)
             return obj;
 
-        if (type.lookupVar(name) != null)
+        if (type.lookupVar(identifier) != null)
             return CgsuiteObject.NIL;
 
-        throw new InputException("Not a member variable, property, or method: " + name);
+        throw new InputException("Not a member variable, property, or method: " + identifier);
     }
 
     public void assign(String name, CgsuiteObject object)
@@ -87,7 +95,7 @@ public class CgsuiteObject
         Variable var = type.lookupVar(name);
         if (var == null)
             throw new InputException("Unknown variable: " + name);
-        if (var.getModifiers().contains(Modifier.STATIC))
+        if (var.isStatic())
             throw new InputException("Cannot reference static variable in dynamic context: " + name);
         objectNamespace.put(name, object);
     }

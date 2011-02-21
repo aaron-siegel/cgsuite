@@ -222,7 +222,11 @@ declaration
 	;
 	
 varDeclaration
-    : modifiers VAR^ IDENTIFIER (COMMA! IDENTIFIER)* SEMI!
+    : modifiers VAR^ varInitializer (COMMA! varInitializer)* SEMI!
+    ;
+
+varInitializer
+    : IDENTIFIER (ASSIGN^ functionExpression)?
     ;
 
 propertyDeclaration
@@ -241,7 +245,7 @@ methodDeclaration
 	;
 	
 modifiers
-	: (PRIVATE | PROTECTED | PUBLIC | IMMUTABLE | STATIC)* -> ^(MODIFIERS PRIVATE* PROTECTED* PUBLIC* IMMUTABLE*)
+	: (PRIVATE | PROTECTED | PUBLIC | IMMUTABLE | STATIC)* -> ^(MODIFIERS PRIVATE* PROTECTED* PUBLIC* IMMUTABLE* STATIC*)
 	;
 
 methodName
@@ -268,7 +272,11 @@ methodParameter
 	;
 
 enumDeclaration
-    : modifiers ENUM^ IDENTIFIER enumElementList declaration* END!
+scope
+{
+    String name;
+}
+    : modifiers ENUM^ IDENTIFIER {$enumDeclaration::name = $IDENTIFIER.text;} enumElementList declaration* END!
     ;
 
 enumElementList
@@ -276,7 +284,8 @@ enumElementList
     ;
 
 enumElement
-    : IDENTIFIER (LPAREN (expression (COMMA expression)*)? RPAREN)? -> ^(ENUM_ELEMENT[$IDENTIFIER] IDENTIFIER expression*)
+    : IDENTIFIER (functionCall)?
+      -> ^(ENUM_ELEMENT[$IDENTIFIER] ^(ASSIGN IDENTIFIER ^(FUNCTION_CALL[$IDENTIFIER] IDENTIFIER[$IDENTIFIER, $enumDeclaration::name] functionCall?)))
     ;
 
 script
