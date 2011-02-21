@@ -1423,6 +1423,8 @@ public class CoreIOHandler
         {
             CgsuiteMap map = (CgsuiteMap) obj;
             output.appendMath("{");
+            if (map.isEmpty())
+                output.appendSymbol(RIGHT_ARROW);
             for (Iterator<Entry<CgsuiteObject,CgsuiteObject>> it = map.entrySet().iterator(); it.hasNext();)
             {
                 Entry<CgsuiteObject,CgsuiteObject> e = it.next();
@@ -1635,7 +1637,7 @@ public class CoreIOHandler
         }*/
         else if (obj instanceof CgsuiteString)
         {
-            output.appendText("\"" + obj + "\"");
+            output.appendText(obj.toString());
         }
         else if (obj instanceof SumGame)
         {
