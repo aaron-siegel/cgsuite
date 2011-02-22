@@ -29,9 +29,13 @@
 
 package org.cgsuite;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.CgsuiteString;
+import org.cgsuite.lang.InputException;
 
 /**
  * A two-dimensional array suitable for representing grid-based games.  The
@@ -130,6 +134,31 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         {
             this.entries = new byte[(numRows * numColumns + bitsPerEntry.perByte - 1) / bitsPerEntry.perByte];
         }
+    }
+
+    public static Grid parseGrid(String str, String charMap)
+    {
+        String[] strings = str.split("\\|");
+        int numColumns = (strings.length == 0 ? 0 : strings[0].length());
+        Grid grid = new Grid(strings.length, numColumns);
+        for (int i = 0; i < strings.length; i++)
+        {
+            if (strings[i].length() != numColumns)
+            {
+                throw new InputException("All rows of the position must have equal length.");
+            }
+            for (int j = 0; j < numColumns; j++)
+            {
+                int value = charMap.indexOf(Character.toLowerCase(strings[i].charAt(j)));
+                if (value == -1)
+                {
+                    throw new InputException
+                        ("The position may only contain the following characters: " + charMap);
+                }
+                grid.putAt(value, i+1, j+1);
+            }
+        }
+        return grid;
     }
     
     /**
@@ -300,7 +329,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     {
         if (numRows == 0)
         {
-            return "\"\"";
+            return "";
         }
         
         if (charMap == null)
@@ -312,7 +341,6 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         StringBuilder buf = new StringBuilder(numRows * (numColumns + 3) - 1);
         for (int row = 1; row <= numRows; row++)
         {
-            buf.append('\"');
             for (int col = 1; col <= numColumns; col++)
             {
                 int value = getAt(row, col);
@@ -325,10 +353,9 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
                     buf.append('?');
                 }
             }
-            buf.append('\"');
-            if (row < numRows - 1)
+            if (row <= numRows - 1)
             {
-                buf.append(',');
+                buf.append('|');
             }
         }
         return buf.toString();
@@ -424,7 +451,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     public int getAt(int row, int column)
     {
         if (row < 1 || row > numRows || column < 1 || column > numColumns)
-            return 0;
+            return -1;
         
         int index = (row-1) * numColumns + (column-1);
         return (entries[index / bitsPerEntry.perByte] >>> ((index % bitsPerEntry.perByte) * bitsPerEntry.bits)) & bitsPerEntry.mask;
@@ -459,7 +486,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public void clear()
     {
-        java.util.Arrays.fill(entries, (byte) 0);
+        Arrays.fill(entries, (byte) 0);
     }
     
     /**

@@ -1,3 +1,5 @@
 class String : java "org.cgsuite.lang.CgsuiteString"
 
+    public method op+(String other) : java "append";
+
 end

@@ -5,7 +5,15 @@ class Grid : java "org.cgsuite.Grid"
     public method op[]:=(Number value, Number row, Number col) : java "putAt(int,int,int)";
     public method Copy() : java "copy";
 
+    public static method ParseGrid(String str, String charmap) : java "parseGrid(java.lang.String,java.lang.String)";
+
     public property NumRows.get : java "getNumRows";
     public property NumColumns.get : java "getNumColumns";
+
+    public property ToString.get
+        return this.MapString(".123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    end
+
+    public method MapString(String charMap) : java "toString(java.lang.String)";
 
 end

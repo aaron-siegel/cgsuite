@@ -1,0 +1,53 @@
+class Amazons extends Game : java "org.cgsuite.Game"
+
+    private var grid;
+
+    public method Amazons(Grid grid)
+        this.grid := grid;
+    end
+
+    public method Options(Player player)
+
+        options := {};
+
+        us := player.Ordinal;
+
+        for m from 1 to this.grid.NumRows do
+            for n from 1 to this.grid.NumColumns do
+                if this.grid[m,n] == us then
+
+                    for d in Direction.All do
+                        for k from 1 to this.grid.NumRows do
+                            m2 := m + d.RowShift * k;
+                            n2 := n + d.ColumnShift * k;
+                            if this.grid[m2,n2] == 0 then
+                                for e in Direction.All do
+                                    for l from 1 to this.grid.NumRows do
+                                        mArrow := m + e.RowShift * l;
+                                        nArrow := n + e.ColumnShift * l;
+                                        if this.grid[mArrow,nArrow] == 0 then
+                                            copy := this.grid.Copy();
+                                            copy[m,n] := 0;
+                                            copy[m2,n2] := us;
+                                            copy[mArrow,nArrow] := 3;
+                                            options.Add(copy);
+                                        else
+                                            break;
+                                        end
+                                    end
+                                end
+                            else
+                                break;
+                            end
+                        end
+                    end
+
+                end
+            end
+        end;
+
+        return options;
+
+    end
+
+end

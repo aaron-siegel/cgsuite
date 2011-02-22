@@ -1,0 +1,47 @@
+class ToadsAndFrogs extends Game : java "org.cgsuite.Game"
+
+    private var grid;
+
+    public method ToadsAndFrogs(grid)
+        if grid.Class == String then
+            this.grid := Grid.ParseGrid(grid, ".tf");
+        elseif grid.Class == Grid then
+            this.grid := grid;
+        end
+        // TODO Error otherwise
+    end
+
+    public method Options(Player player)
+
+        options := {};
+
+        us := player.Ordinal;
+        them := player.Opponent.Ordinal;
+
+        for n from 1 to this.grid.NumColumns do
+            if this.grid[1,n] == us then
+
+                if this.grid[1,n+player.Sign] == 0 then
+                    copy := this.grid.Copy();
+                    copy[1,n] := 0;
+                    copy[1,n+player.Sign] := us;
+                    options.Add(ToadsAndFrogs(copy));
+                elseif this.grid[1,n+player.Sign] == them and this.grid[1,n+2*player.Sign] == 0 then
+                    copy := this.grid.Copy();
+                    copy[1,n] := 0;
+                    copy[1,n+2*player.Sign] := us;
+                    options.Add(ToadsAndFrogs(copy));
+                end
+
+            end
+        end;
+
+        return options;
+
+    end
+
+    public property ToString.get
+        return "ToadsAndFrogs(" + this.grid.MapString(".tf") + ")";
+    end
+
+end

@@ -101,12 +101,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         CgsuiteMethod getter = (CgsuiteMethod) lookupMethod(identifier + "$get");
 
-        if (getter != null)
-        {
-            if (!getter.isStatic())
-                throw new InputException("Cannot reference non-static property in static context: " + identifier);
+        if (getter != null && getter.isStatic())
             return getter.invoke((CgsuiteObject) null, CgsuiteObject.EMPTY_LIST, null);
-        }
 
         CgsuiteMethod method = (CgsuiteMethod) lookupMethod(identifier);
 
@@ -474,7 +470,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             assert tree.getChild(2).getChild(i).getType() == ENUM_ELEMENT : tree.getChild(2).toStringTree();
             String literal = tree.getChild(2).getChild(i).getChild(0).getChild(0).getText();
-            declareVar(literal, EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i);
+            declareVar(literal, EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i+1);
 //            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
 //            assign(literal, value);
 //            value.assign("Ordinal", new RationalNumber(i, 1));

@@ -54,6 +54,11 @@ public class CgsuiteObject
         this.objectNamespace = new Namespace();
     }
 
+    public CgsuiteObject toCgsuiteString()
+    {
+        return invoke("ToString$get");
+    }
+
     public CgsuiteClass getCgsuiteClass()
     {
         return type;

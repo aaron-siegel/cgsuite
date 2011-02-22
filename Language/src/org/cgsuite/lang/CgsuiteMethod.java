@@ -213,6 +213,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 return CgsuiteBoolean.valueOf((Boolean) javaObj);
             }
+            else if (javaObj instanceof String)
+            {
+                return new CgsuiteString((String) javaObj);
+            }
             else if (javaObj instanceof Set)
             {
                 CgsuiteSet set = new CgsuiteSet();
@@ -300,6 +304,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 // TODO: isInteger, isSmall validation
                 return ((RationalNumber) obj).intValue();
+            }
+            else if (String.class.equals(javaClass) && obj instanceof CgsuiteString)
+            {
+                return ((CgsuiteString) obj).toJavaString();
             }
             else
             {

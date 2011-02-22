@@ -42,4 +42,10 @@ class Object : java "org.cgsuite.lang.CgsuiteObject"
 		end
 	end
 
+        public property ToString.get
+
+            return "<Object of type " + this.Class.Name + ">";
+
+        end
+
 end

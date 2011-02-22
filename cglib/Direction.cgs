@@ -25,6 +25,10 @@ enum Direction
     end
 
     public static var Orthogonal := { Direction.North, Direction.East, Direction.South, Direction.West };
+
     public static var Diagonal   := { Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
+    
+    public static var All        := { Direction.North, Direction.East, Direction.South, Direction.West,
+                                      Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
 
 end

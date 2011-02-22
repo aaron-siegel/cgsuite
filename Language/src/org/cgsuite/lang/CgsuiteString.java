@@ -22,6 +22,11 @@ public class CgsuiteString extends CgsuiteObject
         return str;
     }
 
+    public CgsuiteString append(CgsuiteString other)
+    {
+        return new CgsuiteString(str + other.str);
+    }
+
     @Override
     public int hashCode()
     {

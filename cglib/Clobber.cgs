@@ -2,16 +2,21 @@ class Clobber extends Game : java "org.cgsuite.Game"
 
     private var grid;
 
-    public method Clobber(Grid grid)
-        this.grid := grid;
+    public method Clobber(grid)
+        if grid.Class == String then
+            this.grid := Grid.ParseGrid(grid, ".xo");
+        elseif grid.Class == Grid then
+            this.grid := grid;
+        end
+        // TODO Error otherwise
     end
 
     public method Options(Player player)
 
         options := {};
 
-        us := player.Ordinal+1;
-        them := (1-player.Ordinal)+1;
+        us := player.Ordinal;
+        them := player.Opponent.Ordinal;
 
         for m from 1 to this.grid.NumRows do
             for n from 1 to this.grid.NumColumns do
@@ -32,6 +37,10 @@ class Clobber extends Game : java "org.cgsuite.Game"
 
         return options;
 
+    end
+
+    public property ToString.get
+        return "Clobber(" + this.grid.MapString(".xo") + ")";
     end
 
 end
