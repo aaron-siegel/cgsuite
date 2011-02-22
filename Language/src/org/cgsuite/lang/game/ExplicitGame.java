@@ -10,13 +10,14 @@ import java.util.Set;
 
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.CgsuiteSet;
 
 public class ExplicitGame extends Game
 {
-    private Set<CgsuiteObject> leftOptions;
-    private Set<CgsuiteObject> rightOptions;
+    private CgsuiteSet leftOptions;
+    private CgsuiteSet rightOptions;
 
-    public ExplicitGame(Set<CgsuiteObject> leftOptions, Set<CgsuiteObject> rightOptions)
+    public ExplicitGame(CgsuiteSet leftOptions, CgsuiteSet rightOptions)
     {
         super(CgsuitePackage.forceLookupClass("ExplicitGame"));
 
@@ -24,12 +25,14 @@ public class ExplicitGame extends Game
         this.rightOptions = rightOptions;
     }
 
-    public Set<CgsuiteObject> getLeftOptions()
+    @Override
+    public CgsuiteSet getLeftOptions()
     {
         return leftOptions;
     }
 
-    public Set<CgsuiteObject> getRightOptions()
+    @Override
+    public CgsuiteSet getRightOptions()
     {
         return rightOptions;
     }
@@ -60,8 +63,8 @@ public class ExplicitGame extends Game
 
     public CgsuiteObject simplify() throws CgsuiteException
     {
-        Set<CgsuiteObject> simplifiedLeftOptions = new HashSet<CgsuiteObject>();
-        Set<CgsuiteObject> simplifiedRightOptions = new HashSet<CgsuiteObject>();
+        CgsuiteSet simplifiedLeftOptions = new CgsuiteSet();
+        CgsuiteSet simplifiedRightOptions = new CgsuiteSet();
         List<CanonicalShortGame> canonicalLeftOptions = new ArrayList<CanonicalShortGame>();
         List<CanonicalShortGame> canonicalRightOptions = new ArrayList<CanonicalShortGame>();
 

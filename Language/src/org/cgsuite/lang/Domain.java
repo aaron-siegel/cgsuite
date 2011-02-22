@@ -16,7 +16,7 @@ import java.util.Set;
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
 import org.cgsuite.lang.game.RationalNumber;
-import org.cgsuite.lang.parser.CgsuiteLexer;
+import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 public class Domain
 {
@@ -59,7 +59,7 @@ public class Domain
                 return statementSequence(tree.getChild(0));
 
             default:
-                throw new RuntimeException();
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -78,7 +78,7 @@ public class Domain
     {
         switch (tree.token.getType())
         {
-            case CgsuiteLexer.STATEMENT_SEQUENCE:
+            case STATEMENT_SEQUENCE:
 
                 CgsuiteObject retval = CgsuiteObject.NIL;
                 for (CgsuiteTree child : tree.getChildren())
@@ -91,7 +91,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException(tree.toStringTree());
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -203,7 +203,7 @@ public class Domain
         int n;
         List<CgsuiteObject> list;
         Map<String,CgsuiteObject> argmap;
-        Set<CgsuiteObject> lo, ro;
+        CgsuiteSet lo, ro;
 
         switch (tree.token.getType())
         {
@@ -282,10 +282,10 @@ public class Domain
 
             case PLUSMINUS:
 
-                lo = new HashSet<CgsuiteObject>();
+                lo = new CgsuiteSet();
                 for (CgsuiteTree child : tree.getChildren())
                     lo.add(expression(child));
-                ro = new HashSet<CgsuiteObject>();
+                ro = new CgsuiteSet();
                 for (CgsuiteObject obj : lo)
                     ro.add(obj.invoke("op neg"));
                 return new ExplicitGame(lo, ro);
@@ -413,7 +413,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException(tree.getText());
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -431,7 +431,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException();
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -486,7 +486,7 @@ public class Domain
 
                 default:
                     
-                    throw new RuntimeException();
+                    throw new MalformedParseTreeException(tree);
             }
         }
 
@@ -642,7 +642,7 @@ public class Domain
                 case FSLASH:    return x.invoke("op /", y);
                 case PERCENT:   return x.invoke("op %", y);
                 case EXP:       return x.invoke("op **", y);
-                default:        throw new RuntimeException();
+                default:        throw new MalformedParseTreeException(tree);
             }
         }
         catch (InputException exc)
@@ -685,7 +685,7 @@ public class Domain
                 break;
 
             default:
-                throw new RuntimeException();
+                throw new MalformedParseTreeException(tree);
         }
 
         if (starChild == null)
@@ -698,19 +698,19 @@ public class Domain
         return new CanonicalShortGame(RationalNumber.ZERO, n, m);
     }
 
-    private Set<CgsuiteObject> gameOptions(CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteSet gameOptions(CgsuiteTree tree) throws CgsuiteException
     {
-        Set<CgsuiteObject> options;
+        CgsuiteSet options;
 
         switch (tree.getToken().getType())
         {
             case SLASHES:
 
-                return singleton(expression(tree));
+                return CgsuiteSet.singleton(expression(tree));
 
             case EXPRESSION_LIST:
 
-                options = new HashSet<CgsuiteObject>();
+                options = new CgsuiteSet();
                 for (CgsuiteTree child : tree.getChildren())
                 {
                     CgsuiteObject obj = expression(child);
@@ -737,7 +737,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException(tree.getText());
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -758,7 +758,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException(tree.getText());
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -780,7 +780,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException(tree.getText());
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -805,7 +805,7 @@ public class Domain
 
             default:
 
-                throw new RuntimeException(tree.getText());
+                throw new MalformedParseTreeException(tree);
         }
     }
 

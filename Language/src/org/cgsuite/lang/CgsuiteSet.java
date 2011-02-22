@@ -87,6 +87,11 @@ public class CgsuiteSet extends CgsuiteCollection
         return objects.size();
     }
 
+    public boolean isEmpty()
+    {
+        return objects.isEmpty();
+    }
+
     @Override
     public int hashCode()
     {
@@ -113,5 +118,12 @@ public class CgsuiteSet extends CgsuiteCollection
         } else if (!objects.equals(other.objects))
             return false;
         return true;
+    }
+
+    public static CgsuiteSet singleton(CgsuiteObject obj)
+    {
+        CgsuiteSet set = new CgsuiteSet(1);
+        set.add(obj);
+        return set;
     }
 }

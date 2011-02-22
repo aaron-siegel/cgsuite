@@ -61,6 +61,7 @@ tokens
 	ASN_OR		= '|=';
 	ASN_XOR		= '^=';
 	ASN_EXP		= '**=';
+    BAD_ASSIGN  = '=';
 	
 	DOTDOT		= '..';
 	DOTDOTDOT   = '...';
@@ -95,6 +96,7 @@ tokens
 	NOT			= 'not';
 	OP          = 'op';
 	OR			= 'or';
+    PASS        = 'pass';
 	POS         = 'pos';
 	PRIVATE		= 'private';
 	PROPERTY	= 'property';
@@ -497,7 +499,9 @@ primaryExpr
 	| INTEGER
 	| STRING
 	| CHAR
+    | (IDENTIFIER COLON) => IDENTIFIER COLON^ explicitGame
 	| IDENTIFIER
+    | PASS
 	| LPAREN! statementSequence RPAREN!
 	| BEGIN! statementSequence END!
     | (LBRACE expressionList SLASHES) => explicitGame
@@ -515,8 +519,7 @@ slashExpression
     {
         CommonTree newTree = null;
     }
-    : (expressionList SLASHES) =>
-      lo=expressionList (SLASHES ro=slashExpression)
+    : (expressionList SLASHES) => lo=expressionList SLASHES ro=slashExpression
     {
         if ($ro.tree.token.getType() != SLASHES ||
             $ro.tree.token.getText().length() < $SLASHES.getText().length())
