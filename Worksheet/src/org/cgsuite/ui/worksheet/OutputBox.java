@@ -29,6 +29,8 @@
 
 package org.cgsuite.ui.worksheet;
 
+import org.cgsuite.lang.output.StyledTextOutput;
+import org.cgsuite.lang.output.Output;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;

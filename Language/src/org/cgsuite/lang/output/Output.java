@@ -27,7 +27,7 @@
 
 **************************************************************************** */
 
-package org.cgsuite.ui.worksheet;
+package org.cgsuite.lang.output;
 
 /**
  * An abstract output scheme that can be converted to any of several forms of

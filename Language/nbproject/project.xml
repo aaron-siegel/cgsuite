@@ -82,6 +82,7 @@
             <public-packages>
                 <package>org.cgsuite</package>
                 <package>org.cgsuite.lang</package>
+                <package>org.cgsuite.lang.output</package>
             </public-packages>
         </data>
     </configuration>

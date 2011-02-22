@@ -29,20 +29,32 @@
 
 package org.cgsuite.ui.worksheet;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import org.cgsuite.CanonicalShortGame;
+import org.cgsuite.ExplicitGame;
+import org.cgsuite.InverseGame;
+import org.cgsuite.RationalNumber;
+import org.cgsuite.SumGame;
+import org.cgsuite.UptimalExpansion;
 import java.util.Map.Entry;
 import org.cgsuite.lang.CgsuiteMap;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteString;
-import java.util.*;
-import org.cgsuite.*;
+import org.cgsuite.lang.output.StyledTextOutput;
+import org.cgsuite.lang.output.Output;
 
-import static org.cgsuite.ui.worksheet.StyledTextOutput.Style.*;
-import static org.cgsuite.ui.worksheet.StyledTextOutput.Symbol.*;
+import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
+import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
 /**
- * Creates output for instances of {@link org.cgsuite.CanonicalGame} and other
+ * Creates output for instances of {@link org.cgsuite.CanonicalShortGame} and other
  * core classes.  The output will generally be more sophisticated than that
  * provided by <code>toString</code>.
  *

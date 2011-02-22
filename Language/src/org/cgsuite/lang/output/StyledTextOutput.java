@@ -27,7 +27,7 @@
 
 **************************************************************************** */
 
-package org.cgsuite.ui.worksheet;
+package org.cgsuite.lang.output;
 
 import java.awt.*;
 import java.awt.font.*;

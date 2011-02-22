@@ -31,10 +31,8 @@ package org.cgsuite;
 
 import java.util.Arrays;
 import java.util.EnumSet;
-import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
-import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.InputException;
 
 /**
