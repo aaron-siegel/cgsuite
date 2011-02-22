@@ -1,4 +1,4 @@
-class Grid : java "org.cgsuite.Grid"
+class Grid : java "org.cgsuite.lang.game.Grid"
 
     public method Grid(Number rows, Number columns) : java "Grid";
     public method op[](Number row, Number col) : java "getAt(int,int)";

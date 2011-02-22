@@ -7,7 +7,7 @@ package org.cgsuite.ui.highlighting;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.cgsuite.lang.CgsuiteParser;
+import org.cgsuite.lang.parser.CgsuiteParser;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +17,7 @@ import org.netbeans.spi.lexer.LanguageHierarchy;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerRestartInfo;
 
-import static org.cgsuite.lang.CgsuiteLexer.*;
+import static org.cgsuite.lang.parser.CgsuiteLexer.*;
 /**
  *
  * @author asiegel

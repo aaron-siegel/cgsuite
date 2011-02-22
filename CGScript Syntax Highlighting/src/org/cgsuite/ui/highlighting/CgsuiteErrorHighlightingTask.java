@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.text.Document;
 import org.antlr.runtime.CommonToken;
-import org.cgsuite.lang.CgsuiteParser.SyntaxError;
+import org.cgsuite.lang.parser.CgsuiteParser.SyntaxError;
 import org.cgsuite.ui.highlighting.CgsuiteEditorParser.CgsuiteEditorParserResult;
 import org.netbeans.modules.parsing.spi.Parser.Result;
 import org.netbeans.modules.parsing.spi.ParserResultTask;

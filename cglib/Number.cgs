@@ -1,4 +1,4 @@
-class Number extends CanonicalShortGame : java "org.cgsuite.RationalNumber"
+class Number extends CanonicalShortGame : java "org.cgsuite.lang.game.RationalNumber"
 
     public method op* (Game obj) : java "buildProduct";
 	public method op/ (Number obj) : java "divide";

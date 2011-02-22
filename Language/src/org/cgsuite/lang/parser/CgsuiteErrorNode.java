@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.cgsuite.lang;
+package org.cgsuite.lang.parser;
 
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;

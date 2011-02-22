@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.cgsuite;
+package org.cgsuite.lang.game;
 
 import java.util.EnumSet;
 

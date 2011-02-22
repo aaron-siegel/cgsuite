@@ -1,4 +1,4 @@
-class Domineering extends Game : java "org.cgsuite.Game"
+class Domineering extends Game : java "org.cgsuite.lang.Game"
 
     private var grid;
 

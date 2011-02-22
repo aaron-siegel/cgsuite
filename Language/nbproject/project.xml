@@ -80,9 +80,10 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
-                <package>org.cgsuite</package>
                 <package>org.cgsuite.lang</package>
+                <package>org.cgsuite.lang.game</package>
                 <package>org.cgsuite.lang.output</package>
+                <package>org.cgsuite.lang.parser</package>
             </public-packages>
         </data>
     </configuration>

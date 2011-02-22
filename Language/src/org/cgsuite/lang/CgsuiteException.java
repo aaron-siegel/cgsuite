@@ -1,4 +1,4 @@
-package org.cgsuite;
+package org.cgsuite.lang;
 
 
 public class CgsuiteException extends RuntimeException

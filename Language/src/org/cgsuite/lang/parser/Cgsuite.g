@@ -135,12 +135,12 @@ tokens
 
 @lexer::header
 {
-    package org.cgsuite.lang;
+    package org.cgsuite.lang.parser;
 }
 
 @header
 {
-    package org.cgsuite.lang;
+    package org.cgsuite.lang.parser;
 }
 
 @members

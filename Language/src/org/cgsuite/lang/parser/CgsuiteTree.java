@@ -1,10 +1,11 @@
-package org.cgsuite.lang;
+package org.cgsuite.lang.parser;
 
 import java.util.Collections;
 import java.util.List;
 
 import org.antlr.runtime.Token;
 import org.antlr.runtime.tree.CommonTree;
+import org.cgsuite.lang.CgsuiteObject;
 
 public class CgsuiteTree extends CommonTree
 {

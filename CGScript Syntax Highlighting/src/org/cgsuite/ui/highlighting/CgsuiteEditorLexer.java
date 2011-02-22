@@ -5,7 +5,7 @@
 
 package org.cgsuite.ui.highlighting;
 
-import org.cgsuite.lang.CgsuiteLexer;
+import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerRestartInfo;

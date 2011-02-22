@@ -1,5 +1,6 @@
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.parser.CgsuiteTree;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,8 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.cgsuite.CgsuiteException;
-import org.cgsuite.RationalNumber;
+import org.cgsuite.lang.game.RationalNumber;
 
 public class CgsuiteMethod extends CgsuiteObject implements Callable
 {

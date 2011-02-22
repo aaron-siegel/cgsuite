@@ -1,4 +1,4 @@
-class InverseGame extends Game : java "org.cgsuite.InverseGame"
+class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
 
 	public method Simplify() : java "simplify";
 

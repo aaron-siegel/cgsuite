@@ -9,8 +9,8 @@
     <!-- Full path to Antlr jar -->
     <property name="antlr.jar" location="../ANTLR/release/modules/ext/antlr-3.3-complete.jar"/>
     <!-- Grammar path -->
-    <property name="antlr.grammar" location="src/org/cgsuite/lang/Cgsuite.g"/>
-    <uptodate property="antlr.uptodate" srcfile="${antlr.grammar}" targetfile="src/org/cgsuite/lang/CgsuiteParser.java"/>
+    <property name="antlr.grammar" location="src/org/cgsuite/lang/parser/Cgsuite.g"/>
+    <uptodate property="antlr.uptodate" srcfile="${antlr.grammar}" targetfile="src/org/cgsuite/lang/parser/CgsuiteParser.java"/>
 
     <target name="compile" depends="-pre-compile,projectized-common.compile"/>
 
@@ -24,7 +24,7 @@
         <!-- Insert @SuppressWarnings("unchecked","all") in front of every generated class -->
   	    <replaceregexp flags="m" match="^public class"
 	      			   replace="@SuppressWarnings({&quot;unchecked&quot;,&quot;all&quot;}) public class">
-	  	    <fileset dir="src/org/cgsuite/lang/" includes="CgsuiteLexer.java,CgsuiteParser.java"/>
+	  	    <fileset dir="src/org/cgsuite/lang/parser/" includes="CgsuiteLexer.java,CgsuiteParser.java"/>
 	    </replaceregexp>
     </target>
 </project>

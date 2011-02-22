@@ -3,7 +3,6 @@ package org.cgsuite.lang;
 import java.util.ArrayList;
 import java.util.List;
 import org.antlr.runtime.Token;
-import org.cgsuite.CgsuiteException;
 
 public class InputException extends CgsuiteException
 {

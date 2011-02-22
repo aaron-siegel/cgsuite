@@ -5,6 +5,7 @@
 
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.parser.CgsuiteTree;
 import java.util.EnumSet;
 
 /**

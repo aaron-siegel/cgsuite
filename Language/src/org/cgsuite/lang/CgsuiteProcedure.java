@@ -5,10 +5,10 @@
 
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.parser.CgsuiteTree;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.cgsuite.CgsuiteException;
 
 /**
  *

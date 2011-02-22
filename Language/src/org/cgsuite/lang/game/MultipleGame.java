@@ -3,8 +3,10 @@
  * and open the template in the editor.
  */
 
-package org.cgsuite;
+package org.cgsuite.lang.game;
 
+import org.cgsuite.lang.Game;
+import org.cgsuite.lang.CgsuiteException;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 

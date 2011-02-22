@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import org.cgsuite.Grid;
+import org.cgsuite.lang.game.Grid;
 
 /**
  * A grid to display as output.

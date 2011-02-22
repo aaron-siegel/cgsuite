@@ -1,6 +1,12 @@
 package org.cgsuite.lang;
 
-import org.cgsuite.RationalNumber;
+import org.cgsuite.lang.parser.CgsuiteParser;
+import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
+import org.cgsuite.lang.parser.CgsuiteTree;
+import org.cgsuite.lang.parser.CgsuiteLexer;
+import org.cgsuite.lang.parser.SourcedAntlrInputStream;
+import org.cgsuite.lang.parser.MalformedParseTreeException;
+import org.cgsuite.lang.game.RationalNumber;
 import java.util.Map.Entry;
 import java.util.EnumSet;
 import org.openide.filesystems.FileAttributeEvent;
@@ -21,10 +27,9 @@ import java.util.Set;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
-import org.cgsuite.CgsuiteException;
 import org.openide.filesystems.FileObject;
 
-import static org.cgsuite.lang.CgsuiteParser.*;
+import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {

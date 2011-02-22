@@ -1,5 +1,6 @@
-package org.cgsuite;
+package org.cgsuite.lang.game;
 
+import org.cgsuite.lang.Game;
 import java.math.BigInteger;
 
 import org.cgsuite.lang.CgsuitePackage;

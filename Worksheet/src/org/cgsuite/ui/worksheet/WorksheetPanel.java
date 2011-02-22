@@ -35,12 +35,12 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
-import org.cgsuite.lang.CgsuiteLexer;
+import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
-import org.cgsuite.lang.CgsuiteParser;
-import org.cgsuite.lang.CgsuiteTree;
-import org.cgsuite.lang.CgsuiteTreeAdaptor;
+import org.cgsuite.lang.parser.CgsuiteParser;
+import org.cgsuite.lang.parser.CgsuiteTree;
+import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
 import org.cgsuite.lang.Domain;
 import org.cgsuite.lang.InputException;
 

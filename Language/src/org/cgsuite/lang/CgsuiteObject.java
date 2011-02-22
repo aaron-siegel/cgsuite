@@ -8,8 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import org.cgsuite.CgsuiteException;
-import org.cgsuite.RationalNumber;
+import org.cgsuite.lang.game.RationalNumber;
 
 public class CgsuiteObject
 {

@@ -1,4 +1,4 @@
-class CanonicalShortGame extends Game : java "org.cgsuite.CanonicalShortGame"
+class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalShortGame"
 
 	public method op neg() : java "getInverse";
 	public method op<=(CanonicalShortGame other) : java "leq";

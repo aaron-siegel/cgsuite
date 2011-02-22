@@ -27,8 +27,9 @@
 
 **************************************************************************** */
 
-package org.cgsuite;
+package org.cgsuite.lang.game;
 
+import org.cgsuite.lang.Game;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;

@@ -7,7 +7,6 @@ package org.cgsuite.lang;
 
 import java.util.List;
 import java.util.Map;
-import org.cgsuite.CgsuiteException;
 
 /**
  *

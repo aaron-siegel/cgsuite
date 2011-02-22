@@ -1,7 +1,9 @@
-package org.cgsuite;
+package org.cgsuite.lang;
 
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.game.InverseGame;
+import org.cgsuite.lang.game.SumGame;
 
 
 public class Game extends CgsuiteObject

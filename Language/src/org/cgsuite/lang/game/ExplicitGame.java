@@ -1,5 +1,7 @@
-package org.cgsuite;
+package org.cgsuite.lang.game;
 
+import org.cgsuite.lang.Game;
+import org.cgsuite.lang.CgsuiteException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;

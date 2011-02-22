@@ -1,4 +1,4 @@
-class Game : java "org.cgsuite.Game"
+class Game : java "org.cgsuite.lang.Game"
 
     public static var memory := {=>};
 

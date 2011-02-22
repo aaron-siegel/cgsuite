@@ -1,7 +1,8 @@
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.parser.CgsuiteTree;
 import static java.util.Collections.singleton;
-import static org.cgsuite.lang.CgsuiteLexer.*;
+import static org.cgsuite.lang.parser.CgsuiteLexer.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,11 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.cgsuite.CanonicalShortGame;
-import org.cgsuite.CgsuiteException;
-import org.cgsuite.ExplicitGame;
-import org.cgsuite.Game;
-import org.cgsuite.RationalNumber;
+import org.cgsuite.lang.game.CanonicalShortGame;
+import org.cgsuite.lang.game.ExplicitGame;
+import org.cgsuite.lang.game.RationalNumber;
+import org.cgsuite.lang.parser.CgsuiteLexer;
 
 public class Domain
 {
