@@ -3,7 +3,11 @@ class Amazons extends Game : java "org.cgsuite.Game"
     private var grid;
 
     public method Amazons(Grid grid)
-        this.grid := grid;
+        if grid.Class == String then
+            this.grid := Grid.ParseGrid(grid, ".xo#");
+        elseif grid.Class == Grid then
+            this.grid := grid;
+        end
     end
 
     public method Options(Player player)
@@ -23,14 +27,14 @@ class Amazons extends Game : java "org.cgsuite.Game"
                             if this.grid[m2,n2] == 0 then
                                 for e in Direction.All do
                                     for l from 1 to this.grid.NumRows do
-                                        mArrow := m + e.RowShift * l;
-                                        nArrow := n + e.ColumnShift * l;
+                                        mArrow := m2 + e.RowShift * l;
+                                        nArrow := n2 + e.ColumnShift * l;
                                         if this.grid[mArrow,nArrow] == 0 then
                                             copy := this.grid.Copy();
                                             copy[m,n] := 0;
                                             copy[m2,n2] := us;
                                             copy[mArrow,nArrow] := 3;
-                                            options.Add(copy);
+                                            options.Add(Amazons(copy));
                                         else
                                             break;
                                         end
@@ -48,6 +52,10 @@ class Amazons extends Game : java "org.cgsuite.Game"
 
         return options;
 
+    end
+
+    public property ToString.get
+        return "Amazons(" + this.grid.MapString(".xo#") + ")";
     end
 
 end
