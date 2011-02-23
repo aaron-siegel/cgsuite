@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.cgsuite.lang.CgsuiteObject;
@@ -304,11 +303,13 @@ public class LoopyGame extends Game
                 k = 0;
                 for (Object target : leftEdges)
                 {
+                    assert nodeMap.containsKey(target) : target;
                     pg.leftEdges[vertex][k++] = nodeMap.get(target);
                 }
                 k = 0;
                 for (Object target : rightEdges)
                 {
+                    assert nodeMap.containsKey(target) : target;
                     pg.rightEdges[vertex][k++] = nodeMap.get(target);
                 }
             }
@@ -2400,7 +2401,7 @@ public class LoopyGame extends Game
          */
         public Node()
         {
-            super(CgsuitePackage.forceLookupClass("Node"));
+            super(CgsuitePackage.forceLookupClass("Object"));
             leftEdges = new ArrayList<Node>();
             rightEdges = new ArrayList<Node>();
             value = CanonicalShortGame.ZERO;
@@ -2452,6 +2453,11 @@ public class LoopyGame extends Game
         {
             this(leftEdges, rightEdges);
             this.label = label;
+        }
+
+        public boolean equals(Object o)
+        {
+            return this == o;
         }
 
         /**

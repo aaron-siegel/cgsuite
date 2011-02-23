@@ -29,6 +29,10 @@
 
 package org.cgsuite.ui.worksheet;
 
+import java.util.List;
+import java.util.ArrayList;
+import org.cgsuite.lang.Game;
+import org.cgsuite.lang.game.LoopyGame;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -1073,7 +1077,7 @@ public class CoreIOHandler
             return "N" + String.valueOf(n-25);
         }
     }
-    /*
+    
     private void loopyGameToOutput(
         LoopyGame g,
         StyledTextOutput output,
@@ -1119,10 +1123,10 @@ public class CoreIOHandler
         }
         else if (g.getLeftOptions().size() == 1 && g.getRightOptions().size() == 1)
         {
-            LoopyGame gl = g.getLeftOptions().get(0),
-                      gr = g.getRightOptions().get(0);
+            LoopyGame gl = (LoopyGame) g.getLeftOptions().iterator().next(),
+                      gr = (LoopyGame) g.getRightOptions().iterator().next();
             
-            CanonicalGame glc = null, grc = null;
+            CanonicalShortGame glc = null, grc = null;
             
             if (gl.isLoopfree())
             {
@@ -1156,16 +1160,20 @@ public class CoreIOHandler
         nodeStack.put(g, null);
         int numSlashes = 1;
         StyledTextOutput leftOutput = new StyledTextOutput(), rightOutput = new StyledTextOutput();
-        java.util.List<Game>
+        List<Game>
             leftOptions  = sortLoopyOptions(g.getLeftOptions()),
             rightOptions = sortLoopyOptions(g.getRightOptions());
         for (Iterator i = leftOptions.iterator(); i.hasNext();)
         {
             Object o = i.next();
-            if (o instanceof CanonicalGame)
+            if (o.equals(g))
+            {
+                leftOutput.appendMath("pass");
+            }
+            else if(o instanceof CanonicalShortGame)
             {
                 numSlashes = Math.max
-                    (numSlashes, canonicalGameToOutput((CanonicalGame) o, leftOutput, leftOptions.size() > 1, false) + 1);
+                    (numSlashes, canonicalGameToOutput((CanonicalShortGame) o, leftOutput, leftOptions.size() > 1, false) + 1);
             }
             else
             {
@@ -1185,10 +1193,14 @@ public class CoreIOHandler
         for (Iterator i = rightOptions.iterator(); i.hasNext();)
         {
             Object o = i.next();
-            if (o instanceof CanonicalGame)
+            if (o.equals(g))
+            {
+                rightOutput.appendMath("pass");
+            }
+            else if (o instanceof CanonicalShortGame)
             {
                 numSlashes = Math.max
-                    (numSlashes, canonicalGameToOutput((CanonicalGame) o, rightOutput, rightOptions.size() > 1, false) + 1);
+                    (numSlashes, canonicalGameToOutput((CanonicalShortGame) o, rightOutput, rightOptions.size() > 1, false) + 1);
             }
             else
             {
@@ -1212,7 +1224,7 @@ public class CoreIOHandler
             output.appendMath(name + ":");
             forceBrackets = true;
         }
-        if (leftOptions.size() == 0 || rightOptions.size() == 0)
+        if (leftOptions.isEmpty() || rightOptions.isEmpty())
         {
             // Force brackets for clarity.
             forceBrackets = true;
@@ -1235,11 +1247,12 @@ public class CoreIOHandler
         }
     }
     
-    private java.util.List<Game> sortLoopyOptions(Collection<? extends LoopyGame> options)
+    private List<Game> sortLoopyOptions(CgsuiteSet options)
     {
-        java.util.List<Game> sortedOptions = new ArrayList<Game>();
-        for (LoopyGame g : options)
+        List<Game> sortedOptions = new ArrayList<Game>();
+        for (CgsuiteObject obj : options)
         {
+            LoopyGame g = (LoopyGame) obj;
             if (g.isLoopfree())
             {
                 sortedOptions.add(g.loopfreeRepresentation());
@@ -1252,7 +1265,7 @@ public class CoreIOHandler
 //        Collections.sort(sortedOptions, Context.getActiveContext().getGameComparator());
         return sortedOptions;
     }
-    
+    /*
     private Output trajectoryToOutput(Trajectory t)
     {
         StyledTextOutput output = rationalToOutput(t.getMastValue());
@@ -1344,7 +1357,7 @@ public class CoreIOHandler
             return;
         }
 
-        java.util.List<CanonicalMisereGame> options = g.getOptions();
+        List<CanonicalMisereGame> options = g.getOptions();
 
         if (options.size() == 1)
         {
@@ -1470,7 +1483,7 @@ public class CoreIOHandler
         {
             ExplicitGame g = (ExplicitGame) obj;
             output.appendMath("{");
-            for (java.util.Iterator<CgsuiteObject> i = g.getLeftOptions().iterator(); i.hasNext();)
+            for (Iterator<CgsuiteObject> i = g.getLeftOptions().iterator(); i.hasNext();)
             {
                 output.appendOutput(createOutput(i.next()));
                 if (i.hasNext())
@@ -1479,7 +1492,7 @@ public class CoreIOHandler
                 }
             }
             output.appendMath("|");
-            for (java.util.Iterator<CgsuiteObject> i = g.getRightOptions().iterator(); i.hasNext();)
+            for (Iterator<CgsuiteObject> i = g.getRightOptions().iterator(); i.hasNext();)
             {
                 output.appendOutput(createOutput(i.next()));
                 if (i.hasNext())
@@ -1619,10 +1632,12 @@ public class CoreIOHandler
         {
             output.appendText("Type \"" + ((Kernel.Type) obj).typeInfo.name + "\"");
         }
+        */
         else if (obj instanceof LoopyGame)
         {
             loopyGameToOutput((LoopyGame) obj, output, true);
         }
+        /*
         else if (obj instanceof OrdinalSumGame)
         {
             OrdinalSumGame g = (OrdinalSumGame) obj;
@@ -1655,7 +1670,7 @@ public class CoreIOHandler
         {
             Collection<CgsuiteObject> components = ((SumGame) obj).getComponents();
             boolean gotAny = false;
-            for (java.util.Iterator<? extends CgsuiteObject> i = components.iterator(); i.hasNext();)
+            for (Iterator<? extends CgsuiteObject> i = components.iterator(); i.hasNext();)
             {
                 if (gotAny)
                 {

@@ -1,20 +1,18 @@
 package org.cgsuite.lang;
 
 import org.cgsuite.lang.parser.CgsuiteTree;
-import static java.util.Collections.singleton;
 import static org.cgsuite.lang.parser.CgsuiteLexer.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
+import org.cgsuite.lang.game.LoopyGame;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
@@ -204,6 +202,7 @@ public class Domain
         List<CgsuiteObject> list;
         Map<String,CgsuiteObject> argmap;
         CgsuiteSet lo, ro;
+        LoopyGame.Node node;
 
         switch (tree.token.getType())
         {
@@ -386,9 +385,17 @@ public class Domain
 
             case SLASHES:
 
-                lo = gameOptions(tree.getChild(0));
-                ro = gameOptions(tree.getChild(1));
-                return new ExplicitGame(lo, ro);
+                if (hasPass(tree.getChild(0)) || hasPass(tree.getChild(1)))
+                {
+                    node = loopyNode(tree, new HashMap<String,LoopyGame.Node>());
+                    return new LoopyGame(node);
+                }
+                else
+                {
+                    lo = gameOptions(tree.getChild(0));
+                    ro = gameOptions(tree.getChild(1));
+                    return new ExplicitGame(lo, ro);
+                }
 
             case EXPLICIT_MAP:
 
@@ -410,6 +417,11 @@ public class Domain
                 for (CgsuiteTree child : tree.getChildren())
                     array.add(expression(child).invoke("Simplify"));
                 return array;
+
+            case COLON:
+
+                node = loopyNode(tree, new HashMap<String,LoopyGame.Node>());
+                return new LoopyGame(node);
 
             default:
 
@@ -738,6 +750,132 @@ public class Domain
             default:
 
                 throw new MalformedParseTreeException(tree);
+        }
+    }
+
+    private boolean hasPass(CgsuiteTree tree)
+    {
+        for (CgsuiteTree child : tree.getChildren())
+        {
+            if (child.getType() == PASS)
+                return true;
+        }
+
+        return false;
+    }
+
+    private LoopyGame.Node loopyNode(CgsuiteTree tree, Map<String,LoopyGame.Node> nodeMap) throws CgsuiteException
+    {
+        LoopyGame.Node curNode = new LoopyGame.Node();
+
+        switch (tree.getToken().getType())
+        {
+            case COLON:
+
+                String nodeName = tree.getChild(0).getText();
+                if (nodeMap.containsKey(nodeName))
+                    throw new InputException(tree.getChild(0).getToken(), "Duplicate node label: " + nodeName);
+                nodeMap.put(nodeName, curNode);
+                loopyNode2(tree.getChild(1), nodeMap, curNode);
+                break;
+
+            case SLASHES:
+
+                loopyNode2(tree, nodeMap, curNode);
+                break;
+
+            default:
+
+                throw new MalformedParseTreeException(tree);
+
+        }
+
+        return curNode;
+    }
+
+    private void loopyNode2(CgsuiteTree tree, Map<String,LoopyGame.Node> nodeMap, LoopyGame.Node curNode) throws CgsuiteException
+    {
+        if (tree.getToken().getType() != SLASHES)
+            throw new MalformedParseTreeException(tree);
+
+        for (int i = 0; i < tree.getChild(0).getChildCount(); i++)
+        {
+            switch (tree.getChild(0).getChild(i).getType())
+            {
+                case COLON:
+                case SLASHES:
+
+                    curNode.addLeftEdge(loopyNode(tree.getChild(0).getChild(i), nodeMap));
+                    break;
+
+                case PASS:
+
+                    curNode.addLeftEdge(curNode);
+                    break;
+
+                case IDENTIFIER:
+
+                    String id = tree.getChild(0).getChild(i).getText();
+                    if (nodeMap.containsKey(id))
+                    {
+                        curNode.addLeftEdge(nodeMap.get(id));
+                        break;
+                    }
+                    // Else intentional case fallthrough
+
+                default:
+
+                    CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).invoke("Simplify");
+                    if (obj instanceof RationalNumber)
+                        curNode.addLeftEdge(new CanonicalShortGame((RationalNumber) obj));
+                    else if(obj instanceof CanonicalShortGame)
+                        curNode.addLeftEdge((CanonicalShortGame) obj);
+                    else if (obj instanceof LoopyGame)
+                        curNode.addLeftEdge((LoopyGame) obj);
+                    else
+                        throw new InputException(tree.getChild(0).getChild(i).getToken(), "Expression not permitted in a loopy game constructor.");
+                    break;
+            }
+        }
+
+        for (int i = 0; i < tree.getChild(1).getChildCount(); i++)
+        {
+            switch (tree.getChild(1).getChild(i).getType())
+            {
+                case COLON:
+                case SLASHES:
+
+                    curNode.addRightEdge(loopyNode(tree.getChild(1).getChild(i), nodeMap));
+                    break;
+
+                case PASS:
+
+                    curNode.addRightEdge(curNode);
+                    break;
+
+                case IDENTIFIER:
+
+                    String id = tree.getChild(1).getChild(i).getText();
+                    if (nodeMap.containsKey(id))
+                    {
+                        curNode.addRightEdge(nodeMap.get(id));
+                        break;
+                    }
+                    // Else intentional case fallthrough
+
+                default:
+
+                    CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).invoke("Simplify");
+                    if (obj instanceof RationalNumber)
+                        curNode.addRightEdge(new CanonicalShortGame((RationalNumber) obj));
+                    else if (obj instanceof CanonicalShortGame)
+                        curNode.addRightEdge((CanonicalShortGame) obj);
+                    else if (obj instanceof LoopyGame)
+                        curNode.addRightEdge((LoopyGame) obj);
+                    else
+                        throw new InputException(tree.getChild(1).getChild(i).getToken(), "Expression not permitted in a loopy game constructor.");
+                    break;
+            }
         }
     }
 
