@@ -6,21 +6,22 @@
     <description>Builds, tests, and runs the project org.cgsuite.lang.</description>
     <import file="nbproject/build-impl.xml"/>
 
-    <!-- Full path to Antlr jar -->
-    <property name="antlr.jar" location="../ANTLR/release/modules/ext/antlr-3.3-complete.jar"/>
-    <!-- Grammar path -->
-    <property name="antlr.grammar" location="src/org/cgsuite/lang/parser/Cgsuite.g"/>
-    <uptodate property="antlr.uptodate" srcfile="${antlr.grammar}" targetfile="src/org/cgsuite/lang/parser/CgsuiteParser.java"/>
+    <path id="antlr.classpath">
+        <fileset dir="../ANTLR">
+            <include name="ant-antlr3.jar"/>
+            <include name="release/modules/ext/antlr-3.3-complete.jar"/>
+        </fileset>
+    </path>
+    
+    <taskdef resource="org/apache/tools/ant/antlr/antlib.xml" classpathref="antlr.classpath"/>
 
     <target name="compile" depends="-pre-compile,projectized-common.compile"/>
 
-    <target name="-pre-compile" unless="antlr.uptodate">
-        <!-- Compiling grammar -->
-        <echo message="Building ANTLR grammar."/>
-        <java classname="org.antlr.Tool"  fork="true">
-            <arg value="${antlr.grammar}"/>
-            <classpath path="${antlr.jar}"/>
-        </java>
+    <target name="-pre-compile">
+        <ant-antlr3 xmlns:antlr="antlib:org/apache/tools/ant/antlr"
+                    verbose="true"
+                    target="src/org/cgsuite/lang/parser/Cgsuite.g"/>
+        
         <!-- Insert @SuppressWarnings("unchecked","all") in front of every generated class -->
   	    <replaceregexp flags="m" match="^public class"
 	      			   replace="@SuppressWarnings({&quot;unchecked&quot;,&quot;all&quot;}) public class">
