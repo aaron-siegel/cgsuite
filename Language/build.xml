@@ -22,9 +22,9 @@
                     verbose="true"
                     target="src/org/cgsuite/lang/parser/Cgsuite.g"/>
         
-        <!-- Insert @SuppressWarnings("unchecked","all") in front of every generated class -->
+        <!-- Insert @SuppressWarnings("unchecked","cast","all") in front of every generated class -->
   	    <replaceregexp flags="m" match="^public class"
-	      			   replace="@SuppressWarnings({&quot;unchecked&quot;,&quot;all&quot;}) public class">
+	      			   replace="@SuppressWarnings({&quot;unchecked&quot;,&quot;cast&quot;,&quot;all&quot;}) public class">
 	  	    <fileset dir="src/org/cgsuite/lang/parser/" includes="CgsuiteLexer.java,CgsuiteParser.java"/>
 	    </replaceregexp>
     </target>

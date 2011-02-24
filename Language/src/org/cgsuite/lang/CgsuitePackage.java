@@ -159,7 +159,7 @@ public class CgsuitePackage implements FileChangeListener
 
     public CgsuiteClass lookupClassInPackage(String name)
     {
-        return (CgsuiteClass) classes.get(name);
+        return classes.get(name);
     }
 
     public String getName()

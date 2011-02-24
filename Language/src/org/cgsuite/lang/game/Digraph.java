@@ -404,7 +404,7 @@ public class Digraph
         int[][] allLeftEdges = new int[numVertices][];
         for (int i = 0; i < numVertices; i++)
         {
-            allLeftEdges[i] = (int[]) leftEdges[i].clone();
+            allLeftEdges[i] = leftEdges[i].clone();
         }
         return allLeftEdges;
     }
@@ -414,7 +414,7 @@ public class Digraph
         int[][] allRightEdges = new int[numVertices][];
         for (int i = 0; i < numVertices; i++)
         {
-            allRightEdges[i] = (int[]) rightEdges[i].clone();
+            allRightEdges[i] = rightEdges[i].clone();
         }
         return allRightEdges;
     }

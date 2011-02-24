@@ -92,7 +92,7 @@ public class GridOutput implements Output
         this.grid = grid.copy();
         if (icons != null)
         {
-            this.icons = (Icon[]) icons.clone();
+            this.icons = icons.clone();
             cellSize = calculateIconDimensions(icons, true);
             size = calculateGridImageDimensions(grid, icons, cellSize, 1, 1);
         }

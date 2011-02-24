@@ -793,6 +793,7 @@ public class Domain
         return curNode;
     }
 
+    @SuppressWarnings("fallthrough")
     private void loopyNode2(CgsuiteTree tree, Map<String,LoopyGame.Node> nodeMap, LoopyGame.Node curNode) throws CgsuiteException
     {
         if (tree.getToken().getType() != SLASHES)
