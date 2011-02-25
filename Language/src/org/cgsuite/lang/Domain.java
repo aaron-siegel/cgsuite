@@ -238,7 +238,7 @@ public class Domain
 
             case ASSIGN:
 
-                x = expression(tree.getChild(1)).invoke("Simplify");
+                x = expression(tree.getChild(1)).simplify();
                 assignTo(tree.getChild(0), x);
                 return x;
 
@@ -315,7 +315,7 @@ public class Domain
             case DOT:
 
                 x = expression(tree.getChild(0));
-                x = x.invoke("Simplify");
+                x = x.simplify();
                 try
                 {
                     return x.resolve(tree.getChild(1).getText());
@@ -401,21 +401,21 @@ public class Domain
 
                 CgsuiteMap map = new CgsuiteMap();
                 for (CgsuiteTree child : tree.getChildren())
-                    map.put(expression(child.getChild(0)).invoke("Simplify"), expression(child.getChild(1)).invoke("Simplify"));
+                    map.put(expression(child.getChild(0)).simplify(), expression(child.getChild(1)).simplify());
                 return map;
 
             case EXPLICIT_SET:
 
                 CgsuiteSet set = new CgsuiteSet();
                 for (CgsuiteTree child : tree.getChildren())
-                    set.add(expression(child).invoke("Simplify"));
+                    set.add(expression(child).simplify());
                 return set;
 
             case EXPLICIT_LIST:
 
                 CgsuiteList array = new CgsuiteList();
                 for (CgsuiteTree child : tree.getChildren())
-                    array.add(expression(child).invoke("Simplify"));
+                    array.add(expression(child).simplify());
                 return array;
 
             case COLON:
@@ -629,8 +629,8 @@ public class Domain
             case GT:
             case CONFUSED:
             case COMPARE:
-                x = x.invoke("Simplify");
-                y = y.invoke("Simplify");
+                x = x.simplify();
+                y = y.simplify();
                 break;
         }
 
@@ -826,7 +826,7 @@ public class Domain
 
                 default:
 
-                    CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).invoke("Simplify");
+                    CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).simplify();
                     if (obj instanceof RationalNumber)
                         curNode.addLeftEdge(new CanonicalShortGame((RationalNumber) obj));
                     else if(obj instanceof CanonicalShortGame)
@@ -866,7 +866,7 @@ public class Domain
 
                 default:
 
-                    CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).invoke("Simplify");
+                    CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).simplify();
                     if (obj instanceof RationalNumber)
                         curNode.addRightEdge(new CanonicalShortGame((RationalNumber) obj));
                     else if (obj instanceof CanonicalShortGame)
@@ -892,7 +892,7 @@ public class Domain
                 if (prepend != null)
                     list.add(prepend);
                 for (CgsuiteTree child : tree.getChildren())
-                    list.add(expression(child).invoke("Simplify"));
+                    list.add(expression(child).simplify());
                 return list;
 
             default:
@@ -913,7 +913,7 @@ public class Domain
                 for (CgsuiteTree child : tree.getChildren())
                 {
                     if (child.getToken().getType() != BIGRARROW)
-                        list.add(expression(child).invoke("Simplify"));
+                        list.add(expression(child).simplify());
                 }
                 return list;
 
@@ -937,7 +937,7 @@ public class Domain
                     {
                         if (map == null)
                             map = new HashMap<String,CgsuiteObject>();
-                        map.put(child.getChild(0).getText(), expression(child.getChild(1)).invoke("Simplify"));
+                        map.put(child.getChild(0).getText(), expression(child.getChild(1)).simplify());
                     }
                 }
                 return map;
@@ -978,7 +978,7 @@ public class Domain
     {
         if (!(x instanceof CgsuiteBoolean))
         {
-            x = x.invoke("Simplify");
+            x = x.simplify();
             if (!(x instanceof CgsuiteBoolean))
                 throw new InputException(tree.token, "Expression is not a boolean.");
         }
@@ -1010,7 +1010,7 @@ public class Domain
     {
         if (!(x instanceof RationalNumber))
         {
-            x = x.invoke("Simplify");
+            x = x.simplify();
             if (!(x instanceof RationalNumber))
                 throw new InputException(tree.token, "Argument to * is not a number.");
         }
@@ -1022,7 +1022,7 @@ public class Domain
     {
         if (!(x instanceof CanonicalShortGame))
         {
-            x = x.invoke("Simplify");
+            x = x.simplify();
             if (x instanceof RationalNumber)
                 x = new CanonicalShortGame((RationalNumber) x);
             if (!(x instanceof CanonicalShortGame))

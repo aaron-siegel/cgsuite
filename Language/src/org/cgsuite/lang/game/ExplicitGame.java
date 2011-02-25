@@ -61,7 +61,7 @@ public class ExplicitGame extends Game
         return buf.toString();
     }
 
-    public CgsuiteObject simplify() throws CgsuiteException
+    public Game simplify() throws CgsuiteException
     {
         CgsuiteSet simplifiedLeftOptions = new CgsuiteSet();
         CgsuiteSet simplifiedRightOptions = new CgsuiteSet();
@@ -71,7 +71,7 @@ public class ExplicitGame extends Game
         boolean allCanonical = true;
         for (CgsuiteObject x : leftOptions)
         {
-            CgsuiteObject simp = x.invoke("Simplify");
+            CgsuiteObject simp = x.simplify();
             simplifiedLeftOptions.add(simp);
 
             if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
@@ -83,7 +83,7 @@ public class ExplicitGame extends Game
         }
         for (CgsuiteObject x : rightOptions)
         {
-            CgsuiteObject simp = x.invoke("Simplify");
+            CgsuiteObject simp = x.simplify();
             simplifiedRightOptions.add(simp);
 
             if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())

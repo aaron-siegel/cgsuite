@@ -2,6 +2,7 @@ package org.cgsuite.lang.game;
 
 import org.cgsuite.lang.Game;
 import java.math.BigInteger;
+import org.cgsuite.lang.CgsuiteObject;
 
 import org.cgsuite.lang.CgsuitePackage;
 
@@ -57,6 +58,12 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
         }
 
         return numerator.multiply(r.denominator).compareTo(denominator.multiply(r.numerator));
+    }
+
+    @Override
+    public RationalNumber simplify()
+    {
+        return this;
     }
 
     public double doubleValue()

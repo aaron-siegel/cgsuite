@@ -22,9 +22,9 @@ public class InverseGame extends Game
         return g;
     }
 
-    public CgsuiteObject simplify() throws CgsuiteException
+    public Game simplify() throws CgsuiteException
     {
-        CgsuiteObject gSimp = g.invoke("Simplify");
+        CgsuiteObject gSimp = g.simplify();
         if (gSimp instanceof RationalNumber)
             return ((RationalNumber) gSimp).negate();
         else if (gSimp instanceof CanonicalShortGame)

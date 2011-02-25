@@ -61,9 +61,10 @@ public class MultipleGame extends Game
         return hash;
     }
 
-    public CgsuiteObject simplify() throws CgsuiteException
+    @Override
+    public Game simplify() throws CgsuiteException
     {
-        CgsuiteObject simp = g.invoke("Simplify");
+        CgsuiteObject simp = g.simplify();
 
         if (simp instanceof RationalNumber)
         {

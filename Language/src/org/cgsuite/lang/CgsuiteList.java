@@ -76,7 +76,7 @@ public class CgsuiteList extends CgsuiteCollection
             {
                 arguments.set(0, x);
                 arguments.set(1, y);
-                return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).invoke("Simplify"), int.class);
+                return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class);
             }
         });
     }

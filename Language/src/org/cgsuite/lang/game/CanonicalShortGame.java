@@ -605,7 +605,8 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
         return s;
     }
 
-    public CgsuiteObject simplify()
+    @Override
+    public Game simplify()
     {
         if (isNumber())
             return getNumberPart();

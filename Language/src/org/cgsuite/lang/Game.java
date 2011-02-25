@@ -11,6 +11,12 @@ public class Game extends CgsuiteObject
         super(type);
     }
 
+    @Override
+    public Game simplify()
+    {
+        return this;
+    }
+
     public InverseGame buildInverse()
     {
         return new InverseGame(this);

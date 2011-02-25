@@ -136,6 +136,12 @@ public final class CanonicalStopperGame extends LoopyGame
         inverse.startVertex = startVertex;
         return inverse;
     }
+
+    @Override
+    public CanonicalStopperGame simplify()
+    {
+        return this;
+    }
     
     public RationalNumber leftStop()
     {

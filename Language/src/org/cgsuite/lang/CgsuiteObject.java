@@ -29,7 +29,7 @@ public class CgsuiteObject
         {
             try
             {
-                CgsuiteObject obj = x.invoke("Order", y).invoke("Simplify");
+                CgsuiteObject obj = x.invoke("Order", y).simplify();
                 return ((RationalNumber) obj).intValue();
             }
             catch (CgsuiteException exc)
@@ -53,9 +53,19 @@ public class CgsuiteObject
         this.objectNamespace = new Namespace();
     }
 
+    public CgsuiteObject simplify()
+    {
+        return this;
+    }
+
     public CgsuiteObject toCgsuiteString()
     {
         return invoke("ToString$get");
+    }
+
+    public CgsuiteObject toOutput()
+    {
+        return invoke("ToOutput$get");
     }
 
     public CgsuiteClass getCgsuiteClass()

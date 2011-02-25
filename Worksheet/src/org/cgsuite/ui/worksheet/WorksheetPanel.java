@@ -11,7 +11,6 @@
 
 package org.cgsuite.ui.worksheet;
 
-import org.cgsuite.lang.output.Output;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -19,20 +18,34 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
+import javax.swing.text.BadLocationException;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
 import org.openide.util.RequestProcessor;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 
 /**
  *
  * @author asiegel
  */
-public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
+public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener
 {
     private final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(WorksheetPanel.class);
+
+    private CalculationCapsule currentCapsule;
+    private EmbeddedTextArea currentSource;
+
+    private List<String> commandHistory = new ArrayList<String>();
+    private String commandHistoryPrefix;
+    private int commandHistoryIndex;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
@@ -64,13 +77,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
             @Override
             public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
         });
-        /*
-        textArea.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent evt) { cellFocusGained(evt); }
-        });
-         */
         textArea.setAlignmentY(Component.TOP_ALIGNMENT);
-//        textArea.addMouseListener(MainFrame.getMainFrame().editPopupListener);
         Box box = Box.createHorizontalBox();
         box.add(label);
         box.add(textArea);
@@ -81,7 +88,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
     private void cellKeyPressed(KeyEvent evt)
     {
         EmbeddedTextArea source = (EmbeddedTextArea) evt.getSource();
-        java.awt.Component[] components = getComponents();
+        Component[] components = getComponents();
         int index;
         for (index = 0; index < components.length; index++)
         {
@@ -137,43 +144,128 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
                 }
                 break;
 
+            case KeyEvent.VK_UP:
+                try
+                {
+                    if (evt.getModifiers() == 0 && source.getLineOfOffset(source.getCaretPosition()) == 0)
+                    {
+                        evt.consume();
+                        if (commandHistoryPrefix == null)
+                        {
+                            commandHistoryPrefix = source.getText();
+                            commandHistoryIndex = commandHistory.size();
+                        }
+                        source.setText(seekNextCommand());
+                    }
+                }
+                catch (BadLocationException exc)
+                {
+                }
+                break;
+
             default:
                 break;
         }
     }
+
+    private String seekNextCommand()
+    {
+        for (commandHistoryIndex--; commandHistoryIndex >= 0; commandHistoryIndex--)
+        {
+            if (commandHistory.get(commandHistoryIndex).startsWith(commandHistoryPrefix))
+            {
+                return commandHistory.get(commandHistoryIndex);
+            }
+        }
+        commandHistoryIndex = commandHistory.size();
+        return commandHistoryPrefix;
+    }
     
     private void processCommand(EmbeddedTextArea source)
     {
+        source.setEditable(false);
+        commandHistory.add(source.getText());
+        commandHistoryPrefix = null;
         CalculationCapsule capsule = new CalculationCapsule(source.getText());
-        capsule.run();
-        Output[] output = capsule.getOutput();
-        if (capsule.isErrorOutput())
-            getToolkit().beep();
+        RequestProcessor.Task task = REQUEST_PROCESSOR.create(capsule);
+        task.addTaskListener(this);
+        task.schedule(0);
 
+        boolean finished = false;
+
+        try
+        {
+            finished = task.waitFinished(50);
+        }
+        catch (InterruptedException exc)
+        {
+        }
+
+        Output[] output;
+        
+        if (finished)
+        {
+            output = capsule.getOutput();
+            if (capsule.isErrorOutput())
+                getToolkit().beep();
+        }
+        else
+        {
+            output = new Output[] { new StyledTextOutput("Calculating ...") };
+            this.currentCapsule = capsule;
+            this.currentSource = source;
+        }
+
+        postOutput(source, output);
+
+        if (finished)
+        {
+            advanceToNext(getComponents().length);
+        }
+
+        repaint();
+        getParent().getParent().validate();
+    }
+
+    private void postOutput(EmbeddedTextArea source, Output[] output)
+    {
         // Find this component.
         int index = findIndex(source, false) + 1;
+        
         Component[] components = getComponents();
-
         for (int i = index; i < components.length && components[i] instanceof OutputBox; i++)
         {
             remove(index);
         }
 
-        if (output != null)
+        for (int i = 0; i < output.length; i++)
         {
-            for (int i = 0; i < output.length; i++)
-            {
-                OutputBox outputBox = new OutputBox();
-                outputBox.setOutput(output[i]);
-                outputBox.setWorksheetWidth(getWidth());
-                outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-                add(outputBox, index + i);
-            }
-            advanceToNext(index + output.length);
+            OutputBox outputBox = new OutputBox();
+            outputBox.setOutput(output[i]);
+            outputBox.setWorksheetWidth(getWidth());
+            outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+            add(outputBox, index + i);
         }
+    }
+
+    @Override
+    public void taskFinished(Task task)
+    {
+        if (currentSource == null)
+            return;
+
+        Output[] output = currentCapsule.getOutput();
+        if (currentCapsule.isErrorOutput())
+            getToolkit().beep();
+
+        postOutput(currentSource, output);
+        advanceToNext(getComponents().length);
 
         repaint();
         getParent().getParent().validate();
+
+        currentSource = null;
+        currentCapsule = null;
     }
 
     // Finds the component index of eta.  If skipPastOutput is true, finds the
@@ -295,6 +387,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable
     {
         return false;
     }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
 

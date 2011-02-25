@@ -90,7 +90,7 @@ public class CalculationCapsule implements Runnable
 
     private Output invoke(final CgsuiteTree tree)
     {
-        CgsuiteObject retval = WORKSPACE_DOMAIN.script(tree).invoke("Simplify");
+        CgsuiteObject retval = WORKSPACE_DOMAIN.script(tree).simplify();
         return new CoreIOHandler().createOutput(retval);
     }
     

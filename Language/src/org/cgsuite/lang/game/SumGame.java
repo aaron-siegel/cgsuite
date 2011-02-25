@@ -88,7 +88,8 @@ public class SumGame extends Game
         return true;
     }
 
-    public CgsuiteObject simplify() throws CgsuiteException
+    @Override
+    public Game simplify() throws CgsuiteException
     {
         List<CgsuiteObject> simplified = new ArrayList<CgsuiteObject>();
         boolean allNumbers = true;
@@ -96,7 +97,7 @@ public class SumGame extends Game
 
         for (CgsuiteObject x : components)
         {
-            CgsuiteObject simp = x.invoke("Simplify");
+            CgsuiteObject simp = x.simplify();
             if (simp instanceof RationalNumber)
             {
                 if (!((RationalNumber) simp).isDyadic())

@@ -512,6 +512,7 @@ public class LoopyGame extends Game
      * @return  A simplified representation of this game, if possible;
      *          otherwise <code>this</code>.
      */
+    @Override
     public Game simplify()
     {
         if (graph.isCycleFree(startVertex))

@@ -1,0 +1,14 @@
+class FoxAndGeese extends Game : java "org.cgsuite.lang.Game"
+
+    public method FoxAndGeese(grid)
+        if grid.Class == String then
+            this.grid := Grid.ParseGrid(grid, ".xo");
+        elseif grid.Class == Grid then
+            this.grid := grid;
+        end
+        // TODO Error otherwise
+    end
+
+    
+
+end

@@ -1,5 +1,3 @@
 class ExplicitGame extends Game : java "org.cgsuite.lang.game.ExplicitGame"
 
-	public method Simplify() : java "simplify";
-
 end
