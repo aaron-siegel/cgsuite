@@ -67,7 +67,17 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
     }// </editor-fold>//GEN-END:initComponents
 
-    private void addNewCell()
+    private JViewport getViewport()
+    {
+        return (JViewport) getParent();
+    }
+
+    private JScrollPane getScrollPane()
+    {
+        return (JScrollPane) getParent().getParent();
+    }
+
+    private Box addNewCell()
     {
         JLabel label = new JLabel("> ");
         label.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -83,8 +93,9 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         box.add(textArea);
         box.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(box);
+        return box;
     }
-    
+
     private void cellKeyPressed(KeyEvent evt)
     {
         EmbeddedTextArea source = (EmbeddedTextArea) evt.getSource();
@@ -101,6 +112,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
 
         switch (evt.getKeyCode())
         {
+            /*
             case KeyEvent.VK_TAB:
                 if (evt.getModifiers() == 0)
                 {
@@ -127,7 +139,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     }
                 }
                 break;
-
+            */
             case KeyEvent.VK_ENTER:
                 if (evt.getModifiers() == 0)
                 {
@@ -155,11 +167,28 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                             commandHistoryPrefix = source.getText();
                             commandHistoryIndex = commandHistory.size();
                         }
-                        source.setText(seekNextCommand());
+                        source.setText(seekCommand(-1));
                     }
                 }
                 catch (BadLocationException exc)
                 {
+                     throw new RuntimeException(exc);
+                }
+                break;
+
+            case KeyEvent.VK_DOWN:
+                try
+                {
+                    if (evt.getModifiers() == 0 && commandHistoryPrefix != null &&
+                        (source.getLineOfOffset(source.getCaretPosition()) == source.getLineCount()-1))
+                    {
+                        evt.consume();
+                        source.setText(seekCommand(1));
+                    }
+                }
+                catch (BadLocationException exc)
+                {
+                     throw new RuntimeException(exc);
                 }
                 break;
 
@@ -168,9 +197,11 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         }
     }
 
-    private String seekNextCommand()
+    private String seekCommand(int direction)
     {
-        for (commandHistoryIndex--; commandHistoryIndex >= 0; commandHistoryIndex--)
+        for (commandHistoryIndex += direction;
+             commandHistoryIndex >= 0 && commandHistoryIndex < commandHistory.size();
+             commandHistoryIndex--)
         {
             if (commandHistory.get(commandHistoryIndex).startsWith(commandHistoryPrefix))
             {
@@ -216,35 +247,25 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             this.currentSource = source;
         }
 
-        postOutput(source, output);
+        postOutput(output);
 
         if (finished)
         {
-            advanceToNext(getComponents().length);
+            advanceToNext();
         }
-
-        repaint();
-        getParent().getParent().validate();
     }
 
-    private void postOutput(EmbeddedTextArea source, Output[] output)
+    private void postOutput(Output ... output)
     {
-        // Find this component.
-        int index = findIndex(source, false) + 1;
-        
-        Component[] components = getComponents();
-        for (int i = index; i < components.length && components[i] instanceof OutputBox; i++)
-        {
-            remove(index);
-        }
-
         for (int i = 0; i < output.length; i++)
         {
             OutputBox outputBox = new OutputBox();
             outputBox.setOutput(output[i]);
             outputBox.setWorksheetWidth(getWidth());
             outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-            add(outputBox, index + i);
+            add(outputBox);
+            repaint();
+            getScrollPane().validate();
         }
     }
 
@@ -258,74 +279,30 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         if (currentCapsule.isErrorOutput())
             getToolkit().beep();
 
-        postOutput(currentSource, output);
-        advanceToNext(getComponents().length);
+        remove(getComponents().length-1);
 
-        repaint();
-        getParent().getParent().validate();
+        postOutput(output);
+        advanceToNext();
 
         currentSource = null;
         currentCapsule = null;
     }
 
-    // Finds the component index of eta.  If skipPastOutput is true, finds the
-    // index immediately following all output after eta.
-    private int findIndex(EmbeddedTextArea eta, boolean skipPastOutput)
+    private void advanceToNext()
     {
-        Component components[] = getComponents();
-        int index;
-        for (index = 0; index < components.length; index++)
-        {
-            if (components[index] instanceof Box &&
-                ((Box) components[index]).getComponent(1) == eta)
-            {
-                break;
-            }
-        }
-        if (index == components.length)
-        {
-            index = -1;
-        }
-        if (skipPastOutput)
-        {
-            do
-            {
-                index++;
-            } while (index < components.length && components[index] instanceof OutputBox);
-        }
-        return index;
-    }
-
-    private void advanceToNext(int index)
-    {
-        if (index == getComponentCount())
-        {
-            add(Box.createVerticalStrut(10));
-            addNewCell();
-        }
-        index++;    // Skip the vertical strut
+        add(Box.createVerticalStrut(10));
+        Box cell = addNewCell();
         updateComponentSizes();
         validate();
-        Point topLeft = getComponent(index).getLocation();
-        Point bottomLeft = new Point(topLeft.x, topLeft.y + getComponent(index).getHeight());
-        if (!((JViewport) getParent()).getViewRect().contains(bottomLeft))
+        Point topLeft = cell.getLocation();
+        Point bottomLeft = new Point(topLeft.x, topLeft.y + cell.getHeight());
+        if (!getViewport().getViewRect().contains(bottomLeft))
         {
-            ((JScrollPane) getParent().getParent()).getHorizontalScrollBar().setValue(0);
-            ((JScrollPane) getParent().getParent()).getVerticalScrollBar().setValue
-                (bottomLeft.y - ((JViewport) getParent()).getHeight());
+            getScrollPane().getHorizontalScrollBar().setValue(0);
+            getScrollPane().getVerticalScrollBar().setValue(bottomLeft.y - getViewport().getHeight());
         }
-        ((Box) getComponent(index)).getComponent(1).requestFocusInWindow();
+        cell.getComponent(1).requestFocusInWindow();
         validate();
-    }
-
-    private void insertOutput(Output output, int index)
-    {
-        OutputBox outputBox = new OutputBox();
-        outputBox.setOutput(output);
-        outputBox.setWorksheetWidth(getWidth());
-        outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-        add(outputBox, index);
-        getParent().getParent().validate();
     }
 
     public void updateComponentSizes()
@@ -334,7 +311,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         {
             return;
         }
-        int width = ((JScrollPane) getParent().getParent()).getViewport().getExtentSize().width;
+        int width = getViewport().getExtentSize().width;
         java.awt.Component components[] = getComponents();
         for (int index = 0; index < components.length; index++)
         {
@@ -355,7 +332,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                 outputBox.invalidate();
             }
         }
-        getParent().getParent().validate();
+        getScrollPane().validate();
     }
     
     @Override
