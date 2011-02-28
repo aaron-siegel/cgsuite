@@ -88,10 +88,10 @@ public class CalculationCapsule implements Runnable
         return isErrorOutput;
     }
 
-    private Output invoke(final CgsuiteTree tree)
+    private Output invoke(CgsuiteTree tree)
     {
         CgsuiteObject retval = WORKSPACE_DOMAIN.script(tree).simplify();
-        return new CoreIOHandler().createOutput(retval);
+        return retval.toOutput();
     }
     
     private static List<Output> getStackOutput(String input, InputException exc)

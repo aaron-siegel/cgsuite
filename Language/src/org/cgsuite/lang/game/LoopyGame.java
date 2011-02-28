@@ -34,12 +34,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 
 /**
@@ -393,7 +395,206 @@ public class LoopyGame extends Game
     {
         return graph.toString();
     }
-    
+
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        toOutput(output, true);
+        return output;
+    }
+
+    int toOutput(StyledTextOutput output, boolean forceBrackets)
+    {
+        return toOutput(output, forceBrackets, new HashMap<LoopyGame,String>(), new int[1]);
+    }
+
+    private static int maxSlashes = 4;
+
+    int toOutput(StyledTextOutput output, boolean forceBrackets, Map<LoopyGame,String> nodeStack, int[] numNamedNodes)
+    {
+        LoopyGame g = this;
+        if (nodeStack.containsKey(g))
+        {
+            String name = nodeStack.get(g);
+            if (name == null)
+            {
+                name = nthName(numNamedNodes[0]);
+                nodeStack.put(g, name);
+                numNamedNodes[0]++;
+            }
+            output.appendMath(name);
+            return 0;
+        }
+        else if (g.isLoopfree())
+        {
+            return g.loopfreeRepresentation().toOutput(output, forceBrackets, false);
+        }
+        else if (g.isOn())
+        {
+            output.appendMath("on");
+            return 0;
+        }
+        else if (g.isOff())
+        {
+            output.appendMath("off");
+            return 0;
+        }
+        else if (g.getLeftOptions().size() == 1 && g.getRightOptions().size() == 1)
+        {
+            LoopyGame gl = (LoopyGame) g.getLeftOptions().iterator().next(),
+                      gr = (LoopyGame) g.getRightOptions().iterator().next();
+
+            CanonicalShortGame glc = null, grc = null;
+
+            if (gl.isLoopfree())
+            {
+                glc = gl.loopfreeRepresentation();
+            }
+            if (gr.isLoopfree())
+            {
+                grc = gr.loopfreeRepresentation();
+            }
+
+            if (glc != null && glc.isNumber() && gr.equals(g))
+            {
+                if (!glc.isZero())
+                {
+                    glc.toOutput(output, false, false);
+                }
+                output.appendMath("over");
+                return 0;
+            }
+            else if (gl.equals(g) && grc != null && grc.isNumber())
+            {
+                if (!grc.isZero())
+                {
+                    grc.toOutput(output, false, false);
+                }
+                output.appendMath("under");
+                return 0;
+            }
+        }
+
+        nodeStack.put(g, null);
+        int numSlashes = 1;
+        StyledTextOutput leftOutput = new StyledTextOutput(), rightOutput = new StyledTextOutput();
+        List<Game>
+            leftOptions  = sortLoopyOptions(g.getLeftOptions()),
+            rightOptions = sortLoopyOptions(g.getRightOptions());
+        for (Iterator<Game> i = leftOptions.iterator(); i.hasNext();)
+        {
+            Object o = i.next();
+            if (o.equals(g))
+            {
+                leftOutput.appendMath("pass");
+            }
+            else if (o instanceof CanonicalShortGame)
+            {
+                numSlashes = Math.max
+                    (numSlashes, ((CanonicalShortGame) o).toOutput(leftOutput, leftOptions.size() > 1, false) + 1);
+            }
+            else
+            {
+                numSlashes = Math.max(numSlashes, ((LoopyGame) o).toOutput(
+                    leftOutput,
+                    leftOptions.size() > 1,
+                    nodeStack,
+                    numNamedNodes
+                    ) + 1);
+            }
+            if (i.hasNext())
+            {
+                leftOutput.appendMath(",");
+            }
+        }
+        for (Iterator i = rightOptions.iterator(); i.hasNext();)
+        {
+            Object o = i.next();
+            if (o.equals(g))
+            {
+                rightOutput.appendMath("pass");
+            }
+            else if (o instanceof CanonicalShortGame)
+            {
+                numSlashes = Math.max
+                    (numSlashes, ((CanonicalShortGame) o).toOutput(rightOutput, rightOptions.size() > 1, false) + 1);
+            }
+            else
+            {
+                numSlashes = Math.max(numSlashes, ((LoopyGame) o).toOutput(
+                    rightOutput,
+                    rightOptions.size() > 1,
+                    nodeStack,
+                    numNamedNodes
+                    ) + 1);
+            }
+            if (i.hasNext())
+            {
+                rightOutput.appendMath(",");
+            }
+        }
+        String name = nodeStack.remove(g);
+
+        if (name != null)
+        {
+            output.appendMath(name + ":");
+            forceBrackets = true;
+        }
+        if (leftOptions.isEmpty() || rightOptions.isEmpty())
+        {
+            // Force brackets for clarity.
+            forceBrackets = true;
+        }
+        if (forceBrackets || numSlashes == maxSlashes)
+        {
+            output.appendMath("{");
+        }
+        output.appendOutput(leftOutput);
+        output.appendMath(CanonicalShortGame.getSlashString(numSlashes));
+        output.appendOutput(rightOutput);
+        if (forceBrackets || numSlashes == maxSlashes)
+        {
+            output.appendMath("}");
+            return 0;
+        }
+        else
+        {
+            return numSlashes;
+        }
+    }
+
+    private static String nthName(int n)
+    {
+        if (n < 26)
+        {
+            return String.valueOf((char) (97+n));
+        }
+        else
+        {
+            return "N" + String.valueOf(n-25);
+        }
+    }
+
+    private List<Game> sortLoopyOptions(CgsuiteSet options)
+    {
+        List<Game> sortedOptions = new ArrayList<Game>();
+        for (CgsuiteObject obj : options)
+        {
+            LoopyGame g = (LoopyGame) obj;
+            if (g.isLoopfree())
+            {
+                sortedOptions.add(g.loopfreeRepresentation());
+            }
+            else
+            {
+                sortedOptions.add(g);
+            }
+        }
+        Collections.sort(sortedOptions, CgsuiteObject.SORT_COMPARATOR);
+        return sortedOptions;
+    }
+
     @Override
     public CgsuiteSet getLeftOptions()
     {

@@ -29,8 +29,9 @@
 
 package org.cgsuite.lang.game;
 
-import org.cgsuite.lang.Game;
+import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 import java.math.BigInteger;
+import java.util.EnumSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,9 +39,14 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.cgsuite.lang.CgsuiteClass;
-import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
+import org.cgsuite.lang.Game;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
+
+import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
+import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
 // TODO criticalTemperatures
 // TODO efficient nim multiplication
@@ -614,9 +620,351 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
             return this;
     }
 
+    private static boolean abbreviateInfinitesimals = false, meanZeroMode = false;
+    private static int maxSlashes = 4;
+
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        toOutput(output, true, false);
+        return output;
+    }
+    
+    int toOutput(StyledTextOutput output, boolean forceBrackets, boolean forceParens)
+    {
+        int rVal;
+        StyledTextOutput prefix = null, suffix = null;
+
+        CanonicalShortGame g = this;
+
+        if (abbreviateInfinitesimals)
+        {
+            CanonicalShortGame rcf = g.rcf();
+            if (!g.equals(rcf))
+            {
+                g = rcf;
+                suffix = new StyledTextOutput();
+                suffix.appendMath("ish");
+            }
+        }
+
+        if (meanZeroMode && !g.isNumber())
+        {
+            RationalNumber mean = g.mean();
+            if (!mean.equals(RationalNumber.ZERO))
+            {
+                prefix = mean.toOutput();
+                g = g.subtract(new CanonicalShortGame(mean, 0, 0));
+            }
+        }
+
+        boolean complex = (prefix != null || suffix != null);
+
+        if (forceParens && complex)
+        {
+            output.appendMath("(");
+        }
+        if (prefix != null)
+        {
+            output.appendOutput(prefix);
+        }
+        rVal = g.toOutput2(output, forceBrackets || complex, forceParens && !complex);
+        if (suffix != null)
+        {
+            output.appendOutput(suffix);
+        }
+        if (forceParens && complex)
+        {
+            output.appendMath(")");
+        }
+        return rVal;
+    }
+
+    // This should ONLY be called by canonicalGameToOutput.
+    private int toOutput2(
+        StyledTextOutput output,
+        boolean forceBrackets,
+        boolean forceParens
+        )
+    {
+        CanonicalShortGame g = this;
+        CanonicalShortGame inverse = g.getInverse();
+
+        // Check for number-up-star.
+        if (g.isNumberUpStar())
+        {
+            if (forceParens && !g.isNumber() && !g.isNimber() &&
+                !(g.getNumberPart().equals(RationalNumber.ZERO) && g.getNimberPart() == 0))
+            {
+                // Not a number, nimber, or up multiple.  Force parens to clarify.
+                output.appendMath("(");
+            }
+            if (g.isZero() || !g.getNumberPart().equals(RationalNumber.ZERO))
+            {
+                // Display the number part if either g is ZERO or its number part is nonzero.
+                output.appendOutput(g.getNumberPart().toOutput());
+            }
+            if (g.getUpMultiplePart() != 0)
+            {
+                StyledTextOutput.Symbol upSymbol;
+                if (g.getUpMultiplePart() == 2) upSymbol = DOUBLE_UP;
+                //else if (g.getUpMultiplePart() == 3) upSymbol = TRIPLE_UP;
+                //else if (g.getUpMultiplePart() == 4) upSymbol = QUADRUPLE_UP;
+                else if (g.getUpMultiplePart() == -2) upSymbol = DOUBLE_DOWN;
+                else if (g.getUpMultiplePart() > 0) upSymbol = Symbol.UP;
+                else upSymbol = DOWN;
+                output.appendSymbol(upSymbol);
+                if (Math.abs(g.getUpMultiplePart()) > 2)
+                {
+                    output.appendMath(String.valueOf(Math.abs(g.getUpMultiplePart())));
+                }
+            }
+            if (g.getNimberPart() != 0)
+            {
+                output.appendSymbol(Symbol.STAR);
+                if (g.getNimberPart() > 1)
+                {
+                    output.appendMath(String.valueOf(g.getNimberPart()));
+                }
+            }
+            if (forceParens && !g.isNumber() && !g.isNimber() &&
+                !(g.getNumberPart().equals(RationalNumber.ZERO) && g.getNimberPart() == 0))
+            {
+                // Not a number, nimber, or up multiple.  Force parens to clarify.
+                output.appendMath(")");
+            }
+            return 0;
+        }
+        // Check for a switch.
+        else if (g.isSwitch())
+        {
+            output.appendSymbol(PLUS_MINUS);
+            if (g.getNumLeftOptions() > 1)
+            {
+                output.appendMath("(");
+            }
+            for (int i = 0; i < g.getNumLeftOptions(); i++)
+            {
+                g.getLeftOption(i).toOutput(output, true, g.getNumLeftOptions() == 1);
+                if (i < g.getNumLeftOptions() - 1)
+                {
+                    output.appendMath(",");
+                }
+            }
+            if (g.getNumLeftOptions() > 1)
+            {
+                output.appendMath(")");
+            }
+            return 0;
+        }
+        else if (g.isNumberTiny())
+        {
+            if (forceParens)
+            {
+                output.appendMath("(");
+            }
+            if (!g.getLeftOption(0).equals(CanonicalShortGame.ZERO))
+            {
+                output.appendOutput(g.getLeftOption(0).getNumberPart().toOutput());
+                output.appendText(Output.Mode.PLAIN_TEXT, "+");
+            }
+            // First get a sequence for the subscript.  If that sequence contains any
+            // subscripts or superscripts, then we display this as Tiny(G) rather than +_G.
+            StyledTextOutput sub = new StyledTextOutput();
+            g.getRightOption(0).getRightOption(0).getInverse().add(g.getLeftOption(0))
+                    .toOutput(sub, true, false);
+            EnumSet<StyledTextOutput.Style> styles = sub.allStyles();
+            styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS);
+            if (styles.isEmpty())
+            {
+                output.appendSymbol(EnumSet.noneOf(StyledTextOutput.Style.class), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), TINY);
+                output.appendText(Output.Mode.PLAIN_TEXT, "Tiny(");
+                output.appendOutput(EnumSet.of(LOCATION_SUBSCRIPT), sub);
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+            }
+            else
+            {
+                output.appendMath("Tiny(");
+                output.appendOutput(sub);
+                output.appendMath(")");
+            }
+            if (forceParens)
+            {
+                output.appendMath(")");
+            }
+            return 0;
+        }
+        else if (inverse.isNumberTiny())
+        {
+            if (forceParens)
+            {
+                output.appendMath("(");
+            }
+            if (!g.getRightOption(0).equals(CanonicalShortGame.ZERO))
+            {
+                output.appendOutput(g.getRightOption(0).getNumberPart().toOutput());
+                output.appendText(Output.Mode.PLAIN_TEXT, "+");
+            }
+            StyledTextOutput sub = new StyledTextOutput();
+            g.getLeftOption(0).getLeftOption(0).subtract(g.getRightOption(0)).toOutput(sub, true, false);
+            EnumSet<StyledTextOutput.Style> styles = sub.allStyles();
+            styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS);
+            if (styles.isEmpty())
+            {
+                output.appendSymbol(EnumSet.noneOf(StyledTextOutput.Style.class), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), MINY);
+                output.appendText(Output.Mode.PLAIN_TEXT, "Miny(");
+                output.appendOutput(EnumSet.of(LOCATION_SUBSCRIPT), sub);
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+            }
+            else
+            {
+                output.appendMath("Miny(");
+                output.appendOutput(sub);
+                output.appendMath(")");
+            }
+            if (forceParens)
+            {
+                output.appendMath(")");
+            }
+            return 0;
+        }
+/*
+        if (displayOptions.contains(DisplayOption.UP_POW) ||
+            displayOptions.contains(DisplayOption.UPTIMALS))
+        {
+            UptimalExpansion uptimal = g.uptimalExpansion();
+            if (uptimal != null)
+            {
+                if (displayOptions.contains(DisplayOption.UPTIMALS) ||
+                    displayOptions.contains(DisplayOption.UP_POW) && (uptimal.isUnit() || uptimal.isUnitSum()))
+                {
+                    uptimalToOutput(output, uptimal);
+                    return 0;
+                }
+            }
+        }
+
+        if (displayOptions.contains(DisplayOption.SUPERSTARS))
+        {
+            // Check for superstars.
+            String str;
+            str = getSuperstarString(g);
+            if (str != null)
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "Superstar(");
+                output.appendSymbol(EnumSet.noneOf(StyledTextOutput.Style.class), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), UP);
+                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), str);
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                return 0;
+            }
+            str = getSuperstarString(inverse);
+            if (str != null)
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "-Superstar(");
+                output.appendSymbol(EnumSet.noneOf(StyledTextOutput.Style.class), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), DOWN);
+                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), str);
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                return 0;
+            }
+        }
+*/
+        // General case.
+
+        StyledTextOutput leftOutput = new StyledTextOutput(), rightOutput = new StyledTextOutput();
+        int numSlashes;
+
+        // First we build the left & right OS's and calculate the number of slashes.
+        // There are several cases.
+/*
+        GameIntegerPair gip;
+        if (displayOptions.contains(DisplayOption.ZERO_POW) && (gip = getZeroNth(g)) != null && gip.n > 1)
+        {
+            // Case 1: {0^n|h}
+            numSlashes = canonicalGameToOutput(gip.g, rightOutput, false, false) + 1;
+            leftOutput.appendMath("0");
+            leftOutput.appendText(Output.Mode.PLAIN_TEXT, "<");
+            leftOutput.appendText(
+                EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
+                String.valueOf(gip.n)
+                );
+            leftOutput.appendText(Output.Mode.PLAIN_TEXT, ">");
+        }
+        else if (displayOptions.contains(DisplayOption.ZERO_POW) &&
+            (gip = getZeroNth(g.getInverse())) != null && gip.n > 1)
+        {
+            // Case 2: {h|0^n}
+            numSlashes = canonicalGameToOutput
+                (gip.g.getInverse(), leftOutput, false, false) + 1;
+            rightOutput.appendMath("0");
+            rightOutput.appendText(Output.Mode.PLAIN_TEXT, "<");
+            rightOutput.appendText(
+                EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
+                String.valueOf(gip.n)
+                );
+            rightOutput.appendText(Output.Mode.PLAIN_TEXT, ">");
+        }
+        else
+        {
+ */
+            // Case 3: General case
+            numSlashes = 1;
+            int numLO = g.getNumLeftOptions(), numRO = g.getNumRightOptions();
+            for (int i = 0; i < numLO; i++)
+            {
+                numSlashes = Math.max(
+                    numSlashes,
+                    g.getLeftOption(i).toOutput(leftOutput, numLO > 1, false) + 1
+                    );
+                if (i < numLO - 1)
+                {
+                    leftOutput.appendMath(",");
+                }
+            }
+            for (int i = 0; i < numRO; i++)
+            {
+                numSlashes = Math.max(
+                    numSlashes,
+                    g.getRightOption(i).toOutput(rightOutput, numRO > 1, false) + 1
+                    );
+                if (i < numRO - 1)
+                {
+                    rightOutput.appendMath(",");
+                }
+            }
+//        }
+
+        // Now we build our output sequence.
+
+        if (forceBrackets || numSlashes == maxSlashes)
+        {
+            output.appendMath("{");
+        }
+        output.appendOutput(leftOutput);
+        output.appendMath(getSlashString(numSlashes));
+        output.appendOutput(rightOutput);
+        if (forceBrackets || numSlashes == maxSlashes)
+        {
+            output.appendMath("}");
+            return 0;
+        }
+        else
+        {
+            return numSlashes;
+        }
+    }
+
+    static String getSlashString(int n)
+    {
+        String slashString = "";
+        for (int i = 0; i < n; i++) slashString += "|";
+        return slashString;
+    }
+
     ////////////////////////////////////////////////////////////////////////
     // Implementation of Game
 
+    @Override
     public CgsuiteSet getLeftOptions()
     {
         CgsuiteSet options = new CgsuiteSet();
@@ -627,6 +975,7 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
         return options;
     }
 
+    @Override
     public CgsuiteSet getRightOptions()
     {
         CgsuiteSet options = new CgsuiteSet();

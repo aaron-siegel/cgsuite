@@ -1,5 +1,7 @@
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.output.StyledTextOutput;
+
 public class CgsuiteString extends CgsuiteObject
 {
     private String str;
@@ -17,6 +19,12 @@ public class CgsuiteString extends CgsuiteObject
         return "\"" + str + "\"";
     }
 
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        return new StyledTextOutput(toString());
+    }
+    
     public String toJavaString()
     {
         return str;

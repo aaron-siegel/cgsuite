@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 
 public class CgsuiteList extends CgsuiteCollection
@@ -30,6 +31,23 @@ public class CgsuiteList extends CgsuiteCollection
         }
         buf.append("]");
         return buf.toString();
+    }
+
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("[");
+        for (int i = 1; i <= size(); i++)
+        {
+            output.appendOutput(get(i).toOutput());
+            if (i < size())
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("]");
+        return output;
     }
 
     @Override

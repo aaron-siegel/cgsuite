@@ -3,14 +3,13 @@ package org.cgsuite.lang.game;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.CgsuiteException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 public class ExplicitGame extends Game
 {
@@ -61,6 +60,33 @@ public class ExplicitGame extends Game
         return buf.toString();
     }
 
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("{");
+        for (Iterator<CgsuiteObject> it = getLeftOptions().iterator(); it.hasNext();)
+        {
+            output.appendOutput(it.next().toOutput());
+            if (it.hasNext())
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("|");
+        for (Iterator<CgsuiteObject> it = getRightOptions().iterator(); it.hasNext();)
+        {
+            output.appendOutput(it.next().toOutput());
+            if (it.hasNext())
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("}");
+        return output;
+    }
+
+    @Override
     public Game simplify() throws CgsuiteException
     {
         CgsuiteSet simplifiedLeftOptions = new CgsuiteSet();

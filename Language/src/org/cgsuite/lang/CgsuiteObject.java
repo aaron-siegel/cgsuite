@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.cgsuite.lang.game.RationalNumber;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteObject
 {
@@ -58,14 +60,14 @@ public class CgsuiteObject
         return this;
     }
 
-    public CgsuiteObject toCgsuiteString()
+    public CgsuiteString toCgsuiteString()
     {
-        return invoke("ToString$get");
+        return (CgsuiteString) invoke("ToString$get");
     }
 
-    public CgsuiteObject toOutput()
+    public Output toOutput()
     {
-        return invoke("ToOutput$get");
+        return new StyledTextOutput(toCgsuiteString().toJavaString());
     }
 
     public CgsuiteClass getCgsuiteClass()

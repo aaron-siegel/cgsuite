@@ -1,10 +1,11 @@
 package org.cgsuite.lang.game;
 
-import org.cgsuite.lang.Game;
 import java.math.BigInteger;
-import org.cgsuite.lang.CgsuiteObject;
-
+import java.util.EnumSet;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.Game;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 public class RationalNumber extends Game implements Comparable<RationalNumber>
 {
@@ -64,6 +65,42 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
     public RationalNumber simplify()
     {
         return this;
+    }
+
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+
+        if (isInfinite())
+        {
+            if (compareTo(RationalNumber.ZERO) < 0)
+            {
+                output.appendMath("-");
+            }
+            output.appendSymbol(StyledTextOutput.Symbol.INFINITY);
+        }
+        else if (isInteger())
+        {
+            output.appendMath(String.valueOf(getNumerator()));
+        }
+        else
+        {
+            if (compareTo(RationalNumber.ZERO) < 0)
+            {
+                output.appendMath("-");
+            }
+            output.appendText(
+                EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_NUMERATOR),
+                String.valueOf(getNumerator().abs())
+                );
+            output.appendMath("/");
+            output.appendText(
+                EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_DENOMINATOR),
+                String.valueOf(getDenominator())
+                );
+        }
+        return output;
     }
 
     public double doubleValue()

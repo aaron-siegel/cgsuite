@@ -4,6 +4,7 @@ import org.cgsuite.lang.Game;
 import org.cgsuite.lang.CgsuiteException;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 
 public class InverseGame extends Game
@@ -22,6 +23,7 @@ public class InverseGame extends Game
         return g;
     }
 
+    @Override
     public Game simplify() throws CgsuiteException
     {
         CgsuiteObject gSimp = g.simplify();
@@ -69,4 +71,12 @@ public class InverseGame extends Game
         return "-(" + g.toString() + ")";
     }
 
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("-");
+        output.appendOutput(g.toOutput());
+        return output;
+    }
 }

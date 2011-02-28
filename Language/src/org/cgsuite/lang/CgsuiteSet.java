@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteSet extends CgsuiteCollection
 {
@@ -41,6 +42,23 @@ public class CgsuiteSet extends CgsuiteCollection
         return buf.toString();
     }
 
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("{");
+        for (Iterator<CgsuiteObject> it = sortedIterator(); it.hasNext();)
+        {
+            output.appendOutput(it.next().toOutput());
+            if (it.hasNext())
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("}");
+        return output;
+    }
+    
     @Override
     public Collection<CgsuiteObject> getUnderlyingCollection()
     {

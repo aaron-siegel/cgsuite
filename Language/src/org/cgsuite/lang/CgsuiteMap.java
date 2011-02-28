@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.cgsuite.lang.output.StyledTextOutput;
+import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 
 public class CgsuiteMap extends CgsuiteObject
 {
@@ -44,6 +46,31 @@ public class CgsuiteMap extends CgsuiteObject
         return buf.toString();
     }
 
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        // TODO Sort by keys
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("{");
+        if (isEmpty())
+            output.appendSymbol(Symbol.RIGHT_ARROW);
+        for (Iterator<Entry<CgsuiteObject,CgsuiteObject>> it = map.entrySet().iterator(); it.hasNext();)
+        {
+            Entry<CgsuiteObject,CgsuiteObject> e = it.next();
+            output.appendOutput(e.getKey().toOutput());
+            output.appendMath(" ");
+            output.appendSymbol(Symbol.RIGHT_ARROW);
+            output.appendMath(" ");
+            output.appendOutput(e.getValue().toOutput());
+            if (it.hasNext())
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("}");
+        return output;
+    }
+    
     public boolean isEmpty()
     {
         return map.isEmpty();

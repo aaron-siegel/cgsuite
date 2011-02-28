@@ -3,11 +3,13 @@ package org.cgsuite.lang.game;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.CgsuiteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 public class SumGame extends Game
 {
@@ -60,6 +62,23 @@ public class SumGame extends Game
         return buf.toString();
     }
 
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        if (components.isEmpty())
+        {
+            output.appendMath("0");
+        }
+        for (Iterator<? extends CgsuiteObject> it = components.iterator(); it.hasNext();)
+        {
+            output.appendOutput(it.next().toOutput());
+            if (it.hasNext())
+                output.appendMath(" + ");
+        }
+        return output;
+    }
+    
     @Override
     public int hashCode()
     {
