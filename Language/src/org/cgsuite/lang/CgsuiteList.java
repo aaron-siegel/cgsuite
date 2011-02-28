@@ -19,6 +19,13 @@ public class CgsuiteList extends CgsuiteCollection
         this.objects = new ArrayList<CgsuiteObject>();
     }
 
+    public CgsuiteList(int capacity)
+    {
+        super(CgsuitePackage.forceLookupClass("List"));
+
+        this.objects = new ArrayList<CgsuiteObject>(capacity);
+    }
+
     @Override
     public String toString()
     {
@@ -50,10 +57,22 @@ public class CgsuiteList extends CgsuiteCollection
         return output;
     }
 
+    public <T> T[] toArray(T[] array)
+    {
+        return objects.toArray(array);
+    }
+
     @Override
     public Collection<CgsuiteObject> getUnderlyingCollection()
     {
         return objects;
+    }
+
+    public CgsuiteList copy()
+    {
+        CgsuiteList copy = new CgsuiteList(objects.size());
+        copy.objects.addAll(objects);
+        return copy;
     }
 
     public int size()

@@ -1,4 +1,9 @@
-class Domineering extends Game : java "org.cgsuite.lang.Game"
+class Domineering extends GridGame
+
+    private static var Icons := [
+        GridIcon.Blank,
+        GridIcon.Grayed
+        ];
 
     private var grid;
 

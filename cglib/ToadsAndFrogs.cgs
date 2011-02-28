@@ -1,4 +1,10 @@
-class ToadsAndFrogs extends Game : java "org.cgsuite.lang.game.Game"
+class ToadsAndFrogs extends GridGame
+
+    private static var Icons := [
+        GridIcon.Blank,
+        GridIcon.Toad,
+        GridIcon.Frog
+        ];
 
     private var grid;
 

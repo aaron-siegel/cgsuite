@@ -1,0 +1,25 @@
+enum GridIcon
+
+    BlackBishop,
+    BlackKing,
+    BlackKnight,
+    BlackPawn,
+    BlackQueen,
+    BlackRook,
+    BlackStone,
+    Blank,
+    Frog,
+    GrayStone,
+    Toad,
+    WhiteBishop,
+    WhiteKing,
+    WhiteKnight,
+    WhitePawn,
+    WhiteQueen,
+    WhiteRook,
+    WhiteStone;
+
+    public method GridIcon()
+    end
+
+end

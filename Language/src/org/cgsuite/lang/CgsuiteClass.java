@@ -1,34 +1,33 @@
 package org.cgsuite.lang;
 
-import org.cgsuite.lang.parser.CgsuiteParser;
-import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
-import org.cgsuite.lang.parser.CgsuiteTree;
-import org.cgsuite.lang.parser.CgsuiteLexer;
-import org.cgsuite.lang.parser.SourcedAntlrInputStream;
-import org.cgsuite.lang.parser.MalformedParseTreeException;
-import org.cgsuite.lang.game.RationalNumber;
-import java.util.Map.Entry;
-import java.util.EnumSet;
-import org.openide.filesystems.FileAttributeEvent;
-import org.openide.filesystems.FileChangeListener;
-import org.openide.filesystems.FileEvent;
-import org.openide.filesystems.FileRenameEvent;
-import java.util.Collections;
-import org.cgsuite.lang.CgsuiteMethod.Parameter;
-import java.util.ArrayList;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
+import org.cgsuite.lang.CgsuiteMethod.Parameter;
+import org.cgsuite.lang.game.RationalNumber;
+import org.cgsuite.lang.parser.CgsuiteLexer;
+import org.cgsuite.lang.parser.CgsuiteParser;
+import org.cgsuite.lang.parser.CgsuiteTree;
+import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
+import org.cgsuite.lang.parser.MalformedParseTreeException;
+import org.cgsuite.lang.parser.SourcedAntlrInputStream;
+import org.openide.filesystems.FileAttributeEvent;
+import org.openide.filesystems.FileChangeListener;
+import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
-
+import org.openide.filesystems.FileRenameEvent;
 import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
@@ -297,6 +296,9 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             }
         }
 
+        if (javaClassname == null)
+            javaClassname = parents.iterator().next().javaClassname;    // XXX Improve this.
+
         try
         {
             this.javaClass = Class.forName(javaClassname).asSubclass(CgsuiteObject.class);
@@ -369,8 +371,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 if (i < tree.getChildCount() && tree.getChild(i).getToken().getType() == JAVA)
                     javaClassname = javaref(tree.getChild(i++));
-                else
-                    javaClassname = CgsuiteObject.class.getName();
 
                 break;
 

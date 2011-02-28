@@ -1711,7 +1711,7 @@ public class CoreIOHandler
         }*/
         else
         {
-            output.appendText(((CgsuiteString) obj.toCgsuiteString()).toJavaString());
+            output.appendText(obj.toCgsuiteString().toJavaString());
         }
         return output;
     }

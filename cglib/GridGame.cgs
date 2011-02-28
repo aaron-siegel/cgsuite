@@ -1,0 +1,7 @@
+class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
+
+    public property Grid.get
+        return this.grid;
+    end
+
+end

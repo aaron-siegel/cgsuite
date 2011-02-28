@@ -32,10 +32,13 @@ package org.cgsuite.lang.output;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import org.cgsuite.lang.CgsuiteList;
+import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.game.Grid;
 
 /**
@@ -47,58 +50,34 @@ import org.cgsuite.lang.game.Grid;
  */
 public class GridOutput implements Output
 {
-    public final static String BLACK_BISHOP = "blackbishop.png";
-    public final static String BLACK_KING = "blackking.png";
-    public final static String BLACK_KNIGHT = "blackknight.png";
-    public final static String BLACK_PAWN = "blackpawn.png";
-    public final static String BLACK_QUEEN = "blackqueen.png";
-    public final static String BLACK_ROOK = "blackrook.png";
-    public final static String BLACK_STONE = "blackstone.gif";
-    public final static String FROG = "frog.png";
-    public final static String GRAY_STONE = "graystone.png";
-    public final static String TOAD = "toad.png";
-    public final static String WHITE_BISHOP = "whitebishop.png";
-    public final static String WHITE_KING = "whiteking.png";
-    public final static String WHITE_KNIGHT = "whiteknight.png";
-    public final static String WHITE_PAWN = "whitepawn.png";
-    public final static String WHITE_QUEEN = "whitequeen.png";
-    public final static String WHITE_ROOK = "whiterook.png";
-    public final static String WHITE_STONE = "whitestone.gif";
-
-    private final static Icon[] DEFAULT_ICONS =
-    {
-        null,
-        getIcon(BLACK_STONE),
-        getIcon(WHITE_STONE)
-    };
-
     protected Grid grid;
     protected Icon[] icons;
     protected Dimension size, cellSize;
     protected String alt;
 
-    public GridOutput(Grid grid)
-    {
-        this(grid, DEFAULT_ICONS, grid.toString());
-    }
-
-    public GridOutput(Grid grid, Icon[] icons)
+    public GridOutput(Grid grid, CgsuiteList icons)
     {
         this(grid, icons, grid.toString());
     }
 
-    public GridOutput(Grid grid, Icon[] icons, String alt)
+    public GridOutput(Grid grid, CgsuiteList icons, String alt)
     {
         this.grid = grid.copy();
         if (icons != null)
         {
-            this.icons = icons.clone();
-            cellSize = calculateIconDimensions(icons, true);
-            size = calculateGridImageDimensions(grid, icons, cellSize, 1, 1);
+            this.icons = new Icon[icons.size()];
+            for (int i = 0; i < icons.size(); i++)
+            {
+                String literal = ((CgsuiteString) icons.get(i+1).resolve("Literal")).toJavaString();
+                this.icons[i] = getIcon(literal.toLowerCase());
+            }
+            cellSize = calculateIconDimensions(this.icons, true);
+            size = calculateGridImageDimensions(grid, this.icons, cellSize, 1, 1);
         }
         this.alt = alt;
     }
 
+    @Override
     public void write(java.io.PrintWriter out, Output.Mode mode)
     {
         if (mode == Output.Mode.PLAIN_TEXT)
@@ -156,7 +135,7 @@ public class GridOutput implements Output
         {
             for (int col = 0; col < grid.getNumColumns(); col++)
             {
-                Icon icon = getIcon(row, col);
+                Icon icon = getIcon(row+1, col+1);
                 if (icon != null)
                 {
                     icon.paintIcon(
@@ -204,11 +183,17 @@ public class GridOutput implements Output
 
     private static final Map<String,Icon> iconMap = new HashMap<String,Icon>();
 
-    public static Icon getIcon(String iconName)
+    private static Icon getIcon(String iconName)
     {
         if (!iconMap.containsKey(iconName))
         {
-            iconMap.put(iconName, new ImageIcon(GridOutput.class.getResource(iconName)));
+            URL url = GridOutput.class.getResource(iconName + ".png");
+            if (url == null)
+                url = GridOutput.class.getResource(iconName + ".gif");
+            if (url == null)
+                iconMap.put(iconName, null);
+            else
+                iconMap.put(iconName, new ImageIcon(url));
         }
         return iconMap.get(iconName);
     }

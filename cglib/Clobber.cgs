@@ -1,4 +1,10 @@
-class Clobber extends Game : java "org.cgsuite.lang.Game"
+class Clobber extends GridGame
+
+    private static var Icons := [
+        GridIcon.Blank,
+        GridIcon.BlackStone,
+        GridIcon.WhiteStone
+        ];
 
     private var grid;
 

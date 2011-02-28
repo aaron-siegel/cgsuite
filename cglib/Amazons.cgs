@@ -1,4 +1,11 @@
-class Amazons extends Game : java "org.cgsuite.lang.Game"
+class Amazons extends GridGame
+
+    private static var Icons := [
+        GridIcon.Blank,
+        GridIcon.BlackQueen,
+        GridIcon.WhiteQueen,
+        GridIcon.BlackStone
+        ];
 
     private var grid;
 
@@ -29,7 +36,7 @@ class Amazons extends Game : java "org.cgsuite.lang.Game"
                                     for l from 1 to this.grid.NumRows do
                                         mArrow := m2 + e.RowShift * l;
                                         nArrow := n2 + e.ColumnShift * l;
-                                        if this.grid[mArrow,nArrow] == 0 then
+                                        if (this.grid[mArrow,nArrow] == 0) or (mArrow == m and nArrow == n) then
                                             copy := this.grid.Copy();
                                             copy[m,n] := 0;
                                             copy[m2,n2] := us;
