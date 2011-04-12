@@ -1,5 +1,8 @@
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
+
 public class CgsuiteBoolean extends CgsuiteObject
 {
     public final static CgsuiteBoolean TRUE = new CgsuiteBoolean(true);
@@ -64,5 +67,13 @@ public class CgsuiteBoolean extends CgsuiteObject
     public String toString()
     {
         return String.valueOf(booleanValue);
+    }
+
+    @Override
+    public Output toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendText(toString());
+        return output;
     }
 }

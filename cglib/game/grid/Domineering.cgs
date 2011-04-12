@@ -44,6 +44,6 @@ class Domineering extends GridGame
     end
 
     public property ToString.get
-        return "Domineering(" + this.grid.MapString(".x") + ")";
+        return "Domineering(" + this.grid.MapString(".#") + ")";
     end
 end

@@ -233,7 +233,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
         else
         {
-            Domain domain = new Domain();
+            Domain domain = new Domain(declaringClass.getImports());
             if (obj != null)
                 domain.put("this", obj);
 

@@ -1,0 +1,17 @@
+class PartizanSubtraction
+
+    private var leftSet;
+    private var rightSet;
+    private var n;
+
+    public method PartizanSubtraction(Set leftSet, Set rightSet, Number n)
+
+        this.leftSet := leftSet;
+        this.rightSet := rightSet;
+        this.n := n;
+
+    end
+
+    
+
+end

@@ -32,7 +32,7 @@ import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
  */
 public class CalculationCapsule implements Runnable
 {
-    private final static Domain WORKSPACE_DOMAIN = new Domain();
+    private final static Domain WORKSPACE_DOMAIN = new Domain(CgsuitePackage.ROOT_IMPORT);
     
     private String text;
     private Output[] output;

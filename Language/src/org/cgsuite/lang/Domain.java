@@ -1,6 +1,5 @@
 package org.cgsuite.lang;
 
-import org.cgsuite.lang.parser.CgsuiteTree;
 import static org.cgsuite.lang.parser.CgsuiteLexer.*;
 
 import java.util.ArrayList;
@@ -12,24 +11,28 @@ import java.util.Map;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
+import org.cgsuite.lang.game.Grid;
 import org.cgsuite.lang.game.LoopyGame;
 import org.cgsuite.lang.game.RationalNumber;
+import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 public class Domain
 {
     private Namespace namespace;
+    private List<CgsuitePackage> imports;
     private Mode mode;
 
-    public Domain()
+    public Domain(List<CgsuitePackage> imports)
     {
-        namespace = new Namespace();
-        mode = Mode.NORMAL;
+        this.namespace = new Namespace();
+        this.imports = imports;
+        this.mode = Mode.NORMAL;
     }
 
     public CgsuiteObject lookup(String str)
     {
-        CgsuiteClass type = CgsuitePackage.lookupClass(str);
+        CgsuiteClass type = CgsuitePackage.lookupClass(str, imports);
         if (type != null)
         {
             return type;
@@ -314,23 +317,39 @@ public class Domain
 
             case DOT:
 
-                x = expression(tree.getChild(0));
-                x = x.simplify();
-                try
+                CgsuitePackage packageValue = findPackage(tree.getChild(0));
+                if (packageValue == null)
                 {
-                    return x.resolve(tree.getChild(1).getText());
+                    x = expression(tree.getChild(0));
+                    x = x.simplify();
+                    try
+                    {
+                        return x.resolve(tree.getChild(1).getText());
+                    }
+                    catch (InputException exc)
+                    {
+                        exc.addToken(tree.getToken());
+                        throw exc;
+                    }
                 }
-                catch (InputException exc)
+                else
                 {
-                    exc.addToken(tree.getToken());
-                    throw exc;
+                    x = packageValue.lookupClassInPackage(tree.getChild(1).getText());
+                    if (x == null)
+                    {
+                        throw new InputException(tree.getToken(), "Could not find class: " + packageValue.getName() + "." + tree.getChild(1).getText());
+                    }
+                    else
+                    {
+                        return x;
+                    }
                 }
 
             case ARRAY_REFERENCE:
 
                 x = expression(tree.getChild(0));
                 list = arrayIndexList(tree.getChild(1), null);
-                return x.invoke("op []", list);
+                return arrayRef(x, list);
 
             case FUNCTION_CALL:
 
@@ -426,6 +445,41 @@ public class Domain
             default:
 
                 throw new MalformedParseTreeException(tree);
+        }
+    }
+
+    private CgsuitePackage findPackage(CgsuiteTree tree) throws CgsuiteException
+    {
+        if (tree.checkedPackage())
+            return tree.getPackageValue();
+
+        String packageName = stringifyDotSequence(tree);
+        CgsuitePackage packageValue = (packageName == null)? null : CgsuitePackage.lookupPackage(packageName);
+
+        tree.setCheckedPackage(true);
+        tree.setPackageValue(packageValue);
+        return packageValue;
+    }
+
+    private String stringifyDotSequence(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.getType())
+        {
+            case IDENTIFIER:
+
+                return tree.getText().toString();
+
+            case DOT:
+
+                String parent = stringifyDotSequence(tree.getChild(0));
+                if (parent == null)
+                    return null;
+                else
+                    return parent + "." + tree.getChild(1).getText();
+
+            default:
+
+                return null;
         }
     }
 
@@ -648,7 +702,7 @@ public class Domain
                 case GT:        return x.invoke("op >", y);
                 case CONFUSED:  return x.invoke("op <>", y);
                 case COMPARE:   return x.invoke("op <=>", y);
-                case PLUS:      return x.invoke("op +", y);
+                case PLUS:      return add(x, y);
                 case MINUS:     return x.invoke("op -", y);
                 case AST:       return x.invoke("op *", y);
                 case FSLASH:    return x.invoke("op /", y);
@@ -662,6 +716,45 @@ public class Domain
             exc.addToken(tree.getToken());
             throw exc;
         }
+    }
+
+    private CgsuiteObject arrayRef(CgsuiteObject x, List<CgsuiteObject> list) throws CgsuiteException
+    {
+        if (x instanceof CgsuiteList && list.size() == 1 && list.get(0) instanceof RationalNumber)
+        {
+            RationalNumber number = (RationalNumber) list.get(0);
+            if (number.isInteger() && number.isSmall())
+                return ((CgsuiteList) x).get(number.intValue());
+        }
+        else if (x instanceof Grid && list.size() == 2 && list.get(0) instanceof RationalNumber && list.get(1) instanceof RationalNumber)
+        {
+            RationalNumber row = (RationalNumber) list.get(0);
+            RationalNumber col = (RationalNumber) list.get(1);
+            if (row.isInteger() && col.isInteger())
+                return new RationalNumber(((Grid) x).getAt(row.intValue(), col.intValue()), 1);
+        }
+
+        return x.invoke("op []", list);
+    }
+
+    private CgsuiteObject add(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
+    {
+        if (x instanceof RationalNumber)
+        {
+            if (y instanceof RationalNumber)
+                return ((RationalNumber) x).add((RationalNumber) y);
+            else if (y instanceof CanonicalShortGame && ((RationalNumber) x).isDyadic())
+                return new CanonicalShortGame((RationalNumber) x).add((CanonicalShortGame) y);
+        }
+        else if (x instanceof CanonicalShortGame)
+        {
+            if (y instanceof RationalNumber && ((RationalNumber) y).isDyadic())
+                return ((CanonicalShortGame) x).add(new CanonicalShortGame((RationalNumber) y));
+            else if (y instanceof CanonicalShortGame)
+                return ((CanonicalShortGame) x).add((CanonicalShortGame) y);
+        }
+
+        return x.invoke("op +", y);
     }
 
     private CgsuiteObject upExpression(CgsuiteTree tree) throws CgsuiteException

@@ -9,6 +9,7 @@ import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,10 @@ import org.openide.filesystems.LocalFileSystem;
  */
 public class CgsuitePackage implements FileChangeListener
 {
+    public final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
+    public final static List<CgsuitePackage> ROOT_IMPORT = Collections.singletonList(ROOT_PACKAGE);
+    
     private final static Map<String,CgsuitePackage> PACKAGE_LOOKUP = new HashMap<String,CgsuitePackage>();
-    private final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
 
     static
     {
@@ -101,32 +104,55 @@ public class CgsuitePackage implements FileChangeListener
     {
         if (classes.containsKey(node.getName()))
         {
-            classes.get(node.getName()).setFileObject(node);
+            classes.get(node.getName()).setFileObject(node, this);
         }
         else if ("Object".equals(node.getName()))
         {
-            CgsuiteClass.OBJECT.setFileObject(node);
+            CgsuiteClass.OBJECT.setFileObject(node, this);
             classes.put("Object", CgsuiteClass.OBJECT);
         }
         else if ("Class".equals(node.getName()))
         {
-            CgsuiteClass.CLASS.setFileObject(node);
+            CgsuiteClass.CLASS.setFileObject(node, this);
             classes.put("Class", CgsuiteClass.CLASS);
         }
         else
         {
-            classes.put(node.getName(), new CgsuiteClass(node));
+            classes.put(node.getName(), new CgsuiteClass(node, this));
         }
     }
 
     public static CgsuiteClass forceLookupClass(String name)
     {
-        return ROOT_PACKAGE.forceLookupClassInPackage(name);
+        return forceLookupClass(name, ROOT_IMPORT);
     }
 
-    public static CgsuiteClass lookupClass(String name)
+    public static CgsuiteClass forceLookupClass(String name, List<CgsuitePackage> packages)
     {
-        return ROOT_PACKAGE.lookupClassInPackage(name);
+        CgsuiteClass type = lookupClass(name, packages);
+        if (type == null)
+        {
+            throw new CgsuiteException("Class not found: " + name);
+        }
+        return type;
+    }
+
+    public static CgsuiteClass lookupClass(String name, List<CgsuitePackage> packages) throws CgsuiteException
+    {
+        CgsuiteClass type = null;
+
+        for (CgsuitePackage pkg : packages)
+        {
+            CgsuiteClass t = pkg.lookupClassInPackage(name);
+            if (t != null)
+            {
+                if (type != null)
+                    throw new CgsuiteException("Ambiguous class name: " + name);
+                type = t;
+            }
+        }
+
+        return type;
     }
 
     public static CgsuitePackage getRootPackage()
@@ -165,6 +191,11 @@ public class CgsuitePackage implements FileChangeListener
     public String getName()
     {
         return packageName;
+    }
+
+    public String toString()
+    {
+        return "Package[" + packageName + "]";
     }
 
     @Override

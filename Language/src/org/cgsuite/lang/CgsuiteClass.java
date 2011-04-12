@@ -48,6 +48,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         CgsuiteObject.NIL.type = OBJECT;
     }
 
+    private CgsuitePackage enclosingPackage;
+    private List<CgsuitePackage> imports;
     private FileObject fo;
     private String name;
     private boolean loaded;
@@ -71,15 +73,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
     }
 
-    public CgsuiteClass(FileObject fo)
+    public CgsuiteClass(FileObject fo, CgsuitePackage enclosingPackage)
     {
         super(CLASS);
 
         this.name = fo.getName();
-        setFileObject(fo);
+        setFileObject(fo, enclosingPackage);
     }
 
-    public final void setFileObject(FileObject fo)
+    public final void setFileObject(FileObject fo, CgsuitePackage enclosingPackage)
     {
         if (!this.name.equals(fo.getName()))
             throw new IllegalArgumentException(this.name + " != " + fo.getName());
@@ -89,6 +91,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         this.fo = fo;
         this.fo.addFileChangeListener(this);
+        this.enclosingPackage = enclosingPackage;
         this.loaded = false;
     }
 
@@ -160,6 +163,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         ensureLoaded();
         return defaultJavaConstructor;
+    }
+
+    public List<CgsuitePackage> getImports()
+    {
+        ensureLoaded();
+        return imports;
     }
 
     public CgsuiteObject lookupMethod(String name)
@@ -255,6 +264,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
 
         this.objectNamespace.clear();
+        
+        this.imports = new ArrayList<CgsuitePackage>();
+        this.imports.add(CgsuitePackage.ROOT_PACKAGE);
+        if (!enclosingPackage.equals(CgsuitePackage.ROOT_PACKAGE))
+            this.imports.add(enclosingPackage);
+
         this.parents = new HashSet<CgsuiteClass>();
         this.ancestors = new HashSet<CgsuiteClass>();
         this.methods = new HashMap<String,CgsuiteMethod>();
@@ -330,7 +345,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 CgsuiteObject initialValue = NIL;
 
                 if (var.getInitializer() != null)
-                    initialValue = new Domain().expression(var.getInitializer());
+                    initialValue = new Domain(imports).expression(var.getInitializer());
                 
                 objectNamespace.put(var.getName(), initialValue);
 
