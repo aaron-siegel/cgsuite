@@ -212,7 +212,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         return commandHistoryPrefix;
     }
     
-    private void processCommand(EmbeddedTextArea source)
+    private synchronized void processCommand(EmbeddedTextArea source)
     {
         source.setEditable(false);
         commandHistory.add(source.getText());
@@ -270,7 +270,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     }
 
     @Override
-    public void taskFinished(Task task)
+    public synchronized void taskFinished(Task task)
     {
         if (currentSource == null)
             return;
