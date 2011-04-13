@@ -59,11 +59,8 @@ public class CalculationCapsule implements Runnable
 
             if (parser.getNumberOfSyntaxErrors() > 0)
             {
-                String firstErrorMsg = parser.getErrors().get(0).getMessage();
-                String[] linecol = firstErrorMsg.substring(5, firstErrorMsg.indexOf(' ', 5)).split(":");
-                int line = Integer.parseInt(linecol[0]);
-                int col = Integer.parseInt(linecol[1]);
-                output = getLineColOutput(text, line, col, "Syntax error.");
+                RecognitionException exc = parser.getErrors().get(0).getException();
+                output = getLineColOutput(text, exc.line, exc.charPositionInLine, "Syntax error.");
                 isErrorOutput = true;
             }
             else
