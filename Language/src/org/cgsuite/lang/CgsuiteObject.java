@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.Output;
@@ -14,6 +15,8 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteObject
 {
+    private final static Logger log = Logger.getLogger(CgsuiteObject.class.getName());
+
     public static final List<CgsuiteObject> EMPTY_LIST = Collections.emptyList();
     public static final CgsuiteObject NIL = new CgsuiteObject()
     {
@@ -102,6 +105,8 @@ public class CgsuiteObject
 
         if (type.lookupVar(identifier) != null)
             return CgsuiteObject.NIL;
+
+        log.info("Unable to locate identifier: " + identifier + " (in object of type " + type.getName() + ")");
 
         throw new InputException("Not a member variable, property, or method: " + identifier);
     }

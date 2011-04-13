@@ -1,19 +1,10 @@
 class Domineering extends GridGame
 
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.Grayed
-        ];
-
-    private var grid;
+    private static var CharMap := ".#";
+    private static var Icons := [GridIcon.Blank, GridIcon.Grayed];
 
     public method Domineering(grid)
-        if grid.Class == String then
-            this.grid := Grid.ParseGrid(grid, ".#");
-        elseif grid.Class == Grid then
-            this.grid := grid;
-        end
-        // TODO Error otherwise
+        this.GridGame(grid);
     end
 
     public method Options(Player player)
@@ -43,7 +34,4 @@ class Domineering extends GridGame
 
     end
 
-    public property ToString.get
-        return "Domineering(" + this.grid.MapString(".#") + ")";
-    end
 end

@@ -1,7 +1,24 @@
 class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
 
+    protected var grid;
+
+    public method GridGame(grid)
+        if grid.Class == Grid then
+            this.grid := grid;
+        elseif grid.Class == String then
+            this.grid := Grid.ParseGrid(grid, this.Class.CharMap);
+        else
+            // TODO Make this a real error
+            foobar;
+        end
+    end
+
     public property Grid.get
         return this.grid;
     end
 
+    public property ToString.get
+        return this.Class.Name + "(" + this.grid.MapString(this.Class.CharMap) + ")";
+    end
+    
 end

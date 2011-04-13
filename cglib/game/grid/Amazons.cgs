@@ -1,5 +1,6 @@
 class Amazons extends GridGame
 
+    private static var CharMap := ".xo#";
     private static var Icons := [
         GridIcon.Blank,
         GridIcon.BlackQueen,
@@ -7,14 +8,8 @@ class Amazons extends GridGame
         GridIcon.BlackStone
         ];
 
-    private var grid;
-
     public method Amazons(Grid grid)
-        if grid.Class == String then
-            this.grid := Grid.ParseGrid(grid, ".xo#");
-        elseif grid.Class == Grid then
-            this.grid := grid;
-        end
+        this.GridGame(grid);
     end
 
     public method Options(Player player)
@@ -59,10 +54,6 @@ class Amazons extends GridGame
 
         return options;
 
-    end
-
-    public property ToString.get
-        return "Amazons(" + this.grid.MapString(".xo#") + ")";
     end
 
 end

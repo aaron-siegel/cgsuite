@@ -1,20 +1,17 @@
 class ToadsAndFrogs extends GridGame
 
+    private static var CharMap := ".tf";
     private static var Icons := [
         GridIcon.Blank,
         GridIcon.Toad,
         GridIcon.Frog
         ];
 
-    private var grid;
+    private var backsliding;
 
-    public method ToadsAndFrogs(grid)
-        if grid.Class == String then
-            this.grid := Grid.ParseGrid(grid, ".tf");
-        elseif grid.Class == Grid then
-            this.grid := grid;
-        end
-        // TODO Error otherwise
+    public method ToadsAndFrogs(grid, backsliding ? false)
+        this.GridGame(grid);
+        this.backsliding := backsliding;
     end
 
     public method Options(Player player)
@@ -31,12 +28,19 @@ class ToadsAndFrogs extends GridGame
                     copy := this.grid.Copy();
                     copy[1,n] := 0;
                     copy[1,n+player.Sign] := us;
-                    options.Add(ToadsAndFrogs(copy));
+                    options.Add(ToadsAndFrogs(copy, this.backsliding));
                 elseif this.grid[1,n+player.Sign] == them and this.grid[1,n+2*player.Sign] == 0 then
                     copy := this.grid.Copy();
                     copy[1,n] := 0;
                     copy[1,n+2*player.Sign] := us;
-                    options.Add(ToadsAndFrogs(copy));
+                    options.Add(ToadsAndFrogs(copy, this.backsliding));
+                end;
+
+                if this.backsliding and this.grid[1,n-player.Sign] == 0 then
+                    copy := this.grid.Copy();
+                    copy[1,n] := 0;
+                    copy[1,n-player.Sign] := us;
+                    options.Add(ToadsAndFrogs(copy, this.backsliding));
                 end
 
             end
@@ -45,9 +49,5 @@ class ToadsAndFrogs extends GridGame
         return options;
 
     end
-
-    public property ToString.get
-        return "ToadsAndFrogs(" + this.grid.MapString(".tf") + ")";
-    end
-
+    
 end

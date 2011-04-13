@@ -2,6 +2,9 @@ class Object : java "org.cgsuite.lang.CgsuiteObject"
 
     public property Class.get : java "getCgsuiteClass";
 
+    public method Object()
+    end
+
     public method Order(other)
         cmp := this.Class.DeclNumber - other.Class.DeclNumber;
         if cmp == 0 then

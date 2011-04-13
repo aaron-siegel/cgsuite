@@ -29,8 +29,12 @@
 
 package org.cgsuite.lang.game;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.List;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.InputException;
@@ -70,7 +74,9 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     private int numColumns;
     private byte[] entries;
     private BitsPerEntry bitsPerEntry;
-    private transient byte[][] symmetries;
+    
+    private transient EnumSet<Symmetry> symtypes;
+    private transient List<byte[]> symmetries;
     
     private Grid()
     {
@@ -185,6 +191,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      *          <code>other</code>
      * @see     #equals(Object) equals
      */
+    /*
     public boolean equalsSymmetryInvariant(Grid other)
     {
         if (numRows != other.numRows || numColumns != other.numColumns)
@@ -213,6 +220,23 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
             }
             return b;
         }
+    }
+     * 
+     */
+
+    public Grid symmetryInvariantRepresentation()
+    {
+        if (symmetries == null)
+        {
+            buildSymmetries(null);
+        }
+
+        Grid grid = new Grid();
+        grid.numRows = numRows;
+        grid.numColumns = numColumns;
+        grid.bitsPerEntry = bitsPerEntry;
+        grid.entries = symmetries.get(0);
+        return grid;
     }
     
     /**
@@ -404,19 +428,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         {
             return numColumns - other.numColumns;
         }
-        return compareArrays(entries, other.entries);
-    }
-    
-    private static int compareArrays(byte[] grid1, byte[] grid2)
-    {
-        for (int i = 0; i < grid1.length; i++)
-        {
-            if (grid1[i] != grid2[i])
-            {
-                return grid1[i] - grid2[i];
-            }
-        }
-        return 0;
+        return BYTE_ARRAY_COMPARATOR.compare(entries, other.entries);
     }
     
     /**
@@ -818,7 +830,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     {
         for (int i = 0; i < symmetriesToCheck.length; i++)
         {
-            if (compareArrays(grid, symmetriesToCheck[i]) == 0)
+            if (BYTE_ARRAY_COMPARATOR.compare(grid, symmetriesToCheck[i]) == 0)
             {
                 return true;
             }
@@ -826,21 +838,44 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         return false;
     }
     
-    private void buildSymmetries()
+    private void buildSymmetries(EnumSet<Symmetry> symtypes)
     {
-        symmetries = new byte[4][entries.length];
-        symmetries[0] = entries;
-        for (int row = 0; row < numRows; row++)
+        this.symtypes = symtypes;
+        symmetries = new ArrayList<byte[]>(4);
+        symmetries.add(entries);
+        byte[] s1 = new byte[entries.length];
+        byte[] s2 = new byte[entries.length];
+        byte[] s3 = new byte[entries.length];
+        for (int row = 1; row <= numRows; row++)
         {
-            for (int col = 0; col < numColumns; col++)
+            for (int col = 1; col <= numColumns; col++)
             {
                 int value = getAt(row, col);
-                putAt(symmetries[1], numRows-row-1, col, value);
-                putAt(symmetries[2], row, numColumns-col-1, value);
-                putAt(symmetries[3], numRows-row-1, numColumns-col-1, value);
+                putAt(s1, value, numRows-row+1, col);
+                putAt(s2, value, row, numColumns-col+1);
+                putAt(s3, value, numRows-row+1, numColumns-col+1);
             }
         }
+        symmetries.add(s1);
+        symmetries.add(s2);
+        symmetries.add(s3);
+        Collections.sort(symmetries, BYTE_ARRAY_COMPARATOR);
     }
+
+    private final static Comparator<byte[]> BYTE_ARRAY_COMPARATOR = new Comparator<byte[]>()
+    {
+        @Override
+        public int compare(byte[] grid1, byte[] grid2)
+        {
+            for (int i = 0; i < grid1.length; i++)
+            {
+                int cmp = grid1[i] - grid2[i];
+                if (cmp != 0)
+                    return cmp;
+            }
+            return 0;
+        }
+    };
     
     private static class RegionInfo
     {

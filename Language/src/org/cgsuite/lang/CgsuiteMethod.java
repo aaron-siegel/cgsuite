@@ -145,7 +145,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     public CgsuiteObject invoke(List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
         throws CgsuiteException
     {
-        return invoke(CgsuiteObject.NIL, arguments, optionalArguments);
+        return invoke((CgsuiteObject) null, arguments, optionalArguments);
     }
 
     public CgsuiteObject invoke(CgsuiteObject obj, List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
@@ -266,7 +266,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
             }
 
-            if (isConstructor)
+            if (isConstructor && obj == null)
             {
                 CgsuiteObject newObj;
                 try

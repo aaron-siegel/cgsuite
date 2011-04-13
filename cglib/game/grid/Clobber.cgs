@@ -1,20 +1,14 @@
 class Clobber extends GridGame
 
+    private static var CharMap := ".xo";
     private static var Icons := [
         GridIcon.Blank,
         GridIcon.BlackStone,
         GridIcon.WhiteStone
         ];
 
-    private var grid;
-
     public method Clobber(grid)
-        if grid.Class == String then
-            this.grid := Grid.ParseGrid(grid, ".xo");
-        elseif grid.Class == Grid then
-            this.grid := grid;
-        end
-        // TODO Error otherwise
+        this.GridGame(grid);
     end
 
     public method Options(Player player)
@@ -43,10 +37,6 @@ class Clobber extends GridGame
 
         return options;
 
-    end
-
-    public property ToString.get
-        return "Clobber(" + this.grid.MapString(".xo") + ")";
     end
 
 end

@@ -1,4 +1,4 @@
-class PartizanSubtraction
+class PartizanSubtraction extends Game
 
     private var leftSet;
     private var rightSet;
@@ -12,6 +12,27 @@ class PartizanSubtraction
 
     end
 
-    
+    public method Options(Player player)
+
+        options := {};
+        moveSet := if player == Player.Left then this.leftSet else this.rightSet end;
+
+        for k in moveSet do
+
+            if this.n - k >= 0 then
+                options.Add(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k));
+            end
+
+        end;
+
+        return options;
+
+    end
+
+    public property ToString.get
+
+        return "PartizanSubtraction(" + this.leftSet.ToString + "," + this.rightSet.ToString + "," + this.n.ToString + ")";
+
+    end
 
 end

@@ -1,5 +1,7 @@
 class Game : java "org.cgsuite.lang.Game"
 
+    private static var placeholder := Object();
+
     public static var memory := {=>};
 
     public method op+ (Game obj) : java "buildSum";
@@ -16,10 +18,16 @@ class Game : java "org.cgsuite.lang.Game"
     end
 
     public property CanonicalForm.get
+
         cg := Game.memory[this];
         if nil != cg then
-            return cg;
+            if Game.placeholder == cg then
+                foobar; // TODO Replace with real error
+            else
+                return cg;
+            end
         end;
+        Game.memory[this] := Game.placeholder;
         lo := this.LeftOptions;
         ro := this.RightOptions;
         clo := {};
@@ -33,6 +41,7 @@ class Game : java "org.cgsuite.lang.Game"
         cg := {clo|cro};
         Game.memory[this] := cg;
         return cg;
+        
     end
 
 end

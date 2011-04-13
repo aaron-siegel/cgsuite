@@ -17,4 +17,6 @@ class Number extends CanonicalShortGame : java "org.cgsuite.lang.game.RationalNu
     public property IsInfinite.get : java "isInfinite";
     public property IsDyadic.get : java "isDyadic";
 
+    public property ToString.get : java "toString";
+
 end

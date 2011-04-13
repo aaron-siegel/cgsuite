@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -26,6 +27,8 @@ import org.openide.filesystems.LocalFileSystem;
  */
 public class CgsuitePackage implements FileChangeListener
 {
+    private final static Logger log = Logger.getLogger(CgsuitePackage.class.getName());
+
     public final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
     public final static List<CgsuitePackage> ROOT_IMPORT = Collections.singletonList(ROOT_PACKAGE);
     
@@ -167,8 +170,19 @@ public class CgsuitePackage implements FileChangeListener
 
     public static void refreshAll()
     {
-        for (FileObject fo : ROOT_PACKAGE.folders)
+        for (CgsuitePackage pkg : PACKAGE_LOOKUP.values())
         {
+            pkg.refresh();
+        }
+    }
+
+    public void refresh()
+    {
+        log.info("Refreshing package: " + packageName);
+
+        for (FileObject fo : folders)
+        {
+            log.info("Refreshing folder: " + fo.getPath());
             fo.refresh();
         }
     }
@@ -193,6 +207,7 @@ public class CgsuitePackage implements FileChangeListener
         return packageName;
     }
 
+    @Override
     public String toString()
     {
         return "Package[" + packageName + "]";

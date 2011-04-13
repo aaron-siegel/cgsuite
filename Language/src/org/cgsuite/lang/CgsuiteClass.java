@@ -1,5 +1,6 @@
 package org.cgsuite.lang;
 
+import java.util.logging.Logger;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
+    private static final Logger log = Logger.getLogger(CgsuiteClass.class.getName());
+    
     public final static CgsuiteClass OBJECT;
     public final static CgsuiteClass CLASS;
 
@@ -236,6 +239,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void load()
     {
+        log.info("Loading class: " + name);
+
         try
         {
             ANTLRInputStream in = new SourcedAntlrInputStream(fo.getInputStream(), fo.getNameExt());
@@ -646,6 +651,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private void declareVar(String name, EnumSet<Modifier> modifiers, CgsuiteTree initializer, int declRank)
     {
         Variable var = new Variable(this, name, modifiers, initializer, declRank);
+        log.info("Declaring var: " + this.name + "." + name);
         this.vars.put(name, var);
         this.varsInOrder.add(var);
     }
@@ -730,23 +736,35 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     @Override
     public void fileChanged(FileEvent fe)
     {
-        loaded = false;
+        markUnloaded();
     }
 
     @Override
     public void fileDeleted(FileEvent fe)
     {
-        loaded = false;
+        markUnloaded();
     }
 
     @Override
     public void fileRenamed(FileRenameEvent fre)
     {
-        loaded = false;
+        markUnloaded();
     }
 
     @Override
     public void fileAttributeChanged(FileAttributeEvent fae)
     {
+    }
+
+    private void markUnloaded()
+    {
+        loaded = false;
+        if (descendants != null)
+        {
+            for (CgsuiteClass descendant : descendants)
+            {
+                descendant.loaded = false;
+            }
+        }
     }
 }
