@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="File">
+            <file name="org-cgsuite-ui-explorer-actions-NewExplorerAction.instance">
+                <attr name="delegate" newvalue="org.cgsuite.ui.explorer.actions.NewExplorerAction"/>
+                <attr name="displayName" bundlevalue="org.cgsuite.ui.explorer.actions.Bundle#CTL_NewExplorerAction"/>
+                <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
+                <attr name="noIconInMenu" boolvalue="false"/>
+            </file>
+        </folder>
+        <folder name="Window">
+            <file name="org-cgsuite-ui-explorer-ExplorerAction.instance">
+                <attr name="component" methodvalue="org.cgsuite.ui.explorer.ExplorerTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="org.cgsuite.ui.explorer.Bundle#CTL_ExplorerAction"/>
+                <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="File">
+            <file name="org-cgsuite-ui-explorer-actions-NewExplorerAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/org-cgsuite-ui-explorer-actions-NewExplorerAction.instance"/>
+                <attr name="position" intvalue="1250"/>
+            </file>
+        </folder>
+        <folder name="Window">
+            <file name="ExplorerAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-explorer-ExplorerAction.instance"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="ExplorerTopComponent.settings" url="ExplorerTopComponentSettings.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="editor">
+                <file name="ExplorerTopComponent.wstcref" url="ExplorerTopComponentWstcref.xml"/>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

@@ -181,20 +181,20 @@ public class GridOutput implements Output
             );
     }
 
-    private static final Map<String,Icon> iconMap = new HashMap<String,Icon>();
+    private static final Map<String,Icon> ICON_MAP = new HashMap<String,Icon>();
 
-    private static Icon getIcon(String iconName)
+    public static Icon getIcon(String iconName)
     {
-        if (!iconMap.containsKey(iconName))
+        if (!ICON_MAP.containsKey(iconName))
         {
             URL url = GridOutput.class.getResource(iconName + ".png");
             if (url == null)
                 url = GridOutput.class.getResource(iconName + ".gif");
             if (url == null)
-                iconMap.put(iconName, null);
+                ICON_MAP.put(iconName, null);
             else
-                iconMap.put(iconName, new ImageIcon(url));
+                ICON_MAP.put(iconName, new ImageIcon(url));
         }
-        return iconMap.get(iconName);
+        return ICON_MAP.get(iconName);
     }
 }
