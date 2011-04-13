@@ -8,8 +8,7 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
         elseif grid.Class == String then
             this.grid := Grid.ParseGrid(grid, this.Class.CharMap);
         else
-            // TODO Make this a real error
-            foobar;
+            error("GridGame must be initialized with a String or a Grid object.");
         end
     end
 

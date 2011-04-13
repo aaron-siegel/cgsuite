@@ -442,6 +442,11 @@ public class Domain
                 node = loopyNode(tree, new HashMap<String,LoopyGame.Node>());
                 return new LoopyGame(node);
 
+            case ERROR:
+
+                String msg = expression(tree.getChild(0)).toString();
+                throw new InputException(tree.getToken(), msg);
+
             default:
 
                 throw new MalformedParseTreeException(tree);

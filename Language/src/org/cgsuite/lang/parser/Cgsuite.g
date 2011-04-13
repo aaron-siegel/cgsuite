@@ -78,6 +78,7 @@ tokens
 	ELSEIF		= 'elseif';
 	END			= 'end';
     ENUM        = 'enum';
+    ERROR       = 'error';
 	EXTENDS		= 'extends';
 	FALSE		= 'false';
 	FOR			= 'for';
@@ -502,6 +503,7 @@ primaryExpr
     | (IDENTIFIER COLON) => IDENTIFIER COLON^ explicitGame
 	| IDENTIFIER
     | PASS
+    | ERROR^ LPAREN! statementSequence RPAREN!
 	| LPAREN! statementSequence RPAREN!
 	| BEGIN! statementSequence END!
     | (LBRACE expressionList SLASHES) => explicitGame

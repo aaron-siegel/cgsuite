@@ -22,7 +22,7 @@ class Game : java "org.cgsuite.lang.Game"
         cg := Game.memory[this];
         if nil != cg then
             if Game.placeholder == cg then
-                foobar; // TODO Replace with real error
+                error("Unable to compute canonical form: the specified game is loopy.");
             else
                 return cg;
             end
