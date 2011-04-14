@@ -290,19 +290,22 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             parent.ensureLoaded();
             this.ancestors.addAll(parent.ancestors);
-            for (CgsuiteMethod method : parent.methods.values())
+            for (Entry<String,CgsuiteMethod> e : parent.methods.entrySet())
             {
-                if (!method.isPrivate())
+                String nameInParent = e.getKey();
+                if (nameInParent.startsWith("super$"))
+                    continue;
+                CgsuiteMethod method = e.getValue();
+                if (methods.containsKey(method.getName()))
                 {
-                    if (methods.containsKey(method.getName()))
-                    {
-                        if (methods.get(method.getName()) != method)
-                            throw new RuntimeException(); // XXX Refine
-                    }
-                    else
-                    {
-                        methods.put(method.getName(), method);
-                    }
+                    if (methods.get(method.getName()) != method)
+                        throw new InputException(parseTree.getChild(0).getToken(),
+                            "Multiple ancestor classes declare the same non-private method: " + method.getName());
+                }
+                else
+                {
+                    methods.put(method.getName(), method);
+                    methods.put("super$" + method.getName(), method);
                 }
             }
             for (Variable var : parent.vars.values())
@@ -548,18 +551,31 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 else
                     body = tree.getChild(3);
 
+                if (this.methods.containsKey(methodName) &&
+                    this.methods.get(methodName).getDeclaringClass() == this)
+                {
+                    throw new InputException(tree.getToken(), "Duplicate method definition: " + methodName);
+                }
+
                 declareMethod(methodName, modifiers, parameters, body, javaMethodName);
 
                 return;
 
             case PROPERTY:
 
-                methodName = tree.getChild(1).getText() + "$" + tree.getChild(2).getText();
+                String propertyName = tree.getChild(1).getText();
+                methodName = propertyName + "$" + tree.getChild(2).getText();
 
                 if (tree.getChild(3).getType() == JAVA)
                     javaMethodName = javaref(tree.getChild(3));
                 else
                     body = tree.getChild(3);
+
+                if (this.methods.containsKey(methodName) &&
+                    this.methods.get(methodName).getDeclaringClass() == this)
+                {
+                    throw new InputException(tree.getToken(), "Duplicate property definition: " + propertyName);
+                }
 
                 declareMethod(methodName, modifiers, Collections.<Parameter>emptyList(), body, javaMethodName);
 

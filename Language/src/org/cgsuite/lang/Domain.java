@@ -171,6 +171,7 @@ public class Domain
                 case ASSIGN:
                 case IDENTIFIER:
                 case THIS:
+                case SUPER:
                 case EXPLICIT_LIST:
                 case EXPLICIT_SET:
                 case EXPLICIT_MAP:
@@ -383,6 +384,8 @@ public class Domain
 
             case INTEGER:   return RationalNumber.parseRationalNumber(tree.getText());
 
+            case INF:       return RationalNumber.POSITIVE_INFINITY;
+
             case STRING:    return new CgsuiteString(tree.getText().substring(1, tree.getText().length()-1));
 
             case IDENTIFIER:
@@ -397,7 +400,8 @@ public class Domain
 
                 x = lookup("this");
                 if (x == null)
-                    throw new InputException(tree.getToken(), "Reference to \"this\" is not permitted in a static context.");
+                    // We use tree.getText() because this might actually be a reference to "super" (stealth "this")
+                    throw new InputException(tree.getToken(), "Reference to \"" + tree.getText() + "\" is not permitted in a static context.");
                 return x;
 
             case STATEMENT_SEQUENCE:    return statementSequence(tree);
@@ -632,39 +636,45 @@ public class Domain
     {
         String forId = tree.getChild(0).getText();
         CgsuiteObject collection = expression(tree.getChild(1));
-        CgsuiteTree body = tree.getChild(2);
+        CgsuiteTree whereCondition = null;
+        CgsuiteTree body = null;
 
-        Iterator<CgsuiteObject> it;
-
-        if (collection instanceof CgsuiteList)
+        if (tree.getChild(2).getType() == WHERE)
         {
-            it = ((CgsuiteList) collection).iterator();
-        }
-        else if (collection instanceof CgsuiteSet)
-        {
-            it = ((CgsuiteSet) collection).iterator();
+            whereCondition = tree.getChild(2).getChild(0);
+            body = tree.getChild(3);
         }
         else
         {
+            body = tree.getChild(2);
+        }
+
+        if (!(collection instanceof CgsuiteCollection))
+        {
             throw new InputException(tree.getToken(), "Not a valid collection.");
         }
+
+        Iterator<CgsuiteObject> it = ((CgsuiteCollection) collection).iterator();
 
         CgsuiteObject retval = CgsuiteObject.NIL;
 
         while (it.hasNext())
         {
             namespace.put(forId, it.next());
-            retval = statementSequence(body);
-            if (mode == Mode.BREAKING)
+            if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
-                mode = Mode.NORMAL;
-                retval = CgsuiteObject.NIL;
-                break;
-            }
-            if (mode == Mode.CONTINUING)
-            {
-                mode = Mode.NORMAL;
-                retval = CgsuiteObject.NIL;
+                retval = statementSequence(body);
+                if (mode == Mode.BREAKING)
+                {
+                    mode = Mode.NORMAL;
+                    retval = CgsuiteObject.NIL;
+                    break;
+                }
+                if (mode == Mode.CONTINUING)
+                {
+                    mode = Mode.NORMAL;
+                    retval = CgsuiteObject.NIL;
+                }
             }
         }
 

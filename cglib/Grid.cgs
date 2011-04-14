@@ -4,6 +4,7 @@ class Grid : java "org.cgsuite.lang.game.Grid"
     public method op[](Number row, Number col) : java "getAt(int,int)";
     public method op[]:=(Number value, Number row, Number col) : java "putAt(int,int,int)";
     public method Copy() : java "copy";
+    public method Subgrid(Number startRow, Number endRow, Number startCol, Number endCol) : java "subgrid(int,int,int,int)";
 
     public static method ParseGrid(String str, String charmap) : java "parseGrid(java.lang.String,java.lang.String)";
 

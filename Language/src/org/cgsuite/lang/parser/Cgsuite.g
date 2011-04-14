@@ -89,6 +89,7 @@ tokens
 	IMMUTABLE	= 'immutable';
 //	IMPORT		= 'import';
 	IN			= 'in';
+    INF         = 'inf';
 	JAVA        = 'java';
 	METHOD		= 'method';
 //	NAMESPACE	= 'namespace';
@@ -106,6 +107,7 @@ tokens
 	RETURN		= 'return';
 	SET         = 'set';
     STATIC      = 'static';
+    SUPER       = 'super';
 	THEN		= 'then';
 	THIS        = 'this';
 	TO			= 'to';
@@ -349,7 +351,7 @@ procedureParameterList
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
 	| forExpression? fromExpression? toExpression? byExpression? whileExpression? whereExpression? DO^ statementSequence END!
-	| FOR! expression IN^ expression DO! statementSequence END!
+	| FOR! expression IN^ expression whereExpression? DO! statementSequence END!
 	| orExpression
 	;
 
@@ -447,7 +449,8 @@ unaryExpr
 	
 postfixExpr
 	: (upstarExpr -> upstarExpr)
-	  ( DOT IDENTIFIER  -> ^(DOT $postfixExpr IDENTIFIER)
+	  ( DOT SUPER DOT id=IDENTIFIER { $id.setText("super$" + $id.getText()); } -> ^(DOT $postfixExpr IDENTIFIER)
+      | DOT IDENTIFIER  -> ^(DOT $postfixExpr IDENTIFIER)
 	  | x=arrayReference-> ^(ARRAY_REFERENCE[((CgsuiteTree) x.getTree()).getToken()] $postfixExpr arrayReference)
 	  | y=functionCall	-> ^(FUNCTION_CALL[((CgsuiteTree) y.getTree()).getToken()] $postfixExpr functionCall)
 	  )*
@@ -498,11 +501,13 @@ primaryExpr
 	| FALSE
 	| (INTEGER DOTDOT) => range
 	| INTEGER
+    | INF
 	| STRING
 	| CHAR
     | (IDENTIFIER COLON) => IDENTIFIER COLON^ explicitGame
 	| IDENTIFIER
     | PASS
+    | SUPER DOT IDENTIFIER { $IDENTIFIER.setText("super$" + $IDENTIFIER.getText()); } -> ^(DOT THIS[$SUPER] IDENTIFIER)
     | ERROR^ LPAREN! statementSequence RPAREN!
 	| LPAREN! statementSequence RPAREN!
 	| BEGIN! statementSequence END!

@@ -39,7 +39,14 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
     @Override
     public String toString()
     {
-        if (isInteger())
+        if (isInfinite())
+        {
+            if (compareTo(ZERO) < 0)
+                return "-inf";
+            else
+                return "inf";
+        }
+        else if(isInteger())
         {
             return numerator.toString();
         }
@@ -74,10 +81,9 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
 
         if (isInfinite())
         {
-            if (compareTo(RationalNumber.ZERO) < 0)
-            {
+            if (compareTo(ZERO) < 0)
                 output.appendMath("-");
-            }
+
             output.appendSymbol(StyledTextOutput.Symbol.INFINITY);
         }
         else if (isInteger())
@@ -86,7 +92,7 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
         }
         else
         {
-            if (compareTo(RationalNumber.ZERO) < 0)
+            if (compareTo(ZERO) < 0)
             {
                 output.appendMath("-");
             }

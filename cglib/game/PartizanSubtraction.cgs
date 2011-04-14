@@ -17,11 +17,9 @@ class PartizanSubtraction extends Game
         options := {};
         moveSet := if player == Player.Left then this.leftSet else this.rightSet end;
 
-        for k in moveSet do
-
-            if this.n - k >= 0 then
-                options.Add(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k));
-            end
+        for k in moveSet where this.n - k >= 0 do
+        
+            options.Add(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k));
 
         end;
 
