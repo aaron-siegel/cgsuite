@@ -14,16 +14,10 @@ class PartizanSubtraction extends Game
 
     public method Options(Player player)
 
-        options := {};
         moveSet := if player == Player.Left then this.leftSet else this.rightSet end;
 
-        for k in moveSet where this.n - k >= 0 do
-        
-            options.Add(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k));
-
-        end;
-
-        return options;
+        return setof(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k)
+                     for k in moveSet where this.n - k >= 0);
 
     end
 

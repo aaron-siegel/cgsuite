@@ -224,6 +224,10 @@ public class Domain
 
                 return inLoop(tree);
 
+            case SETOF:
+
+                return setOf(tree);
+
             case IF:
             case ELSEIF:
 
@@ -674,6 +678,53 @@ public class Domain
                 {
                     mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
+                }
+            }
+        }
+
+        return retval;
+    }
+
+    private CgsuiteObject setOf(CgsuiteTree tree) throws CgsuiteException
+    {
+        CgsuiteTree expr = tree.getChild(0);
+
+        String forId = tree.getChild(1).getText();
+        CgsuiteObject collection = expression(tree.getChild(2));
+        CgsuiteTree whereCondition = null;
+
+        if (tree.getChildCount() > 3)
+        {
+            whereCondition = tree.getChild(3).getChild(0);
+        }
+
+        if (!(collection instanceof CgsuiteCollection))
+        {
+            throw new InputException(tree.getToken(), "Not a valid collection.");
+        }
+
+        Iterator<CgsuiteObject> it = ((CgsuiteCollection) collection).iterator();
+
+        CgsuiteSet retval = new CgsuiteSet();
+
+        while (it.hasNext())
+        {
+            namespace.put(forId, it.next());
+            if (whereCondition == null || bool(expression(whereCondition), whereCondition))
+            {
+                CgsuiteObject obj = expression(expr);
+                if (mode == Mode.BREAKING)
+                {
+                    mode = Mode.NORMAL;
+                    break;
+                }
+                else if(mode == Mode.CONTINUING)
+                {
+                    mode = Mode.NORMAL;
+                }
+                else
+                {
+                    retval.add(obj);
                 }
             }
         }

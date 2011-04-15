@@ -91,6 +91,7 @@ tokens
 	IN			= 'in';
     INF         = 'inf';
 	JAVA        = 'java';
+    LISTOF      = 'listof';
 	METHOD		= 'method';
 //	NAMESPACE	= 'namespace';
     NEG         = 'neg';
@@ -106,6 +107,7 @@ tokens
 	PUBLIC		= 'public';
 	RETURN		= 'return';
 	SET         = 'set';
+    SETOF       = 'setof';
     STATIC      = 'static';
     SUPER       = 'super';
 	THEN		= 'then';
@@ -350,32 +352,40 @@ procedureParameterList
 	
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
-	| forExpression? fromExpression? toExpression? byExpression? whileExpression? whereExpression? DO^ statementSequence END!
-	| FOR! expression IN^ expression whereExpression? DO! statementSequence END!
+	| doLoopAntecedent DO^ statementSequence END!
+	| inLoopAntecedent DO statementSequence END -> ^(IN[$DO] inLoopAntecedent statementSequence)
 	| orExpression
 	;
 
-forExpression
+doLoopAntecedent
+    : forClause? fromClause? toClause? byClause? whileClause? whereClause?
+    ;
+
+inLoopAntecedent
+    : FOR! expression IN! expression whereClause?
+    ;
+
+forClause
 	: FOR^ IDENTIFIER
 	;
 	
-fromExpression
+fromClause
 	: FROM^ expression
 	;
 	
-toExpression
+toClause
     : TO^ expression
     ;
 
-byExpression
+byClause
     : BY^ expression
     ;
 	
-whileExpression
+whileClause
     : WHILE^ expression
 	;
 
-whereExpression
+whereClause
     : WHERE^ expression
     ;
 
@@ -515,6 +525,8 @@ primaryExpr
 	| (LBRACE expression? BIGRARROW) => explicitMap
 	| explicitSet
 	| explicitList
+    | SETOF LPAREN expression inLoopAntecedent RPAREN -> ^(SETOF expression inLoopAntecedent)
+    | LISTOF^ LPAREN! expression inLoopAntecedent RPAREN!
 	;
 
 explicitGame
@@ -590,7 +602,7 @@ range
 
 INTEGER		: DIGIT+;
 
-IDENTIFIER	: LETTER (LETTER | DIGIT)*;
+IDENTIFIER	: NONV (LETTER | DIGIT)* | 'v' NONV (LETTER | DIGIT)*;
 
 STRING		: DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 
@@ -605,13 +617,10 @@ fragment
 HEX_DIGIT	: '0'..'9' | 'A'..'F' | 'a'..'f';
 
 fragment
-LETTER		: UC_LETTER | LC_LETTER | UNDERSCORE;
+LETTER		: 'A'..'Z' | 'a'..'z' | '_';
 
 fragment
-UC_LETTER	: 'A'..'Z';
-
-fragment
-LC_LETTER	: 'a'..'z';
+NONV        : 'A'..'Z' | 'a'..'u' | 'w'..'z' | '_';
 
 fragment
 SLASH		: '|';
@@ -631,8 +640,8 @@ ESCAPE_SEQ	: BACKSLASH
 fragment
 NEWLINE     : '\r'? '\n';
 
-WHITESPACE			: (' ' | '\t' | NEWLINE)+ { $channel = HIDDEN; };
+WHITESPACE  : (' ' | '\t' | NEWLINE)+ { $channel = HIDDEN; };
 
-SL_COMMENT			: '//' ~('\r'|'\n')* NEWLINE { $channel = HIDDEN; };
+SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE { $channel = HIDDEN; };
 
-ML_COMMENT	: '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
+ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
