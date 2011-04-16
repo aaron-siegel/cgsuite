@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Logger;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
@@ -32,6 +33,8 @@ import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
  */
 public class CalculationCapsule implements Runnable
 {
+    private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
+
     private final static Domain WORKSPACE_DOMAIN = new Domain(CgsuitePackage.ROOT_IMPORT);
     
     private String text;
@@ -87,7 +90,10 @@ public class CalculationCapsule implements Runnable
 
     private Output invoke(CgsuiteTree tree)
     {
+        log.info("Beginning calculation.");
+        long startTime = System.currentTimeMillis();
         CgsuiteObject retval = WORKSPACE_DOMAIN.script(tree).simplify();
+        log.info("Calculation completed in " + (System.currentTimeMillis()-startTime) + " ms.");
         return retval.toOutput();
     }
     

@@ -2,13 +2,17 @@ package org.cgsuite.lang.game;
 
 import java.math.BigInteger;
 import java.util.EnumSet;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
-import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 public class RationalNumber extends Game implements Comparable<RationalNumber>
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Number");
+
     public final static RationalNumber ZERO = new RationalNumber(0, 1);
     public final static RationalNumber ONE = new RationalNumber(1, 1);
     public final static RationalNumber TWO = new RationalNumber(2, 1);
@@ -19,9 +23,14 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
     private BigInteger numerator;
     private BigInteger denominator;
 
+    public RationalNumber(CgsuiteInteger integer)
+    {
+        this(integer.intValue(), 1L);
+    }
+
     public RationalNumber(BigInteger numerator, BigInteger denominator)
     {
-        super(CgsuitePackage.forceLookupClass("Number"));
+        super(TYPE);
         BigInteger gcd = numerator.gcd(denominator);
         if (denominator.compareTo(BigInteger.ZERO) < 0)
         {
@@ -69,9 +78,12 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
     }
 
     @Override
-    public RationalNumber simplify()
+    public Game simplify()
     {
-        return this;
+        if (isInteger() && isSmall())
+            return new CgsuiteInteger(intValue());
+        else
+            return this;
     }
 
     @Override

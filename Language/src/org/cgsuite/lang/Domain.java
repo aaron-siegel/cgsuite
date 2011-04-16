@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
@@ -19,6 +20,8 @@ import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 public class Domain
 {
+    private final static Logger log = Logger.getLogger(Domain.class.getName());
+
     private Namespace namespace;
     private List<CgsuitePackage> imports;
     private Mode mode;
@@ -386,7 +389,7 @@ public class Domain
 
             case FALSE:     return CgsuiteBoolean.FALSE;
 
-            case INTEGER:   return RationalNumber.parseRationalNumber(tree.getText());
+            case INTEGER:   return RationalNumber.parseRationalNumber(tree.getText()).simplify();
 
             case INF:       return RationalNumber.POSITIVE_INFINITY;
 
@@ -517,9 +520,9 @@ public class Domain
     private CgsuiteObject doLoop(CgsuiteTree tree) throws CgsuiteException
     {
         String forId = null;
-        CanonicalShortGame fromG = null;
-        CanonicalShortGame toG = null;
-        CanonicalShortGame byG = CanonicalShortGame.ONE;
+        CgsuiteObject fromG = null;
+        CgsuiteObject toG = null;
+        CgsuiteObject byG = CgsuiteInteger.ONE;
         CgsuiteTree whileCondition = null;
         CgsuiteTree whereCondition = null;
         CgsuiteTree body = null;
@@ -535,17 +538,17 @@ public class Domain
 
                 case FROM:
 
-                    fromG = canonicalGame(expression(child.getChild(0)), child);
+                    fromG = expression(child.getChild(0)).simplify();
                     break;
 
                 case TO:
 
-                    toG = canonicalGame(expression(child.getChild(0)), child);
+                    toG = expression(child.getChild(0)).simplify();
                     break;
 
                 case BY:
 
-                    byG = canonicalGame(expression(child.getChild(0)), child);
+                    byG = expression(child.getChild(0)).simplify();
                     break;
 
                 case WHILE:
@@ -574,7 +577,7 @@ public class Domain
             put(forId, fromG);
         }
 
-        CanonicalShortGame g;
+        CgsuiteObject g;
 
         if (fromG != null)
         {
@@ -600,7 +603,7 @@ public class Domain
 
         while (true)
         {
-            if (g != null && toG != null && !g.leq(toG))
+            if (g != null && toG != null && !leq(g, toG, tree))
             {
                 break;
             }
@@ -628,7 +631,7 @@ public class Domain
 
             if (g != null && forId != null)
             {
-                g = g.add(byG);
+                g = add(g, byG);
                 put(forId, g);
             }
         }
@@ -760,17 +763,17 @@ public class Domain
             {
                 case REFEQUALS: return CgsuiteBoolean.valueOf(x.equals(y));
                 case REFNEQ:    return CgsuiteBoolean.valueOf(!x.equals(y));
-                case EQUALS:    return x.invoke("op ==", y);
+                case EQUALS:    return eq(x, y, tree);
                 case NEQ:       return x.invoke("op !=", y);
-                case LEQ:       return x.invoke("op <=", y);
+                case LEQ:       return CgsuiteBoolean.valueOf(leq(x, y, tree));
                 case GEQ:       return x.invoke("op >=", y);
                 case LT:        return x.invoke("op <", y);
                 case GT:        return x.invoke("op >", y);
                 case CONFUSED:  return x.invoke("op <>", y);
                 case COMPARE:   return x.invoke("op <=>", y);
                 case PLUS:      return add(x, y);
-                case MINUS:     return x.invoke("op -", y);
-                case AST:       return x.invoke("op *", y);
+                case MINUS:     return subtract(x, y);
+                case AST:       return multiply(x, y, tree);
                 case FSLASH:    return x.invoke("op /", y);
                 case PERCENT:   return x.invoke("op %", y);
                 case EXP:       return x.invoke("op **", y);
@@ -805,22 +808,102 @@ public class Domain
 
     private CgsuiteObject add(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
     {
-        if (x instanceof RationalNumber)
+        if (x instanceof CgsuiteInteger)
         {
-            if (y instanceof RationalNumber)
+            if (y instanceof CgsuiteInteger)
+                return ((CgsuiteInteger) x).add((CgsuiteInteger) y);
+            else if (y instanceof RationalNumber)
+                return ((RationalNumber) y).add(new RationalNumber((CgsuiteInteger) x));
+            else if (y instanceof CanonicalShortGame)
+                return ((CanonicalShortGame) y).add(new CanonicalShortGame((CgsuiteInteger) x));
+        }
+        else if (x instanceof RationalNumber)
+        {
+            if (y instanceof CgsuiteInteger)
+                return ((RationalNumber) x).add(new RationalNumber((CgsuiteInteger) y));
+            else if (y instanceof RationalNumber)
                 return ((RationalNumber) x).add((RationalNumber) y);
             else if (y instanceof CanonicalShortGame && ((RationalNumber) x).isDyadic())
                 return new CanonicalShortGame((RationalNumber) x).add((CanonicalShortGame) y);
         }
         else if (x instanceof CanonicalShortGame)
         {
-            if (y instanceof RationalNumber && ((RationalNumber) y).isDyadic())
+            if (y instanceof CgsuiteInteger)
+                return ((CanonicalShortGame) x).add(new CanonicalShortGame((CgsuiteInteger) y));
+            else if (y instanceof RationalNumber && ((RationalNumber) y).isDyadic())
                 return ((CanonicalShortGame) x).add(new CanonicalShortGame((RationalNumber) y));
             else if (y instanceof CanonicalShortGame)
                 return ((CanonicalShortGame) x).add((CanonicalShortGame) y);
         }
 
         return x.invoke("op +", y);
+    }
+
+    private CgsuiteObject subtract(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
+    {
+        if (x instanceof CgsuiteInteger)
+        {
+            if (y instanceof CgsuiteInteger)
+                return ((CgsuiteInteger) x).subtract((CgsuiteInteger) y);
+            else if (y instanceof RationalNumber)
+                return ((RationalNumber) y).subtract(new RationalNumber((CgsuiteInteger) x));
+            else if (y instanceof CanonicalShortGame)
+                return ((CanonicalShortGame) y).subtract(new CanonicalShortGame((CgsuiteInteger) x));
+        }
+        else if (x instanceof RationalNumber)
+        {
+            if (y instanceof CgsuiteInteger)
+                return ((RationalNumber) x).subtract(new RationalNumber((CgsuiteInteger) y));
+            else if (y instanceof RationalNumber)
+                return ((RationalNumber) x).subtract((RationalNumber) y);
+            else if (y instanceof CanonicalShortGame && ((RationalNumber) x).isDyadic())
+                return new CanonicalShortGame((RationalNumber) x).subtract((CanonicalShortGame) y);
+        }
+        else if (x instanceof CanonicalShortGame)
+        {
+            if (y instanceof CgsuiteInteger)
+                return ((CanonicalShortGame) x).subtract(new CanonicalShortGame((CgsuiteInteger) y));
+            else if (y instanceof RationalNumber && ((RationalNumber) y).isDyadic())
+                return ((CanonicalShortGame) x).subtract(new CanonicalShortGame((RationalNumber) y));
+            else if (y instanceof CanonicalShortGame)
+                return ((CanonicalShortGame) x).subtract((CanonicalShortGame) y);
+        }
+
+        return x.invoke("op -", y);
+    }
+
+    private CgsuiteObject multiply(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
+    {
+        if (x instanceof CgsuiteInteger && y instanceof CgsuiteInteger)
+        {
+            return ((CgsuiteInteger) x).multiply((CgsuiteInteger) y);
+        }
+
+//        log.info(x.getClass() + " " + y.getClass() + tree.toStringTree());
+
+        return x.invoke("op *", y);
+    }
+
+    private boolean leq(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
+    {
+        if (x instanceof CgsuiteInteger && y instanceof CgsuiteInteger)
+        {
+            return ((CgsuiteInteger) x).compareTo((CgsuiteInteger) y) <= 0;
+        }
+
+        return bool(x.invoke("op <=", y), tree);
+    }
+
+    public CgsuiteObject eq(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
+    {
+        if (x instanceof CgsuiteInteger && y instanceof CgsuiteInteger ||
+            x instanceof RationalNumber && y instanceof RationalNumber ||
+            x instanceof CanonicalShortGame && y instanceof CanonicalShortGame)
+        {
+            return CgsuiteBoolean.valueOf(x.equals(y));
+        }
+
+        return x.invoke("op ==", y);
     }
 
     private CgsuiteObject upExpression(CgsuiteTree tree) throws CgsuiteException
@@ -1147,27 +1230,33 @@ public class Domain
 
     private int naturalNumber(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
     {
-        RationalNumber r = number(x, tree);
+        int intValue = integer(x, tree);
 
-        if (!r.isInteger() || !r.isSmall() || r.intValue() < 0)
+        if (intValue < 0)
             throw new InputException(tree.token, "Argument to * is not a natural number.");
 
-        return r.intValue();
+        return intValue;
     }
 
     private int integer(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
     {
-        RationalNumber r = number(x, tree);
+        if (!(x instanceof CgsuiteInteger))
+        {
+            x = x.simplify();
+            if (!(x instanceof CgsuiteInteger))
+                throw new InputException(tree.token, "Argument to * is not an integer.");
+        }
 
-        if (!r.isInteger() || !r.isSmall())
-            throw new InputException(tree.token, "Argument to * is not an integer.");
-
-        return r.intValue();
+        return ((CgsuiteInteger) x).intValue();
     }
 
     private RationalNumber number(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
     {
-        if (!(x instanceof RationalNumber))
+        if (x instanceof CgsuiteInteger)
+        {
+            x = new RationalNumber((CgsuiteInteger) x);
+        }
+        else if (!(x instanceof RationalNumber))
         {
             x = x.simplify();
             if (!(x instanceof RationalNumber))
@@ -1182,7 +1271,9 @@ public class Domain
         if (!(x instanceof CanonicalShortGame))
         {
             x = x.simplify();
-            if (x instanceof RationalNumber)
+            if (x instanceof CgsuiteInteger)
+                x = new CanonicalShortGame(((CgsuiteInteger) x).intValue());
+            else if(x instanceof RationalNumber)
                 x = new CanonicalShortGame((RationalNumber) x);
             if (!(x instanceof CanonicalShortGame))
                 throw new InputException(tree.token, "Not a canonical game.");

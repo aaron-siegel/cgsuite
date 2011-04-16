@@ -100,6 +100,11 @@ public class CgsuiteSet extends CgsuiteCollection
         return copy;
     }
 
+    public void clear()
+    {
+        objects.clear();
+    }
+
     public int size()
     {
         return objects.size();

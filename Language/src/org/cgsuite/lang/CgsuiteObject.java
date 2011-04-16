@@ -35,7 +35,7 @@ public class CgsuiteObject
             try
             {
                 CgsuiteObject obj = x.invoke("Order", y).simplify();
-                return ((RationalNumber) obj).intValue();
+                return ((CgsuiteInteger) obj).intValue();
             }
             catch (CgsuiteException exc)
             {
@@ -98,10 +98,13 @@ public class CgsuiteObject
             return new InstanceMethod(method);
         }
 
-        CgsuiteObject obj = objectNamespace.get(identifier);
+        if (objectNamespace != null)
+        {
+            CgsuiteObject obj = objectNamespace.get(identifier);
 
-        if (obj != null)
-            return obj;
+            if (obj != null)
+                return obj;
+        }
 
         if (type.lookupVar(identifier) != null)
             return CgsuiteObject.NIL;

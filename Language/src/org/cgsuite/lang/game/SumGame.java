@@ -3,9 +3,9 @@ package org.cgsuite.lang.game;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.CgsuiteException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import org.cgsuite.lang.CgsuiteInteger;
 
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -19,7 +19,7 @@ public class SumGame extends Game
     {
         super(CgsuitePackage.forceLookupClass("SumGame"));
 
-        this.components = new ArrayList<CgsuiteObject>();
+        this.components = new ArrayList<CgsuiteObject>(2);
         this.components.add(x);
         this.components.add(y);
     }
@@ -39,7 +39,7 @@ public class SumGame extends Game
     @Override
     public SumGame buildSum(Game other)
     {
-        List<CgsuiteObject> newComponents = new ArrayList<CgsuiteObject>();
+        List<CgsuiteObject> newComponents = new ArrayList<CgsuiteObject>(components.size()+1);
         newComponents.addAll(components);
         if (other instanceof SumGame)
             newComponents.addAll(((SumGame) other).components);
@@ -111,26 +111,30 @@ public class SumGame extends Game
     public Game simplify() throws CgsuiteException
     {
         List<CgsuiteObject> simplified = new ArrayList<CgsuiteObject>();
+        boolean allIntegers = true;
         boolean allNumbers = true;
         boolean allCanonical = true;
 
         for (CgsuiteObject x : components)
         {
             CgsuiteObject simp = x.simplify();
-            if (simp instanceof RationalNumber)
+            if (simp instanceof CgsuiteInteger)
             {
-                if (!((RationalNumber) simp).isDyadic())
+            }
+            else if (simp instanceof RationalNumber)
+            {
+                if (!((RationalNumber) simp).isInteger())
                 {
-                    allCanonical = false;
+                    allIntegers = false;
+                    if (!((RationalNumber) simp).isDyadic())
+                        allCanonical = false;
                 }
             }
             else
             {
                 allNumbers = false;
                 if (!(simp instanceof CanonicalShortGame))
-                {
                     allCanonical = false;
-                }
             }
             simplified.add(simp);
         }
@@ -140,7 +144,10 @@ public class SumGame extends Game
             RationalNumber answer = RationalNumber.ZERO;
             for (CgsuiteObject obj : simplified)
             {
-                answer = answer.add((RationalNumber) obj);
+                if (obj instanceof CgsuiteInteger)
+                    answer = answer.add(new RationalNumber((CgsuiteInteger) obj));
+                else
+                    answer = answer.add((RationalNumber) obj);
             }
             return answer;
         }
@@ -149,7 +156,9 @@ public class SumGame extends Game
             CanonicalShortGame answer = CanonicalShortGame.ZERO;
             for (CgsuiteObject obj : simplified)
             {
-                if (obj instanceof RationalNumber)
+                if (obj instanceof CgsuiteInteger)
+                    answer = answer.add(new CanonicalShortGame((CgsuiteInteger) obj));
+                else if (obj instanceof RationalNumber)
                     answer = answer.add(new CanonicalShortGame((RationalNumber) obj));
                 else
                     answer = answer.add((CanonicalShortGame) obj);

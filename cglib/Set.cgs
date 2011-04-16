@@ -10,6 +10,7 @@ class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
     public method Remove(obj) : java "remove";
     public method RemoveAll(Collection obj) : java "removeAll";
     public method Copy() : java "copy";
+    public method Clear() : java "clear";
 
     public property ToString.get : java "toString";
 

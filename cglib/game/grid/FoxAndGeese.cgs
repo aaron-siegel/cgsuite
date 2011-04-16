@@ -1,5 +1,6 @@
 class FoxAndGeese extends GridGame
 
+    private static var CharMap := ".xo";
     private static var Icons := [
         GridIcon.Blank,
         GridIcon.BlackStone,
@@ -7,12 +8,7 @@ class FoxAndGeese extends GridGame
         ];
 
     public method FoxAndGeese(grid)
-        if grid.Class == String then
-            this.grid := Grid.ParseGrid(grid, ".xo");
-        elseif grid.Class == Grid then
-            this.grid := grid;
-        end
-        // TODO Error otherwise
+        this.GridGame(grid);
     end
 
     

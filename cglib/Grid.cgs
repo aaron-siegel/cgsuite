@@ -1,10 +1,11 @@
 class Grid : java "org.cgsuite.lang.game.Grid"
 
-    public method Grid(Number rows, Number columns) : java "Grid";
-    public method op[](Number row, Number col) : java "getAt(int,int)";
-    public method op[]:=(Number value, Number row, Number col) : java "putAt(int,int,int)";
+    public method Grid(Integer rows, Integer columns) : java "Grid(int,int)";
+    public method op[](Integer row, Integer col) : java "getAt(int,int)";
+    public method op[]:=(Integer value, Integer row, Integer col) : java "putAt(int,int,int)";
     public method Copy() : java "copy";
-    public method Subgrid(Number startRow, Number endRow, Number startCol, Number endCol) : java "subgrid(int,int,int,int)";
+    public method Subgrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol) : java "subgrid(int,int,int,int)";
+    public method Decompose(Integer boundaryValue) : java "decompose(int)";
 
     public static method ParseGrid(String str, String charmap) : java "parseGrid(java.lang.String,java.lang.String)";
 

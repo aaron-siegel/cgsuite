@@ -29,6 +29,7 @@
 
 package org.cgsuite.lang.game;
 
+import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 import java.math.BigInteger;
 import java.util.EnumSet;
@@ -277,6 +278,12 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
     {
         this();
         id = constructInteger(n);
+    }
+
+    public CanonicalShortGame(CgsuiteInteger n)
+    {
+        this();
+        id = constructInteger(n.intValue());
     }
 
     /**
@@ -614,7 +621,9 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
     @Override
     public Game simplify()
     {
-        if (isNumber())
+        if (isInteger())
+            return new CgsuiteInteger(getSmallNumeratorPart(id));
+        else if(isNumber())
             return getNumberPart();
         else
             return this;

@@ -86,6 +86,16 @@ public class CgsuiteMap extends CgsuiteObject
         map.put(key, value);
     }
 
+    public CgsuiteSet keys()
+    {
+        CgsuiteSet set = new CgsuiteSet();
+        for (CgsuiteObject obj : map.keySet())
+        {
+            set.add(obj);
+        }
+        return set;
+    }
+
     public Set<Entry<CgsuiteObject,CgsuiteObject>> entrySet()
     {
         return map.entrySet();
@@ -94,6 +104,11 @@ public class CgsuiteMap extends CgsuiteObject
     public int size()
     {
         return map.size();
+    }
+
+    public void clear()
+    {
+        map.clear();
     }
 
     @Override

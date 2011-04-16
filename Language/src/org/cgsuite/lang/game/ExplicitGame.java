@@ -5,6 +5,7 @@ import org.cgsuite.lang.CgsuiteException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.cgsuite.lang.CgsuiteInteger;
 
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -100,7 +101,9 @@ public class ExplicitGame extends Game
             CgsuiteObject simp = x.simplify();
             simplifiedLeftOptions.add(simp);
 
-            if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
+            if (simp instanceof CgsuiteInteger)
+                canonicalLeftOptions.add(new CanonicalShortGame((CgsuiteInteger) simp));
+            else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
                 canonicalLeftOptions.add(new CanonicalShortGame((RationalNumber) simp));
             else if (simp instanceof CanonicalShortGame)
                 canonicalLeftOptions.add((CanonicalShortGame) simp);
@@ -112,7 +115,9 @@ public class ExplicitGame extends Game
             CgsuiteObject simp = x.simplify();
             simplifiedRightOptions.add(simp);
 
-            if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
+            if (simp instanceof CgsuiteInteger)
+                canonicalRightOptions.add(new CanonicalShortGame((CgsuiteInteger) simp));
+            else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
                 canonicalRightOptions.add(new CanonicalShortGame((RationalNumber) simp));
             else if (simp instanceof CanonicalShortGame)
                 canonicalRightOptions.add((CanonicalShortGame) simp);

@@ -1,0 +1,5 @@
+class Integer extends Number : java "org.cgsuite.lang.CgsuiteInteger"
+
+    
+
+end

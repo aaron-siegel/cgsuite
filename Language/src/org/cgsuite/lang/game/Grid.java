@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.InputException;
@@ -66,6 +68,8 @@ import org.cgsuite.lang.InputException;
  */
 public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Serializable
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Grid");
+
     private static int[] markers;
     private static int regionAt;
     private static RegionInfo[] regions;
@@ -80,19 +84,9 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     
     private Grid()
     {
-        super(CgsuitePackage.forceLookupClass("Grid"));
+        super(TYPE);
     }
 
-    public Grid(RationalNumber numRows, RationalNumber numColumns)
-    {
-        super(CgsuitePackage.forceLookupClass("Grid"));
-
-        if (!numRows.isInteger() || !numColumns.isInteger())
-            throw new IllegalArgumentException();
-
-        constructGrid(numRows.intValue(), numColumns.intValue(), BitsPerEntry.EIGHT);
-    }
-    
     /**
      * Constructs a new <code>Grid</code> with the specified dimensions and
      * {@link BitsPerEntry#EIGHT EIGHT} bits per entry.
@@ -102,7 +96,9 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public Grid(int numRows, int numColumns)
     {
-        this(numRows, numColumns, BitsPerEntry.EIGHT);
+        super(TYPE);
+
+        constructGrid(numRows, numColumns, BitsPerEntry.EIGHT);
     }
     
     /**
@@ -116,7 +112,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public Grid(int numRows, int numColumns, BitsPerEntry bitsPerEntry)
     {
-        super(CgsuitePackage.forceLookupClass("Grid"));
+        super(TYPE);
         
         constructGrid(numRows, numColumns, bitsPerEntry);
     }
@@ -407,7 +403,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         {
             for (int j = 0; j < numColumns; j++)
             {
-                clone.putAt(i, j, getAt(i, j));
+                clone.putAt(getAt(i, j), i, j);
             }
         }
         return clone;
@@ -720,23 +716,21 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      * @param   boundaryValue The value to use as a boundary.
      * @param   directions The directions to consider for decomposition.
      */
-    public Grid[] decompose(int boundaryValue, EnumSet<Direction> directions)
+    public CgsuiteList decompose(int boundaryValue)
     {
+        EnumSet<Direction> directions = Direction.ORTHOGONALS;
         if (markers == null || markers.length < numRows * numColumns)
         {
             markers = null;
             markers = new int[numRows * numColumns * 2];
         }
-        for (int i = 0; i < numRows * numColumns; i++)
-        {
-            markers[i] = -1;
-        }
+        Arrays.fill(markers, 0, numRows * numColumns, -1);
         regionAt = -1;
         for (int row = 0; row < numRows; row++)
         {
             for (int col = 0; col < numColumns; col++)
             {
-                if (markers[row * numColumns + col] == -1 && getAt(row, col) != boundaryValue)
+                if (markers[row * numColumns + col] == -1 && getAt(row+1, col+1) != boundaryValue)
                 {
                     // Found a new region.
                     regionAt++;
@@ -763,15 +757,17 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         if (regionAt == 0 && regions[0].left == 0 && regions[0].right == numColumns-1 &&
             regions[0].top == 0 && regions[0].bottom == numRows - 1)
         {
-            return new Grid[] { this };
+            CgsuiteList list = new CgsuiteList(1);
+            list.add(this);
+            return list;
         }
         
-        Grid[] decomposition = new Grid[regionAt+1];
+        CgsuiteList decomposition = new CgsuiteList(regionAt+1);
         for (int regionIndex = 0; regionIndex <= regionAt; regionIndex++)
         {
             int nRows = regions[regionIndex].bottom - regions[regionIndex].top + 1,
                 nColumns = regions[regionIndex].right - regions[regionIndex].left + 1;
-            decomposition[regionIndex] = new Grid(nRows, nColumns, bitsPerEntry);
+            Grid grid = new Grid(nRows, nColumns, bitsPerEntry);
             for (int row = 0; row < nRows; row++)
             {
                 for (int col = 0; col < nColumns; col++)
@@ -780,14 +776,15 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
                         oldCol = col + regions[regionIndex].left;
                     if (markers[oldRow * numColumns + oldCol] == regionIndex)
                     {
-                        decomposition[regionIndex].putAt(row, col, getAt(oldRow, oldCol));
+                        grid.putAt(getAt(oldRow+1, oldCol+1), row+1, col+1);
                     }
                     else
                     {
-                        decomposition[regionIndex].putAt(row, col, boundaryValue);
+                        grid.putAt(boundaryValue, row+1, col+1);
                     }
                 }
             }
+            decomposition.add(grid);
         }
         
         return decomposition;
@@ -818,7 +815,7 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
             {
                 int nextRow = row + dir.rowShift,
                     nextCol = col + dir.columnShift;
-                if (markers[nextRow * numColumns + nextCol] != regionIndex && getAt(nextRow, nextCol) != boundaryValue)
+                if (markers[nextRow * numColumns + nextCol] != regionIndex && getAt(nextRow+1, nextCol+1) != boundaryValue)
                 {
                     markRegion(boundaryValue, directions, regionIndex, nextRow, nextCol);
                 }

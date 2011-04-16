@@ -247,19 +247,31 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             this.currentSource = source;
         }
 
-        postOutput(output);
+        OutputBox outputBox = postOutput(output);
 
         if (finished)
         {
             advanceToNext();
         }
+        else
+        {
+            this.requestFocusInWindow();
+            Point topLeft = outputBox.getLocation();
+            Point bottomLeft = new Point(topLeft.x, topLeft.y + outputBox.getHeight());
+            if (!getViewport().getViewRect().contains(bottomLeft))
+            {
+                getScrollPane().getHorizontalScrollBar().setValue(0);
+                getScrollPane().getVerticalScrollBar().setValue(bottomLeft.y - getViewport().getHeight());
+            }
+        }
     }
 
-    private void postOutput(Output ... output)
+    private OutputBox postOutput(Output ... output)
     {
+        OutputBox outputBox = null;
         for (int i = 0; i < output.length; i++)
         {
-            OutputBox outputBox = new OutputBox();
+            outputBox = new OutputBox();
             outputBox.setOutput(output[i]);
             outputBox.setWorksheetWidth(getWidth());
             outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -267,6 +279,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             repaint();
             getScrollPane().validate();
         }
+        return outputBox;
     }
 
     @Override

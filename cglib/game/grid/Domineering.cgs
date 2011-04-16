@@ -23,14 +23,25 @@ class Domineering extends GridGame
             for n from 1 to this.grid.NumColumns do
                 if this.grid[m,n] == 0 and this.grid[m+mDelta,n+nDelta] == 0 then
                     copy := this.grid.Copy();
-                    copy[m,n] := us;
-                    copy[m+mDelta,n+nDelta] := us;
+                    copy[m,n] := 1;
+                    copy[m+mDelta,n+nDelta] := 1;
                     options.Add(Domineering(copy));
                 end
             end
         end;
 
         return options;
+
+    end
+
+    public property CanonicalForm.get
+
+        components := this.grid.Decompose(1);
+        g := 0;
+        for grid in components do
+            g := g + Domineering(grid.SymmetryInvariantRepresentation).super.CanonicalForm;
+        end;
+        return g;
 
     end
 

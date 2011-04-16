@@ -8,11 +8,14 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.cgsuite.lang.game.RationalNumber;
 
 public class CgsuiteMethod extends CgsuiteObject implements Callable
 {
+    private final static Logger log = Logger.getLogger(CgsuiteMethod.class.getName());
+
     private CgsuiteClass declaringClass;
     private String name;
     private EnumSet<Modifier> modifiers;
@@ -86,7 +89,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         {
             throw new IllegalArgumentException("Unknown Java class: " + exc.getMessage(), exc);
         }
-        if (javaMethodSpec.equals(declaringClass.getName()))
+
+        if (javaMethodName.equals(declaringClass.getName()))
         {
             try
             {
@@ -153,6 +157,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     {
         ensureLoaded();
 
+//        log.info("Invoking: " + declaringClass.getName() + "." + name);
+
         if (arguments.size() < nRequiredParameters || arguments.size() > parameters.size())
             throw new IllegalArgumentException();
 
@@ -207,7 +213,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             else if (javaObj instanceof Integer)
             {
-                return new RationalNumber((Integer) javaObj, 1);
+                return new CgsuiteInteger((Integer) javaObj);
             }
             else if (javaObj instanceof Boolean)
             {
@@ -299,6 +305,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             if (javaClass.isAssignableFrom(obj.getClass()))
             {
                 return obj;
+            }
+            else if (int.class.equals(javaClass) && obj instanceof CgsuiteInteger)
+            {
+                return ((CgsuiteInteger) obj).intValue();
             }
             else if (int.class.equals(javaClass) && obj instanceof RationalNumber)
             {
