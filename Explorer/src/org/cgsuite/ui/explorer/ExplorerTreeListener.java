@@ -1,8 +1,8 @@
 /*
- * GameTreeNode.java
+ * ExplorerTreeListener.java
  *
- * Created on November 7, 2005, 1:57 PM
- * $Id: GameTreeNode.java,v 1.1 2005/11/10 00:14:38 asiegel Exp $
+ * Created on November 8, 2005, 3:37 PM
+ * $Id: ExplorerTreeListener.java,v 1.1 2005/11/10 00:14:38 asiegel Exp $
  */
 
 /* ****************************************************************************
@@ -29,14 +29,10 @@
 
 package org.cgsuite.ui.explorer;
 
-import java.awt.Graphics2D;
 import java.util.List;
+import org.cgsuite.lang.explorer.ExplorerNode;
 
-public interface GameTreeNode
+public interface ExplorerTreeListener
 {
-    public List<? extends GameTreeNode> getLeftChildren();
-    
-    public List<? extends GameTreeNode> getRightChildren();
-    
-    public void paintNode(Graphics2D g, int radius, boolean selected);
+    public void selectionPathChanged(List<ExplorerNode> newPath);
 }

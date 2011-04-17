@@ -1,0 +1,6 @@
+class Explorer : java "org.cgsuite.ui.explorer.Explorer"
+
+    public method Explorer(g)
+    end
+
+end

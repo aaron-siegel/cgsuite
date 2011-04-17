@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.cgsuite.lang.game.RationalNumber;
+import org.cgsuite.lang.explorer.DefaultEditorPanel;
+import org.cgsuite.lang.explorer.EditorPanel;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 

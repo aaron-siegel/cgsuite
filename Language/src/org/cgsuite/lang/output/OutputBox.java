@@ -27,7 +27,7 @@
 
 **************************************************************************** */
 
-package org.cgsuite.ui.worksheet;
+package org.cgsuite.lang.output;
 
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.output.Output;

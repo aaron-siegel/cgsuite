@@ -1,8 +1,8 @@
 /*
- * DefaultMutableGameTreeNode.java
+ * ExplorerNode.java
  *
  * Created on November 7, 2005, 2:03 PM
- * $Id: DefaultMutableGameTreeNode.java,v 1.1 2005/11/10 00:14:38 asiegel Exp $
+ * $Id: ExplorerNode.java,v 1.1 2005/11/10 00:14:38 asiegel Exp $
  */
 
 /* ****************************************************************************
@@ -27,7 +27,7 @@
 
 **************************************************************************** */
 
-package org.cgsuite.ui.explorer;
+package org.cgsuite.lang.explorer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -37,33 +37,39 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.cgsuite.lang.Game;
 
-public class DefaultMutableGameTreeNode implements GameTreeNode
+public class ExplorerNode
 {
     private final static BasicStroke SINGLE_STROKE = new BasicStroke(1.0f);
     private final static BasicStroke DOUBLE_STROKE = new BasicStroke(2.0f);
+
+    private Game g;
+    private List<ExplorerNode> leftChildren, rightChildren;
     
-    private List<DefaultMutableGameTreeNode> leftChildren, rightChildren;
-    
-    public DefaultMutableGameTreeNode()
+    public ExplorerNode(Game g)
     {
-        leftChildren = new ArrayList<DefaultMutableGameTreeNode>();
-        rightChildren = new ArrayList<DefaultMutableGameTreeNode>();
+        this.g = g;
+        leftChildren = new ArrayList<ExplorerNode>();
+        rightChildren = new ArrayList<ExplorerNode>();
+    }
+
+    public Game getG()
+    {
+        return g;
     }
     
-    @Override
-    public List<? extends DefaultMutableGameTreeNode> getLeftChildren()
+    public List<? extends ExplorerNode> getLeftChildren()
     {
         return Collections.unmodifiableList(leftChildren);
     }
     
-    @Override
-    public List<? extends DefaultMutableGameTreeNode> getRightChildren()
+    public List<? extends ExplorerNode> getRightChildren()
     {
         return Collections.unmodifiableList(rightChildren);
     }
     
-    public void addLeftChild(DefaultMutableGameTreeNode child)
+    public void addLeftChild(ExplorerNode child)
     {
         if (!leftChildren.contains(child))
         {
@@ -71,7 +77,7 @@ public class DefaultMutableGameTreeNode implements GameTreeNode
         }
     }
     
-    public void addRightChild(DefaultMutableGameTreeNode child)
+    public void addRightChild(ExplorerNode child)
     {
         if (!rightChildren.contains(child))
         {
@@ -79,17 +85,16 @@ public class DefaultMutableGameTreeNode implements GameTreeNode
         }
     }
     
-    public boolean removeLeftChild(DefaultMutableGameTreeNode child)
+    public boolean removeLeftChild(ExplorerNode child)
     {
         return leftChildren.remove(child);
     }
     
-    public boolean removeRightChild(DefaultMutableGameTreeNode child)
+    public boolean removeRightChild(ExplorerNode child)
     {
         return rightChildren.remove(child);
     }
     
-    @Override
     public void paintNode(Graphics2D g, int radius, boolean selected)
     {
         g.setColor(Color.lightGray);
@@ -103,12 +108,12 @@ public class DefaultMutableGameTreeNode implements GameTreeNode
         }
     }
     
-    public Set<DefaultMutableGameTreeNode> followers()
+    public Set<ExplorerNode> followers()
     {
-        return buildFollowers(new HashSet<DefaultMutableGameTreeNode>());
+        return buildFollowers(new HashSet<ExplorerNode>());
     }
     
-    private Set<DefaultMutableGameTreeNode> buildFollowers(Set<DefaultMutableGameTreeNode> followers)
+    private Set<ExplorerNode> buildFollowers(Set<ExplorerNode> followers)
     {
         if (followers.contains(this))
         {
@@ -117,11 +122,11 @@ public class DefaultMutableGameTreeNode implements GameTreeNode
         
         followers.add(this);
         
-        for (DefaultMutableGameTreeNode node : leftChildren)
+        for (ExplorerNode node : leftChildren)
         {
             node.buildFollowers(followers);
         }
-        for (DefaultMutableGameTreeNode node : rightChildren)
+        for (ExplorerNode node : rightChildren)
         {
             node.buildFollowers(followers);
         }

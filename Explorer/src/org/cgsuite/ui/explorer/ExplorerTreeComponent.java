@@ -1,8 +1,8 @@
 /*
- * GameTreeComponent.java
+ * ExplorerTreeComponent.java
  *
  * Created on November 7, 2005, 1:52 PM
- * $Id: GameTreeComponent.java,v 1.3 2006/04/06 01:10:38 asiegel Exp $
+ * $Id: ExplorerTreeComponent.java,v 1.3 2006/04/06 01:10:38 asiegel Exp $
  */
 
 /* ****************************************************************************
@@ -31,8 +31,13 @@ package org.cgsuite.ui.explorer;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,23 +48,27 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import javax.swing.Scrollable;
+import org.cgsuite.lang.explorer.ExplorerNode;
 
-public class GameTreeComponent extends JComponent implements javax.swing.Scrollable
+public class ExplorerTreeComponent extends JComponent implements Scrollable
 {
-    public final static String NODE_RADIUS_PROPERTY = GameTreeComponent.class.getName() + ".nodeRadius";
+    public final static String NODE_RADIUS_PROPERTY = ExplorerTreeComponent.class.getName() + ".nodeRadius";
     
     private int nodeRadius;
     
-    private GameTreeNode rootNode;
+    private ExplorerNode rootNode;
     
-    private LinkedList<GameTreeNode> selectionPath;
+    private LinkedList<ExplorerNode> selectionPath;
     private NodeLayout selectedLayout;
     
     // Layout info
     private Set<NodeLayout> layouts;
-    private Map<GameTreeNode,NodeLayout> primaryLayouts;
+    private Map<ExplorerNode,NodeLayout> primaryLayouts;
     private List<NodeLayout> rightmostLayouts;
     private int maxXCoord;
     private int maxDepth;
@@ -68,26 +77,26 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
     
     private boolean layoutRoot;
     
-    private Set<GameTreeListener> listeners;
+    private Set<ExplorerTreeListener> listeners;
     
-    public GameTreeComponent()
+    public ExplorerTreeComponent()
     {
         setLayout(null);
         setBackground(Color.white);
         nodeRadius = 16;
         
-        rootNode = new DefaultMutableGameTreeNode();
-        listeners = new HashSet<GameTreeListener>();
+        rootNode = new ExplorerNode(null);
+        listeners = new HashSet<ExplorerTreeListener>();
         
-        selectionPath = new LinkedList<GameTreeNode>();
+        selectionPath = new LinkedList<ExplorerNode>();
         
         layouts = new HashSet<NodeLayout>();
-        primaryLayouts = new HashMap<GameTreeNode,NodeLayout>();
+        primaryLayouts = new HashMap<ExplorerNode,NodeLayout>();
         rightmostLayouts = new ArrayList<NodeLayout>();
-        layoutRoot = true;
+        layoutRoot = false;
         
-        javax.swing.ActionMap am = getActionMap();
-        javax.swing.InputMap im = getInputMap();
+        ActionMap am = getActionMap();
+        InputMap im = getInputMap();
         String prefix = getClass().toString();
         
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), prefix + ".up");
@@ -117,10 +126,10 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
                 nextVariation(false);
         }});
         
-        addMouseListener(new java.awt.event.MouseAdapter() {
+        addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                List<GameTreeNode> path = pathTo(evt.getX(), evt.getY());
+            public void mouseClicked(MouseEvent evt) {
+                List<ExplorerNode> path = pathTo(evt.getX(), evt.getY());
                 if (path != null)
                 {
                     setSelectionPath(path);
@@ -158,13 +167,13 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
     }
     
     @Override
-    public int getScrollableUnitIncrement(java.awt.Rectangle visibleRect, int orientation, int direction)
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
     {
         return nodeRadius;
     }
     
     @Override
-    public int getScrollableBlockIncrement(java.awt.Rectangle visibleRect, int orientation, int direction)
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
     {
         return nodeRadius * 8;
     }
@@ -197,16 +206,16 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
     
     private void nextPosition()
     {
-        GameTreeNode selNode = (selectionPath.isEmpty() ? rootNode : selectionPath.getLast());
+        ExplorerNode selNode = (selectionPath.isEmpty() ? rootNode : selectionPath.getLast());
         
         boolean left = true;
         if (selectionPath.size() > (layoutRoot ? 0 : 1))
         {
-            GameTreeNode prevNode = (selectionPath.size() == 1 ? rootNode : selectionPath.get(selectionPath.size()-2));
+            ExplorerNode prevNode = (selectionPath.size() == 1 ? rootNode : selectionPath.get(selectionPath.size()-2));
             left = !prevNode.getLeftChildren().contains(selNode);
         }
         
-        List<? extends GameTreeNode>
+        List<? extends ExplorerNode>
             primary = (left ? selNode.getLeftChildren() : selNode.getRightChildren()),
             secondary = (left ? selNode.getRightChildren() : selNode.getLeftChildren());
         
@@ -229,14 +238,14 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
             return;
         }
         
-        GameTreeNode selNode = selectionPath.getLast();
-        GameTreeNode prevNode = (selectionPath.size() == 1 ? rootNode : selectionPath.get(selectionPath.size()-2));
+        ExplorerNode selNode = selectionPath.getLast();
+        ExplorerNode prevNode = (selectionPath.size() == 1 ? rootNode : selectionPath.get(selectionPath.size()-2));
         
-        GameTreeNode next;
+        ExplorerNode next;
         
         if (layoutRoot || selectionPath.size() > 1)
         {
-            List<? extends GameTreeNode> children = (left ? prevNode.getLeftChildren() : prevNode.getRightChildren());
+            List<? extends ExplorerNode> children = (left ? prevNode.getLeftChildren() : prevNode.getRightChildren());
             if (children.isEmpty())
             {
                 getToolkit().beep();
@@ -251,7 +260,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         }
         else
         {
-            List<GameTreeNode> children = new ArrayList<GameTreeNode>();
+            List<ExplorerNode> children = new ArrayList<ExplorerNode>();
             children.addAll(prevNode.getLeftChildren());
             children.addAll(prevNode.getRightChildren());
             assert children.contains(selNode);
@@ -273,21 +282,21 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         fireTreeSelectionChanged();
     }
     
-    public void addGameTreeListener(GameTreeListener l)
+    public void addGameTreeListener(ExplorerTreeListener l)
     {
         listeners.add(l);
     }
     
-    public void removeGameTreeListener(GameTreeListener l)
+    public void removeGameTreeListener(ExplorerTreeListener l)
     {
         listeners.remove(l);
     }
     
     protected void fireTreeSelectionChanged()
     {
-        for (GameTreeListener l : listeners)
+        for (ExplorerTreeListener l : listeners)
         {
-            l.selectionPathChanged(Collections.unmodifiableList(selectionPath));
+//            l.selectionPathChanged(selectionPath);
         }
     }
     
@@ -302,12 +311,12 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         refresh();
     }
     
-    public GameTreeNode getRootNode()
+    public ExplorerNode getRootNode()
     {
         return rootNode;
     }
     
-    public LinkedList<GameTreeNode> pathTo(int x, int y)
+    public LinkedList<ExplorerNode> pathTo(int x, int y)
     {
         NodeLayout layout = layoutAt(x, y);
         return layout == null ? null : layout.pathTo();
@@ -334,12 +343,12 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         revalidate();
     }
     
-    public List<GameTreeNode> getSelectionPath()
+    public List<ExplorerNode> getSelectionPath()
     {
         return Collections.unmodifiableList(selectionPath);
     }
     
-    public GameTreeNode getSelectedNode()
+    public ExplorerNode getSelectedNode()
     {
         if (selectionPath.isEmpty())
         {
@@ -351,7 +360,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         }
     }
     
-    public void setSelectionPath(List<GameTreeNode> path)
+    public void setSelectionPath(List<ExplorerNode> path)
     {
         if (!path.equals(selectionPath))
         {
@@ -362,7 +371,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         }
     }
     
-    public void setSelectedNode(GameTreeNode node)
+    public void setSelectedNode(ExplorerNode node)
     {
         selectionPath.clear();
         findPathToNode(selectionPath, node);
@@ -370,14 +379,14 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         fireTreeSelectionChanged();
     }
     
-    private boolean findPathToNode(LinkedList<GameTreeNode> path, GameTreeNode target)
+    private boolean findPathToNode(LinkedList<ExplorerNode> path, ExplorerNode target)
     {
-        GameTreeNode prev = (path.isEmpty() ? rootNode : path.getLast());
+        ExplorerNode prev = (path.isEmpty() ? rootNode : path.getLast());
         if (prev == target)
         {
             return true;
         }
-        for (GameTreeNode node : prev.getLeftChildren())
+        for (ExplorerNode node : prev.getLeftChildren())
         {
             if (!path.contains(node))
             {
@@ -389,7 +398,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
                 path.removeLast();
             }
         }
-        for (GameTreeNode node : prev.getRightChildren())
+        for (ExplorerNode node : prev.getRightChildren())
         {
             if (!path.contains(node))
             {
@@ -404,15 +413,15 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         return false;
     }
     
-    public java.awt.Rectangle getSelectionRectangle()
+    public Rectangle getSelectionRectangle()
     {
         if (selectedLayout == null)
         {
-            return new java.awt.Rectangle();
+            return new Rectangle();
         }
         else
         {
-            return new java.awt.Rectangle(
+            return new Rectangle(
                 nodeRadius * 2 * selectedLayout.xCoord,
                 nodeRadius * 5 * selectedLayout.yCoord,
                 nodeRadius * 2 + 2,
@@ -458,7 +467,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         primaryLayouts.clear();
         rightmostLayouts.clear();
         
-        layoutNode(new LinkedList<GameTreeNode>(), 0, null, null);
+        layoutNode(new LinkedList<ExplorerNode>(), 0, null, null);
         
         for (NodeLayout layout : rightmostLayouts)
         {
@@ -470,7 +479,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         repaint();
     }
     
-    private NodeLayout layoutNode(LinkedList<GameTreeNode> path, int depth, GameTreeNode leftKoNode, GameTreeNode rightKoNode)
+    private NodeLayout layoutNode(LinkedList<ExplorerNode> path, int depth, ExplorerNode leftKoNode, ExplorerNode rightKoNode)
     {
         if (path.isEmpty() && !layoutRoot)
         {
@@ -478,7 +487,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
             return null;
         }
         
-        GameTreeNode node = (path.isEmpty() ? rootNode : path.getLast());
+        ExplorerNode node = (path.isEmpty() ? rootNode : path.getLast());
         
         NodeLayout layout = new NodeLayout();
         layouts.add(layout);
@@ -514,9 +523,9 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
             // Note we always traverse the left options in reverse order:
             // this is to ensure that the "main" variation(s) appear closest
             // to the center of the tree.
-            for (ListIterator<? extends GameTreeNode> i = node.getLeftChildren().listIterator(node.getLeftChildren().size()); i.hasPrevious();)
+            for (ListIterator<? extends ExplorerNode> i = node.getLeftChildren().listIterator(node.getLeftChildren().size()); i.hasPrevious();)
             {
-                GameTreeNode next = i.previous();
+                ExplorerNode next = i.previous();
                 if (next.getRightChildren().contains(node))
                 {
                     // Found one!
@@ -528,7 +537,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         }
         if (rightKoNode == null)
         {
-            for (GameTreeNode next : node.getRightChildren())
+            for (ExplorerNode next : node.getRightChildren())
             {
                 if (next.getLeftChildren().contains(node))
                 {
@@ -563,17 +572,17 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         return layout;
     }
     
-    private int layoutChildren(LinkedList<GameTreeNode> path, int depth, GameTreeNode leftKoNode, GameTreeNode rightKoNode)
+    private int layoutChildren(LinkedList<ExplorerNode> path, int depth, ExplorerNode leftKoNode, ExplorerNode rightKoNode)
     {
-        GameTreeNode node = (path.isEmpty() ? rootNode : path.getLast());
+        ExplorerNode node = (path.isEmpty() ? rootNode : path.getLast());
         NodeLayout layout = primaryLayouts.get(node);
         
         int rightmostLeftNode = -1;
         
         // As before, the left edges are traversed in reverse order.
-        for (ListIterator<? extends GameTreeNode> i = node.getLeftChildren().listIterator(node.getLeftChildren().size()); i.hasPrevious();)
+        for (ListIterator<? extends ExplorerNode> i = node.getLeftChildren().listIterator(node.getLeftChildren().size()); i.hasPrevious();)
         {
-            GameTreeNode next = i.previous();
+            ExplorerNode next = i.previous();
             if (!next.equals(leftKoNode))
             {
                 path.add(next);
@@ -584,7 +593,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
             }
         }
         int leftmostRightNode = -1;
-        for (GameTreeNode next : node.getRightChildren())
+        for (ExplorerNode next : node.getRightChildren())
         {
             if (!next.equals(rightKoNode))
             {
@@ -635,7 +644,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
         return xCoord;
     }
     
-    private static boolean compatibleLists(List<GameTreeNode> list1, List<GameTreeNode> list2)
+    private static boolean compatibleLists(List<ExplorerNode> list1, List<ExplorerNode> list2)
     {
         int match = Math.min(list1.size(), list2.size());
         return list1.subList(0, match).equals(list2.subList(0, match));
@@ -664,11 +673,11 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
     }
     
     @Override
-    protected void paintComponent(java.awt.Graphics _g)
+    protected void paintComponent(Graphics _g)
     {
         int width = getSize().width;
         
-        java.awt.Graphics2D g = (java.awt.Graphics2D) _g;
+        Graphics2D g = (Graphics2D) _g;
         g.setBackground(getBackground());
         g.clearRect(0, 0, getSize().width, getSize().height);
         g.translate(1, 1);
@@ -760,7 +769,7 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
     
     class NodeLayout
     {
-        GameTreeNode node;
+        ExplorerNode node;
         int xCoord, yCoord;
         boolean isTransposition;
         boolean isLeftChild;
@@ -772,9 +781,9 @@ public class GameTreeComponent extends JComponent implements javax.swing.Scrolla
             children = new ArrayList<NodeLayout>();
         }
         
-        LinkedList<GameTreeNode> pathTo()
+        LinkedList<ExplorerNode> pathTo()
         {
-            LinkedList<GameTreeNode> path = new LinkedList<GameTreeNode>();
+            LinkedList<ExplorerNode> path = new LinkedList<ExplorerNode>();
             for (NodeLayout layout = this; layout != null; layout = layout.parent)
             {
                 path.addFirst(layout.node);

@@ -3,10 +3,10 @@
  * and open the template in the editor.
  */
 
-package org.cgsuite.ui.explorer;
+package org.cgsuite.lang.explorer;
 
 import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.ui.worksheet.OutputBox;
+import org.cgsuite.lang.output.OutputBox;
 
 /**
  *
@@ -17,7 +17,7 @@ public class DefaultEditorPanel extends EditorPanel
     private CgsuiteObject obj;
     private OutputBox outputBox;
 
-    DefaultEditorPanel()
+    public DefaultEditorPanel()
     {
         super();
         outputBox = new OutputBox();
@@ -25,6 +25,12 @@ public class DefaultEditorPanel extends EditorPanel
         outputBox.setAlignmentY(java.awt.Component.CENTER_ALIGNMENT);
         outputBox.setWorksheetWidth(300);
         add(outputBox);
+    }
+
+    public DefaultEditorPanel(CgsuiteObject obj)
+    {
+        this();
+        setDisplayedObject(obj);
     }
 
     public void setDisplayedObject(CgsuiteObject obj)

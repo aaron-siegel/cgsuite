@@ -26,7 +26,7 @@
 
 **************************************************************************** */
 
-package org.cgsuite.ui.explorer;
+package org.cgsuite.lang.explorer;
 
 import java.awt.AWTException;
 import java.awt.Color;
@@ -45,6 +45,7 @@ import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.game.Grid;
 import org.cgsuite.lang.output.GridOutput;
 
@@ -86,13 +87,6 @@ import org.cgsuite.lang.output.GridOutput;
  */
 public class GridEditorPanel extends EditorPanel
 {
-    final static Icon[] DEFAULT_ICONS = 
-    {
-        null,
-        GridOutput.getIcon("blackstone"),
-        GridOutput.getIcon("whitestone")
-    };
-    
     private final static Cursor DEFAULT_CURSOR, DRAG_CURSOR, INVALID_DRAG_CURSOR;
     
     static
@@ -130,35 +124,13 @@ public class GridEditorPanel extends EditorPanel
     private JMenuItem addRow, addColumn, removeRow, removeColumn;
     
     /**
-     * Constructs a new <code>GridEditorPanel</code> with the default icons
-     * (black and white stones) and an empty 5x5 grid, allowing all methods
-     * of modifying the grid.
-     */
-    public GridEditorPanel()
-    {
-        this(new Grid(5, 5), DEFAULT_ICONS, EnumSet.allOf(Permission.class));
-    }
-    
-    /**
-     * Constructs a new <code>GridEditorPanel</code> with the default icons
-     * (black and white stones) and the specified grid, allowing all methods of
-     * modifying the grid.
-     *
-     * @param   grid the initial grid configuration
-     */
-    public GridEditorPanel(Grid grid)
-    {
-        this(grid, DEFAULT_ICONS, EnumSet.allOf(Permission.class));
-    }
-    
-    /**
      * Constructs a new <code>GridEditorPanel</code> with the specified list
      * of icons and an empty 5x5 grid, allowing all methods of modifying the
      * grid.
      *
      * @param   icons The icons used to display the grid in this editor.
      */
-    public GridEditorPanel(Icon[] icons)
+    public GridEditorPanel(CgsuiteList icons)
     {
         this(new Grid(5, 5), icons, EnumSet.allOf(Permission.class));
     }
@@ -171,7 +143,7 @@ public class GridEditorPanel extends EditorPanel
      * @param   icons The icons used to display the grid in this editor.
      * @param   grid the initial grid configuration
      */
-    public GridEditorPanel(Grid grid, Icon[] icons)
+    public GridEditorPanel(Grid grid, CgsuiteList icons)
     {
         this(grid, icons, EnumSet.allOf(Permission.class));
     }
@@ -185,14 +157,14 @@ public class GridEditorPanel extends EditorPanel
      * @param   permissions The permissions for this
      *          <code>GridEditorPanel</code>.
      */
-    public GridEditorPanel(Grid initialGrid, Icon[] icons, EnumSet<Permission> permissions)
+    public GridEditorPanel(Grid initialGrid, CgsuiteList icons, EnumSet<Permission> permissions)
     {
         super();
         
         this.permissions = permissions;
         
-        this.icons = (Icon[]) icons.clone();
-        cellSize = GridOutput.calculateIconDimensions(icons, true);
+        this.icons = icons.toArray(new Icon[icons.size()]);
+        cellSize = GridOutput.calculateIconDimensions(this.icons, true);
         setGrid(initialGrid);
         setBackground(Color.white);
         gridInsets = new Insets(20, 20, 20, 20);

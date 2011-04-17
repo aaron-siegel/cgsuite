@@ -8,6 +8,8 @@ package org.cgsuite.lang.game;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.Game;
+import org.cgsuite.lang.explorer.EditorPanel;
+import org.cgsuite.lang.explorer.GridEditorPanel;
 import org.cgsuite.lang.output.GridOutput;
 
 /**
@@ -25,6 +27,12 @@ public class GridGame extends Game
     public GridOutput toOutput()
     {
         return new GridOutput(getGrid(), getIcons());
+    }
+
+    @Override
+    public EditorPanel toEditor()
+    {
+        return new GridEditorPanel(getGrid(), getIcons());
     }
 
     public Grid getGrid()

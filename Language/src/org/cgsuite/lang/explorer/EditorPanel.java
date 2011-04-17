@@ -26,7 +26,7 @@
 
 **************************************************************************** */
 
-package org.cgsuite.ui.explorer;
+package org.cgsuite.lang.explorer;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;

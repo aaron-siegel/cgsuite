@@ -57,7 +57,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Container class="org.cgsuite.ui.explorer.GameTreeComponent" name="gameTreeComponent1">
+            <Container class="org.cgsuite.ui.explorer.ExplorerTreeComponent" name="gameTreeComponent1">
 
               <Layout>
                 <DimensionLayout dim="0">

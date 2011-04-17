@@ -11,6 +11,7 @@
 
 package org.cgsuite.ui.worksheet;
 
+import org.cgsuite.lang.output.OutputBox;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;

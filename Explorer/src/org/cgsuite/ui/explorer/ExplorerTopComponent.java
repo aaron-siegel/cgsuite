@@ -4,8 +4,14 @@
  */
 package org.cgsuite.ui.explorer;
 
+import org.cgsuite.lang.explorer.ExplorerNode;
+import org.cgsuite.lang.explorer.DefaultEditorPanel;
 import java.awt.Color;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.Game;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -25,8 +31,11 @@ public final class ExplorerTopComponent extends TopComponent
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "ExplorerTopComponent";
 
+    private Map<Game,ExplorerNode> gamesToNodes;
+
     public ExplorerTopComponent()
     {
+        gamesToNodes = new HashMap<Game,ExplorerNode>();
         initComponents();
         jScrollPane1.getViewport().setBackground(Color.white);
         jScrollPane2.getViewport().setBackground(Color.white);
@@ -47,7 +56,7 @@ public final class ExplorerTopComponent extends TopComponent
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         jScrollPane2 = new javax.swing.JScrollPane();
-        gameTreeComponent1 = new org.cgsuite.ui.explorer.GameTreeComponent();
+        gameTreeComponent1 = new org.cgsuite.ui.explorer.ExplorerTreeComponent();
 
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
@@ -76,7 +85,7 @@ public final class ExplorerTopComponent extends TopComponent
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.cgsuite.ui.explorer.GameTreeComponent gameTreeComponent1;
+    private org.cgsuite.ui.explorer.ExplorerTreeComponent gameTreeComponent1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
@@ -163,5 +172,36 @@ public final class ExplorerTopComponent extends TopComponent
     protected String preferredID()
     {
         return PREFERRED_ID;
+    }
+
+    public void addGame(Game g)
+    {
+        ExplorerNode initialNode = nodeForGame(g);
+        gameTreeComponent1.getRootNode().addLeftChild(initialNode);
+        gameTreeComponent1.setSelectedNode(initialNode);
+        updateEditState();
+    }
+
+    private ExplorerNode nodeForGame(Game g)
+    {
+        if (gamesToNodes.containsKey(g))
+        {
+            return gamesToNodes.get(g);
+        }
+
+        ExplorerNode node = new ExplorerNode(g);
+        gamesToNodes.put(g, node);
+        return node;
+    }
+
+    private void updateEditState()
+    {
+        ExplorerNode node = gameTreeComponent1.getSelectedNode();
+        if (node != null)
+        {
+            DefaultEditorPanel dep = new DefaultEditorPanel();
+            dep.setDisplayedObject(node.getG());
+            jScrollPane1.setViewportView(dep);
+        }
     }
 }
