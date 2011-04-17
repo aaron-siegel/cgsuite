@@ -32,6 +32,7 @@ public final class WorksheetTopComponent extends TopComponent
         setName(NbBundle.getMessage(WorksheetTopComponent.class, "CTL_WorksheetTopComponent"));
         setToolTipText(NbBundle.getMessage(WorksheetTopComponent.class, "HINT_WorksheetTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
 
     }
 

@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
@@ -157,38 +158,24 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                 break;
 
             case KeyEvent.VK_UP:
-                try
+                if (evt.getModifiers() == 0 && source.getCaretLine() == 0)
                 {
-                    if (evt.getModifiers() == 0 && source.getLineOfOffset(source.getCaretPosition()) == 0)
+                    evt.consume();
+                    if (commandHistoryPrefix == null)
                     {
-                        evt.consume();
-                        if (commandHistoryPrefix == null)
-                        {
-                            commandHistoryPrefix = source.getText();
-                            commandHistoryIndex = commandHistory.size();
-                        }
-                        source.setText(seekCommand(-1));
+                        commandHistoryPrefix = source.getText();
+                        commandHistoryIndex = commandHistory.size();
                     }
-                }
-                catch (BadLocationException exc)
-                {
-                     throw new RuntimeException(exc);
+                    source.setText(seekCommand(-1));
                 }
                 break;
 
             case KeyEvent.VK_DOWN:
-                try
+                if (evt.getModifiers() == 0 && commandHistoryPrefix != null &&
+                    (source.getCaretLine() == source.getLineCount()-1))
                 {
-                    if (evt.getModifiers() == 0 && commandHistoryPrefix != null &&
-                        (source.getLineOfOffset(source.getCaretPosition()) == source.getLineCount()-1))
-                    {
-                        evt.consume();
-                        source.setText(seekCommand(1));
-                    }
-                }
-                catch (BadLocationException exc)
-                {
-                     throw new RuntimeException(exc);
+                    evt.consume();
+                    source.setText(seekCommand(1));
                 }
                 break;
 
@@ -295,7 +282,12 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         remove(getComponents().length-1);
 
         postOutput(output);
-        advanceToNext();
+        
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override public void run() {
+                advanceToNext();
+            }
+        });
 
         currentSource = null;
         currentCapsule = null;
@@ -325,7 +317,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             return;
         }
         int width = getViewport().getExtentSize().width;
-        java.awt.Component components[] = getComponents();
+        Component components[] = getComponents();
         for (int index = 0; index < components.length; index++)
         {
             if (components[index] instanceof Box)

@@ -30,14 +30,8 @@ class Game : java "org.cgsuite.lang.Game"
         Game.memory[this] := Game.placeholder;
         lo := this.LeftOptions;
         ro := this.RightOptions;
-        clo := {};
-        cro := {};
-        for g in lo do
-            clo.Add(g.CanonicalForm);
-        end;
-        for g in ro do
-            cro.Add(g.CanonicalForm);
-        end;
+        clo := setof(g.CanonicalForm for g in lo);
+        cro := setof(g.CanonicalForm for g in ro);
         cg := {clo|cro};
         Game.memory[this] := cg;
         return cg;

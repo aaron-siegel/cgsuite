@@ -523,6 +523,7 @@ public class Domain
         CgsuiteObject fromG = null;
         CgsuiteObject toG = null;
         CgsuiteObject byG = CgsuiteInteger.ONE;
+        boolean forward = true;
         CgsuiteTree whileCondition = null;
         CgsuiteTree whereCondition = null;
         CgsuiteTree body = null;
@@ -549,6 +550,8 @@ public class Domain
                 case BY:
 
                     byG = expression(child.getChild(0)).simplify();
+                    if (leq(byG, CgsuiteInteger.ZERO, child))
+                        forward = false;
                     break;
 
                 case WHILE:
@@ -603,9 +606,16 @@ public class Domain
 
         while (true)
         {
-            if (g != null && toG != null && !leq(g, toG, tree))
+            if (g != null && toG != null)
             {
-                break;
+                boolean ok;
+                if (forward)
+                    ok = leq(g, toG, tree);
+                else
+                    ok = leq(toG, g, tree);
+
+                if (!ok)
+                    break;
             }
 
             if (whileCondition != null && !bool(expression(whileCondition), whileCondition))

@@ -28,23 +28,33 @@
 
 package org.cgsuite.ui.worksheet;
 
-import java.awt.Dimension;
-import java.awt.event.*;
-import javax.swing.event.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JEditorPane;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 
-class EmbeddedTextArea extends javax.swing.JTextArea
+class EmbeddedTextArea extends JEditorPane
 {
-    private java.util.List<Object> embeddedObjects;
+    private List<Object> embeddedObjects;
     private Object placeHolder;
     
     public EmbeddedTextArea()
     {
-        setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
-        setLineWrap(true);
-        setWrapStyleWord(true);
-        setBackground(java.awt.Color.white);
-        
-        embeddedObjects = new java.util.ArrayList<Object>();
+        setBackground(Color.white);
+        setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        CgsuiteEditorKit kit = new CgsuiteEditorKit();
+        //setEditorKit(kit);
+
+        embeddedObjects = new ArrayList<Object>();
         placeHolder = new Object();
 
         addKeyListener(new KeyAdapter() {
@@ -61,6 +71,7 @@ class EmbeddedTextArea extends javax.swing.JTextArea
             public void removeUpdate(DocumentEvent evt) { thisTextRemoved(evt); }
             public void insertUpdate(DocumentEvent evt) { thisTextInserted(evt); }
         });
+        
     }
     
     private boolean isBlocked(int pos)
@@ -180,6 +191,27 @@ class EmbeddedTextArea extends javax.swing.JTextArea
         {
             embeddedObjects.remove(evt.getOffset());
         }
+    }
+
+    public void insert(String str, int pos)
+    {
+        try
+        {
+            getDocument().insertString(pos, str, null);
+        }
+        catch (BadLocationException exc)
+        {
+        }
+    }
+
+    public int getCaretLine()
+    {
+        return getDocument().getDefaultRootElement().getElementIndex(getCaretPosition());
+    }
+
+    public int getLineCount()
+    {
+        return getDocument().getDefaultRootElement().getElementCount();
     }
     
     public void embedObject(int pos, String id, Object object)

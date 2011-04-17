@@ -194,7 +194,7 @@ public class CalculationCapsule implements Runnable
         {
             pointerStr += " ";
         }
-        output[1] = errorOutput(pointerStr + (col == 1 ? "^^" : "^^^"));
+        output[1] = errorOutput(pointerStr + (col == 0 ? "^^" : "^^^"));
         output[2] = new StyledTextOutput(message);
         return output;
     }
