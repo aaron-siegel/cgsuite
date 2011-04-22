@@ -339,6 +339,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             throw new InputException("Could not locate Java class for " + fo.getNameExt() + ": " + javaClassname);
         }
+        catch (ClassCastException exc)
+        {
+            throw new InputException("The Java class for " + fo.getNameExt() + " is not a subclass of CgsuiteObject: " + javaClassname);
+        }
 
         declarations(parseTree.getChild(0));
 

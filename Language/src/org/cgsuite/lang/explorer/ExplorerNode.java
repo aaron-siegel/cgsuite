@@ -44,11 +44,13 @@ public class ExplorerNode
     private final static BasicStroke SINGLE_STROKE = new BasicStroke(1.0f);
     private final static BasicStroke DOUBLE_STROKE = new BasicStroke(2.0f);
 
+    private Explorer explorer;
     private Game g;
     private List<ExplorerNode> leftChildren, rightChildren;
     
-    public ExplorerNode(Game g)
+    public ExplorerNode(Explorer explorer, Game g)
     {
+        this.explorer = explorer;
         this.g = g;
         leftChildren = new ArrayList<ExplorerNode>();
         rightChildren = new ArrayList<ExplorerNode>();
@@ -69,20 +71,20 @@ public class ExplorerNode
         return Collections.unmodifiableList(rightChildren);
     }
     
-    public void addLeftChild(ExplorerNode child)
+    public void addLeftChild(Game h)
     {
-        if (!leftChildren.contains(child))
-        {
-            leftChildren.add(child);
-        }
+        ExplorerNode node = explorer.lookupOrCreate(h);
+
+        if (!leftChildren.contains(node))
+            leftChildren.add(node);
     }
     
-    public void addRightChild(ExplorerNode child)
+    public void addRightChild(Game h)
     {
-        if (!rightChildren.contains(child))
-        {
-            rightChildren.add(child);
-        }
+        ExplorerNode node = explorer.lookupOrCreate(h);
+
+        if (!rightChildren.contains(node))
+            rightChildren.add(node);
     }
     
     public boolean removeLeftChild(ExplorerNode child)

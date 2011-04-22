@@ -5,13 +5,11 @@
 package org.cgsuite.ui.explorer;
 
 import org.cgsuite.lang.explorer.ExplorerNode;
-import org.cgsuite.lang.explorer.DefaultEditorPanel;
 import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.logging.Logger;
-import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.Game;
+import org.cgsuite.lang.explorer.EditorPanel;
+import org.cgsuite.lang.explorer.Explorer;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -23,7 +21,7 @@ import org.netbeans.api.settings.ConvertAsProperties;
  */
 @ConvertAsProperties(dtd = "-//org.cgsuite.ui.explorer//Explorer//EN",
 autostore = false)
-public final class ExplorerTopComponent extends TopComponent
+public final class ExplorerTopComponent extends TopComponent implements ExplorerTreeListener
 {
 
     private static ExplorerTopComponent instance;
@@ -31,14 +29,19 @@ public final class ExplorerTopComponent extends TopComponent
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "ExplorerTopComponent";
 
-    private Map<Game,ExplorerNode> gamesToNodes;
+    private ExplorerTreeComponent tree;
+    private Explorer explorer;
 
     public ExplorerTopComponent()
     {
-        gamesToNodes = new HashMap<Game,ExplorerNode>();
+//        gamesToNodes = new HashMap<Game,ExplorerNode>();
+        this.explorer = Explorer.INSTANCE;
         initComponents();
+        tree = new ExplorerTreeComponent();
+        tree.addExplorerTreeListener(this);
         jScrollPane1.getViewport().setBackground(Color.white);
         jScrollPane2.getViewport().setBackground(Color.white);
+        jScrollPane2.setViewportView(tree);
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
         setToolTipText(NbBundle.getMessage(ExplorerTopComponent.class, "HINT_ExplorerTopComponent"));
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
@@ -56,36 +59,21 @@ public final class ExplorerTopComponent extends TopComponent
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         jScrollPane2 = new javax.swing.JScrollPane();
-        gameTreeComponent1 = new org.cgsuite.ui.explorer.ExplorerTreeComponent();
 
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
 
         jSplitPane1.setBackground(new java.awt.Color(255, 255, 255));
+        jSplitPane1.setDividerLocation(480);
         jSplitPane1.setLeftComponent(jScrollPane1);
 
         jScrollPane2.setBackground(new java.awt.Color(255, 255, 255));
-
-        javax.swing.GroupLayout gameTreeComponent1Layout = new javax.swing.GroupLayout(gameTreeComponent1);
-        gameTreeComponent1.setLayout(gameTreeComponent1Layout);
-        gameTreeComponent1Layout.setHorizontalGroup(
-            gameTreeComponent1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 34, Short.MAX_VALUE)
-        );
-        gameTreeComponent1Layout.setVerticalGroup(
-            gameTreeComponent1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 34, Short.MAX_VALUE)
-        );
-
-        jScrollPane2.setViewportView(gameTreeComponent1);
-
         jSplitPane1.setRightComponent(jScrollPane2);
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.cgsuite.ui.explorer.ExplorerTreeComponent gameTreeComponent1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
@@ -144,6 +132,17 @@ public final class ExplorerTopComponent extends TopComponent
         // TODO add custom code on component closing
     }
 
+    @Override
+    public void selectionPathChanged(List<ExplorerNode> newPath)
+    {
+        ExplorerNode node = tree.getSelectedNode();
+        if (node != null)
+        {
+            EditorPanel editorPanel = node.getG().toEditor();
+            this.jScrollPane1.setViewportView(editorPanel);
+        }
+    }
+
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
@@ -172,36 +171,5 @@ public final class ExplorerTopComponent extends TopComponent
     protected String preferredID()
     {
         return PREFERRED_ID;
-    }
-
-    public void addGame(Game g)
-    {
-        ExplorerNode initialNode = nodeForGame(g);
-        gameTreeComponent1.getRootNode().addLeftChild(initialNode);
-        gameTreeComponent1.setSelectedNode(initialNode);
-        updateEditState();
-    }
-
-    private ExplorerNode nodeForGame(Game g)
-    {
-        if (gamesToNodes.containsKey(g))
-        {
-            return gamesToNodes.get(g);
-        }
-
-        ExplorerNode node = new ExplorerNode(g);
-        gamesToNodes.put(g, node);
-        return node;
-    }
-
-    private void updateEditState()
-    {
-        ExplorerNode node = gameTreeComponent1.getSelectedNode();
-        if (node != null)
-        {
-            DefaultEditorPanel dep = new DefaultEditorPanel();
-            dep.setDisplayedObject(node.getG());
-            jScrollPane1.setViewportView(dep);
-        }
     }
 }

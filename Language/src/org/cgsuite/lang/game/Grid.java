@@ -604,11 +604,11 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public void paste(Grid grid, int startRow, int startCol, int endRow, int endCol, int pasteRow, int pasteCol)
     {
-        for (int row = startRow; row < endRow; row++)
+        for (int row = startRow; row <= endRow; row++)
         {
-            for (int col = startCol; col < endCol; col++)
+            for (int col = startCol; col <= endCol; col++)
             {
-                putAt(row-startRow+pasteRow, col-startCol+pasteCol, grid.getAt(row, col));
+                putAt(grid.getAt(row, col), row-startRow+pasteRow, col-startCol+pasteCol);
             }
         }
     }

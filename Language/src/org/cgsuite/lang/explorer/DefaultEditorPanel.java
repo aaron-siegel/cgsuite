@@ -5,6 +5,7 @@
 
 package org.cgsuite.lang.explorer;
 
+import java.awt.Color;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.output.OutputBox;
 
@@ -20,6 +21,7 @@ public class DefaultEditorPanel extends EditorPanel
     public DefaultEditorPanel()
     {
         super();
+        setBackground(Color.white);
         outputBox = new OutputBox();
         outputBox.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         outputBox.setAlignmentY(java.awt.Component.CENTER_ALIGNMENT);
@@ -47,7 +49,7 @@ public class DefaultEditorPanel extends EditorPanel
         outputBox.revalidate();
     }
 
-    CgsuiteObject getDisplayedObject()
+    public CgsuiteObject getDisplayedObject()
     {
         return obj;
     }

@@ -53,6 +53,7 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
+import org.cgsuite.lang.explorer.Explorer;
 import org.cgsuite.lang.explorer.ExplorerNode;
 
 public class ExplorerTreeComponent extends JComponent implements Scrollable
@@ -61,7 +62,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     
     private int nodeRadius;
     
-    private ExplorerNode rootNode;
+    private Explorer explorer;
     
     private LinkedList<ExplorerNode> selectionPath;
     private NodeLayout selectedLayout;
@@ -85,7 +86,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
         setBackground(Color.white);
         nodeRadius = 16;
         
-        rootNode = new ExplorerNode(null);
+        explorer = Explorer.INSTANCE;
         listeners = new HashSet<ExplorerTreeListener>();
         
         selectionPath = new LinkedList<ExplorerNode>();
@@ -206,12 +207,12 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     
     private void nextPosition()
     {
-        ExplorerNode selNode = (selectionPath.isEmpty() ? rootNode : selectionPath.getLast());
+        ExplorerNode selNode = (selectionPath.isEmpty() ? explorer.getRootNode() : selectionPath.getLast());
         
         boolean left = true;
         if (selectionPath.size() > (layoutRoot ? 0 : 1))
         {
-            ExplorerNode prevNode = (selectionPath.size() == 1 ? rootNode : selectionPath.get(selectionPath.size()-2));
+            ExplorerNode prevNode = (selectionPath.size() == 1 ? explorer.getRootNode() : selectionPath.get(selectionPath.size()-2));
             left = !prevNode.getLeftChildren().contains(selNode);
         }
         
@@ -239,7 +240,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
         }
         
         ExplorerNode selNode = selectionPath.getLast();
-        ExplorerNode prevNode = (selectionPath.size() == 1 ? rootNode : selectionPath.get(selectionPath.size()-2));
+        ExplorerNode prevNode = (selectionPath.size() == 1 ? explorer.getRootNode() : selectionPath.get(selectionPath.size()-2));
         
         ExplorerNode next;
         
@@ -282,7 +283,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
         fireTreeSelectionChanged();
     }
     
-    public void addGameTreeListener(ExplorerTreeListener l)
+    public void addExplorerTreeListener(ExplorerTreeListener l)
     {
         listeners.add(l);
     }
@@ -296,7 +297,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     {
         for (ExplorerTreeListener l : listeners)
         {
-//            l.selectionPathChanged(selectionPath);
+            l.selectionPathChanged(selectionPath);
         }
     }
     
@@ -309,11 +310,6 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     {
         this.layoutRoot = layoutRoot;
         refresh();
-    }
-    
-    public ExplorerNode getRootNode()
-    {
-        return rootNode;
     }
     
     public LinkedList<ExplorerNode> pathTo(int x, int y)
@@ -352,7 +348,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     {
         if (selectionPath.isEmpty())
         {
-            return layoutRoot ? rootNode : null;
+            return layoutRoot ? explorer.getRootNode() : null;
         }
         else
         {
@@ -381,7 +377,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     
     private boolean findPathToNode(LinkedList<ExplorerNode> path, ExplorerNode target)
     {
-        ExplorerNode prev = (path.isEmpty() ? rootNode : path.getLast());
+        ExplorerNode prev = (path.isEmpty() ? explorer.getRootNode() : path.getLast());
         if (prev == target)
         {
             return true;
@@ -467,7 +463,10 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
         primaryLayouts.clear();
         rightmostLayouts.clear();
         
-        layoutNode(new LinkedList<ExplorerNode>(), 0, null, null);
+        if (explorer != null)
+        {
+            layoutNode(new LinkedList<ExplorerNode>(), 0, null, null);
+        }
         
         for (NodeLayout layout : rightmostLayouts)
         {
@@ -487,7 +486,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
             return null;
         }
         
-        ExplorerNode node = (path.isEmpty() ? rootNode : path.getLast());
+        ExplorerNode node = (path.isEmpty() ? explorer.getRootNode() : path.getLast());
         
         NodeLayout layout = new NodeLayout();
         layouts.add(layout);
@@ -574,7 +573,7 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     
     private int layoutChildren(LinkedList<ExplorerNode> path, int depth, ExplorerNode leftKoNode, ExplorerNode rightKoNode)
     {
-        ExplorerNode node = (path.isEmpty() ? rootNode : path.getLast());
+        ExplorerNode node = (path.isEmpty() ? explorer.getRootNode() : path.getLast());
         NodeLayout layout = primaryLayouts.get(node);
         
         int rightmostLeftNode = -1;

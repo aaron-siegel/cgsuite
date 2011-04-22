@@ -46,6 +46,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.cgsuite.lang.CgsuiteList;
+import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.game.Grid;
 import org.cgsuite.lang.output.GridOutput;
 
@@ -114,14 +115,11 @@ public class GridEditorPanel extends EditorPanel
     
     private Insets gridInsets;
     
-    private int selectedRow = -1, selectedCol = -1;
     private int draggingRow = -1, draggingCol = -1, draggingXDisplacement, draggingYDisplacement, prevDragX, prevDragY;
     
     protected Grid grid;
     
     protected JPopupMenu popupMenu;
-    private JMenu setCellMenu, changeBoardSizeMenu;
-    private JMenuItem addRow, addColumn, removeRow, removeColumn;
     
     /**
      * Constructs a new <code>GridEditorPanel</code> with the specified list
@@ -163,7 +161,12 @@ public class GridEditorPanel extends EditorPanel
         
         this.permissions = permissions;
         
-        this.icons = icons.toArray(new Icon[icons.size()]);
+        this.icons = new Icon[icons.size()];
+        for (int i = 0; i < icons.size(); i++)
+        {
+            String literal = ((CgsuiteString) icons.get(i+1).resolve("Literal")).toJavaString();
+            this.icons[i] = GridOutput.getIcon(literal.toLowerCase());
+        }
         cellSize = GridOutput.calculateIconDimensions(this.icons, true);
         setGrid(initialGrid);
         setBackground(Color.white);
@@ -276,8 +279,8 @@ public class GridEditorPanel extends EditorPanel
             throw new IllegalArgumentException("row");
         }
         Grid newGrid = new Grid(grid.getNumRows()-1, grid.getNumColumns());
-        newGrid.paste(grid, 0, 0, row, grid.getNumColumns(), 0, 0);
-        newGrid.paste(grid, row+1, 0, grid.getNumRows(), grid.getNumColumns(), row, 0);
+        newGrid.paste(grid, 1, 1, row, grid.getNumColumns(), 1, 1);
+        newGrid.paste(grid, row+2, 1, grid.getNumRows(), grid.getNumColumns(), row+1, 1);
         setGrid(newGrid);
         firePropertyChange(EDIT_STATE_PROPERTY, Boolean.TRUE, Boolean.FALSE);
         revalidate();
@@ -297,8 +300,8 @@ public class GridEditorPanel extends EditorPanel
             throw new IllegalArgumentException("col");
         }
         Grid newGrid = new Grid(grid.getNumRows(), grid.getNumColumns()-1);
-        newGrid.paste(grid, 0, 0, grid.getNumRows(), col, 0, 0);
-        newGrid.paste(grid, 0, col+1, grid.getNumRows(), grid.getNumColumns(), 0, col);
+        newGrid.paste(grid, 1, 1, grid.getNumRows(), col, 1, 1);
+        newGrid.paste(grid, 1, col+2, grid.getNumRows(), grid.getNumColumns(), 1, col+1);
         setGrid(newGrid);
         firePropertyChange(EDIT_STATE_PROPERTY, Boolean.TRUE, Boolean.FALSE);
         revalidate();
@@ -321,8 +324,8 @@ public class GridEditorPanel extends EditorPanel
             throw new IllegalArgumentException("index");
         }
         Grid newGrid = new Grid(grid.getNumRows()+1, grid.getNumColumns());
-        newGrid.paste(grid, 0, 0, index, grid.getNumColumns(), 0, 0);
-        newGrid.paste(grid, index, 0, grid.getNumRows(), grid.getNumColumns(), index+1, 0);
+        newGrid.paste(grid, 1, 1, index, grid.getNumColumns(), 1, 1);
+        newGrid.paste(grid, index+1, 1, grid.getNumRows(), grid.getNumColumns(), index+2, 1);
         setGrid(newGrid);
         firePropertyChange(EDIT_STATE_PROPERTY, Boolean.TRUE, Boolean.FALSE);
         revalidate();
@@ -345,8 +348,8 @@ public class GridEditorPanel extends EditorPanel
             throw new IllegalArgumentException("index");
         }
         Grid newGrid = new Grid(grid.getNumRows(), grid.getNumColumns()+1);
-        newGrid.paste(grid, 0, 0, grid.getNumRows(), index, 0, 0);
-        newGrid.paste(grid, 0, index, grid.getNumRows(), grid.getNumColumns(), 0, index+1);
+        newGrid.paste(grid, 1, 1, grid.getNumRows(), index, 1, 1);
+        newGrid.paste(grid, 1, index+1, grid.getNumRows(), grid.getNumColumns(), 1, index+2);
         setGrid(newGrid);
         firePropertyChange(EDIT_STATE_PROPERTY, Boolean.TRUE, Boolean.FALSE);
         revalidate();
@@ -447,7 +450,7 @@ public class GridEditorPanel extends EditorPanel
     
     protected Icon getIcon(int row, int col)
     {
-        return icons[grid.getAt(row, col)];
+        return icons[grid.getAt(row+1, col+1)];
     }
     
     /**
@@ -459,7 +462,7 @@ public class GridEditorPanel extends EditorPanel
      */
     public void cycleCell(int row, int col)
     {
-        int value = grid.getAt(row, col);
+        int value = grid.getAt(row+1, col+1);
         do
         {
             value++;
@@ -472,7 +475,7 @@ public class GridEditorPanel extends EditorPanel
                 setCell(row, col, value);
                 break;
             }
-        } while (value != grid.getAt(row, col));
+        } while (value != grid.getAt(row+1, col+1));
     }
     
     /**
@@ -486,8 +489,8 @@ public class GridEditorPanel extends EditorPanel
     {
         if (value >= 0 && value < icons.length)
         {
-            firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(row, col), value);
-            grid.putAt(row, col, value);
+            firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(row+1, col+1), value);
+            grid.putAt(value, row+1, col+1);
             repaint(row, col);
         }
     }
@@ -570,7 +573,7 @@ public class GridEditorPanel extends EditorPanel
         {
             for (int col = 0; col < grid.getNumColumns(); col++)
             {
-                if (grid.getAt(row, col) < icons.length &&
+                if (grid.getAt(row+1, col+1) < icons.length &&
                     g.hitClip(
                         col * (3+cellSize.width) + 2,
                         row * (3+cellSize.height) + 2,
@@ -750,14 +753,14 @@ public class GridEditorPanel extends EditorPanel
                             cellSize.height
                             );
                         repaint(draggingRow, draggingCol);
-                        int row = getRow(evt.getY()), col = getColumn(evt.getX()), value = grid.getAt(draggingRow, draggingCol);
+                        int row = getRow(evt.getY()), col = getColumn(evt.getX()), value = grid.getAt(draggingRow+1, draggingCol+1);
                         if (isContainedInGrid(row, col) && allowValue(row, col, value) &&
                             (row != draggingRow || col != draggingCol))
                         {
-                            firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(draggingRow, draggingCol), 0);
-                            grid.putAt(draggingRow, draggingCol, 0);
-                            firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(row, col), value);
-                            grid.putAt(row, col, value);
+                            firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(draggingRow+1, draggingCol+1), 0);
+                            grid.putAt(0, draggingRow+1, draggingCol+1);
+                            firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(row+1, col+1), value);
+                            grid.putAt(value, row+1, col+1);
                             repaint(row, col);
                         }
                         setCursor(DEFAULT_CURSOR);
@@ -788,7 +791,7 @@ public class GridEditorPanel extends EditorPanel
                         cellSize.width,
                         cellSize.height
                         );
-                    int row = getRow(evt.getY()), col = getColumn(evt.getX()), value = grid.getAt(draggingRow, draggingCol);
+                    int row = getRow(evt.getY()), col = getColumn(evt.getX()), value = grid.getAt(draggingRow+1, draggingCol+1);
                     if (isContainedInGrid(row, col) && allowValue(row, col, value))
                     {
                         setCursor(DRAG_CURSOR);
