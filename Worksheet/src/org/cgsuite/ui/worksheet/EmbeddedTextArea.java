@@ -41,7 +41,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-class EmbeddedTextArea extends JEditorPane
+public class EmbeddedTextArea extends JEditorPane
 {
     private List<Object> embeddedObjects;
     private Object placeHolder;

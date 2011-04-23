@@ -27,7 +27,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.openide.util.RequestProcessor;
@@ -40,8 +39,6 @@ import org.openide.util.TaskListener;
  */
 public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener
 {
-    private final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(WorksheetPanel.class);
-
     private CalculationCapsule currentCapsule;
     private EmbeddedTextArea currentSource;
 
@@ -81,20 +78,27 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
 
     private Box addNewCell()
     {
+        Box box = createInputBox();
+        box.getComponent(1).addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
+        });
+        add(box);
+        return box;
+    }
+
+    public static Box createInputBox()
+    {
         JLabel label = new JLabel("> ");
         label.setFont(new Font("Monospaced", Font.PLAIN, 12));
         label.setAlignmentY(Component.TOP_ALIGNMENT);
         EmbeddedTextArea textArea = new EmbeddedTextArea();
-        textArea.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
-        });
         textArea.setAlignmentY(Component.TOP_ALIGNMENT);
+        textArea.setBorder(null);
         Box box = Box.createHorizontalBox();
         box.add(label);
         box.add(textArea);
         box.setAlignmentX(Component.LEFT_ALIGNMENT);
-        add(box);
         return box;
     }
 
@@ -206,7 +210,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         commandHistory.add(source.getText());
         commandHistoryPrefix = null;
         CalculationCapsule capsule = new CalculationCapsule(source.getText());
-        RequestProcessor.Task task = REQUEST_PROCESSOR.create(capsule);
+        RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
         task.addTaskListener(this);
         task.schedule(0);
 

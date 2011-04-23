@@ -26,6 +26,7 @@ import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
 import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -34,15 +35,23 @@ import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
 public class CalculationCapsule implements Runnable
 {
     private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
-
     private final static Domain WORKSPACE_DOMAIN = new Domain(CgsuitePackage.ROOT_IMPORT);
-    
+
+    public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(WorksheetPanel.class);
+
+    private Domain domain;
     private String text;
     private Output[] output;
     private boolean isErrorOutput;
 
     public CalculationCapsule(String text)
     {
+        this(text, WORKSPACE_DOMAIN);
+    }
+
+    public CalculationCapsule(String text, Domain domain)
+    {
+        this.domain = domain;
         this.text = text;
     }
 
@@ -92,7 +101,7 @@ public class CalculationCapsule implements Runnable
     {
         log.info("Beginning calculation.");
         long startTime = System.currentTimeMillis();
-        CgsuiteObject retval = WORKSPACE_DOMAIN.script(tree).simplify();
+        CgsuiteObject retval = domain.script(tree).simplify();
         log.info("Calculation completed in " + (System.currentTimeMillis()-startTime) + " ms.");
         return retval.toOutput();
     }

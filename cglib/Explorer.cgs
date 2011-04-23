@@ -1,6 +1,6 @@
 class Explorer : java "org.cgsuite.lang.explorer.Explorer"
 
-    public method Explorer() : java "Explorer";
+    public method Explorer(Game g?) : java "Explorer";
     public method Add(Game g) : java "addAsRoot";
 
 end

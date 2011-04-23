@@ -132,6 +132,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         return name;
     }
 
+    public String getQualifiedName()
+    {
+        String pkgName = enclosingPackage.getName();
+        if (pkgName.isEmpty())
+            return name;
+        else
+            return pkgName + "." + name;
+    }
+
     public int getDeclNumber()
     {
         ensureLoaded();

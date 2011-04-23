@@ -9,7 +9,7 @@ package org.cgsuite.lang.explorer;
  *
  * @author asiegel
  */
-public interface ExplorerListener
+public interface ExplorerWindowCreator
 {
-    public void nodeAdded(ExplorerNode node);
+    public void createWindow(Explorer client);
 }

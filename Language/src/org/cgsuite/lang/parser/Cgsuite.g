@@ -273,7 +273,8 @@ methodParameterList
 	;
 	
 methodParameter
-	: a=IDENTIFIER b=IDENTIFIER? QUESTION expression? -> ^(QUESTION ^($a $b?) expression?)
+	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($b $a?) expression?)
+    | a=IDENTIFIER QUESTION expression? -> ^(QUESTION $a expression?)
 	| a=IDENTIFIER b=IDENTIFIER -> ^($b $a)
 	| IDENTIFIER
 	;

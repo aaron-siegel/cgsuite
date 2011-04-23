@@ -45,13 +45,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
         for (Parameter p : parameters)
         {
-            if (p.optional)
-            {
-                if (tree == null)
-                    throw new IllegalArgumentException();
-                break;
-            }
-            nRequiredParameters++;
+            if (!p.optional)
+                nRequiredParameters++;
         }
     }
 
@@ -124,6 +119,11 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         return name;
     }
 
+    public String getQualifiedName()
+    {
+        return declaringClass.getQualifiedName() + "." + name;
+    }
+
     public EnumSet<Modifier> getModifiers()
     {
         return modifiers;
@@ -159,20 +159,43 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
 //        log.info("Invoking: " + declaringClass.getName() + "." + name);
 
-        if (arguments.size() < nRequiredParameters || arguments.size() > parameters.size())
-            throw new IllegalArgumentException();
+        if (arguments.size() < nRequiredParameters)
+            throw new InputException("Call to " + getQualifiedName() + " requires at least " + nRequiredParameters + " parameters.");
+
+        if (arguments.size() > parameters.size())
+            throw new InputException("Call to " + getQualifiedName() + " accepts at most " + parameters.size() + " parameters.");
 
         CgsuiteObject retval;
 
         if (tree == null)
         {
-            Object[] castArguments = new Object[arguments.size()];
+            Object[] castArguments = new Object[parameters.size()];
 
             for (int i = 0; i < arguments.size(); i++)
             {
                 castArguments[i] = cast(arguments.get(i), javaParameterTypes[i]);
             }
-            // TODO Optional arguments
+            for (int i = arguments.size(); i < parameters.size(); i++)
+            {
+                Parameter p = parameters.get(i);
+                if (optionalArguments != null && optionalArguments.containsKey(p.name))
+                {
+                    castArguments[i] = cast(optionalArguments.get(p.name), javaParameterTypes[i]);
+                }
+                else if (arguments.size() > i)
+                {
+                    castArguments[i] = cast(arguments.get(i), javaParameterTypes[i]);
+                }
+                else if (p.defaultValue == null)
+                {
+                    castArguments[i] = null;
+                }
+                else
+                {
+                    throw new InputException("Default values not yet supported for Java methods");
+                }
+            }
+
             Object javaObj;
 
             try
@@ -188,7 +211,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             catch (IllegalArgumentException exc)
             {
-                throw new InputException("Type mismatch during a call to " + name + ".", exc);
+                throw new InputException("Type mismatch during a call to " + getQualifiedName() + ".", exc);
             }
             catch (InvocationTargetException exc)
             {
@@ -305,6 +328,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             if (javaClass.isAssignableFrom(obj.getClass()))
             {
                 return obj;
+            }
+            else if (obj == CgsuiteObject.NIL)
+            {
+                return null;
             }
             else if (int.class.equals(javaClass) && obj instanceof CgsuiteInteger)
             {

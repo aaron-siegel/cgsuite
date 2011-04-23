@@ -29,19 +29,25 @@
 
 package org.cgsuite.lang.output;
 
-import org.cgsuite.lang.output.StyledTextOutput;
-import org.cgsuite.lang.output.Output;
-import java.util.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.LayoutManager;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.font.*;
-import java.awt.geom.*;
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 /**
  * A panel that displays {@link org.cgsuite.plugin.Output}.
@@ -255,6 +261,9 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g);
+        if (output == null)
+            return;
+        
         if (output instanceof StyledTextOutput)
         {
             ((StyledTextOutput) output).paint((Graphics2D) g, worksheetWidth, numCharactersDisplayed);

@@ -54,9 +54,10 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 import org.cgsuite.lang.explorer.Explorer;
+import org.cgsuite.lang.explorer.ExplorerListener;
 import org.cgsuite.lang.explorer.ExplorerNode;
 
-public class ExplorerTreeComponent extends JComponent implements Scrollable
+public class ExplorerTreeComponent extends JComponent implements Scrollable, ExplorerListener
 {
     public final static String NODE_RADIUS_PROPERTY = ExplorerTreeComponent.class.getName() + ".nodeRadius";
     
@@ -80,13 +81,14 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
     
     private Set<ExplorerTreeListener> listeners;
     
-    public ExplorerTreeComponent()
+    public ExplorerTreeComponent(Explorer explorer)
     {
         setLayout(null);
         setBackground(Color.white);
         nodeRadius = 16;
         
-        explorer = Explorer.INSTANCE;
+        this.explorer = explorer;
+        this.explorer.addListener(this);
         listeners = new HashSet<ExplorerTreeListener>();
         
         selectionPath = new LinkedList<ExplorerNode>();
@@ -137,6 +139,11 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
                     requestFocusInWindow();
                 }
         }});
+
+        if (!explorer.getRootNode().getLeftChildren().isEmpty())
+        {
+            selectionPath.add(explorer.getRootNode().getLeftChildren().get(0));
+        }
     }
     
     @Override
@@ -281,6 +288,13 @@ public class ExplorerTreeComponent extends JComponent implements Scrollable
         selectionPath.add(next);
         refresh();
         fireTreeSelectionChanged();
+    }
+
+    @Override
+    public void nodeAdded(ExplorerNode node)
+    {
+        refresh();
+        setSelectedNode(node);
     }
     
     public void addExplorerTreeListener(ExplorerTreeListener l)
