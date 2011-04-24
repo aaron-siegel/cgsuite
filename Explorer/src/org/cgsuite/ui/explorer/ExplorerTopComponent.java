@@ -9,7 +9,6 @@ import java.awt.Color;
 import java.awt.event.KeyListener;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.Box;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Domain;
 import org.cgsuite.lang.explorer.EditorPanel;
@@ -18,8 +17,7 @@ import org.cgsuite.lang.explorer.ExplorerNode;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
-import org.cgsuite.ui.worksheet.EmbeddedTextArea;
-import org.cgsuite.ui.worksheet.WorksheetPanel;
+import org.cgsuite.ui.worksheet.InputPane;
 import org.openide.util.NbBundle;
 import org.openide.util.Task;
 import org.openide.windows.TopComponent;
@@ -42,7 +40,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "ExplorerTopComponent";
 
-    private ExplorerTreeComponent tree;
     private Explorer explorer;
     private String evaluationText;
 
@@ -53,9 +50,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     {
 //        gamesToNodes = new HashMap<Game,ExplorerNode>();
         initComponents();
-        Box box = WorksheetPanel.createInputBox();
-        box.getComponent(1).addKeyListener(this);
-        analysisPanel.add(box, java.awt.BorderLayout.SOUTH);
+        inputPanel.getInputPane().addKeyListener(this);
         editorScrollPane.getViewport().setBackground(Color.white);
         treeScrollPane.getViewport().setBackground(Color.white);
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
@@ -68,9 +63,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     public void setExplorer(Explorer explorer)
     {
         this.explorer = explorer;
-        tree = new ExplorerTreeComponent(explorer);
+        tree.setExplorer(explorer);
         tree.addExplorerTreeListener(this);
-        treeScrollPane.setViewportView(tree);
         updateEditor();
     }
 
@@ -88,9 +82,13 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         detailSplitPane = new javax.swing.JSplitPane();
         editorScrollPane = new javax.swing.JScrollPane();
         analysisPanel = new javax.swing.JPanel();
+        commandPanel = new javax.swing.JPanel();
+        inputPanel = new org.cgsuite.ui.worksheet.InputPanel();
+        commandTextArea = new javax.swing.JTextField();
         analysisScrollPane = new javax.swing.JScrollPane();
         analysisOutputBox = new org.cgsuite.lang.output.OutputBox();
         treeScrollPane = new javax.swing.JScrollPane();
+        tree = new org.cgsuite.ui.explorer.ExplorerTreePanel();
         infoPanel = new javax.swing.JPanel();
         typeLabel = new javax.swing.JLabel();
 
@@ -117,6 +115,23 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel.setBackground(new java.awt.Color(255, 255, 255));
         analysisPanel.setLayout(new java.awt.BorderLayout());
 
+        commandPanel.setBackground(new java.awt.Color(255, 255, 255));
+        commandPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        commandPanel.setLayout(new javax.swing.BoxLayout(commandPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 8, 0, 4));
+        commandPanel.add(inputPanel);
+
+        commandTextArea.setBackground(new java.awt.Color(255, 255, 255));
+        commandTextArea.setEditable(false);
+        commandTextArea.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        commandTextArea.setText(org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.commandTextArea.text")); // NOI18N
+        commandTextArea.setAlignmentX(0.0F);
+        commandTextArea.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 2, 4));
+        commandPanel.add(commandTextArea);
+
+        analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
+
         analysisScrollPane.setBackground(new java.awt.Color(255, 255, 255));
         analysisScrollPane.setViewportView(analysisOutputBox);
 
@@ -127,6 +142,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         primarySplitPane.setLeftComponent(detailSplitPane);
 
         treeScrollPane.setBackground(new java.awt.Color(255, 255, 255));
+        treeScrollPane.setViewportView(tree);
+
         primarySplitPane.setRightComponent(treeScrollPane);
 
         add(primarySplitPane, java.awt.BorderLayout.CENTER);
@@ -152,12 +169,16 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private org.cgsuite.lang.output.OutputBox analysisOutputBox;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
+    private javax.swing.JPanel commandPanel;
+    private javax.swing.JTextField commandTextArea;
     private javax.swing.JSplitPane detailSplitPane;
     private javax.swing.JScrollPane editorScrollPane;
     private javax.swing.JMenuItem expandSensibleOptionsMenuItem;
     private javax.swing.JPanel infoPanel;
+    private org.cgsuite.ui.worksheet.InputPanel inputPanel;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JSplitPane primarySplitPane;
+    private org.cgsuite.ui.explorer.ExplorerTreePanel tree;
     private javax.swing.JScrollPane treeScrollPane;
     private javax.swing.JLabel typeLabel;
     // End of variables declaration//GEN-END:variables
@@ -200,7 +221,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     @Override
     public int getPersistenceType()
     {
-        return TopComponent.PERSISTENCE_ALWAYS;
+        return TopComponent.PERSISTENCE_NEVER;
     }
 
     @Override
@@ -270,7 +291,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     {
         if (evaluationText == null || tree.getSelectedNode() == null)
         {
-            analysisOutputBox.setOutput(new StyledTextOutput("Type a command into the box below to generate analysis."));
+            analysisOutputBox.setOutput(null);
             return;
         }
 
@@ -329,7 +350,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     @Override
     public void keyPressed(KeyEvent evt)
     {
-        EmbeddedTextArea source = (EmbeddedTextArea) evt.getSource();
+        InputPane source = (InputPane) evt.getSource();
 
         switch (evt.getKeyCode())
         {
@@ -340,6 +361,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
                     if (!source.getText().equals(""))
                     {
                         evaluationText = source.getText();
+                        commandTextArea.setText(evaluationText);
+                        source.setText("");
                         reeval();
                     }
                 }

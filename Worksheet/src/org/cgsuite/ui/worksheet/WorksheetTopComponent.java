@@ -47,6 +47,11 @@ public final class WorksheetTopComponent extends TopComponent
         jScrollPane1 = new javax.swing.JScrollPane();
         worksheetPanel1 = new org.cgsuite.ui.worksheet.WorksheetPanel();
 
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentShown(java.awt.event.ComponentEvent evt) {
+                formComponentShown(evt);
+            }
+        });
         setLayout(new java.awt.BorderLayout());
 
         jScrollPane1.setBackground(new java.awt.Color(255, 255, 255));
@@ -71,6 +76,11 @@ public final class WorksheetTopComponent extends TopComponent
     {//GEN-HEADEREND:event_jScrollPane1ComponentResized1
         worksheetPanel1.updateComponentSizes();
     }//GEN-LAST:event_jScrollPane1ComponentResized1
+
+    private void formComponentShown(java.awt.event.ComponentEvent evt)//GEN-FIRST:event_formComponentShown
+    {//GEN-HEADEREND:event_formComponentShown
+        worksheetPanel1.updateFocus();
+    }//GEN-LAST:event_formComponentShown
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;

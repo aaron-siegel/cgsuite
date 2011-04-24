@@ -14,7 +14,6 @@ package org.cgsuite.ui.worksheet;
 import org.cgsuite.lang.output.OutputBox;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
@@ -22,7 +21,6 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
-import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
@@ -40,7 +38,7 @@ import org.openide.util.TaskListener;
 public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener
 {
     private CalculationCapsule currentCapsule;
-    private EmbeddedTextArea currentSource;
+    private InputPane currentSource;
 
     private List<String> commandHistory = new ArrayList<String>();
     private String commandHistoryPrefix;
@@ -66,6 +64,15 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
     }// </editor-fold>//GEN-END:initComponents
 
+    public void updateFocus()
+    {
+        Component bottomComponent = getComponent(getComponentCount()-1);
+        if (bottomComponent instanceof InputPanel)
+        {
+            ((InputPanel) bottomComponent).getInputPane().requestFocus();
+        }
+    }
+
     private JViewport getViewport()
     {
         return (JViewport) getParent();
@@ -76,41 +83,26 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         return (JScrollPane) getParent().getParent();
     }
 
-    private Box addNewCell()
+    private InputPanel addNewCell()
     {
-        Box box = createInputBox();
-        box.getComponent(1).addKeyListener(new KeyAdapter() {
+        InputPanel panel = new InputPanel();
+        panel.getInputPane().addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
         });
-        add(box);
-        return box;
-    }
-
-    public static Box createInputBox()
-    {
-        JLabel label = new JLabel("> ");
-        label.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        label.setAlignmentY(Component.TOP_ALIGNMENT);
-        EmbeddedTextArea textArea = new EmbeddedTextArea();
-        textArea.setAlignmentY(Component.TOP_ALIGNMENT);
-        textArea.setBorder(null);
-        Box box = Box.createHorizontalBox();
-        box.add(label);
-        box.add(textArea);
-        box.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return box;
+        add(panel);
+        return panel;
     }
 
     private void cellKeyPressed(KeyEvent evt)
     {
-        EmbeddedTextArea source = (EmbeddedTextArea) evt.getSource();
+        InputPane source = (InputPane) evt.getSource();
         Component[] components = getComponents();
         int index;
         for (index = 0; index < components.length; index++)
         {
-            if (components[index] instanceof Box &&
-                ((Box) components[index]).getComponent(1) == source)
+            if (components[index] instanceof InputPanel &&
+                ((InputPanel) components[index]).getComponent(1) == source)
             {
                 break;
             }
@@ -118,34 +110,6 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
 
         switch (evt.getKeyCode())
         {
-            /*
-            case KeyEvent.VK_TAB:
-                if (evt.getModifiers() == 0)
-                {
-                    evt.consume();
-                    for (index++; index < components.length; index++)
-                    {
-                        if (components[index] instanceof Box)
-                        {
-                            ((Box) components[index]).getComponent(1).requestFocusInWindow();
-                            break;
-                        }
-                    }
-                }
-                else if (evt.getModifiers() == KeyEvent.SHIFT_MASK)
-                {
-                    evt.consume();
-                    for (index--; index >= 0; index--)
-                    {
-                        if (components[index] instanceof Box)
-                        {
-                            ((Box) components[index]).getComponent(1).requestFocusInWindow();
-                            break;
-                        }
-                    }
-                }
-                break;
-            */
             case KeyEvent.VK_ENTER:
                 if (evt.getModifiers() == 0)
                 {
@@ -204,7 +168,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         return commandHistoryPrefix;
     }
     
-    private synchronized void processCommand(EmbeddedTextArea source)
+    private synchronized void processCommand(InputPane source)
     {
         source.setEditable(false);
         commandHistory.add(source.getText());
@@ -301,7 +265,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     private void advanceToNext()
     {
         add(Box.createVerticalStrut(10));
-        Box cell = addNewCell();
+        InputPanel cell = addNewCell();
         updateComponentSizes();
         validate();
         Point topLeft = cell.getLocation();
@@ -325,15 +289,15 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         Component components[] = getComponents();
         for (int index = 0; index < components.length; index++)
         {
-            if (components[index] instanceof Box)
+            if (components[index] instanceof InputPanel)
             {
-                Box box = (Box) components[index];
-                EmbeddedTextArea eta = (EmbeddedTextArea) box.getComponent(1);
-                int etaW = width - box.getComponent(0).getWidth();
-                eta.setMinimumSize(new Dimension(etaW, eta.getMinimumSize().height));
-                eta.setMaximumSize(new Dimension(etaW, eta.getMaximumSize().height));
-                eta.setSize(etaW, eta.getHeight());
-                eta.invalidate();
+                InputPanel cell = (InputPanel) components[index];
+                InputPane pane = cell.getInputPane();
+                int etaW = width - cell.getComponent(0).getWidth();
+                pane.setMinimumSize(new Dimension(etaW, pane.getMinimumSize().height));
+                pane.setMaximumSize(new Dimension(etaW, pane.getMaximumSize().height));
+                pane.setSize(etaW, pane.getHeight());
+                pane.invalidate();
             }
             if (components[index] instanceof OutputBox)
             {

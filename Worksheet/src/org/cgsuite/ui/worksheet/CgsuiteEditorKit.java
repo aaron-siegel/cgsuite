@@ -22,6 +22,7 @@ public class CgsuiteEditorKit extends NbEditorKit
         return new NbEditorDocument("text/x-cgsuite")
         {
             @Override
+            @SuppressWarnings("deprecation")
             public ExtSyntaxSupport getSyntaxSupport()
             {
                 return new ExtSyntaxSupport(this);

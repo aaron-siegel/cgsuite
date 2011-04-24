@@ -1,5 +1,5 @@
 /*
- * EmbeddedTextArea.java
+ * InputPane.java
  *
  * Created on December 11, 2002, 11:07 PM
  */
@@ -41,12 +41,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 
-public class EmbeddedTextArea extends JEditorPane
+public class InputPane extends JEditorPane
 {
     private List<Object> embeddedObjects;
     private Object placeHolder;
     
-    public EmbeddedTextArea()
+    public InputPane()
     {
         setBackground(Color.white);
         setFont(new Font("Monospaced", Font.PLAIN, 12));
