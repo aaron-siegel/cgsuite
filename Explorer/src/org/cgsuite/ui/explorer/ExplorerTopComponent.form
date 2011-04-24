@@ -163,8 +163,8 @@
 
                   <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                   <SubComponents>
-                    <Container class="org.cgsuite.lang.output.OutputBox" name="analysisOutputBox">
-                    </Container>
+                    <Component class="org.cgsuite.ui.worksheet.WorksheetPanel" name="analysisWorksheetPanel">
+                    </Component>
                   </SubComponents>
                 </Container>
               </SubComponents>

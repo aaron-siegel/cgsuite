@@ -86,7 +86,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel = new org.cgsuite.ui.worksheet.InputPanel();
         commandTextArea = new javax.swing.JTextField();
         analysisScrollPane = new javax.swing.JScrollPane();
-        analysisOutputBox = new org.cgsuite.lang.output.OutputBox();
+        analysisWorksheetPanel = new org.cgsuite.ui.worksheet.WorksheetPanel();
         treeScrollPane = new javax.swing.JScrollPane();
         tree = new org.cgsuite.ui.explorer.ExplorerTreePanel();
         infoPanel = new javax.swing.JPanel();
@@ -133,7 +133,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
 
         analysisScrollPane.setBackground(new java.awt.Color(255, 255, 255));
-        analysisScrollPane.setViewportView(analysisOutputBox);
+        analysisScrollPane.setViewportView(analysisWorksheetPanel);
 
         analysisPanel.add(analysisScrollPane, java.awt.BorderLayout.CENTER);
 
@@ -166,9 +166,9 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     }//GEN-LAST:event_expandSensibleOptionsMenuItemActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.cgsuite.lang.output.OutputBox analysisOutputBox;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
+    private org.cgsuite.ui.worksheet.WorksheetPanel analysisWorksheetPanel;
     private javax.swing.JPanel commandPanel;
     private javax.swing.JTextField commandTextArea;
     private javax.swing.JSplitPane detailSplitPane;
@@ -289,43 +289,42 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
     private synchronized void reeval()
     {
-        if (evaluationText == null || tree.getSelectedNode() == null)
+        analysisWorksheetPanel.clear();
+        
+        if (evaluationText != null && tree.getSelectedNode() != null)
         {
-            analysisOutputBox.setOutput(null);
-            return;
+            explorerDomain.put("g", tree.getSelectedNode().getG());
+
+            CalculationCapsule capsule = new CalculationCapsule(evaluationText, explorerDomain);
+            RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
+            task.addTaskListener(this);
+            task.schedule(0);
+
+            boolean finished = false;
+
+            try
+            {
+                finished = task.waitFinished(50);
+            }
+            catch (InterruptedException exc)
+            {
+            }
+
+            Output[] output;
+
+            if (finished)
+            {
+                output = capsule.getOutput();
+            }
+            else
+            {
+                output = new Output[] { new StyledTextOutput("Calculating ...") };
+                this.currentCapsule = capsule;
+            }
+
+            analysisWorksheetPanel.postOutput(output[0]);
         }
-
-        explorerDomain.put("g", tree.getSelectedNode().getG());
-
-        CalculationCapsule capsule = new CalculationCapsule(evaluationText, explorerDomain);
-        RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
-        task.addTaskListener(this);
-        task.schedule(0);
-
-        boolean finished = false;
-
-        try
-        {
-            finished = task.waitFinished(50);
-        }
-        catch (InterruptedException exc)
-        {
-        }
-
-        Output[] output;
-
-        if (finished)
-        {
-            output = capsule.getOutput();
-        }
-        else
-        {
-            output = new Output[] { new StyledTextOutput("Calculating ...") };
-            this.currentCapsule = capsule;
-        }
-
-        analysisOutputBox.setOutput(output[0]);
-        analysisOutputBox.repaint();
+        
         analysisScrollPane.validate();
     }
 
@@ -334,11 +333,12 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     {
         if (currentCapsule == null)
             return;
-        
+
+        analysisWorksheetPanel.clear();
         Output[] output = currentCapsule.getOutput();
-        analysisOutputBox.setOutput(output[0]);
         currentCapsule = null;
-        analysisOutputBox.repaint();
+        
+        analysisWorksheetPanel.postOutput(output);
         analysisScrollPane.validate();
     }
 

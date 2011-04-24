@@ -203,7 +203,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             this.currentSource = source;
         }
 
-        OutputBox outputBox = postOutput(output);
+        postOutput(output);
 
         if (finished)
         {
@@ -212,17 +212,10 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         else
         {
             this.requestFocusInWindow();
-            Point topLeft = outputBox.getLocation();
-            Point bottomLeft = new Point(topLeft.x, topLeft.y + outputBox.getHeight());
-            if (!getViewport().getViewRect().contains(bottomLeft))
-            {
-                getScrollPane().getHorizontalScrollBar().setValue(0);
-                getScrollPane().getVerticalScrollBar().setValue(bottomLeft.y - getViewport().getHeight());
-            }
         }
     }
 
-    private OutputBox postOutput(Output ... output)
+    public void postOutput(Output ... output)
     {
         OutputBox outputBox = null;
         for (int i = 0; i < output.length; i++)
@@ -232,10 +225,16 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             outputBox.setWorksheetWidth(getWidth());
             outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
             add(outputBox);
+            updateComponentSizes();
+            scrollToBottomLeft();
             repaint();
             getScrollPane().validate();
         }
-        return outputBox;
+    }
+
+    public void clear()
+    {
+        this.removeAll();
     }
 
     @Override
@@ -267,16 +266,21 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         add(Box.createVerticalStrut(10));
         InputPanel cell = addNewCell();
         updateComponentSizes();
+        scrollToBottomLeft();
+        cell.getInputPane().requestFocusInWindow();
         validate();
-        Point topLeft = cell.getLocation();
-        Point bottomLeft = new Point(topLeft.x, topLeft.y + cell.getHeight());
+    }
+
+    private void scrollToBottomLeft()
+    {
+        Component component = getComponent(getComponentCount()-1);
+        Point topLeft = component.getLocation();
+        Point bottomLeft = new Point(topLeft.x, topLeft.y + component.getHeight());
         if (!getViewport().getViewRect().contains(bottomLeft))
         {
             getScrollPane().getHorizontalScrollBar().setValue(0);
             getScrollPane().getVerticalScrollBar().setValue(bottomLeft.y - getViewport().getHeight());
         }
-        cell.getComponent(1).requestFocusInWindow();
-        validate();
     }
 
     public void updateComponentSizes()
