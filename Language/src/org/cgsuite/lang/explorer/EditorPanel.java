@@ -32,6 +32,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
+import org.cgsuite.lang.CgsuiteObject;
 
 
 /**
@@ -91,7 +92,7 @@ public abstract class EditorPanel extends JPanel implements Scrollable
      *          not represent a valid object (for example, if it represents an
      *          illegal position in a game).
      */
-    //public abstract Object constructObject() throws InvalidEditStateException;
+    public abstract CgsuiteObject constructObject();
     
     @Override
     public Dimension getPreferredScrollableViewportSize()

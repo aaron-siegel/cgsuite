@@ -40,12 +40,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.Collections;
 import java.util.EnumSet;
 import javax.swing.Icon;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteList;
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.game.Grid;
 import org.cgsuite.lang.output.GridOutput;
@@ -108,7 +110,8 @@ public class GridEditorPanel extends EditorPanel
         DRAG_CURSOR = dragCursor;
         INVALID_DRAG_CURSOR = invalidDragCursor;
     }
-    
+
+    private CgsuiteClass type;
     private Icon[] icons;
     private Dimension cellSize;
     private EnumSet<Permission> permissions;
@@ -123,31 +126,6 @@ public class GridEditorPanel extends EditorPanel
     
     /**
      * Constructs a new <code>GridEditorPanel</code> with the specified list
-     * of icons and an empty 5x5 grid, allowing all methods of modifying the
-     * grid.
-     *
-     * @param   icons The icons used to display the grid in this editor.
-     */
-    public GridEditorPanel(CgsuiteList icons)
-    {
-        this(new Grid(5, 5), icons, EnumSet.allOf(Permission.class));
-    }
-    
-    /**
-     * Constructs a new <code>GridEditorPanel</code> with the specified list
-     * of icons and initial grid, allowing all methods of
-     * modifying the grid.
-     *
-     * @param   icons The icons used to display the grid in this editor.
-     * @param   grid the initial grid configuration
-     */
-    public GridEditorPanel(Grid grid, CgsuiteList icons)
-    {
-        this(grid, icons, EnumSet.allOf(Permission.class));
-    }
-    
-    /**
-     * Constructs a new <code>GridEditorPanel</code> with the specified list
      * of icons, initial grid, and permissions.
      *
      * @param   icons The icons used to display the grid in this editor.
@@ -155,16 +133,19 @@ public class GridEditorPanel extends EditorPanel
      * @param   permissions The permissions for this
      *          <code>GridEditorPanel</code>.
      */
-    public GridEditorPanel(Grid initialGrid, CgsuiteList icons, EnumSet<Permission> permissions)
+    public GridEditorPanel(CgsuiteClass type, Grid initialGrid)
     {
         super();
+
+        this.type = type;
+        this.permissions = EnumSet.allOf(Permission.class);
+
+        CgsuiteList iconList = (CgsuiteList) type.resolve("Icons");
         
-        this.permissions = permissions;
-        
-        this.icons = new Icon[icons.size()];
-        for (int i = 0; i < icons.size(); i++)
+        this.icons = new Icon[iconList.size()];
+        for (int i = 0; i < iconList.size(); i++)
         {
-            String literal = ((CgsuiteString) icons.get(i+1).resolve("Literal")).toJavaString();
+            String literal = ((CgsuiteString) iconList.get(i+1).resolve("Literal")).toJavaString();
             this.icons[i] = GridOutput.getIcon(literal.toLowerCase());
         }
         cellSize = GridOutput.calculateIconDimensions(this.icons, true);
@@ -883,6 +864,12 @@ public class GridEditorPanel extends EditorPanel
         {
             cycleCell(getRow(y), getColumn(x));
         }
+    }
+
+    @Override
+    public CgsuiteObject constructObject()
+    {
+        return type.lookupConstructor().invoke((CgsuiteObject) null, Collections.<CgsuiteObject>singletonList(this.grid), null);
     }
     
     /**

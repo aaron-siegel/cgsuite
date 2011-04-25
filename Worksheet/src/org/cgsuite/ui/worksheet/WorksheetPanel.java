@@ -16,6 +16,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -61,8 +64,29 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     private void initComponents() {
 
         setBackground(new java.awt.Color(255, 255, 255));
+        addHierarchyListener(new java.awt.event.HierarchyListener() {
+            public void hierarchyChanged(java.awt.event.HierarchyEvent evt) {
+                formHierarchyChanged(evt);
+            }
+        });
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
     }// </editor-fold>//GEN-END:initComponents
+
+    private void formHierarchyChanged(java.awt.event.HierarchyEvent evt)//GEN-FIRST:event_formHierarchyChanged
+    {//GEN-HEADEREND:event_formHierarchyChanged
+        if ((evt.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0 &&
+            getParent() instanceof JViewport)
+        {
+            getViewport().addComponentListener(new ComponentAdapter()
+            {
+                @Override
+                public void componentResized(ComponentEvent evt)
+                {
+                    updateComponentSizes();
+                }
+            });
+        }
+    }//GEN-LAST:event_formHierarchyChanged
 
     public void updateFocus()
     {

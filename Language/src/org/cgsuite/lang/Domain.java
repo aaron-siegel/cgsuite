@@ -132,7 +132,7 @@ public class Domain
             case ARRAY_REFERENCE:
 
                 obj = expression(tree.getChild(0));
-                obj.invoke("op []:=", arrayIndexList(tree.getChild(1), x));
+                obj.invokeMethod("op []:=", arrayIndexList(tree.getChild(1), x));
                 return;
 
             case DOT:
@@ -297,16 +297,16 @@ public class Domain
                     lo.add(expression(child));
                 ro = new CgsuiteSet();
                 for (CgsuiteObject obj : lo)
-                    ro.add(obj.invoke("op neg"));
+                    ro.add(obj.invokeMethod("op neg"));
                 return new ExplicitGame(lo, ro);
 
             case UNARY_MINUS:
 
-                return expression(tree.getChild(0)).invoke("op neg");
+                return expression(tree.getChild(0)).invokeMethod("op neg");
 
             case UNARY_PLUS:
 
-                return expression(tree.getChild(0)).invoke("op pos");
+                return expression(tree.getChild(0)).invokeMethod("op pos");
 
             case UNARY_AST:
 
@@ -774,19 +774,19 @@ public class Domain
                 case REFEQUALS: return CgsuiteBoolean.valueOf(x.equals(y));
                 case REFNEQ:    return CgsuiteBoolean.valueOf(!x.equals(y));
                 case EQUALS:    return eq(x, y, tree);
-                case NEQ:       return x.invoke("op !=", y);
+                case NEQ:       return x.invokeMethod("op !=", y);
                 case LEQ:       return CgsuiteBoolean.valueOf(leq(x, y, tree));
-                case GEQ:       return x.invoke("op >=", y);
-                case LT:        return x.invoke("op <", y);
-                case GT:        return x.invoke("op >", y);
-                case CONFUSED:  return x.invoke("op <>", y);
-                case COMPARE:   return x.invoke("op <=>", y);
+                case GEQ:       return x.invokeMethod("op >=", y);
+                case LT:        return x.invokeMethod("op <", y);
+                case GT:        return x.invokeMethod("op >", y);
+                case CONFUSED:  return x.invokeMethod("op <>", y);
+                case COMPARE:   return x.invokeMethod("op <=>", y);
                 case PLUS:      return add(x, y);
                 case MINUS:     return subtract(x, y);
                 case AST:       return multiply(x, y, tree);
-                case FSLASH:    return x.invoke("op /", y);
-                case PERCENT:   return x.invoke("op %", y);
-                case EXP:       return x.invoke("op **", y);
+                case FSLASH:    return x.invokeMethod("op /", y);
+                case PERCENT:   return x.invokeMethod("op %", y);
+                case EXP:       return x.invokeMethod("op **", y);
                 default:        throw new MalformedParseTreeException(tree);
             }
         }
@@ -813,7 +813,7 @@ public class Domain
                 return new RationalNumber(((Grid) x).getAt(row.intValue(), col.intValue()), 1);
         }
 
-        return x.invoke("op []", list);
+        return x.invokeMethod("op []", list);
     }
 
     private CgsuiteObject add(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
@@ -846,7 +846,7 @@ public class Domain
                 return ((CanonicalShortGame) x).add((CanonicalShortGame) y);
         }
 
-        return x.invoke("op +", y);
+        return x.invokeMethod("op +", y);
     }
 
     private CgsuiteObject subtract(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
@@ -879,7 +879,7 @@ public class Domain
                 return ((CanonicalShortGame) x).subtract((CanonicalShortGame) y);
         }
 
-        return x.invoke("op -", y);
+        return x.invokeMethod("op -", y);
     }
 
     private CgsuiteObject multiply(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
@@ -891,7 +891,7 @@ public class Domain
 
 //        log.info(x.getClass() + " " + y.getClass() + tree.toStringTree());
 
-        return x.invoke("op *", y);
+        return x.invokeMethod("op *", y);
     }
 
     private boolean leq(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
@@ -901,7 +901,7 @@ public class Domain
             return ((CgsuiteInteger) x).compareTo((CgsuiteInteger) y) <= 0;
         }
 
-        return bool(x.invoke("op <=", y), tree);
+        return bool(x.invokeMethod("op <=", y), tree);
     }
 
     public CgsuiteObject eq(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
@@ -913,7 +913,7 @@ public class Domain
             return CgsuiteBoolean.valueOf(x.equals(y));
         }
 
-        return x.invoke("op ==", y);
+        return x.invokeMethod("op ==", y);
     }
 
     private CgsuiteObject upExpression(CgsuiteTree tree) throws CgsuiteException

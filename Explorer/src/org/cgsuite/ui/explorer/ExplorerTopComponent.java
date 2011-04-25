@@ -7,10 +7,14 @@ package org.cgsuite.ui.explorer;
 import java.awt.event.KeyEvent;
 import java.awt.Color;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.logging.Logger;
+import org.cgsuite.lang.CgsuiteCollection;
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Domain;
+import org.cgsuite.lang.Game;
 import org.cgsuite.lang.explorer.EditorPanel;
 import org.cgsuite.lang.explorer.Explorer;
 import org.cgsuite.lang.explorer.ExplorerNode;
@@ -41,6 +45,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private static final String PREFERRED_ID = "ExplorerTopComponent";
 
     private Explorer explorer;
+    private EditorPanel editorPanel;
     private String evaluationText;
 
     private Domain explorerDomain;
@@ -51,8 +56,11 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 //        gamesToNodes = new HashMap<Game,ExplorerNode>();
         initComponents();
         inputPanel.getInputPane().addKeyListener(this);
+        commandTextArea.setBackground(Color.white);
         editorScrollPane.getViewport().setBackground(Color.white);
         treeScrollPane.getViewport().setBackground(Color.white);
+        analysisScrollPane.getViewport().setBackground(Color.white);
+        analysisWorksheetPanel.clear();
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
         setToolTipText(NbBundle.getMessage(ExplorerTopComponent.class, "HINT_ExplorerTopComponent"));
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
@@ -76,7 +84,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPopupMenu1 = new javax.swing.JPopupMenu();
+        treePopupMenu = new javax.swing.JPopupMenu();
         expandSensibleOptionsMenuItem = new javax.swing.JMenuItem();
         primarySplitPane = new javax.swing.JSplitPane();
         detailSplitPane = new javax.swing.JSplitPane();
@@ -90,6 +98,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         treeScrollPane = new javax.swing.JScrollPane();
         tree = new org.cgsuite.ui.explorer.ExplorerTreePanel();
         infoPanel = new javax.swing.JPanel();
+        addPositionButton = new javax.swing.JButton();
         typeLabel = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(expandSensibleOptionsMenuItem, org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.expandSensibleOptionsMenuItem.text")); // NOI18N
@@ -98,7 +107,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
                 expandSensibleOptionsMenuItemActionPerformed(evt);
             }
         });
-        jPopupMenu1.add(expandSensibleOptionsMenuItem);
+        treePopupMenu.add(expandSensibleOptionsMenuItem);
 
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
@@ -122,7 +131,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 8, 0, 4));
         commandPanel.add(inputPanel);
 
-        commandTextArea.setBackground(new java.awt.Color(255, 255, 255));
         commandTextArea.setEditable(false);
         commandTextArea.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
         commandTextArea.setText(org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.commandTextArea.text")); // NOI18N
@@ -133,6 +141,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
 
         analysisScrollPane.setBackground(new java.awt.Color(255, 255, 255));
+
+        analysisWorksheetPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
         analysisScrollPane.setViewportView(analysisWorksheetPanel);
 
         analysisPanel.add(analysisScrollPane, java.awt.BorderLayout.CENTER);
@@ -142,6 +152,18 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         primarySplitPane.setLeftComponent(detailSplitPane);
 
         treeScrollPane.setBackground(new java.awt.Color(255, 255, 255));
+
+        tree.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                treeMouseClicked(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                treeMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                treeMouseReleased(evt);
+            }
+        });
         treeScrollPane.setViewportView(tree);
 
         primarySplitPane.setRightComponent(treeScrollPane);
@@ -152,6 +174,15 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         infoPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
         infoPanel.setLayout(new javax.swing.BoxLayout(infoPanel, javax.swing.BoxLayout.LINE_AXIS));
 
+        org.openide.awt.Mnemonics.setLocalizedText(addPositionButton, org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.addPositionButton.text")); // NOI18N
+        addPositionButton.setEnabled(false);
+        addPositionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addPositionButtonActionPerformed(evt);
+            }
+        });
+        infoPanel.add(addPositionButton);
+
         typeLabel.setBackground(new java.awt.Color(255, 255, 255));
         org.openide.awt.Mnemonics.setLocalizedText(typeLabel, org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.typeLabel.text")); // NOI18N
         typeLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 4));
@@ -160,12 +191,73 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         add(infoPanel, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
+    private CgsuiteObject lo, ro;
+
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
-        // TODO add your handling code here:
+        final ExplorerNode node = tree.getSelectedNode();
+        if (node == null)
+            return;
+        
+        final Game g = node.getG();
+        
+        RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                lo = g.invokeMethod("SensibleLeftOptions$get");
+                ro = g.invokeMethod("SensibleRightOptions$get");
+            }
+        });
+
+        task.schedule(0);
+        task.waitFinished();
+
+        for (CgsuiteObject gl : (CgsuiteCollection) lo)
+        {
+            node.addLeftChild((Game) gl);
+        }
+        for (CgsuiteObject gr : (CgsuiteCollection) ro)
+        {
+            node.addRightChild((Game) gr);
+        }
+
+        tree.refresh();
     }//GEN-LAST:event_expandSensibleOptionsMenuItemActionPerformed
 
+    private void treeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_treeMouseClicked
+    {//GEN-HEADEREND:event_treeMouseClicked
+        if (evt.isPopupTrigger())
+            doTreePopup(evt);
+    }//GEN-LAST:event_treeMouseClicked
+
+    private void treeMousePressed(java.awt.event.MouseEvent evt)//GEN-FIRST:event_treeMousePressed
+    {//GEN-HEADEREND:event_treeMousePressed
+        if (evt.isPopupTrigger())
+            doTreePopup(evt);
+    }//GEN-LAST:event_treeMousePressed
+
+    private void treeMouseReleased(java.awt.event.MouseEvent evt)//GEN-FIRST:event_treeMouseReleased
+    {//GEN-HEADEREND:event_treeMouseReleased
+        if (evt.isPopupTrigger())
+            doTreePopup(evt);
+    }//GEN-LAST:event_treeMouseReleased
+
+    private void addPositionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addPositionButtonActionPerformed
+    {//GEN-HEADEREND:event_addPositionButtonActionPerformed
+        Game g = (Game) editorPanel.constructObject();
+        ExplorerNode node = explorer.addAsRoot(g);
+        tree.setSelectedNode(node);
+    }//GEN-LAST:event_addPositionButtonActionPerformed
+
+    private void doTreePopup(MouseEvent evt)
+    {
+        treePopupMenu.show(tree, evt.getX(), evt.getY());
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addPositionButton;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
     private org.cgsuite.ui.worksheet.WorksheetPanel analysisWorksheetPanel;
@@ -176,9 +268,9 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private javax.swing.JMenuItem expandSensibleOptionsMenuItem;
     private javax.swing.JPanel infoPanel;
     private org.cgsuite.ui.worksheet.InputPanel inputPanel;
-    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JSplitPane primarySplitPane;
     private org.cgsuite.ui.explorer.ExplorerTreePanel tree;
+    private javax.swing.JPopupMenu treePopupMenu;
     private javax.swing.JScrollPane treeScrollPane;
     private javax.swing.JLabel typeLabel;
     // End of variables declaration//GEN-END:variables
@@ -240,6 +332,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     public void selectionPathChanged(List<ExplorerNode> newPath)
     {
         updateEditor();
+        reeval();
     }
 
     private void updateEditor()
@@ -251,8 +344,9 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         }
         else
         {
-            EditorPanel editorPanel = node.getG().toEditor();
+            this.editorPanel = node.getG().toEditor();
             this.editorScrollPane.setViewportView(editorPanel);
+            this.addPositionButton.setEnabled(true);
             this.typeLabel.setText("Exploring " + node.getG().getCgsuiteClass().getQualifiedName() + ".");
         }
     }
@@ -322,7 +416,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
                 this.currentCapsule = capsule;
             }
 
-            analysisWorksheetPanel.postOutput(output[0]);
+            analysisWorksheetPanel.postOutput(output);
         }
         
         analysisScrollPane.validate();

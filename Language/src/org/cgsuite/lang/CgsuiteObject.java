@@ -35,7 +35,7 @@ public class CgsuiteObject
         {
             try
             {
-                CgsuiteObject obj = x.invoke("Order", y).simplify();
+                CgsuiteObject obj = x.invokeMethod("Order", y).simplify();
                 return ((CgsuiteInteger) obj).intValue();
             }
             catch (CgsuiteException exc)
@@ -66,7 +66,7 @@ public class CgsuiteObject
 
     public CgsuiteString toCgsuiteString()
     {
-        return (CgsuiteString) invoke("ToString$get");
+        return (CgsuiteString) invokeMethod("ToString$get");
     }
 
     public Output toOutput()
@@ -112,7 +112,7 @@ public class CgsuiteObject
 
         log.info("Unable to locate identifier: " + identifier + " (in object of type " + type.getName() + ")");
 
-        throw new InputException("Not a member variable, property, or method: " + identifier);
+        throw new InputException("Not a member variable, property, or method: " + identifier + " (in object of type " + type.getQualifiedName() + ")");
     }
 
     public void assign(String name, CgsuiteObject object)
@@ -125,34 +125,34 @@ public class CgsuiteObject
         objectNamespace.put(name, object);
     }
 
-    public CgsuiteObject invoke(String methodName)
+    public CgsuiteObject invokeMethod(String methodName)
         throws CgsuiteException
     {
-        return invoke(methodName, CgsuiteObject.EMPTY_LIST, null);
+        return invokeMethod(methodName, CgsuiteObject.EMPTY_LIST, null);
     }
 
-    public CgsuiteObject invoke(String methodName, CgsuiteObject arg)
+    public CgsuiteObject invokeMethod(String methodName, CgsuiteObject arg)
         throws CgsuiteException
     {
-        return invoke(methodName, singletonList(arg), null);
+        return invokeMethod(methodName, singletonList(arg), null);
     }
 
-    public CgsuiteObject invoke(String methodName, CgsuiteObject arg1, CgsuiteObject arg2)
+    public CgsuiteObject invokeMethod(String methodName, CgsuiteObject arg1, CgsuiteObject arg2)
         throws CgsuiteException
     {
         List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(2);
         list.add(arg1);
         list.add(arg2);
-        return invoke(methodName, list, null);
+        return invokeMethod(methodName, list, null);
     }
 
-    public CgsuiteObject invoke(String methodName, List<CgsuiteObject> arguments)
+    public CgsuiteObject invokeMethod(String methodName, List<CgsuiteObject> arguments)
         throws CgsuiteException
     {
-        return invoke(methodName, arguments, null);
+        return invokeMethod(methodName, arguments, null);
     }
 
-    public CgsuiteObject invoke(String methodName, List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
+    public CgsuiteObject invokeMethod(String methodName, List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
         throws CgsuiteException
     {
         InstanceMethod method = (InstanceMethod) resolve(methodName);

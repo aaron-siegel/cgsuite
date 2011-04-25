@@ -44,7 +44,7 @@ public class ExplorerNode
     private final static BasicStroke SINGLE_STROKE = new BasicStroke(1.0f);
     private final static BasicStroke DOUBLE_STROKE = new BasicStroke(2.0f);
 
-    private Explorer explorer;
+    private final Explorer explorer;
     private Game g;
     private List<ExplorerNode> leftChildren, rightChildren;
     
@@ -60,6 +60,14 @@ public class ExplorerNode
     {
         return g;
     }
+
+    public boolean isRoot()
+    {
+        synchronized(explorer)
+        {
+            return explorer.getRootNode().getLeftChildren().contains(this);
+        }
+    }
     
     public List<? extends ExplorerNode> getLeftChildren()
     {
@@ -71,30 +79,46 @@ public class ExplorerNode
         return Collections.unmodifiableList(rightChildren);
     }
     
-    public void addLeftChild(Game h)
+    public ExplorerNode addLeftChild(Game h)
     {
-        ExplorerNode node = explorer.lookupOrCreate(h);
+        synchronized (explorer)
+        {
+            ExplorerNode node = explorer.lookupOrCreate(h);
 
-        if (!leftChildren.contains(node))
-            leftChildren.add(node);
+            if (!leftChildren.contains(node))
+                leftChildren.add(node);
+
+            return node;
+        }
     }
     
-    public void addRightChild(Game h)
+    public ExplorerNode addRightChild(Game h)
     {
-        ExplorerNode node = explorer.lookupOrCreate(h);
+        synchronized (explorer)
+        {
+            ExplorerNode node = explorer.lookupOrCreate(h);
 
-        if (!rightChildren.contains(node))
-            rightChildren.add(node);
+            if (!rightChildren.contains(node))
+                rightChildren.add(node);
+
+            return node;
+        }
     }
     
     public boolean removeLeftChild(ExplorerNode child)
     {
-        return leftChildren.remove(child);
+        synchronized (explorer)
+        {
+            return leftChildren.remove(child);
+        }
     }
     
     public boolean removeRightChild(ExplorerNode child)
     {
-        return rightChildren.remove(child);
+        synchronized (explorer)
+        {
+            return rightChildren.remove(child);
+        }
     }
     
     public void paintNode(Graphics2D g, int radius, boolean selected)
@@ -112,7 +136,10 @@ public class ExplorerNode
     
     public Set<ExplorerNode> followers()
     {
-        return buildFollowers(new HashSet<ExplorerNode>());
+        synchronized (explorer)
+        {
+            return buildFollowers(new HashSet<ExplorerNode>());
+        }
     }
     
     private Set<ExplorerNode> buildFollowers(Set<ExplorerNode> followers)

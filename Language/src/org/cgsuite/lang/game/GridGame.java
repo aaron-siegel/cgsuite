@@ -32,7 +32,7 @@ public class GridGame extends Game
     @Override
     public EditorPanel toEditor()
     {
-        return new GridEditorPanel(getGrid(), getIcons());
+        return new GridEditorPanel(getCgsuiteClass(), getGrid());
     }
 
     public Grid getGrid()

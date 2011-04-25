@@ -34,12 +34,12 @@ public class Game extends CgsuiteObject
 
     public CgsuiteSet getLeftOptions()
     {
-        return (CgsuiteSet) invoke("LeftOptions$get");
+        return (CgsuiteSet) invokeMethod("LeftOptions$get");
     }
 
     public CgsuiteSet getRightOptions()
     {
-        return (CgsuiteSet) invoke("RightOptions$get");
+        return (CgsuiteSet) invokeMethod("RightOptions$get");
     }
 
     public EditorPanel toEditor()

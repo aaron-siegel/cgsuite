@@ -49,7 +49,8 @@ public class DefaultEditorPanel extends EditorPanel
         outputBox.revalidate();
     }
 
-    public CgsuiteObject getDisplayedObject()
+    @Override
+    public CgsuiteObject constructObject()
     {
         return obj;
     }

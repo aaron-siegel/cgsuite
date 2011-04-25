@@ -183,7 +183,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         return imports;
     }
 
-    public CgsuiteObject lookupMethod(String name)
+    public CgsuiteMethod lookupMethod(String name)
     {
         ensureLoaded();
         return methods.get(name);
@@ -357,7 +357,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
         this.loaded = true;
 
-        // Populate statics and invoke static initializers
+        // Populate statics and invokeMethod static initializers
 
         for (Variable var : varsInOrder)
         {

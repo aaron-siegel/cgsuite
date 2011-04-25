@@ -69,22 +69,31 @@ public class Explorer extends CgsuiteObject
         });
     }
 
-    public void addAsRoot(Game g)
+    public synchronized ExplorerNode addAsRoot(Game g)
     {
-        this.root.addLeftChild(g);
+        return this.root.addLeftChild(g);
     }
 
-    public ExplorerNode getRootNode()
+    public synchronized ExplorerNode findOrAdd(Game g)
+    {
+        ExplorerNode node = lookupGame(g);
+        if (node == null)
+            node = addAsRoot(g);
+        
+        return node;
+    }
+
+    public synchronized ExplorerNode getRootNode()
     {
         return root;
     }
 
-    public ExplorerNode lookupGame(Game g)
+    public synchronized ExplorerNode lookupGame(Game g)
     {
         return gameLookup.get(g);
     }
 
-    ExplorerNode lookupOrCreate(Game g)
+    synchronized ExplorerNode lookupOrCreate(Game g)
     {
         ExplorerNode node = gameLookup.get(g);
         if (node == null)

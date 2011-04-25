@@ -285,7 +285,8 @@ public class ExplorerTreePanel extends javax.swing.JPanel implements Scrollable,
     public void nodeAdded(ExplorerNode node)
     {
         refresh();
-        setSelectedNode(node);
+        if (node.isRoot())
+            setSelectedNode(node);
     }
 
     public void addExplorerTreeListener(ExplorerTreeListener l)
@@ -809,12 +810,20 @@ public class ExplorerTreePanel extends javax.swing.JPanel implements Scrollable,
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPopupMenu1 = new javax.swing.JPopupMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+
+        jMenuItem1.setText(org.openide.util.NbBundle.getMessage(ExplorerTreePanel.class, "ExplorerTreePanel.jMenuItem1.text")); // NOI18N
+        jPopupMenu1.add(jMenuItem1);
+
         setBackground(new java.awt.Color(255, 255, 255));
         setLayout(null);
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JPopupMenu jPopupMenu1;
     // End of variables declaration//GEN-END:variables
 
 }
