@@ -38,4 +38,34 @@ class Game : java "org.cgsuite.lang.Game"
         
     end
 
+    public method SensibleOptions(Player player)
+
+        opts := this.Options(player);
+        copts := this.CanonicalForm.Options(player);
+        sopts := {};
+
+        for k in copts do
+            for g in opts do
+                if (player == Player.Left  and g.CanonicalForm >= k) or
+                   (player == Player.Right and g.CanonicalForm <= k) then
+
+                   sopts.Add(g);
+                   break;
+
+                end
+            end
+        end;
+
+        return sopts;
+
+    end
+
+    public property SensibleLeftOptions.get
+        return this.SensibleOptions(Player.Left);
+    end
+
+    public property SensibleRightOptions.get
+        return this.SensibleOptions(Player.Right);
+    end
+
 end

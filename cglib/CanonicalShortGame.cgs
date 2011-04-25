@@ -14,6 +14,14 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     public method Pow(Number n) : java "pow";
     public method PowTo(Number n) : java "powTo";
 
+    public method Options(Player player)
+        if player == Player.Left then
+            return this.LeftOptions;
+        else
+            return this.RightOptions;
+        end
+    end
+
     public property AtomicWeight.get : java "atomicWeight";
     public property Birthday.get : java "birthday";
     public property Companion.get : java "companion";
