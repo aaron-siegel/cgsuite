@@ -1,0 +1,44 @@
+class CrossPurposes extends GridGame
+
+    private static var CharMap := ".xo";
+    private static var Icons := [
+        GridIcon.Blank,
+        GridIcon.BlackStone,
+        GridIcon.WhiteStone
+        ];
+
+    public method CrossPurposes(grid)
+        this.GridGame(grid);
+    end
+
+    public method Options(Player player)
+
+        options := {};
+
+        us := player.Ordinal;
+        them := player.Opponent.Ordinal;
+
+        for m from 1 to this.grid.NumRows do
+            for n from 1 to this.grid.NumColumns do
+                if this.grid[m,n] == us then
+
+                    for d in Direction.Orthogonal do
+                        if this.grid[m+  d.RowShift,n+  d.ColumnShift] == 0 and
+                           this.grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
+                            copy := this.grid.Copy();
+                            copy[m,n] := 0;
+                            copy[m+  d.RowShift,n+  d.ColumnShift] := them;
+                            copy[m+2*d.RowShift,n+2*d.ColumnShift] := them;
+                            options.Add(CrossPurposes(copy));
+                        end
+                    end
+
+                end
+            end
+        end;
+
+        return options;
+
+    end
+
+end
