@@ -20,6 +20,7 @@ import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
 import org.openide.filesystems.LocalFileSystem;
+import org.openide.modules.InstalledFileLocator;
 
 /**
  *
@@ -29,6 +30,7 @@ public class CgsuitePackage implements FileChangeListener
 {
     private final static Logger log = Logger.getLogger(CgsuitePackage.class.getName());
 
+    public final static File LIB_FOLDER;
     public final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
     public final static List<CgsuitePackage> ROOT_IMPORT = Collections.singletonList(ROOT_PACKAGE);
     
@@ -39,7 +41,8 @@ public class CgsuitePackage implements FileChangeListener
         PACKAGE_LOOKUP.put("", ROOT_PACKAGE);
         try
         {
-            ROOT_PACKAGE.addFolder(new File("C:/Users/asiegel/Documents/NetBeansProjects/CGSuite/cglib/"));
+            LIB_FOLDER = InstalledFileLocator.getDefault().locate("lib", "org.cgsuite", false);
+            ROOT_PACKAGE.addFolder(LIB_FOLDER);
         }
         catch (IOException exc)
         {

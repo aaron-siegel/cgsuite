@@ -4,8 +4,8 @@
  */
 package org.cgsuite.ui.browser;
 
-import java.io.File;
 import java.util.logging.Logger;
+import org.cgsuite.lang.CgsuitePackage;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -46,9 +46,8 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 
         try
         {
-            File file = new File("/Users/asiegel/Documents/NetBeansProjects/CGSuite/cglib/");
             LocalFileSystem fs = new LocalFileSystem();
-            fs.setRootDirectory(file);
+            fs.setRootDirectory(CgsuitePackage.LIB_FOLDER);
             this.root = fs.getRoot();
             this.rootDataObject = DataObject.find(this.root);
         }
