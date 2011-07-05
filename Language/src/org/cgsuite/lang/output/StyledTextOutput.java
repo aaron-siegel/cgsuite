@@ -29,13 +29,29 @@
 
 package org.cgsuite.lang.output;
 
-import java.awt.*;
-import java.awt.font.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GraphicAttribute;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
-import java.text.*;
+import java.text.AttributedCharacterIterator;
 import java.text.AttributedCharacterIterator.Attribute;
-import java.util.*;
+import java.text.BreakIterator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 
 /**
  * An abstract representation of styled character data.  Each
@@ -773,7 +789,7 @@ public class StyledTextOutput implements Output
         {
             AttributedCharacterIterator activeIterator = characterIterator(maxLength);
             activeMeasurerLength = activeIterator.getEndIndex();
-            measurer = new LineBreakMeasurer(activeIterator, frc);
+            measurer = new LineBreakMeasurer(activeIterator, new CgBreakIterator(), frc);
             layouts.clear();
         }
         else if (pixelWidth != widthOfLayouts)
