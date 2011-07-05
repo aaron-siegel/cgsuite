@@ -22,7 +22,7 @@
             <file name="BrowserTopComponent.settings" url="BrowserTopComponentSettings.xml"/>
         </folder>
         <folder name="Modes">
-            <folder name="explorer">
+            <folder name="explorer2">
                 <file name="BrowserTopComponent.wstcref" url="BrowserTopComponentWstcref.xml"/>
             </folder>
         </folder>
