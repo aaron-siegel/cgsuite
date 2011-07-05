@@ -11,6 +11,7 @@
 
 package org.cgsuite.ui.worksheet;
 
+import javax.swing.event.DocumentEvent;
 import org.cgsuite.lang.output.OutputBox;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -28,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentListener;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.openide.util.RequestProcessor;
@@ -38,7 +40,7 @@ import org.openide.util.TaskListener;
  *
  * @author asiegel
  */
-public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener
+public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener, DocumentListener
 {
     private CalculationCapsule currentCapsule;
     private InputPane currentSource;
@@ -46,6 +48,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     private List<String> commandHistory = new ArrayList<String>();
     private String commandHistoryPrefix;
     private int commandHistoryIndex;
+    private boolean seekingCommand;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
@@ -115,6 +118,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             @Override
             public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
         });
+        panel.getInputPane().getDocument().addDocumentListener(this);
         add(panel);
         return panel;
     }
@@ -160,6 +164,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                         commandHistoryPrefix = source.getText();
                         commandHistoryIndex = commandHistory.size();
                     }
+                    seekingCommand = true;
                     source.setText(seekCommand(-1));
                 }
                 break;
@@ -169,6 +174,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     (source.getCaretLine() == source.getLineCount()-1))
                 {
                     evt.consume();
+                    seekingCommand = true;
                     source.setText(seekCommand(1));
                 }
                 break;
@@ -370,5 +376,32 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void insertUpdate(DocumentEvent e)
+    {
+        if (seekingCommand)
+        {
+            seekingCommand = false;     // It just got inserted
+        }
+        else
+        {
+            commandHistoryPrefix = null;
+        }
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e)
+    {
+        if (!seekingCommand)
+        {
+            commandHistoryPrefix = null;
+        }
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e)
+    {
+    }
 
 }
