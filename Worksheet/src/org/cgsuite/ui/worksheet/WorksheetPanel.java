@@ -77,6 +77,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         if ((evt.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0 &&
             getParent() instanceof JViewport)
         {
+            updateComponentSizes();
             getViewport().addComponentListener(new ComponentAdapter()
             {
                 @Override
@@ -194,7 +195,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     
     private synchronized void processCommand(InputPane source)
     {
-        source.setEditable(false);
+        source.deactivate();
         commandHistory.add(source.getText());
         commandHistoryPrefix = null;
         CalculationCapsule capsule = new CalculationCapsule(source.getText());
@@ -313,7 +314,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         {
             return;
         }
-        int width = getViewport().getExtentSize().width;
+        int width = getViewport().getWidth();
         Component components[] = getComponents();
         for (int index = 0; index < components.length; index++)
         {
@@ -325,13 +326,13 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                 pane.setMinimumSize(new Dimension(etaW, pane.getMinimumSize().height));
                 pane.setMaximumSize(new Dimension(etaW, pane.getMaximumSize().height));
                 pane.setSize(etaW, pane.getHeight());
-                pane.invalidate();
+                pane.revalidate();
             }
             if (components[index] instanceof OutputBox)
             {
                 OutputBox outputBox = (OutputBox) components[index];
                 outputBox.setWorksheetWidth(width);
-                outputBox.invalidate();
+                outputBox.revalidate();
             }
         }
         getScrollPane().validate();
@@ -358,7 +359,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     @Override
     public boolean getScrollableTracksViewportWidth()
     {
-        return false;
+        return true;
     }
 
     @Override

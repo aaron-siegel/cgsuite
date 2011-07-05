@@ -28,7 +28,6 @@
 
 package org.cgsuite.ui.worksheet;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -40,6 +39,9 @@ import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import org.netbeans.modules.editor.NbEditorDocument;
+import org.netbeans.modules.editor.NbEditorKit;
+import org.openide.text.CloneableEditorSupport;
 
 public class InputPane extends JEditorPane
 {
@@ -48,12 +50,12 @@ public class InputPane extends JEditorPane
     
     public InputPane()
     {
-        setBackground(Color.white);
-        setFont(new Font("Monospaced", Font.PLAIN, 12));
-
-        CgsuiteEditorKit kit = new CgsuiteEditorKit();
-        //setEditorKit(kit);
-
+        NbEditorKit kit = new NbEditorKit();
+        NbEditorDocument doc = new NbEditorDocument("text/x-cgscript");
+        
+        setEditorKit(kit);
+        setDocument(doc);
+        
         embeddedObjects = new ArrayList<Object>();
         placeHolder = new Object();
 
@@ -72,6 +74,16 @@ public class InputPane extends JEditorPane
             public void insertUpdate(DocumentEvent evt) { thisTextInserted(evt); }
         });
         
+    }
+    
+    public void deactivate()
+    {
+        String text = getText();
+        Font font = getFont();
+        setEditorKit(CloneableEditorSupport.getEditorKit("text/plain"));
+        setText(text);
+        setFont(font);
+        setEditable(false);
     }
     
     private boolean isBlocked(int pos)

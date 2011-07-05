@@ -42,8 +42,8 @@
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <release-version>2</release-version>
-                        <specification-version>2.10.2.10.2</specification-version>
+                        <release-version>3</release-version>
+                        <specification-version>3.8.1.13.9</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>

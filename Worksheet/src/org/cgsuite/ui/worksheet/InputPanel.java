@@ -15,8 +15,8 @@ package org.cgsuite.ui.worksheet;
  *
  * @author asiegel
  */
-public class InputPanel extends javax.swing.JPanel {
-
+public class InputPanel extends javax.swing.JPanel
+{
     /** Creates new form InputPanel */
     public InputPanel()
     {
