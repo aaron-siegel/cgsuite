@@ -51,9 +51,6 @@ import javax.swing.JPopupMenu;
 
 /**
  * A panel that displays {@link org.cgsuite.plugin.Output}.
- *
- * @author  Aaron Siegel
- * @version $Revision: 1.26 $ $Date: 2007/04/09 23:51:51 $
  */
 public class OutputBox extends JPanel implements MouseListener, FocusListener
 {
