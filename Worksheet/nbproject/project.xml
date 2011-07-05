@@ -43,7 +43,7 @@
                     <compile-dependency/>
                     <run-dependency>
                         <release-version>3</release-version>
-                        <specification-version>3.8.1.13.9</specification-version>
+                        <specification-version>3.8.1.13.8</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
