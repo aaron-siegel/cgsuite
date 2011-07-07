@@ -65,11 +65,22 @@ public final class NewCgsuiteFileAction extends AbstractAction implements Contex
             {
                 for (DataObject obj : objs)
                 {
-                    EditorCookie ec = obj.getLookup().lookup(EditorCookie.class);
-
-                    if (ec != null)
+                    if (template.getName().equals("Package"))
                     {
-                        ec.open();
+                        FileObject file = obj.getPrimaryFile();
+                        String name = file.getName();
+                        FileObject parent = file.getParent();
+                        file.delete();
+                        parent.createFolder(name);
+                    }
+                    else
+                    {
+                        EditorCookie ec = obj.getLookup().lookup(EditorCookie.class);
+
+                        if (ec != null)
+                        {
+                            ec.open();
+                        }
                     }
                 }
             }
@@ -98,7 +109,7 @@ public final class NewCgsuiteFileAction extends AbstractAction implements Contex
         DataObject templates[] = new DataObject[]
         {
             findTemplate("Templates/Other/CgscriptTemplate.cgs"),
-            findTemplate("Templates/Other/Folder")
+            findTemplate("Templates/Other/Package")
         };
     
         for (int i = 0; i < templates.length; i++)

@@ -100,6 +100,13 @@
                 <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
                 <attr name="template" boolvalue="true"/>
             </file>
+            <file name="Folder_hidden"/>
+            <file name="Package">
+                <attr name="template" boolvalue="true"/>
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.project.ui.Bundle"/>
+                <attr name="instantiatingWizardURL" urlvalue="nbresloc:/org/netbeans/modules/project/ui/resources/templatesFolder.html"/>
+                <attr name="templateCategory" stringvalue="simple-files"/>
+            </file>
         </folder>
         <folder name="Recent">
             
