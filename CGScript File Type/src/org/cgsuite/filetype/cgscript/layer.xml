@@ -2,6 +2,19 @@
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
     <folder name="Loaders">
+        <folder name="folder">
+            <folder name="any">
+                <folder name="Actions">
+                    <file name="NewProjectFile.instance_hidden"/>
+                    <file name="org-cgsuite-filetype-cgscript-actions-NewCgsuiteFileAction.instance">
+                        <!--<attr name="instanceClass" stringvalue="org.netbeans.modules.project.ui.actions.NewFile"/>-->
+                        <attr name="instanceClass" stringvalue="org.cgsuite.filetype.cgscript.actions.NewCgsuiteFileAction"/>
+                        <attr name="position" intvalue="200"/>
+                        <attr name="misplaced.action.allowed" boolvalue="true"/>
+                    </file>
+                </folder>
+            </folder>
+        </folder>
         <folder name="text">
             <folder name="x-cgscript">
                 <folder name="Actions">
