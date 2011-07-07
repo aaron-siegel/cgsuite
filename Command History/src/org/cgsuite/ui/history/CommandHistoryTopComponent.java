@@ -4,12 +4,14 @@
  */
 package org.cgsuite.ui.history;
 
+import java.awt.event.MouseEvent;
+import java.util.Date;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.util.lookup.Lookups;
 
 /**
  * Top component which displays something.
@@ -25,12 +27,17 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_CommandHistoryAction",
 preferredID = "CommandHistoryTopComponent")
 public final class CommandHistoryTopComponent extends TopComponent {
+    
+    private CommandHistoryBufferImpl buffer;
 
     public CommandHistoryTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(CommandHistoryTopComponent.class, "CTL_CommandHistoryTopComponent"));
         setToolTipText(NbBundle.getMessage(CommandHistoryTopComponent.class, "HINT_CommandHistoryTopComponent"));
 
+        buffer = new CommandHistoryBufferImpl();
+        jList1.setModel(buffer);
+        this.associateLookup(Lookups.singleton(buffer));
     }
 
     /** This method is called from within the constructor to
@@ -41,19 +48,53 @@ public final class CommandHistoryTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
+
+        setLayout(new java.awt.BorderLayout());
+
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        jList1.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        jList1.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        jList1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jList1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jList1MouseClicked(evt);
+            }
+        });
+        jList1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jList1FocusLost(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jList1);
+
+        add(jScrollPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
+        if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2)
+        {
+            String cmd = (String) jList1.getSelectedValue();
+            if (cmd != null)
+            {
+                buffer.fireCommandActivated(cmd);
+            }
+        }
+    }//GEN-LAST:event_jList1MouseClicked
+
+    private void jList1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jList1FocusLost
+        jList1.setSelectedIndices(new int[0]);
+    }//GEN-LAST:event_jList1FocusLost
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JList jList1;
+    private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
@@ -64,16 +105,24 @@ public final class CommandHistoryTopComponent extends TopComponent {
     public void componentClosed() {
         // TODO add custom code on component closing
     }
+    
+    public CommandHistoryBuffer getBuffer()
+    {
+        return buffer;
+    }
 
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
+        p.setProperty("commands", buffer.serializeToString()); 
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
+        String commands = p.getProperty("commands");
+        if (commands != null)
+            buffer.deserializeFromString(commands);
+        buffer.addCommand("// " + new Date(System.currentTimeMillis()).toString());
     }
 }

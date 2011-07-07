@@ -32,23 +32,27 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentListener;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
+import org.cgsuite.ui.history.CommandHistoryBuffer;
+import org.cgsuite.ui.history.CommandListener;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Task;
 import org.openide.util.TaskListener;
+import org.openide.windows.WindowManager;
 
 /**
  *
  * @author asiegel
  */
-public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener, DocumentListener
+public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener, DocumentListener, CommandListener
 {
     private CalculationCapsule currentCapsule;
     private InputPane currentSource;
 
-    private List<String> commandHistory = new ArrayList<String>();
     private String commandHistoryPrefix;
     private int commandHistoryIndex;
     private boolean seekingCommand;
+    
+    private CommandHistoryBuffer buffer;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
@@ -81,6 +85,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             getParent() instanceof JViewport)
         {
             updateComponentSizes();
+            getBuffer();
             getViewport().addComponentListener(new ComponentAdapter()
             {
                 @Override
@@ -92,6 +97,17 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         }
     }//GEN-LAST:event_formHierarchyChanged
 
+    private CommandHistoryBuffer getBuffer()
+    {
+        if (buffer == null)
+        {
+            buffer = WindowManager.getDefault().findTopComponent("CommandHistoryTopComponent").getLookup().lookupResult(CommandHistoryBuffer.class)
+                    .allInstances().iterator().next();
+            buffer.addCommandListener(this);
+        }
+        return buffer;
+    }
+    
     public void updateFocus()
     {
         Component bottomComponent = getComponent(getComponentCount()-1);
@@ -162,7 +178,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     if (commandHistoryPrefix == null)
                     {
                         commandHistoryPrefix = source.getText();
-                        commandHistoryIndex = commandHistory.size();
+                        commandHistoryIndex = getBuffer().size();
                     }
                     seekingCommand = true;
                     source.setText(seekCommand(-1));
@@ -187,22 +203,22 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     private String seekCommand(int direction)
     {
         for (commandHistoryIndex += direction;
-             commandHistoryIndex >= 0 && commandHistoryIndex < commandHistory.size();
+             commandHistoryIndex >= 0 && commandHistoryIndex < getBuffer().size();
              commandHistoryIndex--)
         {
-            if (commandHistory.get(commandHistoryIndex).startsWith(commandHistoryPrefix))
+            if (getBuffer().get(commandHistoryIndex).startsWith(commandHistoryPrefix))
             {
-                return commandHistory.get(commandHistoryIndex);
+                return getBuffer().get(commandHistoryIndex);
             }
         }
-        commandHistoryIndex = commandHistory.size();
+        commandHistoryIndex = getBuffer().size();
         return commandHistoryPrefix;
     }
     
     private synchronized void processCommand(InputPane source)
     {
         source.deactivate();
-        commandHistory.add(source.getText());
+        getBuffer().addCommand(source.getText());
         commandHistoryPrefix = null;
         CalculationCapsule capsule = new CalculationCapsule(source.getText());
         RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
@@ -402,6 +418,17 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     @Override
     public void changedUpdate(DocumentEvent e)
     {
+    }
+
+    @Override
+    public void commandActivated(String command)
+    {
+        if (this.getComponentCount() == 0)
+            return;
+        
+        InputPanel inputPanel = (InputPanel) this.getComponent(this.getComponentCount()-1);
+        inputPanel.getInputPane().setText(command);
+        inputPanel.getInputPane().requestFocus();
     }
 
 }
