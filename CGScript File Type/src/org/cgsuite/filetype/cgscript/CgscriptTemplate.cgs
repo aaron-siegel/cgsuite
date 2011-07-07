@@ -1,1 +1,9 @@
-sample content
+/*
+ * ${name}.cgs
+ *
+ * Created by ${user} on ${date}
+ */
+
+class ${name}
+
+end

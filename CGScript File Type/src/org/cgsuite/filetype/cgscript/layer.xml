@@ -96,9 +96,11 @@
     <folder name="Templates">
         <folder name="Other">
             <file name="CgscriptTemplate.cgs" url="CgscriptTemplate.cgs">
+                <attr name="template" boolvalue="true"/>
                 <attr name="displayName" bundlevalue="org.cgsuite.filetype.cgscript.Bundle#Templates/Other/CgscriptTemplate.cgs"/>
                 <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
                 <attr name="template" boolvalue="true"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
             </file>
             <file name="Folder_hidden"/>
             <file name="Package">
