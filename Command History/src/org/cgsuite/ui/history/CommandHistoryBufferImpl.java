@@ -4,10 +4,14 @@
  */
 package org.cgsuite.ui.history;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import javax.swing.DefaultListModel;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -19,10 +23,52 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
 {
     private final static int CAPACITY = 10000;
     private List<CommandListener> listeners;
+    private FileObject historyFile;
     
     public CommandHistoryBufferImpl()
     {
         listeners = new ArrayList<CommandListener>();
+    }
+    
+    void load()
+    {
+        try
+        {
+            historyFile = FileUtil.getConfigFile("CommandHistory.txt");
+            if (historyFile == null)
+            {
+                historyFile = FileUtil.getConfigRoot().createData("CommandHistory.txt");
+            }
+            else
+            {
+                for (String command : historyFile.asLines())
+                {
+                    addElement(command);
+                }
+            }
+        }
+        catch (IOException exc)
+        {
+        }
+        
+        trim();
+    }
+    
+    void save()
+    {
+        try
+        {
+            PrintStream stream = new PrintStream(historyFile.getOutputStream());
+            for (Enumeration<?> e = elements(); e.hasMoreElements();)
+            {
+                String command = (String) e.nextElement();
+                stream.println(command);
+            }
+            stream.close();
+        }
+        catch (IOException exc)
+        {
+        }
     }
     
     @Override
@@ -58,30 +104,9 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
         if (isEmpty() || !lastElement().equals(command))
         {
             addElement(command);
+            trim();
+            save();
         }
-        trim();
-    }
-    
-    String serializeToString()
-    {
-        StringBuilder str = new StringBuilder();
-        for (Enumeration<?> e = elements(); e.hasMoreElements();)
-        {
-            String cmd = (String) e.nextElement();
-            str.append(cmd);
-            if (e.hasMoreElements())
-                str.append('`');
-        }
-        return str.toString();
-    }
-    
-    void deserializeFromString(String str)
-    {
-        for (String cmd : str.split("`"))
-        {
-            addElement(cmd);
-        }
-        trim();
     }
     
     private void trim()

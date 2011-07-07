@@ -11,6 +11,8 @@ import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -38,6 +40,9 @@ public final class CommandHistoryTopComponent extends TopComponent {
         buffer = new CommandHistoryBufferImpl();
         jList1.setModel(buffer);
         this.associateLookup(Lookups.singleton(buffer));
+
+        buffer.load();
+        buffer.addCommand("// " + new Date(System.currentTimeMillis()).toString());
     }
 
     /** This method is called from within the constructor to
@@ -97,13 +102,13 @@ public final class CommandHistoryTopComponent extends TopComponent {
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
     @Override
-    public void componentOpened() {
-        // TODO add custom code on component opening
+    public void componentOpened()
+    {
     }
 
     @Override
-    public void componentClosed() {
-        // TODO add custom code on component closing
+    public void componentClosed()
+    {
     }
     
     public CommandHistoryBuffer getBuffer()
@@ -115,14 +120,9 @@ public final class CommandHistoryTopComponent extends TopComponent {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        p.setProperty("commands", buffer.serializeToString()); 
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        String commands = p.getProperty("commands");
-        if (commands != null)
-            buffer.deserializeFromString(commands);
-        buffer.addCommand("// " + new Date(System.currentTimeMillis()).toString());
     }
 }
