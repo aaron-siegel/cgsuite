@@ -109,12 +109,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         ensureLoaded();
         
-        CgsuiteMethod getter = (CgsuiteMethod) lookupMethod(identifier + "$get");
+        CgsuiteMethod getter = lookupMethod(identifier + "$get");
 
         if (getter != null && getter.isStatic())
             return getter.invoke((CgsuiteObject) null, CgsuiteObject.EMPTY_LIST, null);
 
-        CgsuiteMethod method = (CgsuiteMethod) lookupMethod(identifier);
+        CgsuiteMethod method = lookupMethod(identifier);
 
         if (method != null && method.isStatic())
             return method;

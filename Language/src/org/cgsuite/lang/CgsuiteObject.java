@@ -81,7 +81,7 @@ public class CgsuiteObject
 
     public CgsuiteObject resolve(String identifier) throws CgsuiteException
     {
-        CgsuiteMethod getter = (CgsuiteMethod) type.lookupMethod(identifier + "$get");
+        CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
 
         if (getter != null)
         {
@@ -90,7 +90,7 @@ public class CgsuiteObject
             return getter.invoke(castForMethodCall(getter), CgsuiteObject.EMPTY_LIST, null);
         }
 
-        CgsuiteMethod method = (CgsuiteMethod) type.lookupMethod(identifier);
+        CgsuiteMethod method = type.lookupMethod(identifier);
 
         if (method != null)
         {
