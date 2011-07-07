@@ -6,13 +6,13 @@ package org.cgsuite.ui.history;
 
 import java.awt.event.MouseEvent;
 import java.util.Date;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -28,7 +28,7 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_CommandHistoryAction",
 preferredID = "CommandHistoryTopComponent")
-public final class CommandHistoryTopComponent extends TopComponent {
+public final class CommandHistoryTopComponent extends TopComponent implements ListDataListener {
     
     private CommandHistoryBufferImpl buffer;
 
@@ -39,6 +39,7 @@ public final class CommandHistoryTopComponent extends TopComponent {
 
         buffer = new CommandHistoryBufferImpl();
         jList1.setModel(buffer);
+        buffer.addListDataListener(this);
         this.associateLookup(Lookups.singleton(buffer));
 
         buffer.load();
@@ -104,13 +105,14 @@ public final class CommandHistoryTopComponent extends TopComponent {
     @Override
     public void componentOpened()
     {
+        scrollToBottom();
     }
 
     @Override
     public void componentClosed()
     {
     }
-    
+        
     public CommandHistoryBuffer getBuffer()
     {
         return buffer;
@@ -124,5 +126,28 @@ public final class CommandHistoryTopComponent extends TopComponent {
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
+    }
+
+    @Override
+    public void intervalAdded(ListDataEvent e)
+    {
+        scrollToBottom();
+    }
+
+    @Override
+    public void intervalRemoved(ListDataEvent e)
+    {
+        scrollToBottom();
+    }
+
+    @Override
+    public void contentsChanged(ListDataEvent e)
+    {
+        scrollToBottom();
+    }
+    
+    private void scrollToBottom()
+    {
+        jScrollPane1.scrollRectToVisible(jList1.getCellBounds(buffer.size()-1, buffer.size()));
     }
 }
