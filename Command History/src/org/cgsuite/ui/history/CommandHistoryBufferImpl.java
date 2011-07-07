@@ -43,7 +43,7 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
             {
                 for (String command : historyFile.asLines())
                 {
-                    addElement(command);
+                    addElement(command.replace('\1', '\n'));
                 }
             }
         }
@@ -62,7 +62,8 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
             for (Enumeration<?> e = elements(); e.hasMoreElements();)
             {
                 String command = (String) e.nextElement();
-                stream.println(command);
+                String escaped = command.replaceAll("\\\r(\\\n)?|\\\n", "\1");
+                stream.println(escaped);
             }
             stream.close();
         }
