@@ -5,5 +5,4 @@
 <project name="CGSuite" basedir=".">
     <description>Builds the module suite CGSuite.</description>
     <import file="nbproject/build-impl.xml"/>
-    <property name="app.icon.icns" value="etc/cgsuite.icns"/>
 </project>
