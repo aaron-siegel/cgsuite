@@ -6,6 +6,7 @@ package org.cgsuite.ui.history;
 
 import java.awt.event.MouseEvent;
 import java.util.Date;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.openide.util.NbBundle;
@@ -39,11 +40,11 @@ public final class CommandHistoryTopComponent extends TopComponent implements Li
 
         buffer = new CommandHistoryBufferImpl();
         jList1.setModel(buffer);
-        buffer.addListDataListener(this);
         this.associateLookup(Lookups.singleton(buffer));
 
         buffer.load();
         buffer.addCommand("// " + new Date(System.currentTimeMillis()).toString());
+        buffer.addListDataListener(this);
     }
 
     /** This method is called from within the constructor to
@@ -148,6 +149,13 @@ public final class CommandHistoryTopComponent extends TopComponent implements Li
     
     private void scrollToBottom()
     {
-        jScrollPane1.scrollRectToVisible(jList1.getCellBounds(buffer.size()-1, buffer.size()));
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                jList1.scrollRectToVisible(jList1.getCellBounds(buffer.size()-1, buffer.size()));
+            }
+        });
     }
 }
