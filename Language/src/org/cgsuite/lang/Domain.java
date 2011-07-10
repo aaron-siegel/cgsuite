@@ -357,7 +357,15 @@ public class Domain
 
                 x = expression(tree.getChild(0));
                 list = arrayIndexList(tree.getChild(1), null);
-                return arrayRef(x, list);
+                try
+                {
+                    return arrayRef(x, list);
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
 
             case FUNCTION_CALL:
 

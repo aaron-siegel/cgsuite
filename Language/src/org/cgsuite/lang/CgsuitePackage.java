@@ -41,7 +41,8 @@ public class CgsuitePackage implements FileChangeListener
         PACKAGE_LOOKUP.put("", ROOT_PACKAGE);
         try
         {
-            LIB_FOLDER = InstalledFileLocator.getDefault().locate("lib", "org.cgsuite", false);
+            //LIB_FOLDER = InstalledFileLocator.getDefault().locate("lib", "org.cgsuite", false);
+            LIB_FOLDER = new File("/Users/asiegel/NetBeansProjects/CGSuite/release/lib/");
             ROOT_PACKAGE.addFolder(LIB_FOLDER);
         }
         catch (IOException exc)

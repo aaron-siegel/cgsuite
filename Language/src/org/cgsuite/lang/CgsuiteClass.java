@@ -377,6 +377,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 }
             }
         }
+        
+        // Populate memory var
+        
+        this.objectNamespace.put("memory", new CgsuiteMap());
 
         for (CgsuiteClass ancestor : ancestors)
         {

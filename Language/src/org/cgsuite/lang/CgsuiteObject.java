@@ -111,6 +111,16 @@ public class CgsuiteObject
             return CgsuiteObject.NIL;
 
         log.info("Unable to locate identifier: " + identifier + " (in object of type " + type.getName() + ")");
+        
+        try
+        {
+            throw new RuntimeException();
+        }
+        catch (Exception exc)
+        {
+            for (StackTraceElement e : exc.getStackTrace())
+                System.out.println(e.toString());
+        }
 
         throw new InputException("Not a member variable, property, or method: " + identifier + " (in object of type " + type.getQualifiedName() + ")");
     }
