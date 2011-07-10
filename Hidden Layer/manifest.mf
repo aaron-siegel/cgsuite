@@ -3,4 +3,4 @@ OpenIDE-Module: org.cgsuite.hidden
 OpenIDE-Module-Layer: org/cgsuite/hidden/layer.xml
 OpenIDE-Module-Localizing-Bundle: org/cgsuite/hidden/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
-
+OpenIDE-Module-Install: org/cgsuite/hidden/HiddenInstall.class
