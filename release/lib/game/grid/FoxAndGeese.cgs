@@ -1,16 +1,21 @@
 class FoxAndGeese extends GridGame
 
-    private static var CharMap := ".xo";
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.BlackStone,
-        GridIcon.WhiteStone
-        ];
-
     public method FoxAndGeese(grid)
         this.GridGame(grid);
     end
-
     
+    public property CharMap.get
+        return ".xo";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone
+        ];
+    end
+
 
 end

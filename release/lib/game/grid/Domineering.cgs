@@ -1,8 +1,5 @@
 class Domineering extends GridGame
 
-    private static var CharMap := ".#";
-    private static var Icons := [GridIcon.Blank, GridIcon.Grayed];
-
     public method Domineering(grid)
         this.GridGame(grid);
     end
@@ -44,5 +41,18 @@ class Domineering extends GridGame
         return g;
 
     end
+    
+    public property CharMap.get
+        return ".#";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.Grayed
+        ];
+    end
+
 
 end

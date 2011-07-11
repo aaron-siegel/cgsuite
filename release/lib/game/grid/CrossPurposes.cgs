@@ -1,12 +1,5 @@
 class CrossPurposes extends GridGame
 
-    private static var CharMap := ".xo";
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.BlackStone,
-        GridIcon.WhiteStone
-        ];
-
     public method CrossPurposes(grid)
         this.GridGame(grid);
     end
@@ -39,6 +32,19 @@ class CrossPurposes extends GridGame
 
         return options;
 
+    end
+    
+    public property CharMap.get
+        return ".xo";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone
+        ];
     end
 
 end

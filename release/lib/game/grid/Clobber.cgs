@@ -1,16 +1,9 @@
 class Clobber extends GridGame
 
-    private static var CharMap := ".xo";
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.BlackStone,
-        GridIcon.WhiteStone
-        ];
-
     public method Clobber(grid)
         this.GridGame(grid);
     end
-
+    
     public method Options(Player player)
 
         options := {};
@@ -37,6 +30,19 @@ class Clobber extends GridGame
 
         return options;
 
+    end
+
+    public property CharMap.get
+        return ".xo";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone
+        ];
     end
 
 end

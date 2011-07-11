@@ -133,14 +133,12 @@ public class GridEditorPanel extends EditorPanel
      * @param   permissions The permissions for this
      *          <code>GridEditorPanel</code>.
      */
-    public GridEditorPanel(CgsuiteClass type, Grid initialGrid)
+    public GridEditorPanel(CgsuiteClass type, Grid initialGrid, CgsuiteList iconList)
     {
         super();
 
         this.type = type;
         this.permissions = EnumSet.allOf(Permission.class);
-
-        CgsuiteList iconList = (CgsuiteList) type.resolve("Icons");
         
         this.icons = new Icon[iconList.size()];
         for (int i = 0; i < iconList.size(); i++)

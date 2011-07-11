@@ -1,13 +1,5 @@
 class Amazons extends GridGame
 
-    private static var CharMap := ".xo#";
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.BlackQueen,
-        GridIcon.WhiteQueen,
-        GridIcon.BlackStone
-        ];
-
     public method Amazons(Grid grid)
         this.GridGame(grid);
     end
@@ -54,6 +46,20 @@ class Amazons extends GridGame
 
         return options;
 
+    end
+    
+    public property CharMap.get
+        return ".xo#";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackQueen,
+            GridIcon.WhiteQueen,
+            GridIcon.BlackStone
+        ];
     end
 
 end

@@ -6,7 +6,7 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
         if grid.Class == Grid then
             this.grid := grid;
         elseif grid.Class == String then
-            this.grid := Grid.ParseGrid(grid, this.Class.CharMap);
+            this.grid := Grid.ParseGrid(grid, this.CharMap);
         else
             error("GridGame must be initialized with a String or a Grid object.");
         end
@@ -17,7 +17,7 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
     end
 
     public property ToString.get
-        return this.Class.Name + "(" + this.grid.MapString(this.Class.CharMap) + ")";
+        return this.Class.Name + "(" + this.grid.MapString(this.CharMap) + ")";
     end
     
 end

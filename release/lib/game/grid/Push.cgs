@@ -1,12 +1,5 @@
 class Push extends GridGame
 
-    private static var CharMap := ".xo";
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.BlackStone,
-        GridIcon.WhiteStone
-        ];
-
     public method Push(grid)
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
@@ -38,4 +31,17 @@ class Push extends GridGame
 
     end
     
+    public property CharMap.get
+        return ".xo";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone
+        ];
+    end
+
 end

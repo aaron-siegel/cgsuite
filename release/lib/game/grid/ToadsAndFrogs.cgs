@@ -1,12 +1,5 @@
 class ToadsAndFrogs extends GridGame
 
-    private static var CharMap := ".tf";
-    private static var Icons := [
-        GridIcon.Blank,
-        GridIcon.Toad,
-        GridIcon.Frog
-        ];
-
     private var backsliding;
 
     public method ToadsAndFrogs(grid, backsliding ? false)
@@ -51,6 +44,19 @@ class ToadsAndFrogs extends GridGame
 
         return options;
 
+    end
+
+    public property CharMap.get
+        return ".tf";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.Toad,
+            GridIcon.Frog
+        ];
     end
 
     /*
