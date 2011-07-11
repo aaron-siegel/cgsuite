@@ -6,7 +6,6 @@ package org.cgsuite.ui.browser;
 
 import java.io.File;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
 import org.cgsuite.lang.CgsuitePackage;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
@@ -95,7 +94,6 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 
         try
         {
-            BoxLayout b;
             this.fs = new LocalFileSystem();
             this.fs.setRootDirectory((File) evt.getItem());
             this.root = fs.getRoot();
