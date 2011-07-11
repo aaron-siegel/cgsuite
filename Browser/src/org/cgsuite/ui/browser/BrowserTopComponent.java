@@ -6,6 +6,8 @@ package org.cgsuite.ui.browser;
 
 import java.io.File;
 import java.util.logging.Logger;
+import javax.swing.ActionMap;
+import javax.swing.text.DefaultEditorKit;
 import org.cgsuite.lang.CgsuitePackage;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
@@ -16,6 +18,7 @@ import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.explorer.view.BeanTreeView;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.LocalFileSystem;
 import org.openide.loaders.DataObject;
 import org.openide.util.Lookup;
@@ -32,7 +35,6 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "BrowserTopComponent";
 
-    private LocalFileSystem fs;
     private FileObject root;
     private DataObject rootDataObject;
     private ExplorerManager em;
@@ -45,26 +47,36 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
-
+        
         try
         {
-            this.fs = new LocalFileSystem();
-            this.fs.setRootDirectory(CgsuitePackage.USER_FOLDER);
+            LocalFileSystem fs = new LocalFileSystem();
+            fs.setRootDirectory(CgsuitePackage.USER_FOLDER);
+            fs.setReadOnly(false);
             this.root = fs.getRoot();
-            this.rootDataObject = DataObject.find(this.root);
+            this.rootDataObject = DataObject.find(root);
         }
         catch (Exception exc)
         {
         }
 
+        ActionMap map = getActionMap();
+        
         this.em = new ExplorerManager();
-        this.lookup = ExplorerUtils.createLookup(this.em, getActionMap());
+        this.lookup = ExplorerUtils.createLookup(this.em, map);
         this.associateLookup(this.lookup);
+
+        map.put(DefaultEditorKit.copyAction, ExplorerUtils.actionCopy(em));
+        map.put(DefaultEditorKit.cutAction, ExplorerUtils.actionCut(em));
+        map.put(DefaultEditorKit.pasteAction, ExplorerUtils.actionPaste(em));
+        map.put("delete", ExplorerUtils.actionDelete(em, true));
+        
         this.em.setRootContext(rootDataObject.getNodeDelegate());
         
-        jComboBox1.removeAllItems();
         jComboBox1.addItem(CgsuitePackage.USER_FOLDER);
         jComboBox1.addItem(CgsuitePackage.LIB_FOLDER);
+        if (System.getProperty("org.cgsuite.devbuild") != null)
+            jComboBox1.addItem("System Filesystem (for developers)");
     }
 
     /** This method is called from within the constructor to
@@ -80,7 +92,6 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 
         setLayout(new java.awt.BorderLayout());
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jComboBox1.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jComboBox1ItemStateChanged(evt);
@@ -94,9 +105,18 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 
         try
         {
-            this.fs = new LocalFileSystem();
-            this.fs.setRootDirectory((File) evt.getItem());
-            this.root = fs.getRoot();
+            if ("System Filesystem (for developers)".equals(evt.getItem()))
+            {
+                this.root = FileUtil.getConfigRoot();
+            }
+            else
+            {
+                LocalFileSystem fs = new LocalFileSystem();
+                fs.setRootDirectory((File) evt.getItem());
+                fs.setReadOnly(false);
+                this.root = fs.getRoot();
+            }
+            
             this.rootDataObject = DataObject.find(this.root);
             this.em.setRootContext(rootDataObject.getNodeDelegate());
         }

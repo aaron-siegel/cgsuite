@@ -5,12 +5,18 @@
         <folder name="folder">
             <folder name="any">
                 <folder name="Actions">
+                    <file name="FindAction.shadow_hidden"/>
                     <file name="NewProjectFile.instance_hidden"/>
+                    <file name="RefactoringAll.shadow_hidden"/>
+                    <file name="ToolsAction.shadow_hidden"/>
                     <file name="org-cgsuite-filetype-cgscript-actions-NewCgsuiteFileAction.instance">
-                        <!--<attr name="instanceClass" stringvalue="org.netbeans.modules.project.ui.actions.NewFile"/>-->
                         <attr name="instanceClass" stringvalue="org.cgsuite.filetype.cgscript.actions.NewCgsuiteFileAction"/>
                         <attr name="position" intvalue="200"/>
                         <attr name="misplaced.action.allowed" boolvalue="true"/>
+                    </file>
+                    <file name="org-openide-actions-RenameAction.shadow">
+                        <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-RenameAction.instance"/>
+                        <attr name="position" intvalue="700"/>
                     </file>
                 </folder>
             </folder>
@@ -50,17 +56,9 @@
                         <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-SaveAsTemplateAction.instance"/>
                         <attr name="position" intvalue="900"/>
                     </file>
-                    <file name="org-openide-actions-ToolsAction.shadow">
-                        <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-ToolsAction.instance"/>
-                        <attr name="position" intvalue="1300"/>
-                    </file>
                     <file name="sep-1.instance">
                         <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
                         <attr name="position" intvalue="200"/>
-                    </file>
-                    <file name="sep-2.instance">
-                        <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
-                        <attr name="position" intvalue="500"/>
                     </file>
                     <file name="sep-3.instance">
                         <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
