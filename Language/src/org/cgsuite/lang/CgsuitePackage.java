@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.filechooser.FileSystemView;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -31,6 +32,7 @@ public class CgsuitePackage implements FileChangeListener
     private final static Logger log = Logger.getLogger(CgsuitePackage.class.getName());
 
     public final static File LIB_FOLDER;
+    public final static File USER_FOLDER;
     public final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
     public final static List<CgsuitePackage> ROOT_IMPORT = Collections.singletonList(ROOT_PACKAGE);
     
@@ -41,9 +43,27 @@ public class CgsuitePackage implements FileChangeListener
         PACKAGE_LOOKUP.put("", ROOT_PACKAGE);
         try
         {
-            //LIB_FOLDER = InstalledFileLocator.getDefault().locate("lib", "org.cgsuite", false);
-            LIB_FOLDER = new File("/Users/asiegel/NetBeansProjects/CGSuite/release/lib/");
+            boolean isDevBuild = false;
+            
+            String devbuildPath = System.getProperty("org.cgsuite.devbuild");
+            
+            if (devbuildPath == null)
+            {
+                // Release build.
+                LIB_FOLDER = InstalledFileLocator.getDefault().locate("lib", "org.cgsuite", false);
+            }
+            else
+            {
+                // Dev build.  Point lib folder to dev tree for easy editing.
+                LIB_FOLDER = new File(new File(devbuildPath, "release"), "lib");
+            }
+            USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
+            
+            if (!USER_FOLDER.exists())
+                USER_FOLDER.mkdir();
+            
             ROOT_PACKAGE.addFolder(LIB_FOLDER);
+            ROOT_PACKAGE.addFolder(USER_FOLDER);
         }
         catch (IOException exc)
         {
@@ -101,6 +121,9 @@ public class CgsuitePackage implements FileChangeListener
 
     private void addSubpackage(FileObject node)
     {
+        if (node.getName().startsWith("."))
+            return;
+        
         String subpackageName = packageName + (packageName.isEmpty() ? "" : ".") + node.getName();
         if (!PACKAGE_LOOKUP.containsKey(subpackageName))
             PACKAGE_LOOKUP.put(subpackageName, new CgsuitePackage(subpackageName));

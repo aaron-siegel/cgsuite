@@ -4,7 +4,9 @@
  */
 package org.cgsuite.ui.browser;
 
+import java.io.File;
 import java.util.logging.Logger;
+import javax.swing.BoxLayout;
 import org.cgsuite.lang.CgsuitePackage;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
@@ -31,6 +33,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "BrowserTopComponent";
 
+    private LocalFileSystem fs;
     private FileObject root;
     private DataObject rootDataObject;
     private ExplorerManager em;
@@ -46,8 +49,8 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 
         try
         {
-            LocalFileSystem fs = new LocalFileSystem();
-            fs.setRootDirectory(CgsuitePackage.LIB_FOLDER);
+            this.fs = new LocalFileSystem();
+            this.fs.setRootDirectory(CgsuitePackage.USER_FOLDER);
             this.root = fs.getRoot();
             this.rootDataObject = DataObject.find(this.root);
         }
@@ -60,6 +63,9 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         this.associateLookup(this.lookup);
         this.em.setRootContext(rootDataObject.getNodeDelegate());
         
+        jComboBox1.removeAllItems();
+        jComboBox1.addItem(CgsuitePackage.USER_FOLDER);
+        jComboBox1.addItem(CgsuitePackage.LIB_FOLDER);
     }
 
     /** This method is called from within the constructor to
@@ -76,9 +82,30 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         setLayout(new java.awt.BorderLayout());
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBox1.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBox1ItemStateChanged(evt);
+            }
+        });
         add(jComboBox1, java.awt.BorderLayout.PAGE_START);
         add(jScrollPane1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jComboBox1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBox1ItemStateChanged
+
+        try
+        {
+            BoxLayout b;
+            this.fs = new LocalFileSystem();
+            this.fs.setRootDirectory((File) evt.getItem());
+            this.root = fs.getRoot();
+            this.rootDataObject = DataObject.find(this.root);
+            this.em.setRootContext(rootDataObject.getNodeDelegate());
+        }
+        catch (Exception exc)
+        {
+        }
+    }//GEN-LAST:event_jComboBox1ItemStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox jComboBox1;

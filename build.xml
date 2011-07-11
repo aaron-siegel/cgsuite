@@ -4,5 +4,6 @@
 <!-- If you delete this file and reopen the project it will be recreated. -->
 <project name="CGSuite" basedir=".">
     <description>Builds the module suite CGSuite.</description>
+    <property name="run.args.extra" value="-J-Dorg.cgsuite.devbuild=${basedir}"/>
     <import file="nbproject/build-impl.xml"/>
 </project>
