@@ -4,6 +4,7 @@
  */
 package org.cgsuite.filetype.cgscript.actions;
 
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.BeanInfo;
@@ -11,9 +12,11 @@ import java.io.IOException;
 import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.UIManager;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionID;
@@ -115,7 +118,12 @@ public final class NewCgsuiteFileAction extends AbstractAction implements Contex
         for (int i = 0; i < templates.length; i++)
         {
             Node n = templates[i].getNodeDelegate();
-            JMenuItem item = new JMenuItem(n.getDisplayName(), new ImageIcon(n.getIcon(BeanInfo.ICON_COLOR_16x16)));
+            Icon icon;
+            if ("Package".equals(n.getDisplayName()))
+                icon = new ImageIcon((Image) UIManager.get("Nb.Explorer.Folder.icon"));
+            else
+                icon = new ImageIcon(n.getIcon(BeanInfo.ICON_COLOR_16x16));
+            JMenuItem item = new JMenuItem(n.getDisplayName(), icon);
             item.addActionListener(this);
             item.putClientProperty("template", templates[i]);
             item.setEnabled(canWrite);
