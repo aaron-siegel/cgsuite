@@ -129,11 +129,15 @@ tokens
 	EXPRESSION_LIST;
 	FUNCTION_CALL;
 	FUNCTION_CALL_ARGUMENT_LIST;
+    LISTOF_DO;
+    LISTOF_IN;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
 	MULTI_CARET;
 	MULTI_VEE;
     PROCEDURE_PARAMETER_LIST;
+    SETOF_DO;
+    SETOF_IN;
 	STATEMENT_SEQUENCE;
     UNARY_AST;
 	UNARY_MINUS;
@@ -526,8 +530,8 @@ primaryExpr
 	| (LBRACE expression? BIGRARROW) => explicitMap
 	| explicitSet
 	| explicitList
-    | SETOF LPAREN expression inLoopAntecedent RPAREN -> ^(SETOF expression inLoopAntecedent)
-    | LISTOF^ LPAREN! expression inLoopAntecedent RPAREN!
+    | setof
+    | listof
 	;
 
 explicitGame
@@ -592,6 +596,18 @@ explicitSet
 explicitList
 	: LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
 	;
+
+setof
+    : SETOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(SETOF_IN[$SETOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                              | doLoopAntecedent RPAREN -> ^(SETOF_DO[$SETOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                              )
+    ;
+
+listof
+    : LISTOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(LISTOF_IN[$LISTOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                               | doLoopAntecedent RPAREN -> ^(LISTOF_DO[$LISTOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                               )
+    ;
 
 expressionList
     : (expression (COMMA expression)*)? -> ^(EXPRESSION_LIST expression*)

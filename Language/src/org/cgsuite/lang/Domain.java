@@ -221,17 +221,19 @@ public class Domain
 
             case DO:
                 
-                return doLoop(tree);
+                return doLoop(tree, null);
 
             case IN:
 
-                return inLoop(tree);
+                return inLoop(tree, null);
 
-            case SETOF:
+            case SETOF_IN:
+            case SETOF_DO:
 
                 return setOf(tree);
                 
-            case LISTOF:
+            case LISTOF_IN:
+            case LISTOF_DO:
                 
                 return listOf(tree);
 
@@ -529,7 +531,7 @@ public class Domain
         }
     }
 
-    private CgsuiteObject doLoop(CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteObject doLoop(CgsuiteTree tree, CgsuiteCollection target) throws CgsuiteException
     {
         String forId = null;
         CgsuiteObject fromG = null;
@@ -644,10 +646,15 @@ public class Domain
                     retval = CgsuiteObject.NIL;
                     break;
                 }
-                if (mode == Mode.CONTINUING)
+                else if (mode == Mode.CONTINUING)
                 {
                     mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
+                }
+                else
+                {
+                    if (target != null)
+                        target.add(retval);
                 }
             }
 
@@ -661,13 +668,15 @@ public class Domain
         return retval;
     }
 
-    private CgsuiteObject inLoop(CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteObject inLoop(CgsuiteTree tree, CgsuiteCollection target) throws CgsuiteException
     {
-        String forId = tree.getChild(0).getText();
-        CgsuiteObject collection = expression(tree.getChild(1));
+        String forId;
+        CgsuiteObject collection;
         CgsuiteTree whereCondition = null;
-        CgsuiteTree body = null;
+        CgsuiteTree body;
 
+        forId = tree.getChild(0).getText();
+        collection = expression(tree.getChild(1));
         if (tree.getChild(2).getType() == WHERE)
         {
             whereCondition = tree.getChild(2).getChild(0);
@@ -693,16 +702,22 @@ public class Domain
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
                 retval = statementSequence(body);
+
                 if (mode == Mode.BREAKING)
                 {
                     mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
                     break;
                 }
-                if (mode == Mode.CONTINUING)
+                else if (mode == Mode.CONTINUING)
                 {
                     mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
+                }
+                else
+                {
+                    if (target != null)
+                        target.add(retval);
                 }
             }
         }
@@ -712,59 +727,34 @@ public class Domain
 
     private CgsuiteObject setOf(CgsuiteTree tree) throws CgsuiteException
     {
-        CgsuiteSet retval = new CgsuiteSet();
-        collectionOf(tree, retval);
-        return retval;
+        CgsuiteSet target = new CgsuiteSet();
+        switch (tree.getType())
+        {
+            case SETOF_IN:
+                inLoop(tree, target);
+                break;
+                
+            case SETOF_DO:
+                doLoop(tree, target);
+                break;
+        }
+        return target;
     }
     
     private CgsuiteObject listOf(CgsuiteTree tree) throws CgsuiteException
     {
-        CgsuiteList retval = new CgsuiteList();
-        collectionOf(tree, retval);
-        return retval;
-    }
-    
-    private void collectionOf(CgsuiteTree tree, CgsuiteCollection target) throws CgsuiteException
-    {
-        CgsuiteTree expr = tree.getChild(0);
-
-        String forId = tree.getChild(1).getText();
-        CgsuiteObject collection = expression(tree.getChild(2));
-        CgsuiteTree whereCondition = null;
-
-        if (tree.getChildCount() > 3)
+        CgsuiteList target = new CgsuiteList();
+        switch (tree.getType())
         {
-            whereCondition = tree.getChild(3).getChild(0);
+            case LISTOF_IN:
+                inLoop(tree, target);
+                break;
+                
+            case LISTOF_DO:
+                doLoop(tree, target);
+                break;
         }
-
-        if (!(collection instanceof CgsuiteCollection))
-        {
-            throw new InputException(tree.getToken(), "Not a valid collection.");
-        }
-
-        Iterator<CgsuiteObject> it = ((CgsuiteCollection) collection).iterator();
-
-        while (it.hasNext())
-        {
-            namespace.put(forId, it.next());
-            if (whereCondition == null || bool(expression(whereCondition), whereCondition))
-            {
-                CgsuiteObject obj = expression(expr);
-                if (mode == Mode.BREAKING)
-                {
-                    mode = Mode.NORMAL;
-                    break;
-                }
-                else if(mode == Mode.CONTINUING)
-                {
-                    mode = Mode.NORMAL;
-                }
-                else
-                {
-                    target.add(obj);
-                }
-            }
-        }
+        return target;
     }
 
     private CgsuiteObject binopExpression(CgsuiteTree tree) throws CgsuiteException
