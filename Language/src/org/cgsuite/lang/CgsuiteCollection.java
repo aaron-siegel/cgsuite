@@ -24,6 +24,8 @@ public abstract class CgsuiteCollection extends CgsuiteObject implements Iterabl
     {
         return getUnderlyingCollection().iterator();
     }
+    
+    public abstract void add(CgsuiteObject obj);
 
     public abstract Collection<CgsuiteObject> getUnderlyingCollection();
 }

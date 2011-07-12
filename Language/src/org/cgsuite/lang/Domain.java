@@ -230,6 +230,10 @@ public class Domain
             case SETOF:
 
                 return setOf(tree);
+                
+            case LISTOF:
+                
+                return listOf(tree);
 
             case IF:
             case ELSEIF:
@@ -439,7 +443,7 @@ public class Domain
 
                 CgsuiteMap map = new CgsuiteMap();
                 for (CgsuiteTree child : tree.getChildren())
-                    map.put(expression(child.getChild(0)).simplify(), expression(child.getChild(1)).simplify());
+                    map.put(expression(child.getChild(1)).simplify(), expression(child.getChild(0)).simplify());
                 return map;
 
             case EXPLICIT_SET:
@@ -708,6 +712,20 @@ public class Domain
 
     private CgsuiteObject setOf(CgsuiteTree tree) throws CgsuiteException
     {
+        CgsuiteSet retval = new CgsuiteSet();
+        collectionOf(tree, retval);
+        return retval;
+    }
+    
+    private CgsuiteObject listOf(CgsuiteTree tree) throws CgsuiteException
+    {
+        CgsuiteList retval = new CgsuiteList();
+        collectionOf(tree, retval);
+        return retval;
+    }
+    
+    private void collectionOf(CgsuiteTree tree, CgsuiteCollection target) throws CgsuiteException
+    {
         CgsuiteTree expr = tree.getChild(0);
 
         String forId = tree.getChild(1).getText();
@@ -726,8 +744,6 @@ public class Domain
 
         Iterator<CgsuiteObject> it = ((CgsuiteCollection) collection).iterator();
 
-        CgsuiteSet retval = new CgsuiteSet();
-
         while (it.hasNext())
         {
             namespace.put(forId, it.next());
@@ -745,12 +761,10 @@ public class Domain
                 }
                 else
                 {
-                    retval.add(obj);
+                    target.add(obj);
                 }
             }
         }
-
-        return retval;
     }
 
     private CgsuiteObject binopExpression(CgsuiteTree tree) throws CgsuiteException

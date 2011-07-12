@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.cgsuite.lang.explorer.DefaultEditorPanel;
-import org.cgsuite.lang.explorer.EditorPanel;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
@@ -24,7 +22,13 @@ public class CgsuiteObject
         @Override
         public String toString()
         {
-            return "";
+            return "nil";
+        }
+        
+        @Override
+        public CgsuiteString toCgsuiteString()
+        {
+            return new CgsuiteString("nil");
         }
     };
 
