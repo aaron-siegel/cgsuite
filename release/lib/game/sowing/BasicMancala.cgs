@@ -1,0 +1,69 @@
+/*
+ * BasicMancala.cgs
+ *
+ * Created by asiegel on Jul 11, 2011
+ */
+
+class BasicMancala extends Game
+
+    private var l, r;
+
+    public method BasicMancala(List l, List r)
+    
+        this.l := l;
+        this.r := r;
+    
+    end
+    
+    public method Options(Player player)
+    
+        if player == Player.Left then
+            us := this.l; them := this.r;
+        else
+            us := this.r; them := this.l;
+        end;
+        
+        options := {};
+        
+        for k from 1 to us.Length do
+        
+            if us[k] > 0 then
+                newUs := us.Copy();
+                newThem := them.Copy();
+                t := us[k];
+                newUs[k] := 0;
+                curpos := k;
+                while t > 0 do
+                    t := t-1;
+                    curpos := curpos+1;
+                    if curpos > newUs.Length + newThem.Length + 2 then
+                        curpos := 1;
+                    end;
+                    
+                    if curpos <= newUs.Length then
+                        newUs[curpos] := newUs[curpos] + 1;
+                    elseif curpos >= newUs.Length + 2 and curpos <= newUs.Length + 1 + newThem.Length then
+                        idx := newUs.Length + 2 + newThem.Length - curpos;
+                        newThem[idx] := newThem[idx] + 1;
+                    end
+                end;
+                if player == Player.Left then
+                    options.Add(BasicMancala(newUs, newThem));
+                else
+                    options.Add(BasicMancala(newThem, newUs));
+                end
+            end;
+        
+        end;
+            
+        return options;
+    
+    end
+    
+    public property ToString.get
+    
+        return "BasicMancala(" + this.l.ToString + "," + this.r.ToString + ")";
+    
+    end
+
+end
