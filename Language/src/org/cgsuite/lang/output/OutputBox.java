@@ -38,12 +38,19 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
 import java.awt.Stroke;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -80,7 +87,12 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     {
         setLayout(new LayoutManager()
         {
-            public void addLayoutComponent(String name, Component comp) {}
+            @Override
+            public void addLayoutComponent(String name, Component comp)
+            {
+            }
+            
+            @Override
             public void layoutContainer(Container parent)
             {
                 if (displayMoreButton != null)
@@ -89,15 +101,23 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
                         (size.width - displayMoreButton.getWidth(), size.height - displayMoreButton.getHeight());
                 }
             }
+            
+            @Override
             public Dimension minimumLayoutSize(Container parent)
             {
                 return size;
             }
+            
+            @Override
             public Dimension preferredLayoutSize(Container parent)
             {
                 return size;
             }
-            public void removeLayoutComponent(Component comp) {}
+            
+            @Override
+            public void removeLayoutComponent(Component comp)
+            {
+            }
         });
         /*
         copyAsMenu = new JMenu("Copy As");
@@ -113,18 +133,22 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         }});
         copyAsMenu.add(copyAsImageMenuItem);
         */
+        copyMenuItem = new JMenuItem("Copy");
+        copyMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copy();
+        }});
         JMenuItem qsave = new JMenuItem("QuickSave");
         qsave.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 quickSave();
         }});
         //copyAsMenu.add(copyAsTextMenuItem);
-        /*
+        
         mainPopupMenu = new JPopupMenu();
         mainPopupMenu.add(copyMenuItem);
         mainPopupMenu.add(qsave);
-         * 
-         */
+
         setBackground(Color.white);
         worksheetWidth = 0;
         size = new Dimension(0, 0);
@@ -216,16 +240,23 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         recalc();
     }
     
+    public void copy()
+    {
+        StringWriter sw = new StringWriter();
+        output.write(new PrintWriter(sw), Output.Mode.PLAIN_TEXT);
+        StringSelection text = new StringSelection(sw.toString());
+        getToolkit().getSystemClipboard().setContents(text, text);
+    }
+    
     private void quickSave()
     {
         try
         {
-            java.awt.image.BufferedImage image = new java.awt.image.BufferedImage
-                (size.width, size.height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
             output.paint((Graphics2D) image.getGraphics(), worksheetWidth);
-            javax.imageio.ImageIO.write(image, "png", new java.io.File("image.png"));
+            ImageIO.write(image, "png", new File("image.png"));
         }
-        catch (java.io.IOException exc)
+        catch (IOException exc)
         {
         }
     }
