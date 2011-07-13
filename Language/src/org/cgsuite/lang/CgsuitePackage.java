@@ -9,6 +9,7 @@ import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,17 +35,23 @@ public class CgsuitePackage implements FileChangeListener
     public final static File LIB_FOLDER;
     public final static File USER_FOLDER;
     public final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
-    public final static List<CgsuitePackage> ROOT_IMPORT = Collections.singletonList(ROOT_PACKAGE);
+    public final static CgsuitePackage LANG_PACKAGE = new CgsuitePackage("cgsuite.lang");
+    public final static CgsuitePackage UI_PACKAGE   = new CgsuitePackage("cgsuite.ui");
+    public final static CgsuitePackage UTIL_PACKAGE = new CgsuitePackage("cgsuite.util");
+    public final static CgsuitePackage GAME_PACKAGE = new CgsuitePackage("game");
+    public final static List<CgsuitePackage> DEFAULT_IMPORT = Arrays.asList
+        (new CgsuitePackage[] { ROOT_PACKAGE, LANG_PACKAGE, UI_PACKAGE, UTIL_PACKAGE, GAME_PACKAGE });
     
     private final static Map<String,CgsuitePackage> PACKAGE_LOOKUP = new HashMap<String,CgsuitePackage>();
 
     static
     {
-        PACKAGE_LOOKUP.put("", ROOT_PACKAGE);
+        for (CgsuitePackage pkg : DEFAULT_IMPORT)
+        {
+            PACKAGE_LOOKUP.put(pkg.getName(), pkg);
+        }
         try
         {
-            boolean isDevBuild = false;
-            
             String devbuildPath = System.getProperty("org.cgsuite.devbuild");
             
             if (devbuildPath == null)
@@ -73,14 +80,12 @@ public class CgsuitePackage implements FileChangeListener
 
     private String packageName;
     private List<FileObject> folders;
-    private Map<String,CgsuitePackage> subpackages;
     private Map<String,CgsuiteClass> classes;
 
     public CgsuitePackage(String packageName)
     {
         this.packageName = packageName;
         this.folders = new ArrayList<FileObject>();
-        this.subpackages = new HashMap<String,CgsuitePackage>();
         this.classes = new HashMap<String,CgsuiteClass>();
     }
 
@@ -160,7 +165,12 @@ public class CgsuitePackage implements FileChangeListener
 
     public static CgsuiteClass forceLookupClass(String name)
     {
-        return forceLookupClass(name, ROOT_IMPORT);
+        return forceLookupClass(name, DEFAULT_IMPORT);
+    }
+    
+    public static CgsuiteClass forceLookupClass(String name, CgsuitePackage pkg)
+    {
+        return forceLookupClass(name, Collections.singletonList(pkg));
     }
 
     public static CgsuiteClass forceLookupClass(String name, List<CgsuitePackage> packages)

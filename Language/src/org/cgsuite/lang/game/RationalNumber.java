@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.EnumSet;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
-import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.StyledTextOutput;

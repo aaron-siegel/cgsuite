@@ -37,7 +37,7 @@ import org.openide.util.RequestProcessor;
 public class CalculationCapsule implements Runnable
 {
     private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
-    private final static Domain WORKSPACE_DOMAIN = new Domain(CgsuitePackage.ROOT_IMPORT);
+    private final static Domain WORKSPACE_DOMAIN = new Domain(CgsuitePackage.DEFAULT_IMPORT);
 
     public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(WorksheetPanel.class);
 
@@ -88,7 +88,7 @@ public class CalculationCapsule implements Runnable
                 output = new Output[] { invoke(tree) };
             }
         }
-        catch (Exception exc)
+        catch (Throwable exc)
         {
             output = getExceptionOutput(text, exc, false);
             isErrorOutput = true;
@@ -150,7 +150,7 @@ public class CalculationCapsule implements Runnable
         return output;
     }
 
-    private static Output[] getExceptionOutput(String input, Exception exc, boolean includeLine)
+    private static Output[] getExceptionOutput(String input, Throwable exc, boolean includeLine)
     {
         if (exc instanceof RecognitionException)
         {
@@ -248,7 +248,7 @@ public class CalculationCapsule implements Runnable
             );
     }
 
-    private static String getMessageForException(Exception exc)
+    private static String getMessageForException(Throwable exc)
     {
         if (exc instanceof InputException)
         {

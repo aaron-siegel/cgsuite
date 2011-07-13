@@ -284,8 +284,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.objectNamespace.clear();
         
         this.imports = new ArrayList<CgsuitePackage>();
-        this.imports.add(CgsuitePackage.ROOT_PACKAGE);
-        if (!enclosingPackage.equals(CgsuitePackage.ROOT_PACKAGE))
+        this.imports.addAll(CgsuitePackage.DEFAULT_IMPORT);
+        if (!CgsuitePackage.DEFAULT_IMPORT.contains(enclosingPackage))
             this.imports.add(enclosingPackage);
 
         this.parents = new HashSet<CgsuiteClass>();
@@ -743,14 +743,14 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case IDENTIFIER:
 
                 parameterName = tree.getText();
-                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.getRootPackage().forceLookupClassInPackage(tree.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText()) : CgsuiteClass.OBJECT;
                 return new Parameter(parameterName, parameterType, false, null);
 
             case QUESTION:
 
                 CgsuiteTree subt = tree.getChild(0);
                 parameterName = subt.getText();
-                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.getRootPackage().forceLookupClassInPackage(subt.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText()) : CgsuiteClass.OBJECT;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
                 return new Parameter(parameterName, parameterType, true, defaultValue);
 

@@ -61,11 +61,12 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         treeScrollPane.getViewport().setBackground(Color.white);
         analysisScrollPane.getViewport().setBackground(Color.white);
         analysisWorksheetPanel.clear();
+        inputPanel.getInputPane().activate();
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
         setToolTipText(NbBundle.getMessage(ExplorerTopComponent.class, "HINT_ExplorerTopComponent"));
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
 
-        explorerDomain = new Domain(CgsuitePackage.ROOT_IMPORT);
+        explorerDomain = new Domain(CgsuitePackage.DEFAULT_IMPORT);
     }
 
     public void setExplorer(Explorer explorer)
