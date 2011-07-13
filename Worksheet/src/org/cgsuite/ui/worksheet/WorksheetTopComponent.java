@@ -22,12 +22,15 @@ public final class WorksheetTopComponent extends TopComponent
 
     private static WorksheetTopComponent instance;
     /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "org/cgsuite/ui/worksheet/thermograph.png";
+    private static final String ICON_PATH = "org/cgsuite/ui/worksheet/thermograph.png";
     private static final String PREFERRED_ID = "WorksheetTopComponent";
 
     public WorksheetTopComponent()
     {
         initComponents();
+        // Background color needs to be set by hand since the default is
+        // platform-dependent (and this confuses the form editor)
+        jScrollPane1.setBackground(Color.white);
         jScrollPane1.getViewport().setBackground(Color.white);
         setName(NbBundle.getMessage(WorksheetTopComponent.class, "CTL_WorksheetTopComponent"));
         setToolTipText(NbBundle.getMessage(WorksheetTopComponent.class, "HINT_WorksheetTopComponent"));

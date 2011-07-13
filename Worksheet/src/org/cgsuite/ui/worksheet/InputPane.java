@@ -43,11 +43,18 @@ public class InputPane extends JEditorPane
     
     public void activate()
     {
-        NbEditorKit kit = new NbEditorKit();
-        NbEditorDocument doc = new NbEditorDocument("text/x-cgscript");
+        try
+        {
+            NbEditorKit kit = new NbEditorKit();
+            NbEditorDocument doc = new NbEditorDocument("text/x-cgscript");
 
-        setEditorKit(kit);
-        setDocument(doc);
+            setEditorKit(kit);
+            setDocument(doc);
+        }
+        catch (Exception exc)
+        {
+            setEnabled(false);
+        }
     }
     
     public void deactivate()

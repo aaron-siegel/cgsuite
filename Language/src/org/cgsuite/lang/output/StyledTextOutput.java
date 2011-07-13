@@ -43,12 +43,13 @@ import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedCharacterIterator.Attribute;
-import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -75,14 +76,14 @@ import java.util.Stack;
  */
 public class StyledTextOutput implements Output
 {
-    private static java.util.Map<FontKey,Font> fontCache;
-    private static java.util.Map<FontKey,AffineTransform> transformCache;
+    private static Map<FontKey,Font> fontCache;
+    private static Map<FontKey,AffineTransform> transformCache;
     private final static Font SANS_SERIF_FONT, MONOSPACED_FONT, SYMBOL_FONT;
     
     static
     {
-        fontCache = new java.util.HashMap<FontKey,Font>();
-        transformCache = new java.util.HashMap<FontKey,AffineTransform>();
+        fontCache = new HashMap<FontKey,Font>();
+        transformCache = new HashMap<FontKey,AffineTransform>();
         SANS_SERIF_FONT = new Font("SansSerif", Font.PLAIN, 20);
         MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 16);
         
@@ -95,7 +96,7 @@ public class StyledTextOutput implements Output
         }
         catch (Exception exc)
         {
-            throw new RuntimeException("Could not load symbol fonts.");
+            throw new RuntimeException("Could not load symbol fonts.", exc);
         }
     }
     
@@ -739,11 +740,12 @@ public class StyledTextOutput implements Output
     
     // Cached layout data for rapid repainting
     
-    private java.util.List<LayoutInfo> layouts = new ArrayList<LayoutInfo>();
+    private List<LayoutInfo> layouts = new ArrayList<LayoutInfo>();
     private int activeMeasurerLength;
     private int widthOfLayouts;
     private Dimension size;
     
+    @Override
     public Dimension getSize(int preferredWidth)
     {
         return getSize(preferredWidth, -1);
@@ -755,6 +757,7 @@ public class StyledTextOutput implements Output
         return size;
     }
     
+    @Override
     public void paint(Graphics2D g, int preferredWidth)
     {
         paint(g, preferredWidth, -1);
@@ -869,6 +872,7 @@ public class StyledTextOutput implements Output
             next();
         }
         
+        @Override
         public STOCharacterIterator clone()
         {
             STOCharacterIterator clone = new STOCharacterIterator(maxLength);
@@ -879,6 +883,7 @@ public class StyledTextOutput implements Output
             return clone;
         }
         
+        @Override
         public char current()
         {
             if (blockStack.size() == 1 || index == maxLength)
@@ -909,6 +914,7 @@ public class StyledTextOutput implements Output
             }
         }
         
+        @Override
         public char first()
         {
             index = -1;
@@ -921,27 +927,32 @@ public class StyledTextOutput implements Output
             return next();
         }
 
+        @Override
         public int getBeginIndex()
         {
             return 0;
         }
 
+        @Override
         public int getEndIndex()
         {
             return Math.min(maxLength, blockStack.firstElement().totalLength(Mode.GRAPHICAL));
         }
 
+        @Override
         public int getIndex()
         {
             return index;
         }
 
+        @Override
         public char last()
         {
             return setIndex(getEndIndex()-1);
         }
 
-        public char next()
+        @Override
+        public final char next()
         {
             advance();
             return current();
@@ -975,6 +986,7 @@ public class StyledTextOutput implements Output
             }
         }
         
+        @Override
         public char previous()
         {
             retreat();
@@ -1008,6 +1020,7 @@ public class StyledTextOutput implements Output
             }
         }
 
+        @Override
         public char setIndex(int newIndex)
         {
             while (index < newIndex)
@@ -1031,6 +1044,7 @@ public class StyledTextOutput implements Output
             return styles;
         }
         
+        @Override
         public Set<Attribute> getAllAttributeKeys()
         {
             return ATTRIBUTE_KEYS;
@@ -1039,6 +1053,7 @@ public class StyledTextOutput implements Output
         private static boolean IS_VERSION_6 =
             (System.getProperty("java.version").compareTo("1.6") >= 0);
         
+        @Override
         public Object getAttribute(Attribute attribute)
         {
             if (attribute.equals(TextAttribute.FONT))
@@ -1085,6 +1100,7 @@ public class StyledTextOutput implements Output
             }
         }
         
+        @Override
         public Map<Attribute,Object> getAttributes()
         {
             Map<Attribute,Object> attributes =
@@ -1096,31 +1112,37 @@ public class StyledTextOutput implements Output
             return attributes;
         }
 
+        @Override
         public int getRunLimit()
         {
             return index + 1;
         }
 
+        @Override
         public int getRunLimit(Set<? extends Attribute> set)
         {
             return getRunLimit();
         }
 
+        @Override
         public int getRunLimit(Attribute attribute)
         {
             return getRunLimit();
         }
 
+        @Override
         public int getRunStart()
         {
             return index - curPosStack.peek();
         }
 
+        @Override
         public int getRunStart(Attribute attribute)
         {
             return getRunStart();
         }
 
+        @Override
         public int getRunStart(Set set)
         {
             return getRunStart();
@@ -1137,22 +1159,26 @@ public class StyledTextOutput implements Output
             this.output = output;
         }
         
+        @Override
         public void draw(Graphics2D g, float x, float y)
         {
             Dimension size = output.getSize(0);
             output.paint((Graphics2D) g.create((int) x, (int) (y-getAscent()), size.width, size.height), 0);
         }
         
+        @Override
         public float getAdvance()
         {
             return output.getSize(0).width;
         }
         
+        @Override
         public float getAscent()
         {
             return output.getSize(0).height;
         }
         
+        @Override
         public float getDescent()
         {
             return 0.0f;
@@ -1166,7 +1192,7 @@ public class StyledTextOutput implements Output
         String text;
         Output embeddedOutput;
         Symbol symbol;
-        java.util.List<Block> subBlocks;
+        List<Block> subBlocks;
         
         public Block(String text)
         {
@@ -1222,10 +1248,7 @@ public class StyledTextOutput implements Output
             this.styles = styles;
             this.modes = modes;
             this.subBlocks = new ArrayList<Block>(subBlocks.length);
-            for (int i = 0; i < subBlocks.length; i++)
-            {
-                this.subBlocks.add(subBlocks[i]);
-            }
+            this.subBlocks.addAll(Arrays.asList(subBlocks));
         }
         
         public Block(EnumSet<Mode> modes, Output embeddedOutput)
@@ -1380,11 +1403,13 @@ public class StyledTextOutput implements Output
             this.symbol = symbol;
         }
         
+        @Override
         public int hashCode()
         {
             return styles.hashCode() ^ (symbol == null ? 0 : symbol.hashCode());
         }
         
+        @Override
         public boolean equals(Object obj)
         {
             return obj instanceof FontKey && styles.equals(((FontKey) obj).styles) &&

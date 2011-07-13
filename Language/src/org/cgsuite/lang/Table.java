@@ -171,6 +171,7 @@ public class Table extends CgsuiteCollection
         return format.contains(Format.GRID_LINES_HORIZONTAL);
     }
     
+    @Override
     public Output toOutput()
     {
         return new TableOutput(this);

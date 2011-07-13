@@ -13,12 +13,10 @@ import java.text.CharacterIterator;
  */
 public class CgBreakIterator extends BreakIterator
 {
-    private BreakIterator underlying;
     private CharacterIterator text;
             
     public CgBreakIterator()
     {
-        underlying = BreakIterator.getLineInstance();
     }
 
     @Override

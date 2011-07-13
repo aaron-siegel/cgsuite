@@ -4,6 +4,9 @@
  */
 package org.cgsuite.lang.output;
 
+import java.awt.Dimension;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.EnumSet;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.Table;
@@ -22,7 +25,7 @@ public class TableOutput implements Output
     {
         numColumns = table.getNumColumns();
         maxCellWidth = table.getMaxCellWidth();
-        format = (EnumSet<Table.Format>) table.getFormat().clone();
+        format = table.getFormat().clone();
         cells = new Output[table.getNumRows()][];
         
         for (int i = 0; i < cells.length; i++)
@@ -39,7 +42,8 @@ public class TableOutput implements Output
         }
     }
     
-    public java.awt.Dimension getSize(int preferredWidth)
+    @Override
+    public Dimension getSize(int preferredWidth)
     {
         int hSpace, vSpace;
         if (format.contains(Table.Format.GRID_LINES_HORIZONTAL))
@@ -96,9 +100,10 @@ public class TableOutput implements Output
         return new java.awt.Dimension(width, height);
     }
     
+    @Override
     public void paint(java.awt.Graphics2D g, int preferredWidth)
     {
-        java.awt.Dimension size = getSize(0);
+        Dimension size = getSize(0);
         
         g.setBackground(java.awt.Color.white);
         g.setColor(java.awt.Color.black);
@@ -177,7 +182,7 @@ public class TableOutput implements Output
                     g.hitClip(hPos + hSpace + 1, vPos + vSpace + 1, colWidth[j], rowHeight[i]))
                 {
                     // Center this cell in the table.
-                    java.awt.Dimension cellSize = cells[i][j].getSize(0);
+                    Dimension cellSize = cells[i][j].getSize(0);
                     int topEdge = (rowHeight[i] - cellSize.height) / 2;
                     int leftEdge = (colWidth[j] - cellSize.width) / 2;
                     if (g.hitClip(hPos+hSpace+1+leftEdge, vPos+vSpace+1+topEdge, cellSize.width, cellSize.height))
@@ -191,7 +196,8 @@ public class TableOutput implements Output
         }
     }
     
-    public void write(java.io.PrintWriter out, Output.Mode mode)
+    @Override
+    public void write(PrintWriter out, Output.Mode mode)
     {
         if (mode != Output.Mode.PLAIN_TEXT)
         {
@@ -209,8 +215,8 @@ public class TableOutput implements Output
                 }
                 else
                 {
-                    java.io.StringWriter sw = new java.io.StringWriter();
-                    java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+                    StringWriter sw = new java.io.StringWriter();
+                    PrintWriter pw = new java.io.PrintWriter(sw);
                     cells[i][j].write(pw, mode);
                     outputStrings[i*numColumns+j] = sw.toString();
                     int width = stringWidth(outputStrings[i*numColumns+j]);
@@ -224,7 +230,7 @@ public class TableOutput implements Output
             }
         }
         
-        StringBuffer outputString = new StringBuffer();
+        StringBuilder outputString = new StringBuilder();
         
         int[] cellWidths = new int[numColumns];
         int[] columnRowOffsets = new int[numColumns];
@@ -232,13 +238,16 @@ public class TableOutput implements Output
         String hyph="-----------------";
         String rowSep = "\n";
 
-        if (format.contains(Table.Format.GRID_LINES_HORIZONTAL) && cells.length > 1) {
-            StringBuffer hLine = new StringBuffer();
+        if (format.contains(Table.Format.GRID_LINES_HORIZONTAL) && cells.length > 1)
+        {
+            StringBuilder hLine = new StringBuilder();
             hLine.append("\n");
-            for (int j = 0; j < numColumns; j++) {
+            for (int j = 0; j < numColumns; j++)
+            {
                 while (hyph.length() <= columnWidths[j]) hyph = hyph.concat(hyph);
                 hLine.append(hyph.substring(0,columnWidths[j]));
-                if (j < numColumns-1) {
+                if (j < numColumns-1)
+                {
                     hLine.append(format.contains(Table.Format.GRID_LINES_VERTICAL)
                                  ? "-+-" : "-");
                 }
@@ -289,14 +298,16 @@ public class TableOutput implements Output
         out.print(outputString.toString());
     }
 
-    private int stringWidth(String s) {
+    private int stringWidth(String s)
+    {
         int nextNewline=s.indexOf('\n');
         if (nextNewline < 0)
         {
             return s.length();
         }
         int stringWidth=nextNewline;
-        for (int pos=nextNewline+1; pos<s.length(); pos=nextNewline+1) {
+        for (int pos=nextNewline+1; pos<s.length(); pos=nextNewline+1)
+        {
             nextNewline=s.indexOf('\n',pos);
             if (nextNewline < 0)
             {
@@ -310,7 +321,8 @@ public class TableOutput implements Output
         return stringWidth;
     }
 
-    private String nthRow(String s, int n) {
+    private String nthRow(String s, int n)
+    {
         if (n < 0) return "";
         int nextNewline = s.indexOf('\n');
         if(nextNewline<0) return n==0 ? s : "";
@@ -324,10 +336,12 @@ public class TableOutput implements Output
         return s.substring(pos,nextNewline < 0 ? s.length() : nextNewline);
     }
 
-    private int stringHeight(String s) {
+    private int stringHeight(String s)
+    {
         int stringHeight=0;
         int nextNewline;
-        for (int pos=0; pos<s.length(); pos=nextNewline+1) {
+        for (int pos=0; pos<s.length(); pos=nextNewline+1)
+        {
             nextNewline=s.indexOf('\n',pos);
             stringHeight++;
             if ( nextNewline < 0 )

@@ -133,9 +133,13 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     {
         InputPanel panel = new InputPanel();
         panel.getInputPane().activate();
-        panel.getInputPane().addKeyListener(new KeyAdapter() {
+        panel.getInputPane().addKeyListener(new KeyAdapter()
+        {
             @Override
-            public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
+            public void keyPressed(KeyEvent evt)
+            {
+                cellKeyPressed(evt);
+            }
         });
         panel.getInputPane().getDocument().addDocumentListener(this);
         add(panel);
