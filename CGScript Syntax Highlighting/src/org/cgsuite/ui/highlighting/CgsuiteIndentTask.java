@@ -6,11 +6,6 @@
 package org.cgsuite.ui.highlighting;
 
 import javax.swing.text.BadLocationException;
-import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.runtime.CommonTokenStream;
-import org.cgsuite.lang.parser.CgsuiteLexer;
-import org.cgsuite.lang.parser.CgsuiteParser;
-import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
 import org.netbeans.modules.editor.indent.spi.Context;
 import org.netbeans.modules.editor.indent.spi.ExtraLock;
 import org.netbeans.modules.editor.indent.spi.IndentTask;
@@ -32,9 +27,12 @@ public class CgsuiteIndentTask implements IndentTask
     public void reindent() throws BadLocationException
     {
         int offset = context.lineStartOffset(context.caretOffset());
-        int prevLineOffset = context.lineStartOffset(offset-1);
-        int prevIndent = context.lineIndent(prevLineOffset);
-        context.modifyIndent(offset, prevIndent);
+        if (offset > 0)
+        {
+            int prevLineOffset = context.lineStartOffset(offset-1);
+            int prevIndent = context.lineIndent(prevLineOffset);
+            context.modifyIndent(offset, prevIndent);
+        }
 
 //        ANTLRStringStream input = new ANTLRStringStream(context.document().getText(0, context.document().getLength()));
 //        CgsuiteLexer lexer = new CgsuiteLexer(input);

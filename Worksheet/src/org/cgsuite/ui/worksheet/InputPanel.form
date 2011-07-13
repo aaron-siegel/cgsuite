@@ -43,9 +43,6 @@
     <Component class="org.cgsuite.ui.worksheet.InputPane" name="inputPane">
       <Properties>
         <Property name="alignmentY" type="float" value="0.0"/>
-        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
-          <Insets value="[0, 0, 0, 0]"/>
-        </Property>
         <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[0, 0]"/>
         </Property>

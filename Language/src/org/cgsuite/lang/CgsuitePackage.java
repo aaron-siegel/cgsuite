@@ -62,8 +62,8 @@ public class CgsuitePackage implements FileChangeListener
             if (!USER_FOLDER.exists())
                 USER_FOLDER.mkdir();
             
-            ROOT_PACKAGE.addFolder(LIB_FOLDER);
-            ROOT_PACKAGE.addFolder(USER_FOLDER);
+            ROOT_PACKAGE.addRootFolder(LIB_FOLDER);
+            ROOT_PACKAGE.addRootFolder(USER_FOLDER);
         }
         catch (IOException exc)
         {
@@ -84,7 +84,7 @@ public class CgsuitePackage implements FileChangeListener
         this.classes = new HashMap<String,CgsuiteClass>();
     }
 
-    public void addFolder(File file) throws IOException
+    public void addRootFolder(File file) throws IOException
     {
         try
         {
@@ -110,7 +110,7 @@ public class CgsuitePackage implements FileChangeListener
         {
             if (fo.isFolder())
             {
-                addSubpackage(fo);
+                addPackage(fo);
             }
             else if ("text/x-cgscript".equals(fo.getMIMEType()))
             {
@@ -118,16 +118,22 @@ public class CgsuitePackage implements FileChangeListener
             }
         }
     }
-
-    private void addSubpackage(FileObject node)
+    
+    private static void addPackage(FileObject node)
     {
         if (node.getName().startsWith("."))
             return;
         
-        String subpackageName = packageName + (packageName.isEmpty() ? "" : ".") + node.getName();
-        if (!PACKAGE_LOOKUP.containsKey(subpackageName))
-            PACKAGE_LOOKUP.put(subpackageName, new CgsuitePackage(subpackageName));
-        PACKAGE_LOOKUP.get(subpackageName).addFolder(node);
+        String packageName = node.getPath().replace('/', '.');
+        
+        CgsuitePackage pkg = PACKAGE_LOOKUP.get(packageName);
+        if (pkg == null)
+        {
+            pkg = new CgsuitePackage(packageName);
+            PACKAGE_LOOKUP.put(packageName, pkg);
+        }
+        
+        pkg.addFolder(node);
     }
 
     private void addClass(FileObject node)
@@ -197,20 +203,18 @@ public class CgsuitePackage implements FileChangeListener
 
     public static void refreshAll()
     {
-        for (CgsuitePackage pkg : PACKAGE_LOOKUP.values())
+        for (FileObject fo : ROOT_PACKAGE.folders)
         {
-            pkg.refresh();
+            refresh(fo);
         }
     }
-
-    public void refresh()
+    
+    private static void refresh(FileObject fo)
     {
-        log.info("Refreshing package: " + packageName);
-
-        for (FileObject fo : folders)
+        fo.refresh();
+        for (FileObject subFo : fo.getChildren())
         {
-            log.info("Refreshing folder: " + fo.getPath());
-            fo.refresh();
+            refresh(subFo);
         }
     }
 
@@ -243,7 +247,7 @@ public class CgsuitePackage implements FileChangeListener
     @Override
     public void fileFolderCreated(FileEvent fe)
     {
-        addSubpackage(fe.getFile());
+        addPackage(fe.getFile());
     }
 
     @Override

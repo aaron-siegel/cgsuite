@@ -11,6 +11,8 @@
 
 package org.cgsuite.ui.worksheet;
 
+import javax.swing.JLabel;
+
 /**
  *
  * @author asiegel
@@ -26,6 +28,11 @@ public class InputPanel extends javax.swing.JPanel
     public InputPane getInputPane()
     {
         return inputPane;
+    }
+    
+    public JLabel getPrompt()
+    {
+        return inputLabel;
     }
 
     /** This method is called from within the constructor to

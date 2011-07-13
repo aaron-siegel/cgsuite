@@ -54,7 +54,6 @@ public final class WorksheetTopComponent extends TopComponent
         });
         setLayout(new java.awt.BorderLayout());
 
-        jScrollPane1.setBackground(new java.awt.Color(255, 255, 255));
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setViewportBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jScrollPane1.addComponentListener(new java.awt.event.ComponentAdapter() {

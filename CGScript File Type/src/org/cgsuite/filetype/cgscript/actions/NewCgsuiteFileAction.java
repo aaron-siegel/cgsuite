@@ -22,6 +22,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionID;
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.Repository;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
@@ -141,8 +142,7 @@ public final class NewCgsuiteFileAction extends AbstractAction implements Contex
     
     private static DataObject findTemplate(String name)
     {
-        FileObject tFo = Repository.getDefault().getDefaultFileSystem()
-                .findResource(name);
+        FileObject tFo = FileUtil.getConfigFile(name);
         if (tFo == null) {
             return null;
         }

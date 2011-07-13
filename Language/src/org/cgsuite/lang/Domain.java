@@ -236,6 +236,11 @@ public class Domain
             case LISTOF_DO:
                 
                 return listOf(tree);
+                
+            case TABLEOF_IN:
+            case TABLEOF_DO:
+                
+                return tableOf(tree);
 
             case IF:
             case ELSEIF:
@@ -751,6 +756,22 @@ public class Domain
                 break;
                 
             case LISTOF_DO:
+                doLoop(tree, target);
+                break;
+        }
+        return target;
+    }
+    
+    private CgsuiteObject tableOf(CgsuiteTree tree) throws CgsuiteException
+    {
+        Table target = new Table();
+        switch (tree.getType())
+        {
+            case TABLEOF_IN:
+                inLoop(tree, target);
+                break;
+                
+            case TABLEOF_DO:
                 doLoop(tree, target);
                 break;
         }

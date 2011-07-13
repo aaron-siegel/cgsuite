@@ -52,11 +52,6 @@ public class CgsuiteEditorParser extends Parser
     }
 
     @Override
-    public void cancel()
-    {
-    }
-
-    @Override
     public void addChangeListener(ChangeListener cl)
     {
     }

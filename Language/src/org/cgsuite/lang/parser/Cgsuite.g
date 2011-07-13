@@ -110,6 +110,7 @@ tokens
     SETOF       = 'setof';
     STATIC      = 'static';
     SUPER       = 'super';
+    TABLEOF     = 'tableof';
 	THEN		= 'then';
 	THIS        = 'this';
 	TO			= 'to';
@@ -139,6 +140,8 @@ tokens
     SETOF_DO;
     SETOF_IN;
 	STATEMENT_SEQUENCE;
+    TABLEOF_DO;
+    TABLEOF_IN;
     UNARY_AST;
 	UNARY_MINUS;
 	UNARY_PLUS;
@@ -532,6 +535,7 @@ primaryExpr
 	| explicitList
     | setof
     | listof
+    | tableof
 	;
 
 explicitGame
@@ -607,6 +611,12 @@ listof
     : LISTOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(LISTOF_IN[$LISTOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
                                | doLoopAntecedent RPAREN -> ^(LISTOF_DO[$LISTOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
                                )
+    ;
+
+tableof
+    : TABLEOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(TABLEOF_IN[$TABLEOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                                | doLoopAntecedent RPAREN -> ^(TABLEOF_DO[$TABLEOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                                )
     ;
 
 expressionList

@@ -22,8 +22,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.Box;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
@@ -47,6 +45,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
 {
     private CalculationCapsule currentCapsule;
     private InputPane currentSource;
+    private Box.Filler strut;
 
     private String commandHistoryPrefix;
     private int commandHistoryIndex;
@@ -58,6 +57,9 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     public WorksheetPanel()
     {
         initComponents();
+        strut = (Box.Filler) Box.createHorizontalStrut(0);
+        strut.setAlignmentX(LEFT_ALIGNMENT);
+        add(strut);
         addNewCell();
     }
 
@@ -130,6 +132,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     private InputPanel addNewCell()
     {
         InputPanel panel = new InputPanel();
+        panel.getInputPane().activate();
         panel.getInputPane().addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent evt) { cellKeyPressed(evt); }
@@ -182,6 +185,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     }
                     seekingCommand = true;
                     source.setText(seekCommand(-1));
+                    scrollToBottomLeft();
                 }
                 break;
 
@@ -192,6 +196,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     evt.consume();
                     seekingCommand = true;
                     source.setText(seekCommand(1));
+                    scrollToBottomLeft();
                 }
                 break;
 
@@ -337,6 +342,9 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             return;
         }
         int width = getViewport().getWidth();
+        Dimension dim = new Dimension(width, 0);
+        strut.changeShape(dim, dim, dim);
+        
         Component components[] = getComponents();
         for (int index = 0; index < components.length; index++)
         {
@@ -344,10 +352,9 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
             {
                 InputPanel cell = (InputPanel) components[index];
                 InputPane pane = cell.getInputPane();
-                int etaW = width - cell.getComponent(0).getWidth();
+                int etaW = width - cell.getPrompt().getWidth();
                 pane.setMinimumSize(new Dimension(etaW, pane.getMinimumSize().height));
                 pane.setMaximumSize(new Dimension(etaW, pane.getMaximumSize().height));
-                pane.setSize(etaW, pane.getHeight());
                 pane.revalidate();
             }
             if (components[index] instanceof OutputBox)
@@ -381,7 +388,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     @Override
     public boolean getScrollableTracksViewportWidth()
     {
-        return true;
+        return false;
     }
 
     @Override
