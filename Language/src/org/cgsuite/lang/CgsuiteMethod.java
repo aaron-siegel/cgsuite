@@ -76,6 +76,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 if ("int".equals(parameterNames[i]))
                     javaParameterTypes[i] = int.class;
+                else if ("boolean".equals(parameterNames[i]))
+                    javaParameterTypes[i] = boolean.class;
                 else
                     javaParameterTypes[i] = Class.forName(parameterNames[i]);
             }
@@ -332,6 +334,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             else if (obj == CgsuiteObject.NIL)
             {
                 return null;
+            }
+            else if (boolean.class.equals(javaClass) && obj instanceof CgsuiteBoolean)
+            {
+                return ((CgsuiteBoolean) obj).booleanValue();
             }
             else if (int.class.equals(javaClass) && obj instanceof CgsuiteInteger)
             {

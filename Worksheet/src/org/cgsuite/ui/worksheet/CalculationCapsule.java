@@ -16,6 +16,7 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
+import org.cgsuite.lang.CgsuiteClassLoadException;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Domain;
@@ -24,6 +25,7 @@ import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
+import org.cgsuite.lang.parser.CgsuiteParser.SyntaxError;
 import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
 import org.openide.util.RequestProcessor;
@@ -69,7 +71,13 @@ public class CalculationCapsule implements Runnable
             CgsuiteParser.script_return r = parser.script();
             CgsuiteTree tree = (CgsuiteTree) r.getTree();
 
-            if (parser.getNumberOfSyntaxErrors() > 0)
+            if (!lexer.getErrors().isEmpty())
+            {
+                RecognitionException exc = lexer.getErrors().get(0).getException();
+                output = getLineColOutput(text, exc.line, exc.charPositionInLine, "Syntax error.");
+                isErrorOutput = true;
+            }
+            else if (!parser.getErrors().isEmpty())
             {
                 RecognitionException exc = parser.getErrors().get(0).getException();
                 output = getLineColOutput(text, exc.line, exc.charPositionInLine, "Syntax error.");
@@ -117,7 +125,7 @@ public class CalculationCapsule implements Runnable
             for (int i = 0; i < 3 && i < javaStackTrace.length; i++)
             {
                 StackTraceElement ste = javaStackTrace[i];
-                output.add(errorOutput("  at " + ste.getClassName() + " line " + ste.getLineNumber() + "\n"));
+                output.add(errorOutput("  at " + ste.getClassName() + " line " + ste.getLineNumber()));
             }
             if (javaStackTrace.length > 3)
             {
@@ -135,7 +143,7 @@ public class CalculationCapsule implements Runnable
             else
             {
                 output.add(errorOutput(
-                    "  at " + source + " line " + token.getLine() + ":" + token.getCharPositionInLine() + "\n"
+                    "  at " + source + " line " + token.getLine() + ":" + token.getCharPositionInLine()
                     ));
             }
         }
@@ -144,16 +152,39 @@ public class CalculationCapsule implements Runnable
 
     private static Output[] getExceptionOutput(String input, Exception exc, boolean includeLine)
     {
-        int line = 0, col = 0;
-
         if (exc instanceof RecognitionException)
         {
-            line = ((RecognitionException) exc).line;
-            col  = ((RecognitionException) exc).charPositionInLine;
+            int line = ((RecognitionException) exc).line;
+            int col  = ((RecognitionException) exc).charPositionInLine;
+
+            String message =
+                (includeLine && line > 0 ? "Error (Line " + line + ":" + col + "): " : "")
+                + getMessageForException(exc);
+
+            if (input == null || line <= 0)
+            {
+                return new Output[] { new StyledTextOutput(message) };
+            }
+            else
+            {
+                return getLineColOutput(input, line, col, message);
+            }
         }
         else if (exc instanceof InputException)
         {
             return getStackOutput(input, (InputException) exc).toArray(new Output[0]);
+        }
+        else if (exc instanceof CgsuiteClassLoadException)
+        {
+            CgsuiteClassLoadException cclo = (CgsuiteClassLoadException) exc;
+            if (cclo.getSyntaxErrors() != null)
+            {
+                return getSyntaxErrorsOutput(cclo);
+            }
+            else
+            {
+                return new Output[] { errorOutput("I/O Error loading classfile " + cclo.getClassFile().getName() + ": " + cclo.getCause().getMessage()) };
+            }
         }
         else
         {
@@ -167,19 +198,20 @@ public class CalculationCapsule implements Runnable
             }
             return output;
         }
-
-        String message =
-            (includeLine && line > 0 ? "Error (Line " + line + ":" + col + "): " : "")
-            + getMessageForException(exc);
-
-        if (input == null || line <= 0)
-        {
-            return new Output[] { new StyledTextOutput(message) };
-        }
-        else
-        {
-            return getLineColOutput(input, line, col, message);
-        }
+    }
+    
+    private static Output[] getSyntaxErrorsOutput(CgsuiteClassLoadException cclo)
+    {
+        List<Output> output = new ArrayList<Output>();
+        
+        SyntaxError se = cclo.getSyntaxErrors().get(0);
+        
+        output.add(errorOutput("Syntax error loading class file " + cclo.getClassFile().getPath() + ": " + se.getMessage()));
+        output.add(errorOutput(
+            "  at " + cclo.getClassFile().getNameExt() + " line " + se.getException().line + ":" + se.getException().charPositionInLine
+            ));
+        
+        return output.toArray(new Output[output.size()]);
     }
 
     private static Output[] getLineColOutput(String input, int line, int col, String message)

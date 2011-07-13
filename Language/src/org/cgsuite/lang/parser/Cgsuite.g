@@ -150,6 +150,31 @@ tokens
 @lexer::header
 {
     package org.cgsuite.lang.parser;
+
+    import org.cgsuite.lang.parser.CgsuiteParser.SyntaxError;
+}
+
+@lexer::members
+{
+    private List<SyntaxError> errors = new ArrayList<SyntaxError>();
+
+    @Override
+    public String getErrorMessage(RecognitionException re, String[] tokenNames)
+    {
+        String message = super.getErrorMessage(re, tokenNames);
+        errors.add(new SyntaxError(re, message));
+        return message;
+    }
+
+    @Override
+    public void emitErrorMessage(String message)
+    {
+    }
+
+    public List<SyntaxError> getErrors()
+    {
+        return errors;
+    }
 }
 
 @header

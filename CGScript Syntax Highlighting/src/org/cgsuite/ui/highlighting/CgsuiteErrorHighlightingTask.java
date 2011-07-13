@@ -32,20 +32,36 @@ public class CgsuiteErrorHighlightingTask extends ParserResultTask
         try
         {
             CgsuiteEditorParserResult cgsResult = (CgsuiteEditorParserResult) result;
-            List<SyntaxError> errors = cgsResult.getCgsuiteParser().getErrors();
+            List<SyntaxError> errors = new ArrayList<SyntaxError>();
+            errors.addAll(cgsResult.getCgsuiteLexer().getErrors());
+            errors.addAll(cgsResult.getCgsuiteParser().getErrors());
             Document document = result.getSnapshot().getSource().getDocument(false);
             List<ErrorDescription> errorDescriptions = new ArrayList<ErrorDescription>();
             
             for (SyntaxError error : errors)
             {
+                int startIndex, stopIndex;
                 CommonToken token = (CommonToken) error.getException().token;
+                
+                if (token == null)
+                {
+                    // Lexer errors have no token.  Just highlight the offending character
+                    startIndex = error.getException().index;
+                    stopIndex = startIndex+2;
+                }
+                else
+                {
+                    // If there's a token, highlight the full token
+                    startIndex = token.getStartIndex();
+                    stopIndex = token.getStopIndex()+1;
+                }
 
                 ErrorDescription errorDescription = ErrorDescriptionFactory.createErrorDescription(
                     Severity.ERROR,
                     error.getMessage(),
                     document,
-                    document.createPosition(token.getStartIndex()),
-                    document.createPosition(token.getStopIndex()+1)
+                    document.createPosition(startIndex),
+                    document.createPosition(stopIndex)
                     );
                 errorDescriptions.add(errorDescription);
             }

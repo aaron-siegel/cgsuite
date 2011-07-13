@@ -69,9 +69,6 @@ public class Table extends CgsuiteCollection
         /** Indicates that the <code>Table</code> will be displayed
             with vertical grid lines. */
         GRID_LINES_VERTICAL;
-        
-        /** Equal to <code>EnumSet.of(GRID_LINES_HORIZONTAL, GRID_LINES_VERTICAL)</code>. */
-        public static final EnumSet<Format> GRID_LINES_BOTH = EnumSet.of(GRID_LINES_HORIZONTAL, GRID_LINES_VERTICAL);
     }
     
     /**
@@ -84,7 +81,7 @@ public class Table extends CgsuiteCollection
         super(TYPE);
         
         rows = new ArrayList<CgsuiteObject>();
-        format = Format.GRID_LINES_BOTH;
+        format = EnumSet.of(Format.GRID_LINES_HORIZONTAL, Format.GRID_LINES_VERTICAL);
     }
     
     @Override
@@ -161,9 +158,21 @@ public class Table extends CgsuiteCollection
         this.format = format;
     }
     
+    public void setHorizontalLines(boolean show)
+    {
+        if (show)
+            format.add(Format.GRID_LINES_HORIZONTAL);
+        else
+            format.remove(Format.GRID_LINES_HORIZONTAL);
+    }
+    
+    public boolean getHorizontalLines()
+    {
+        return format.contains(Format.GRID_LINES_HORIZONTAL);
+    }
+    
     public Output toOutput()
     {
         return new TableOutput(this);
     }
 }
-

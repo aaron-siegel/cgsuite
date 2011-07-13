@@ -24,6 +24,7 @@ import org.netbeans.modules.parsing.spi.SourceModificationEvent;
 public class CgsuiteEditorParser extends Parser
 {
     private Snapshot snapshot;
+    private CgsuiteLexer cgsuiteLexer;
     private CgsuiteParser cgsuiteParser;
 
     @Override
@@ -31,8 +32,8 @@ public class CgsuiteEditorParser extends Parser
     {
         this.snapshot = snapshot;
         ANTLRStringStream input = new ANTLRStringStream(snapshot.getText().toString());
-        CgsuiteLexer lexer = new CgsuiteLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        cgsuiteLexer = new CgsuiteLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(cgsuiteLexer);
         cgsuiteParser = new CgsuiteParser(tokens);
         cgsuiteParser.setTreeAdaptor(new CgsuiteTreeAdaptor());
         try
@@ -48,7 +49,7 @@ public class CgsuiteEditorParser extends Parser
     @Override
     public Result getResult(Task task)
     {
-        return new CgsuiteEditorParserResult(snapshot, cgsuiteParser);
+        return new CgsuiteEditorParserResult(snapshot, cgsuiteLexer, cgsuiteParser);
     }
 
     @Override
@@ -63,14 +64,24 @@ public class CgsuiteEditorParser extends Parser
 
     public static class CgsuiteEditorParserResult extends Result
     {
+        private CgsuiteLexer cgsuiteLexer;
         private CgsuiteParser cgsuiteParser;
         private boolean valid;
 
-        CgsuiteEditorParserResult(Snapshot snapshot, CgsuiteParser cgsuiteParser)
+        CgsuiteEditorParserResult(Snapshot snapshot, CgsuiteLexer cgsuiteLexer, CgsuiteParser cgsuiteParser)
         {
             super(snapshot);
+            this.cgsuiteLexer = cgsuiteLexer;
             this.cgsuiteParser = cgsuiteParser;
             this.valid = true;
+        }
+        
+        public CgsuiteLexer getCgsuiteLexer() throws ParseException
+        {
+            if (valid)
+                return cgsuiteLexer;
+            else
+                throw new ParseException();
         }
 
         public CgsuiteParser getCgsuiteParser() throws ParseException

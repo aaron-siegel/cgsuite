@@ -258,23 +258,27 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             CgsuiteParser parser = new CgsuiteParser(tokens);
             parser.setTreeAdaptor(new CgsuiteTreeAdaptor());
             CgsuiteParser.compilationUnit_return r = parser.compilationUnit();
-            if (parser.getNumberOfSyntaxErrors() == 0)
+            
+            if (!lexer.getErrors().isEmpty())
             {
-                this.parseTree = (CgsuiteTree) r.getTree();
+                throw new CgsuiteClassLoadException(fo, lexer.getErrors());
+            }
+            else if (!parser.getErrors().isEmpty())
+            {
+                throw new CgsuiteClassLoadException(fo, parser.getErrors());
             }
             else
             {
-                // TODO Improve this message.
-                throw new InputException("Syntax error(s) in " + fo.getNameExt() + ": " + parser.getErrorMessageString());
+                this.parseTree = (CgsuiteTree) r.getTree();
             }
-        }
-        catch (IOException exc)
-        {
-            throw new InputException("I/O Error loading class file " + fo.getNameExt() + ".", exc);
         }
         catch (RecognitionException exc)
         {
-            throw new InputException("Syntax error(s) in " + fo.getNameExt() + ".", exc);
+            throw new CgsuiteClassLoadException(fo, Collections.singletonList(new SyntaxError(exc, exc.getMessage())));
+        }
+        catch (IOException exc)
+        {
+            throw new CgsuiteClassLoadException(fo, exc);
         }
 
         this.objectNamespace.clear();
