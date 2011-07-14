@@ -5,6 +5,7 @@
 package org.cgsuite.ui.browser;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.ActionMap;
 import javax.swing.text.DefaultEditorKit;
@@ -73,12 +74,15 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         
         this.em.setRootContext(rootDataObject.getNodeDelegate());
         
-        jComboBox1.addItem(CgsuitePackage.USER_FOLDER);
-        jComboBox1.addItem(CgsuitePackage.LIB_FOLDER);
+        jComboBox1.addItem(new RootFolder(CgsuitePackage.USER_FOLDER, "User Folder"));
+        jComboBox1.addItem(new RootFolder(CgsuitePackage.LIB_FOLDER, "System Folder"));
+        
         if (System.getProperty("org.cgsuite.devbuild") != null)
         {
-            jComboBox1.addItem(new File(new File(System.getProperty("org.cgsuite.devbuild"), "etc"), "default-userdir"));
-            jComboBox1.addItem("System Filesystem (for developers)");
+            // Add some convenience folders for developers
+            File defaultUserdir = new File(System.getProperty("org.cgsuite.devbuild"), "release/etc/default-userdir");
+            jComboBox1.addItem(new RootFolder(defaultUserdir, "[dev] Default User Folder"));
+            jComboBox1.addItem(new RootFolder(null, "[dev] System Filesystem"));
         }
     }
 
@@ -108,15 +112,15 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 
         try
         {
-            if ("System Filesystem (for developers)".equals(evt.getItem()))
+            RootFolder rf = (RootFolder) evt.getItem();
+            if (rf.folder == null)
             {
                 this.root = FileUtil.getConfigRoot();
             }
             else
             {
                 LocalFileSystem fs = new LocalFileSystem();
-                fs.setRootDirectory((File) evt.getItem());
-                fs.setReadOnly(false);
+                fs.setRootDirectory(rf.folder);
                 this.root = fs.getRoot();
             }
             
@@ -125,6 +129,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         }
         catch (Exception exc)
         {
+            throw new RuntimeException(exc);
         }
     }//GEN-LAST:event_jComboBox1ItemStateChanged
 
@@ -206,5 +211,23 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     @Override
     public ExplorerManager getExplorerManager() {
         return em;
+    }
+    
+    private static class RootFolder
+    {
+        private File folder;
+        private String displayName;
+        
+        RootFolder(File folder, String displayName)
+        {
+            this.folder = folder;
+            this.displayName = displayName;
+        }
+        
+        @Override
+        public String toString()
+        {
+            return displayName;
+        }
     }
 }
