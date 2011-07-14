@@ -31,6 +31,7 @@ package org.cgsuite.ui.worksheet;
 import java.awt.Font;
 import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 import org.netbeans.modules.editor.NbEditorDocument;
 import org.netbeans.modules.editor.NbEditorKit;
 import org.openide.text.CloneableEditorSupport;
@@ -62,6 +63,7 @@ public class InputPane extends JEditorPane
         String text = getText();
         Font font = getFont();
         setEditorKit(CloneableEditorSupport.getEditorKit("text/plain"));
+        setDocument(new NbEditorDocument("text/plain"));
         setText(text);
         setFont(font);
         setEditable(false);

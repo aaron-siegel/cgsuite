@@ -76,7 +76,10 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         jComboBox1.addItem(CgsuitePackage.USER_FOLDER);
         jComboBox1.addItem(CgsuitePackage.LIB_FOLDER);
         if (System.getProperty("org.cgsuite.devbuild") != null)
+        {
+            jComboBox1.addItem(new File(new File(System.getProperty("org.cgsuite.devbuild"), "etc"), "default-userdir"));
             jComboBox1.addItem("System Filesystem (for developers)");
+        }
     }
 
     /** This method is called from within the constructor to

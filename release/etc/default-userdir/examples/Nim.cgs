@@ -1,0 +1,35 @@
+/*
+ * Nim.cgs
+ *
+ * Created by asiegel on Jul 10, 2011
+ */
+
+class Nim extends Game
+
+    private var n;
+    
+    public method Nim(Integer n)
+    
+        this.n := n;
+    
+    end
+
+    public method Options(Player player)
+    
+        options := {};
+        
+        for k from 0 to this.n-1 do
+            options.Add(Nim(k));
+        end;
+        
+        return options;
+    
+    end
+    
+    public property ToString.get
+    
+        return "Nim(" + this.n.ToString + ")";
+    
+    end
+
+end

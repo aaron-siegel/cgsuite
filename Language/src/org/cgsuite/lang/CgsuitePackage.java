@@ -7,7 +7,11 @@ package org.cgsuite.lang;
 
 import java.beans.PropertyVetoException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,6 +25,7 @@ import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
+import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.LocalFileSystem;
 import org.openide.modules.InstalledFileLocator;
 
@@ -67,7 +72,10 @@ public class CgsuitePackage implements FileChangeListener
             USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
             
             if (!USER_FOLDER.exists())
-                USER_FOLDER.mkdir();
+            {
+                File defaultUserFolder = InstalledFileLocator.getDefault().locate("etc/default-userdir", "org.cgsuite", false);
+                CgsuitePackage.copyFolder(defaultUserFolder, USER_FOLDER);
+            }
             
             ROOT_PACKAGE.addRootFolder(LIB_FOLDER);
             ROOT_PACKAGE.addRootFolder(USER_FOLDER);
@@ -289,5 +297,42 @@ public class CgsuitePackage implements FileChangeListener
     @Override
     public void fileAttributeChanged(FileAttributeEvent fae)
     {
+    }
+
+    public static void copyFolder(File src, File dest) throws IOException
+    {
+    	if (src.isDirectory())
+        {
+            dest.mkdir();
+ 
+    		//list all the directory contents
+    		String files[] = src.list();
+ 
+    		for (String file : files)
+            {
+    		   //construct the src and dest file structure
+    		   File srcFile = new File(src, file);
+    		   File destFile = new File(dest, file);
+    		   //recursive copy
+    		   copyFolder(srcFile, destFile);
+    		}
+    	}
+        else
+        {
+    		InputStream in = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dest); 
+
+            byte[] buffer = new byte[1024];
+
+            int length;
+
+            while ((length = in.read(buffer)) > 0)
+            {
+               out.write(buffer, 0, length);
+            }
+
+            in.close();
+            out.close();
+    	}
     }
 }
