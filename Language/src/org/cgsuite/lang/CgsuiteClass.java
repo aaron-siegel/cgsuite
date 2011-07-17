@@ -379,9 +379,23 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
 
         declarations(parseTree.getChild(0));
+        
+        // Mark loaded
 
         this.loaded = true;
+
+        for (CgsuiteClass ancestor : ancestors)
+        {
+            ancestor.descendants.add(this);
+        }
+
+        this.ancestors.add(this);
+        
         log.info("Loaded class : " + getQualifiedName());
+        
+        // Populate memory var
+        
+        this.objectNamespace.put("memory", new CgsuiteMap());
 
         // Populate statics and invokeMethod static initializers
 
@@ -403,17 +417,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 }
             }
         }
-        
-        // Populate memory var
-        
-        this.objectNamespace.put("memory", new CgsuiteMap());
-
-        for (CgsuiteClass ancestor : ancestors)
-        {
-            ancestor.descendants.add(this);
-        }
-
-        this.ancestors.add(this);
     }
 
     private void classdef(CgsuiteTree tree) throws CgsuiteException

@@ -143,7 +143,7 @@ public class Domain
                 id = tree.getChild(1).getText();
                 try
                 {
-                    obj.assign(id, x, context.hasAncestor(obj.getCgsuiteClass()));
+                    obj.assign(id, x, obj.getCgsuiteClass().hasAncestor(context));
                 }
                 catch (InputException exc)
                 {
