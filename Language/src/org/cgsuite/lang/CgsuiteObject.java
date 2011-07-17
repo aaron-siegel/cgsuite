@@ -106,7 +106,7 @@ public class CgsuiteObject
         if (var != null)
         {
             if (!allowPublicAccess)
-                throw new InputException("Cannot access var \"" + identifier + "\" in class " + type.getQualifiedName() + " from outside the class");
+                throw new InputException("Cannot access variable from outside class " + type.getQualifiedName() + ": " + identifier);
             
             CgsuiteObject obj = objectNamespace.get(identifier);
             return (obj == null)? CgsuiteObject.NIL : obj;
@@ -127,13 +127,15 @@ public class CgsuiteObject
         throw new InputException("Not a member variable, property, or method: " + identifier + " (in object of type " + type.getQualifiedName() + ")");
     }
 
-    public void assign(String name, CgsuiteObject object)
+    public void assign(String name, CgsuiteObject object, boolean allowPublicAccess)
     {
         Variable var = type.lookupVar(name);
         if (var == null)
             throw new InputException("Unknown variable: " + name);
         if (var.isStatic())
             throw new InputException("Cannot reference static variable in dynamic context: " + name);
+        if (!allowPublicAccess)
+            throw new InputException("Cannot access variable from outside class " + type.getQualifiedName() + ": " + name);
         objectNamespace.put(name, object);
     }
 

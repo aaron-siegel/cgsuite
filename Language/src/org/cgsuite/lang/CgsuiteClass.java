@@ -211,13 +211,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     }
 
     @Override
-    public void assign(String name, CgsuiteObject object)
+    public void assign(String name, CgsuiteObject object, boolean allowPublicAccess)
     {
         Variable var = lookupVar(name);
         if (var == null)
             throw new InputException("Unknown variable: " + name);
         if (!var.getModifiers().contains(Modifier.STATIC))
             throw new InputException("Cannot reference non-static variable in static context: " + name);
+        if (var.isEnumValue())
+            throw new InputException("Enum constants are read-only: " + name);
         objectNamespace.put(name, object);
     }
 
