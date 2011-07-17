@@ -142,7 +142,8 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
      */
-    public static synchronized BrowserTopComponent getDefault() {
+    public static synchronized BrowserTopComponent getDefault()
+    {
         if (instance == null) {
             instance = new BrowserTopComponent();
         }
@@ -152,7 +153,8 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     /**
      * Obtain the BrowserTopComponent instance. Never call {@link #getDefault} directly!
      */
-    public static synchronized BrowserTopComponent findInstance() {
+    public static synchronized BrowserTopComponent findInstance()
+    {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
         if (win == null) {
             Logger.getLogger(BrowserTopComponent.class.getName()).warning(
@@ -174,23 +176,24 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     }
 
     @Override
-    public void componentOpened() {
-        // TODO add custom code on component opening
+    public void componentOpened()
+    {
     }
 
     @Override
-    public void componentClosed() {
-        // TODO add custom code on component closing
+    public void componentClosed()
+    {
     }
 
-    void writeProperties(java.util.Properties p) {
+    void writeProperties(java.util.Properties p)
+    {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
-    Object readProperties(java.util.Properties p) {
+    Object readProperties(java.util.Properties p)
+    {
         if (instance == null) {
             instance = this;
         }
@@ -198,18 +201,20 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         return instance;
     }
 
-    private void readPropertiesImpl(java.util.Properties p) {
+    private void readPropertiesImpl(java.util.Properties p)
+    {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 
     @Override
-    protected String preferredID() {
+    protected String preferredID()
+    {
         return PREFERRED_ID;
     }
 
     @Override
-    public ExplorerManager getExplorerManager() {
+    public ExplorerManager getExplorerManager()
+    {
         return em;
     }
     

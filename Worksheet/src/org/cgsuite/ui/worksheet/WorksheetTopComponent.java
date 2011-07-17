@@ -133,13 +133,11 @@ public final class WorksheetTopComponent extends TopComponent
     @Override
     public void componentOpened()
     {
-        // TODO add custom code on component opening
     }
 
     @Override
     public void componentClosed()
     {
-        // TODO add custom code on component closing
     }
 
     void writeProperties(java.util.Properties p)
@@ -147,7 +145,6 @@ public final class WorksheetTopComponent extends TopComponent
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
     Object readProperties(java.util.Properties p)
@@ -163,7 +160,6 @@ public final class WorksheetTopComponent extends TopComponent
     private void readPropertiesImpl(java.util.Properties p)
     {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 
     @Override

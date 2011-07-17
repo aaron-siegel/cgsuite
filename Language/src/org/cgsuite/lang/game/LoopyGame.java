@@ -2069,8 +2069,8 @@ public class LoopyGame extends Game
                         {
                             newLeftEdges[k+leftEdges.length-1] = extraLeftEdges[k];
                             // Note: Calls to expandArray when bypassing reversible moves
-                            // account for 10% of total computation time.  TODO: Find ways
-                            // to reduce this impact
+                            // account for 10% of total computation time.
+                            // TODO: Find ways to reduce this impact
                             reverse.leftEdges[extraLeftEdges[k]] =
                                 expandArray(reverse.leftEdges[extraLeftEdges[k]], vertex);
                         }

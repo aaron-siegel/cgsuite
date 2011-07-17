@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
+// TODO Implement setters
+// TODO Improve comparator methodology
+
 public class CgsuiteObject
 {
     private final static Logger log = Logger.getLogger(CgsuiteObject.class.getName());
