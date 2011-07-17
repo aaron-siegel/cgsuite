@@ -21,7 +21,7 @@ class PartizanSubtraction extends Game
 
     end
 
-    property ToString.get
+    override property ToString.get
 
         return "PartizanSubtraction(" + this.leftSet.ToString + "," + this.rightSet.ToString + "," + this.n.ToString + ")";
 

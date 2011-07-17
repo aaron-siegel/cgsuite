@@ -26,7 +26,7 @@ class Nim extends Game
     
     end
     
-    property ToString.get
+    override property ToString.get
     
         return "Nim(" + this.n.ToString + ")";
     

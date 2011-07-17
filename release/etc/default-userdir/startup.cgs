@@ -1,0 +1,12 @@
+/* 
+ * This is your CGSuite startup file.
+ * 
+ * Any commands that you include in this file will be executed whenever
+ * you start CGSuite.
+ *
+ */
+
+// Uncomment the following line to implement the "C(g)" syntax for
+// calculating canonical forms (as used by CGSuite 0.X).
+
+// C := g -> g.CanonicalForm;

@@ -263,7 +263,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void load()
     {
-        log.info("Loading class: " + name);
+        log.info("Loading class: " + getQualifiedName());
 
         try
         {
@@ -366,7 +366,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             {
                 this.defaultJavaConstructor = null;
             }
-            this.loaded = true;
         }
         catch (ClassNotFoundException exc)
         {
@@ -380,6 +379,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         declarations(parseTree.getChild(0));
 
         this.loaded = true;
+        log.info("Loaded class : " + getQualifiedName());
 
         // Populate statics and invokeMethod static initializers
 
