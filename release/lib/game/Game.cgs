@@ -1,21 +1,21 @@
 class Game : java "org.cgsuite.lang.Game"
 
-    private static var placeholder := Object();
+    static var placeholder := Object();
 
-    public method op+ (Game obj) : java "buildSum";
-    public method op- (Game obj)
+    method op+ (Game obj) : java "buildSum";
+    method op- (Game obj)
         return this + (-obj);
     end
-    public method op neg () : java "buildInverse";
+    method op neg () : java "buildInverse";
 
-    public property LeftOptions.get
+    property LeftOptions.get
         return this.Options(Player.Left);
     end
-    public property RightOptions.get
+    property RightOptions.get
         return this.Options(Player.Right);
     end
 
-    public property CanonicalForm.get
+    property CanonicalForm.get
 
         memory := this.Class.Memory;
         cg := memory[this];
@@ -37,7 +37,7 @@ class Game : java "org.cgsuite.lang.Game"
         
     end
 
-    public method SensibleOptions(Player player)
+    method SensibleOptions(Player player)
 
         opts := this.Options(player);
         copts := this.CanonicalForm.Options(player);
@@ -59,11 +59,11 @@ class Game : java "org.cgsuite.lang.Game"
 
     end
 
-    public property SensibleLeftOptions.get
+    property SensibleLeftOptions.get
         return this.SensibleOptions(Player.Left);
     end
 
-    public property SensibleRightOptions.get
+    property SensibleRightOptions.get
         return this.SensibleOptions(Player.Right);
     end
 

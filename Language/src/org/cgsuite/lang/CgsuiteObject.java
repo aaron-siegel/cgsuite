@@ -75,8 +75,13 @@ public class CgsuiteObject
     {
         return type;
     }
-
+    
     public CgsuiteObject resolve(String identifier) throws CgsuiteException
+    {
+        return resolve(identifier, true);
+    }
+
+    public CgsuiteObject resolve(String identifier, boolean allowPublicAccess) throws CgsuiteException
     {
         CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
 
@@ -95,17 +100,17 @@ public class CgsuiteObject
                 throw new InputException("Cannot reference static method in dynamic context: " + identifier);
             return new InstanceMethod(method);
         }
-
-        if (objectNamespace != null)
+        
+        Variable var = type.lookupVar(identifier);
+        
+        if (var != null)
         {
+            if (!allowPublicAccess)
+                throw new InputException("Cannot access var \"" + identifier + "\" in class " + type.getQualifiedName() + " from outside the class");
+            
             CgsuiteObject obj = objectNamespace.get(identifier);
-
-            if (obj != null)
-                return obj;
+            return (obj == null)? CgsuiteObject.NIL : obj;
         }
-
-        if (type.lookupVar(identifier) != null)
-            return CgsuiteObject.NIL;
 
         log.info("Unable to locate identifier: " + identifier + " (in object of type " + type.getName() + ")");
         

@@ -1,10 +1,10 @@
 class Domineering extends GridGame
 
-    public method Domineering(grid)
+    method Domineering(grid)
         this.GridGame(grid);
     end
 
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
 
@@ -31,7 +31,7 @@ class Domineering extends GridGame
 
     end
 
-    public property CanonicalForm.get
+    property CanonicalForm.get
 
         components := this.grid.Decompose(1);
         g := 0;
@@ -42,11 +42,11 @@ class Domineering extends GridGame
 
     end
     
-    public property CharMap.get
+    property CharMap.get
         return ".#";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

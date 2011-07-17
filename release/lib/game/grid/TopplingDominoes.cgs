@@ -6,7 +6,7 @@
 
 class TopplingDominoes extends GridGame
 
-    public method TopplingDominoes(Grid grid)
+    method TopplingDominoes(Grid grid)
     
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
@@ -15,7 +15,7 @@ class TopplingDominoes extends GridGame
         
     end
     
-    public method Options(Player player)
+    method Options(Player player)
         
         options := {};
         
@@ -34,11 +34,11 @@ class TopplingDominoes extends GridGame
         
     end
 
-    public property CharMap.get
+    property CharMap.get
         return ".xoe";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

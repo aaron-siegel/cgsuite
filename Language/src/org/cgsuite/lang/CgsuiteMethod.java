@@ -136,11 +136,6 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         return modifiers.contains(Modifier.STATIC);
     }
 
-    public boolean isPrivate()
-    {
-        return modifiers.contains(Modifier.PRIVATE);
-    }
-
     public Method getJavaMethod()
     {
         ensureLoaded();
@@ -264,7 +259,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
         else
         {
-            Domain domain = new Domain(declaringClass.getImports());
+            Domain domain = new Domain(declaringClass, declaringClass.getImports());
             if (obj != null)
                 domain.put("this", obj);
 

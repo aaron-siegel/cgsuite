@@ -1,9 +1,9 @@
 class Map : java "org.cgsuite.lang.CgsuiteMap"
 
-    public method op[]  (key)     : java "get";
-    public method op[]:=(val,key) : java "put";
-    public property Size.get : java "size";
-    public property Keys.get : java "keys";
-    public method Clear() : java "clear";
+    method op[]  (key)     : java "get";
+    method op[]:=(val,key) : java "put";
+    property Size.get : java "size";
+    property Keys.get : java "keys";
+    method Clear() : java "clear";
 
 end

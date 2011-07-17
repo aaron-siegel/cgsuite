@@ -1,8 +1,8 @@
 class Sowing extends Game
 
-    private var position;
+    var position;
 
-    public method Sowing(List position)
+    method Sowing(List position)
 
         this.position := position;
         for k from 1 to this.position.Length do
@@ -13,7 +13,7 @@ class Sowing extends Game
         
     end
     
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
         direction := player.Sign;
@@ -37,7 +37,7 @@ class Sowing extends Game
 
     end
 
-    public property ToString.get
+    property ToString.get
 
         return "Sowing(" + this.position.ToString + ")";
 

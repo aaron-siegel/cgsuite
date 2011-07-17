@@ -1,13 +1,13 @@
 class Push extends GridGame
 
-    public method Push(grid)
+    method Push(grid)
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
             error("Push grid must be 1 x N.");
         end;
     end
 
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
 
@@ -31,11 +31,11 @@ class Push extends GridGame
 
     end
     
-    public property CharMap.get
+    property CharMap.get
         return ".xo";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

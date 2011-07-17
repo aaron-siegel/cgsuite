@@ -20,7 +20,7 @@ enum GridIcon
     WhiteRook,
     WhiteStone;
 
-    public method GridIcon()
+    method GridIcon()
     end
 
 end

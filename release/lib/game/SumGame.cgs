@@ -1,6 +1,6 @@
 class SumGame extends Game : java "org.cgsuite.lang.game.SumGame"
 
-    public method op+ (Game obj) : java "buildSum";
-    public method Simplify() : java "simplify";
+    method op+ (Game obj) : java "buildSum";
+    method Simplify() : java "simplify";
 
 end

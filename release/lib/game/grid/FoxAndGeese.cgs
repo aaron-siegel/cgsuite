@@ -1,14 +1,14 @@
 class FoxAndGeese extends GridGame
 
-    public method FoxAndGeese(grid)
+    method FoxAndGeese(grid)
         this.GridGame(grid);
     end
     
-    public property CharMap.get
+    property CharMap.get
         return ".xo";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

@@ -6,9 +6,9 @@
 
 class Table extends Collection : java "org.cgsuite.lang.Table"
 
-    public property HorizontalLines.get : java "getHorizontalLines";
-    public property HorizontalLines.set : java "setHorizontalLines";
+    property HorizontalLines.get : java "getHorizontalLines";
+    property HorizontalLines.set : java "setHorizontalLines";
     
-    public method SetHorizontalLines(Boolean value) : java "setHorizontalLines(boolean)";
+    method SetHorizontalLines(Boolean value) : java "setHorizontalLines(boolean)";
 
 end

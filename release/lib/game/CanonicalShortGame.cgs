@@ -1,20 +1,20 @@
 class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalShortGame"
 
-    public override method op neg() : java "getInverse";
-    public method op<=(CanonicalShortGame other) : java "leq";
-    public override method op==(CanonicalShortGame other)
+    override method op neg() : java "getInverse";
+    method op<=(CanonicalShortGame other) : java "leq";
+    override method op==(CanonicalShortGame other)
         return this <= other and other <= this;
     end
-    public method Heat(CanonicalShortGame t) : java "heat";
-    public method Overheat(CanonicalShortGame s, CanonicalShortGame t) : java "overheat";
-    public method Cool(Number t) : java "cool";
-    public method NortonMultiply(CanonicalShortGame h) : java "nortonMultiply";
-    public method ConwayMultiply(CanonicalShortGame h) : java "conwayMultiply";
-    public method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
-    public method Pow(Number n) : java "pow";
-    public method PowTo(Number n) : java "powTo";
+    method Heat(CanonicalShortGame t) : java "heat";
+    method Overheat(CanonicalShortGame s, CanonicalShortGame t) : java "overheat";
+    method Cool(Number t) : java "cool";
+    method NortonMultiply(CanonicalShortGame h) : java "nortonMultiply";
+    method ConwayMultiply(CanonicalShortGame h) : java "conwayMultiply";
+    method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
+    method Pow(Number n) : java "pow";
+    method PowTo(Number n) : java "powTo";
 
-    public method Options(Player player)
+    method Options(Player player)
         if player == Player.Left then
             return this.LeftOptions;
         else
@@ -22,39 +22,39 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
         end
     end
 
-    public property AtomicWeight.get : java "atomicWeight";
-    public property Birthday.get : java "birthday";
-    public property Companion.get : java "companion";
-    public property Diversity.get : java "diversity";
-    public property Freeze.get : java "freeze";
-    public property Incentives.get : java "incentives";
-    public property IsAllSmall.get : java "isAllSmall";
-    public property IsEven.get : java "isEven";
-    public property IsEvenTempered.get : java "isEvenTempered";
-    public property IsInfinitesimal.get : java "isInfinitesimal";
-    public property IsInteger.get : java "isInteger";
-    public property IsNimber.get : java "isNimber";
-    public property IsNumber.get : java "isNumber";
-    public property IsNumberish.get : java "isNumberish";
-    public property IsNumberTiny.get : java "isNumberTiny";
-    public property IsNumberUpStar.get : java "isNumberUpStar";
-    public property IsOdd.get : java "isOdd";
-    public property IsOddTempered.get : java "isOddTempered";
-    public property IsUptimal.get : java "isUptimal";
-    public property LeftIncentives.get : java "leftIncentives";
-    public override property LeftOptions.get : java "getLeftOptions";
-    public property LeftStop.get : java "leftStop";
-    public property Mean.get : java "mean";
-    public property Miny.get : java "miny";
-    public property Rcf.get : java "rcf";
-    public property RightIncentives.get : java "rightIncentives";
-    public override property RightOptions.get : java "getRightOptions";
-    public property RightStop.get : java "rightStop";
-    public property StopCount.get : java "stopCount";
-    public property Temperature.get : java "temperature";
-    public property Tiny.get : java "tiny";
+    property AtomicWeight.get : java "atomicWeight";
+    property Birthday.get : java "birthday";
+    property Companion.get : java "companion";
+    property Diversity.get : java "diversity";
+    property Freeze.get : java "freeze";
+    property Incentives.get : java "incentives";
+    property IsAllSmall.get : java "isAllSmall";
+    property IsEven.get : java "isEven";
+    property IsEvenTempered.get : java "isEvenTempered";
+    property IsInfinitesimal.get : java "isInfinitesimal";
+    property IsInteger.get : java "isInteger";
+    property IsNimber.get : java "isNimber";
+    property IsNumber.get : java "isNumber";
+    property IsNumberish.get : java "isNumberish";
+    property IsNumberTiny.get : java "isNumberTiny";
+    property IsNumberUpStar.get : java "isNumberUpStar";
+    property IsOdd.get : java "isOdd";
+    property IsOddTempered.get : java "isOddTempered";
+    property IsUptimal.get : java "isUptimal";
+    property LeftIncentives.get : java "leftIncentives";
+    override property LeftOptions.get : java "getLeftOptions";
+    property LeftStop.get : java "leftStop";
+    property Mean.get : java "mean";
+    property Miny.get : java "miny";
+    property Rcf.get : java "rcf";
+    property RightIncentives.get : java "rightIncentives";
+    override property RightOptions.get : java "getRightOptions";
+    property RightStop.get : java "rightStop";
+    property StopCount.get : java "stopCount";
+    property Temperature.get : java "temperature";
+    property Tiny.get : java "tiny";
 
-    protected override method OrderLike(other)
+    override method OrderLike(other)
     
         if this == other then return 0; end;
 

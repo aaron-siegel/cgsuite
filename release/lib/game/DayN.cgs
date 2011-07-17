@@ -1,11 +1,11 @@
 class DayN
 
-    private var allSmall, reduced;
-    private var elements;
+    var allSmall, reduced;
+    var elements;
     
-    private var upcov, lowcov;
+    var upcov, lowcov;
 
-    public method DayN(birthday, AllSmall ? false, Reduced ? false)
+    method DayN(birthday, AllSmall ? false, Reduced ? false)
 
         this.allSmall := AllSmall;
         this.reduced := Reduced;
@@ -35,19 +35,19 @@ class DayN
 
     end
 
-    public property Size.get
+    property Size.get
 
         return this.elements.Size;
 
     end
 
-    public property Elements.get
+    property Elements.get
 
         return this.elements;
 
     end
 
-    public property Antichains.get
+    property Antichains.get
 
         antichains := {{}};
 
@@ -71,7 +71,7 @@ class DayN
 
     end
 
-    private method IsComparableToAny(ac, g)
+    method IsComparableToAny(ac, g)
 
         if this.reduced then
             for h in ac do
@@ -91,7 +91,7 @@ class DayN
 
     end
 
-    public method UpperCovers(g)
+    method UpperCovers(g)
 
         upcov := {};
 
@@ -118,7 +118,7 @@ class DayN
 
     end
 
-    public property JoinIrreducibles.get
+    property JoinIrreducibles.get
 
         ji := {};
 

@@ -22,14 +22,16 @@ public class Domain
 {
     private final static Logger log = Logger.getLogger(Domain.class.getName());
 
+    private CgsuiteClass context;
     private Namespace namespace;
     private List<CgsuitePackage> imports;
     private Mode mode;
 
-    public Domain(List<CgsuitePackage> imports)
+    public Domain(CgsuiteClass context, List<CgsuitePackage> imports)
     {
-        this.namespace = new Namespace();
+        this.context = context;
         this.imports = imports;
+        this.namespace = new Namespace();
         this.mode = Mode.NORMAL;
     }
 
@@ -343,7 +345,7 @@ public class Domain
                     x = x.simplify();
                     try
                     {
-                        return x.resolve(tree.getChild(1).getText());
+                        return x.resolve(tree.getChild(1).getText(), x.getCgsuiteClass().hasAncestor(context));
                     }
                     catch (InputException exc)
                     {

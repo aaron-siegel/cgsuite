@@ -9,26 +9,26 @@ enum Direction
     West        ( 0,-1),
     Northwest   (-1,-1);
 
-    private var rowShift, colShift;
+    var rowShift, colShift;
 
-    private method Direction(rowShift, colShift)
+    method Direction(rowShift, colShift)
         this.rowShift := rowShift;
         this.colShift := colShift;
     end
 
-    public property RowShift.get
+    property RowShift.get
         return this.rowShift;
     end
 
-    public property ColumnShift.get
+    property ColumnShift.get
         return this.colShift;
     end
 
-    public static var Orthogonal := { Direction.North, Direction.East, Direction.South, Direction.West };
+    static var Orthogonal := { Direction.North, Direction.East, Direction.South, Direction.West };
 
-    public static var Diagonal   := { Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
+    static var Diagonal   := { Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
     
-    public static var All        := { Direction.North, Direction.East, Direction.South, Direction.West,
+    static var All        := { Direction.North, Direction.East, Direction.South, Direction.West,
                                       Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
 
 end

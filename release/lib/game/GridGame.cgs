@@ -1,8 +1,8 @@
 class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
 
-    protected var grid;
+    var grid;
 
-    public method GridGame(grid)
+    method GridGame(grid)
         if grid.Class == Grid then
             this.grid := grid;
         elseif grid.Class == String then
@@ -12,11 +12,11 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
         end
     end
 
-    public property Grid.get
+    property Grid.get
         return this.grid;
     end
 
-    public override property ToString.get
+    override property ToString.get
         return this.Class.Name + "(" + this.grid.MapString(this.CharMap) + ")";
     end
     

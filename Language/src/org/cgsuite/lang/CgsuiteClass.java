@@ -106,7 +106,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     }
 
     @Override
-    public CgsuiteObject resolve(String identifier)
+    public CgsuiteObject resolve(String identifier, boolean allowPublicAccess)
     {
         ensureLoaded();
         
@@ -119,8 +119,16 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
         if (method != null && method.isStatic())
             return method;
+        
+        Variable var = lookupVar(identifier);
+        
+        if (var != null && var.isStatic())
+        {
+            CgsuiteObject obj = objectNamespace.get(identifier);
+            return (obj == null)? CgsuiteObject.NIL : obj;
+        }
 
-        return super.resolve(identifier);
+        return super.resolve(identifier, allowPublicAccess);
     }
 
     public boolean isLoaded()
@@ -164,6 +172,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     public String toString()
     {
         return "Class[" + name + "]";
+    }
+    
+    public boolean hasAncestor(CgsuiteClass ancestor)
+    {
+        ensureLoaded();
+        return ancestors.contains(ancestor);
     }
 
     public Class<? extends CgsuiteObject> getJavaClass()
@@ -330,8 +344,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             }
             for (Variable var : parent.vars.values())
             {
-                // TODO Access check
-                if (!var.isPrivate())
+                if (!vars.containsKey(var.getName()))
                 {
                     vars.put(var.getName(), var);
                     varsInOrder.add(var);
@@ -377,7 +390,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 CgsuiteObject initialValue = NIL;
 
                 if (var.getInitializer() != null)
-                    initialValue = new Domain(imports).expression(var.getInitializer());
+                    initialValue = new Domain(this, imports).expression(var.getInitializer());
                 
                 objectNamespace.put(var.getName(), initialValue);
 
@@ -533,7 +546,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             assert tree.getChild(2).getChild(i).getType() == ENUM_ELEMENT : tree.getChild(2).toStringTree();
             String literal = tree.getChild(2).getChild(i).getChild(0).getChild(0).getText();
-            declareVar(literal, EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i+1);
+            declareVar(literal, EnumSet.of(Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i+1);
 //            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
 //            assign(literal, value);
 //            value.assign("Ordinal", new RationalNumber(i, 1));
@@ -640,7 +653,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case MODIFIERS:
 
                 EnumSet<Modifier> mods = EnumSet.noneOf(Modifier.class);
-                boolean hasAccessModifier = false;
+
                 for (int i = 0; i < tree.getChildCount(); i++)
                 {
                     Modifier mod = modifier(tree.getChild(i));
@@ -650,17 +663,9 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                         throw new InputException(tree.getChild(i).getToken(), "Duplicate modifier.");
                     }
 
-                    if (Modifier.ACCESS_MODIFIERS.contains(mod))
-                    {
-                        if (hasAccessModifier)
-                            throw new InputException(tree.getChild(i).getToken(), "Redundant access modifier.");
-                        hasAccessModifier = true;
-                    }
-
                     mods.add(mod);
                 }
-                if (!hasAccessModifier)
-                    throw new InputException("Missing access modifier.");
+
                 return mods;
 
             default:
@@ -673,9 +678,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         switch (tree.token.getType())
         {
-            case PUBLIC:    return Modifier.PUBLIC;
-            case PROTECTED: return Modifier.PROTECTED;
-            case PRIVATE:   return Modifier.PRIVATE;
             case STATIC:    return Modifier.STATIC;
             case OVERRIDE:  return Modifier.OVERRIDE;
             default:        throw new MalformedParseTreeException(tree);

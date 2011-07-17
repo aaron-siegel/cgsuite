@@ -1,8 +1,8 @@
 class ToadsAndFrogs extends GridGame
 
-    private var backsliding;
+    var backsliding;
 
-    public method ToadsAndFrogs(grid, backsliding ? false)
+    method ToadsAndFrogs(grid, backsliding ? false)
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
             error("ToadsAndFrogs grid must be 1 x N.");
@@ -10,7 +10,7 @@ class ToadsAndFrogs extends GridGame
         this.backsliding := backsliding;
     end
 
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
 
@@ -46,11 +46,11 @@ class ToadsAndFrogs extends GridGame
 
     end
 
-    public property CharMap.get
+    property CharMap.get
         return ".tf";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,
@@ -60,7 +60,7 @@ class ToadsAndFrogs extends GridGame
     end
 
     /*
-    public property CanonicalForm.get
+    property CanonicalForm.get
 
         // Check the death leap principle (Erickson's criterion).
 

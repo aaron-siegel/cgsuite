@@ -13,14 +13,9 @@ import java.util.EnumSet;
  */
 public enum Modifier
 {
-    PUBLIC,
-    PROTECTED,
-    PRIVATE,
     STATIC,
     OVERRIDE,
     ENUM_VALUE;
-
-    public static final EnumSet<Modifier> ACCESS_MODIFIERS = EnumSet.of(PUBLIC, PROTECTED, PRIVATE);
 
     public static String toString(EnumSet<Modifier> modifiers)
     {

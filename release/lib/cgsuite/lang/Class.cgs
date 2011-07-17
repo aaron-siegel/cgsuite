@@ -1,18 +1,18 @@
 class Class : java "org.cgsuite.lang.CgsuiteClass"
 
-    private var memory := {=>};
+    var memory := {=>};
     
-    public property DeclNumber.get : java "getDeclNumber";
-    public property Methods.get : java "allMethods";
-    public property Variables.get : java "allVars";
+    property DeclNumber.get : java "getDeclNumber";
+    property Methods.get : java "allMethods";
+    property Variables.get : java "allVars";
 
-    public property Name.get : java "getName";
+    property Name.get : java "getName";
     
-    public property Memory.get
+    property Memory.get
         return this.memory;
     end
 
-    public override property ToString.get
+    override property ToString.get
         return "<Class " + this.Name + ">";
     end
 

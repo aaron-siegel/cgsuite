@@ -66,7 +66,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         setToolTipText(NbBundle.getMessage(ExplorerTopComponent.class, "HINT_ExplorerTopComponent"));
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
 
-        explorerDomain = new Domain(CgsuitePackage.DEFAULT_IMPORT);
+        explorerDomain = new Domain(null, CgsuitePackage.DEFAULT_IMPORT);
     }
 
     public void setExplorer(Explorer explorer)

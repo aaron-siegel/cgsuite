@@ -46,11 +46,6 @@ public class Variable extends CgsuiteObject
         return modifiers.contains(Modifier.STATIC);
     }
 
-    public boolean isPrivate()
-    {
-        return modifiers.contains(Modifier.PRIVATE);
-    }
-
     public boolean isEnumValue()
     {
         return modifiers.contains(Modifier.ENUM_VALUE);

@@ -3,17 +3,17 @@ enum Player
     Left    (true),
     Right   (false);
 
-    private var isLeft;
+    var isLeft;
 
-    private method Player(isLeft)
+    method Player(isLeft)
         this.isLeft := isLeft;
     end
 
-    public property Opponent.get
+    property Opponent.get
         if this.isLeft then return Player.Right; else return Player.Left; end
     end
 
-    public property Sign.get
+    property Sign.get
         if this.isLeft then return 1; else return -1; end
     end
 

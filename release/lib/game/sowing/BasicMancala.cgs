@@ -6,16 +6,16 @@
 
 class BasicMancala extends Game
 
-    private var l, r;
+    var l, r;
 
-    public method BasicMancala(List l, List r)
+    method BasicMancala(List l, List r)
     
         this.l := l;
         this.r := r;
     
     end
     
-    public method Options(Player player)
+    method Options(Player player)
     
         if player == Player.Left then
             us := this.l; them := this.r;
@@ -60,7 +60,7 @@ class BasicMancala extends Game
     
     end
     
-    public property ToString.get
+    property ToString.get
     
         return "BasicMancala(" + this.l.ToString + "," + this.r.ToString + ")";
     

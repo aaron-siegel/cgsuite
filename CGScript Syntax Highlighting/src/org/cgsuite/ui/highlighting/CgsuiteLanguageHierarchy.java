@@ -44,7 +44,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         {
             AND, BEGIN, BREAK, BY, CLASS, CONTINUE, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
             FALSE, FOR, FOREACH, FROM, GET, IF, IN, JAVA, LISTOF, METHOD, NEG,
-            NIL, NOT, OP, OR, OVERRIDE, POS, PRIVATE, PROPERTY, PROTECTED, PUBLIC, RETURN,
+            NIL, NOT, OP, OR, OVERRIDE, POS, PROPERTY, RETURN,
             SET, SETOF, SUPER, STATIC, TABLEOF, THEN, THIS, TO, TRUE, VAR, WHERE, WHILE
         });
 

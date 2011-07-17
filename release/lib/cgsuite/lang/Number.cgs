@@ -1,22 +1,22 @@
 class Number extends CanonicalShortGame : java "org.cgsuite.lang.game.RationalNumber"
 
-    public method op* (Game obj) : java "buildProduct";
-    public method op/ (Number obj) : java "divide";
-    public method op% (Number obj) : java "mod";
-    public method op**(Number obj) : java "pow";
-    public override method op neg () : java "negate";
+    method op* (Game obj) : java "buildProduct";
+    method op/ (Number obj) : java "divide";
+    method op% (Number obj) : java "mod";
+    method op**(Number obj) : java "pow";
+    override method op neg () : java "negate";
 
-    public method Min(Number obj) : java "min";
-    public method Max(Number obj) : java "max";
-    public method Mod(Number obj) : java "mod";
+    method Min(Number obj) : java "min";
+    method Max(Number obj) : java "max";
+    method Mod(Number obj) : java "mod";
 
-    public override property ToString.get : java "toString";
-    public override property CanonicalForm.get : java "canonicalForm";
+    override property ToString.get : java "toString";
+    override property CanonicalForm.get : java "canonicalForm";
 
-    public property Abs.get : java "abs";
-    public property Ceiling.get : java "ceiling";
-    public property Floor.get : java "floor";
-    public property IsInfinite.get : java "isInfinite";
-    public property IsDyadic.get : java "isDyadic";
+    property Abs.get : java "abs";
+    property Ceiling.get : java "ceiling";
+    property Floor.get : java "floor";
+    property IsInfinite.get : java "isInfinite";
+    property IsDyadic.get : java "isDyadic";
 
 end

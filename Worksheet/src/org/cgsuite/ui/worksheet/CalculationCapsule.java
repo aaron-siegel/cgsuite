@@ -37,7 +37,7 @@ import org.openide.util.RequestProcessor;
 public class CalculationCapsule implements Runnable
 {
     private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
-    private final static Domain WORKSPACE_DOMAIN = new Domain(CgsuitePackage.DEFAULT_IMPORT);
+    private final static Domain WORKSPACE_DOMAIN = new Domain(null, CgsuitePackage.DEFAULT_IMPORT);
 
     public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(WorksheetPanel.class);
 

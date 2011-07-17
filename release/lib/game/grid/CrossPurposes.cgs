@@ -1,10 +1,10 @@
 class CrossPurposes extends GridGame
 
-    public method CrossPurposes(grid)
+    method CrossPurposes(grid)
         this.GridGame(grid);
     end
 
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
 
@@ -34,11 +34,11 @@ class CrossPurposes extends GridGame
 
     end
     
-    public property CharMap.get
+    property CharMap.get
         return ".xo";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

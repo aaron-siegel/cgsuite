@@ -1,15 +1,15 @@
 class Clobber extends GridGame
 
-    private var directions;
+    var directions;
 
-    public method Clobber(grid, Directions ? Direction.Orthogonal)
+    method Clobber(grid, Directions ? Direction.Orthogonal)
     
         this.GridGame(grid);
         this.directions := Directions;
         
     end
     
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
 
@@ -37,11 +37,11 @@ class Clobber extends GridGame
 
     end
 
-    public property CharMap.get
+    property CharMap.get
         return ".xo";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

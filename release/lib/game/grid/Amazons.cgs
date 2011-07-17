@@ -1,10 +1,10 @@
 class Amazons extends GridGame
 
-    public method Amazons(Grid grid)
+    method Amazons(Grid grid)
         this.GridGame(grid);
     end
 
-    public method Options(Player player)
+    method Options(Player player)
 
         options := {};
 
@@ -48,11 +48,11 @@ class Amazons extends GridGame
 
     end
     
-    public property CharMap.get
+    property CharMap.get
         return ".xo#";
     end
     
-    public property Icons.get
+    property Icons.get
         return
         [
             GridIcon.Blank,

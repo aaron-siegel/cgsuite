@@ -101,10 +101,7 @@ tokens
     OVERRIDE    = 'override';
     PASS        = 'pass';
 	POS         = 'pos';
-	PRIVATE		= 'private';
 	PROPERTY	= 'property';
-	PROTECTED	= 'protected';
-	PUBLIC		= 'public';
 	RETURN		= 'return';
 	SET         = 'set';
     SETOF       = 'setof';
@@ -284,7 +281,7 @@ methodDeclaration
 	;
 	
 modifiers
-	: (PRIVATE | PROTECTED | PUBLIC | OVERRIDE | STATIC)* -> ^(MODIFIERS PRIVATE* PROTECTED* PUBLIC* OVERRIDE* STATIC*)
+	: (OVERRIDE | STATIC)* -> ^(MODIFIERS OVERRIDE* STATIC*)
 	;
 
 methodName

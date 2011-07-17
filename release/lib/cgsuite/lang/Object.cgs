@@ -1,11 +1,11 @@
 class Object : java "org.cgsuite.lang.CgsuiteObject"
 
-    public property Class.get : java "getCgsuiteClass";
+    property Class.get : java "getCgsuiteClass";
 
-    public method Object()
+    method Object()
     end
 
-    public method Order(other)
+    method Order(other)
         cmp := this.Class.DeclNumber - other.Class.DeclNumber;
         if cmp == 0 then
             return this.OrderLike(other);
@@ -14,18 +14,18 @@ class Object : java "org.cgsuite.lang.CgsuiteObject"
         end
     end
 
-    protected method OrderLike(other)
+    method OrderLike(other)
         return 0;
     end
 
-    public method op==(key)  return this === key; end
-    public method op!=(key)  return not this == key; end
-    public method op>=(key)  return key <= this; end
-    public method op<(key)   return this <= key and not key <= this; end
-    public method op>(key)   return not this <= key and key <= this; end
-    public method op<>(key)  return not this <= key and not key <= this; end
+    method op==(key)  return this === key; end
+    method op!=(key)  return not this == key; end
+    method op>=(key)  return key <= this; end
+    method op<(key)   return this <= key and not key <= this; end
+    method op>(key)   return not this <= key and key <= this; end
+    method op<>(key)  return not this <= key and not key <= this; end
 
-    public method op<=>(key)
+    method op<=>(key)
         if this <= key then
             if key <= this then
                 return 0;
@@ -41,7 +41,7 @@ class Object : java "org.cgsuite.lang.CgsuiteObject"
         end
     end
 
-    public property ToString.get
+    property ToString.get
 
         return "<Object of type " + this.Class.Name + ">";
 
