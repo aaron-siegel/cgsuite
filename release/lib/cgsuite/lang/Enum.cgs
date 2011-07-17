@@ -10,7 +10,7 @@ class Enum : java "org.cgsuite.lang.CgsuiteEnumValue"
         return this.literal;
     end
 
-    public method OrderLike(other)
+    public override method OrderLike(other)
         return this.ordinal - other.ordinal;
     end
 

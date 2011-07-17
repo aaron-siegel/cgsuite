@@ -43,8 +43,8 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         tokenTypes.put("keyword", new int[]
         {
             AND, BEGIN, BREAK, BY, CLASS, CONTINUE, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
-            FALSE, FOR, FOREACH, FROM, GET, IF, IMMUTABLE, IN, JAVA, LISTOF, METHOD, NEG,
-            NIL, NOT, OP, OR, POS, PRIVATE, PROPERTY, PROTECTED, PUBLIC, RETURN,
+            FALSE, FOR, FOREACH, FROM, GET, IF, IN, JAVA, LISTOF, METHOD, NEG,
+            NIL, NOT, OP, OR, OVERRIDE, POS, PRIVATE, PROPERTY, PROTECTED, PUBLIC, RETURN,
             SET, SETOF, SUPER, STATIC, TABLEOF, THEN, THIS, TO, TRUE, VAR, WHERE, WHILE
         });
 

@@ -12,7 +12,7 @@ class Class : java "org.cgsuite.lang.CgsuiteClass"
         return this.memory;
     end
 
-    public property ToString.get
+    public override property ToString.get
         return "<Class " + this.Name + ">";
     end
 

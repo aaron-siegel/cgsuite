@@ -20,9 +20,10 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.HierarchyEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import javax.swing.Box;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
@@ -41,8 +42,11 @@ import org.openide.windows.WindowManager;
  *
  * @author asiegel
  */
-public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, TaskListener, DocumentListener, CommandListener
+public class WorksheetPanel extends JPanel
+    implements Scrollable, KeyListener, TaskListener, DocumentListener, CommandListener
 {
+    private InputPanel activeInputPanel;
+    
     private CalculationCapsule currentCapsule;
     private InputPane currentSource;
     private Box.Filler strut;
@@ -112,10 +116,9 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     
     public void updateFocus()
     {
-        Component bottomComponent = getComponent(getComponentCount()-1);
-        if (bottomComponent instanceof InputPanel)
+        if (activeInputPanel != null)
         {
-            ((InputPanel) bottomComponent).getInputPane().requestFocus();
+            activeInputPanel.getInputPane().requestFocus();
         }
     }
 
@@ -129,36 +132,22 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         return (JScrollPane) getParent().getParent();
     }
 
-    private InputPanel addNewCell()
+    private void addNewCell()
     {
-        InputPanel panel = new InputPanel();
-        panel.getInputPane().activate();
-        panel.getInputPane().addKeyListener(new KeyAdapter()
-        {
-            @Override
-            public void keyPressed(KeyEvent evt)
-            {
-                cellKeyPressed(evt);
-            }
-        });
-        panel.getInputPane().getDocument().addDocumentListener(this);
-        add(panel);
-        return panel;
+        activeInputPanel = new InputPanel();
+        activeInputPanel.getInputPane().activate();
+        activeInputPanel.getInputPane().addKeyListener(this);
+        activeInputPanel.getInputPane().getDocument().addDocumentListener(this);
+        add(activeInputPanel);
     }
 
-    private void cellKeyPressed(KeyEvent evt)
+    @Override
+    public void keyPressed(KeyEvent evt)
     {
-        InputPane source = (InputPane) evt.getSource();
-        Component[] components = getComponents();
-        int index;
-        for (index = 0; index < components.length; index++)
-        {
-            if (components[index] instanceof InputPanel &&
-                ((InputPanel) components[index]).getComponent(1) == source)
-            {
-                break;
-            }
-        }
+        if (activeInputPanel == null)
+            return;
+        
+        InputPane source = activeInputPanel.getInputPane();
 
         switch (evt.getKeyCode())
         {
@@ -190,6 +179,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     seekingCommand = true;
                     source.setText(seekCommand(-1));
                     scrollToBottomLeft();
+                    updateFocus();
                 }
                 break;
 
@@ -201,6 +191,7 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
                     seekingCommand = true;
                     source.setText(seekCommand(1));
                     scrollToBottomLeft();
+                    updateFocus();
                 }
                 break;
 
@@ -228,6 +219,9 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     {
         source.deactivate();
         getBuffer().addCommand(source.getText());
+        activeInputPanel.getInputPane().removeKeyListener(this);
+        activeInputPanel.getInputPane().getDocument().removeDocumentListener(this);
+        activeInputPanel = null;
         commandHistoryPrefix = null;
         CalculationCapsule capsule = new CalculationCapsule(source.getText());
         RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
@@ -307,8 +301,11 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
 
         postOutput(output);
         
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override public void run() {
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
                 advanceToNext();
             }
         });
@@ -320,10 +317,10 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
     private void advanceToNext()
     {
         add(Box.createVerticalStrut(10));
-        InputPanel cell = addNewCell();
+        addNewCell();
         updateComponentSizes();
         scrollToBottomLeft();
-        cell.getInputPane().requestFocusInWindow();
+        updateFocus();
         validate();
     }
 
@@ -437,9 +434,26 @@ public class WorksheetPanel extends javax.swing.JPanel implements Scrollable, Ta
         if (this.getComponentCount() == 0)
             return;
         
-        InputPanel inputPanel = (InputPanel) this.getComponent(this.getComponentCount()-1);
+        Component lastComponent = this.getComponent(this.getComponentCount()-1);
+        if (!(lastComponent instanceof InputPanel))
+        {
+            getToolkit().beep();
+            return;
+        }
+        
+        InputPanel inputPanel = (InputPanel) lastComponent;
         inputPanel.getInputPane().setText(command);
         inputPanel.getInputPane().requestFocus();
+    }
+
+    @Override
+    public void keyTyped(KeyEvent ke)
+    {
+    }
+
+    @Override
+    public void keyReleased(KeyEvent ke)
+    {
     }
 
 }

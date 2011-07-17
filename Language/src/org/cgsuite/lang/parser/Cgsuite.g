@@ -86,7 +86,6 @@ tokens
 	FROM		= 'from';
 	GET         = 'get';
 	IF			= 'if';
-	IMMUTABLE	= 'immutable';
 //	IMPORT		= 'import';
 	IN			= 'in';
     INF         = 'inf';
@@ -99,6 +98,7 @@ tokens
 	NOT			= 'not';
 	OP          = 'op';
 	OR			= 'or';
+    OVERRIDE    = 'override';
     PASS        = 'pass';
 	POS         = 'pos';
 	PRIVATE		= 'private';
@@ -239,7 +239,7 @@ tokens
 }
 
 compilationUnit
-	: (classDeclaration | enumDeclaration) EOF^
+	: (classDeclaration | enumDeclaration | block) EOF^
 	;
 
 classDeclaration
@@ -284,7 +284,7 @@ methodDeclaration
 	;
 	
 modifiers
-	: (PRIVATE | PROTECTED | PUBLIC | IMMUTABLE | STATIC)* -> ^(MODIFIERS PRIVATE* PROTECTED* PUBLIC* IMMUTABLE* STATIC*)
+	: (PRIVATE | PROTECTED | PUBLIC | OVERRIDE | STATIC)* -> ^(MODIFIERS PRIVATE* PROTECTED* PUBLIC* OVERRIDE* STATIC*)
 	;
 
 methodName
@@ -588,7 +588,7 @@ slashExpression
             {
                 if ($SLASHES.getText().length() == t.getText().length())
                 {
-                    throw new RuntimeException("Ambiguous pattern of slashes.");
+                    throw new RecognitionException(input);  // Ambiguous pattern of slashes.
                 }
                 else if (t.getChild(0).getType() != SLASHES ||
                          t.getChild(0).getText().length() < $SLASHES.getText().length())

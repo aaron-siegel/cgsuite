@@ -1,0 +1,51 @@
+/*
+ * TopplingDominoes.cgs
+ *
+ * Created by asiegel on Jul 13, 2011
+ */
+
+class TopplingDominoes extends GridGame
+
+    public method TopplingDominoes(Grid grid)
+    
+        this.GridGame(grid);
+        if this.grid.NumRows != 1 then
+            error("Grid must have exactly one row.");
+        end
+        
+    end
+    
+    public method Options(Player player)
+        
+        options := {};
+        
+        for n from 1 to this.grid.NumColumns do
+        
+            if this.grid[1,n] == player.Ordinal or this.grid[1,n] == 3 then
+            
+                options.Add(TopplingDominoes(this.grid.Subgrid(1, 1, 1, n-1)));
+                options.Add(TopplingDominoes(this.grid.Subgrid(1, 1, n+1, this.grid.NumColumns)));
+            
+            end
+        
+        end;
+        
+        return options;
+        
+    end
+
+    public property CharMap.get
+        return ".xoe";
+    end
+    
+    public property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone,
+            GridIcon.Grayed
+        ];
+    end
+    
+end

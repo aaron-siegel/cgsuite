@@ -4,19 +4,19 @@ class Number extends CanonicalShortGame : java "org.cgsuite.lang.game.RationalNu
     public method op/ (Number obj) : java "divide";
     public method op% (Number obj) : java "mod";
     public method op**(Number obj) : java "pow";
-    public method op neg () : java "negate";
+    public override method op neg () : java "negate";
 
     public method Min(Number obj) : java "min";
     public method Max(Number obj) : java "max";
     public method Mod(Number obj) : java "mod";
 
+    public override property ToString.get : java "toString";
+    public override property CanonicalForm.get : java "canonicalForm";
+
     public property Abs.get : java "abs";
-    public property CanonicalForm.get : java "canonicalForm";
     public property Ceiling.get : java "ceiling";
     public property Floor.get : java "floor";
     public property IsInfinite.get : java "isInfinite";
     public property IsDyadic.get : java "isDyadic";
-
-    public property ToString.get : java "toString";
 
 end

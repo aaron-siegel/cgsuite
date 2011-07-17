@@ -1,3 +1,13 @@
 class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
 
+    public property Underlying.get : java "getG";
+
+    public method Options(Player player)
+        return setof(-g for g in this.Underlying.Options(player.Opponent));
+    end
+    
+    public property CanonicalForm.get
+        return -this.Underlying.CanonicalForm;
+    end
+
 end

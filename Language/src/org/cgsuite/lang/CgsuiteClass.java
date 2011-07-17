@@ -58,6 +58,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private boolean loaded;
 
     private CgsuiteTree parseTree;
+    private CgsuiteTree script;
 
     private int declNumber;
     private Set<CgsuiteClass> parents;
@@ -298,6 +299,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.declNumber = nextDeclNumber++;
 
         classdef(parseTree.getChild(0));
+        
+        if (script != null)
+        {
+            loaded = true;
+            return;
+        }
 
         for (CgsuiteClass parent : parents)
         {
@@ -418,7 +425,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 break;
 
-            case CgsuiteParser.ENUM:
+            case ENUM:
 
                 if (!name.equals(tree.getChild(1).getText()))
                 {
@@ -426,6 +433,13 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 }
                 parents.add(CgsuitePackage.forceLookupClass("Enum"));
                 javaClassname = CgsuiteEnumValue.class.getName();
+                break;
+                
+            case STATEMENT_SEQUENCE:
+                
+                // This "class" is actually a script.
+                
+                script = tree;
                 break;
 
             default:
@@ -572,13 +586,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 else
                     body = tree.getChild(3);
 
-                if (this.methods.containsKey(methodName) &&
-                    this.methods.get(methodName).getDeclaringClass() == this)
-                {
-                    throw new InputException(tree.getToken(), "Duplicate method definition: " + methodName);
-                }
-
-                declareMethod(methodName, modifiers, parameters, body, javaMethodName);
+                declareMethod(tree, methodName, modifiers, parameters, body, javaMethodName);
 
                 return;
 
@@ -592,13 +600,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 else
                     body = tree.getChild(3);
 
-                if (this.methods.containsKey(methodName) &&
-                    this.methods.get(methodName).getDeclaringClass() == this)
-                {
-                    throw new InputException(tree.getToken(), "Duplicate property definition: " + propertyName);
-                }
-
-                declareMethod(methodName, modifiers, Collections.<Parameter>emptyList(), body, javaMethodName);
+                declareMethod(tree, methodName, modifiers, Collections.<Parameter>emptyList(), body, javaMethodName);
 
                 return;
 
@@ -675,13 +677,32 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case PROTECTED: return Modifier.PROTECTED;
             case PRIVATE:   return Modifier.PRIVATE;
             case STATIC:    return Modifier.STATIC;
-            case IMMUTABLE: return Modifier.IMMUTABLE;
+            case OVERRIDE:  return Modifier.OVERRIDE;
             default:        throw new MalformedParseTreeException(tree);
         }
     }
 
-    private void declareMethod(String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree body, String javaMethodName)
+    private void declareMethod(CgsuiteTree tree, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree body, String javaMethodName)
     {
+        if (this.methods.containsKey(name) &&
+            this.methods.get(name).getDeclaringClass() == this)
+        {
+            // tree.getToken().getText() is "method" or "property" depending on the declaration type
+            throw new InputException(tree.getToken(), "Duplicate " + tree.getToken().getText() + " definition: " + name);
+        }
+        else if (this.methods.containsKey(name) && !modifiers.contains(Modifier.OVERRIDE))
+        {
+            throw new InputException(tree.getToken(), "Declaration overrides an ancestor " + tree.getToken().getText() +
+                " but is not marked \"override\": " + name);
+        }
+        else if (!this.methods.containsKey(name) && modifiers.contains(Modifier.OVERRIDE))
+        {
+            throw new InputException(tree.getToken(), "Declaration is marked \"override\" but does not override an ancestor " +
+                tree.getToken().getText() + ": " + name);
+        }
+        
+        // It's a legit method declaration.
+        
         this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName));
     }
 

@@ -13,7 +13,7 @@ class Grid : java "org.cgsuite.lang.game.Grid"
     public property NumColumns.get : java "getNumColumns";
     public property SymmetryInvariantRepresentation.get : java "symmetryInvariantRepresentation";
 
-    public property ToString.get
+    public override property ToString.get
         return this.MapString(".123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     end
 

@@ -548,12 +548,12 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
      */
     public Grid subgrid(int startRow, int endRow, int startCol, int endCol)
     {
-        Grid subgrid = new Grid(endRow-startRow, endCol-startCol, bitsPerEntry);
-        for (int row = startRow; row < endRow; row++)
+        Grid subgrid = new Grid(endRow-startRow+1, endCol-startCol+1, bitsPerEntry);
+        for (int row = startRow; row <= endRow; row++)
         {
-            for (int col = startCol; col < endCol; col++)
+            for (int col = startCol; col <= endCol; col++)
             {
-                subgrid.putAt(row-startRow, col-startCol, getAt(row, col));
+                subgrid.putAt(getAt(row, col), row-startRow+1, col-startCol+1);
             }
         }
         return subgrid;

@@ -12,6 +12,6 @@ class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
     public method Copy() : java "copy";
     public method Clear() : java "clear";
 
-    public property ToString.get : java "toString";
+    public override property ToString.get : java "toString";
 
 end

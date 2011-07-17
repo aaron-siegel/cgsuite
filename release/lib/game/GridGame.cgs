@@ -16,7 +16,7 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
         return this.grid;
     end
 
-    public property ToString.get
+    public override property ToString.get
         return this.Class.Name + "(" + this.grid.MapString(this.CharMap) + ")";
     end
     

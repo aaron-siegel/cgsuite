@@ -17,7 +17,7 @@ public enum Modifier
     PROTECTED,
     PRIVATE,
     STATIC,
-    IMMUTABLE,
+    OVERRIDE,
     ENUM_VALUE;
 
     public static final EnumSet<Modifier> ACCESS_MODIFIERS = EnumSet.of(PUBLIC, PROTECTED, PRIVATE);

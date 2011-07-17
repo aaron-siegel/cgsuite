@@ -37,15 +37,8 @@ public class CgsuiteObject
         @Override
         public int compare(CgsuiteObject x, CgsuiteObject y)
         {
-            try
-            {
-                CgsuiteObject obj = x.invokeMethod("Order", y).simplify();
-                return ((CgsuiteInteger) obj).intValue();
-            }
-            catch (CgsuiteException exc)
-            {
-                throw new RuntimeException(exc);
-            }
+            CgsuiteObject obj = x.invokeMethod("Order", y).simplify();
+            return ((CgsuiteInteger) obj).intValue();
         }
     };
 

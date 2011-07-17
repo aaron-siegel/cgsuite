@@ -1,8 +1,8 @@
 class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalShortGame"
 
-    public method op neg() : java "getInverse";
+    public override method op neg() : java "getInverse";
     public method op<=(CanonicalShortGame other) : java "leq";
-    public method op==(CanonicalShortGame other)
+    public override method op==(CanonicalShortGame other)
         return this <= other and other <= this;
     end
     public method Heat(CanonicalShortGame t) : java "heat";
@@ -42,19 +42,19 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     public property IsOddTempered.get : java "isOddTempered";
     public property IsUptimal.get : java "isUptimal";
     public property LeftIncentives.get : java "leftIncentives";
-    public property LeftOptions.get : java "getLeftOptions";
+    public override property LeftOptions.get : java "getLeftOptions";
     public property LeftStop.get : java "leftStop";
     public property Mean.get : java "mean";
     public property Miny.get : java "miny";
     public property Rcf.get : java "rcf";
     public property RightIncentives.get : java "rightIncentives";
-    public property RightOptions.get : java "getRightOptions";
+    public override property RightOptions.get : java "getRightOptions";
     public property RightStop.get : java "rightStop";
     public property StopCount.get : java "stopCount";
     public property Temperature.get : java "temperature";
     public property Tiny.get : java "tiny";
 
-    protected method OrderLike(other)
+    protected override method OrderLike(other)
     
         if this == other then return 0; end;
 
