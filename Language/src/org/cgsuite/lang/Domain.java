@@ -821,7 +821,7 @@ public class Domain
                 case AST:       return multiply(x, y, tree);
                 case FSLASH:    return x.invokeMethod("op /", y);
                 case PERCENT:   return x.invokeMethod("op %", y);
-                case EXP:       return x.invokeMethod("op **", y);
+                case EXP:       return x.invokeMethod("op ^", y);
                 default:        throw new MalformedParseTreeException(tree);
             }
         }

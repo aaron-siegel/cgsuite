@@ -15,9 +15,7 @@ tokens
 	AST         = '*';
 	FSLASH		= '/';
 	DOT			= '.';
-	EXP			= '**';
 	PERCENT		= '%';
-	UNDERSCORE	= '_';
 	LPAREN		= '(';
 	RPAREN		= ')';
 	LBRACKET	= '[';
@@ -59,8 +57,7 @@ tokens
 	ASN_MOD		= '%=';
 	ASN_AND		= '&=';
 	ASN_OR		= '|=';
-	ASN_XOR		= '^=';
-	ASN_EXP		= '**=';
+	ASN_EXP		= '^=';
     BAD_ASSIGN  = '=';
 	
 	DOTDOT		= '..';
@@ -92,6 +89,7 @@ tokens
 	JAVA        = 'java';
     LISTOF      = 'listof';
 	METHOD		= 'method';
+    MUTABLE     = 'mutable';
 //	NAMESPACE	= 'namespace';
     NEG         = 'neg';
     NIL         = 'nil';
@@ -121,6 +119,7 @@ tokens
 	ASN_ANTECEDENT;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
+    EXP;
 	EXPLICIT_LIST;
 	EXPLICIT_MAP;
 	EXPLICIT_SET;
@@ -281,7 +280,7 @@ methodDeclaration
 	;
 	
 modifiers
-	: (OVERRIDE | STATIC)* -> ^(MODIFIERS OVERRIDE* STATIC*)
+	: (OVERRIDE | MUTABLE | STATIC)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC*)
 	;
 
 methodName
@@ -290,7 +289,7 @@ methodName
     ;
 
 opCode
-    : PLUS | MINUS | AST | FSLASH | PERCENT | EXP | NEG | POS
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | NEG | POS
     | standardRelationalToken
     | opAssignmentToken
     | LBRACKET RBRACKET ASSIGN?
@@ -366,7 +365,6 @@ opAssignmentToken
 	| ASN_MOD
 	| ASN_AND
 	| ASN_OR
-	| ASN_XOR
 	| ASN_EXP
 	;
 	
@@ -467,7 +465,7 @@ multiplyExpr
 	;
 
 expExpr
-	: plusminusExpr (EXP^ plusminusExpr)?
+	: plusminusExpr (CARET^ plusminusExpr { $CARET.setType(EXP); })?
 	;
 	
 plusminusExpr

@@ -13,8 +13,9 @@ import java.util.EnumSet;
  */
 public enum Modifier
 {
-    STATIC,
     OVERRIDE,
+    MUTABLE,
+    STATIC,
     ENUM_VALUE;
 
     public static String toString(EnumSet<Modifier> modifiers)

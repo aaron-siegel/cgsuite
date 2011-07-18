@@ -683,8 +683,9 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         switch (tree.token.getType())
         {
-            case STATIC:    return Modifier.STATIC;
+            case MUTABLE:   return Modifier.MUTABLE;
             case OVERRIDE:  return Modifier.OVERRIDE;
+            case STATIC:    return Modifier.STATIC;
             default:        throw new MalformedParseTreeException(tree);
         }
     }
