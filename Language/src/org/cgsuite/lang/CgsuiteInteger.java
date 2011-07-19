@@ -12,7 +12,7 @@ import org.cgsuite.lang.output.StyledTextOutput;
  *
  * @author asiegel
  */
-public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
+public class CgsuiteInteger extends Game
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Integer");
 
@@ -83,9 +83,9 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
     }
 
     @Override
-    public int compareTo(CgsuiteInteger other)
+    protected int compareLike(CgsuiteObject other)
     {
-        return value - other.value;
+        return value - ((CgsuiteInteger) other).value;
     }
 
     @Override

@@ -4,11 +4,11 @@
  * Created by asiegel on Jul 12, 2011
  */
 
-class Table extends Collection : java "org.cgsuite.lang.Table"
+mutable class Table extends Collection : java "org.cgsuite.lang.Table"
 
     property HorizontalLines.get : java "getHorizontalLines";
-    property HorizontalLines.set : java "setHorizontalLines";
+    mutable property HorizontalLines.set : java "setHorizontalLines";
     
-    method SetHorizontalLines(Boolean value) : java "setHorizontalLines(boolean)";
+    mutable method SetHorizontalLines(Boolean value) : java "setHorizontalLines(boolean)";
 
 end

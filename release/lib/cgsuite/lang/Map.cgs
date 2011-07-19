@@ -1,9 +1,9 @@
-class Map : java "org.cgsuite.lang.CgsuiteMap"
+mutable class Map : java "org.cgsuite.lang.CgsuiteMap"
 
     method op[]  (key)     : java "get";
-    method op[]:=(val,key) : java "put";
+    mutable method op[]:=(val,key) : java "put";
     property Size.get : java "size";
     property Keys.get : java "keys";
-    method Clear() : java "clear";
+    mutable method Clear() : java "clear";
 
 end

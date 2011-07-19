@@ -1,6 +1,7 @@
 package org.cgsuite.lang;
 
 import java.util.HashMap;
+import java.util.Set;
 
 public final class Namespace implements Cloneable
 {
@@ -23,6 +24,11 @@ public final class Namespace implements Cloneable
         Namespace copy = new Namespace();
         copy.objects.putAll(this.objects);
         return copy;
+    }
+    
+    public Set<String> keys()
+    {
+        return objects.keySet();
     }
 
     public void clear()

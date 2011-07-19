@@ -19,31 +19,30 @@ class Konane extends GridGame
                         if this.grid[m+d.RowShift,n+d.ColumnShift] == them and
                            this.grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
 
-                           curGrid := this.grid;
-                           curM := m;
-                           curN := n;
-                           while curGrid[curM+d.RowShift,curN+d.ColumnShift] == them and
-                                 curGrid[curM+2*d.RowShift,curN+2*d.ColumnShift] == 0 do
+                            curGrid := this.grid;
+                            curM := m;
+                            curN := n;
+                            while curGrid[curM+d.RowShift,curN+d.ColumnShift] == them and
+                                  curGrid[curM+2*d.RowShift,curN+2*d.ColumnShift] == 0 do
 
-                               newGrid := curGrid.Copy();
-                               newGrid[curM,curN] := 0;
-                               newGrid[curM+d.RowShift,curN+d.ColumnShift] := 0;
-                               newGrid[curM+2*d.RowShift,curN+2*d.ColumnShift] := us;
+                                curGrid[curM,curN] := 0;
+                                curGrid[curM+d.RowShift,curN+d.ColumnShift] := 0;
+                                curGrid[curM+2*d.RowShift,curN+2*d.ColumnShift] := us;
 
-                               options.Add(Konane(newGrid));
-                               curGrid := newGrid;
-                               curM := curM + 2*d.RowShift;
-                               curN := curN + 2*d.ColumnShift;
+                                options.Add(Konane(curGrid));   // Copy on write!
 
-                           end
-                       end
-                   end
+                                curM := curM + 2*d.RowShift;
+                                curN := curN + 2*d.ColumnShift;
 
-               end
-           end
-       end;
+                            end
+                        end
+                    end
 
-       return options;
+                end
+            end
+        end;
+
+        return options;
 
     end
 

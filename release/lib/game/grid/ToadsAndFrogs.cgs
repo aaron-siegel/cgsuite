@@ -21,19 +21,19 @@ class ToadsAndFrogs extends GridGame
             if this.grid[1,n] == us then
 
                 if this.grid[1,n+player.Sign] == 0 then
-                    copy := this.grid.Copy();
+                    copy := this.grid;
                     copy[1,n] := 0;
                     copy[1,n+player.Sign] := us;
                     options.Add(ToadsAndFrogs(copy, this.backsliding));
                 elseif this.grid[1,n+player.Sign] == them and this.grid[1,n+2*player.Sign] == 0 then
-                    copy := this.grid.Copy();
+                    copy := this.grid;
                     copy[1,n] := 0;
                     copy[1,n+2*player.Sign] := us;
                     options.Add(ToadsAndFrogs(copy, this.backsliding));
                 end;
 
                 if this.backsliding and this.grid[1,n-player.Sign] == 0 then
-                    copy := this.grid.Copy();
+                    copy := this.grid;
                     copy[1,n] := 0;
                     copy[1,n-player.Sign] := us;
                     options.Add(ToadsAndFrogs(copy, this.backsliding));

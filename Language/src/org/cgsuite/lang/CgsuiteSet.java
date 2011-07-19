@@ -6,23 +6,24 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteSet extends CgsuiteCollection
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Set");
+    
     private HashSet<CgsuiteObject> objects;
 
     public CgsuiteSet()
     {
-        super(CgsuitePackage.forceLookupClass("Set"));
+        super(TYPE);
 
         objects = new HashSet<CgsuiteObject>();
     }
 
     public CgsuiteSet(int capacity)
     {
-        super(CgsuitePackage.forceLookupClass("Set"));
+        super(TYPE);
 
         objects = new HashSet<CgsuiteObject>(capacity);
     }
@@ -77,7 +78,7 @@ public class CgsuiteSet extends CgsuiteCollection
     {
         List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(objects.size());
         list.addAll(objects);
-        Collections.sort(list, CgsuiteObject.SORT_COMPARATOR);
+        Collections.sort(list);
         return list.iterator();
     }
 

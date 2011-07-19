@@ -21,5 +21,16 @@ public class CgsuiteEnumValue extends CgsuiteObject
     {
         return ((CgsuiteString) resolve("literal")).toJavaString();
     }
+    
+    public int getOrdinal()
+    {
+        return ((CgsuiteInteger) resolve("ordinal")).intValue();
+    }
+
+    @Override
+    protected int compareLike(CgsuiteObject other)
+    {
+        return getOrdinal() - ((CgsuiteEnumValue) other).getOrdinal();
+    }
 
 }

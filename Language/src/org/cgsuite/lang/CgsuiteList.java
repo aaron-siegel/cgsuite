@@ -10,18 +10,20 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteList extends CgsuiteCollection
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("List");
+    
     private ArrayList<CgsuiteObject> objects;
 
     public CgsuiteList()
     {
-        super(CgsuitePackage.forceLookupClass("List"));
+        super(TYPE);
 
         this.objects = new ArrayList<CgsuiteObject>();
     }
 
     public CgsuiteList(int capacity)
     {
-        super(CgsuitePackage.forceLookupClass("List"));
+        super(TYPE);
 
         this.objects = new ArrayList<CgsuiteObject>(capacity);
     }

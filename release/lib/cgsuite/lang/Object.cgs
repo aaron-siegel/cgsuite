@@ -5,19 +5,6 @@ class Object : java "org.cgsuite.lang.CgsuiteObject"
     method Object()
     end
 
-    method Order(other)
-        cmp := this.Class.DeclNumber - other.Class.DeclNumber;
-        if cmp == 0 then
-            return this.OrderLike(other);
-        else
-            return cmp;
-        end
-    end
-
-    method OrderLike(other)
-        return 0;
-    end
-
     method op==(key)  return this === key; end
     method op!=(key)  return not this == key; end
     method op>=(key)  return key <= this; end

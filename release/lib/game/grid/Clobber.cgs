@@ -22,7 +22,7 @@ class Clobber extends GridGame
 
                     for d in this.directions do
                         if this.grid[m+d.RowShift,n+d.ColumnShift] == them then
-                            copy := this.grid.Copy();
+                            copy := this.grid;
                             copy[m,n] := 0;
                             copy[m+d.RowShift,n+d.ColumnShift] := us;
                             options.Add(Clobber(copy, this.directions));

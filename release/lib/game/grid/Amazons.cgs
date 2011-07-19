@@ -24,7 +24,7 @@ class Amazons extends GridGame
                                         mArrow := m2 + e.RowShift * l;
                                         nArrow := n2 + e.ColumnShift * l;
                                         if (this.grid[mArrow,nArrow] == 0) or (mArrow == m and nArrow == n) then
-                                            copy := this.grid.Copy();
+                                            copy := this.grid;
                                             copy[m,n] := 0;
                                             copy[m2,n2] := us;
                                             copy[mArrow,nArrow] := 3;

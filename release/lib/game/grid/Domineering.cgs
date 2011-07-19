@@ -19,7 +19,7 @@ class Domineering extends GridGame
         for m from 1 to this.grid.NumRows do
             for n from 1 to this.grid.NumColumns do
                 if this.grid[m,n] == 0 and this.grid[m+mDelta,n+nDelta] == 0 then
-                    copy := this.grid.Copy();
+                    copy := this.grid;
                     copy[m,n] := 1;
                     copy[m+mDelta,n+nDelta] := 1;
                     options.Add(Domineering(copy));

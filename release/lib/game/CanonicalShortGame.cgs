@@ -54,37 +54,4 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     property Temperature.get : java "temperature";
     property Tiny.get : java "tiny";
 
-    override method OrderLike(other)
-    
-        if this == other then return 0; end;
-
-        cmp := this.Birthday - other.Birthday;
-        if cmp != 0 then return cmp; end;
-
-        tlo := this.LeftOptions; olo := other.LeftOptions;
-        cmp := olo.Size - tlo.Size;
-        if cmp != 0 then return cmp; end;
-
-        tro := this.RightOptions; oro := other.RightOptions;
-        cmp := tro.Size - oro.Size;
-        if cmp != 0 then return cmp; end;
-
-        /*
-
-        for k from 1 to tlo.Size do
-            cmp := tlo[k].OrderLike(olo[k]);
-            if cmp != 0 then return cmp; end;
-        end;
-
-        for k from 1 to tro.Size do
-            cmp := tro[k].OrderLike(oro[k]);
-            if cmp != 0 then return cmp; end;
-        end;
-
-        */
-
-        return 0;
-
-    end
-
 end

@@ -9,9 +9,9 @@ class Enum : java "org.cgsuite.lang.CgsuiteEnumValue"
     property Literal.get
         return this.literal;
     end
-
-    override method OrderLike(other)
-        return this.ordinal - other.ordinal;
+    
+    override property ToString.get
+        return this.literal;
     end
 
 end

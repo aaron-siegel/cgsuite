@@ -5,6 +5,8 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteBoolean extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Boolean");
+    
     public final static CgsuiteBoolean TRUE = new CgsuiteBoolean(true);
     public final static CgsuiteBoolean FALSE = new CgsuiteBoolean(false);
 
@@ -12,14 +14,14 @@ public class CgsuiteBoolean extends CgsuiteObject
 
     public CgsuiteBoolean(String literal)
     {
-        super(CgsuitePackage.forceLookupClass("Boolean"));
+        super(TYPE);
 
         this.booleanValue = "true".equals(literal);
     }
 
     public CgsuiteBoolean(boolean booleanValue)
     {
-        super(CgsuitePackage.forceLookupClass("Boolean"));
+        super(TYPE);
 
         this.booleanValue = booleanValue;
     }
@@ -75,5 +77,11 @@ public class CgsuiteBoolean extends CgsuiteObject
         StyledTextOutput output = new StyledTextOutput();
         output.appendText(toString());
         return output;
+    }
+
+    @Override
+    protected int compareLike(CgsuiteObject other)
+    {
+        return booleanValue ? (((CgsuiteBoolean) other).booleanValue ? 0 : 1) : (((CgsuiteBoolean) other).booleanValue ? -1 : 0);
     }
 }

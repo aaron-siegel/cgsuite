@@ -38,20 +38,18 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
     private static final Logger log = Logger.getLogger(CgsuiteClass.class.getName());
     
-    public final static CgsuiteClass OBJECT;
-    public final static CgsuiteClass CLASS;
-
-    private static int nextDeclNumber;
+    public final static CgsuiteClass OBJECT_TYPE;
+    public final static CgsuiteClass TYPE;
 
     static
     {
-        OBJECT = new CgsuiteClass();
-        CLASS = new CgsuiteClass();
+        OBJECT_TYPE = new CgsuiteClass();
+        TYPE = new CgsuiteClass();
 
-        OBJECT.name = "Object";
-        CLASS.name = "Class";
-        OBJECT.type = CLASS.type = CLASS;
-        CgsuiteObject.NIL.type = OBJECT;
+        OBJECT_TYPE.name = "Object";
+        TYPE.name = "Class";
+        OBJECT_TYPE.type = TYPE.type = TYPE;
+        CgsuiteObject.NIL.type = OBJECT_TYPE;
     }
 
     private CgsuitePackage enclosingPackage;
@@ -63,7 +61,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private CgsuiteTree parseTree;
     private CgsuiteTree script;
 
-    private int declNumber;
     private EnumSet<Modifier> classModifiers;
     private Set<CgsuiteClass> parents;
     private Set<CgsuiteClass> ancestors;
@@ -83,7 +80,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     public CgsuiteClass(FileObject fo, CgsuitePackage enclosingPackage)
     {
-        super(CLASS);
+        super(TYPE);
 
         this.name = fo.getName();
         setFileObject(fo, enclosingPackage);
@@ -153,12 +150,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         else
             return pkgName + "." + name;
     }
-
-    public int getDeclNumber()
-    {
-        ensureLoaded();
-        return declNumber;
-    }
     
     public boolean isMutable()
     {
@@ -182,6 +173,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     public String toString()
     {
         return "Class[" + name + "]";
+    }
+
+    @Override
+    protected int compareLike(CgsuiteObject other)
+    {
+        return getQualifiedName().compareTo(((CgsuiteClass) other).getQualifiedName());
     }
     
     public boolean hasAncestor(CgsuiteClass ancestor)
@@ -261,6 +258,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
         return map;
     }
+    
+    public List<Variable> varsInOrder()
+    {
+        ensureLoaded();
+        return varsInOrder;
+    }
 
     /////////////////////////////////
     // Loader Logic
@@ -321,8 +324,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.vars = new HashMap<String,Variable>();
         this.varsInOrder = new ArrayList<Variable>();
         this.descendants = new HashSet<CgsuiteClass>();
-
-        this.declNumber = nextDeclNumber++;
 
         classdef(parseTree.getChild(0));
         
@@ -423,7 +424,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 if (var.isEnumValue())
                 {
                     initialValue.objectNamespace.put("literal", new CgsuiteString(var.getName()));
-                    initialValue.objectNamespace.put("ordinal", new RationalNumber(var.getDeclRank(), 1));
+                    initialValue.objectNamespace.put("ordinal", new CgsuiteInteger(var.getDeclRank()));
                 }
             }
         }
@@ -433,7 +434,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         switch (tree.getToken().getType())
         {
-            case CgsuiteParser.CLASS:
+            case CLASS:
                 
                 classModifiers = modifiers(tree.getChild(0));
 
@@ -446,8 +447,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 if (i < tree.getChildCount() && tree.getChild(i).getToken().getType() == EXTENDS)
                     extendsClause(tree.getChild(i++));
-                else if (this != OBJECT)
-                    parents.add(OBJECT);
+                else if (this != OBJECT_TYPE)
+                    parents.add(OBJECT_TYPE);
 
                 if (i < tree.getChildCount() && tree.getChild(i).getToken().getType() == JAVA)
                     javaClassname = javaref(tree.getChild(i++));
@@ -791,14 +792,14 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case IDENTIFIER:
 
                 parameterName = tree.getText();
-                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText()) : CgsuiteClass.OBJECT_TYPE;
                 return new Parameter(parameterName, parameterType, false, null);
 
             case QUESTION:
 
                 CgsuiteTree subt = tree.getChild(0);
                 parameterName = subt.getText();
-                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText()) : CgsuiteClass.OBJECT;
+                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText()) : CgsuiteClass.OBJECT_TYPE;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
                 return new Parameter(parameterName, parameterType, true, defaultValue);
 

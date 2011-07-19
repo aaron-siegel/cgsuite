@@ -16,7 +16,7 @@ import org.cgsuite.lang.output.StyledTextOutput;
 // TODO Improve comparator methodology
 // TODO Use weak references for crosslinks
 
-public class CgsuiteObject implements Cloneable
+public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
 {
     private final static Logger log = Logger.getLogger(CgsuiteObject.class.getName());
 
@@ -33,16 +33,6 @@ public class CgsuiteObject implements Cloneable
         public CgsuiteString toCgsuiteString()
         {
             return new CgsuiteString("nil");
-        }
-    };
-
-    public static final Comparator<CgsuiteObject> SORT_COMPARATOR = new Comparator<CgsuiteObject>()
-    {
-        @Override
-        public int compare(CgsuiteObject x, CgsuiteObject y)
-        {
-            CgsuiteObject obj = x.invokeMethod("Order", y).simplify();
-            return ((CgsuiteInteger) obj).intValue();
         }
     };
 
@@ -75,6 +65,43 @@ public class CgsuiteObject implements Cloneable
         {
             throw new RuntimeException(exc);
         }
+    }
+    
+    @Override
+    public final int compareTo(CgsuiteObject other)
+    {
+        if (type == other.type)
+            return compareLike(other);
+        
+        int cmp = ComparatorOrder.getIndex(type) - ComparatorOrder.getIndex(other.type);
+        
+        if (cmp != 0)
+            return cmp;
+        
+        cmp = type.getQualifiedName().compareTo(other.type.getQualifiedName());
+        
+        assert cmp != 0 : type.getQualifiedName();
+        return cmp;
+    }
+    
+    protected int compareLike(CgsuiteObject other)
+    {
+        for (Variable var : type.varsInOrder())
+        {
+            CgsuiteObject x = this.objectNamespace.get(var.getName());
+            CgsuiteObject y = other.objectNamespace.get(var.getName());
+            
+            if (x == null)
+                return -1;
+            if (y == null)
+                return 1;
+            
+            int cmp = x.compareTo(y);
+            if (cmp != 0)
+                return cmp;
+        }
+        
+        return 0;
     }
     
     public CgsuiteObject createCrosslink()

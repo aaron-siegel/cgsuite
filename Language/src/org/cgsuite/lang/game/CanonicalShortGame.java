@@ -29,6 +29,7 @@
 
 package org.cgsuite.lang.game;
 
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 import java.math.BigInteger;
@@ -77,7 +78,7 @@ import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
  * @author  Aaron Siegel
  * @version $Revision: 1.42 $ $Date: 2007/08/16 20:52:52 $
  */
-public final class CanonicalShortGame extends Game implements Comparable<CanonicalShortGame>
+public final class CanonicalShortGame extends Game
 {
     /*
      * As of version 0.5, all substantive information about canonical games is
@@ -226,6 +227,8 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
 
     ////////////////////////////////////////////////////////////////////////
     // Constants.
+    
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("CanonicalShortGame"); 
 
     /**
      * A static reference to the game 0.
@@ -266,7 +269,7 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
 
     private CanonicalShortGame()
     {
-        super(CgsuitePackage.forceLookupClass("CanonicalShortGame"));
+        super(TYPE);
     }
 
     /**
@@ -406,29 +409,29 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
         id = constructFromOptions(leftOptionArray, rightOptionArray);
     }
 
-    ////////////////////////////////////////////////////////////////////////
-    // Interface implementations and overrides of methods inherited from
-    // class Object
-
-    /**
-     * Compares this object to another <code>CanonicalGame</code> based on an
-     * an arbitrary, instance-dependent total ordering.
-     * <p>
-     * <b>Warning:</b> This ordering does <i>not</i> obey the standard
-     * order-relation on canonical games.  To compare games in the usual
-     * manner, use the {@link #leq(CanonicalGame) leq} method.
-     *
-     * @param   g The game to compare to.
-     * @return  -1 if <code>this</code> is less than <code>obj</code>,
-     *          0 if <code>this == obj</code>, or 1 if <code>this</code> is
-     *          greater than <code>obj</code> under an arbitrary,
-     *          instance-dependent total ordering.  This does <i>not</i> obey
-     *          the standard order-relation on canonical games.
-     */
     @Override
-    public int compareTo(CanonicalShortGame g)
+    protected int compareLike(CgsuiteObject other)
     {
-        return id - g.id;
+        CanonicalShortGame h = (CanonicalShortGame) other;
+        
+        if (id == h.id)
+            return 0;
+        
+        int cmp = birthday(id) - birthday(h.id);
+        if (cmp != 0)
+            return cmp;
+        
+        cmp = getNumLeftOptions(id) - getNumLeftOptions(h.id);
+        if (cmp != 0)
+            return cmp;
+        
+        cmp = getNumRightOptions(id) - getNumRightOptions(h.id);
+        if (cmp != 0)
+            return cmp;
+        
+        // TODO Finish to get a truly canonical ordering.
+        
+        return id - h.id;
     }
 
     @Override

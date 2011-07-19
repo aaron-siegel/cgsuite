@@ -18,7 +18,7 @@ class CrossPurposes extends GridGame
                     for d in Direction.Orthogonal do
                         if this.grid[m+  d.RowShift,n+  d.ColumnShift] == 0 and
                            this.grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
-                            copy := this.grid.Copy();
+                            copy := this.grid;
                             copy[m,n] := 0;
                             copy[m+  d.RowShift,n+  d.ColumnShift] := them;
                             copy[m+2*d.RowShift,n+2*d.ColumnShift] := them;

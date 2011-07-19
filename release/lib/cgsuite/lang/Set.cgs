@@ -1,16 +1,15 @@
-class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
+mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
 
     property Size.get : java "size";
     property IsEmpty.get
         return this.Size == 0;
     end
 
-    method Add(obj) : java "add";
-    method AddAll(Collection obj) : java "addAll";
-    method Remove(obj) : java "remove";
-    method RemoveAll(Collection obj) : java "removeAll";
-    method Copy() : java "copy";
-    method Clear() : java "clear";
+    mutable method Add(obj) : java "add";
+    mutable method AddAll(Collection obj) : java "addAll";
+    mutable method Remove(obj) : java "remove";
+    mutable method RemoveAll(Collection obj) : java "removeAll";
+    mutable method Clear() : java "clear";
 
     override property ToString.get : java "toString";
 

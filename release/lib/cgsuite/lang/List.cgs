@@ -1,10 +1,9 @@
-class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
+mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
 
     method op[]  (key)     : java "get(int)";
-    method op[]:=(val,key) : java "set(org.cgsuite.lang.CgsuiteObject,int)";
+    mutable method op[]:=(val,key) : java "set(org.cgsuite.lang.CgsuiteObject,int)";
     
-    method Sort(Procedure comparator) : java "sort";
-    method Copy() : java "copy";
+    mutable method Sort(Procedure comparator) : java "sort";
 
     property Length.get : java "size";
     override property ToString.get : java "toString";

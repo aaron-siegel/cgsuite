@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.cgsuite.lang.output.StyledTextOutput;
@@ -13,11 +12,13 @@ import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 
 public class CgsuiteMap extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Map");
+    
     private HashMap<CgsuiteObject,CgsuiteObject> map;
 
     public CgsuiteMap()
     {
-        super(CgsuitePackage.forceLookupClass("Map"));
+        super(TYPE);
 
         this.map = new HashMap<CgsuiteObject,CgsuiteObject>();
     }
@@ -30,7 +31,7 @@ public class CgsuiteMap extends CgsuiteObject
 
         List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(map.size());
         list.addAll(map.keySet());
-        Collections.sort(list, CgsuiteObject.SORT_COMPARATOR);
+        Collections.sort(list);
         StringBuilder buf = new StringBuilder("{");
         Iterator<CgsuiteObject> it = list.iterator();
         while (it.hasNext())

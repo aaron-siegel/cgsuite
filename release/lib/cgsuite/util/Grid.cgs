@@ -1,9 +1,8 @@
-class Grid : java "org.cgsuite.lang.game.Grid"
+mutable class Grid : java "org.cgsuite.lang.game.Grid"
 
     method Grid(Integer rows, Integer columns) : java "Grid(int,int)";
     method op[](Integer row, Integer col) : java "getAt(int,int)";
-    method op[]:=(Integer value, Integer row, Integer col) : java "putAt(int,int,int)";
-    method Copy() : java "copy";
+    mutable method op[]:=(Integer value, Integer row, Integer col) : java "putAt(int,int,int)";
     method Subgrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol) : java "subgrid(int,int,int,int)";
     method Decompose(Integer boundaryValue) : java "decompose(int)";
 

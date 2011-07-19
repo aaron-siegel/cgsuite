@@ -29,6 +29,7 @@
 
 package org.cgsuite.lang.game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,7 +67,7 @@ import org.cgsuite.lang.InputException;
  * @author  Aaron Siegel
  * @version $Revision: 1.10 $ $Date: 2007/02/16 20:10:14 $
  */
-public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Serializable
+public class Grid extends CgsuiteObject implements Serializable
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Grid");
 
@@ -412,8 +413,10 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
     }
 
     @Override
-    public int compareTo(Grid other)
+    protected int compareLike(CgsuiteObject obj)
     {
+        Grid other = (Grid) obj;
+        
         if (bitsPerEntry != other.bitsPerEntry)
         {
             return bitsPerEntry.ordinal() - other.bitsPerEntry.ordinal();

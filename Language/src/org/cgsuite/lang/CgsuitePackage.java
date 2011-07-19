@@ -157,13 +157,13 @@ public class CgsuitePackage implements FileChangeListener
         }
         else if ("Object".equals(node.getName()))
         {
-            CgsuiteClass.OBJECT.setFileObject(node, this);
-            classes.put("Object", CgsuiteClass.OBJECT);
+            CgsuiteClass.OBJECT_TYPE.setFileObject(node, this);
+            classes.put("Object", CgsuiteClass.OBJECT_TYPE);
         }
         else if ("Class".equals(node.getName()))
         {
-            CgsuiteClass.CLASS.setFileObject(node, this);
-            classes.put("Class", CgsuiteClass.CLASS);
+            CgsuiteClass.TYPE.setFileObject(node, this);
+            classes.put("Class", CgsuiteClass.TYPE);
         }
         else
         {

@@ -4,11 +4,13 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteString extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("String");
+    
     private String str;
 
     public CgsuiteString(String str)
     {
-        super(CgsuitePackage.forceLookupClass("String"));
+        super(TYPE);
 
         this.str = str;
     }
@@ -61,5 +63,11 @@ public class CgsuiteString extends CgsuiteObject
         } else if (!str.equals(other.str))
             return false;
         return true;
+    }
+
+    @Override
+    protected int compareLike(CgsuiteObject other)
+    {
+        return str.compareTo(((CgsuiteString) other).str);
     }
 }

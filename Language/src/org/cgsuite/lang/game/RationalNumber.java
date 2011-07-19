@@ -4,11 +4,12 @@ import java.math.BigInteger;
 import java.util.EnumSet;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.StyledTextOutput;
 
-public class RationalNumber extends Game implements Comparable<RationalNumber>
+public class RationalNumber extends Game
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Number");
 
@@ -65,8 +66,10 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
     }
 
     @Override
-    public int compareTo(RationalNumber r)
+    protected int compareLike(CgsuiteObject other)
     {
+        RationalNumber r = (RationalNumber) other;
+        
         if (isInfinite() && r.isInfinite())
         {
             // Only special case: Both are infinite
