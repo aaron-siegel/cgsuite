@@ -14,8 +14,9 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 // TODO Implement setters
 // TODO Improve comparator methodology
+// TODO Use weak references for crosslinks
 
-public class CgsuiteObject
+public class CgsuiteObject implements Cloneable
 {
     private final static Logger log = Logger.getLogger(CgsuiteObject.class.getName());
 
@@ -47,16 +48,64 @@ public class CgsuiteObject
 
     protected CgsuiteClass type;
     protected Namespace objectNamespace;
+    
+    private CgsuiteObject crosslink;
 
     CgsuiteObject()
     {
         objectNamespace = new Namespace();
+        crosslink = this;
     }
 
     public CgsuiteObject(CgsuiteClass type)
     {
         this.type = type;
         this.objectNamespace = new Namespace();
+        crosslink = this;
+    }
+    
+    @Override
+    protected CgsuiteObject clone()
+    {
+        try
+        {
+            return (CgsuiteObject) super.clone();
+        }
+        catch (CloneNotSupportedException exc)
+        {
+            throw new RuntimeException(exc);
+        }
+    }
+    
+    public CgsuiteObject createCrosslink()
+    {
+        if (!type.isMutable())
+            return this;
+        
+        CgsuiteObject clone = this.clone();
+        clone.crosslink = this.crosslink;
+        this.crosslink = clone;
+        return clone;
+    }
+    
+    public void unlink()
+    {
+        this.objectNamespace = objectNamespace.clone();
+        CgsuiteObject next = crosslink;
+        while (next.crosslink != this)
+        {
+            next = next.crosslink;
+        }
+        next.crosslink = this.crosslink;
+        this.crosslink = this;
+    }
+    
+    public final void unlinkIfNecessary()
+    {
+        if (this.crosslink != this)
+        {
+            unlink();
+        }
     }
 
     public CgsuiteObject simplify()
@@ -139,7 +188,7 @@ public class CgsuiteObject
             throw new InputException("Cannot reference static variable in dynamic context: " + name);
         if (!allowPublicAccess)
             throw new InputException("Cannot access variable from outside class " + type.getQualifiedName() + ": " + name);
-        objectNamespace.put(name, object);
+        objectNamespace.put(name, object.createCrosslink());
     }
 
     public CgsuiteObject invokeMethod(String methodName)

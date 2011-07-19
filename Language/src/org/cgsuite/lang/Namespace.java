@@ -1,11 +1,10 @@
 package org.cgsuite.lang;
 
 import java.util.HashMap;
-import java.util.Map;
 
-public class Namespace
+public final class Namespace implements Cloneable
 {
-    private Map<String,CgsuiteObject> objects;
+    private HashMap<String,CgsuiteObject> objects;
 
     public Namespace()
     {
@@ -16,6 +15,14 @@ public class Namespace
     public String toString()
     {
         return "Namespace" + objects.toString();
+    }
+    
+    @Override
+    public Namespace clone()
+    {
+        Namespace copy = new Namespace();
+        copy.objects.putAll(this.objects);
+        return copy;
     }
 
     public void clear()

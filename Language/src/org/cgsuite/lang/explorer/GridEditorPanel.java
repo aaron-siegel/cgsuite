@@ -188,7 +188,7 @@ public class GridEditorPanel extends EditorPanel
      */
     public Grid getGrid()
     {
-        return grid.copy();
+        return (Grid) grid.createCrosslink();
     }
     
     /**
@@ -198,7 +198,7 @@ public class GridEditorPanel extends EditorPanel
      */
     public final void setGrid(Grid grid)
     {
-        this.grid = grid.copy();
+        this.grid = (Grid) grid.createCrosslink();
         revalidate();
         repaint();
     }

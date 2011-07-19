@@ -56,6 +56,14 @@ public class CgsuiteList extends CgsuiteCollection
         output.appendMath("]");
         return output;
     }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public void unlink()
+    {
+        super.unlink();
+        objects = (ArrayList<CgsuiteObject>) objects.clone();
+    }
 
     public <T> T[] toArray(T[] array)
     {
@@ -66,13 +74,6 @@ public class CgsuiteList extends CgsuiteCollection
     public Collection<CgsuiteObject> getUnderlyingCollection()
     {
         return objects;
-    }
-
-    public CgsuiteList copy()
-    {
-        CgsuiteList copy = new CgsuiteList(objects.size());
-        copy.objects.addAll(objects);
-        return copy;
     }
 
     public int size()

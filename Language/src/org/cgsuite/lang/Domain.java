@@ -18,6 +18,9 @@ import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
+// TODO Enforce immutability
+// TODO Simple enum assignment to grids
+
 public class Domain
 {
     private final static Logger log = Logger.getLogger(Domain.class.getName());
@@ -54,7 +57,7 @@ public class Domain
 
     public void put(String str, CgsuiteObject object)
     {
-        namespace.put(str, object);
+        namespace.put(str, object.createCrosslink());
     }
 
     public CgsuiteObject script(CgsuiteTree tree) throws CgsuiteException
@@ -128,7 +131,7 @@ public class Domain
             case IDENTIFIER:
 
                 id = tree.getText();
-                namespace.put(id, x);
+                namespace.put(id, x.createCrosslink());
                 return;
 
             case ARRAY_REFERENCE:
@@ -705,7 +708,7 @@ public class Domain
 
         while (it.hasNext())
         {
-            namespace.put(forId, it.next());
+            namespace.put(forId, it.next().createCrosslink());
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
                 retval = statementSequence(body);

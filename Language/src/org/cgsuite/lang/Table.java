@@ -49,7 +49,7 @@ public class Table extends CgsuiteCollection
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Table");
     
-    private List<CgsuiteObject> rows;
+    private ArrayList<CgsuiteObject> rows;
     private int numColumns;
     private int maxCellWidth;
     private EnumSet<Format> format;
@@ -82,6 +82,15 @@ public class Table extends CgsuiteCollection
         
         rows = new ArrayList<CgsuiteObject>();
         format = EnumSet.of(Format.GRID_LINES_HORIZONTAL, Format.GRID_LINES_VERTICAL);
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public void unlink()
+    {
+        super.unlink();
+        rows = (ArrayList<CgsuiteObject>) rows.clone();
+        format = format.clone();
     }
     
     @Override

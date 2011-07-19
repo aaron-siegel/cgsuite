@@ -11,7 +11,7 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteSet extends CgsuiteCollection
 {
-    private Set<CgsuiteObject> objects;
+    private HashSet<CgsuiteObject> objects;
 
     public CgsuiteSet()
     {
@@ -60,6 +60,14 @@ public class CgsuiteSet extends CgsuiteCollection
     }
     
     @Override
+    @SuppressWarnings("unchecked")
+    public void unlink()
+    {
+        super.unlink();
+        objects = (HashSet<CgsuiteObject>) objects.clone();
+    }
+    
+    @Override
     public Collection<CgsuiteObject> getUnderlyingCollection()
     {
         return objects;
@@ -91,13 +99,6 @@ public class CgsuiteSet extends CgsuiteCollection
     public void removeAll(CgsuiteCollection other)
     {
         objects.removeAll(other.getUnderlyingCollection());
-    }
-
-    public CgsuiteSet copy()
-    {
-        CgsuiteSet copy = new CgsuiteSet(objects.size());
-        copy.objects.addAll(objects);
-        return copy;
     }
 
     public void clear()

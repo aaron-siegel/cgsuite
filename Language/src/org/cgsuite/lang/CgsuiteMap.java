@@ -13,7 +13,7 @@ import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 
 public class CgsuiteMap extends CgsuiteObject
 {
-    private Map<CgsuiteObject,CgsuiteObject> map;
+    private HashMap<CgsuiteObject,CgsuiteObject> map;
 
     public CgsuiteMap()
     {
@@ -69,6 +69,14 @@ public class CgsuiteMap extends CgsuiteObject
         }
         output.appendMath("}");
         return output;
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public void unlink()
+    {
+        super.unlink();
+        map = (HashMap<CgsuiteObject,CgsuiteObject>) map.clone();
     }
     
     public boolean isEmpty()

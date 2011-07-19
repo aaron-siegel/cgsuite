@@ -379,13 +379,15 @@ public class Grid extends CgsuiteObject implements Comparable<Grid>, java.io.Ser
         return buf.toString();
     }
     
-    public Grid copy()
+    @Override
+    public void unlink()
     {
-        Grid clone = new Grid(numRows, numColumns, bitsPerEntry);
-        clone.entries = new byte[entries.length];
-        System.arraycopy(entries, 0, clone.entries, 0, entries.length);
-        return clone;
+        super.unlink();
+        entries = Arrays.copyOf(entries, entries.length);
+        symtypes = null;
+        symmetries = null;
     }
+    
     
     /**
      * Clones this grid, changing the number of bits per entry as specified.

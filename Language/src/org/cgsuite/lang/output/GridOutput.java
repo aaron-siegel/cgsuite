@@ -62,7 +62,7 @@ public class GridOutput implements Output
 
     public GridOutput(Grid grid, CgsuiteList icons, String alt)
     {
-        this.grid = grid.copy();
+        this.grid = (Grid) grid.createCrosslink();
         if (icons != null)
         {
             this.icons = new Icon[icons.size()];

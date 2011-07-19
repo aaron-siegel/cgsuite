@@ -4,6 +4,7 @@ import org.cgsuite.lang.parser.CgsuiteTree;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +131,11 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     {
         return modifiers;
     }
+    
+    public boolean isMutable()
+    {
+        return modifiers.contains(Modifier.MUTABLE);
+    }
 
     public boolean isStatic()
     {
@@ -153,6 +159,12 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         throws CgsuiteException
     {
         ensureLoaded();
+        
+        if (isMutable())
+        {
+            assert obj != null;
+            obj.unlinkIfNecessary();
+        }
 
 //        log.info("Invoking: " + declaringClass.getName() + "." + name);
 
@@ -251,6 +263,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                     set.add((CgsuiteObject) element);
                 }
                 return set;
+            }
+            else if (javaObj instanceof BigInteger)
+            {
+                return new RationalNumber((BigInteger) javaObj, BigInteger.ONE);
             }
             else
             {

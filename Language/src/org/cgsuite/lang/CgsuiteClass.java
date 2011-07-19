@@ -31,6 +31,9 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
 import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
+// TODO Disallow immutable inherits mutable
+// TODO Disallow "static mutable"
+
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
     private static final Logger log = Logger.getLogger(CgsuiteClass.class.getName());
@@ -61,6 +64,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private CgsuiteTree script;
 
     private int declNumber;
+    private EnumSet<Modifier> classModifiers;
     private Set<CgsuiteClass> parents;
     private Set<CgsuiteClass> ancestors;
     private Map<String,CgsuiteMethod> methods;
@@ -155,6 +159,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         ensureLoaded();
         return declNumber;
     }
+    
+    public boolean isMutable()
+    {
+        ensureLoaded();
+        return classModifiers.contains(Modifier.MUTABLE);
+    }
 
     @Override
     public boolean equals(Object obj)
@@ -220,7 +230,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             throw new InputException("Cannot reference non-static variable in static context: " + name);
         if (var.isEnumValue())
             throw new InputException("Enum constants are read-only: " + name);
-        objectNamespace.put(name, object);
+        objectNamespace.put(name, object.createCrosslink());
     }
 
     public CgsuiteMethod lookupConstructor()
@@ -424,14 +434,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         switch (tree.getToken().getType())
         {
             case CgsuiteParser.CLASS:
+                
+                classModifiers = modifiers(tree.getChild(0));
 
-                if (!name.equals(tree.getChild(0).getText()))
+                if (!name.equals(tree.getChild(1).getText()))
                 {
                     throw new InputException(tree.getChild(0).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
                 }
-                name = tree.getChild(0).getText();
 
-                int i = 1;
+                int i = 2;
 
                 if (i < tree.getChildCount() && tree.getChild(i).getToken().getType() == EXTENDS)
                     extendsClause(tree.getChild(i++));
@@ -445,6 +456,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
             case ENUM:
 
+                classModifiers = EnumSet.noneOf(Modifier.class);
+                
                 if (!name.equals(tree.getChild(1).getText()))
                 {
                     throw new InputException(tree.getChild(1).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
@@ -530,6 +543,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 case EXTENDS:
                 case JAVA:
                 case IDENTIFIER:
+                case MODIFIERS:
                     break;
 
                 case METHOD:
@@ -591,7 +605,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 exc.addToken(tree.token);
             throw exc;
         }
-
+        
         switch (tree.token.getType())
         {
             case METHOD:
@@ -666,6 +680,11 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     if (mods.contains(mod))
                     {
                         throw new InputException(tree.getChild(i).getToken(), "Duplicate modifier.");
+                    }
+                    
+                    if (mod == Modifier.MUTABLE && classModifiers != null && !classModifiers.contains(Modifier.MUTABLE))
+                    {
+                        throw new InputException(tree.getChild(i).getToken(), "Immutable class cannot declare mutable member.");
                     }
 
                     mods.add(mod);

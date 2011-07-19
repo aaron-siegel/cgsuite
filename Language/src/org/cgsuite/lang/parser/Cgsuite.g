@@ -239,8 +239,12 @@ compilationUnit
 	;
 
 classDeclaration
-	: CLASS^ IDENTIFIER extendsClause? javaClause? declaration* END!
+	: classModifiers CLASS^ IDENTIFIER extendsClause? javaClause? declaration* END!
 	;
+
+classModifiers
+    : MUTABLE* -> ^(MODIFIERS MUTABLE*)
+    ;
 	
 extendsClause
 	: EXTENDS^ IDENTIFIER (COMMA! IDENTIFIER)*
