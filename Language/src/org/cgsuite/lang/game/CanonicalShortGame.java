@@ -2766,6 +2766,7 @@ public final class CanonicalShortGame extends Game implements Comparable<Canonic
         return stopCount(id);
     }
 
+    // TODO Caching?
     private BigInteger stopCount(int id)
     {
         // TODO: Quick stopCount for ^n

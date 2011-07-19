@@ -29,6 +29,7 @@
 
 package org.cgsuite.lang.game;
 
+import java.math.BigInteger;
 import org.cgsuite.lang.CgsuiteSet;
 
 
@@ -208,12 +209,12 @@ public final class CanonicalStopperGame extends LoopyGame
         return this;
     }
     
-    public java.math.BigInteger stopCount()
+    public BigInteger stopCount()
     {
-        return stopCount(new java.math.BigInteger[graph.getNumVertices()], startVertex);
+        return stopCount(new BigInteger[graph.getNumVertices()], startVertex);
     }
     
-    private java.math.BigInteger stopCount(java.math.BigInteger[] counts, int vertex)
+    private BigInteger stopCount(BigInteger[] counts, int vertex)
     {
         if (counts[vertex] != null)
         {
@@ -226,12 +227,12 @@ public final class CanonicalStopperGame extends LoopyGame
         }
         if (isOn(vertex) || isOff(vertex))
         {
-            counts[vertex] = java.math.BigInteger.ONE;
+            counts[vertex] = BigInteger.ONE;
             return counts[vertex];
         }
         
-        java.math.BigInteger count = java.math.BigInteger.ZERO;
-        counts[vertex] = java.math.BigInteger.ZERO;
+        BigInteger count = BigInteger.ZERO;
+        counts[vertex] = BigInteger.ZERO;
         
         for (int i = 0; i < graph.getNumLeftEdges(vertex); i++)
         {
