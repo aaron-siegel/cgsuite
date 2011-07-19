@@ -1,8 +1,24 @@
+/*
+ * PartizanSubtraction.cgs
+ *
+ * A subtraction game with separate Left and Right subtraction sets.
+ * Specified by two sets of integers L and R, and a heap size n.
+ * Left's move is to a heap of size n-k, for any k in L (provided
+ * n-k >= 0); Right's move is to n-k for any k in R.
+ *
+ * Examples:
+ * g := examples.PartizanSubtraction({1,3},{2,3},10);
+ * g.CanonicalForm;
+ * P := n -> examples.PartizanSubtraction({1,3},{2,3},n);
+ * P(10).CanonicalForm;
+ * tableof([n,P(n).CanonicalForm] for n from 1 to 10);
+ */
+ 
 class PartizanSubtraction extends Game
 
-    var leftSet;
-    var rightSet;
-    var n;
+    var leftSet;    // The Left subtraction set.
+    var rightSet;   // The Right subtraction set.
+    var n;          // The heap size.
 
     method PartizanSubtraction(Set leftSet, Set rightSet, Number n)
 
@@ -14,10 +30,10 @@ class PartizanSubtraction extends Game
 
     method Options(Player player)
 
-        moveSet := if player == Player.Left then this.leftSet else this.rightSet end;
+        subtractionSet := if player == Player.Left then this.leftSet else this.rightSet end;
 
         return setof(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k)
-                     for k in moveSet where this.n - k >= 0);
+                     for k in subtractionSet where this.n - k >= 0);
 
     end
 

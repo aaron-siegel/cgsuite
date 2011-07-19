@@ -1,12 +1,18 @@
 /*
  * Nim.cgs
  *
- * Created by asiegel on Jul 10, 2011
+ * A simple implementation of Nim.
+ *
+ * Example:
+ * g := examples.Nim(10);
+ * g.CanonicalForm;
  */
 
 class Nim extends Game
 
     var n;
+    
+    // Constructs a new Nim position with specified heap size.
     
     method Nim(Integer n)
     
@@ -14,17 +20,16 @@ class Nim extends Game
     
     end
 
+    // Constructs the set of options for this position.  Since Nim is
+    // impartial, the player parameter is ignored.
+    
     method Options(Player player)
     
-        options := {};
-        
-        for k from 0 to this.n-1 do
-            options.Add(Nim(k));
-        end;
-        
-        return options;
+        return setof(Nim(k) for k from 0 to this.n - 1);
     
     end
+    
+    // Returns a string representation of this Nim position.
     
     override property ToString.get
     

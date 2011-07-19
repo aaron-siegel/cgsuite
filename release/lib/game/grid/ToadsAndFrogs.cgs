@@ -2,12 +2,12 @@ class ToadsAndFrogs extends GridGame
 
     var backsliding;
 
-    method ToadsAndFrogs(grid, backsliding ? false)
+    method ToadsAndFrogs(grid, Backsliding ? false)
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
             error("ToadsAndFrogs grid must be 1 x N.");
         end;
-        this.backsliding := backsliding;
+        this.backsliding := Backsliding;
     end
 
     method Options(Player player)

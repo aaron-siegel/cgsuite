@@ -10,7 +10,7 @@ class TopplingDominoes extends GridGame
     
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
-            error("Grid must have exactly one row.");
+            error("TopplingDominoes grid must be 1 x N.");
         end
         
     end
