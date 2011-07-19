@@ -66,5 +66,13 @@ class Game : java "org.cgsuite.lang.Game"
     property SensibleRightOptions.get
         return this.SensibleOptions(Player.Right);
     end
+    
+    property AtomicWeight.get
+        return this.CanonicalForm.AtomicWeight;
+    end
+    
+    property Birthday.get
+        return this.CanonicalForm.Birthday;
+    end
 
 end

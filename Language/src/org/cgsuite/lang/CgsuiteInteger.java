@@ -27,6 +27,11 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
         
         this.value = value;
     }
+    
+    public CgsuiteInteger negate()
+    {
+        return new CgsuiteInteger(-value);
+    }
 
     public CgsuiteObject add(CgsuiteInteger other)
     {

@@ -22,8 +22,8 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
         end
     end
 
-    property AtomicWeight.get : java "atomicWeight";
-    property Birthday.get : java "birthday";
+    override property AtomicWeight.get : java "atomicWeight";
+    override property Birthday.get : java "birthday";
     property Companion.get : java "companion";
     property Diversity.get : java "diversity";
     property Freeze.get : java "freeze";

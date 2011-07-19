@@ -3,12 +3,13 @@ class Number extends CanonicalShortGame : java "org.cgsuite.lang.game.RationalNu
     method op* (Game obj) : java "buildProduct";
     method op/ (Number obj) : java "divide";
     method op% (Number obj) : java "mod";
-    method op**(Number obj) : java "pow";
+    method op^ (Integer obj) : java "pow";
     override method op neg () : java "negate";
 
     method Min(Number obj) : java "min";
     method Max(Number obj) : java "max";
     method Mod(Number obj) : java "mod";
+    method NimSum(Number obj) : java "nimSum";
 
     override property ToString.get : java "toString";
     override property CanonicalForm.get : java "canonicalForm";

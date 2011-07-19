@@ -229,12 +229,9 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
             );
     }
 
-    public RationalNumber pow(RationalNumber r)
+    public RationalNumber pow(CgsuiteInteger r)
     {
-        if (!r.isInteger() || !r.isSmall())
-            throw new ArithmeticException("n/a");
-
-        if (r.compareTo(RationalNumber.ZERO) >= 0)
+        if (r.compareTo(CgsuiteInteger.ZERO) >= 0)
         {
             return new RationalNumber(
                 numerator.pow(r.intValue()),
@@ -249,6 +246,14 @@ public class RationalNumber extends Game implements Comparable<RationalNumber>
                 numerator.pow(r.intValue())
                 );
         }
+    }
+    
+    public RationalNumber nimSum(RationalNumber r)
+    {
+        if (!isInteger() || !r.isInteger())
+            throw new ArithmeticException("n/a");
+        
+        return new RationalNumber(numerator.xor(r.numerator), BigInteger.ONE);
     }
 
     public RationalNumber reciprocal()

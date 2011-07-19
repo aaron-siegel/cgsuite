@@ -46,7 +46,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
             TILDE, BANG, QUESTION, CARET, CARETCARET, VEE, VEEVEE, EQUALS, NEQ, LT, GT, LEQ, GEQ,
             CONFUSED, COMPARE, RARROW, BIGRARROW, BACKSLASH, REFEQUALS, REFNEQ, ASSIGN, ASN_PLUS,
             ASN_MINUS, ASN_TIMES, ASN_DIV, ASN_MOD, ASN_AND, ASN_OR, ASN_EXP, BAD_ASSIGN,
-            DOTDOT, DOTDOTDOT
+            DOTDOT, DOTDOTDOT, SLASHES
         });
         
 

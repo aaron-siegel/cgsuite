@@ -7,6 +7,6 @@ class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
     method Copy() : java "copy";
 
     property Length.get : java "size";
-    property ToString.get : java "toString";
+    override property ToString.get : java "toString";
 
 end
