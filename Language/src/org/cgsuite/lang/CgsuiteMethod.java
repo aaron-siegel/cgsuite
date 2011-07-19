@@ -224,10 +224,21 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             catch (InvocationTargetException exc)
             {
-                if (exc.getTargetException() instanceof IllegalArgumentException)
+                if (exc.getTargetException() instanceof InputException)
+                {
+                    // InputException is interpreted as an "expected" error message intended for the user.
+                    InputException ie = (InputException) exc.getTargetException();
+                    ie.setInvocationTarget(getQualifiedName());
+                    throw ie;
+                }
+                else if (exc.getTargetException() instanceof IllegalArgumentException)
+                {
                     throw new InputException(exc.getTargetException().getMessage(), exc.getTargetException());
+                }
                 else
+                {
                     throw new InputException("Java error invoking " + name + ": " + exc.getTargetException().getMessage(), exc.getTargetException());
+                }
             }
             catch (Exception exc)
             {

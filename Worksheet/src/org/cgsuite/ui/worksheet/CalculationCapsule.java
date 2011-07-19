@@ -132,6 +132,10 @@ public class CalculationCapsule implements Runnable
                 output.add(errorOutput("  ......"));
             }
         }
+        if (exc.getInvocationTarget() != null)
+        {
+            output.add(errorOutput("  during call to " + exc.getInvocationTarget() + "\n"));
+        }
         for (Token token : exc.getTokenStack())
         {
             String source = token.getInputStream().getSourceName();

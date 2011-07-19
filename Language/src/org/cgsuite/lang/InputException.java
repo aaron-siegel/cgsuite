@@ -8,6 +8,7 @@ public class InputException extends CgsuiteException
 {
     private static final long serialVersionUID = 1L;
 
+    private String invocationTarget;
     private List<Token> tokenStack;
 
     public InputException(String message)
@@ -36,5 +37,15 @@ public class InputException extends CgsuiteException
     public void addToken(Token token)
     {
         tokenStack.add(token);
+    }
+    
+    public String getInvocationTarget()
+    {
+        return invocationTarget;
+    }
+    
+    public void setInvocationTarget(String invocationTarget)
+    {
+        this.invocationTarget = invocationTarget;
     }
 }
