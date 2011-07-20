@@ -32,6 +32,8 @@ package org.cgsuite.lang.impartial;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteObject;
 
 /**
  * A system of rules for a heap game.
@@ -74,13 +76,14 @@ import java.util.NoSuchElementException;
  * @author  Aaron Siegel
  * @version $Revision: 1.5 $ $Date: 2007/04/09 23:51:51 $
  */
-public abstract class HeapRules
+public abstract class HeapRules extends CgsuiteObject
 {
     /**
      * Constructs a new <code>HeapRules</code>.
      */
-    protected HeapRules()
+    protected HeapRules(CgsuiteClass type)
     {
+        super(type);
     }
     
     /**

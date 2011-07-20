@@ -86,6 +86,7 @@ tokens
 //	IMPORT		= 'import';
 	IN			= 'in';
     INF         = 'inf';
+    IS          = 'is';
 	JAVA        = 'java';
     LISTOF      = 'listof';
 	METHOD		= 'method';
@@ -436,7 +437,11 @@ andExpression
 
 notExpr
     : NOT^ notExpr
-    | relationalExpr
+    | isExpr
+    ;
+
+isExpr
+    : relationalExpr (IS^ relationalExpr)?
     ;
 
 relationalExpr

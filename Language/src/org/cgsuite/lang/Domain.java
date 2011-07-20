@@ -286,6 +286,14 @@ public class Domain
             case NOT:
 
                 return cgsuiteBool(expression(tree.getChild(0)), tree).not();
+                
+            case IS:
+                
+                x = expression(tree.getChild(0)).simplify();
+                y = expression(tree.getChild(1)).simplify();
+                if (y.getCgsuiteClass() != CgsuiteClass.TYPE)
+                    throw new InputException(tree.getToken(), "Right-hand argument must be a class.");
+                return CgsuiteBoolean.valueOf(x.getCgsuiteClass().hasAncestor((CgsuiteClass) y));
 
             case REFEQUALS:
             case REFNEQ:
