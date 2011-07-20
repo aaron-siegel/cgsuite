@@ -22,6 +22,7 @@ public class ComparatorOrder
     {
         COMPARATOR_ORDER = new CgsuiteClass[]
         {
+            CgsuiteClass.NIL_TYPE,
             CgsuiteClass.TYPE,
             CgsuiteBoolean.TYPE,
             CgsuiteString.TYPE,

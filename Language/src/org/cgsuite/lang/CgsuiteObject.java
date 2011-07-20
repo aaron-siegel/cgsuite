@@ -4,7 +4,6 @@ import static java.util.Collections.singletonList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -21,21 +20,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     private final static Logger log = Logger.getLogger(CgsuiteObject.class.getName());
 
     public static final List<CgsuiteObject> EMPTY_LIST = Collections.emptyList();
-    public static final CgsuiteObject NIL = new CgsuiteObject()
-    {
-        @Override
-        public String toString()
-        {
-            return "nil";
-        }
-        
-        @Override
-        public CgsuiteString toCgsuiteString()
-        {
-            return new CgsuiteString("nil");
-        }
-    };
-
+    public static final Nil NIL = new Nil();
+    
     protected CgsuiteClass type;
     protected Namespace objectNamespace;
     
@@ -43,15 +29,14 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
 
     CgsuiteObject()
     {
-        objectNamespace = new Namespace();
-        crosslink = this;
+        this.objectNamespace = new Namespace();
+        this.crosslink = this;
     }
 
     public CgsuiteObject(CgsuiteClass type)
     {
+        this();
         this.type = type;
-        this.objectNamespace = new Namespace();
-        crosslink = this;
     }
     
     @Override
@@ -88,17 +73,26 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     {
         for (Variable var : type.varsInOrder())
         {
+            if (var.isStatic())
+                continue;
+            
             CgsuiteObject x = this.objectNamespace.get(var.getName());
             CgsuiteObject y = other.objectNamespace.get(var.getName());
             
             if (x == null)
-                return -1;
-            if (y == null)
-                return 1;
-            
-            int cmp = x.compareTo(y);
-            if (cmp != 0)
-                return cmp;
+            {
+                if (y != null)
+                    return -1;
+            }
+            else
+            {
+                if (y == null)
+                    return 1;
+
+                int cmp = x.compareTo(y);
+                if (cmp != 0)
+                    return cmp;
+            }
         }
         
         return 0;
@@ -117,7 +111,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     
     public void unlink()
     {
-        this.objectNamespace = objectNamespace.clone();
+        System.out.println("Unlinking: " + this);
+        this.objectNamespace = objectNamespace.crosslinkedNamespace();
         CgsuiteObject next = crosslink;
         while (next.crosslink != this)
         {
@@ -283,7 +278,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         }
         else
         {
-            return (CgsuiteObject) CgsuiteMethod.cast(this, method.getJavaMethod().getDeclaringClass());
+            return (CgsuiteObject) CgsuiteMethod.cast(this, method.getJavaMethod().getDeclaringClass(), false);
         }
     }
 

@@ -6,13 +6,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 public class CgsuiteSet extends CgsuiteCollection
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Set");
     
-    private HashSet<CgsuiteObject> objects;
+    private Set<CgsuiteObject> objects;
 
     public CgsuiteSet()
     {
@@ -61,11 +62,15 @@ public class CgsuiteSet extends CgsuiteCollection
     }
     
     @Override
-    @SuppressWarnings("unchecked")
     public void unlink()
     {
         super.unlink();
-        objects = (HashSet<CgsuiteObject>) objects.clone();
+        Set<CgsuiteObject> newObjects = new HashSet<CgsuiteObject>(objects.size());
+        for (CgsuiteObject obj : objects)
+        {
+            newObjects.add(obj.createCrosslink());
+        }
+        objects = newObjects;
     }
     
     @Override

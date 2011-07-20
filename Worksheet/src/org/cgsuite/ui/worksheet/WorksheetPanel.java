@@ -242,18 +242,18 @@ public class WorksheetPanel extends JPanel
         
         if (finished)
         {
-            output = capsule.getOutput();
             if (capsule.isErrorOutput())
                 getToolkit().beep();
+            
+            postOutput(capsule.getOutput());
         }
         else
         {
-            output = new Output[] { new StyledTextOutput("Calculating ...") };
+            postOutput(new StyledTextOutput("Calculating ..."));
+            
             this.currentCapsule = capsule;
             this.currentSource = source;
         }
-
-        postOutput(output);
 
         if (finished)
         {
@@ -274,7 +274,7 @@ public class WorksheetPanel extends JPanel
             outputBox.setOutput(output[i]);
             outputBox.setWorksheetWidth(getWidth());
             outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-            add(outputBox);
+            add(outputBox, currentCapsule == null ? getComponentCount() : getComponentCount()-1);
             updateComponentSizes();
             scrollToBottomLeft();
             repaint();
@@ -297,7 +297,9 @@ public class WorksheetPanel extends JPanel
         if (currentCapsule.isErrorOutput())
             getToolkit().beep();
 
-        remove(getComponents().length-1);
+        remove(getComponentCount()-1);
+        currentSource = null;
+        currentCapsule = null;
 
         postOutput(output);
         
@@ -309,9 +311,6 @@ public class WorksheetPanel extends JPanel
                 advanceToNext();
             }
         });
-
-        currentSource = null;
-        currentCapsule = null;
     }
 
     private void advanceToNext()

@@ -25,7 +25,6 @@ import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
-import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.LocalFileSystem;
 import org.openide.modules.InstalledFileLocator;
 
@@ -164,6 +163,11 @@ public class CgsuitePackage implements FileChangeListener
         {
             CgsuiteClass.TYPE.setFileObject(node, this);
             classes.put("Class", CgsuiteClass.TYPE);
+        }
+        else if ("Nil".equals(node.getName()))
+        {
+            CgsuiteClass.NIL_TYPE.setFileObject(node, this);
+            classes.put("Nil", CgsuiteClass.NIL_TYPE);
         }
         else
         {

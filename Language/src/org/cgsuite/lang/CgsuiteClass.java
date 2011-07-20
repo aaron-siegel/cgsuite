@@ -17,7 +17,6 @@ import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
-import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
 import org.cgsuite.lang.parser.CgsuiteTree;
@@ -40,16 +39,19 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     
     public final static CgsuiteClass OBJECT_TYPE;
     public final static CgsuiteClass TYPE;
+    public final static CgsuiteClass NIL_TYPE;
 
     static
     {
         OBJECT_TYPE = new CgsuiteClass();
         TYPE = new CgsuiteClass();
+        NIL_TYPE = new CgsuiteClass();
 
         OBJECT_TYPE.name = "Object";
         TYPE.name = "Class";
-        OBJECT_TYPE.type = TYPE.type = TYPE;
-        CgsuiteObject.NIL.type = OBJECT_TYPE;
+        NIL_TYPE.name = "Nil";
+        OBJECT_TYPE.type = TYPE.type = NIL_TYPE.type = TYPE;
+        NIL.type = NIL_TYPE;
     }
 
     private CgsuitePackage enclosingPackage;
@@ -126,7 +128,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         if (var != null && var.isStatic())
         {
             CgsuiteObject obj = objectNamespace.get(identifier);
-            return (obj == null)? CgsuiteObject.NIL : obj;
+            return (obj == null)? NIL : obj;
         }
 
         return super.resolve(identifier, allowPublicAccess);

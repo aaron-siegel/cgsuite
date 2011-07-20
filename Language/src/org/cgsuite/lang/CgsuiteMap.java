@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.cgsuite.lang.output.StyledTextOutput;
@@ -14,7 +15,7 @@ public class CgsuiteMap extends CgsuiteObject
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Map");
     
-    private HashMap<CgsuiteObject,CgsuiteObject> map;
+    private Map<CgsuiteObject,CgsuiteObject> map;
 
     public CgsuiteMap()
     {
@@ -73,11 +74,15 @@ public class CgsuiteMap extends CgsuiteObject
     }
     
     @Override
-    @SuppressWarnings("unchecked")
     public void unlink()
     {
         super.unlink();
-        map = (HashMap<CgsuiteObject,CgsuiteObject>) map.clone();
+        Map<CgsuiteObject,CgsuiteObject> newMap = new HashMap<CgsuiteObject,CgsuiteObject>(map.size());
+        for (Entry<CgsuiteObject,CgsuiteObject> e : map.entrySet())
+        {
+            newMap.put(e.getKey().createCrosslink(), e.getValue().createCrosslink());
+        }
+        map = newMap;
     }
     
     public boolean isEmpty()

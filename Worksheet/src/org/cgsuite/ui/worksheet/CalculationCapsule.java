@@ -122,7 +122,7 @@ public class CalculationCapsule implements Runnable
         {
             output.add(errorOutput("  caused by " + exc.getCause().getClass().getName()));
             StackTraceElement[] javaStackTrace = exc.getCause().getStackTrace();
-            for (int i = 0; i < 3 && i < javaStackTrace.length; i++)
+            for (int i = 0; i < 6 && i < javaStackTrace.length; i++)
             {
                 StackTraceElement ste = javaStackTrace[i];
                 output.add(errorOutput("  at " + ste.getClassName() + " line " + ste.getLineNumber()));

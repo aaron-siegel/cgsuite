@@ -1,9 +1,10 @@
 package org.cgsuite.lang;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Set;
 
-public final class Namespace implements Cloneable
+public final class Namespace
 {
     private HashMap<String,CgsuiteObject> objects;
 
@@ -18,11 +19,13 @@ public final class Namespace implements Cloneable
         return "Namespace" + objects.toString();
     }
     
-    @Override
-    public Namespace clone()
+    public Namespace crosslinkedNamespace()
     {
         Namespace copy = new Namespace();
-        copy.objects.putAll(this.objects);
+        for (Entry<String,CgsuiteObject> e : objects.entrySet())
+        {
+            copy.objects.put(e.getKey(), e.getValue().createCrosslink());
+        }
         return copy;
     }
     

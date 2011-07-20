@@ -60,16 +60,15 @@ public class CgsuiteList extends CgsuiteCollection
     }
     
     @Override
-    @SuppressWarnings("unchecked")
     public void unlink()
     {
         super.unlink();
-        objects = (ArrayList<CgsuiteObject>) objects.clone();
-    }
-
-    public <T> T[] toArray(T[] array)
-    {
-        return objects.toArray(array);
+        ArrayList<CgsuiteObject> newObjects = new ArrayList<CgsuiteObject>(objects.size());
+        for (CgsuiteObject obj : objects)
+        {
+            newObjects.add(obj.createCrosslink());
+        }
+        objects = newObjects;
     }
 
     @Override
@@ -116,7 +115,7 @@ public class CgsuiteList extends CgsuiteCollection
             {
                 arguments.set(0, x);
                 arguments.set(1, y);
-                return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class);
+                return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class, false);
             }
         });
     }

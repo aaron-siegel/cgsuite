@@ -28,7 +28,8 @@ public class CgBreakIterator extends BreakIterator
     @Override
     public int last()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        char c = text.last();
+        return previous();
     }
 
     @Override

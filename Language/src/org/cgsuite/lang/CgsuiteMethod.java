@@ -182,18 +182,18 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
             for (int i = 0; i < arguments.size(); i++)
             {
-                castArguments[i] = cast(arguments.get(i), javaParameterTypes[i]);
+                castArguments[i] = cast(arguments.get(i), javaParameterTypes[i], true);
             }
             for (int i = arguments.size(); i < parameters.size(); i++)
             {
                 Parameter p = parameters.get(i);
                 if (optionalArguments != null && optionalArguments.containsKey(p.name))
                 {
-                    castArguments[i] = cast(optionalArguments.get(p.name), javaParameterTypes[i]);
+                    castArguments[i] = cast(optionalArguments.get(p.name), javaParameterTypes[i], true);
                 }
                 else if (arguments.size() > i)
                 {
-                    castArguments[i] = cast(arguments.get(i), javaParameterTypes[i]);
+                    castArguments[i] = cast(arguments.get(i), javaParameterTypes[i], true);
                 }
                 else if (p.defaultValue == null)
                 {
@@ -343,7 +343,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         return retval;
     }
     
-    public static Object cast(CgsuiteObject obj, Class<?> javaClass) throws CgsuiteException
+    public static Object cast(CgsuiteObject obj, Class<?> javaClass, boolean crosslink) throws CgsuiteException
     {
         try
         {
@@ -351,7 +351,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             // Java class that defined this method?
             if (javaClass.isAssignableFrom(obj.getClass()))
             {
-                return obj;
+                return crosslink ? obj.createCrosslink() : obj;
             }
             else if (obj == CgsuiteObject.NIL)
             {

@@ -455,21 +455,21 @@ public class Domain
 
                 CgsuiteMap map = new CgsuiteMap();
                 for (CgsuiteTree child : tree.getChildren())
-                    map.put(expression(child.getChild(1)).simplify(), expression(child.getChild(0)).simplify());
+                    map.put(expression(child.getChild(1)).simplify().createCrosslink(), expression(child.getChild(0)).simplify().createCrosslink());
                 return map;
 
             case EXPLICIT_SET:
 
                 CgsuiteSet set = new CgsuiteSet();
                 for (CgsuiteTree child : tree.getChildren())
-                    set.add(expression(child).simplify());
+                    set.add(expression(child).simplify().createCrosslink());
                 return set;
 
             case EXPLICIT_LIST:
 
                 CgsuiteList array = new CgsuiteList();
                 for (CgsuiteTree child : tree.getChildren())
-                    array.add(expression(child).simplify());
+                    array.add(expression(child).simplify().createCrosslink());
                 return array;
 
             case COLON:
