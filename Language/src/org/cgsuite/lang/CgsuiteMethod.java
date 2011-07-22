@@ -393,7 +393,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             CgsuiteList list = new CgsuiteList();
             for (Object element : (List<?>) javaObj)
             {
-                list.add((CgsuiteObject) castReturn(element));
+                list.add(castReturn(element));
             }
             return list;
         }
@@ -402,7 +402,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             CgsuiteSet set = new CgsuiteSet();
             for (Object element : (Set<?>) javaObj)
             {
-                set.add((CgsuiteObject) castReturn(element));
+                set.add(castReturn(element));
             }
             return set;
         }
@@ -411,7 +411,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             CgsuiteList list = new CgsuiteList();
             for (Object element : (Object[]) javaObj)
             {
-                list.add((CgsuiteObject) castReturn(element));
+                list.add(castReturn(element));
             }
             return list;
         }

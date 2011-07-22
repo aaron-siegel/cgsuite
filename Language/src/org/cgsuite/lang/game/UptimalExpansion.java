@@ -29,6 +29,12 @@
 
 package org.cgsuite.lang.game;
 
+import java.util.EnumSet;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
+
+import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
+import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
 /**
  * An uptimal expansion, represented as a sequence of uptimal digits.  The
@@ -139,7 +145,7 @@ public class UptimalExpansion
     @Override
     public String toString()
     {
-        StringBuffer buf = new StringBuffer(numberPart.toString());
+        StringBuilder buf = new StringBuilder(numberPart.toString());
         buf.append('.');
         for (int n = 0; n < coefficients.length; n++)
         {
@@ -308,5 +314,111 @@ public class UptimalExpansion
             }
         }
         return true;
+    }
+    
+    public Output toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        
+        if (!getNumberPart().equals(RationalNumber.ZERO))
+        {
+            output.appendOutput(getNumberPart().toOutput());
+        }
+        
+        if (isUnit())
+        {
+            int n = 0;
+            boolean up = false;
+            for (n = 1; n <= length(); n++)
+            {
+                if (getCoefficient(n) != 0)
+                {
+                    up = (getCoefficient(n) == 1);
+                    break;
+                }
+            }
+            if (up)
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "Pow(");
+                output.appendSymbol(UP);
+                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(
+                    EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
+                    String.valueOf(n)
+                    );
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+            }
+            else
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "Pow(");
+                output.appendSymbol(DOWN);
+                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(
+                    EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
+                    String.valueOf(n)
+                    );
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+            }
+        }
+        else if (isUnitSum())
+        {
+            int n = length();
+            boolean up = (getCoefficient(1) > 0);
+            if (up)
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "PowTo(");
+                output.appendSymbol(UP);
+                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
+                output.appendText(
+                    EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
+                    String.valueOf(n)
+                    );
+                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "]");
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+            }
+            else
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "PowTo(");
+                output.appendSymbol(DOWN);
+                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
+                output.appendText(
+                    EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
+                    String.valueOf(n)
+                    );
+                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "]");
+                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+            }
+        }
+        else
+        {
+            if (getNumberPart().equals(RationalNumber.ZERO))
+            {
+                output.appendMath("0");
+            }
+            output.appendMath(".");
+            for (int n = 1; n <= length(); n++)
+            {
+                int d = getCoefficient(n);
+                // TODO: Redo using CodeDigit ?
+                boolean negative = false;
+                if (d < 0)
+                {
+                    d = -d;
+                    negative = true;
+                }
+                output.appendMath(String.valueOf(d < 10 ? (char)(d+48) : (char)(d+55)));
+                if (negative)
+                {
+                    output.appendSymbol(EnumSet.of(LOCATION_SUPERSCRIPT), DASH);
+                }
+            }
+        }
+        if (hasBase())
+        {
+            output.appendSymbol(STAR);
+        }
+        return output;
     }
 }

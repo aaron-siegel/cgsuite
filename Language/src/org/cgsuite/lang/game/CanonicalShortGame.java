@@ -29,24 +29,23 @@
 
 package org.cgsuite.lang.game;
 
-import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.CgsuiteInteger;
-import org.cgsuite.lang.output.StyledTextOutput.Symbol;
+
 import java.math.BigInteger;
-import java.util.EnumSet;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-
 import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
-
+import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
 import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
@@ -624,9 +623,9 @@ public final class CanonicalShortGame extends Game
     @Override
     public Game simplify()
     {
-        if (isInteger())
+        if (isInteger() && !isExtendedRecord(id))
             return new CgsuiteInteger(getSmallNumeratorPart(id));
-        else if(isNumber())
+        else if (isNumber())
             return getNumberPart();
         else
             return this;
@@ -839,6 +838,13 @@ public final class CanonicalShortGame extends Game
             {
                 output.appendMath(")");
             }
+            return 0;
+        }
+        
+        UptimalExpansion uptimal = uptimalExpansion();
+        if (uptimal != null && (uptimal.isUnit() || uptimal.isUnitSum()))
+        {
+            output.appendOutput(uptimal.toOutput());
             return 0;
         }
 /*

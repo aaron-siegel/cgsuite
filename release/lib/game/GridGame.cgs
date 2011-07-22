@@ -3,9 +3,9 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
     var grid;
 
     method GridGame(grid)
-        if grid.Class == Grid then
+        if grid is Grid then
             this.grid := grid;
-        elseif grid.Class == String then
+        elseif grid is String then
             this.grid := Grid.ParseGrid(grid, this.CharMap);
         else
             error("GridGame must be initialized with a String or a Grid object.");

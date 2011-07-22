@@ -29,31 +29,30 @@
 
 package org.cgsuite.ui.worksheet;
 
-import java.util.List;
 import java.util.ArrayList;
-import org.cgsuite.lang.Game;
-import org.cgsuite.lang.game.LoopyGame;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import org.cgsuite.lang.CgsuiteList;
+import org.cgsuite.lang.CgsuiteMap;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuiteSet;
+import org.cgsuite.lang.CgsuiteString;
+import org.cgsuite.lang.Game;
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
 import org.cgsuite.lang.game.InverseGame;
+import org.cgsuite.lang.game.LoopyGame;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.game.SumGame;
 import org.cgsuite.lang.game.UptimalExpansion;
-import java.util.Map.Entry;
-import org.cgsuite.lang.CgsuiteMap;
-import org.cgsuite.lang.CgsuiteSet;
-import org.cgsuite.lang.CgsuiteList;
-import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.CgsuiteString;
-import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.output.Output;
-
+import org.cgsuite.lang.output.StyledTextOutput;
 import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
 import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 

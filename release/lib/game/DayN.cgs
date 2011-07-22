@@ -57,7 +57,7 @@ class DayN
 
             for ac in antichains do
                 if not this.IsComparableToAny(ac, g) then
-                    newac := ac.Copy();
+                    newac := ac;
                     newac.Add(g);
                     newAntichains.Add(newac);
                 end
