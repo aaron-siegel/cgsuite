@@ -14,6 +14,6 @@ import java.util.Map;
  */
 public interface Callable
 {
-    public CgsuiteObject invoke(List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
+    public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
         throws CgsuiteException;
 }

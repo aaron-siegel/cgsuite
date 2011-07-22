@@ -29,6 +29,13 @@
 
 package org.cgsuite.lang.game;
 
+import java.awt.Color;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.output.PlotOutput;
+import org.cgsuite.lang.output.StyledTextOutput;
+
 
 /**
  * A thermograph.  Thermographs are represented internally as pairs of
@@ -37,8 +44,10 @@ package org.cgsuite.lang.game;
  * @author  Aaron Siegel
  * @version $Revision: 1.20 $ $Date: 2007/02/13 22:39:46 $
  */
-public class Thermograph
+public class Thermograph extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Thermograph"); 
+    
     /** A <code>Thermograph</code> that is equal to a mast at 0. */
     public final static Thermograph ZERO =
         new Thermograph(Trajectory.ZERO, Trajectory.ZERO);
@@ -53,6 +62,7 @@ public class Thermograph
 
     private Thermograph()
     {
+        super(TYPE);
     }
 
     /**
@@ -64,6 +74,7 @@ public class Thermograph
      */
     public Thermograph(RationalNumber mast)
     {
+        this();
         leftWall = rightWall = new Trajectory(mast);
     }
 
@@ -78,6 +89,7 @@ public class Thermograph
      */
     public Thermograph(Trajectory leftWall, Trajectory rightWall)
     {
+        this();
         if (rightWall.leq(leftWall))
         {
             this.leftWall = leftWall;
@@ -296,5 +308,24 @@ public class Thermograph
         compound.leftWall = leftWall.add(t.leftWall);
         compound.rightWall = rightWall.add(t.leftWall).min(t.rightWall.add(leftWall));
         return compound;
+    }
+    
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("Thermograph(");
+        output.appendOutput(leftWall.toOutput2());
+        output.appendMath(",");
+        output.appendOutput(rightWall.toOutput2());
+        output.appendMath(")");
+        return output;
+    }
+    
+    public PlotOutput plot()
+    {
+        PlotOutput plotOutput = new PlotOutput();
+        plotOutput.addThermograph(this, Color.black, 0);
+        return plotOutput;
     }
 }

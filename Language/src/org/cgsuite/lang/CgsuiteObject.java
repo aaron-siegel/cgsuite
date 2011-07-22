@@ -263,7 +263,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         }
 
         @Override
-        public CgsuiteObject invoke(List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
+        public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
             throws CgsuiteException
         {
             return method.invoke(thisCast, arguments, optionalArguments);

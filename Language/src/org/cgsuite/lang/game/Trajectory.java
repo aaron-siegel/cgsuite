@@ -33,6 +33,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
  * A continuous piecewise linear trajectory with rational slopes and critical
@@ -48,8 +53,10 @@ import java.util.List;
  * @author  Aaron Siegel
  * @since   0.6
  */
-public class Trajectory
+public class Trajectory extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Trajectory");
+    
     private final static RationalNumber[]
         EMPTY_ARRAY = { },
         SINGLE_ZERO_ARRAY = { RationalNumber.ZERO };
@@ -75,6 +82,7 @@ public class Trajectory
 
     private Trajectory()
     {
+        super(TYPE);
     }
 
     /**
@@ -85,6 +93,7 @@ public class Trajectory
      */
     public Trajectory(RationalNumber r)
     {
+        this();
         criticalPoints = EMPTY_ARRAY;
         slopes = SINGLE_ZERO_ARRAY;
         xIntercepts = new RationalNumber[] { r };
@@ -111,6 +120,7 @@ public class Trajectory
      */
     public Trajectory(RationalNumber mast, RationalNumber[] criticalPoints, RationalNumber[] slopes)
     {
+        this();
         // Validate the arguments.
         if (slopes.length != criticalPoints.length + 1)
         {
@@ -208,6 +218,41 @@ public class Trajectory
         }
 
         return s + " (" + slopes[criticalPoints.length] + "x + " + xIntercepts[criticalPoints.length] + ")";
+    }
+    
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("Trajectory(");
+        output.appendOutput(toOutput2());
+        output.appendMath(")");
+        return output;
+    }
+    
+    public StyledTextOutput toOutput2()
+    {
+        StyledTextOutput output = getMastValue().toOutput();
+        output.appendMath(",[");
+        for (int i = 0; i < getNumCriticalPoints(); i++)
+        {
+            output.appendOutput(getCriticalPoint(i).toOutput());
+            if (i < getNumCriticalPoints() - 1)
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("],[");
+        for (int i = 0; i <= getNumCriticalPoints(); i++)
+        {
+            output.appendOutput(getSlope(i).toOutput());
+            if (i < getNumCriticalPoints())
+            {
+                output.appendMath(",");
+            }
+        }
+        output.appendMath("]");
+        return output;
     }
 
     /**

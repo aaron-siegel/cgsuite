@@ -1,0 +1,28 @@
+/*
+ * HeapRules.cgs
+ *
+ * Created by asiegel on Jul 20, 2011
+ */
+
+class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
+
+    static method Parse(String str) : java "parse(java.lang.String)";
+    static method Custom(Procedure proc) : java "custom";
+    
+    static method MakeRules(obj)
+    
+        if obj is HeapRules then
+            return obj;
+        elseif obj is String then
+            return HeapRules.Parse(obj);
+        elseif obj is Procedure then
+            return HeapRules.Custom(obj);
+        else
+            error("Invalid heap rules.");
+        end
+    
+    end
+    
+    method HeapOptions(Integer heapSize) : java "allOptions(int)";
+
+end

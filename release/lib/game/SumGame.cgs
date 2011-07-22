@@ -1,6 +1,19 @@
 class SumGame extends Game : java "org.cgsuite.lang.game.SumGame"
 
-    method op+ (Game obj) : java "buildSum";
-    method Simplify() : java "simplify";
+    method SumGame(List components) : java "SumGame";
+
+    override method op+ (Game obj) : java "buildSum";
+    
+    property Components.get : java "getComponents";
+    
+    override property CanonicalForm.get
+    
+        cg := 0;
+        for g in this.Components do
+            cg := cg + g.CanonicalForm;
+        end;
+        return cg;
+        
+    end
 
 end

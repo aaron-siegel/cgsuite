@@ -72,7 +72,7 @@ public class CgsuiteList extends CgsuiteCollection
     }
 
     @Override
-    public Collection<CgsuiteObject> getUnderlyingCollection()
+    public ArrayList<CgsuiteObject> getUnderlyingCollection()
     {
         return objects;
     }

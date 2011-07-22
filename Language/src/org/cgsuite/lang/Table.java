@@ -85,6 +85,12 @@ public class Table extends CgsuiteCollection
     }
     
     @Override
+    public int size()
+    {
+        return rows.size();
+    }
+    
+    @Override
     public void unlink()
     {
         super.unlink();

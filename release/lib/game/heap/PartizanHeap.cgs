@@ -1,0 +1,34 @@
+/*
+ * PartizanHeap.cgs
+ *
+ * Created by asiegel on Jul 21, 2011
+ */
+
+class PartizanHeap extends Game
+
+    var leftRules, rightRules;
+    var n;
+    
+    method PartizanHeap(leftRules, rightRules, Integer n)
+    
+        this.leftRules := HeapRules.MakeRules(leftRules);
+        this.rightRules := HeapRules.MakeRules(rightRules);
+        this.n := n;
+    
+    end
+    
+    method Options(Player player)
+    
+        rules := if player == Player.Left then this.leftRules else this.rightRules end;
+        
+        return setof(SumGame(listof(PartizanHeap(this.leftRules, this.rightRules, k) for k in heaps)) for heaps in rules.HeapOptions(this.n));
+    
+    end
+    
+    override property ToString.get
+    
+        return "PartizanHeap(" + this.leftRules.ToString + "," + this.rightRules.ToString + "," + this.n.ToString + ")";
+    
+    end
+    
+end

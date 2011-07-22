@@ -59,6 +59,11 @@ public class Domain
     {
         namespace.put(str, object.createCrosslink());
     }
+    
+    public CgsuiteObject remove(String str)
+    {
+        return namespace.remove(str);
+    }
 
     public CgsuiteObject script(CgsuiteTree tree) throws CgsuiteException
     {
@@ -221,8 +226,7 @@ public class Domain
             case RARROW:
 
                 List<String> parameters = procedureParameters(tree.getChild(0));
-                CgsuiteTree procedureTree = tree.getChild(1);
-                return new CgsuiteProcedure(parameters, procedureTree, this);
+                return new CgsuiteProcedure(parameters, tree, this);
 
             case DO:
                 

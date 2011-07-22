@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteList;
 
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -29,6 +30,11 @@ public class SumGame extends Game
         super(CgsuitePackage.forceLookupClass("SumGame"));
 
         this.components = components;
+    }
+    
+    public SumGame(CgsuiteList components)
+    {
+        this(components.getUnderlyingCollection());
     }
 
     public List<CgsuiteObject> getComponents()

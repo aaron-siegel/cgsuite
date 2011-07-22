@@ -794,14 +794,14 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case IDENTIFIER:
 
                 parameterName = tree.getText();
-                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText()) : CgsuiteClass.OBJECT_TYPE;
+                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText(), imports) : CgsuiteClass.OBJECT_TYPE;
                 return new Parameter(parameterName, parameterType, false, null);
 
             case QUESTION:
 
                 CgsuiteTree subt = tree.getChild(0);
                 parameterName = subt.getText();
-                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText()) : CgsuiteClass.OBJECT_TYPE;
+                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText(), imports) : CgsuiteClass.OBJECT_TYPE;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
                 return new Parameter(parameterName, parameterType, true, defaultValue);
 

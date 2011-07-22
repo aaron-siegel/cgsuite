@@ -1,0 +1,37 @@
+/*
+ * ImpartialGame.cgs
+ *
+ * Created by asiegel on Jul 20, 2011
+ */
+
+class ImpartialGame extends Game
+
+    static var placeholder := Object();
+
+    property NimValue.get
+    
+        value := this.Class.Memory[this];
+        if nil != value then
+            if NimValue.placeholder == value then
+                error("Unable to compute nim value: the specified game is loopy.");
+            else
+                return value;
+            end
+        end;
+        this.Class.Memory[this] := Game.placeholder;
+        excl := setof(g.NimValue for g in this.LeftOptions);
+        for n from 0 do
+            if not excl.Contains(n) then
+                break;
+            end
+        end;
+        this.Class.Memory[this] := n;
+        return n;
+    
+    end
+
+    override property CanonicalForm.get
+        return *this.NimValue;
+    end
+
+end

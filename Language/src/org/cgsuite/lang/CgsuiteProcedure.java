@@ -5,10 +5,11 @@
 
 package org.cgsuite.lang;
 
-import org.cgsuite.lang.parser.CgsuiteTree;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.antlr.runtime.Token;
+import org.cgsuite.lang.parser.CgsuiteTree;
 
 /**
  *
@@ -27,9 +28,48 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
         this.tree = tree;
         this.domain = domain;
     }
+    
+    public int getNumParameters()
+    {
+        return parameters.size();
+    }
+    
+    public Token getToken()
+    {
+        return tree.getToken();
+    }
 
     @Override
-    public CgsuiteObject invoke(List<CgsuiteObject> arguments, Map<String, CgsuiteObject> optionalArguments) throws CgsuiteException
+    public boolean equals(Object obj)
+    {
+        if (!super.equals(obj))
+            return false;
+        
+        final CgsuiteProcedure other = (CgsuiteProcedure) obj;
+        if (this.parameters != other.parameters && (this.parameters == null || !this.parameters.equals(other.parameters))) {
+            return false;
+        }
+        if (this.tree != other.tree && (this.tree == null || !this.tree.equals(other.tree))) {
+            return false;
+        }
+        if (this.domain != other.domain && (this.domain == null || !this.domain.equals(other.domain))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 53 * hash + super.hashCode();
+        hash = 53 * hash + (this.parameters != null ? this.parameters.hashCode() : 0);
+        hash = 53 * hash + (this.tree != null ? this.tree.hashCode() : 0);
+        hash = 53 * hash + (this.domain != null ? this.domain.hashCode() : 0);
+        return hash;
+    }
+    
+    @Override
+    public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String, CgsuiteObject> optionalArguments) throws CgsuiteException
     {
         // TODO Validate number of arguments etc.
 
@@ -41,15 +81,19 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
             domain.put(parameters.get(i), arguments.get(i));
         }
 
-        CgsuiteObject value = domain.expression(tree);
-        
-        for (int i = 0; i < parameters.size(); i++)
+        try
         {
-            // TODO If oldValues.get(i) == null, remove from domain
-            if (oldValues.get(i) != null)
-                domain.put(parameters.get(i), oldValues.get(i));
+            return domain.expression(tree.getChild(1));
         }
-
-        return value;
+        finally
+        {
+            for (int i = 0; i < parameters.size(); i++)
+            {
+                if (oldValues.get(i) == null)
+                    domain.remove(parameters.get(i));
+                else
+                    domain.put(parameters.get(i), oldValues.get(i));
+            }
+        }
     }
 }

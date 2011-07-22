@@ -34,6 +34,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.CgsuiteProcedure;
 
 /**
  * A system of rules for a heap game.
@@ -78,12 +80,24 @@ import org.cgsuite.lang.CgsuiteObject;
  */
 public abstract class HeapRules extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.lookupPackage("game.heap").forceLookupClassInPackage("HeapRules");
+    
     /**
      * Constructs a new <code>HeapRules</code>.
      */
-    protected HeapRules(CgsuiteClass type)
+    protected HeapRules()
     {
-        super(type);
+        super(TYPE);
+    }
+    
+    public static HeapRules parse(String str)
+    {
+        return new TBCode(str);
+    }
+    
+    public static HeapRules custom(CgsuiteProcedure procedure)
+    {
+        return new CustomHeapRules(procedure);
     }
     
     /**

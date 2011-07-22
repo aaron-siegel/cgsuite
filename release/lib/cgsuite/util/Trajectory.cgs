@@ -1,0 +1,9 @@
+/*
+ * Trajectory.cgs
+ *
+ * Created by asiegel on Jul 19, 2011
+ */
+
+class Trajectory : java "org.cgsuite.lang.game.Trajectory"
+
+end

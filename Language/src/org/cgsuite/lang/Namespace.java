@@ -49,6 +49,11 @@ public final class Namespace
     {
         objects.put(str, object);
     }
+    
+    public CgsuiteObject remove(String str)
+    {
+        return objects.remove(str);
+    }
 
     @Override
     public int hashCode()

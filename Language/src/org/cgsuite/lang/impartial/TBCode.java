@@ -32,8 +32,6 @@ package org.cgsuite.lang.impartial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.cgsuite.lang.CgsuiteClass;
-import org.cgsuite.lang.CgsuitePackage;
 
 /*
  * <p>
@@ -154,8 +152,6 @@ import org.cgsuite.lang.CgsuitePackage;
  */
 public class TBCode extends HeapRules
 {
-    private final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("TBCode"); 
-    
     ////////////////////////////////////////////////////////////////
     // private constants
     
@@ -223,7 +219,6 @@ public class TBCode extends HeapRules
      */
     public TBCode(int ... digits)
     {
-        super(TYPE);
         Digit[] genDigits = new Digit[digits.length];
         for (int i = 0; i < digits.length; i++)
         {
@@ -300,7 +295,6 @@ public class TBCode extends HeapRules
      */
     public TBCode(int nAdditiveDigits, int period, int nGhosts, Digit ... digits)
     {
-        super(TYPE);
         init(nAdditiveDigits, period, nGhosts, digits);
     }
     
@@ -541,7 +535,6 @@ public class TBCode extends HeapRules
      */
     public TBCode(String str)
     {
-        super(TYPE);
         List<Digit> digits = new ArrayList<Digit>();
             
         int nAdditiveDigits = -1;

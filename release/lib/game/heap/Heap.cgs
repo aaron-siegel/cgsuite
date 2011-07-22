@@ -1,0 +1,29 @@
+/*
+ * Heap.cgs
+ *
+ * Created by asiegel on Jul 20, 2011
+ */
+
+class Heap extends ImpartialGame
+
+    var rules;
+    var n;
+
+    method Heap(rules, Integer n)
+    
+        this.rules := HeapRules.MakeRules(rules);
+        this.n := n;
+    
+    end
+    
+    override property NimValue.get
+    
+        if this.Class.Memory[this.rules] == nil then
+            this.Class.Memory[this.rules] := GrundySequence(this.rules);
+        end;
+        
+        return this.Class.Memory[this.rules].NimValue(this.n);
+        
+    end
+
+end

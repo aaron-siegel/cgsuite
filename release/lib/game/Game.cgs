@@ -73,5 +73,69 @@ class Game : java "org.cgsuite.lang.Game"
     property Birthday.get
         return this.CanonicalForm.Birthday;
     end
+    
+    property Freeze.get
+        return this.CanonicalForm.Freeze;
+    end
+    
+    property IsAllSmall.get
+        return this.CanonicalForm.IsAllSmall;
+    end
+    
+    property IsInfinitesimal.get
+        return this.CanonicalForm.IsInfinitesimal;
+    end
+    
+    property IsInteger.get
+        return this.CanonicalForm.IsInteger;
+    end
+    
+    property IsNimber.get
+        return this.CanonicalForm.IsNimber;
+    end
+    
+    property IsNumber.get
+        return this.CanonicalForm.IsNumber;
+    end
+    
+    property IsNumberish.get
+        return this.CanonicalForm.IsNumberish;
+    end
+    
+    property IsNumberTiny.get
+        return this.CanonicalForm.IsNumberTiny;
+    end
+    
+    property IsNumberUpStar.get
+        return this.CanonicalForm.IsNumberUpStar;
+    end
+    
+    property IsUptimal.get
+        return this.CanonicalForm.IsUptimal;
+    end
+    
+    property LeftStop.get
+        return this.CanonicalForm.LeftStop;
+    end
+    
+    property Mean.get
+        return this.CanonicalForm.Mean;
+    end
+    
+    property Rcf.get
+        return this.CanonicalForm.Rcf;
+    end
+    
+    property RightStop.get
+        return this.CanonicalForm.RightStop;
+    end
+    
+    property Temperature.get
+        return this.CanonicalForm.Temperature;
+    end
+    
+    property Thermograph.get
+        return this.CanonicalForm.Thermograph;
+    end
 
 end

@@ -149,13 +149,13 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     }
 
     @Override
-    public CgsuiteObject invoke(List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
+    public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
         throws CgsuiteException
     {
         return invoke((CgsuiteObject) null, arguments, optionalArguments);
     }
 
-    public CgsuiteObject invoke(CgsuiteObject obj, List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
+    public CgsuiteObject invoke(CgsuiteObject obj, List<? extends CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
         throws CgsuiteException
     {
         ensureLoaded();
@@ -244,45 +244,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 throw new InputException("Java exception thrown during a call to " + name + ".", exc);
             }
-
-            // TODO Other casts
-            if (javaObj == null)
-            {
-                return CgsuiteObject.NIL;
-            }
-            else if (javaObj instanceof CgsuiteObject)
-            {
-                return (CgsuiteObject) javaObj;
-            }
-            else if (javaObj instanceof Integer)
-            {
-                return new CgsuiteInteger((Integer) javaObj);
-            }
-            else if (javaObj instanceof Boolean)
-            {
-                return CgsuiteBoolean.valueOf((Boolean) javaObj);
-            }
-            else if (javaObj instanceof String)
-            {
-                return new CgsuiteString((String) javaObj);
-            }
-            else if (javaObj instanceof Set)
-            {
-                CgsuiteSet set = new CgsuiteSet();
-                for (Object element : (Set<?>) javaObj)
-                {
-                    set.add((CgsuiteObject) element);
-                }
-                return set;
-            }
-            else if (javaObj instanceof BigInteger)
-            {
-                return new RationalNumber((BigInteger) javaObj, BigInteger.ONE);
-            }
-            else
-            {
-                throw new RuntimeException();
-            }
+            
+            return castReturn(javaObj);
         }
         else
         {
@@ -343,7 +306,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         return retval;
     }
     
-    public static Object cast(CgsuiteObject obj, Class<?> javaClass, boolean crosslink) throws CgsuiteException
+    public static Object cast(CgsuiteObject obj, Class<?> javaClass, boolean crosslink)
     {
         try
         {
@@ -395,6 +358,79 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 "Cannot convert to " + javaClass.getName() + ": " + obj.toString(),
                 exc
                 );
+        }
+    }
+    
+    public CgsuiteObject castReturn(Object javaObj)
+    {
+        // TODO Other casts
+        if (javaObj == null)
+        {
+            return CgsuiteObject.NIL;
+        }
+        else if (javaObj instanceof CgsuiteObject)
+        {
+            return (CgsuiteObject) javaObj;
+        }
+        else if (javaObj instanceof Integer)
+        {
+            return new CgsuiteInteger((Integer) javaObj);
+        }
+        else if (javaObj instanceof Short)
+        {
+            return new CgsuiteInteger((Short) javaObj);
+        }
+        else if (javaObj instanceof Boolean)
+        {
+            return CgsuiteBoolean.valueOf((Boolean) javaObj);
+        }
+        else if (javaObj instanceof String)
+        {
+            return new CgsuiteString((String) javaObj);
+        }
+        else if (javaObj instanceof List)
+        {
+            CgsuiteList list = new CgsuiteList();
+            for (Object element : (List<?>) javaObj)
+            {
+                list.add((CgsuiteObject) castReturn(element));
+            }
+            return list;
+        }
+        else if (javaObj instanceof Set)
+        {
+            CgsuiteSet set = new CgsuiteSet();
+            for (Object element : (Set<?>) javaObj)
+            {
+                set.add((CgsuiteObject) castReturn(element));
+            }
+            return set;
+        }
+        else if (javaObj instanceof Object[])
+        {
+            CgsuiteList list = new CgsuiteList();
+            for (Object element : (Object[]) javaObj)
+            {
+                list.add((CgsuiteObject) castReturn(element));
+            }
+            return list;
+        }
+        else if (javaObj instanceof int[])
+        {
+            CgsuiteList list = new CgsuiteList();
+            for (int element : (int[]) javaObj)
+            {
+                list.add(new CgsuiteInteger(element));
+            }
+            return list;
+        }
+        else if (javaObj instanceof BigInteger)
+        {
+            return new RationalNumber((BigInteger) javaObj, BigInteger.ONE);
+        }
+        else
+        {
+            throw new InputException("A call to " + name + " returned an incompatible object.");
         }
     }
 
