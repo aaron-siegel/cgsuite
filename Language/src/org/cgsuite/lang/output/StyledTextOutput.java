@@ -41,6 +41,7 @@ import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
+import java.io.PrintWriter;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedCharacterIterator.Attribute;
 import java.util.ArrayList;
@@ -378,7 +379,7 @@ public class StyledTextOutput implements Output
         }
     }
     
-    private final static int MAX_STO_LENGTH = 32767;
+    private final static int MAX_STO_LENGTH = Short.MAX_VALUE;
     
     private static FontRenderContext screenFrc;
     
@@ -703,7 +704,8 @@ public class StyledTextOutput implements Output
         return Math.min(MAX_STO_LENGTH, topBlock.totalLength(Mode.GRAPHICAL));
     }
     
-    public void write(java.io.PrintWriter out, Mode mode)
+    @Override
+    public void write(PrintWriter out, Mode mode)
     {
         if (mode != Mode.PLAIN_TEXT)
         {
@@ -712,7 +714,7 @@ public class StyledTextOutput implements Output
         write(out, mode, topBlock);
     }
     
-    private static void write(java.io.PrintWriter out, Mode mode, Block block)
+    private static void write(PrintWriter out, Mode mode, Block block)
     {
         if (block.modes.contains(mode))
         {

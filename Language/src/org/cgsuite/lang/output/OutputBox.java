@@ -61,7 +61,7 @@ import javax.swing.JPopupMenu;
  */
 public class OutputBox extends JPanel implements MouseListener, FocusListener
 {
-    private final static int CHARACTERS_AT_A_TIME = 200;
+    private final static int CHARACTERS_AT_A_TIME = Integer.MAX_VALUE;
     
     private Output output;
     private int worksheetWidth;
@@ -134,15 +134,23 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         copyAsMenu.add(copyAsImageMenuItem);
         */
         copyMenuItem = new JMenuItem("Copy");
-        copyMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        copyMenuItem.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent evt)
+            {
                 copy();
-        }});
+            }
+        });
         JMenuItem qsave = new JMenuItem("QuickSave");
-        qsave.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        qsave.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent evt)
+            {
                 quickSave();
-        }});
+            }
+        });
         //copyAsMenu.add(copyAsTextMenuItem);
         
         mainPopupMenu = new JPopupMenu();
@@ -182,26 +190,36 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
             displayMoreButton = new JButton("(More...)");
             displayMoreButton.setVisible(false);
             displayMoreButton.setSize(displayMoreButton.getPreferredSize());
-            displayMoreButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent evt) {
+            displayMoreButton.addActionListener(new ActionListener()
+            {
+                @Override
+                public void actionPerformed(ActionEvent evt)
+                {
                     showDisplayMorePopupMenu();
-            }});
+                }
+            });
             add(displayMoreButton);
 
             JMenuItem showNextMenuItem = new JMenuItem("Show Next " + CHARACTERS_AT_A_TIME + " Characters");
             showNextMenuItem.setMnemonic('N');
-            showNextMenuItem.addActionListener(new ActionListener() {
+            showNextMenuItem.addActionListener(new ActionListener()
+            {
+                @Override
                 public void actionPerformed(ActionEvent evt) {
                     numCharactersDisplayed += CHARACTERS_AT_A_TIME;
                     recalc();
-            }});
+                }
+            });
             JMenuItem showAllMenuItem = new JMenuItem("Show All Remaining Text");
             showAllMenuItem.setMnemonic('A');
-            showAllMenuItem.addActionListener(new ActionListener() {
+            showAllMenuItem.addActionListener(new ActionListener()
+            {
+                @Override
                 public void actionPerformed(ActionEvent evt) {
                     numCharactersDisplayed = -1;
                     recalc();
-            }});
+                }
+            });
             
             displayMorePopupMenu = new JPopupMenu();
             displayMorePopupMenu.add(showNextMenuItem);
@@ -271,21 +289,25 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         mainPopupMenu.show(this, evt.getX(), evt.getY());
     }
 
+    @Override
     public Dimension getMinimumSize()
     {
         return size;
     }
     
+    @Override
     public Dimension getMaximumSize()
     {
         return size;
     }
     
+    @Override
     public Dimension getPreferredSize()
     {
         return size;
     }
     
+    @Override
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g);
@@ -310,19 +332,23 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         }
     }
     
+    @Override
     public void mouseClicked(MouseEvent evt)
     {
         requestFocusInWindow();
     }
     
+    @Override
     public void mouseEntered(MouseEvent evt)
     {
     }
     
+    @Override
     public void mouseExited(MouseEvent evt)
     {
     }
     
+    @Override
     public void mousePressed(MouseEvent evt)
     {
         if (evt.isPopupTrigger())
@@ -331,6 +357,7 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         }
     }
     
+    @Override
     public void mouseReleased(MouseEvent evt)
     {
         if (evt.isPopupTrigger())
@@ -339,6 +366,7 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         }
     }
     
+    @Override
     public void focusGained(FocusEvent evt)
     {
         if (!evt.isTemporary())
@@ -348,6 +376,7 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         }
     }
     
+    @Override
     public void focusLost(FocusEvent evt)
     {
         if (!evt.isTemporary())
