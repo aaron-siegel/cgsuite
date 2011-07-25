@@ -341,7 +341,7 @@ public class Domain
                 if (tree.getChildCount() == 0)
                     n = 1;
                 else
-                    n = naturalNumber(expression(tree.getChild(0)), tree);
+                    n = naturalNumber(expression(tree.getChild(0)), tree, "Argument to *");
                 return new CanonicalShortGame(RationalNumber.ZERO, 0, n);
 
             case CARET:
@@ -987,7 +987,7 @@ public class Domain
                 break;
 
             case CARET:
-                n = (nonStarChild == null)? 1 : integer(expression(nonStarChild), nonStarChild);
+                n = (nonStarChild == null)? 1 : integer(expression(nonStarChild), tree, "Argument to ^");
                 break;
 
             case VEEVEE:
@@ -995,7 +995,7 @@ public class Domain
                 break;
 
             case VEE:
-                n = (nonStarChild == null)? -1 : -integer(expression(nonStarChild), nonStarChild);
+                n = (nonStarChild == null)? -1 : -integer(expression(nonStarChild), tree, "Argument to v");
                 break;
 
             default:
@@ -1007,7 +1007,7 @@ public class Domain
         else if (starChild.getChildCount() == 0)
             m = 1;
         else
-            m = naturalNumber(expression(starChild.getChild(0)), starChild);
+            m = naturalNumber(expression(starChild.getChild(0)), starChild, "Argument to *");
 
         return new CanonicalShortGame(RationalNumber.ZERO, n, m);
     }
@@ -1288,29 +1288,29 @@ public class Domain
         return (CgsuiteBoolean) x;
     }
 
-    private int naturalNumber(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
+    private int naturalNumber(CgsuiteObject x, CgsuiteTree tree, String errorMessageAntecedent) throws CgsuiteException
     {
-        int intValue = integer(x, tree);
+        int intValue = integer(x, tree, errorMessageAntecedent);
 
         if (intValue < 0)
-            throw new InputException(tree.token, "Argument to * is not a natural number.");
+            throw new InputException(tree.token, errorMessageAntecedent + " is not a natural number.");
 
         return intValue;
     }
 
-    private int integer(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
+    private int integer(CgsuiteObject x, CgsuiteTree tree, String errorMessageAntecedent) throws CgsuiteException
     {
         if (!(x instanceof CgsuiteInteger))
         {
             x = x.simplify();
             if (!(x instanceof CgsuiteInteger))
-                throw new InputException(tree.token, "Argument to * is not an integer.");
+                throw new InputException(tree.token, errorMessageAntecedent + " is not an integer.");
         }
 
         return ((CgsuiteInteger) x).intValue();
     }
 
-    private RationalNumber number(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
+    private RationalNumber number(CgsuiteObject x, CgsuiteTree tree, String errorMessageAntecedent) throws CgsuiteException
     {
         if (x instanceof CgsuiteInteger)
         {
@@ -1320,7 +1320,7 @@ public class Domain
         {
             x = x.simplify();
             if (!(x instanceof RationalNumber))
-                throw new InputException(tree.token, "Argument to * is not a number.");
+                throw new InputException(tree.token, errorMessageAntecedent + " is not a number.");
         }
 
         return (RationalNumber) x;
