@@ -5,7 +5,7 @@
 
     <fontcolor name="keyword"           foreColor="blue" default="default"/>
     <fontcolor name="type"              foreColor="orange" default="default"/>
-    <fontcolor name="number"            foreColor="red" default="default"/>
+    <fontcolor name="number"            foreColor="black" default="default"/>
     <fontcolor name="string"            foreColor="ffaa5533" default="default"/>
     <fontcolor name="comment"           foreColor="gray" default="default"/>
 
