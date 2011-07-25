@@ -28,7 +28,7 @@ class TopplingDominoes extends GridGame
             
             end
         
-        end;
+        end
         
         return options;
         

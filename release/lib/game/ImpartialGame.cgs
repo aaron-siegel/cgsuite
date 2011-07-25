@@ -12,7 +12,7 @@ class ImpartialGame extends Game
     
         value := this.Class.Memory[this];
         if nil != value then
-            if NimValue.placeholder == value then
+            if ImpartialGame.placeholder == value then
                 error("Unable to compute nim value: the specified game is loopy.");
             else
                 return value;
@@ -31,7 +31,7 @@ class ImpartialGame extends Game
     end
 
     override property CanonicalForm.get
-        return *this.NimValue;
+        return *(this.NimValue);
     end
 
 end

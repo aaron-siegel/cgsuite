@@ -102,6 +102,13 @@ public class CgsuiteList extends CgsuiteCollection
         objects.set(index-1, value);
         return value;
     }
+    
+    public CgsuiteList subList(int from, int to)
+    {
+        CgsuiteList list = new CgsuiteList();
+        list.objects.addAll(this.objects.subList(from, to));
+        return list;
+    }
 
     public void sort(final CgsuiteProcedure comparator)
     {
@@ -118,6 +125,16 @@ public class CgsuiteList extends CgsuiteCollection
                 return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class, false);
             }
         });
+    }
+    
+    public Table periodicTable(int period)
+    {
+        Table table = new Table();
+        for (int i = 0; i < size(); i += period)
+        {
+            table.add(subList(i, Math.min(size(), i+period)));
+        }
+        return table;
     }
 
     @Override

@@ -13,16 +13,31 @@ class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
     
         if obj is HeapRules then
             return obj;
-        elseif obj is String then
-            return HeapRules.Parse(obj);
+        end;
+        
+        if HeapRules.Memory[obj] != nil then
+            return HeapRules.Memory[obj];
+        end;
+        
+        if obj is String then
+            rules := HeapRules.Parse(obj);
         elseif obj is Procedure then
-            return HeapRules.Custom(obj);
+            rules := HeapRules.Custom(obj);
         else
             error("Invalid heap rules.");
-        end
+        end;
+        
+        HeapRules.Memory[obj] := rules;
+        
+        return rules;
     
     end
     
+    method NimValue(Integer heapSize) : java "nimValue(int)";
+    method NimValues(Integer maxHeapSize) : java "nimValues(int)";
+    
     method HeapOptions(Integer heapSize) : java "allOptions(int)";
+    
+    method CheckPeriod(Integer toHeap) : java "checkPeriodicity(int)";
 
 end

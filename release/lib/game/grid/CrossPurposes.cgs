@@ -28,7 +28,7 @@ class CrossPurposes extends GridGame
 
                 end
             end
-        end;
+        end
 
         return options;
 

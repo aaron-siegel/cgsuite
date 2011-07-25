@@ -6,7 +6,7 @@ class ToadsAndFrogs extends GridGame
         this.GridGame(grid);
         if this.grid.NumRows != 1 then
             error("ToadsAndFrogs grid must be 1 x N.");
-        end;
+        end
         this.backsliding := Backsliding;
     end
 
@@ -40,7 +40,7 @@ class ToadsAndFrogs extends GridGame
                 end
 
             end
-        end;
+        end
 
         return options;
 

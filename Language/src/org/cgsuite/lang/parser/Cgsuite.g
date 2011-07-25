@@ -338,16 +338,22 @@ block
     ;
 	
 statementSequence
-	: statement? (SEMI statement?)* -> ^(STATEMENT_SEQUENCE statement*)
+	: statementChain? -> ^(STATEMENT_SEQUENCE statementChain?)
 	;
+
+statementChain
+    : (IF | inLoopAntecedent DO | doLoopAntecedent DO) => controlExpression statementChain?
+    | statement (SEMI! statementChain?)?
+    | SEMI! statementChain?
+    ;
 	
 statement
 	: BREAK
 	| CONTINUE
 	| RETURN^ expression
     | CLEAR
-	| expression
-	;
+    | expression
+    ;
 
 expression
 	: assignmentExpression
@@ -375,7 +381,7 @@ opAssignmentToken
 	
 functionExpression
 	: procedureParameterList RARROW^ functionExpression
-    | controlExpression
+    | orExpression
 	;
 
 procedureParameterList
@@ -383,50 +389,6 @@ procedureParameterList
     | LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN -> ^(PROCEDURE_PARAMETER_LIST IDENTIFIER*)
     ;
 	
-controlExpression
-	: IF^ expression THEN! statementSequence elseifClause? END!
-	| doLoopAntecedent DO^ statementSequence END!
-	| inLoopAntecedent DO statementSequence END -> ^(IN[$DO] inLoopAntecedent statementSequence)
-	| orExpression
-	;
-
-doLoopAntecedent
-    : forClause? fromClause? toClause? byClause? whileClause? whereClause?
-    ;
-
-inLoopAntecedent
-    : FOR! expression IN! expression whereClause?
-    ;
-
-forClause
-	: FOR^ IDENTIFIER
-	;
-	
-fromClause
-	: FROM^ expression
-	;
-	
-toClause
-    : TO^ expression
-    ;
-
-byClause
-    : BY^ expression
-    ;
-	
-whileClause
-    : WHILE^ expression
-	;
-
-whereClause
-    : WHERE^ expression
-    ;
-
-elseifClause
-	: ELSEIF^ expression THEN! statementSequence elseifClause?
-	| ELSE^ statementSequence
-	;
-
 orExpression
 	: andExpression (OR^ orExpression)?
 	;
@@ -537,8 +499,8 @@ options
     backtrack = true;
     memoize = true;
 }
-    : AST primaryExpr -> ^(UNARY_AST primaryExpr)
-    | AST -> UNARY_AST
+    : AST primaryExpr -> ^(UNARY_AST[$AST] primaryExpr)
+    | AST -> UNARY_AST[$AST]
     ;
 	
 primaryExpr
@@ -565,6 +527,7 @@ primaryExpr
     | setof
     | listof
     | tableof
+    | controlExpression
 	;
 
 explicitGame
@@ -654,6 +617,49 @@ expressionList
 
 range
 	: INTEGER DOTDOT^ INTEGER
+	;
+
+controlExpression
+	: IF^ expression THEN! statementSequence elseifClause? END!
+	| doLoopAntecedent DO^ statementSequence END!
+	| inLoopAntecedent DO statementSequence END -> ^(IN[$DO] inLoopAntecedent statementSequence)
+	;
+
+doLoopAntecedent
+    : forClause? fromClause? toClause? byClause? whileClause? whereClause?
+    ;
+
+inLoopAntecedent
+    : FOR! expression IN! expression whereClause?
+    ;
+
+forClause
+	: FOR^ IDENTIFIER
+	;
+	
+fromClause
+	: FROM^ expression
+	;
+	
+toClause
+    : TO^ expression
+    ;
+
+byClause
+    : BY^ expression
+    ;
+	
+whileClause
+    : WHILE^ expression
+	;
+
+whereClause
+    : WHERE^ expression
+    ;
+
+elseifClause
+	: ELSEIF^ expression THEN! statementSequence elseifClause?
+	| ELSE^ statementSequence
 	;
 
 INTEGER		: DIGIT+;

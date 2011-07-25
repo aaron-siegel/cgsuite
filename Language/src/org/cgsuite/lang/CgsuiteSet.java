@@ -87,6 +87,7 @@ public class CgsuiteSet extends CgsuiteCollection
         return list.iterator();
     }
 
+    @Override
     public void add(CgsuiteObject object)
     {
         objects.add(object);
@@ -111,7 +112,13 @@ public class CgsuiteSet extends CgsuiteCollection
     {
         objects.clear();
     }
+    
+    public boolean contains(CgsuiteObject obj)
+    {
+        return objects.contains(obj);
+    }
 
+    @Override
     public int size()
     {
         return objects.size();

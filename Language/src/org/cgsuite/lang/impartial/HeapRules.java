@@ -82,12 +82,15 @@ public abstract class HeapRules extends CgsuiteObject
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.lookupPackage("game.heap").forceLookupClassInPackage("HeapRules");
     
+    private NimValueSequence nimValues;
+    
     /**
      * Constructs a new <code>HeapRules</code>.
      */
     protected HeapRules()
     {
         super(TYPE);
+        nimValues = new NimValueSequence(this);
     }
     
     public static HeapRules parse(String str)
@@ -163,9 +166,24 @@ public abstract class HeapRules extends CgsuiteObject
         };
     }
     
+    public short nimValue(int heapSize)
+    {
+        return nimValues.nimValue(heapSize);
+    }
+    
+    public short[] nimValues(int maxHeapSize)
+    {
+        return nimValues.nimValues(maxHeapSize);
+    }
+    
     public APChecker getAPChecker()
     {
         return null;
+    }
+    
+    public APInfo checkPeriodicity(int maxHeapSize)
+    {
+        return nimValues.checkPeriodicity(maxHeapSize);
     }
     
     /**

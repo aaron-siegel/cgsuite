@@ -26,7 +26,7 @@ public class InputException extends CgsuiteException
     public InputException(Token token, String message)
     {
         this(message);
-        tokenStack.add(token);
+        addToken(token);
     }
 
     public List<Token> getTokenStack()
@@ -36,6 +36,9 @@ public class InputException extends CgsuiteException
 
     public void addToken(Token token)
     {
+        if (token == null)
+            throw new IllegalArgumentException("token == null");
+        
         tokenStack.add(token);
     }
     

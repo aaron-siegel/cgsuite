@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -90,7 +91,15 @@ public class CalculationCapsule implements Runnable
         }
         catch (Throwable exc)
         {
-            output = getExceptionOutput(text, exc, false);
+            try
+            {
+                output = getExceptionOutput(text, exc, false);
+            }
+            catch (Throwable exc2)
+            {
+                log.log(Level.WARNING, "Exception thrown extracting error output!", exc2);
+                output = new Output[] { errorOutput("An unexpected error occurred.") };
+            }
             isErrorOutput = true;
         }
     }

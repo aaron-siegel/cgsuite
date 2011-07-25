@@ -65,7 +65,7 @@ class Clobber extends GridGame
 
                 end
             end
-        end;
+        end
 
         return options;
 

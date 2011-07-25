@@ -1187,6 +1187,7 @@ public class TBCode extends HeapRules
                 && (mask & digitTriple[INDEX_PAIRWISE_UNEQUAL]) != 0);
     }*/
 
+    @Override
     public List<int[]> allOptions(int heapSize)
     {
         ArrayList<int[]> allOptions = new ArrayList<int[]>();
@@ -1205,11 +1206,13 @@ public class TBCode extends HeapRules
         return allOptions;
     }
     
+    @Override
     public HeapRules.Traversal traversal(int heapSize)
     {
         return new TBTraversal(heapSize);
     }
     
+    @Override
     public APChecker getAPChecker()
     {
         APChecker apchecker = new APChecker();

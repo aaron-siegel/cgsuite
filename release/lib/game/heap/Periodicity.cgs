@@ -1,0 +1,19 @@
+/*
+ * Periodicity.cgs
+ *
+ * Created by asiegel on Jul 24, 2011
+ */
+
+class Periodicity : java "org.cgsuite.lang.impartial.APInfo"
+
+    property Preperiod.get : java "getPreperiod";
+    property Period.get : java "getPeriod";
+    property Saltus.get : java "getSaltus";
+    
+    override property ToString.get
+        return "Periodicity(Period => " + this.Period.ToString +
+               ", Preperiod => " + this.Preperiod.ToString +
+               ", Saltus => " + this.Saltus.ToString + ")";
+    end
+
+end

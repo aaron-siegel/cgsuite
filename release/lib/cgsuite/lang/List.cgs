@@ -4,6 +4,7 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
     mutable method op[]:=(val,key) : java "set(org.cgsuite.lang.CgsuiteObject,int)";
     
     mutable method Sort(Procedure comparator) : java "sort";
+    method PeriodicTable(Integer period) : java "periodicTable(int)";
 
     property Length.get : java "size";
     override property ToString.get : java "toString";

@@ -14,7 +14,7 @@ class Domineering extends GridGame
             mDelta := 1; nDelta := 0;
         else
             mDelta := 0; nDelta := 1;
-        end;
+        end
 
         for m from 1 to this.grid.NumRows do
             for n from 1 to this.grid.NumColumns do
@@ -25,19 +25,19 @@ class Domineering extends GridGame
                     options.Add(Domineering(copy));
                 end
             end
-        end;
+        end
 
         return options;
 
     end
 
-    property CanonicalForm.get
+    override property CanonicalForm.get
 
         components := this.grid.Decompose(1);
         g := 0;
         for grid in components do
             g := g + Domineering(grid.SymmetryInvariantRepresentation).super.CanonicalForm;
-        end;
+        end
         return g;
 
     end

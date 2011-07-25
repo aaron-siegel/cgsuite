@@ -29,13 +29,19 @@
 
 package org.cgsuite.lang.impartial;
 
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
+
 /**
  * Utility class for representing information concerning arithmeto-periodic behaviour.
  * @author malbert
  * @version $Revision: 1.2 $ $Date: 2007/02/13 22:39:46 $
  */
-public class APInfo {
-	
+public class APInfo extends CgsuiteObject
+{
+    public final static CgsuiteClass TYPE = CgsuitePackage.lookupPackage("game.heap").forceLookupClassInPackage("Periodicity");
+    
 	private int preperiod;
 	private int period;
 	private int saltus;
@@ -47,6 +53,7 @@ public class APInfo {
      * @param saltus The saltus.
      */
 	public APInfo(int preperiod, int period, int saltus) {
+        super(TYPE);
 		this.preperiod = preperiod;
 		this.period = period;
 		this.saltus = saltus;
@@ -80,48 +87,39 @@ public class APInfo {
      * String representation, for example: "Preperiod = 23, Period = 57, Saltus = 12".
      * @return A String representing this APInfo object.
      */
+    @Override
 	public String toString() {
 		return "Preperiod = " + preperiod + ", Period = " + period + ", Saltus = " + saltus;
 	}
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final APInfo other = (APInfo) obj;
+        if (this.preperiod != other.preperiod) {
+            return false;
+        }
+        if (this.period != other.period) {
+            return false;
+        }
+        if (this.saltus != other.saltus) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 67 * hash + this.preperiod;
+        hash = 67 * hash + this.period;
+        hash = 67 * hash + this.saltus;
+        return hash;
+    }
 	
-    /**
-     * Compares with another APInfo object. Lexicographic in the order: preperiod, period, saltus.
-     * @param o The object to compare to.
-     * @return The result of the comparison.
-     */
-	public int compareTo(APInfo o) {
-		if (this.preperiod != o.preperiod) {
-			return this.preperiod - o.preperiod;
-		}
-		
-		if (this.period != o.period) {
-			return this.period - o.period;
-		}
-		
-		return this.saltus - o.saltus;
-	}
-	
-    /**
-     * Compare with another object for equality.
-     * @param o The object to compare to.
-     * @return The result of the comparison.
-     */
-	public boolean equals(Object o) {
-		
-		if (o instanceof APInfo) {
-			return (this.compareTo((APInfo) o) == 0);
-		}
-		
-		return false;
-	}
-	
-    /**
-     * A hashcode for this object, computed as a linear combination of the three data fields.
-     * @return A hashcode for this object.
-     */
-	 public @Override int hashCode() {
-		 return 31973*preperiod + 25719*period + 439823*saltus;
-	 }
-       
-    
 }

@@ -245,6 +245,8 @@ public class WorksheetPanel extends JPanel
             if (capsule.isErrorOutput())
                 getToolkit().beep();
             
+            assert capsule.getOutput() != null;
+            
             postOutput(capsule.getOutput());
         }
         else
@@ -294,13 +296,15 @@ public class WorksheetPanel extends JPanel
             return;
 
         Output[] output = currentCapsule.getOutput();
+        assert output != null;
+        
         if (currentCapsule.isErrorOutput())
             getToolkit().beep();
 
         remove(getComponentCount()-1);
         currentSource = null;
         currentCapsule = null;
-
+        
         postOutput(output);
         
         SwingUtilities.invokeLater(new Runnable()

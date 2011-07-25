@@ -42,7 +42,7 @@ class Amazons extends GridGame
 
                 end
             end
-        end;
+        end
 
         return options;
 

@@ -111,7 +111,6 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     
     public void unlink()
     {
-        System.out.println("Unlinking: " + this);
         this.objectNamespace = objectNamespace.crosslinkedNamespace();
         CgsuiteObject next = crosslink;
         while (next.crosslink != this)

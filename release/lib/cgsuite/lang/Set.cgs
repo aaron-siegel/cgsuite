@@ -10,6 +10,8 @@ mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
     mutable method Remove(obj) : java "remove";
     mutable method RemoveAll(Collection obj) : java "removeAll";
     mutable method Clear() : java "clear";
+    
+    method Contains(obj) : java "contains";
 
     override property ToString.get : java "toString";
 

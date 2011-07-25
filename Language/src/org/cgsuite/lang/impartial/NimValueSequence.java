@@ -31,13 +31,8 @@ package org.cgsuite.lang.impartial;
 
 import java.util.Arrays;
 import java.util.BitSet;
-import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteList;
-import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.CgsuitePackage;
-
-// TODO Implement unlink()
 
 /**
  * A sequence of Grundy values corresponding to a fixed <code>HeapRules</code>.
@@ -47,19 +42,17 @@ import org.cgsuite.lang.CgsuitePackage;
  * @see     HeapGame
  * @see     HeapRules
  */
-public class GrundySequence extends CgsuiteObject {
-    
-    private static final CgsuiteClass TYPE = CgsuitePackage.lookupPackage("game.heap").forceLookupClassInPackage("GrundySequence");
-    
+public class NimValueSequence
+{
     private static final short UNDEFINED_VALUE = -1;
     private static final int DEFAULT_SIZE = 100;
     private static int nCalcs = 0;
     private HeapRules rules;
-    private short[] grundyValues;
+    private short[] nimValues;
     private int maxKnown;
     
-    private GrundySequence() {
-        super(TYPE);
+    private NimValueSequence()
+    {
     }
     
     /**
@@ -67,7 +60,8 @@ public class GrundySequence extends CgsuiteObject {
      *
      * @param rules The <code>HeapRules</code> for this sequence.
      */
-    public GrundySequence(HeapRules rules) {
+    public NimValueSequence(HeapRules rules)
+    {
         this(rules, DEFAULT_SIZE);
     }
     
@@ -78,12 +72,12 @@ public class GrundySequence extends CgsuiteObject {
      * @param rules The <code>HeapRules</code> for this sequence.
      * @param capacity The initial capacity.
      */
-    public GrundySequence(HeapRules rules, int capacity) {
-        this();
+    public NimValueSequence(HeapRules rules, int capacity)
+    {
         this.rules = rules;
-        this.grundyValues = new short[capacity];
-        grundyValues[0] = 0;
-        Arrays.fill(grundyValues, 1, grundyValues.length, UNDEFINED_VALUE);
+        this.nimValues = new short[capacity];
+        nimValues[0] = 0;
+        Arrays.fill(nimValues, 1, nimValues.length, UNDEFINED_VALUE);
         maxKnown = 1;
     }
     
@@ -92,21 +86,22 @@ public class GrundySequence extends CgsuiteObject {
      *
      * @param   heapSize The minimum heap size for the computation.
      */
-    public void populateTo(int heapSize) {
-        
+    public void calculateNimValues(int heapSize)
+    {
         if (heapSize < maxKnown) return;
         
-        ensureGrundySize(heapSize);
+        ensureCapacity(heapSize);
         
         BitSet mexSet = new BitSet();
         
-        for(; maxKnown <= heapSize; ++maxKnown) {
-            grundyCalculate(maxKnown,mexSet,null);
+        for(; maxKnown <= heapSize; ++maxKnown)
+        {
+            calculateNimValue(maxKnown,mexSet,null);
         }
         
     }
     
-    private void grundyCalculate(int position, BitSet mexSet, BitSet pending)
+    private void calculateNimValue(int position, BitSet mexSet, BitSet pending)
     {
         BitSet recursiveMexSet = null;
 
@@ -122,14 +117,14 @@ public class GrundySequence extends CgsuiteObject {
             for (int i = 0; i < t.currentLength(); i++) {
                 int part = t.currentPart(i);
                 int optVal
-                    = part < position ? grundyValues[part] : UNDEFINED_VALUE;
+                    = part < position ? nimValues[part] : UNDEFINED_VALUE;
                 
                 if (optVal == UNDEFINED_VALUE)
                 {
                     // Check for uncommon, but supported, case of option
                     // greater than original size.
-                    ensureGrundySize(part);
-                    optVal = grundyValues[part];
+                    ensureCapacity(part);
+                    optVal = nimValues[part];
                     if (optVal == UNDEFINED_VALUE)
                     {
                         if (pending==null) 
@@ -147,9 +142,9 @@ public class GrundySequence extends CgsuiteObject {
                             recursiveMexSet = new BitSet();
                         }
                         pending.set(part);
-                        grundyCalculate(part, recursiveMexSet, pending);
+                        calculateNimValue(part, recursiveMexSet, pending);
                         pending.clear(part);
-                        optVal = grundyValues[part];
+                        optVal = nimValues[part];
                         
                     }
                 }
@@ -159,18 +154,16 @@ public class GrundySequence extends CgsuiteObject {
             mexSet.set(result);
         }
         
-        grundyValues[position] = (short) mexSet.nextClearBit(0);
+        nimValues[position] = (short) mexSet.nextClearBit(0);
     }
 
-    private void ensureGrundySize(int heapSize)
+    private void ensureCapacity(int heapSize)
     {
-        if (grundyValues.length <= heapSize) {
-            short[] newValues = new short[1 + (3*heapSize)/2];
-            Arrays.fill(newValues, grundyValues.length, newValues.length,
-                        UNDEFINED_VALUE);
-            System.arraycopy(grundyValues, 0, newValues, 0,
-                             grundyValues.length);
-            grundyValues = newValues;
+        if (nimValues.length <= heapSize)
+        {
+            short[] newValues = Arrays.copyOfRange(nimValues, 0, 1 + (3*heapSize) / 2);
+            Arrays.fill(newValues, nimValues.length, newValues.length, UNDEFINED_VALUE);
+            nimValues = newValues;
         }
     }
 
@@ -181,19 +174,16 @@ public class GrundySequence extends CgsuiteObject {
      * @param heapSize The heap size.
      * @return The Grundy value for the specified heap size.
      */
-    public short grundyValue(int heapSize) {
-        populateTo(heapSize);
-        return grundyValues[heapSize];
+    public short nimValue(int heapSize)
+    {
+        calculateNimValues(heapSize);
+        return nimValues[heapSize];
     }
     
-    public CgsuiteList grundyValues(int maxHeapSize) {
-        populateTo(maxHeapSize);
-        CgsuiteList list = new CgsuiteList();
-        for (int i = 1; i <= maxHeapSize; i++)
-        {
-            list.add(new CgsuiteInteger(grundyValues[i]));
-        }
-        return list;
+    public short[] nimValues(int maxHeapSize)
+    {
+        calculateNimValues(maxHeapSize);
+        return Arrays.copyOfRange(nimValues, 0, maxHeapSize);
     }
     
     /**
@@ -218,8 +208,9 @@ public class GrundySequence extends CgsuiteObject {
         return maxKnown;
     }
     
-    public APInfo checkPeriodicity()
+    public APInfo checkPeriodicity(int maxHeapSize)
     {
+        calculateNimValues(maxHeapSize);
         APChecker checker = rules.getAPChecker();
         if (checker == null)
         {
@@ -227,7 +218,7 @@ public class GrundySequence extends CgsuiteObject {
         }
         else
         {
-            return checker.checkSequence(grundyValues, maxKnown);
+            return checker.checkSequence(nimValues, maxHeapSize);
         }
     }
 }

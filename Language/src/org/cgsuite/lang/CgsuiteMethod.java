@@ -424,6 +424,15 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             return list;
         }
+        else if (javaObj instanceof short[])
+        {
+            CgsuiteList list = new CgsuiteList();
+            for (short element : (short[]) javaObj)
+            {
+                list.add(new CgsuiteInteger(element));
+            }
+            return list;
+        }
         else if (javaObj instanceof BigInteger)
         {
             return new RationalNumber((BigInteger) javaObj, BigInteger.ONE);

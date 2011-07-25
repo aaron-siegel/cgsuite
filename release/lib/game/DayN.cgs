@@ -21,7 +21,7 @@ class DayN
             prevac := prev.Antichains;
             if AllSmall then
                 prevac.Remove({});  // Remove empty set as a possibility
-            end;
+            end
             for lo in prevac do
                 for ro in prevac do
                     if Reduced then
@@ -61,7 +61,7 @@ class DayN
                     newac.Add(g);
                     newAntichains.Add(newac);
                 end
-            end;
+            end
 
             antichains.AddAll(newAntichains);
 
@@ -84,8 +84,8 @@ class DayN
                 if not g <> h then
                     return true;
                 end
-            end;
-        end;
+            end
+        end
 
         return false;
 
@@ -112,7 +112,7 @@ class DayN
                     upcov.Add(h);
                 end
             end
-        end;
+        end
 
         return upcov;
 
@@ -126,7 +126,7 @@ class DayN
             if this.UpperCovers(-g).Size == 1 then
                 ji.Add(g);
             end
-        end;
+        end
 
         return ji;
 
