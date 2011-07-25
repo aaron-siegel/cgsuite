@@ -51,22 +51,27 @@ public class CgsuiteMap extends CgsuiteObject
     @Override
     public StyledTextOutput toOutput()
     {
-        // TODO Sort by keys
         StyledTextOutput output = new StyledTextOutput();
         output.appendMath("{");
+        
         if (isEmpty())
-            output.appendSymbol(Symbol.RIGHT_ARROW);
-        for (Iterator<Entry<CgsuiteObject,CgsuiteObject>> it = map.entrySet().iterator(); it.hasNext();)
+            output.appendSymbol(Symbol.BIG_RIGHT_ARROW);
+        
+        List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(size());
+        list.addAll(map.keySet());
+        Collections.sort(list);
+        
+        for (Iterator<CgsuiteObject> it = list.iterator(); it.hasNext();)
         {
-            Entry<CgsuiteObject,CgsuiteObject> e = it.next();
-            output.appendOutput(e.getKey().toOutput());
+            CgsuiteObject key = it.next();
+            output.appendOutput(key.toOutput());
             output.appendMath(" ");
-            output.appendSymbol(Symbol.RIGHT_ARROW);
+            output.appendSymbol(Symbol.BIG_RIGHT_ARROW);
             output.appendMath(" ");
-            output.appendOutput(e.getValue().toOutput());
+            output.appendOutput(map.get(key).toOutput());
             if (it.hasNext())
             {
-                output.appendMath(",");
+                output.appendMath(", ");
             }
         }
         output.appendMath("}");

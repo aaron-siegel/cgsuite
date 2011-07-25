@@ -239,6 +239,8 @@ public class StyledTextOutput implements Output
         PLUS_MINUS      (SANS_SERIF_FONT, '\261', "+-", "\\pm"),
         /** A right arrow. */
         RIGHT_ARROW     (SYMBOL_FONT, '\41', "->", "\\to"),
+        /** A big right arrow. */
+        BIG_RIGHT_ARROW (SYMBOL_FONT, '\51', "=>", "\\bigrarrow"),
         /** An integral sign. */
         INTEGRAL        (SYMBOL_FONT, 's', "INTEGRAL", "\\int"),
         /** An infinity symbol. */
