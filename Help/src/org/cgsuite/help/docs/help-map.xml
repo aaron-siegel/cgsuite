@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE map PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN" "http://java.sun.com/products/javahelp/map_2_0.dtd">
+<map version="2.0">
+    <mapID target="org.cgsuite.help.about" url="help-about.html"/>
+    <mapID target="whatsnew" url="whatsnew.html"/>
+    <mapID target="acknowledgements" url="acknowledgements.html"/>
+    <mapID target="license" url="../../../org/cgsuite/ui/resources/license.txt"/>
+    <mapID target="tutorials" url="tutorials/index.html"/>
+    <mapID target="tutorials.using-cgsuite.explorer_Exercises" url="tutorials/using-cgsuite/explorer.html#Exercises"/>
+    <mapID target="tutorials.using-cgsuite.loopygames_EnteringLoopyGames" url="tutorials/using-cgsuite/loopygames.html#EnteringLoopyGames"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_CanonicalForms" url="tutorials/using-cgsuite/worksheet.html#CanonicalForms"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Specific" url="tutorials/using-cgsuite/glossary.html#Specific"/>
+    <mapID target="tutorials.using-cgsuite.functions_SeqKeyword" url="tutorials/using-cgsuite/functions.html#SeqKeyword"/>
+    <mapID target="tutorials.using-cgsuite.functions_ExampleBlockbusting" url="tutorials/using-cgsuite/functions.html#ExampleBlockbusting"/>
+    <mapID target="tutorials.using-cgsuite.scripts_IfThenElse" url="tutorials/using-cgsuite/scripts.html#IfThenElse"/>
+    <mapID target="tutorials.using-cgsuite.loopygames_SimplifyingStoppers" url="tutorials/using-cgsuite/loopygames.html#SimplifyingStoppers"/>
+    <mapID target="tutorials.using-cgsuite.scripts" url="tutorials/using-cgsuite/scripts.html"/>
+    <mapID target="tutorials.using-cgsuite.impartialgames" url="tutorials/using-cgsuite/impartialgames.html"/>
+    <mapID target="tutorials.using-cgsuite.impartialgames_TBCodes" url="tutorials/using-cgsuite/impartialgames.html#TBCodes"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Loopy" url="tutorials/using-cgsuite/glossary.html#Loopy"/>
+    <mapID target="tutorials.using-cgsuite.worksheet" url="tutorials/using-cgsuite/worksheet.html"/>
+    <mapID target="tutorials.using-cgsuite.impartialgames_Misere" url="tutorials/using-cgsuite/impartialgames.html#Misere"/>
+    <mapID target="tutorials.using-cgsuite.functions_MoreAboutLists" url="tutorials/using-cgsuite/functions.html#MoreAboutLists"/>
+    <mapID target="tutorials.using-cgsuite.functions_Exercises" url="tutorials/using-cgsuite/functions.html#Exercises"/>
+    <mapID target="tutorials.using-cgsuite.explorer_TheGameTree" url="tutorials/using-cgsuite/explorer.html#TheGameTree"/>
+    <mapID target="tutorials.using-cgsuite.loopygames_Sidling" url="tutorials/using-cgsuite/loopygames.html#Sidling"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Canonical" url="tutorials/using-cgsuite/glossary.html#Canonical"/>
+    <mapID target="tutorials.using-cgsuite.scripts_Domineering" url="tutorials/using-cgsuite/scripts.html#Domineering"/>
+    <mapID target="tutorials.using-cgsuite.scripts_LogErr" url="tutorials/using-cgsuite/scripts.html#LogErr"/>
+    <mapID target="tutorials.using-cgsuite.impartialgames_MisereQuotients" url="tutorials/using-cgsuite/impartialgames.html#MisereQuotients"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_Exercises" url="tutorials/using-cgsuite/worksheet.html#Exercises"/>
+    <mapID target="tutorials.using-cgsuite.loopygames_Exercises" url="tutorials/using-cgsuite/loopygames.html#Exercises"/>
+    <mapID target="tutorials.using-cgsuite.loopygames_ExtendedThermography" url="tutorials/using-cgsuite/loopygames.html#ExtendedThermography"/>
+    <mapID target="tutorials.using-cgsuite.explorer_CreatingGamePositions" url="tutorials/using-cgsuite/explorer.html#CreatingGamePositions"/>
+    <mapID target="tutorials.using-cgsuite.glossary" url="tutorials/using-cgsuite/glossary.html"/>
+    <mapID target="tutorials.using-cgsuite.scripts_Exercises" url="tutorials/using-cgsuite/scripts.html#Exercises"/>
+    <mapID target="tutorials.using-cgsuite.scripts_ForLoops" url="tutorials/using-cgsuite/scripts.html#ForLoops"/>
+    <mapID target="tutorials.using-cgsuite.glossary_CanonicalMisere" url="tutorials/using-cgsuite/glossary.html#CanonicalMisere"/>
+    <mapID target="tutorials.using-cgsuite.index" url="tutorials/using-cgsuite/index.html"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Impartial" url="tutorials/using-cgsuite/glossary.html#Impartial"/>
+    <mapID target="tutorials.using-cgsuite.scripts_Scripts" url="tutorials/using-cgsuite/scripts.html#Scripts"/>
+    <mapID target="tutorials.using-cgsuite.index_Overview" url="tutorials/using-cgsuite/index.html#Overview"/>
+    <mapID target="tutorials.using-cgsuite.scripts_UsingOut" url="tutorials/using-cgsuite/scripts.html#UsingOut"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Analysis" url="tutorials/using-cgsuite/glossary.html#Analysis"/>
+    <mapID target="tutorials.using-cgsuite.functions" url="tutorials/using-cgsuite/functions.html"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Keywords" url="tutorials/using-cgsuite/glossary.html#Keywords"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_EnteringGames" url="tutorials/using-cgsuite/worksheet.html#EnteringGames"/>
+    <mapID target="tutorials.using-cgsuite.functions_TabulateKeyword" url="tutorials/using-cgsuite/functions.html#TabulateKeyword"/>
+    <mapID target="tutorials.using-cgsuite.impartialgames_HeapGames" url="tutorials/using-cgsuite/impartialgames.html#HeapGames"/>
+    <mapID target="tutorials.using-cgsuite.functions_Functions" url="tutorials/using-cgsuite/functions.html#Functions"/>
+    <mapID target="tutorials.using-cgsuite.glossary_General" url="tutorials/using-cgsuite/glossary.html#General"/>
+    <mapID target="tutorials.using-cgsuite.glossary_Miscellaneous" url="tutorials/using-cgsuite/glossary.html#Miscellaneous"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_OperationsOnGames" url="tutorials/using-cgsuite/worksheet.html#OperationsOnGames"/>
+    <mapID target="tutorials.using-cgsuite.explorer" url="tutorials/using-cgsuite/explorer.html"/>
+    <mapID target="tutorials.using-cgsuite.scripts_Procedures" url="tutorials/using-cgsuite/scripts.html#Procedures"/>
+    <mapID target="tutorials.using-cgsuite.loopygames" url="tutorials/using-cgsuite/loopygames.html"/>
+    <mapID target="tutorials.using-cgsuite.functions_ExamplePartizanSubtraction" url="tutorials/using-cgsuite/functions.html#ExamplePartizanSubtraction"/>
+</map>

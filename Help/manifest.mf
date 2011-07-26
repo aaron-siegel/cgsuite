@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.cgsuite.help
+OpenIDE-Module-Layer: org/cgsuite/help/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/cgsuite/help/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

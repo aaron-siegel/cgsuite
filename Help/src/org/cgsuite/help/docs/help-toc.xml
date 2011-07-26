@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+<toc version="2.0">
+ <tocitem text="Combinatorial Game Suite">
+  <tocitem text="What's New?" target="whatsnew"/>
+  <tocitem text="GNU General Public License" target="license"/>
+  <tocitem text="Acknowledgements" target="acknowledgements"/>
+  <tocitem text="Tutorials" target="tutorials">
+   <tocitem text="Getting Started" target="tutorials.using-cgsuite.index">
+    <tocitem text="Worksheet Basics" target="tutorials.using-cgsuite.worksheet"/>
+    <tocitem text="Using the Explorer" target="tutorials.using-cgsuite.explorer"/>
+    <tocitem text="Functions and Lists" target="tutorials.using-cgsuite.functions"/>
+    <tocitem text="Writing Scripts" target="tutorials.using-cgsuite.scripts"/>
+    <tocitem text="Impartial Games" target="tutorials.using-cgsuite.impartialgames"/>
+    <tocitem text="Loopy Games" target="tutorials.using-cgsuite.loopygames"/>
+    <tocitem text="Glossary of Methods" target="tutorials.using-cgsuite.glossary"/>
+   </tocitem>
+  </tocitem>
+ </tocitem>
+</toc>

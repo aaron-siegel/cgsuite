@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE index PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Index Version 2.0//EN" "http://java.sun.com/products/javahelp/index_2_0.dtd">
+<index version="2.0">
+    <indexitem text="About Help" target="org.cgsuite.help.about"/>
+    <indexitem text="acknowledgements " target="acknowledgements"/>
+    <indexitem text="example - blockbusting " target="tutorials.using-cgsuite.functions_ExampleBlockbusting"/>
+    <indexitem text="example - partizan subtraction " target="tutorials.using-cgsuite.functions_ExamplePartizanSubtraction"/>
+    <indexitem text="exercises - explorer " target="tutorials.using-cgsuite.explorer_Exercises"/>
+    <indexitem text="exercises - functions " target="tutorials.using-cgsuite.functions_Exercises"/>
+    <indexitem text="exercises - loopy games " target="tutorials.using-cgsuite.loopygames_Exercises"/>
+    <indexitem text="exercises - scripts " target="tutorials.using-cgsuite.scripts_Exercises"/>
+    <indexitem text="exercises - worksheet " target="tutorials.using-cgsuite.worksheet_Exercises"/>
+    <indexitem text="explorer " target="tutorials.using-cgsuite.explorer"/>
+    <indexitem text="explorer - exercises " target="tutorials.using-cgsuite.explorer_Exercises"/>
+    <indexitem text="explorer - game positions " target="tutorials.using-cgsuite.explorer_CreatingGamePositions"/>
+    <indexitem text="explorer - game tree " target="tutorials.using-cgsuite.explorer_TheGameTree"/>
+    <indexitem text="functions " target="tutorials.using-cgsuite.functions"/>
+    <indexitem text="functions - example: blockbusting " target="tutorials.using-cgsuite.functions_ExampleBlockbusting"/>
+    <indexitem text="functions - example: partizan subtraction " target="tutorials.using-cgsuite.functions_ExamplePartizanSubtraction"/>
+    <indexitem text="functions - more about lists " target="tutorials.using-cgsuite.functions_MoreAboutLists"/>
+    <indexitem text="functions - seq keyword " target="tutorials.using-cgsuite.functions_SeqKeyword"/>
+    <indexitem text="functions - tabulate keyword " target="tutorials.using-cgsuite.functions_TabulateKeyword"/>
+    <indexitem text="glossary " target="tutorials.using-cgsuite.glossary"/>
+    <indexitem text="glossary - analysis " target="tutorials.using-cgsuite.glossary_Analysis"/>
+    <indexitem text="glossary - canonical " target="tutorials.using-cgsuite.glossary_Canonical"/>
+    <indexitem text="glossary - canonical misere " target="tutorials.using-cgsuite.glossary_CanonicalMisere"/>
+    <indexitem text="glossary - general " target="tutorials.using-cgsuite.glossary_General"/>
+    <indexitem text="glossary - impartial games " target="tutorials.using-cgsuite.glossary_Impartial"/>
+    <indexitem text="glossary - keywords " target="tutorials.using-cgsuite.glossary_Keywords"/>
+    <indexitem text="glossary - loopy games " target="tutorials.using-cgsuite.glossary_Loopy"/>
+    <indexitem text="glossary - miscellaneous " target="tutorials.using-cgsuite.glossary_Miscellaneous"/>
+    <indexitem text="glossary - specific games " target="tutorials.using-cgsuite.glossary_Specific"/>
+    <indexitem text="impartial games " target="tutorials.using-cgsuite.impartialgames"/>
+    <indexitem text="impartial games - heap games " target="tutorials.using-cgsuite.impartialgames_HeapGames"/>
+    <indexitem text="impartial games - misere " target="tutorials.using-cgsuite.impartialgames_Misere"/>
+    <indexitem text="impartial games - misere quotients " target="tutorials.using-cgsuite.impartialgames_MisereQuotients"/>
+    <indexitem text="impartial games - TBCodes " target="tutorials.using-cgsuite.impartialgames_TBCodes"/>
+    <indexitem text="loopy games " target="tutorials.using-cgsuite.loopygames"/>
+    <indexitem text="loopy games - entering loopy games " target="tutorials.using-cgsuite.loopygames_EnteringLoopyGames"/>
+    <indexitem text="loopy games - exercises " target="tutorials.using-cgsuite.loopygames_Exercises"/>
+    <indexitem text="loopy games - extended thermography " target="tutorials.using-cgsuite.loopygames_ExtendedThermography"/>
+    <indexitem text="loopy games - sidling " target="tutorials.using-cgsuite.loopygames_Sidling"/>
+    <indexitem text="loopy games - simplifying stoppers " target="tutorials.using-cgsuite.loopygames_SimplifyingStoppers"/>
+    <indexitem text="main index " target="index"/>
+    <indexitem text="scripts " target="tutorials.using-cgsuite.scripts"/>
+    <indexitem text="scripts - domineering " target="tutorials.using-cgsuite.scripts_Domineering"/>
+    <indexitem text="scripts - exercises " target="tutorials.using-cgsuite.scripts_Exercises"/>
+    <indexitem text="scripts - for loops " target="tutorials.using-cgsuite.scripts_ForLoops"/>
+    <indexitem text="scripts - if-then-else " target="tutorials.using-cgsuite.scripts_IfThenElse"/>
+    <indexitem text="scripts - log/err " target="tutorials.using-cgsuite.scripts_LogErr"/>
+    <indexitem text="scripts - procedures " target="tutorials.using-cgsuite.scripts_Procedures"/>
+    <indexitem text="scripts - using out for output " target="tutorials.using-cgsuite.scripts_UsingOut"/>
+    <indexitem text="seq " target="tutorials.using-cgsuite.functions_SeqKeyword"/>
+    <indexitem text="tabulate " target="tutorials.using-cgsuite.functions_TabulateKeyword"/>
+    <indexitem text="using cgsuite " target="tutorials.using-cgsuite.index"/>
+    <indexitem text="what's new " target="whatsnew"/>
+    <indexitem text="worksheet " target="tutorials.using-cgsuite.worksheet"/>
+    <indexitem text="worksheet - canonical forms " target="tutorials.using-cgsuite.worksheet_CanonicalForms"/>
+    <indexitem text="worksheet - entering games " target="tutorials.using-cgsuite.worksheet_EnteringGames"/>
+    <indexitem text="worksheet - exercises " target="tutorials.using-cgsuite.worksheet_Exercises"/>
+    <indexitem text="worksheet - operations on games " target="tutorials.using-cgsuite.worksheet_OperationsOnGames"/>
+</index>
