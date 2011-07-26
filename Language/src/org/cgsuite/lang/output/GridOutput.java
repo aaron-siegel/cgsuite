@@ -71,7 +71,7 @@ public class GridOutput implements Output
                 String literal = ((CgsuiteString) icons.get(i+1).resolve("Literal")).toJavaString();
                 this.icons[i] = getIcon(literal.toLowerCase());
             }
-            cellSize = calculateIconDimensions(this.icons, true);
+            cellSize = calculateIconDimensions(this.icons, false);
             size = calculateGridImageDimensions(grid, this.icons, cellSize, 1, 1);
         }
         this.alt = alt;
