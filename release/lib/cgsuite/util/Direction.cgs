@@ -23,12 +23,16 @@ enum Direction
     property ColumnShift.get
         return this.colShift;
     end
+    
+    static var Horizontal := { Direction.East, Direction.West };
+    
+    static var Vertical   := { Direction.North, Direction.South };
 
     static var Orthogonal := { Direction.North, Direction.East, Direction.South, Direction.West };
 
     static var Diagonal   := { Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
     
     static var All        := { Direction.North, Direction.East, Direction.South, Direction.West,
-                                      Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
+                               Direction.Northeast, Direction.Southeast, Direction.Southwest, Direction.Northwest };
 
 end

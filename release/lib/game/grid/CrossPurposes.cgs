@@ -1,3 +1,19 @@
+/*
+ * CrossPurposes.cgs
+ *
+ * Cross Purposes is played on a grid with black stones, vacant cells, and blocked cells.
+ * Left's move are to take a black stone, and moving vertically (in either direction) block
+ * a pair of adjacent empty cells (think of the stone as representing a tower of height 2 which
+ * is being toppled into the vacant spaces). Right moves correspondingly in the horizontal direction.
+ *
+ *
+ * Examples:
+ * g := game.grid.CrossPurposes("o....|.....|#.o..|.....|..#.o");
+ * g.CanonicalForm;
+ *
+ * Created by malbert on 27/07/2011 correcting a misiniterpretation of rules in A Siegel's version
+ */
+
 class CrossPurposes extends GridGame
 
     method CrossPurposes(grid)
@@ -8,20 +24,23 @@ class CrossPurposes extends GridGame
 
         options := {};
 
-        us := player.Ordinal;
-        them := player.Opponent.Ordinal;
+        if player == Player.Left then
+            ds := Direction.Vertical
+        else
+            ds := Direction.Horizontal
+        end
 
         for m from 1 to this.grid.NumRows do
             for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == us then
+                if this.grid[m,n] == 1 then
 
-                    for d in Direction.Orthogonal do
+                    for d in ds do
                         if this.grid[m+  d.RowShift,n+  d.ColumnShift] == 0 and
                            this.grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
                             copy := this.grid;
                             copy[m,n] := 0;
-                            copy[m+  d.RowShift,n+  d.ColumnShift] := them;
-                            copy[m+2*d.RowShift,n+2*d.ColumnShift] := them;
+                            copy[m+  d.RowShift,n+  d.ColumnShift] := 2;
+                            copy[m+2*d.RowShift,n+2*d.ColumnShift] := 2;
                             options.Add(CrossPurposes(copy));
                         end
                     end
@@ -35,7 +54,7 @@ class CrossPurposes extends GridGame
     end
     
     property CharMap.get
-        return ".xo";
+        return ".o#";
     end
     
     property Icons.get
@@ -43,7 +62,7 @@ class CrossPurposes extends GridGame
         [
             GridIcon.Blank,
             GridIcon.BlackStone,
-            GridIcon.WhiteStone
+            GridIcon.Grayed
         ];
     end
 

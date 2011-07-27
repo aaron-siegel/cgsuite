@@ -1,0 +1,61 @@
+/*
+ * Rooks.cgs
+ *
+ * Rooks is played on a grid with black and white rooks and vacant spaces. A move for Left is to
+ * move one of the black rooks, capturing a white rook, and vice versa for Right.
+ *
+ * So, this is like Clobber, except the pieces can move across empty spaces.
+ * 
+ * Created by malbert on 27/07/2011
+ */
+
+class Rooks extends GridGame
+
+    method Rooks(grid)
+        this.GridGame(grid);
+    end
+
+    method Options(Player player)
+
+        options := {};
+
+        us := player.Ordinal;
+        them := player.Opponent.Ordinal;
+
+        for m from 1 to this.grid.NumRows do
+            for n from 1 to this.grid.NumColumns do
+                if this.grid[m,n] == us then
+                    for d in Direction.Orthogonal do
+                        gap := 1;
+                        while this.grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == 0 do
+                            gap := gap+1;
+                        end
+                        if this.grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == them then
+                            copy := this.grid;
+                            copy[m,n] := 0;
+                            copy[m + gap*d.RowShift, n + gap*d.ColumnShift] := us;
+                            options.Add(Rooks(copy));
+                        end
+                    end
+                end
+            end
+        end
+
+        return options;
+
+    end
+    
+    property CharMap.get
+        return ".xo";
+    end
+    
+    property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackRook,
+            GridIcon.WhiteRook
+        ];
+    end
+
+end
