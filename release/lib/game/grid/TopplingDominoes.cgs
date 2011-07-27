@@ -42,9 +42,9 @@ class TopplingDominoes extends GridGame
         return
         [
             GridIcon.Blank,
-            GridIcon.BlackStone,
-            GridIcon.WhiteStone,
-            GridIcon.Grayed
+            GridIcon.BlackDomino,
+            GridIcon.WhiteDomino,
+            GridIcon.GrayDomino
         ];
     end
     

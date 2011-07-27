@@ -1,6 +1,7 @@
 enum GridIcon
 
     BlackBishop,
+    BlackDomino,
     BlackKing,
     BlackKnight,
     BlackPawn,
@@ -10,9 +11,11 @@ enum GridIcon
     Blank,
     Frog,
     Grayed,
+    GrayDomino,
     GrayStone,
     Toad,
     WhiteBishop,
+    WhiteDomino,
     WhiteKing,
     WhiteKnight,
     WhitePawn,
