@@ -1,0 +1,88 @@
+/*
+ * AntiClobber.cgs
+ *
+ * AntiClobber is played on a grid with white and black stones.  Left
+ * can move any black stone in any orthogonal direction, provided
+ * that the desination square is empty.  The source square becomes white
+ * and the targeted square is occupied.
+ * Likewise, Right may move any white stone onto an empty space, leaving 
+ * behind a Black stone.
+ *
+ * Examples:
+ * g := examples.AntiClobber("x..|.o.");
+ * g.CanonicalForm;
+ *
+ * Created by malbert on 27/07/2011 by trivial modification of A Siegel's Clobber class
+ */
+
+class AntiClobber extends GridGame
+
+   method AntiClobber(grid)
+    
+        // Construction of the position is delegated to GridGame.
+        // Either a String or a Grid object is permitted.
+        this.GridGame(grid);
+        
+    end
+    
+    // Constructs the set of options for specified player.
+    
+    method Options(Player player)
+
+        options := {};
+
+        us := player.Ordinal;
+        them := player.Opponent.Ordinal;
+
+        // Iterate over all squares in the grid, looking for
+        // occupied spaces that match our color.
+
+        for m from 1 to this.grid.NumRows do
+            for n from 1 to this.grid.NumColumns do
+                if this.grid[m,n] == us then
+                
+                    // Found one.  Now look in all directions
+                    // for a vacant space.
+
+                    for d in Direction.Orthogonal do
+                        if this.grid[m+d.RowShift,n+d.ColumnShift] == 0 then
+                        
+                            // Found a vacant space.  Construct
+                            // the option and add it to the set
+                            // of options.  
+                        
+                            copy := this.grid;
+                            copy[m,n] := them;
+                            copy[m+d.RowShift,n+d.ColumnShift] := us;   // Anti-clobber!
+                            options.Add(AntiClobber(copy));
+                            
+                        end
+                    end
+
+                end
+            end
+        end
+
+        return options;
+
+    end
+
+    // GridGame will do the string conversion for us; we just need to specify
+    // the mapping of grid values to characters.
+
+    property CharMap.get
+        return ".xo";
+    end
+    
+    // Likewise, we specify a list of icons to display a graphical grid.
+    
+    property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone
+        ];
+    end
+
+end
