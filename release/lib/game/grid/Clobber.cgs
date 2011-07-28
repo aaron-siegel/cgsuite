@@ -1,8 +1,9 @@
 class Clobber extends GridGame
 
     var directions;
+    var anti;
 
-    method Clobber(grid, Directions ? Direction.Orthogonal, anti ? False)
+    method Clobber(grid, Directions ? Direction.Orthogonal, Anti ? false)
     
         this.GridGame(grid);
         this.directions := Directions;
@@ -17,7 +18,7 @@ class Clobber extends GridGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
         
-        if anti then
+        if this.anti then
             clobbered := 0;
             behind := them;
         else
