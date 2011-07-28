@@ -10,7 +10,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
 import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -24,7 +23,6 @@ import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
 import org.cgsuite.ui.worksheet.InputPane;
-import org.cgsuite.ui.worksheet.WorksheetPanel;
 import org.openide.util.NbBundle;
 import org.openide.util.Task;
 import org.openide.windows.TopComponent;
@@ -50,11 +48,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
     private Explorer explorer;
     private EditorPanel editorPanel;
-    private Domain explorerDomain;
     
     private CalculationCapsule currentCapsule;
-    
-    private WorksheetPanel analysisWorksheetPanel;
     
     private String requestedEvaluationText;
     private String activeEvaluationText;
@@ -68,9 +63,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         editorScrollPane.getViewport().setBackground(Color.white);
         treeScrollPane.getViewport().setBackground(Color.white);
         analysisScrollPane.getViewport().setBackground(Color.white);
-        analysisWorksheetPanel = new WorksheetPanel();
-        analysisWorksheetPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        analysisScrollPane.setViewportView(analysisWorksheetPanel);
         analysisWorksheetPanel.clear();
         inputPanel.getInputPane().activate();
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
@@ -81,8 +73,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         
         commandComboBox.insertItemAt(enterCommandHint, 0);
         commandComboBox.setSelectedIndex(0);
-        
-        explorerDomain = new Domain(explorer, CgsuitePackage.DEFAULT_IMPORT);
     }
 
     public void setExplorer(Explorer explorer)
@@ -111,6 +101,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel = new org.cgsuite.ui.worksheet.InputPanel();
         commandComboBox = new javax.swing.JComboBox();
         analysisScrollPane = new javax.swing.JScrollPane();
+        analysisWorksheetPanel = new org.cgsuite.ui.worksheet.WorksheetPanel();
         treeScrollPane = new javax.swing.JScrollPane();
         tree = new org.cgsuite.ui.explorer.ExplorerTreePanel();
         infoPanel = new javax.swing.JPanel();
@@ -147,7 +138,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
         commandPanel.add(inputPanel);
 
-        commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13));
         commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.Thermograph.Plot()", "Selection.AtomicWeight" }));
         commandComboBox.setAlignmentX(0.0F);
         commandComboBox.addActionListener(new java.awt.event.ActionListener() {
@@ -160,6 +151,9 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
 
         analysisScrollPane.setBackground(new java.awt.Color(255, 255, 255));
+        analysisScrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        analysisScrollPane.setViewportView(analysisWorksheetPanel);
+
         analysisPanel.add(analysisScrollPane, java.awt.BorderLayout.CENTER);
 
         detailSplitPane.setRightComponent(analysisPanel);
@@ -279,6 +273,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private javax.swing.JButton addPositionButton;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
+    private org.cgsuite.ui.worksheet.WorksheetPanel analysisWorksheetPanel;
     private javax.swing.JComboBox commandComboBox;
     private javax.swing.JPanel commandPanel;
     private javax.swing.JSplitPane detailSplitPane;
@@ -448,9 +443,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
             tree.getSelectedNode() != null &&
             !activeEvaluationText.equals(enterCommandHint))
         {
-            explorerDomain.put("Selection", tree.getSelectedNode().getG());
-
-            CalculationCapsule capsule = new CalculationCapsule(activeEvaluationText, explorerDomain);
+            Domain domain = new Domain(explorer, CgsuitePackage.DEFAULT_IMPORT);
+            CalculationCapsule capsule = new CalculationCapsule(activeEvaluationText, domain);
             RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
             task.addTaskListener(this);
             task.schedule(0);

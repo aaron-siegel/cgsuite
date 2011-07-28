@@ -36,6 +36,7 @@ import org.cgsuite.ui.history.CommandListener;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Task;
 import org.openide.util.TaskListener;
+import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 // TODO Check if there are unsaved files before starting a calculation
@@ -110,9 +111,13 @@ public class WorksheetPanel extends JPanel
     {
         if (buffer == null)
         {
-            buffer = WindowManager.getDefault().findTopComponent("CommandHistoryTopComponent").getLookup().lookupResult(CommandHistoryBuffer.class)
-                    .allInstances().iterator().next();
-            buffer.addCommandListener(this);
+            TopComponent tc = WindowManager.getDefault().findTopComponent("CommandHistoryTopComponent");
+            if (tc != null)
+            {
+                buffer = tc.getLookup().lookupResult(CommandHistoryBuffer.class)
+                        .allInstances().iterator().next();
+                buffer.addCommandListener(this);
+            }
         }
         return buffer;
     }
