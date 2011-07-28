@@ -5,7 +5,7 @@ and open the template in the editor.
 -->
 <!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
 <toc version="2.0">
- <tocitem text="Combinatorial Game Suite">
+ <tocitem text="Combinatorial Game Suite" target="org.cgsuite.help.about">
   <tocitem text="What's New?" target="whatsnew"/>
   <tocitem text="GNU General Public License" target="license"/>
   <tocitem text="Acknowledgements" target="acknowledgements"/>

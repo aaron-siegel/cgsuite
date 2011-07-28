@@ -11,8 +11,8 @@ import org.openide.awt.ActionRegistration;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionID;
-import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
+import org.openide.windows.WindowManager;
 
 @ActionID(category = "Help",
 id = "org.cgsuite.help.actions.HelpContents")
@@ -24,8 +24,10 @@ id = "org.cgsuite.help.actions.HelpContents")
 public final class HelpContents implements ActionListener {
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        // TODO Implement
-        CgsuiteHelpTopComponent helpComponent = Lookup.getDefault().lookup(CgsuiteHelpTopComponent.class);
+    public void actionPerformed(ActionEvent e)
+    {
+        CgsuiteHelpTopComponent helpComponent = (CgsuiteHelpTopComponent) WindowManager.getDefault().findTopComponent("CgsuiteHelpTopComponent");
+        helpComponent.open();
+        helpComponent.getHelpViewer().setCurrentID("org.cgsuite.help.about");
     }
 }

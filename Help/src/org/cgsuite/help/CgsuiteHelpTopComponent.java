@@ -59,6 +59,11 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     @Override
     public void componentClosed() {
     }
+    
+    public JHelp getHelpViewer()
+    {
+        return helpViewer;
+    }
 
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
