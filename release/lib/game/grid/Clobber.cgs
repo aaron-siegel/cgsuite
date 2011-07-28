@@ -2,10 +2,11 @@ class Clobber extends GridGame
 
     var directions;
 
-    method Clobber(grid, Directions ? Direction.Orthogonal)
+    method Clobber(grid, Directions ? Direction.Orthogonal, anti ? False)
     
         this.GridGame(grid);
         this.directions := Directions;
+        this.anti := Anti;
         
     end
     
@@ -15,17 +16,25 @@ class Clobber extends GridGame
 
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
+        
+        if anti then
+            clobbered := 0;
+            behind := them;
+        else
+            clobbered := them;
+            behind := 0;
+        end
 
         for m from 1 to this.grid.NumRows do
             for n from 1 to this.grid.NumColumns do
                 if this.grid[m,n] == us then
 
                     for d in this.directions do
-                        if this.grid[m+d.RowShift,n+d.ColumnShift] == them then
+                        if this.grid[m+d.RowShift,n+d.ColumnShift] == clobbered then
                             copy := this.grid;
-                            copy[m,n] := 0;
+                            copy[m,n] := behind;
                             copy[m+d.RowShift,n+d.ColumnShift] := us;
-                            options.Add(Clobber(copy, this.directions));
+                            options.Add(Clobber(copy, this.directions, this.anti));
                         end
                     end
 
