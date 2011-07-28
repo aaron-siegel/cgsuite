@@ -19,9 +19,8 @@ class RacingRooks extends GridGame
 
     var shortMoves;
 
-    method RacingRooks(grid, ShortMoves ? false)
+    method RacingRooks(grid, shortMoves ? false)
         this.GridGame(grid);
-        this.shortMoves := ShortMoves;
     end
 
     method Options(Player player)
@@ -30,21 +29,21 @@ class RacingRooks extends GridGame
 
         us := player.Ordinal;
         
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == us then
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == us then
                     for d in Direction.Orthogonal do
                         gap := 1;
-                        while this.grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == 0 do
-                            if this.shortMoves or this.grid[m + (gap+1)*d.RowShift, n + (gap+1)*d.ColumnShift] != 0 then
-                                copy := this.grid;
+                        while grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == 0 do
+                            if shortMoves or grid[m + (gap+1)*d.RowShift, n + (gap+1)*d.ColumnShift] != 0 then
+                                copy := grid;
                                 copy[m + gap*d.RowShift, n + gap*d.ColumnShift] := us;
                                 g := gap-1;
                                 while g >= 0 do
                                     copy[m + g*d.RowShift, n + g*d.ColumnShift] := 3;
                                     g := g-1;
                                 end
-                                options.Add(RacingRooks(copy, this.shortMoves));
+                                options.Add(RacingRooks(copy, shortMoves));
                             end
                             gap := gap+1;
                         end
@@ -59,21 +58,21 @@ class RacingRooks extends GridGame
     
     override property CanonicalForm.get
 
-        components := this.grid.Decompose(3);
+        components := grid.Decompose(3);
         g := 0;
         for grid in components do
-            g := g + RacingRooks(grid.SymmetryInvariantRepresentation, this.shortMoves).super.CanonicalForm;
+            g := g + RacingRooks(grid.SymmetryInvariantRepresentation, shortMoves).super.CanonicalForm;
         end
         return g;
 
     end
 
     
-    property CharMap.get
+    override property CharMap.get
         return ".xo#";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,
