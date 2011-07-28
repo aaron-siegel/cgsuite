@@ -16,6 +16,8 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 
+// TODO Opening the same file twice shouldn't create multiple windows
+
 public final class OpenAction implements ActionListener
 {
     @Override

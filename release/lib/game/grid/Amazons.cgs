@@ -52,7 +52,7 @@ class Amazons extends GridGame
         return ".xo#";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

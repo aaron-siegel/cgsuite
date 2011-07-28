@@ -10,6 +10,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -23,6 +24,7 @@ import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
 import org.cgsuite.ui.worksheet.InputPane;
+import org.cgsuite.ui.worksheet.WorksheetPanel;
 import org.openide.util.NbBundle;
 import org.openide.util.Task;
 import org.openide.windows.TopComponent;
@@ -51,6 +53,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
     private Domain explorerDomain;
     private CalculationCapsule currentCapsule;
+    
+    private WorksheetPanel analysisWorksheetPanel;
 
     public ExplorerTopComponent()
     {
@@ -61,6 +65,9 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         editorScrollPane.getViewport().setBackground(Color.white);
         treeScrollPane.getViewport().setBackground(Color.white);
         analysisScrollPane.getViewport().setBackground(Color.white);
+        analysisWorksheetPanel = new WorksheetPanel();
+        analysisWorksheetPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        analysisScrollPane.setViewportView(analysisWorksheetPanel);
         analysisWorksheetPanel.clear();
         inputPanel.getInputPane().activate();
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
@@ -96,7 +103,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel = new org.cgsuite.ui.worksheet.InputPanel();
         commandTextArea = new javax.swing.JTextField();
         analysisScrollPane = new javax.swing.JScrollPane();
-        analysisWorksheetPanel = new org.cgsuite.ui.worksheet.WorksheetPanel();
         treeScrollPane = new javax.swing.JScrollPane();
         tree = new org.cgsuite.ui.explorer.ExplorerTreePanel();
         infoPanel = new javax.swing.JPanel();
@@ -134,7 +140,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         commandPanel.add(inputPanel);
 
         commandTextArea.setEditable(false);
-        commandTextArea.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        commandTextArea.setFont(new java.awt.Font("Monospaced", 0, 12));
         commandTextArea.setText(org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.commandTextArea.text")); // NOI18N
         commandTextArea.setAlignmentX(0.0F);
         commandTextArea.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 2, 4));
@@ -143,10 +149,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
 
         analysisScrollPane.setBackground(new java.awt.Color(255, 255, 255));
-
-        analysisWorksheetPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        analysisScrollPane.setViewportView(analysisWorksheetPanel);
-
         analysisPanel.add(analysisScrollPane, java.awt.BorderLayout.CENTER);
 
         detailSplitPane.setRightComponent(analysisPanel);
@@ -262,7 +264,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private javax.swing.JButton addPositionButton;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
-    private org.cgsuite.ui.worksheet.WorksheetPanel analysisWorksheetPanel;
     private javax.swing.JPanel commandPanel;
     private javax.swing.JTextField commandTextArea;
     private javax.swing.JSplitPane detailSplitPane;

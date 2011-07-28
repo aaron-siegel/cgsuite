@@ -38,6 +38,9 @@ import org.openide.util.Task;
 import org.openide.util.TaskListener;
 import org.openide.windows.WindowManager;
 
+// TODO Check if there are unsaved files before starting a calculation
+// TODO Fix copy/paste of worksheet output
+
 /**
  *
  * @author asiegel
