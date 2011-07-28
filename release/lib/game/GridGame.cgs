@@ -3,21 +3,30 @@ class GridGame extends Game : java "org.cgsuite.lang.game.GridGame"
     var grid;
 
     method GridGame(grid)
+    
         if grid is Grid then
-            this.grid := grid;
         elseif grid is String then
-            this.grid := Grid.ParseGrid(grid, this.CharMap);
+            grid := Grid.ParseGrid(grid, CharMap);
         else
             error("GridGame must be initialized with a String or a Grid object.");
         end
+        
+    end
+    
+    property CharMap.get
+        error("Subclass of GridGame does not override CharMap: " + this.Class.Name);
+    end
+    
+    property Icons.get
+        error("Subclass of GridGame does not override Icons: " + this.Class.Name);
     end
 
     property Grid.get
-        return this.grid;
+        return grid;
     end
 
     override property ToString.get
-        return this.Class.Name + "(" + this.grid.MapString(this.CharMap) + ")";
+        return this.Class.Name + "(" + grid.MapString(CharMap) + ")";
     end
     
 end

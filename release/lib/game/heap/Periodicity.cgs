@@ -11,9 +11,9 @@ class Periodicity : java "org.cgsuite.lang.impartial.APInfo"
     property Saltus.get : java "getSaltus";
     
     override property ToString.get
-        return "Periodicity(Period => " + this.Period.ToString +
-               ", Preperiod => " + this.Preperiod.ToString +
-               ", Saltus => " + this.Saltus.ToString + ")";
+        return "Periodicity(Period => " + Period.ToString +
+               ", Preperiod => " + Preperiod.ToString +
+               ", Saltus => " + Saltus.ToString + ")";
     end
 
 end

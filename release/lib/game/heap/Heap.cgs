@@ -11,18 +11,14 @@ class Heap extends ImpartialGame
 
     method Heap(rules, Integer n)
     
-        this.rules := HeapRules.MakeRules(rules);
-        this.n := n;
+        rules := HeapRules.MakeRules(rules);
+        n := n;
     
     end
     
     override property NimValue.get
     
-        if this.Class.Memory[this.rules] == nil then
-            this.Class.Memory[this.rules] := GrundySequence(this.rules);
-        end;
-        
-        return this.Class.Memory[this.rules].NimValue(this.n);
+        return rules.NimValue(n);
         
     end
 

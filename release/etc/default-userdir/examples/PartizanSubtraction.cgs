@@ -21,25 +21,20 @@ class PartizanSubtraction extends Game
     var n;          // The heap size.
 
     method PartizanSubtraction(Set leftSet, Set rightSet, Number n)
-
-        this.leftSet := leftSet;
-        this.rightSet := rightSet;
-        this.n := n;
-
     end
 
     method Options(Player player)
 
-        subtractionSet := if player == Player.Left then this.leftSet else this.rightSet end;
+        subtractionSet := if player == Player.Left then leftSet else rightSet end;
 
-        return setof(PartizanSubtraction(this.leftSet, this.rightSet, this.n - k)
-                     for k in subtractionSet where this.n - k >= 0);
+        return setof(PartizanSubtraction(leftSet, rightSet, n - k)
+                     for k in subtractionSet where n-k >= 0);
 
     end
 
     override property ToString.get
 
-        return "PartizanSubtraction(" + this.leftSet.ToString + "," + this.rightSet.ToString + "," + this.n.ToString + ")";
+        return "PartizanSubtraction(" + leftSet.ToString + "," + rightSet.ToString + "," + n.ToString + ")";
 
     end
 

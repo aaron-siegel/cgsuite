@@ -151,10 +151,10 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     
     public CgsuiteObject resolve(String identifier) throws CgsuiteException
     {
-        return resolve(identifier, true);
+        return resolve(identifier, null);
     }
 
-    public CgsuiteObject resolve(String identifier, boolean allowPublicAccess) throws CgsuiteException
+    public CgsuiteObject resolve(String identifier, CgsuiteObject context) throws CgsuiteException
     {
         CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
 
@@ -178,38 +178,26 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         
         if (var != null)
         {
-            if (!allowPublicAccess)
-                throw new InputException("Cannot access variable from outside class " + type.getQualifiedName() + ": " + identifier);
+            if (context == null || !context.getCgsuiteClass().hasAncestor(var.getDeclaringClass()))
+                throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + identifier);
             
             CgsuiteObject obj = objectNamespace.get(identifier);
             return (obj == null)? CgsuiteObject.NIL : obj;
         }
-
-        log.info("Unable to locate identifier: " + identifier + " (in object of type " + type.getName() + ")");
         
-        try
-        {
-            throw new RuntimeException();
-        }
-        catch (Exception exc)
-        {
-            for (StackTraceElement e : exc.getStackTrace())
-                System.out.println(e.toString());
-        }
-
-        throw new InputException("Not a member variable, property, or method: " + identifier + " (in object of type " + type.getQualifiedName() + ")");
+        return null;
     }
 
-    public void assign(String name, CgsuiteObject object, boolean allowPublicAccess)
+    public void assign(String name, CgsuiteObject value, CgsuiteObject context)
     {
         Variable var = type.lookupVar(name);
         if (var == null)
             throw new InputException("Unknown variable: " + name);
         if (var.isStatic())
             throw new InputException("Cannot reference static variable in dynamic context: " + name);
-        if (!allowPublicAccess)
-            throw new InputException("Cannot access variable from outside class " + type.getQualifiedName() + ": " + name);
-        objectNamespace.put(name, object.createCrosslink());
+        if (context == null || !context.getCgsuiteClass().hasAncestor(var.getDeclaringClass()))
+            throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + context.getCgsuiteClass().getQualifiedName());
+        objectNamespace.put(name, value.createCrosslink());
     }
 
     public CgsuiteObject invokeMethod(String methodName)

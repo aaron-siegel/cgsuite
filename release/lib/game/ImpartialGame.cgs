@@ -19,7 +19,7 @@ class ImpartialGame extends Game
             end
         end;
         this.Class.Memory[this] := Game.placeholder;
-        excl := setof(g.NimValue for g in this.LeftOptions);
+        excl := setof(g.NimValue for g in LeftOptions);
         for n from 0 do
             if not excl.Contains(n) then
                 break;
@@ -31,7 +31,7 @@ class ImpartialGame extends Game
     end
 
     override property CanonicalForm.get
-        return *(this.NimValue);
+        return *NimValue;
     end
 
 end

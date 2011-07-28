@@ -9,10 +9,10 @@ class Game : java "org.cgsuite.lang.Game"
     method op neg () : java "buildInverse";
 
     property LeftOptions.get
-        return this.Options(Player.Left);
+        return Options(Player.Left);
     end
     property RightOptions.get
-        return this.Options(Player.Right);
+        return Options(Player.Right);
     end
 
     property CanonicalForm.get
@@ -26,8 +26,8 @@ class Game : java "org.cgsuite.lang.Game"
             end
         end;
         this.Class.Memory[this] := Game.placeholder;
-        lo := this.LeftOptions;
-        ro := this.RightOptions;
+        lo := LeftOptions;
+        ro := RightOptions;
         clo := setof(g.CanonicalForm for g in lo);
         cro := setof(g.CanonicalForm for g in ro);
         cg := {clo|cro};
@@ -38,8 +38,8 @@ class Game : java "org.cgsuite.lang.Game"
 
     method SensibleOptions(Player player)
 
-        opts := this.Options(player);
-        copts := this.CanonicalForm.Options(player);
+        opts := Options(player);
+        copts := CanonicalForm.Options(player);
         sopts := {};
 
         for k in copts do
@@ -59,83 +59,83 @@ class Game : java "org.cgsuite.lang.Game"
     end
 
     property SensibleLeftOptions.get
-        return this.SensibleOptions(Player.Left);
+        return SensibleOptions(Player.Left);
     end
 
     property SensibleRightOptions.get
-        return this.SensibleOptions(Player.Right);
+        return SensibleOptions(Player.Right);
     end
     
     property AtomicWeight.get
-        return this.CanonicalForm.AtomicWeight;
+        return CanonicalForm.AtomicWeight;
     end
     
     property Birthday.get
-        return this.CanonicalForm.Birthday;
+        return CanonicalForm.Birthday;
     end
     
     property Freeze.get
-        return this.CanonicalForm.Freeze;
+        return CanonicalForm.Freeze;
     end
     
     property IsAllSmall.get
-        return this.CanonicalForm.IsAllSmall;
+        return CanonicalForm.IsAllSmall;
     end
     
     property IsInfinitesimal.get
-        return this.CanonicalForm.IsInfinitesimal;
+        return CanonicalForm.IsInfinitesimal;
     end
     
     property IsInteger.get
-        return this.CanonicalForm.IsInteger;
+        return CanonicalForm.IsInteger;
     end
     
     property IsNimber.get
-        return this.CanonicalForm.IsNimber;
+        return CanonicalForm.IsNimber;
     end
     
     property IsNumber.get
-        return this.CanonicalForm.IsNumber;
+        return CanonicalForm.IsNumber;
     end
     
     property IsNumberish.get
-        return this.CanonicalForm.IsNumberish;
+        return CanonicalForm.IsNumberish;
     end
     
     property IsNumberTiny.get
-        return this.CanonicalForm.IsNumberTiny;
+        return CanonicalForm.IsNumberTiny;
     end
     
     property IsNumberUpStar.get
-        return this.CanonicalForm.IsNumberUpStar;
+        return CanonicalForm.IsNumberUpStar;
     end
     
     property IsUptimal.get
-        return this.CanonicalForm.IsUptimal;
+        return CanonicalForm.IsUptimal;
     end
     
     property LeftStop.get
-        return this.CanonicalForm.LeftStop;
+        return CanonicalForm.LeftStop;
     end
     
     property Mean.get
-        return this.CanonicalForm.Mean;
+        return CanonicalForm.Mean;
     end
     
     property Rcf.get
-        return this.CanonicalForm.Rcf;
+        return CanonicalForm.Rcf;
     end
     
     property RightStop.get
-        return this.CanonicalForm.RightStop;
+        return CanonicalForm.RightStop;
     end
     
     property Temperature.get
-        return this.CanonicalForm.Temperature;
+        return CanonicalForm.Temperature;
     end
     
     property Thermograph.get
-        return this.CanonicalForm.Thermograph;
+        return CanonicalForm.Thermograph;
     end
 
 end

@@ -2,7 +2,7 @@ class Push extends GridGame
 
     method Push(grid)
         this.GridGame(grid);
-        if this.grid.NumRows != 1 then
+        if grid.NumRows != 1 then
             error("Push grid must be 1 x N.");
         end;
     end
@@ -14,9 +14,9 @@ class Push extends GridGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
 
-        for n from 1 to this.grid.NumColumns do
-            if this.grid[1,n] == us then
-                copy := this.grid.Copy();
+        for n from 1 to grid.NumColumns do
+            if grid[1,n] == us then
+                copy := grid.Copy();
                 for k from n-1 to 1 by -1 while copy[1,k] != 0 do end;
                 if k == 0 then k := 1; end;
                 for k to n-1 do
@@ -31,11 +31,11 @@ class Push extends GridGame
 
     end
     
-    property CharMap.get
+    override property CharMap.get
         return ".xo";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

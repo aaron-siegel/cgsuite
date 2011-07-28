@@ -6,15 +6,15 @@ enum Player
     var isLeft;
 
     method Player(isLeft)
-        this.isLeft := isLeft;
+        isLeft := isLeft;
     end
 
     property Opponent.get
-        if this.isLeft then return Player.Right; else return Player.Left; end
+        if isLeft then return Player.Right; else return Player.Left; end
     end
 
     property Sign.get
-        if this.isLeft then return 1; else return -1; end
+        if isLeft then return 1; else return -1; end
     end
 
 end

@@ -11,23 +11,22 @@ class PartizanHeap extends Game
     
     method PartizanHeap(leftRules, rightRules, Integer n)
     
-        this.leftRules := HeapRules.MakeRules(leftRules);
-        this.rightRules := HeapRules.MakeRules(rightRules);
-        this.n := n;
+        leftRules := HeapRules.MakeRules(leftRules);
+        rightRules := HeapRules.MakeRules(rightRules);
     
     end
     
     method Options(Player player)
     
-        rules := if player == Player.Left then this.leftRules else this.rightRules end;
+        rules := if player == Player.Left then leftRules else rightRules end;
         
-        return setof(SumGame(listof(PartizanHeap(this.leftRules, this.rightRules, k) for k in heaps)) for heaps in rules.HeapOptions(this.n));
+        return setof(SumGame(listof(PartizanHeap(leftRules, rightRules, k) for k in heaps)) for heaps in rules.HeapOptions(n));
     
     end
     
     override property ToString.get
     
-        return "PartizanHeap(" + this.leftRules.ToString + "," + this.rightRules.ToString + "," + this.n.ToString + ")";
+        return "PartizanHeap(" + leftRules.ToString + "," + rightRules.ToString + "," + n.ToString + ")";
     
     end
     

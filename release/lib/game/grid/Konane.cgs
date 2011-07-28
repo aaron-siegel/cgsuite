@@ -11,15 +11,15 @@ class Konane extends GridGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
 
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == us then
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == us then
 
                     for d in Direction.Orthogonal do
-                        if this.grid[m+d.RowShift,n+d.ColumnShift] == them and
-                           this.grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
+                        if grid[m+d.RowShift,n+d.ColumnShift] == them and
+                           grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
 
-                            curGrid := this.grid;
+                            curGrid := grid;
                             curM := m;
                             curN := n;
                             while curGrid[curM+d.RowShift,curN+d.ColumnShift] == them and
@@ -46,11 +46,11 @@ class Konane extends GridGame
 
     end
 
-    property CharMap.get
+    override property CharMap.get
         return ".xo";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

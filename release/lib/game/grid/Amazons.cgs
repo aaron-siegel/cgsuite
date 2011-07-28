@@ -1,6 +1,6 @@
 class Amazons extends GridGame
 
-    method Amazons(Grid grid)
+    method Amazons(grid)
         this.GridGame(grid);
     end
 
@@ -10,21 +10,21 @@ class Amazons extends GridGame
 
         us := player.Ordinal;
 
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == us then
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == us then
 
                     for d in Direction.All do
-                        for k from 1 to this.grid.NumRows do
+                        for k from 1 to grid.NumRows do
                             m2 := m + d.RowShift * k;
                             n2 := n + d.ColumnShift * k;
-                            if this.grid[m2,n2] == 0 then
+                            if grid[m2,n2] == 0 then
                                 for e in Direction.All do
-                                    for l from 1 to this.grid.NumRows do
+                                    for l from 1 to grid.NumRows do
                                         mArrow := m2 + e.RowShift * l;
                                         nArrow := n2 + e.ColumnShift * l;
-                                        if (this.grid[mArrow,nArrow] == 0) or (mArrow == m and nArrow == n) then
-                                            copy := this.grid;
+                                        if (grid[mArrow,nArrow] == 0) or (mArrow == m and nArrow == n) then
+                                            copy := grid;
                                             copy[m,n] := 0;
                                             copy[m2,n2] := us;
                                             copy[mArrow,nArrow] := 3;
@@ -48,7 +48,7 @@ class Amazons extends GridGame
 
     end
     
-    property CharMap.get
+    override property CharMap.get
         return ".xo#";
     end
     

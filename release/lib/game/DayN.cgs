@@ -5,29 +5,26 @@ class DayN
     
     var upcov, lowcov;
 
-    method DayN(birthday, AllSmall ? false, Reduced ? false)
+    method DayN(birthday, allSmall ? false, reduced ? false)
 
-        this.allSmall := AllSmall;
-        this.reduced := Reduced;
-
-        this.upcov := {=>};
-        this.lowcov := {=>};
+        upcov := {=>};
+        lowcov := {=>};
 
         if birthday == 0 then
-            this.elements := {0};
+            elements := {0};
         else
-            this.elements := {0};
-            prev := DayN(birthday-1, AllSmall, Reduced);
+            elements := {0};
+            prev := DayN(birthday-1, allSmall, reduced);
             prevac := prev.Antichains;
-            if AllSmall then
+            if allSmall then
                 prevac.Remove({});  // Remove empty set as a possibility
             end
             for lo in prevac do
                 for ro in prevac do
-                    if Reduced then
-                        this.elements.Add({lo|ro}.Rcf);
+                    if reduced then
+                        elements.Add({lo|ro}.Rcf);
                     else
-                        this.elements.Add({lo|ro});
+                        elements.Add({lo|ro});
                     end
                 end
             end
@@ -37,13 +34,13 @@ class DayN
 
     property Size.get
 
-        return this.elements.Size;
+        return elements.Size;
 
     end
 
     property Elements.get
 
-        return this.elements;
+        return elements;
 
     end
 
@@ -51,12 +48,12 @@ class DayN
 
         antichains := {{}};
 
-        for g in this.Elements do
+        for g in Elements do
 
             newAntichains := {};
 
             for ac in antichains do
-                if not this.IsComparableToAny(ac, g) then
+                if not IsComparableToAny(ac, g) then
                     newac := ac;
                     newac.Add(g);
                     newAntichains.Add(newac);
@@ -73,7 +70,7 @@ class DayN
 
     method IsComparableToAny(ac, g)
 
-        if this.reduced then
+        if reduced then
             for h in ac do
                 if not g.Heat(*) <> h.Heat(*) then
                     return true;
@@ -95,7 +92,7 @@ class DayN
 
         upcov := {};
 
-        for h in this.elements do
+        for h in elements do
             if h > g then
                 isNew := true;
                 dominated := {};
@@ -122,8 +119,8 @@ class DayN
 
         ji := {};
 
-        for g in this.elements do
-            if this.UpperCovers(-g).Size == 1 then
+        for g in elements do
+            if UpperCovers(-g).Size == 1 then
                 ji.Add(g);
             end
         end

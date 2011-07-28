@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.antlr.runtime.Token;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
@@ -20,17 +21,18 @@ import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 // TODO Enforce immutability
 // TODO Simple enum assignment to grids
+// TODO Check that local vars and forIds don't shadow member vars
 
 public class Domain
 {
     private final static Logger log = Logger.getLogger(Domain.class.getName());
 
-    private CgsuiteClass context;
+    private CgsuiteObject context;
     private Namespace namespace;
     private List<CgsuitePackage> imports;
     private Mode mode;
 
-    public Domain(CgsuiteClass context, List<CgsuitePackage> imports)
+    public Domain(CgsuiteObject context, List<CgsuitePackage> imports)
     {
         this.context = context;
         this.imports = imports;
@@ -41,23 +43,31 @@ public class Domain
     public CgsuiteObject lookup(String str)
     {
         CgsuiteClass type = CgsuitePackage.lookupClass(str, imports);
+        
         if (type != null)
-        {
             return type;
-        }
-        else if (namespace.get(str) != null)
+
+        if (context != null)
         {
-            return namespace.get(str);
+            CgsuiteObject obj = context.resolve(str, context);
+            
+            if (obj != null)
+                return obj;
         }
-        else
-        {
-            return null;
-        }
+        
+        return namespace.get(str);
     }
 
     public void put(String str, CgsuiteObject object)
     {
-        namespace.put(str, object.createCrosslink());
+        if (context != null && context.getCgsuiteClass().lookupVar(str) != null)
+        {
+            context.assign(str, object, context);
+        }
+        else
+        {
+            namespace.put(str, object.createCrosslink());
+        }
     }
     
     public CgsuiteObject remove(String str)
@@ -136,7 +146,15 @@ public class Domain
             case IDENTIFIER:
 
                 id = tree.getText();
-                namespace.put(id, x.createCrosslink());
+                try
+                {
+                    put(id, x.createCrosslink());
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
                 return;
 
             case ARRAY_REFERENCE:
@@ -151,7 +169,7 @@ public class Domain
                 id = tree.getChild(1).getText();
                 try
                 {
-                    obj.assign(id, x, obj.getCgsuiteClass().hasAncestor(context));
+                    obj.assign(id, x, context);
                 }
                 catch (InputException exc)
                 {
@@ -358,15 +376,23 @@ public class Domain
                 {
                     x = expression(tree.getChild(0));
                     x = x.simplify();
+                    id = tree.getChild(1).getText();
+                    
+                    CgsuiteObject retval;
                     try
                     {
-                        return x.resolve(tree.getChild(1).getText(), x.getCgsuiteClass().hasAncestor(context));
+                        retval = x.resolve(id, context);
                     }
                     catch (InputException exc)
                     {
                         exc.addToken(tree.getToken());
                         throw exc;
                     }
+                    if (retval == null)
+                    {
+                        throw new InputException(tree.getToken(), "Not a member variable, property, or method: " + id + " (in object of type " + x.getCgsuiteClass().getName() + ")");
+                    }
+                    return retval;
                 }
                 else
                 {
@@ -434,9 +460,19 @@ public class Domain
             case IDENTIFIER:
 
                 id = tree.getText();
-                x = lookup(id);
+                try
+                {
+                    x = lookup(id);
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
                 if (x == null)
+                {
                     throw new InputException(tree.getToken(), "That variable is not defined: " + id);
+                }
                 return x;
 
             case THIS:

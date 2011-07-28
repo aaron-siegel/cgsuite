@@ -6,10 +6,10 @@
 
 class TopplingDominoes extends GridGame
 
-    method TopplingDominoes(Grid grid)
+    method TopplingDominoes(grid)
     
         this.GridGame(grid);
-        if this.grid.NumRows != 1 then
+        if grid.NumRows != 1 then
             error("TopplingDominoes grid must be 1 x N.");
         end
         
@@ -19,12 +19,12 @@ class TopplingDominoes extends GridGame
         
         options := {};
         
-        for n from 1 to this.grid.NumColumns do
+        for n from 1 to grid.NumColumns do
         
-            if this.grid[1,n] == player.Ordinal or this.grid[1,n] == 3 then
+            if grid[1,n] == player.Ordinal or grid[1,n] == 3 then
             
-                options.Add(TopplingDominoes(this.grid.Subgrid(1, 1, 1, n-1)));
-                options.Add(TopplingDominoes(this.grid.Subgrid(1, 1, n+1, this.grid.NumColumns)));
+                options.Add(TopplingDominoes(grid.Subgrid(1, 1, 1, n-1)));
+                options.Add(TopplingDominoes(grid.Subgrid(1, 1, n+1, grid.NumColumns)));
             
             end
         
@@ -34,11 +34,11 @@ class TopplingDominoes extends GridGame
         
     end
 
-    property CharMap.get
+    override property CharMap.get
         return ".xoe";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

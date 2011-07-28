@@ -240,7 +240,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                     throw new InputException("Java error invoking " + name + ": " + exc.getTargetException().getMessage(), exc.getTargetException());
                 }
             }
-            catch (Exception exc)
+            catch (Throwable exc)
             {
                 throw new InputException("Java exception thrown during a call to " + name + ".", exc);
             }
@@ -249,7 +249,20 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
         else
         {
-            Domain domain = new Domain(declaringClass, declaringClass.getImports());
+            if (isConstructor && obj == null)
+            {
+                // Create the object.
+                try
+                {
+                    obj = declaringClass.getDefaultJavaConstructor().newInstance(declaringClass);
+                }
+                catch (Throwable exc)
+                {
+                    throw new InputException("Java exception thrown during a call to " + name + ".", exc);
+                }
+            }
+            
+            Domain domain = new Domain(obj, declaringClass.getImports());
             if (obj != null)
                 domain.put("this", obj);
 
@@ -282,25 +295,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
             }
 
-            if (isConstructor && obj == null)
-            {
-                CgsuiteObject newObj;
-                try
-                {
-                    newObj = declaringClass.getDefaultJavaConstructor().newInstance(declaringClass);
-                }
-                catch (Exception exc)
-                {
-                    throw new RuntimeException(exc);
-                }
-                domain.put("this", newObj);
-                retval = newObj;
-                domain.invocation(tree);
-            }
-            else
-            {
-                retval = domain.invocation(tree);
-            }
+            retval = domain.invocation(tree);
+            
+            if (isConstructor)
+                retval = obj;
         }
 
         return retval;

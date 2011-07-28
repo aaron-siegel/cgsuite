@@ -39,15 +39,15 @@ class Clobber extends GridGame
         // Iterate over all squares in the grid, looking for
         // occupied spaces that match our color.
 
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == us then
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == us then
                 
                     // Found one.  Now look in all directions
                     // for an enemy stone.
 
                     for d in Direction.Orthogonal do
-                        if this.grid[m+d.RowShift,n+d.ColumnShift] == them then
+                        if grid[m+d.RowShift,n+d.ColumnShift] == them then
                         
                             // Found an enemy stone.  Construct
                             // the option and add it to the set
@@ -55,7 +55,7 @@ class Clobber extends GridGame
                             // uses "clone-on-write", so we don't
                             // need to explicitly clone the grid.
                         
-                            copy := this.grid;
+                            copy := grid;
                             copy[m,n] := 0;
                             copy[m+d.RowShift,n+d.ColumnShift] := us;   // Clobber!
                             options.Add(Clobber(copy));

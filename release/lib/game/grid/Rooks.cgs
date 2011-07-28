@@ -22,16 +22,16 @@ class Rooks extends GridGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
 
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == us then
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == us then
                     for d in Direction.Orthogonal do
                         gap := 1;
-                        while this.grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == 0 do
+                        while grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == 0 do
                             gap := gap+1;
                         end
-                        if this.grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == them then
-                            copy := this.grid;
+                        if grid[m + gap*d.RowShift, n + gap*d.ColumnShift] == them then
+                            copy := grid;
                             copy[m,n] := 0;
                             copy[m + gap*d.RowShift, n + gap*d.ColumnShift] := us;
                             options.Add(Rooks(copy));
@@ -45,11 +45,11 @@ class Rooks extends GridGame
 
     end
     
-    property CharMap.get
+    override property CharMap.get
         return ".xo";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

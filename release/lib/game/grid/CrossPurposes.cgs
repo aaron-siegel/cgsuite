@@ -30,14 +30,14 @@ class CrossPurposes extends GridGame
             ds := Direction.Horizontal
         end
 
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == 1 then
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == 1 then
 
                     for d in ds do
-                        if this.grid[m+  d.RowShift,n+  d.ColumnShift] == 0 and
-                           this.grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
-                            copy := this.grid;
+                        if grid[m+  d.RowShift,n+  d.ColumnShift] == 0 and
+                           grid[m+2*d.RowShift,n+2*d.ColumnShift] == 0 then
+                            copy := grid;
                             copy[m,n] := 0;
                             copy[m+  d.RowShift,n+  d.ColumnShift] := 2;
                             copy[m+2*d.RowShift,n+2*d.ColumnShift] := 2;
@@ -53,11 +53,11 @@ class CrossPurposes extends GridGame
 
     end
     
-    property CharMap.get
+    override property CharMap.get
         return ".o#";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

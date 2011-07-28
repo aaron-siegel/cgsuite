@@ -2,12 +2,11 @@ class ToadsAndFrogs extends GridGame
 
     var backsliding;
 
-    method ToadsAndFrogs(grid, Backsliding ? false)
+    method ToadsAndFrogs(grid, backsliding ? false)
         this.GridGame(grid);
-        if this.grid.NumRows != 1 then
+        if grid.NumRows != 1 then
             error("ToadsAndFrogs grid must be 1 x N.");
         end
-        this.backsliding := Backsliding;
     end
 
     method Options(Player player)
@@ -17,26 +16,26 @@ class ToadsAndFrogs extends GridGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
 
-        for n from 1 to this.grid.NumColumns do
-            if this.grid[1,n] == us then
+        for n from 1 to grid.NumColumns do
+            if grid[1,n] == us then
 
-                if this.grid[1,n+player.Sign] == 0 then
-                    copy := this.grid;
+                if grid[1,n+player.Sign] == 0 then
+                    copy := grid;
                     copy[1,n] := 0;
                     copy[1,n+player.Sign] := us;
-                    options.Add(ToadsAndFrogs(copy, this.backsliding));
-                elseif this.grid[1,n+player.Sign] == them and this.grid[1,n+2*player.Sign] == 0 then
-                    copy := this.grid;
+                    options.Add(ToadsAndFrogs(copy, backsliding));
+                elseif grid[1,n+player.Sign] == them and grid[1,n+2*player.Sign] == 0 then
+                    copy := grid;
                     copy[1,n] := 0;
                     copy[1,n+2*player.Sign] := us;
-                    options.Add(ToadsAndFrogs(copy, this.backsliding));
+                    options.Add(ToadsAndFrogs(copy, backsliding));
                 end;
 
-                if this.backsliding and this.grid[1,n-player.Sign] == 0 then
-                    copy := this.grid;
+                if backsliding and grid[1,n-player.Sign] == 0 then
+                    copy := grid;
                     copy[1,n] := 0;
                     copy[1,n-player.Sign] := us;
-                    options.Add(ToadsAndFrogs(copy, this.backsliding));
+                    options.Add(ToadsAndFrogs(copy, backsliding));
                 end
 
             end
@@ -46,11 +45,11 @@ class ToadsAndFrogs extends GridGame
 
     end
 
-    property CharMap.get
+    override property CharMap.get
         return ".tf";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,
@@ -65,11 +64,11 @@ class ToadsAndFrogs extends GridGame
         // Check the death leap principle (Erickson's criterion).
 
         deathLeap := true;
-        for n from 1 to this.grid.NumColumns-1 do
-            if this.grid[1,n] == 1 and this.grid[1,n+1] == 0 or
-               this.grid[1,n] == 0 and this.grid[1,n+1] == 2 or
-               this.grid[1,n] == 1 and this.grid[1,n+1] == 2 and this.grid[1,n+2] == 0 and this.grid[1,n+3] == 0 or
-               this.grid[1,n] == 0 and this.grid[1,n+1] == 0 and this.grid[1,n+2] == 1 and this.grid[1,n+3] == 2 then
+        for n from 1 to grid.NumColumns-1 do
+            if grid[1,n] == 1 and grid[1,n+1] == 0 or
+               grid[1,n] == 0 and grid[1,n+1] == 2 or
+               grid[1,n] == 1 and grid[1,n+1] == 2 and grid[1,n+2] == 0 and grid[1,n+3] == 0 or
+               grid[1,n] == 0 and grid[1,n+1] == 0 and grid[1,n+2] == 1 and grid[1,n+3] == 2 then
 
                 deathLeap := false;
                 break;

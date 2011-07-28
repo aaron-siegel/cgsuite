@@ -4,11 +4,11 @@ class FoxAndGeese extends GridGame
         this.GridGame(grid);
     end
     
-    property CharMap.get
+    override property CharMap.get
         return ".xo";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

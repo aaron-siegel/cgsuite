@@ -19,12 +19,12 @@ public class CgsuiteEnumValue extends CgsuiteObject
     @Override
     public String toString()
     {
-        return ((CgsuiteString) resolve("literal")).toJavaString();
+        return ((CgsuiteString) resolve("Literal")).toJavaString();
     }
     
     public int getOrdinal()
     {
-        return ((CgsuiteInteger) resolve("ordinal")).intValue();
+        return ((CgsuiteInteger) resolve("Ordinal")).intValue();
     }
 
     @Override

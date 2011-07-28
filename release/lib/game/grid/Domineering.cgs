@@ -16,10 +16,10 @@ class Domineering extends GridGame
             mDelta := 0; nDelta := 1;
         end
 
-        for m from 1 to this.grid.NumRows do
-            for n from 1 to this.grid.NumColumns do
-                if this.grid[m,n] == 0 and this.grid[m+mDelta,n+nDelta] == 0 then
-                    copy := this.grid;
+        for m from 1 to grid.NumRows do
+            for n from 1 to grid.NumColumns do
+                if grid[m,n] == 0 and grid[m+mDelta,n+nDelta] == 0 then
+                    copy := grid;
                     copy[m,n] := 1;
                     copy[m+mDelta,n+nDelta] := 1;
                     options.Add(Domineering(copy));
@@ -33,7 +33,7 @@ class Domineering extends GridGame
 
     override property CanonicalForm.get
 
-        components := this.grid.Decompose(1);
+        components := grid.Decompose(1);
         g := 0;
         for grid in components do
             g := g + Domineering(grid.SymmetryInvariantRepresentation).super.CanonicalForm;
@@ -42,11 +42,11 @@ class Domineering extends GridGame
 
     end
     
-    property CharMap.get
+    override property CharMap.get
         return ".#";
     end
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,
