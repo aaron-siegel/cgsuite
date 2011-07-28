@@ -41,27 +41,30 @@ import org.openide.util.TaskListener;
 autostore = false)
 public final class ExplorerTopComponent extends TopComponent implements ExplorerWindow, ExplorerTreeListener, KeyListener, TaskListener
 {
-
     private static ExplorerTopComponent instance;
     /** path to the icon used by the component and its open action */
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "ExplorerTopComponent";
+    
+    private String enterCommandHint;
 
     private Explorer explorer;
     private EditorPanel editorPanel;
-    private String evaluationText;
-
     private Domain explorerDomain;
+    
     private CalculationCapsule currentCapsule;
     
     private WorksheetPanel analysisWorksheetPanel;
+    
+    private String requestedEvaluationText;
+    private String activeEvaluationText;
+    private ExplorerNode activeEvaluationNode;
 
     public ExplorerTopComponent()
     {
 //        gamesToNodes = new HashMap<Game,ExplorerNode>();
         initComponents();
         inputPanel.getInputPane().addKeyListener(this);
-        commandTextArea.setBackground(Color.white);
         editorScrollPane.getViewport().setBackground(Color.white);
         treeScrollPane.getViewport().setBackground(Color.white);
         analysisScrollPane.getViewport().setBackground(Color.white);
@@ -73,7 +76,12 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
         setToolTipText(NbBundle.getMessage(ExplorerTopComponent.class, "HINT_ExplorerTopComponent"));
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
-
+        
+        enterCommandHint = NbBundle.getMessage(ExplorerTopComponent.class, "HINT_EnterCommand");
+        
+        commandComboBox.insertItemAt(enterCommandHint, 0);
+        commandComboBox.setSelectedIndex(0);
+        
         explorerDomain = new Domain(explorer, CgsuitePackage.DEFAULT_IMPORT);
     }
 
@@ -101,7 +109,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel = new javax.swing.JPanel();
         commandPanel = new javax.swing.JPanel();
         inputPanel = new org.cgsuite.ui.worksheet.InputPanel();
-        commandTextArea = new javax.swing.JTextField();
+        commandComboBox = new javax.swing.JComboBox();
         analysisScrollPane = new javax.swing.JScrollPane();
         treeScrollPane = new javax.swing.JScrollPane();
         tree = new org.cgsuite.ui.explorer.ExplorerTreePanel();
@@ -136,15 +144,18 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         commandPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
         commandPanel.setLayout(new javax.swing.BoxLayout(commandPanel, javax.swing.BoxLayout.Y_AXIS));
 
-        inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 8, 0, 4));
+        inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
         commandPanel.add(inputPanel);
 
-        commandTextArea.setEditable(false);
-        commandTextArea.setFont(new java.awt.Font("Monospaced", 0, 12));
-        commandTextArea.setText(org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.commandTextArea.text")); // NOI18N
-        commandTextArea.setAlignmentX(0.0F);
-        commandTextArea.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 2, 4));
-        commandPanel.add(commandTextArea);
+        commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.Thermograph.Plot()", "Selection.AtomicWeight" }));
+        commandComboBox.setAlignmentX(0.0F);
+        commandComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                commandComboBoxActionPerformed(evt);
+            }
+        });
+        commandPanel.add(commandComboBox);
 
         analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
 
@@ -251,9 +262,13 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private void addPositionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addPositionButtonActionPerformed
     {//GEN-HEADEREND:event_addPositionButtonActionPerformed
         Game g = (Game) editorPanel.constructObject();
-        ExplorerNode node = explorer.addAsRoot(g);
+        ExplorerNode node = explorer.findOrAdd(g);
         tree.setSelectedNode(node);
     }//GEN-LAST:event_addPositionButtonActionPerformed
+
+    private void commandComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commandComboBoxActionPerformed
+        setCommand((String) commandComboBox.getSelectedItem());
+    }//GEN-LAST:event_commandComboBoxActionPerformed
 
     private void doTreePopup(MouseEvent evt)
     {
@@ -264,8 +279,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private javax.swing.JButton addPositionButton;
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
+    private javax.swing.JComboBox commandComboBox;
     private javax.swing.JPanel commandPanel;
-    private javax.swing.JTextField commandTextArea;
     private javax.swing.JSplitPane detailSplitPane;
     private javax.swing.JScrollPane editorScrollPane;
     private javax.swing.JMenuItem expandSensibleOptionsMenuItem;
@@ -379,16 +394,63 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     {
         return PREFERRED_ID;
     }
+    
+    private void setCommand(String command)
+    {
+        if (requestedEvaluationText != null && requestedEvaluationText.equals(command))
+        {
+            return;
+        }
+        
+        requestedEvaluationText = command;
+        
+        commandComboBox.insertItemAt(requestedEvaluationText, 0);
+        
+        for (int i = 1; i < commandComboBox.getItemCount(); i++)
+        {
+            if (enterCommandHint.equals(commandComboBox.getItemAt(i)) ||
+                requestedEvaluationText.equals(commandComboBox.getItemAt(i)))
+            {
+                commandComboBox.removeItemAt(i);
+                i--;
+            }
+        }
+        
+        commandComboBox.setSelectedIndex(0);
+        
+        reeval();
+    }
 
     private synchronized void reeval()
     {
+        if (currentCapsule != null)
+        {
+            // Still processing another calculation.
+            return;
+        }
+        
+        if (activeEvaluationText != null &&
+            activeEvaluationText.equals(requestedEvaluationText) &&
+            activeEvaluationNode == tree.getSelectedNode())
+        {
+            // Current analyzer display is correct.
+            return;
+        }
+        
+        // We need to update the analyzer.
+        
+        activeEvaluationText = requestedEvaluationText;
+        activeEvaluationNode = tree.getSelectedNode();
+        
         analysisWorksheetPanel.clear();
         
-        if (evaluationText != null && tree.getSelectedNode() != null)
+        if (activeEvaluationText != null &&
+            tree.getSelectedNode() != null &&
+            !activeEvaluationText.equals(enterCommandHint))
         {
-            explorerDomain.put("g", tree.getSelectedNode().getG());
+            explorerDomain.put("Selection", tree.getSelectedNode().getG());
 
-            CalculationCapsule capsule = new CalculationCapsule(evaluationText, explorerDomain);
+            CalculationCapsule capsule = new CalculationCapsule(activeEvaluationText, explorerDomain);
             RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
             task.addTaskListener(this);
             task.schedule(0);
@@ -408,6 +470,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
             if (finished)
             {
                 output = capsule.getOutput();
+                
+                assert output != null;
             }
             else
             {
@@ -441,10 +505,13 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
         analysisWorksheetPanel.clear();
         Output[] output = currentCapsule.getOutput();
+        assert output != null;
         currentCapsule = null;
         
         analysisWorksheetPanel.postOutput(output);
         analysisScrollPane.validate();
+        
+        reeval();   // In case things have changed since we started this calc.
     }
 
     @Override
@@ -465,10 +532,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
                     evt.consume();
                     if (!source.getText().equals(""))
                     {
-                        evaluationText = source.getText();
-                        commandTextArea.setText(evaluationText);
+                        setCommand(source.getText());
                         source.setText("");
-                        reeval();
                     }
                 }
                 else if (evt.getModifiers() == KeyEvent.SHIFT_MASK)

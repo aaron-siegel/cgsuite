@@ -45,7 +45,7 @@ public class ExplorerNode
     private final static BasicStroke DOUBLE_STROKE = new BasicStroke(2.0f);
 
     private final Explorer explorer;
-    private Game g;
+    private final Game g;
     private List<ExplorerNode> leftChildren, rightChildren;
     
     public ExplorerNode(Explorer explorer, Game g)

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.SwingUtilities;
 import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
@@ -62,7 +63,7 @@ public class Explorer extends CgsuiteObject
         this.listeners.add(l);
     }
 
-    void fireNodeAddedEvent(final ExplorerNode node)
+    private void fireNodeAddedEvent(final ExplorerNode node)
     {
         SwingUtilities.invokeLater(new Runnable()
         {
@@ -94,6 +95,23 @@ public class Explorer extends CgsuiteObject
     public synchronized ExplorerNode getRootNode()
     {
         return root;
+    }
+    
+    public synchronized Game getSelection()
+    {
+        ExplorerNode node = window.getSelectedNode();
+        return (node == null)? null : node.getG();
+    }
+    
+    public synchronized CgsuiteList getSelectionPath()
+    {
+        List<ExplorerNode> path = window.getSelectionPath();
+        CgsuiteList list = new CgsuiteList();
+        for (ExplorerNode node : path)
+        {
+            list.add(node.getG());
+        }
+        return list;
     }
 
     public synchronized ExplorerNode lookupGame(Game g)

@@ -61,6 +61,9 @@ public class CalculationCapsule implements Runnable
     @Override
     public void run()
     {
+        output = new Output[] { new StyledTextOutput("fajita") };
+        if (text.startsWith("fajita")) return;
+        
         try
         {
             CgsuitePackage.refreshAll();
