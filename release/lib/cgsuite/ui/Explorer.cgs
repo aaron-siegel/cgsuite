@@ -1,6 +1,10 @@
 class Explorer : java "org.cgsuite.lang.explorer.Explorer"
 
     method Explorer(Game g?) : java "Explorer";
-    method Add(Game g) : java "addAsRoot";
+    
+    method Add(Game g) : java "findOrAdd";
+    
+    property Selection.get : java "getSelection";
+    property SelectionPath.get : java "getSelectionPath";
 
 end

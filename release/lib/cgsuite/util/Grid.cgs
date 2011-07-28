@@ -5,6 +5,7 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
     mutable method op[]:=(Integer value, Integer row, Integer col) : java "putAt(int,int,int)";
     method Subgrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol) : java "subgrid(int,int,int,int)";
     method Decompose(Integer boundaryValue) : java "decompose(int)";
+    method LibertyCount(Integer row, Integer col, Integer libertyValue) : java "libertyCount(int,int,int)";
 
     static method ParseGrid(String str, String charmap) : java "parseGrid(java.lang.String,java.lang.String)";
 

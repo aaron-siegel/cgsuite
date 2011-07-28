@@ -37,10 +37,13 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.InputException;
+import org.cgsuite.lang.output.Utilities;
 
 /**
  * A two-dimensional array suitable for representing grid-based games.  The
@@ -692,6 +695,60 @@ public class Grid extends CgsuiteObject implements Serializable
         }
         return newGrid;
     }
+    
+    private void initMarkers()
+    {
+        if (markers == null || markers.length < numRows * numColumns)
+        {
+            markers = null;
+            markers = new int[numRows * numColumns * 2];
+        }
+        Arrays.fill(markers, 0, numRows * numColumns, -1);
+    }
+    
+    public int libertyCount(int row, int col, int libertyValue)
+    {
+        int chainValue = getAt(row, col);
+        if (chainValue == libertyValue)
+            throw new IllegalArgumentException("Chain value and liberty value are equal.");
+        
+        initMarkers();
+        return libertyCount(row-1, col-1, libertyValue, chainValue);
+    }
+    
+    private int libertyCount(int rowAt, int colAt, int libertyValue, int chainValue)
+    {
+        if (markers[rowAt * numColumns + colAt] >= 0)
+        {
+            // Already visited.
+            return 0;
+        }
+        
+        markers[rowAt * numColumns + colAt] = 0;
+        
+        if (getAt(rowAt+1, colAt+1) == libertyValue)
+        {
+            // Found a liberty.
+            return 1;
+        }
+        else if (getAt(rowAt+1, colAt+1) != chainValue)
+        {
+            // Blocked.
+            return 0;
+        }
+        
+        int count = 0;
+        
+        for (Direction dir : Direction.ORTHOGONALS)
+        {
+            if (isValidShift(rowAt, colAt, dir, 1))
+            {
+                count += libertyCount(rowAt + dir.rowShift, colAt + dir.columnShift, libertyValue, chainValue);
+            }
+        }
+        
+        return count;
+    }
         
     /**
      * Decomposes this grid into connected components.  The specified
@@ -724,12 +781,7 @@ public class Grid extends CgsuiteObject implements Serializable
     public CgsuiteList decompose(int boundaryValue)
     {
         EnumSet<Direction> directions = Direction.ORTHOGONALS;
-        if (markers == null || markers.length < numRows * numColumns)
-        {
-            markers = null;
-            markers = new int[numRows * numColumns * 2];
-        }
-        Arrays.fill(markers, 0, numRows * numColumns, -1);
+        initMarkers();
         regionAt = -1;
         for (int row = 0; row < numRows; row++)
         {
