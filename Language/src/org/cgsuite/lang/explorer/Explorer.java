@@ -24,6 +24,7 @@ public class Explorer extends CgsuiteObject
 {
     public static final CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Explorer");
 
+    private ExplorerWindow window;
     private ExplorerNode root;
     private List<ExplorerListener> listeners;
     Map<Game,ExplorerNode> gameLookup;
@@ -44,9 +45,16 @@ public class Explorer extends CgsuiteObject
         if (g != null)
             addAsRoot(g);
 
-        ExplorerWindowCreator ewc = Lookup.getDefault().lookup(ExplorerWindowCreator.class);
-        if (ewc != null)
-            ewc.createWindow(this);
+        SwingUtilities.invokeLater(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ExplorerWindowFactory ewc = Lookup.getDefault().lookup(ExplorerWindowFactory.class);
+                assert ewc != null;
+                window = ewc.createWindow(Explorer.this);
+            }
+        });
     }
 
     public void addListener(ExplorerListener l)

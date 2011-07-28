@@ -6,14 +6,14 @@ package org.cgsuite.ui.explorer.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.SwingUtilities;
 import org.cgsuite.lang.explorer.Explorer;
-import org.cgsuite.lang.explorer.ExplorerWindowCreator;
+import org.cgsuite.lang.explorer.ExplorerWindow;
+import org.cgsuite.lang.explorer.ExplorerWindowFactory;
 import org.cgsuite.ui.explorer.ExplorerTopComponent;
 import org.openide.util.lookup.ServiceProvider;
 
-@ServiceProvider(service=ExplorerWindowCreator.class)
-public final class NewExplorerAction implements ActionListener, ExplorerWindowCreator
+@ServiceProvider(service=ExplorerWindowFactory.class)
+public final class NewExplorerAction implements ActionListener, ExplorerWindowFactory
 {
     @Override
     public void actionPerformed(ActionEvent e)
@@ -24,18 +24,12 @@ public final class NewExplorerAction implements ActionListener, ExplorerWindowCr
     }
 
     @Override
-    public void createWindow(final Explorer client)
+    public ExplorerWindow createWindow(Explorer client)
     {
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                ExplorerTopComponent component = new ExplorerTopComponent();
-                component.setExplorer(client);
-                component.open();
-                component.requestActive();
-            }
-        });
+        ExplorerTopComponent component = new ExplorerTopComponent();
+        component.setExplorer(client);
+        component.open();
+        component.requestActive();
+        return component;
     }
 }

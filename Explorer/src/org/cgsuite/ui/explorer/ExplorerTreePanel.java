@@ -32,6 +32,7 @@ import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 import org.cgsuite.lang.explorer.Explorer;
@@ -42,7 +43,7 @@ import org.cgsuite.lang.explorer.ExplorerNode;
  *
  * @author asiegel
  */
-public class ExplorerTreePanel extends javax.swing.JPanel implements Scrollable, ExplorerListener
+public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerListener
 {
     public final static String NODE_RADIUS_PROPERTY = ExplorerTreePanel.class.getName() + ".nodeRadius";
 

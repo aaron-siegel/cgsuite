@@ -18,6 +18,7 @@ import org.cgsuite.lang.Game;
 import org.cgsuite.lang.explorer.EditorPanel;
 import org.cgsuite.lang.explorer.Explorer;
 import org.cgsuite.lang.explorer.ExplorerNode;
+import org.cgsuite.lang.explorer.ExplorerWindow;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
@@ -36,7 +37,7 @@ import org.openide.util.TaskListener;
  */
 @ConvertAsProperties(dtd = "-//org.cgsuite.ui.explorer//Explorer//EN",
 autostore = false)
-public final class ExplorerTopComponent extends TopComponent implements ExplorerTreeListener, KeyListener, TaskListener
+public final class ExplorerTopComponent extends TopComponent implements ExplorerWindow, ExplorerTreeListener, KeyListener, TaskListener
 {
 
     private static ExplorerTopComponent instance;
@@ -417,6 +418,18 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         }
         
         analysisScrollPane.validate();
+    }
+    
+    @Override
+    public ExplorerNode getSelectedNode()
+    {
+        return tree.getSelectedNode();
+    }
+    
+    @Override
+    public List<ExplorerNode> getSelectionPath()
+    {
+        return tree.getSelectionPath();
     }
 
     @Override
