@@ -1,0 +1,129 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Using the Explorer</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h1>Using the Explorer</h1>
+
+<h3>Contents</h3>
+
+<ul>
+  <li><a href="#CreatingGamePositions">Creating Game Positions</a></li>
+  <li><a href="#TheGameTree">The Game Tree</a></li>
+  <li><a href="#Exercises">Exercises</a></li>
+</ul>
+
+<h3><a name="CreatingGamePositions"></a>Creating Game Positions</h3>
+
+<p>The explorer is a graphical position editor and game tree browser.&nbsp; You 
+can use the explorer to construct positions in various games, as well as to 
+display options and move sequences in a tree.</p>
+
+<p>To start the explorer, click File/New/Explorer.&nbsp; This will bring up a 
+list of supported games.&nbsp; For this tutorial, select &quot;Amazons Position&quot; and 
+click OK.&nbsp; You should see something similar to the following (the actual 
+display may vary depending on your operating system):</p>
+
+<p><img border="0" src="explorerblanksmall.png" width="311" height="222"></p>
+
+<p>The window is divided into three segments.&nbsp; In the top-left is the 
+position being edited - currently an empty 2x5 Amazons board.&nbsp; In the 
+bottom-left is a panel that displays information about positions being analyzed.&nbsp; 
+We haven't created any positions yet, so no information is displayed there.&nbsp; 
+The panel to the right is used to display game trees.</p>
+<p>To edit the Amazons position, simply click on any of the empty squares on the 
+board.&nbsp; This will cause a stone to appear there.&nbsp; Clicking again on 
+the stone changes it to a black Amazon, and so on, cycling 
+through all available possibilities.&nbsp; Use this method to place a black 
+Amazon in the top-left square of the board and a white Amazon in the bottom-left 
+square, so that you see the following:</p>
+<p><img border="0" src="explorerwamazonssmall.png" width="311" height="222"></p>
+<p>Now click on the &quot;Copy&quot; button.&nbsp; This copies a text representation 
+of the displayed Amazons position to 
+the clipboard.&nbsp; Click on the Worksheet and select Edit/Paste.&nbsp; This 
+inserts the text representation  directly into the worksheet.&nbsp; You should see the following text appear in 
+the Worksheet:</p>
+<p><code>Amazons(&quot;l....&quot;,&quot;r....&quot;)</code></p>
+
+<p>You can use this technique to create positions graphically in the explorer and 
+copy them to the Worksheet for analysis.</p>
+
+<h3><a name="TheGameTree"></a>The Game Tree</h3>
+<p>Click on the explorer again.&nbsp; The Amazons position should still be 
+displayed.&nbsp; Now click on the &quot;Add&quot; button.&nbsp; This creates a node in the 
+game tree panel and changes the displayed 
+information to something like the following:</p>
+<p><img border="0" src="explorertree1small.png" width="311" height="222"></p>
+<p>If the position's canonical form doesn't appear, you can click the &quot;Generate&quot; 
+button to display it.</p>
+<p>To start exploring the options for each player, right-click on the node 
+ 
+(the grey circle in the rightmost panel of the explorer), and choose 
+&quot;Expand Sensible Options&quot; from the menu that appears.&nbsp; This displays a 
+minimal set of good moves for each player.&nbsp; More precisely, it displays a 
+minimal set S of options of G with the property: If Left has a winning move in G 
++ H (for any H), then the only options from G that he needs to consider are 
+those in S, and likewise for Right.</p>
+<p>You'll see four nodes appear (two for each player).&nbsp; 
+You can click on them to display the associated positions.&nbsp; For example:</p>
+<p><img border="0" src="explorertree2small.png" width="311" height="222"></p>
+<p>Notice that the canonical forms of the sensible options correspond to G's 
+canonical options.&nbsp; (This will not always be the case, however: some of the 
+sensible options might reverse out.)</p>
+<p>While this makes it easy to explore the <i>good</i> moves for each player, 
+there are some situations when you might want to explore other options as well - 
+for example, to determine why they are dominated.&nbsp; You can achieve this by 
+editing the position manually and clicking &quot;Add&quot;.&nbsp; Combinatorial Game Suite 
+will automatically search the tree for an appropriate place to attach the new 
+position.&nbsp; For example, if you make any legal move (for either player) from 
+the position above and click &quot;Add&quot;, the new position will appear as an 
+option.&nbsp; You can then continue to explore the new option just as any 
+other.&nbsp; Note that there are two ways to edit a position: Click on the 
+squares to cycle through the available possibilities (as discussed above), or 
+simply drag existing pieces around the board with the mouse.</p>
+<p>To shrink or enlarge the board, simply right-click on it and select Add/Remove 
+Row/Column.</p>
+<p>Another feature of the explorer is worth noting.&nbsp; Consider the 
+following situation: We are given a game H and its canonical form G.&nbsp; We'd 
+like to know where each option of G comes from.&nbsp; More precisely, we'd like 
+to find, for each option G<sup>L</sup> (say) of G, a reversible sequence of 
+moves H, H<sup>L</sup>, H<sup>LR</sup>, H<sup>LRL</sup>, ..., H<sup>LRLR...L</sup>, 
+terminating in a position whose canonical form equals G<sup>L</sup>.&nbsp; (Note 
+that there is <i>not </i>necessarily a direct option H<sup>L</sup> with 
+canonical form G<sup>L</sup>, since the relevant H<sup>L</sup> might reverse 
+out.)&nbsp; If you right-click on a node in the tree and select &quot;Expand Sensible 
+Lines of Play&quot;, CGSuite will expand exactly one such sequence for each option of 
+G.</p>
+<p>Finally, you can open an explorer based on an existing game directly from the 
+Worksheet by typing <code>Edit(g)</code> or <code>Explore(g)</code>.&nbsp; For 
+example:</p>
+<p><code>Edit(DomineeringRectangle(4,4))</code></p>
+<h3><a name="Exercises"></a>Exercises</h3>
+<p>1. Find the best moves from a 4x4 Domineering rectangle.&nbsp; Then find the 
+&quot;sensible lines of play,&quot; observing that one move for each player reverses out.</p>
+<p>2. Find the sensible lines of play for the following 3x4 Clobber position:<br>
+<code>LRLR<br>
+RLL.<br>
+LRL.</code><br>
+Then calculate its atomic weight.&nbsp; If you have the patience, find the 
+sensible lines of play for each of its sensible options, and observe that 
+Clobber is not an easy game!</p>
+<p>3. Calculate the canonical form and atomic weight of the following 3x7 
+Clobber position, discovered by David Wolfe:<br>
+<code>LLLLLLL<br>
+LRLLLLL<br>
+LLLLLLL<br>
+</code>Its canonical form is surprisingly complicated given that Right has just 
+one piece.</p>
+<p>4. Load the Additional Games plug-in (you can find it by selecting &quot;Plug-in 
+Manager&quot; from the Tools menu) and experiment with Samson de Jager's Cherry Tree 
+editor.</p>
+<hr>
+Continue on to <a href="functions.html">Functions and Lists</a></body></html>

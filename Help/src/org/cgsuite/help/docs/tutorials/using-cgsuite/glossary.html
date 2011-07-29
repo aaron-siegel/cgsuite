@@ -1,0 +1,336 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Glossary of Methods</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h1>Methods and Keywords</h1>
+    
+    <p>This appendix lists all of the  methods (built-in functions) and keywords currently available in Combinatorial Game Suite.  <code>G,H,S,T,</code> 
+    etc. represent games.</p>
+    
+    <h3>Contents</h3>
+    
+    <ul>
+      <li><a href="#General">General Games</a></li>
+      <li><a href="#Canonical">Canonical Games</a></li>
+      <li><a href="#Loopy">Loopy Games</a></li>
+      <li><a href="#Impartial">Impartial Games</a></li>
+      <li><a href="#CanonicalMisere">Canonical Mis<font face="Times New Roman">è</font>re Games</a></li>
+      <li><a href="#Specific">Specific Games</a></li>
+      <li><a href="#Analysis">General Game Analysis</a></li>
+      <li><a href="#Miscellaneous">Miscellaneous</a></li>
+      <li><a href="#Keywords">Keywords</a></li>
+</ul>
+    
+    <h3><a name="General"></a>General Games</h3>
+    
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+      <tr><td nowrap><code>Canonicalize(G)</code></td><td>The canonical form of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>C(G)</code></td><td>Shorthand for <code>Canonicalize(G)</code>.</td></tr>
+      <tr><td nowrap><code>LeftOptions(G)</code></td><td>The left options of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>RightOptions(G)</code></td><td>The right options of <code>G</code>.</td></tr>
+      <tr>
+        <td nowrap><code>OrdinalSum(G,H)</code></td><td>The ordinal sum of <code>G</code> and <code>H</code>.</td>
+      </tr>
+    </table>
+    
+    <h3><a name="Canonical"></a>Canonical Games</h3>
+    
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+      <tr><td nowrap><code>Mean(G)</code></td><td>The mean value of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Temperature(G)</code></td><td>The temperature of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Thermograph(G)</code></td><td>The thermograph of <code>G</code>.&nbsp; 
+        (Use <code>Plot(Thermograph(G))</code> to plot it.)</td></tr>
+      <tr><td nowrap><code>Cool(G,t)</code></td><td><code>G</code> cooled by the temperature <code>t</code>.</td></tr>
+      <tr><td nowrap><code>Chill(G)</code></td><td><code>G</code> cooled by 1.</td></tr>
+      <tr><td nowrap><code>Freeze(G)</code></td><td><code>G</code> cooled by its temperature.</td></tr>
+      <tr><td nowrap><code>Heat(G,T)</code></td><td><code>G</code> heated by <code>T</code>.</td></tr>
+      <tr><td nowrap><code>Overheat(G,S,T)</code></td><td><code>G</code> overheated from <code>S</code> to <code>T</code>.</td></tr>
+      <tr><td nowrap><code>Dissociate(G)</code></td><td>The Norton thermal dissociation of <code>G</code>.</td></tr>
+      <tr>
+        <td nowrap><code>LeftStop(G)</code></td><td>The left stop of <code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap><code>RightStop(G)</code></td><td>The right stop of <code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap><code>Tiny(G)</code></td><td>Tiny-<code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap><code>Miny(G)</code></td><td>Miny-<code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap><code>Pow(G,n)</code></td><td>The game <code>G<sup>n</sup></code>.  (<code>G</code> must have form <code>{0|H}</code>)</td>
+      </tr>
+      <tr>
+        <td nowrap><code>PowTo(G,n)</code></td><td>The game <code>G<sup>-&gt;n</sup></code>.  (<code>G</code> must have form <code>{0|H}</code>)</td>
+      </tr>
+      <tr><td nowrap><code>Superstar<br>
+        (n<sub>1</sub>,n<sub>2</sub>,n<sub>3</sub>,...)</code></td><td>The 
+        superstar with exponent <code>n<sub>1</sub>,n<sub>2</sub>,n<sub>3</sub>,...</code></td></tr>
+      <tr><td nowrap><code>LeftIncentives(G)</code></td><td>The canonical left incentives of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>RightIncentives(G)</code></td><td>The canonical right incentives of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Incentives(G)</code></td><td>The canonical incentives of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Birthday(G)</code></td><td>The canonical birthday of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>LeftCriticalTemps(G)</code></td><td>The left critical 
+        temperatures of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>RightCriticalTemps(G)</code></td><td>The right 
+        critical temperatures of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>IsAllSmall(G)</code></td><td><code>true</code> if <code>G</code> is all small.</td></tr>
+      <tr><td nowrap><code>IsEven(G)</code></td><td><code>true</code> if <code>G</code> 
+        is a (canonical or mis<font face="Times New Roman">è</font>re) even game.</td></tr>
+      <tr><td nowrap><code>IsInfinitesimal(G)</code></td><td><code>true</code> if <code>G</code> is infinitesimal.</td></tr>
+      <tr><td nowrap><code>IsNimber(G)</code></td><td><code>true</code> if <code>G</code> 
+        is a (canonical or mis<font face="Times New Roman">è</font>re) nimber.</td></tr>
+      <tr><td nowrap><code>IsNumber(G)</code></td><td><code>true</code> if <code>G</code> 
+        is a number.</td></tr>
+      <tr><td nowrap><code>IsNumberish(G)</code></td><td><code>true</code> if <code>G</code> 
+        is number-ish.</td></tr>
+      <tr><td nowrap><code>IsOdd(G)</code></td><td><code>true</code> if <code>G</code>
+        is a (canonical or mis<font face="Times New Roman">è</font>re) odd game.</td></tr>
+      <tr><td nowrap><code>AtomicWeight(G)</code></td><td>The atomic weight of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Rcf(G)</code></td><td>The reduced canonical form of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>OrthodoxForm(G)</code></td><td>An orthodox form for <code>G</code> 
+        (obtained by eliminating unorthodox options for <code>G</code> and all 
+        of its followers).</td></tr>
+      <tr><td nowrap><code>ConwayProduct(G,H)</code></td><td>The Conway product of <code>G</code> 
+        and <code>H</code>.</td></tr>
+      </table>
+
+    <h3><a name="Loopy"></a>Loopy Games</h3>
+    
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+      <tr><td nowrap><code>Onside(G)</code></td><td>The onside of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Offside(G)</code></td><td>The offside of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Upsum(G,H)</code></td><td>The upsum of <code>G</code> and <code>H</code>.</td></tr>
+      <tr><td nowrap><code>Downsum(G,H)</code></td><td>The downsum of <code>G</code> and <code>H</code>.</td></tr>
+      <tr><td nowrap><code>Degree(G)</code></td><td>The degree of loopiness of <code>G</code>.</td></tr>
+      <tr><td nowrap><code>Sidle(G)</code></td><td>The sidled form of <code>G</code>.</td></tr>
+    </table>
+    
+    <h3><a name="Impartial"></a>Impartial games</h3>
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+         <tr><td nowrap><code>Options(G)</code></td><td>The options of the impartial game G</td></tr>
+         <tr><td nowrap><code>Heap(R,n)</code></td><td>A heap with rules <code>R</code> and size <code>n</code></td></tr>
+         <tr><td nowrap><code>GrundySequence(R,n)</code></td><td>A list of the first <code>n</code> values of the heap game
+	  with rules <code>R</code></td></tr>
+	 <tr><td nowrap><code>HeapRules(f)</code></td><td>Converts the procedure <code>f</code> into heap rules</td></tr>
+    </table>
+
+    <h3><a name="CanonicalMisere"></a>Canonical Mis<font face="Times New Roman">è</font>re Game forms</h3>
+    <p>Games in canonical mis<font face="Times New Roman">è</font>re form, as in <em>Winning Ways</em> and
+     <em>On Numbers and Games</em></p>
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+         <tr><td nowrap><code>Misere(G<sub>1</sub>,G<sub>2</sub>,...,G<sub>n</sub>)</code></td><td>The mis<font face="Times New Roman">è</font>re game with options
+	  <code>G<sub>1</sub>,G<sub>2</sub>,...,G<sub>n</sub></code></td></tr>
+         <tr><td nowrap><code>GValue(G)</code></td><td>The normal play nim-value of G, <b><em>G</em></b><sup>+</sup>(G).</td></tr>
+         <tr><td nowrap><code>MisereGValue(G)</code></td><td>The mis<font face="Times New Roman">è</font>re nim-value of G, <b><em>G&#x02c9;</em></b>(G).</td></tr>
+         <tr><td nowrap><code>Genus(G)</code></td><td>The genus sequence [<b><em>G</em></b><sup>+</sup>(G), <b><em>G&#x02c9;</em></b>(G), <b><em>G&#x02c9;</em></b>(G+2), <b><em>G&#x02c9;</em></b>(G+2+2), ...].</td></tr>
+         <tr><td nowrap><code>IsTame(G)</code></td><td>True if G can be treated as a nim-heap sum</td></tr>
+         <tr><td nowrap><code>IsRestive(G)</code></td><td>True if G is restive, of genus 0<sup>&#x03bb;</sup> or 1<sup>&#x03bb;</sup>.</td></tr>
+         <tr><td nowrap><code>IsHalfTame(G)</code></td><td>True if G is half-tame, meaning that G+G is tame of genus 0<sup>0</sup>.</td></tr>
+         <tr><td nowrap><code>IsRestless(G)</code></td><td>True if G is restless, of genus g<sup>0</sup> or g<sup>1</sup>.</td></tr>
+         <tr><td nowrap><code>Phylum(G)</code></td><td>A string "NIMHEAP", "HEREDITARILY_TAME", "REVERSIBLY_TAME", "TAMEABLE", "WILD_OF_TAME_GENUS", "HEREDITARILY_RESTIVE", "REVERSIBLY_RESTIVE", "WILD_OF_RESTIVE_GENUS", "RESTLESS", "WILD_OF_RESTLESS_GENUS", or "WILD"</td></tr>
+         <tr><td nowrap><code>DiscriminatorPN(G,H)</code></td><td>A canonical mis<font face="Times New Roman">è</font>re game K such that o&#x02c9;(G+K)=P and o&#x02c9;(G+H)=N.
+         <tr><td nowrap><code>Discriminator(G,H)</code></td><td>A canonical mis<font face="Times New Roman">è</font>re game K such that o&#x02c9;(G+K) <font face="Times New Roman">&#x2260;</font> o&#x02c9;(H+K).
+         <tr><td nowrap><code>IsLinked(G,H)</code></td><td>True if there exists a canonical mis<font face="Times New Roman">è</font>re game K such that o&#x02c9;(G+K) = o&#x02c9;(H+K) = P.</td></tr>
+         <tr><td nowrap><code>FindLink(G,H)</code></td><td>If IsLinked(G,H), then a canonical mis<font face="Times New Roman">è</font>re game K for which o&#x02c9;(G+K) = o&#x02c9;(H+K) = P.</td></tr>
+         <tr><td nowrap><code>Mate(G)</code></td><td>The game G&#x02c9;, in which all canonical positions of G have *[0], *[1] replaced with *[1], *[0].</td></tr>
+         <tr><td nowrap><code>IsExtraverted(G)</code></td><td>True if every option of G is a part of G.</td></tr>
+         <tr><td nowrap><code>IsIntroverted(G)</code></td><td>True if G is a part of every option of G.  Only *[0] and *[1] are introverted.</td></tr>
+         <tr><td nowrap><code>MisereDifference(G,H)</code></td><td>A canonical mis<font face="Times New Roman">è</font>re game K such that G=H+K, if one exists.</td></tr>
+         <tr><td nowrap><code>Parts(G)</code></td><td>A list of all nonzero even canonical mis<font face="Times New Roman">è</font>re games K such that Difference(G,K) exists.</td></tr>
+         <tr><td nowrap><code>PrimeParts(G)</code></td><td>A list of all of Parts(G) that are prime.</td></tr>
+         <tr><td nowrap><code>Partitions(G)</code></td><td>A list of all lists of prime parts of G that sum to G.  Factorizations of odd canonical mis<font face="Times New Roman">è</font>re games are preceded by *[1].</td></tr>
+         <tr><td nowrap><code>IsPrime(G)</code></td><td>True G has no parts otheR than *[0], *[1], G, and G&nbsp;+&nbsp;*[1].  IsPrime(*[0]) is false.</td></tr>
+         <!--<tr><td><code>EarlyMisere(b : MaxGames=-1, MaxOptions=-1, MaxHereditaryOptions=-1)</code></td><td>A list of even canonical mis<font face="Times New Roman">è</font>re games of birthday at most b.  The MaxGames option limits the number of mis<font face="Times New Roman">è</font>re games reported.  MaxOptions limits the number of options of games reported. MaxHereditaryOptions limits the number of options of positions of games reported.  Limit values of -1 indicate no limit.</td></tr>-->
+    </table>
+    <h3><a name="Specific"></a>Specific Games</h3>
+    
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+      <tr><td nowrap><code>Amazons<br>
+        (S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...)</code></td>
+        <td>The Amazons position with rows given by <code>S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...</code>  Each <code>S<sub>n</sub></code> should be a string consisting only of the following  characters: <code>L</code> <code>R</code> <code>.</code> <code>X</code>
+        (Example: 
+        <code>Amazons(&quot;L...&quot;,&quot;R...&quot;)</code>)</td></tr>
+      <tr><td nowrap><code>Clobber<br>
+        (S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...)</code></td>
+        <td>The Clobber position with rows given by <code>S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...</code>  Each <code>S<sub>n</sub></code> should be a string consisting only of the following  characters: <code>L</code> <code>R</code> <code>.</code></td></tr>
+      <tr><td nowrap><code>Domineering<br>
+        (S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...)</code></td>
+        <td>The Domineering position with rows given by <code>S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...</code>  Each <code>S<sub>n</sub></code> should be a string consisting only of the following  characters:
+        <code>. X</code></td></tr>
+      <tr><td nowrap><code>DomineeringRectangle<br>
+        (m,n)</code></td>
+        <td>The empty <i>m</i> by <i>n</i> Domineering position.</td></tr>
+      <tr><td nowrap><code>Konane<br>
+        (S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...)</code></td>
+        <td>The Konane position with rows given by <code>S<sub>1</sub>,S<sub>2</sub>,S<sub>3</sub>,...</code>  Each <code>S<sub>n</sub></code> should be a string consisting only of the following  characters: <code>L</code> <code>R</code>
+        <code>.</code></td></tr>
+      <tr><td nowrap><code>FoxAndGeeseTable<br>
+        (x<sub>1</sub>,y<sub>1</sub>,x<sub>2</sub>,y<sub>2</sub>,<br>
+&nbsp;x<sub>3</sub>,y<sub>3</sub>,x<sub>4</sub>,y<sub>4</sub>)</code></td>
+        <td>A table containing the values of all Fox and Geese positions with the specified coordinates for the geese.  The coordinates are zero-based with (0,0) corresponding to the lower-left corner.&nbsp;
+        (Example: <code>FoxAndGeeseTable(1,3,3,3,5,3,7,3)</code>)</td></tr>
+      <tr><td nowrap><code>ToadsAndFrogs(S)</code></td>
+        <td>The Toads and Frogs position given by <code>S</code>.  <code>S</code> should be a string consisting only of the following three characters: <code>T</code> <code>F</code> <code>.</code></td></tr>
+    </table>
+      
+    <h3><a name="Analysis"></a>General Game Analysis</h3>
+    
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111" height="166">
+      <tr>
+        <td nowrap height="38"><code>SensibleLeftOptions(G)</code></td>
+        <td height="38">A minimal set of sensible left options of <code>G</code> 
+        (roughly, those that correspond to a canonical option via a reversible 
+        sequence of moves).</td>
+      </tr>
+      <tr>
+        <td nowrap height="19"><code>SensibleRightOptions(G)</code></td>
+        <td height="19">A minimal set of sensible right options of <code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap height="38"><code>SensibleLeftLines(G)</code></td>
+        <td height="38">A set of sensible left lines of play of <code>G</code>.&nbsp; 
+        This is a list of lists, each containing a reversible sequence of moves 
+        from <code>G</code> that terminates in a left option of <code>C(G)</code>.&nbsp; 
+        There will be exactly one sequence for each left option of <code>C(G)</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap height="16"><code>SensibleRightLines(G)</code></td>
+        <td height="16">A set of sensible right lines of play of <code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap height="19"><code>OrthodoxLeftOptions(G)</code></td>
+        <td height="19">A minimal set of orthodox left options of <code>G</code> 
+        (those that are thermographically relevant).</td>
+      </tr>
+      <tr>
+        <td nowrap height="19"><code>OrthodoxRightOptions(G)</code></td>
+        <td height="19">A minimal set of orthodox right options of <code>G</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap height="19"><code>OrthodoxLeftLines(G)</code></td>
+        <td height="19">A set of orthodox left lines of play of <code>G</code>.&nbsp; 
+        There will be exactly one sequence for each left option of <code>OrthodoxLeftOptions(C(G))</code>.</td>
+      </tr>
+      <tr>
+        <td nowrap height="19"><code>OrthodoxRightLines(G)</code></td>
+        <td height="19">A set of orthodox right lines of play of <code>G</code>.</td>
+      </tr>
+    </table>
+    
+    <h3><a name="Miscellaneous"></a>Miscellaneous</h3>
+    
+    <table border="1" style="border-collapse: collapse" bordercolor="#111111">
+      <tr><td nowrap><code>Length(L)</code></td><td>The length of the list or string <code>L</code>.</td></tr>
+      <tr><td nowrap><code>Contains(L,X)</code></td><td><code>true</code> if the object <code>X</code> 
+        is contained in the list or string <code>L</code>.</td></tr>
+      <tr><td nowrap><code>Add(L,X)</code></td><td>Adds the object <code>X</code> to 
+        the end of the list <code>L</code>.</td></tr>
+      <tr><td nowrap><code>Remove(L,n)</code></td><td>Removes the <i>n</i><sup>th</sup> 
+        object from the list <code>L</code>, decreasing the length of <code>L</code> 
+        by one.</td></tr>
+      <tr><td nowrap><code>Append(L<sub>1</sub>,L<sub>2</sub>)</code></td><td>Appends 
+        the list <code>L<sub>2</sub></code> to the end of <code>L<sub>1</sub></code>.</td></tr>
+      <tr><td nowrap><code>IsBound(L,n)</code></td><td><code>true</code> if there is an 
+        object at the <i>n</i><sup>th</sup> position of the list <code>L</code>.</td></tr>
+      <tr><td nowrap><code>Unbind(L,n)</code></td><td>Removes the <i>n</i><sup>th</sup> 
+        object from the list <code>L</code>, leaving the length of <code>L</code> 
+        unchanged (and a hole at position <code>n</code>).</td></tr>
+      <tr><td nowrap><code>Sort(L,f)</code></td><td>Sorts the list <code>L</code> 
+        according the <i>comparator procedure</i> <code>f</code>.&nbsp; <code>f</code> 
+        must be a two-argument procedure with <code>f(X,Y)</code> a canonical 
+        game for each pair <code>X,Y</code> in <code>L</code>.&nbsp; If <code>f(X,Y) &lt; 0</code>, 
+        then <code>X</code> is sorted before <code>Y</code>; if <code>f(X,Y) &gt; 0</code>, 
+        then <code>X</code> is sorted after <code>Y</code>; otherwise the 
+        relative position of <code>X</code> and <code>Y</code> in <code>L</code> 
+        is unchanged.</td></tr>
+      <tr><td nowrap><code>Clone(L)</code></td><td>A shallow copy of the list <code>L</code>.</td></tr>
+      <tr>
+        <td nowrap><code>CreateTable(n)</code></td><td>An empty table with <code>n</code> 
+        columns.</td>
+      </tr>
+      <tr><td nowrap><code>AddTableRow<br>
+        (t,X<sub>1</sub>,X<sub>2</sub>,...)</code></td><td>
+        Adds a row to the table <code>t</code> whose entries consist of <code>X<sub>1</sub>, 
+        X<sub>2</sub>, ...</code> (the entries can be any objects).</td></tr>
+      <tr>
+        <td nowrap><code>Plot(T<sub>1</sub>,T<sub>2</sub>,...)</code></td><td>
+        Plots the specified thermograph(s) on a single graph.</td>
+      </tr>
+      <tr>
+        <td nowrap><code>KoPlot(G)</code></td><td>Plots the left and right 
+        komaster thermographs of a game <code>G</code>.</td>
+      </tr>
+      <tr><td nowrap><code>Explore(G)</code></td><td>Opens a new Explorer with <code>G</code> 
+        in its view.</td></tr>
+      <tr><td nowrap><code>Edit(G)</code></td><td>Equivalent to <code>Explore(G)</code>.</td></tr>
+      <tr><td nowrap><code>Mod(m,n)</code></td><td><code>m</code> modulo <code>n</code>.</td></tr>
+      <tr><td nowrap><code>WriteKernelState(S)</code></td><td>Writes the kernel 
+        state to the file <code>S</code>.</td></tr>
+      <tr><td nowrap><code>RestoreKernelState(S)</code></td><td>Restores the 
+        kernel state from the file <code>S</code>.</td></tr>
+      <tr><td nowrap><code>ResetKernel()</code></td><td>Resets the kernel.</td></tr>
+    </table>
+    
+    <h3><a name="Keywords"></a>Keywords</h3>
+    
+    <p>The following are CGSuite keywords and therefore may not be used as 
+    variable names:</p>
+    
+    <table>
+      <tr>
+        <td width="34%" nowrap valign="top">and<br>
+    break<br>
+    by<br>
+    clear<br>
+        continue<br>
+        defined<br>
+    do<br>
+    elif<br>
+    else<br>
+    end<br>
+    err<br>
+        false</td>
+        <td width="34%" nowrap valign="top">fi<br>
+    for<br>
+    from<br>
+    if<br>
+    in<br>
+        is<br>
+    literally<br>
+    local<br>
+    log<br>
+    not<br>
+    od<br>
+        option</td>
+        <td width="33%" nowrap valign="top">or<br>
+        out<br>
+    proc<br>
+        remember<br>
+    return<br>
+        seq<br>
+    tabulate<br>
+    then<br>
+    to<br>
+    true<br>
+    while</td>
+      </tr>
+	</table>
+    
+    <p>Also, variable names may not begin with &quot;v&quot;; it's reserved for down, 
+    double-down, etc.</p>
+    
+    <hr>
+    <a href="index.html">Return to Tutorial Contents</a>      
+</body>
+
+</html>

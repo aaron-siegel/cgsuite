@@ -1,0 +1,236 @@
+<html>
+
+<head>
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>New Page 1</title>
+</head>
+
+<body>
+
+<h1>Impartial Games</h1>
+
+<p>This section describes CGSuite's specialized support for impartial games.</p>
+<ul>
+  <li><a href="#HeapGames">Heap Games and Grundy Sequences</a></li>
+  <li><a href="#TBCodes">Take-and-Break Codes</a></li>
+  <li><a href="#Misere">Mis<font face="Times New Roman">è</font>re Canonical 
+  Forms</a></li>
+  <li><a href="#MisereQuotients">Mis<font face="Times New Roman">è</font>re 
+  Quotients</a></li>
+</ul>
+
+<h3><a name="HeapGames"></a>Heap Games and Grundy Sequences</h3>
+
+<p>Impartial games have a particularly simple structure: their canonical forms 
+are always nimbers.&nbsp; While you can use CGSuite's partizan-games engine to 
+compute these &quot;Nim values,&quot; it's terribly inefficient, particularly for heap 
+games, when we often want to calculate Nim values for very large heaps.</p>
+
+<p>Starting with version 0.7, CGSuite provides a massive shortcut for dealing 
+with heap games.&nbsp; Type</p>
+
+<p><code>S := GrundySequence(&quot;0.77&quot;, 500)</code></p>
+
+<p>This will quickly compute the Nim-values for the octal game 0.77 up to heap 
+500.&nbsp; (You might recognize 0.77 as the octal code for Kayles.)&nbsp; The 
+values will be stored in an object of type <code>GrundySequence</code>, which 
+can be manipulated in a variety of ways.&nbsp; For example, try typing</p>
+
+<p><code>CheckPeriodicity(S)</code></p>
+
+<p>This will use the Guy-Smith criterion for determining whether the sequence is 
+periodic.&nbsp; <i>If</i> it's possible to determine periodicity on the basis of 
+the 500 computed values, it will return a triple of integers <code>[period,preperiod,saltus]</code>.&nbsp; 
+In this case, we get <code>[12,71,0]</code>, indicating that Kayles has period 
+12, preperiod 71, and saltus 0.&nbsp; If periodicity can't be established, then 
+the return value will be <code>[-1,-1,-1]</code>.</p>
+
+<p>You can also type</p>
+
+<p><code>PeriodicTable(S,12)</code></p>
+
+<p>to display the values in a nice table, or simply</p>
+
+<p><code>S[100]</code></p>
+
+<p>to extract individual G-values.</p>
+
+<p>There are a wide variety of codes you can supply as strings, including 
+arbitrary octal and hexadecimal codes.&nbsp; We'll detail these in a moment, but 
+when they aren't sufficient there's a useful shortcut available.&nbsp; Let <code>f</code> 
+be a CGSuite function (see Functions and Lists) that maps integers to lists of 
+lists of integers.&nbsp; Then <code>f(n)</code> will be interpreted as a list of 
+possible moves from a heap of size <code>n</code>.&nbsp; Each &quot;move&quot; is just a 
+list of resultant component heaps.&nbsp; For example, Dawson's Kayles (&quot;0.07&quot;, 
+take 2 tokens from any heap, optionally splitting into two heaps) could be 
+represented by</p>
+
+<p><code>f := n -&gt; seq([k,n-k-2] for k from 0 to n-2)</code></p>
+
+<p>Then you could type <code>f(7)</code> to get a list of all moves from a 
+Dawson's Kayles heap of size 7.&nbsp; You can then type (say)</p>
+
+<p>GrundySequence(HeapRules(f), 500)</p>
+
+<p>to get a sequence for the game so defined.&nbsp; You can use this to specify 
+rules for heap games with arbitrarily complicated logic.  (But be aware that the
+calculations will be much slower than using use the built-in codes!)</p>
+
+<h3><a name="TBCodes"></a>Take-and-Break Codes</h3>
+
+<p>CGSuite supports a wide variety of take-and-break codes.&nbsp; You can use 
+the digits 0-9 and A-F in the usual fashion for octal and hexadecimal games.&nbsp; 
+In addition, you can use G-Z for &quot;digits&quot; 16-35, and there is a special notation 
+for larger &quot;digits&quot;; for example</p>
+
+<p><code>&amp;64;</code></p>
+
+<p>for a digit of size 64.&nbsp; You could also enter this as a hex code by</p>
+
+<p><code>&amp;x40;</code></p>
+
+<p>In addition, it's possible to place restrictions on moves in a take-and-break 
+game.&nbsp; For example, appending ! to a digit means that all the resulting 
+heaps must be unequal.&nbsp; For example, the game</p>
+
+<p><code>4.0</code></p>
+
+<p>is &quot;split a heap into two non-empty heaps&quot;.&nbsp; If you compute just a few 
+elements of the GrundySequence for this game, you'll see that it's not very 
+interesting.&nbsp; However, change this to</p>
+
+<p><code>4!.0</code></p>
+
+<p>and we now have Grundy's Game: &quot;split a heap into two non-empty heaps of 
+different sizes&quot;.&nbsp; This is perhaps the most-studied heap game of them all.&nbsp; 
+Likewise,</p>
+
+<p><code>0.4!</code></p>
+
+<p>would be the variant &quot;remove one token and split the remainder into two 
+non-empty heaps of different sizes.&quot;&nbsp; And so on.</p>
+
+<p>There are more possibilities; refer to the CGSuite API for the full list.</p>
+
+<p>Finally, certain <i>infinite</i> repeating codes are possible by bracketing 
+the final digits of a code.&nbsp; Here is a list of examples.</p>
+      <ul><li><code>0.[3]</code> - Nim (remove any number of tokens from
+              a heap)
+          <li><code>0.77</code> - Kayles (remove one or two tokens from
+              a heap, optionally splitting the remainder into two heaps)
+          <li><code>4!.</code> - Grundy's Game (split any heap into
+              two unequal heaps)
+          <li><code>20.017</code> - Either add a token to a non-empty heap;
+              or remove a heap of size 2 completely; or remove three tokens
+              from a heap, optionally splitting the remainder into two heaps
+          <li><code>0.[37]</code> - Remove any (positive) number of tokens
+              from a heap.  If the number of tokens removed is even, then
+              the heap may optionally be split into two heaps
+          <li><code>8!.</code> - Split any heap into exactly three pairwise
+              unequal heaps
+          <li><code>8?.</code> - Split any heap into exactly three heaps,
+              which cannot all be equal
+          <li><code>0.(r?8!g)</code> - Remove one token from a heap.
+              The remainder may either be left as a single heap; or split
+              into exactly three heaps, not all the same; or split into
+              exactly four pairwise unequal heaps.  (Note that
+              <code>'r' = 27 = (1 | 2 | 8 | 16)</code> and
+              <code>'g' = 16</code>)
+          <li><code>0.&amp;127;!&amp;64;</code> - Either: remove one
+              token from a heap, splitting the remainder into <i>at most
+              six</i> pairwise unequal heaps; or remove two tokens from
+              a heap, splitting the remainder into <i>exactly six</i>
+              heaps (with no restrictions on heap size)
+      </ul>
+
+<h3><a name="Misere"></a>Mis<font face="Times New Roman">ère Canonical Forms</font></h3>
+
+<p>CGSuite also supports mis<font face="Times New Roman">è</font>re
+canonical forms of games, as described in Winning Ways and ONaG,
+though the notation used is slightly different.&nbsp; Every
+mis<font face="Times New Roman">è</font>re canonical form starts with
+a star, followed by an expression in brackets.&nbsp; The expression
+may be a single number, representing a nim-heap, or a sequence of
+numbers, representing a game with those nim-heaps as options.&nbsp;
+Thus *[2] is the mis<font face="Times New Roman">è</font>re nim-heap
+of size two, and *[42] is the
+mis<font face="Times New Roman">è</font>re canonical form whose
+options are *[4] and *[2].  A game with only one option is represented
+by subscripting the option with a slash, so *[2<sub>/</sub>] refers to
+the mis<font face="Times New Roman">è</font>re canonical form whose
+only option is the nim-heap *[2].&nbsp; Subscripts are also used to
+represent <i>sums</i> of games.&nbsp; For example, *[2<sub>2</sub>] is
+the sum *[2]&nbsp;+&nbsp;*[2].&nbsp;</p>
+
+<p>You can enter subscripts on the worksheet by enclosing them in
+nested brackets, so *[2<sub>2</sub>] can be entered as</p>
+<p><code>*[2[2]]</code></p>
+<p>which means the same as the sum</p>
+<p><code>*[2] + *[2]&nbsp;.&nbsp;</code></p>
+
+<p>A convenient shorthand is available for the subscripted slash denoting games
+with one option: you can omit the subscript brackets and type</p>
+<p><code>*[2/]</code></p>
+<p>for the game *[2<sub>/</sub>], which is defined to be { *[2] }.&nbsp; 
+Subscripted options may also be concatenated, so</p>
+<p><code>*[2[2]2/20]</code></p>
+<p>is the game with the four options *[2<sub>2</sub>], *[2<sub>/</sub>],
+*[2], and *[0].  Parens can be used for grouping:</p>
+<p><code>*[(2/320)/(32)]</code></p>
+<p>denotes the game
+{&nbsp;{&nbsp;*[2<sub>/</sub>320]&nbsp;},&nbsp;*[32]&nbsp;}.&nbsp;
+Subscripts can be &quot;chained&quot;, so</p>
+<p><code>*[2[/22//2]]</code></p>
+<p>denotes the mis<font face="Times New Roman">è</font>re canonical
+form *[2<sub>/22//2</sub>], which is equal to
+{&nbsp;{&nbsp;{*[2]}&nbsp;+&nbsp;*[2]&nbsp;+&nbsp;*[2]&nbsp;}&nbsp;}&nbsp;+&nbsp;*[2].</p>
+<p>To compose pre-existing games into options, you can use the
+&quot;Misere&quot; method, e.g.,</p>
+<p><code>Misere(*[2[2]], *[2/], *[2], 0)</code></p>
+<p>is equivalent to</p>
+<p><code>*[2[2]2/20]&nbsp;.</code></p>
+<p>If <code>G</code> is any impartial game, then</p>
+<p><code>MisereCanonicalForm(G)</code></p>
+<p>returns its canonical form.&nbsp; For example,</p>
+<p><code>MisereCanonicalForm(Heap(&quot;0.77&quot;, 15))</code></p>
+<p>gives the canonical form of a Kayles heap of size 15.</p>
+<p>A large number of methods are available for the manipulation of canonical 
+forms; see the <a href="glossary.html">Glossary of Methods</a>.</p>
+
+<h3><a name="MisereQuotients"></a>Mis<font face="Times New Roman">ère Quotients</font></h3>
+
+<p>The <i>MisereSolver</i> plug-in, bundled with CGSuite, can be used to compute 
+mis<font face="Times New Roman">è</font>re quotients.&nbsp; It's turned off by 
+default; to load it: go to Tools/Plug-in Manager; click &quot;MisereSolver&quot;; and 
+click &quot;Load&quot;.&nbsp; Then you can type:</p>
+
+<p><code>MisereQuotient(G)</code></p>
+
+<p>for the quotient of a particular game or canonical form;</p>
+
+<p><code>MisereQuotient(&quot;0.77&quot;)</code></p>
+
+<p>for the quotient of a heap game;</p>
+
+<p><code>MisereQuotient(&quot;0.77&quot; : Heap := 24)</code></p>
+
+<p>for a particular partial quotient.</p>
+
+<p>It's returned as a two-element list.&nbsp; The first element is a commutative 
+monoid presentation; the second lists the P-portion.&nbsp; See the
+<a href="glossary.html">Glossary of Methods</a> for a list of available methods.</p>
+
+<p>You can also run <i>MisereSolver</i> directly from the commandline; this is 
+often useful for exploring large and complicated quotients.&nbsp; Change to the <code>plugins/</code> 
+directory (where <code>misere.jar</code> is located) and type</p>
+
+<p><code>java -jar misere.jar</code></p>
+
+<p>for help.</p>
+<hr>
+Continue on to <a href="loopygames.html">Loopy Games</a>
+</body>
+
+</html>
