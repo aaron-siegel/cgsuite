@@ -60,13 +60,12 @@ class RookRace extends GridGame
 
         components := grid.Decompose(3);
         g := 0;
-        for grid in components do
-            g := g + RookRace(grid.SymmetryInvariantRepresentation, shortMoves).super.CanonicalForm;
+        for component in components do
+            g := g + RookRace(component.SymmetryInvariantRepresentation, shortMoves).super.CanonicalForm;
         end
         return g;
 
     end
-
     
     override property CharMap.get
         return ".xo#";
