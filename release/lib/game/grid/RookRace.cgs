@@ -1,7 +1,7 @@
 /*
- * RacingRooks.cgs
+ * RookRace.cgs
  *
- * Racing Rooks is played on a grid with black and white rooks, vacant spaces, and blocked spaces. 
+ * Rook Race is played on a grid with black and white rooks, vacant spaces, and blocked spaces. 
  * A move for Left is to move one of the black rooks at least one square, stopping when blocked by
  * the board edge, another rook, or a blocked space (no captures are made). After a move all the
  * squares from where the move began to just before where it finished are blocked.
@@ -9,17 +9,17 @@
  * In an alternative version, short moves are allowed, i.e. the rook can stop before being blocked.
  *
  * Examples:
- * g := examples.RacingRooks("x...x|.....|.....|.....|o...."); (Long moves version)
- * g := examples.RacingRooks("x...x|.....|.....|.....|o....", true); (Short moves version)
+ * g := game.grid.RookRace("x...x|.....|.....|.....|o...."); (Long moves version)
+ * g := game.grid.RookRace("x...x|.....|.....|.....|o....", true); (Short moves version)
  * 
  * Created by malbert on 28/07/2011
  */
 
-class RacingRooks extends GridGame
+class RookRace extends GridGame
 
     var shortMoves;
 
-    method RacingRooks(grid, shortMoves ? false)
+    method RookRace(grid, shortMoves ? false)
         this.GridGame(grid);
     end
 
@@ -43,7 +43,7 @@ class RacingRooks extends GridGame
                                     copy[m + g*d.RowShift, n + g*d.ColumnShift] := 3;
                                     g := g-1;
                                 end
-                                options.Add(RacingRooks(copy, shortMoves));
+                                options.Add(RookRace(copy, shortMoves));
                             end
                             gap := gap+1;
                         end
@@ -61,7 +61,7 @@ class RacingRooks extends GridGame
         components := grid.Decompose(3);
         g := 0;
         for grid in components do
-            g := g + RacingRooks(grid.SymmetryInvariantRepresentation, shortMoves).super.CanonicalForm;
+            g := g + RookRace(grid.SymmetryInvariantRepresentation, shortMoves).super.CanonicalForm;
         end
         return g;
 

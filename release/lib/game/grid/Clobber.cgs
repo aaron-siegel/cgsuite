@@ -1,3 +1,37 @@
+/*
+ * Clobber.cgs
+ *
+ * Clobber is played on a grid with white and black stones (and
+ * possibly some grayed out squares).  Left can move any black stone 
+ * in any orthogonal direction, provided that the desination square 
+ * is occupied by a white stone.  The targeted white stone is then
+ * captured and removed from the game. Likewise, Right may move any
+ * white stone onto a targeted black stone.
+ *
+ * This implementation supports two rule variations
+ * through the use of optional parameters:
+ *   - the allowed set of directions for clobbering can
+ *     be changed.
+ *   - in antiClobber, stones are moved onto vacant spaces
+ *     and leave behind a stone of the opponent's colour
+       on the original square.
+ *
+ * Mandatory parameters:
+ *   - a grid, or string representation of a grid
+ *
+ * Optional parameters:
+ *   - (directions) the allowed movement directions 
+ *   - (anti) a boolean 
+ *
+ * Examples:
+ * g := game.grid.Clobber("oox|oo.|oox");
+ * g.CanonicalForm; (should be down-4-*)
+ * h := game.grid.Clobber("xxo|oxx", directions => Direction.All);
+ * h.CanonicalForm; (should be double-up-*)
+ * k := game.grid.Clobber(".#x#|...o", anti => true);
+ * k.CanonicalForm; (should be +/- 3)
+ */
+
 class Clobber extends GridGame
 
     var directions;
@@ -46,7 +80,7 @@ class Clobber extends GridGame
     end
 
     override property CharMap.get
-        return ".xo";
+        return ".xo#";
     end
     
     override property Icons.get
@@ -54,7 +88,8 @@ class Clobber extends GridGame
         [
             GridIcon.Blank,
             GridIcon.BlackStone,
-            GridIcon.WhiteStone
+            GridIcon.WhiteStone,
+            GridIcon.Grayed
         ];
     end
 
