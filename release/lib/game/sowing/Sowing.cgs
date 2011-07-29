@@ -4,10 +4,9 @@ class Sowing extends Game
 
     method Sowing(List position)
 
-        this.position := position;
-        for k from 1 to this.position.Length do
-            if not this.position[k].IsInfinite and this.position[k] >= k and this.position[k] > this.position.Length-k then
-                this.position[k] := inf;
+        for k from 1 to position.Length do
+            if not position[k].IsInfinite and position[k] >= k and position[k] > position.Length-k then
+                position[k] := inf;
             end
         end
         
@@ -18,13 +17,13 @@ class Sowing extends Game
         options := {};
         direction := player.Sign;
 
-        for k from 1 to this.position.Length do
-            if not this.position[k].IsInfinite and (
-               (direction ==  1 and this.position[k] <= this.position.Length-k and this.position[k+this.position[k]] !== 0) or
-               (direction == -1 and this.position[k] < k and this.position[k-this.position[k]] !== 0)) then
+        for k from 1 to position.Length do
+            if not position[k].IsInfinite and (
+               (direction ==  1 and position[k] <= position.Length-k and position[k+position[k]] !== 0) or
+               (direction == -1 and position[k] < k and position[k-position[k]] !== 0)) then
 
-                newPosition := this.position.Copy();
-                for j from 1 to this.position[k] do
+                newPosition := position.Copy();
+                for j from 1 to position[k] do
                     newPosition[k+direction*j] := newPosition[k+direction*j] + 1;
                 end;
                 newPosition[k] := 0;
@@ -37,9 +36,9 @@ class Sowing extends Game
 
     end
 
-    property ToString.get
+    override property ToString.get
 
-        return "Sowing(" + this.position.ToString + ")";
+        return "Sowing(" + position.ToString + ")";
 
     end
     

@@ -9,18 +9,14 @@ class BasicMancala extends Game
     var l, r;
 
     method BasicMancala(List l, List r)
-    
-        this.l := l;
-        this.r := r;
-    
     end
     
     method Options(Player player)
     
         if player == Player.Left then
-            us := this.l; them := this.r;
+            us := l; them := r;
         else
-            us := this.r; them := this.l;
+            us := r; them := l;
         end;
         
         options := {};
@@ -28,8 +24,8 @@ class BasicMancala extends Game
         for k from 1 to us.Length do
         
             if us[k] > 0 then
-                newUs := us.Copy();
-                newThem := them.Copy();
+                newUs := us;
+                newThem := them;
                 t := us[k];
                 newUs[k] := 0;
                 curpos := k;
@@ -60,9 +56,9 @@ class BasicMancala extends Game
     
     end
     
-    property ToString.get
+    override property ToString.get
     
-        return "BasicMancala(" + this.l.ToString + "," + this.r.ToString + ")";
+        return "BasicMancala(" + l.ToString + "," + r.ToString + ")";
     
     end
 
