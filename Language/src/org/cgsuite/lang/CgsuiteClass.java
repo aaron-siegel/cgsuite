@@ -1,5 +1,6 @@
 package org.cgsuite.lang;
 
+import org.antlr.runtime.Token;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -539,24 +540,24 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void classDeclarations(CgsuiteTree tree) throws CgsuiteException
     {
+        // Declare vars first.
+        
         for (int i = 0; i < tree.getChildCount(); i++)
         {
-            switch (tree.getChild(i).getType())
+            if (tree.getChild(i).getType() == VAR)
             {
-                case EXTENDS:
-                case JAVA:
-                case IDENTIFIER:
-                case MODIFIERS:
-                    break;
-
-                case METHOD:
-                case PROPERTY:
-                case VAR:
-                    declaration(tree.getChild(i));
-                    break;
-
-                default:
-                    throw new MalformedParseTreeException(tree);
+                declaration(tree.getChild(i));
+            }
+        }
+        
+        // Now declare methods and properties.
+        
+        for (int i = 0; i < tree.getChildCount(); i++)
+        {
+            if (tree.getChild(i).getType() == METHOD ||
+                tree.getChild(i).getType() == PROPERTY)
+            {
+                declaration(tree.getChild(i));
             }
         }
     }
@@ -614,7 +615,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case METHOD:
 
                 methodName = methodName(tree.getChild(1));
-                List<Parameter> parameters = methodParameters(tree.getChild(2));
+                List<Parameter> parameters = methodParameters(tree.getChild(2), methodName.equals(name));
 
                 if (tree.getChild(3).getType() == JAVA)
                     javaMethodName = javaref(tree.getChild(3));
@@ -765,7 +766,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
     }
 
-    private List<Parameter> methodParameters(CgsuiteTree tree) throws CgsuiteException
+    private List<Parameter> methodParameters(CgsuiteTree tree, boolean isConstructor) throws CgsuiteException
     {
         switch (tree.token.getType())
         {
@@ -773,7 +774,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 List<Parameter> parameters = new ArrayList<Parameter>(tree.getChildCount());
                 for (int i = 0; i < tree.getChildCount(); i++)
-                    parameters.add(methodParameter(tree.getChild(i)));
+                    parameters.add(methodParameter(tree.getChild(i), isConstructor));
 
                 return parameters;
 
@@ -783,34 +784,46 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
     }
 
-    private Parameter methodParameter(CgsuiteTree tree) throws CgsuiteException
+    private Parameter methodParameter(CgsuiteTree tree, boolean isConstructor) throws CgsuiteException
     {
-        String parameterName;
+        Token parameterToken;
         CgsuiteClass parameterType;
+        boolean isOptional;
         CgsuiteTree defaultValue;
 
         switch (tree.token.getType())
         {
             case IDENTIFIER:
 
-                parameterName = tree.getText();
+                parameterToken = tree.getToken();
                 parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText(), imports) : CgsuiteClass.OBJECT_TYPE;
-                return new Parameter(parameterName, parameterType, false, null);
+                isOptional = false;
+                defaultValue = null;
+                break;
 
             case QUESTION:
 
                 CgsuiteTree subt = tree.getChild(0);
-                parameterName = subt.getText();
+                parameterToken = subt.getToken();
                 parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText(), imports) : CgsuiteClass.OBJECT_TYPE;
+                isOptional = true;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
-                return new Parameter(parameterName, parameterType, true, defaultValue);
+                break;
 
             default:
 
                 throw new MalformedParseTreeException(tree);
         }
+        
+        String parameterName = parameterToken.getText();
+        if (!isConstructor && vars.containsKey(parameterName))
+        {
+            throw new InputException(parameterToken, "Method parameter name shadows member variable: " + parameterName);
+        }
+        
+        return new Parameter(parameterName, parameterType, isOptional, defaultValue);
     }
-
+    
     @Override
     public void fileFolderCreated(FileEvent fe)
     {

@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.antlr.runtime.Token;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
@@ -21,7 +20,7 @@ import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 // TODO Enforce immutability
 // TODO Simple enum assignment to grids
-// TODO Check that local vars and forIds don't shadow member vars
+// TODO Check that parameter vars and forIds don't shadow member vars
 
 public class Domain
 {
@@ -607,6 +606,10 @@ public class Domain
                 case FOR:
 
                     forId = child.getChild(0).getText();
+                    if (context != null && context.getCgsuiteClass().lookupVar(forId) != null)
+                    {
+                        throw new InputException(child.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
+                    }
                     break;
 
                 case FROM:
@@ -734,6 +737,10 @@ public class Domain
         CgsuiteTree body;
 
         forId = tree.getChild(0).getText();
+        if (context != null && context.getCgsuiteClass().lookupVar(forId) != null)
+        {
+            throw new InputException(tree.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
+        }
         collection = expression(tree.getChild(1));
         if (tree.getChild(2).getType() == WHERE)
         {

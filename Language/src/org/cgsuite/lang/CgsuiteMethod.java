@@ -147,6 +147,16 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         ensureLoaded();
         return javaMethod;
     }
+    
+    public List<Parameter> getParameters()
+    {
+        return parameters;
+    }
+    
+    public CgsuiteTree getTree()
+    {
+        return tree;
+    }
 
     @Override
     public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
@@ -472,6 +482,26 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         public String toString()
         {
             return "Parameter[" + name + "," + type.getName() + "," + optional + "]";
+        }
+
+        public CgsuiteTree getDefaultValue()
+        {
+            return defaultValue;
+        }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public boolean isOptional()
+        {
+            return optional;
+        }
+
+        public CgsuiteClass getType()
+        {
+            return type;
         }
     }
 }
