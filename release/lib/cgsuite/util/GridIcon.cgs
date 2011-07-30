@@ -21,7 +21,11 @@ enum GridIcon
     WhitePawn,
     WhiteQueen,
     WhiteRook,
-    WhiteStone;
+    WhiteStone,
+    BlackSquare,
+    BlueSquare,
+    GreenSquare,
+    RedSquare;
 
     method GridIcon()
     end
