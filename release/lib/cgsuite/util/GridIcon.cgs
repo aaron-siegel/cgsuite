@@ -25,7 +25,11 @@ enum GridIcon
     BlackSquare,
     BlueSquare,
     GreenSquare,
-    RedSquare;
+    RedSquare,
+    LeftArrow,
+    RightArrow,
+    DownArrow,
+    UpArrow;
 
     method GridIcon()
     end
