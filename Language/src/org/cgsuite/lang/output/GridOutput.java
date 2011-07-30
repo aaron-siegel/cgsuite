@@ -69,7 +69,7 @@ public class GridOutput implements Output
             for (int i = 0; i < icons.size(); i++)
             {
                 String literal = ((CgsuiteString) icons.get(i+1).resolve("Literal")).toJavaString();
-                this.icons[i] = getIcon(literal.toLowerCase());
+                this.icons[i] = getIcon(literal);
             }
             cellSize = calculateIconDimensions(this.icons, false);
             size = calculateGridImageDimensions(grid, this.icons, cellSize, 1, 1);
@@ -187,9 +187,9 @@ public class GridOutput implements Output
     {
         if (!ICON_MAP.containsKey(iconName))
         {
-            URL url = GridOutput.class.getResource(iconName + ".png");
+            URL url = GridOutput.class.getResource("resources/" + iconName + ".png");
             if (url == null)
-                url = GridOutput.class.getResource(iconName + ".gif");
+                url = GridOutput.class.getResource("resources/" + iconName + ".gif");
             if (url == null)
                 ICON_MAP.put(iconName, null);
             else

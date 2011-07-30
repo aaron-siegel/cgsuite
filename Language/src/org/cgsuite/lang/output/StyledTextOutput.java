@@ -92,7 +92,7 @@ public class StyledTextOutput implements Output
         {
             SYMBOL_FONT = Font.createFont(
                 Font.TRUETYPE_FONT,
-                StyledTextOutput.class.getResourceAsStream("ebtsy10.ttf")
+                StyledTextOutput.class.getResourceAsStream("resources/ebtsy10.ttf")
                 ).deriveFont(20.0f);
         }
         catch (Exception exc)

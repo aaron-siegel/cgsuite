@@ -1,34 +1,51 @@
 enum GridIcon
 
+    Blank,
+    
+    // Stones
+    
+    BlackStone,
+    WhiteStone,
+    
+    // Chess pieces
+    
     BlackBishop,
-    BlackDomino,
     BlackKing,
     BlackKnight,
     BlackPawn,
     BlackQueen,
     BlackRook,
-    BlackStone,
-    Blank,
-    Frog,
-    Grayed,
-    GrayDomino,
-    GrayStone,
-    Toad,
     WhiteBishop,
-    WhiteDomino,
     WhiteKing,
     WhiteKnight,
     WhitePawn,
     WhiteQueen,
     WhiteRook,
-    WhiteStone,
+    
+    // Dominoes
+    
+    BlackDomino,
+    GrayDomino,
+    WhiteDomino,
+    
+    // Squares
+    
     BlackSquare,
     BlueSquare,
+    GraySquare,
     GreenSquare,
     RedSquare,
+    
+    // Toads and Frogs
+    
+    Frog,
+    Toad,
+    
+    // Arrows
+    
+    DownArrow,
     LeftArrow,
     RightArrow,
-    DownArrow,
     UpArrow;
 
     method GridIcon()

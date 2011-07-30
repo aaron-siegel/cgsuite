@@ -50,7 +50,7 @@ class Domineering extends GridGame
         return
         [
             GridIcon.Blank,
-            GridIcon.Grayed
+            GridIcon.GraySquare
         ];
     end
 

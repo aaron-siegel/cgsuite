@@ -144,7 +144,7 @@ public class GridEditorPanel extends EditorPanel
         for (int i = 0; i < iconList.size(); i++)
         {
             String literal = ((CgsuiteString) iconList.get(i+1).resolve("Literal")).toJavaString();
-            this.icons[i] = GridOutput.getIcon(literal.toLowerCase());
+            this.icons[i] = GridOutput.getIcon(literal);
         }
         cellSize = GridOutput.calculateIconDimensions(this.icons, true);
         setGrid(initialGrid);
@@ -809,11 +809,14 @@ public class GridEditorPanel extends EditorPanel
                     item = new JMenuItem(icons[value]);
                 }
                 final int fVal = value;
-                item.addActionListener(new ActionListener() {
+                item.addActionListener(new ActionListener()
+                {
                     @Override
-                    public void actionPerformed(ActionEvent evt) {
+                    public void actionPerformed(ActionEvent evt)
+                    {
                         setCell(row, col, fVal);
-                }});
+                    }
+                });
                 popup.add(item);
                 allowed = true;
             }
