@@ -32,6 +32,6 @@ public class Nil extends CgsuiteObject
     @Override
     public Output toOutput()
     {
-        return new StyledTextOutput("");
+        return new StyledTextOutput("nil");
     }
 }

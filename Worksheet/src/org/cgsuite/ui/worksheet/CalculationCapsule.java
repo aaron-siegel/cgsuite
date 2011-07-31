@@ -22,6 +22,7 @@ import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Domain;
 import org.cgsuite.lang.InputException;
+import org.cgsuite.lang.Nil;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.parser.CgsuiteLexer;
@@ -61,9 +62,6 @@ public class CalculationCapsule implements Runnable
     @Override
     public void run()
     {
-        output = new Output[] { new StyledTextOutput("fajita") };
-        if (text.startsWith("fajita")) return;
-        
         try
         {
             CgsuitePackage.refreshAll();
@@ -123,7 +121,11 @@ public class CalculationCapsule implements Runnable
         long startTime = System.currentTimeMillis();
         CgsuiteObject retval = domain.script(tree).simplify();
         log.info("Calculation completed in " + (System.currentTimeMillis()-startTime) + " ms.");
-        return retval.toOutput();
+
+        if (retval == Nil.NIL)
+            return new StyledTextOutput("");
+        else
+            return retval.toOutput();
     }
     
     private static List<Output> getStackOutput(String input, InputException exc)

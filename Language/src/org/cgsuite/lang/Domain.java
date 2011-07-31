@@ -325,6 +325,8 @@ public class Domain
             case LT:
             case GT:
             case CONFUSED:
+            case LCONFUSED:
+            case GCONFUSED:
             case COMPARE:
             case PLUS:
             case MINUS:
@@ -362,9 +364,9 @@ public class Domain
                 return new CanonicalShortGame(RationalNumber.ZERO, 0, n);
 
             case CARET:
-            case CARETCARET:
+            case MULTI_CARET:
             case VEE:
-            case VEEVEE:
+            case MULTI_VEE:
 
                 return upExpression(tree);
 
@@ -854,6 +856,8 @@ public class Domain
             case LT:
             case GT:
             case CONFUSED:
+            case LCONFUSED:
+            case GCONFUSED:
             case COMPARE:
                 x = x.simplify();
                 y = y.simplify();
@@ -873,6 +877,8 @@ public class Domain
                 case LT:        return x.invokeMethod("op <", y);
                 case GT:        return x.invokeMethod("op >", y);
                 case CONFUSED:  return x.invokeMethod("op <>", y);
+                case LCONFUSED: return x.invokeMethod("op <|", y);
+                case GCONFUSED: return x.invokeMethod("op |>", y);
                 case COMPARE:   return x.invokeMethod("op <=>", y);
                 case PLUS:      return add(x, y);
                 case MINUS:     return subtract(x, y);
@@ -1025,16 +1031,16 @@ public class Domain
 
         switch (tree.getToken().getType())
         {
-            case CARETCARET:
-                n = 2;
+            case MULTI_CARET:
+                n = tree.getText().length();
                 break;
 
             case CARET:
                 n = (nonStarChild == null)? 1 : integer(expression(nonStarChild), tree, "Argument to ^");
                 break;
 
-            case VEEVEE:
-                n = -2;
+            case MULTI_VEE:
+                n = -tree.getText().length();
                 break;
 
             case VEE:

@@ -32,9 +32,7 @@ tokens
 	BANG		= '!';
 	QUESTION	= '?';
 	CARET       = '^';
-	CARETCARET  = '^^';
 	VEE         = 'v';
-	VEEVEE      = 'vv';
 	EQUALS		= '==';
 	NEQ			= '!=';
 	LT			= '<';
@@ -42,6 +40,8 @@ tokens
 	LEQ			= '<=';
 	GEQ			= '>=';
 	CONFUSED    = '<>';
+    LCONFUSED   = '<|';
+    GCONFUSED   = '|>';
 	COMPARE		= '<=>';
 	RARROW		= '->';
 	BIGRARROW	= '=>';
@@ -50,6 +50,7 @@ tokens
 	REFNEQ		= '!==';
 	
 	ASSIGN		= ':=';
+    /*
 	ASN_PLUS	= '+=';
 	ASN_MINUS	= '-=';
 	ASN_TIMES	= '*=';
@@ -58,6 +59,7 @@ tokens
 	ASN_AND		= '&=';
 	ASN_OR		= '|=';
 	ASN_EXP		= '^=';
+    */
     BAD_ASSIGN  = '=';
 	
 	DOTDOT		= '..';
@@ -131,8 +133,6 @@ tokens
     LISTOF_IN;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
-	MULTI_CARET;
-	MULTI_VEE;
     PROCEDURE_PARAMETER_LIST;
     SETOF_DO;
     SETOF_IN;
@@ -232,6 +232,12 @@ tokens
         {
             return message;
         }
+
+        @Override
+        public String toString()
+        {
+            return "SyntaxError[" + message + "]";
+        }
     }
 }
 
@@ -296,7 +302,6 @@ methodName
 opCode
     : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | NEG | POS
     | standardRelationalToken
-    | opAssignmentToken
     | LBRACKET RBRACKET ASSIGN?
     ;
 	
@@ -365,18 +370,6 @@ assignmentExpression
 	
 assignmentToken
 	: ASSIGN
-	| opAssignmentToken
-	;
-
-opAssignmentToken
-    : ASN_PLUS
-	| ASN_MINUS
-	| ASN_TIMES
-	| ASN_DIV
-	| ASN_MOD
-	| ASN_AND
-	| ASN_OR
-	| ASN_EXP
 	;
 	
 functionExpression
@@ -424,6 +417,8 @@ standardRelationalToken
 	| LEQ
 	| GEQ
     | CONFUSED
+    | LCONFUSED
+    | GCONFUSED
 	| COMPARE
 	;
 
@@ -485,11 +480,11 @@ options
     backtrack = true;
     memoize = true;
 }
-    : (CARET | CARETCARET | VEE | VEEVEE)^ starExpr
+    : (CARET | MULTI_CARET | VEE | MULTI_VEE)^ starExpr
     | (CARET | VEE)^ primaryExpr starExpr
     | (CARET | VEE)^ primaryExpr
     | starExpr
-    | CARET | CARETCARET | VEE | VEEVEE
+    | CARET | MULTI_CARET | VEE | MULTI_VEE
     | primaryExpr
     ;
 
@@ -664,7 +659,11 @@ elseifClause
 
 INTEGER		: DIGIT+;
 
-IDENTIFIER	: NONV (LETTER | DIGIT)* | 'v' NONV (LETTER | DIGIT)*;
+MULTI_CARET : '^' ('^')+;
+
+MULTI_VEE   : 'v' ('v')+;
+
+IDENTIFIER	: 'v'* NONV (LETTER | DIGIT)*;
 
 STRING		: DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 

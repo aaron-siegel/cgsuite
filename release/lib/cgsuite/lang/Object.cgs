@@ -11,6 +11,8 @@ class Object : java "org.cgsuite.lang.CgsuiteObject"
     method op<(key)   return this <= key and not key <= this; end
     method op>(key)   return not this <= key and key <= this; end
     method op<>(key)  return not this <= key and not key <= this; end
+    method op<|(key)  return not key <= this; end
+    method op|>(key)  return not this <= key; end
 
     method op<=>(key)
         if this <= key then

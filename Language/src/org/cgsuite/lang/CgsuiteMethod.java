@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 
 import org.cgsuite.lang.game.RationalNumber;
 
+// TODO Optional parameter validation!  (Make sure it's a ligit OP)
+
 public class CgsuiteMethod extends CgsuiteObject implements Callable
 {
     private final static Logger log = Logger.getLogger(CgsuiteMethod.class.getName());

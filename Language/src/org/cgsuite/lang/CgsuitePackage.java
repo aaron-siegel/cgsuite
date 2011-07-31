@@ -233,7 +233,11 @@ public class CgsuitePackage implements FileChangeListener
     
     private static void refresh(FileObject fo)
     {
+        if (!fo.isFolder() || fo.getName().startsWith("."))
+            return;
+        
         fo.refresh();
+        
         for (FileObject subFo : fo.getChildren())
         {
             refresh(subFo);

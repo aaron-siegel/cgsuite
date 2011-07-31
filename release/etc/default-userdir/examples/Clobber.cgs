@@ -74,13 +74,13 @@ class Clobber extends GridGame
     // GridGame will do the string conversion for us; we just need to specify
     // the mapping of grid values to characters.
 
-    property CharMap.get
+    override property CharMap.get
         return ".xo";
     end
     
     // Likewise, we specify a list of icons to display a graphical grid.
     
-    property Icons.get
+    override property Icons.get
         return
         [
             GridIcon.Blank,

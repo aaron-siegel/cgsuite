@@ -1,0 +1,81 @@
+
+// Basic script processing
+
+Simple echo                     \ 0 \ 0 \
+Variable assignment             \ g := 0 \ 0 \
+Variable retrieval              \ g \ 0 \
+Multivee/identifier parse check \ vvvvx := vvvvv \ v5 \
+
+// Arithmetic
+
+Integer addition                \ 3+5 \ 8 \
+Integer multiplication          \ 3*5 \ 15 \
+Rational number                 \ 4/6 \ 2/3 \
+Nimber addition                 \ *3+*5 \ *6 \
+Nimber operator                 \ *(3+5) \ *8 \
+Ups                             \ ^^^^^^+vvv*+^19*3+v14 \ ^8*2 \
+
+// Canonical form specification
+
+Composition                     \ {0|^*5} \ ^^*4 \
+Slashes                         \ {3|||2||1|0,*||||-1/2} \ {3|||2||1|0,*||||-1/2} \
+Switch                          \ +-1 \ +-1 \
+Fractional switch               \ +-1/2 \ +-1/2 \
+Multiple switch                 \ +-(1,1+*) \ +-(1,1*) \
+
+// Collections
+
+List                            \ [3,5,3,1] \ [3,5,3,1] \
+Set                             \ {3,5,3,1} \ {1,3,5} \
+Heterogeneous set               \ {3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"} \ {nil,true,"bar","foo",3,*2,+-6,[3,5,3,1]} \
+Map                             \ {"foo" => 1, "bar" => *2, 16 => 22} \ {"bar" => *2, "foo" => 1, 16 => 22} \
+
+// CanonicalShortGame
+
+Game relations (0,*)            \ [*==0, *>=0, *<=0, *>0, *<0, *<>0, *|>0, *<|0, *!=0, *<=>0] \ [false,false,false,false,false,true,true,true,true,*] \
+Game relations (0,1)            \ [1==0, 1>=0, 1<=0, 1>0, 1<0, 1<>0, 1|>0, 1<|0, 1!=0, 1<=>0] \ [false,true,false,true,false,false,true,false,true,1] \
+Simplification                  \ 1-1==0 \ true \
+AtomicWeight                    \ {^^*|*,v}.AtomicWeight \ 1/2 \
+Birthday                        \ ^^*2.Birthday \ 4 \
+Birthday2                       \ (117/64).Birthday \ 8 \
+Companion                       \ {1|^^}.Companion \ {1|^^*} \
+Diversity                       \ *10.Diversity \ 11 \
+Freeze                          \ {3+*||2|1}.Freeze \ 9/4* \
+// Incentives                   \ TODO \ \
+// Is*                          \ TODO \ \
+LeftOptions                     \ {*2,*|-1}.LeftOptions \ {*,*2} \
+LeftStop                        \ {*2,*|-1}.LeftStop \ 0 \
+Mean                            \ {3+*||2|1}.Mean \ 9/4 \
+Miny                            \ 3+2.Miny \ 3+2.Miny \
+Rcf                             \ {3+*||2|1}.Rcf \ {3||2|1} \
+RightOptions                    \ {*2,*|-1}.RightOptions \ {-1} \
+RightStop                       \ {*2,*|-1}.RightStop \ -1 \
+StopCount                       \ *10.StopCount \ 39366 \
+Temperature                     \ {3+*||2|1}.Temperature \ 3/4 \
+// Thermograph                  \ TODO \ \
+Tiny                            \ 2.Tiny \ Tiny(2) \
+Heat                            \ *2.Heat(1) \ +-(1,{2|0}) \
+Overheat                        \ (31/64).Overheat(0,0) \ ^.PowTo(5) \
+Cool                            \ {3+*||2|1}.Cool(1/2) \ {5/2|2*} \
+Cool2                           \ {3+*||2|1}.Cool(1) \ 9/4 \
+NortonMultiply                  \ ^.NortonMultiply(^) \ {^^*||0|v4} \
+ConwayMultiply                  \ *8.ConwayMultiply(*8) \ *13 \
+OrdinalSum                      \ *4.OrdinalSum(*5) \ *9 \
+Pow                             \ ^^.Pow(3) \ ^.Pow(2) \
+PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
+Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
+
+// DayN
+
+Count of day-3 games            \ DayN(3).Size \ 1474 \
+Count of day-3 all-small games  \ DayN(3, allSmall => true).Size \ 67 \
+Count of day-3 reduced games    \ DayN(3, reduced => true).Size \ 61 \
+Count of day-2 antichains       \ DayN(2).Antichains.Size \ 98 \
+
+// Specific game implementations
+
+Amazons                         \ game.grid.Amazons("x...|o...").CanonicalForm \ +-(3,{4|0,{1|0,*}},{4|+-1,+-(1,{2|0}),{0,{1/2|0}|v}}) \
+Clobber                         \ game.grid.Clobber("xox|ox.").CanonicalForm \ {^^*|*,v} \
+Clobber (Diagonal)              \ game.grid.Clobber("xoxo|oox.|xxx.", directions => Direction.Diagonal).CanonicalForm \ {0,v*|vv} \
+Clobber (Anti)                  \ game.grid.Clobber("xoxo|oo..", anti => true).CanonicalForm \ {*|-1} \
+Domineering                     \ game.grid.Domineering(Grid(4,4)).CanonicalForm \ +-(0,{{2|0},2+Tiny(2)|{2|0},Miny(2)}) \

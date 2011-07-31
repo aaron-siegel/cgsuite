@@ -89,7 +89,7 @@ class Clobber extends GridGame
             GridIcon.Blank,
             GridIcon.BlackStone,
             GridIcon.WhiteStone,
-            GridIcon.Grayed
+            GridIcon.GraySquare
         ];
     end
 
