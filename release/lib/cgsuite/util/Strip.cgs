@@ -1,0 +1,23 @@
+/*
+ * Strip.cgs
+ *
+ * Created by asiegel on Jul 31, 2011
+ */
+
+mutable class Strip extends Grid
+
+    method Strip(Integer columns) : java "Grid(int)";
+    
+    override method op[](Integer col)
+        return super.op[](1, col);
+    end
+    
+    override mutable method op[]:=(Integer value, Integer col) : java "putAtCol(int,int)";
+    
+    method SubStrip(Integer startCol, Integer endCol)
+        return SubGrid(1, 1, startCol, endCol);
+    end
+    
+    static method ParseStrip(String str, String charMap) : java "parseStrip(java.lang.String,java.lang.String)";
+
+end

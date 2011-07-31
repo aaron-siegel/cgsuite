@@ -1,0 +1,22 @@
+/*
+ * StripGame.cgs
+ *
+ * Created by asiegel on Jul 31, 2011
+ */
+
+class StripGame extends GridGame
+
+    method StripGame(grid)
+    
+        if grid is Strip then
+        elseif grid is String then
+            grid := Strip.ParseStrip(grid, CharMap);
+        else
+            error("StripGame must be initialized with a String or a Strip object.");
+        end
+        
+        this.GridGame(grid);
+    
+    end
+
+end

@@ -90,7 +90,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             throw new IllegalArgumentException("Unknown Java class: " + exc.getMessage(), exc);
         }
 
-        if (javaMethodName.equals(declaringClass.getName()))
+        // TODO Validate: CGSuite constructor *iff* Java constructor
+        if (javaMethodName.equals(declaringClass.getJavaClass().getSimpleName()))
         {
             try
             {
@@ -109,7 +110,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             catch (NoSuchMethodException exc)
             {
-                throw new IllegalArgumentException("Java method not found: " + exc.getMessage(), exc);
+                throw new IllegalArgumentException("Java method not found (in class " + declaringClass.getJavaClass().getName() + "): " + exc.getMessage(), exc);
             }
         }
     }

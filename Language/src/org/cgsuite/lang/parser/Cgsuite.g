@@ -286,7 +286,7 @@ proptype
     ;
 	
 methodDeclaration
-	: modifiers METHOD^ methodName LPAREN! methodParameterList RPAREN!
+	: modifiers METHOD^ generalizedId LPAREN! methodParameterList RPAREN!
 	  (javaClause SEMI! | statementSequence END!)
 	;
 	
@@ -294,15 +294,12 @@ modifiers
 	: (OVERRIDE | MUTABLE | STATIC)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC*)
 	;
 
-methodName
-    : OP^ opCode
-    | IDENTIFIER
-    ;
-
 opCode
+options { greedy = true; }
     : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | NEG | POS
     | standardRelationalToken
-    | LBRACKET RBRACKET ASSIGN?
+    | LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
+    | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
     ;
 	
 // TODO Require optional last
@@ -453,8 +450,8 @@ unaryExpr
 	
 postfixExpr
 	: (upstarExpr -> upstarExpr)
-	  ( DOT SUPER DOT id=IDENTIFIER { $id.setText("super$" + $id.getText()); } -> ^(DOT $postfixExpr IDENTIFIER)
-      | DOT IDENTIFIER  -> ^(DOT $postfixExpr IDENTIFIER)
+	  ( DOT SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT $postfixExpr $id)
+      | DOT id=generalizedId  -> ^(DOT $postfixExpr $id)
 	  | x=arrayReference-> ^(ARRAY_REFERENCE[((CgsuiteTree) x.getTree()).getToken()] $postfixExpr arrayReference)
 	  | y=functionCall	-> ^(FUNCTION_CALL[((CgsuiteTree) y.getTree()).getToken()] $postfixExpr functionCall)
 	  )*
@@ -509,9 +506,9 @@ primaryExpr
 	| STRING
 	| CHAR
     | (IDENTIFIER COLON) => IDENTIFIER COLON^ explicitGame
-	| IDENTIFIER
+	| generalizedId
     | PASS
-    | SUPER DOT IDENTIFIER { $IDENTIFIER.setText("super$" + $IDENTIFIER.getText()); } -> ^(DOT THIS[$SUPER] IDENTIFIER)
+    | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! statementSequence RPAREN!
 	| LPAREN! statementSequence RPAREN!
 	| BEGIN! statementSequence END!
@@ -656,6 +653,11 @@ elseifClause
 	: ELSEIF^ expression THEN! statementSequence elseifClause?
 	| ELSE^ statementSequence
 	;
+
+generalizedId
+    : IDENTIFIER
+    | OP opc=opCode -> IDENTIFIER[$OP, $OP.getText() + " " + $opc.tree.getText()]
+    ;
 
 INTEGER		: DIGIT+;
 

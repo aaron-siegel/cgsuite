@@ -753,13 +753,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 return tree.getText();
 
-            case OP:
-
-                StringBuilder str = new StringBuilder("op ");
-                for (CgsuiteTree child : tree.getChildren())
-                    str.append(child.getText());
-                return str.toString();
-
             default:
 
                 throw new MalformedParseTreeException(tree);

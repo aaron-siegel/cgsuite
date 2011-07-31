@@ -37,13 +37,10 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import org.cgsuite.lang.CgsuiteClass;
-import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
-import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.InputException;
-import org.cgsuite.lang.output.Utilities;
 
 /**
  * A two-dimensional array suitable for representing grid-based games.  The
@@ -73,6 +70,7 @@ import org.cgsuite.lang.output.Utilities;
 public class Grid extends CgsuiteObject implements Serializable
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Grid");
+    public final static CgsuiteClass STRIP_TYPE = CgsuitePackage.forceLookupClass("Strip");
 
     private static int[] markers;
     private static int regionAt;
@@ -86,9 +84,16 @@ public class Grid extends CgsuiteObject implements Serializable
     private transient EnumSet<Symmetry> symtypes;
     private transient List<byte[]> symmetries;
     
-    private Grid()
+    private Grid(CgsuiteClass type)
     {
-        super(TYPE);
+        super(type);
+    }
+    
+    public Grid(int numColumns)
+    {
+        this(STRIP_TYPE);
+        
+        constructGrid(1, numColumns, BitsPerEntry.EIGHT);
     }
 
     /**
@@ -100,7 +105,7 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid(int numRows, int numColumns)
     {
-        super(TYPE);
+        this(TYPE);
 
         constructGrid(numRows, numColumns, BitsPerEntry.EIGHT);
     }
@@ -116,7 +121,14 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid(int numRows, int numColumns, BitsPerEntry bitsPerEntry)
     {
-        super(TYPE);
+        this(TYPE);
+        
+        constructGrid(numRows, numColumns, bitsPerEntry);
+    }
+    
+    public Grid(CgsuiteClass type, int numRows, int numColumns, BitsPerEntry bitsPerEntry)
+    {
+        this(type);
         
         constructGrid(numRows, numColumns, bitsPerEntry);
     }
@@ -139,12 +151,22 @@ public class Grid extends CgsuiteObject implements Serializable
             this.entries = new byte[(numRows * numColumns + bitsPerEntry.perByte - 1) / bitsPerEntry.perByte];
         }
     }
-
+    
+    public static Grid parseStrip(String str, String charMap)
+    {
+        return parse(STRIP_TYPE, str, charMap);
+    }
+    
     public static Grid parseGrid(String str, String charMap)
+    {
+        return parse(TYPE, str, charMap);
+    }
+
+    public static Grid parse(CgsuiteClass type, String str, String charMap)
     {
         String[] strings = str.split("\\|");
         int numColumns = (strings.length == 0 ? 0 : strings[0].length());
-        Grid grid = new Grid(strings.length, numColumns);
+        Grid grid = new Grid(type, strings.length, numColumns, BitsPerEntry.EIGHT);     // TODO Manage bits per entry
         for (int i = 0; i < strings.length; i++)
         {
             if (strings[i].length() != numColumns)
@@ -231,7 +253,7 @@ public class Grid extends CgsuiteObject implements Serializable
             buildSymmetries(null);
         }
 
-        Grid grid = new Grid();
+        Grid grid = new Grid(getCgsuiteClass());
         grid.numRows = numRows;
         grid.numColumns = numColumns;
         grid.bitsPerEntry = bitsPerEntry;
@@ -404,7 +426,7 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid clone(BitsPerEntry newBitsPerEntry)
     {
-        Grid clone = new Grid(numRows, numColumns, newBitsPerEntry);
+        Grid clone = new Grid(type, numRows, numColumns, newBitsPerEntry);
         for (int i = 0; i < numRows; i++)
         {
             for (int j = 0; j < numColumns; j++)
@@ -483,6 +505,11 @@ public class Grid extends CgsuiteObject implements Serializable
         return putAt(entries, value, row, column);
     }
     
+    public int putAtCol(int value, int col)
+    {
+        return putAt(entries, value, 1, col);
+    }
+    
     private int putAt(byte[] array, int value, int row, int column)
     {
         // TODO Arg checking
@@ -492,6 +519,11 @@ public class Grid extends CgsuiteObject implements Serializable
         array[arrayIndex] &= ~(bitsPerEntry.mask << shift);
         array[arrayIndex] |= (value << shift);
         return value;
+    }
+    
+    public BitsPerEntry getBitsPerEntry()
+    {
+        return bitsPerEntry;
     }
     
     /**
@@ -556,7 +588,7 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid subgrid(int startRow, int endRow, int startCol, int endCol)
     {
-        Grid subgrid = new Grid(endRow-startRow+1, endCol-startCol+1, bitsPerEntry);
+        Grid subgrid = new Grid(type, endRow-startRow+1, endCol-startCol+1, bitsPerEntry);
         for (int row = startRow; row <= endRow; row++)
         {
             for (int col = startCol; col <= endCol; col++)
@@ -633,7 +665,7 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid flip(boolean horizontal, boolean vertical)
     {
-        Grid grid = new Grid(numRows, numColumns, bitsPerEntry);
+        Grid grid = new Grid(type, numRows, numColumns, bitsPerEntry);
         for (int row = 0; row < numRows; row++)
         {
             for (int col = 0; col < numColumns; col++)
@@ -663,7 +695,7 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid mapEntries(int[] entryMap)
     {
-        Grid newGrid = new Grid(numRows, numColumns, bitsPerEntry);
+        Grid newGrid = new Grid(type, numRows, numColumns, bitsPerEntry);
         for (int row = 0; row < numRows; row++)
         {
             for (int col = 0; col < numColumns; col++)
@@ -685,7 +717,7 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public Grid transpose()
     {
-        Grid newGrid = new Grid(numColumns, numRows, bitsPerEntry);
+        Grid newGrid = new Grid(type, numColumns, numRows, bitsPerEntry);
         for (int row = 0; row < numRows; row++)
         {
             for (int col = 0; col < numColumns; col++)

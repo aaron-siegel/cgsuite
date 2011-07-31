@@ -257,7 +257,7 @@ public class GridEditorPanel extends EditorPanel
         {
             throw new IllegalArgumentException("row");
         }
-        Grid newGrid = new Grid(grid.getNumRows()-1, grid.getNumColumns());
+        Grid newGrid = new Grid(grid.getCgsuiteClass(), grid.getNumRows()-1, grid.getNumColumns(), grid.getBitsPerEntry());
         newGrid.paste(grid, 1, 1, row, grid.getNumColumns(), 1, 1);
         newGrid.paste(grid, row+2, 1, grid.getNumRows(), grid.getNumColumns(), row+1, 1);
         setGrid(newGrid);
@@ -278,7 +278,7 @@ public class GridEditorPanel extends EditorPanel
         {
             throw new IllegalArgumentException("col");
         }
-        Grid newGrid = new Grid(grid.getNumRows(), grid.getNumColumns()-1);
+        Grid newGrid = new Grid(grid.getCgsuiteClass(), grid.getNumRows(), grid.getNumColumns()-1, grid.getBitsPerEntry());
         newGrid.paste(grid, 1, 1, grid.getNumRows(), col, 1, 1);
         newGrid.paste(grid, 1, col+2, grid.getNumRows(), grid.getNumColumns(), 1, col+1);
         setGrid(newGrid);
@@ -302,7 +302,7 @@ public class GridEditorPanel extends EditorPanel
         {
             throw new IllegalArgumentException("index");
         }
-        Grid newGrid = new Grid(grid.getNumRows()+1, grid.getNumColumns());
+        Grid newGrid = new Grid(grid.getCgsuiteClass(), grid.getNumRows()+1, grid.getNumColumns(), grid.getBitsPerEntry());
         newGrid.paste(grid, 1, 1, index, grid.getNumColumns(), 1, 1);
         newGrid.paste(grid, index+1, 1, grid.getNumRows(), grid.getNumColumns(), index+2, 1);
         setGrid(newGrid);
@@ -326,7 +326,7 @@ public class GridEditorPanel extends EditorPanel
         {
             throw new IllegalArgumentException("index");
         }
-        Grid newGrid = new Grid(grid.getNumRows(), grid.getNumColumns()+1);
+        Grid newGrid = new Grid(grid.getCgsuiteClass(), grid.getNumRows(), grid.getNumColumns()+1, grid.getBitsPerEntry());
         newGrid.paste(grid, 1, 1, grid.getNumRows(), index, 1, 1);
         newGrid.paste(grid, 1, index+1, grid.getNumRows(), grid.getNumColumns(), 1, index+2);
         setGrid(newGrid);

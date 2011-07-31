@@ -4,15 +4,10 @@
  * Created by asiegel on Jul 13, 2011
  */
 
-class TopplingDominoes extends GridGame
+class TopplingDominoes extends StripGame
 
     method TopplingDominoes(grid)
-    
-        this.GridGame(grid);
-        if grid.NumRows != 1 then
-            error("TopplingDominoes grid must be 1 x N.");
-        end
-        
+        this.StripGame(grid);
     end
     
     method Options(Player player)
@@ -21,10 +16,10 @@ class TopplingDominoes extends GridGame
         
         for n from 1 to grid.NumColumns do
         
-            if grid[1,n] == player.Ordinal or grid[1,n] == 3 then
+            if grid[n] == player.Ordinal or grid[n] == 3 then
             
-                options.Add(TopplingDominoes(grid.Subgrid(1, 1, 1, n-1)));
-                options.Add(TopplingDominoes(grid.Subgrid(1, 1, n+1, grid.NumColumns)));
+                options.Add(TopplingDominoes(grid.SubStrip(1, n-1)));
+                options.Add(TopplingDominoes(grid.SubStrip(n+1, grid.NumColumns)));
             
             end
         

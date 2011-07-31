@@ -1,12 +1,9 @@
-class ToadsAndFrogs extends GridGame
+class ToadsAndFrogs extends StripGame
 
     var backsliding;
 
     method ToadsAndFrogs(grid, backsliding ? false)
-        this.GridGame(grid);
-        if grid.NumRows != 1 then
-            error("ToadsAndFrogs grid must be 1 x N.");
-        end
+        this.StripGame(grid);
     end
 
     method Options(Player player)
@@ -17,24 +14,24 @@ class ToadsAndFrogs extends GridGame
         them := player.Opponent.Ordinal;
 
         for n from 1 to grid.NumColumns do
-            if grid[1,n] == us then
+            if grid[n] == us then
 
-                if grid[1,n+player.Sign] == 0 then
+                if grid[n+player.Sign] == 0 then
                     copy := grid;
-                    copy[1,n] := 0;
-                    copy[1,n+player.Sign] := us;
+                    copy[n] := 0;
+                    copy[n+player.Sign] := us;
                     options.Add(ToadsAndFrogs(copy, backsliding));
-                elseif grid[1,n+player.Sign] == them and grid[1,n+2*player.Sign] == 0 then
+                elseif grid[n+player.Sign] == them and grid[n+2*player.Sign] == 0 then
                     copy := grid;
-                    copy[1,n] := 0;
-                    copy[1,n+2*player.Sign] := us;
+                    copy[n] := 0;
+                    copy[n+2*player.Sign] := us;
                     options.Add(ToadsAndFrogs(copy, backsliding));
                 end;
 
-                if backsliding and grid[1,n-player.Sign] == 0 then
+                if backsliding and grid[n-player.Sign] == 0 then
                     copy := grid;
-                    copy[1,n] := 0;
-                    copy[1,n-player.Sign] := us;
+                    copy[n] := 0;
+                    copy[n-player.Sign] := us;
                     options.Add(ToadsAndFrogs(copy, backsliding));
                 end
 
@@ -65,10 +62,10 @@ class ToadsAndFrogs extends GridGame
 
         deathLeap := true;
         for n from 1 to grid.NumColumns-1 do
-            if grid[1,n] == 1 and grid[1,n+1] == 0 or
-               grid[1,n] == 0 and grid[1,n+1] == 2 or
-               grid[1,n] == 1 and grid[1,n+1] == 2 and grid[1,n+2] == 0 and grid[1,n+3] == 0 or
-               grid[1,n] == 0 and grid[1,n+1] == 0 and grid[1,n+2] == 1 and grid[1,n+3] == 2 then
+            if grid[n] == 1 and grid[n+1] == 0 or
+               grid[n] == 0 and grid[n+1] == 2 or
+               grid[n] == 1 and grid[n+1] == 2 and grid[n+2] == 0 and grid[n+3] == 0 or
+               grid[n] == 0 and grid[n+1] == 0 and grid[n+2] == 1 and grid[n+3] == 2 then
 
                 deathLeap := false;
                 break;
