@@ -4,14 +4,13 @@
  */
 package org.cgsuite.lang;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 import junit.framework.Assert;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -32,6 +31,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class LanguageFunctionalTest
 {
+    private final static Logger log = Logger.getLogger(LanguageFunctionalTest.class.getName());
+    
     public static Domain domain = new Domain(null, CgsuitePackage.DEFAULT_IMPORT);
     
     @Parameters
@@ -42,6 +43,8 @@ public class LanguageFunctionalTest
         InputStream in = LanguageFunctionalTest.class.getResourceAsStream("test-instances.txt");
         FunctionalTestReader reader = new FunctionalTestReader(in);
         
+        int testNumber = 0;
+        
         while (true)
         {
             String[] test = reader.nextTestInstance();
@@ -49,26 +52,34 @@ public class LanguageFunctionalTest
             if (test == null)
                 break;
             
-            data.add(test);
+            Object[] run = new Object[1+test.length];
+            System.arraycopy(test, 0, run, 1, test.length);
+            run[0] = testNumber++;
+            
+            data.add(run);
         }
         
         return data;
     }
     
+    private int testNumber;
     private String description;
     private String input;
     private String expected;
     
-    public LanguageFunctionalTest(String description, String input, String expected)
+    public LanguageFunctionalTest(int testNumber, String description, String input, String expected)
     {
+        this.testNumber = testNumber;
         this.description = description;
         this.input = input;
         this.expected = expected;
     }
     
-    @Test
+    @Test(timeout=5000L)
     public void testLanguage() throws Exception
     {
+        log.info("Running functional test " + testNumber + ": " + description);
+        
         ANTLRStringStream inputStream = new ANTLRStringStream(input);
         CgsuiteLexer lexer = new CgsuiteLexer(inputStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);

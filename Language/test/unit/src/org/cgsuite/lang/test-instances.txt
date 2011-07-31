@@ -59,7 +59,7 @@ Overheat                        \ (31/64).Overheat(0,0) \ ^.PowTo(5) \
 Cool                            \ {3+*||2|1}.Cool(1/2) \ {5/2|2*} \
 Cool2                           \ {3+*||2|1}.Cool(1) \ 9/4 \
 NortonMultiply                  \ ^.NortonMultiply(^) \ {^^*||0|v4} \
-ConwayMultiply                  \ *8.ConwayMultiply(*8) \ *13 \
+ConwayMultiply                  \ *4.ConwayMultiply(*4) \ *6 \
 OrdinalSum                      \ *4.OrdinalSum(*5) \ *9 \
 Pow                             \ ^^.Pow(3) \ ^.Pow(2) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
