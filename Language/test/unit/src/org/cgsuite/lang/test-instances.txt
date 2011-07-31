@@ -22,6 +22,9 @@ Slashes                         \ {3|||2||1|0,*||||-1/2} \ {3|||2||1|0,*||||-1/2
 Switch                          \ +-1 \ +-1 \
 Fractional switch               \ +-1/2 \ +-1/2 \
 Multiple switch                 \ +-(1,1+*) \ +-(1,1*) \
+Tiny                            \ {0||0|-1} \ 1.Tiny \
+Tiny fraction                   \ {0||0|-1/4} \ (1/4).Tiny \
+Tiny G                          \ {0|||0||-1|-2} \ {2|1}.Tiny \
 
 // Collections
 
@@ -53,7 +56,7 @@ RightStop                       \ {*2,*|-1}.RightStop \ -1 \
 StopCount                       \ *10.StopCount \ 39366 \
 Temperature                     \ {3+*||2|1}.Temperature \ 3/4 \
 // Thermograph                  \ TODO \ \
-Tiny                            \ 2.Tiny \ Tiny(2) \
+Tiny                            \ 2.Tiny \ 2.Tiny \
 Heat                            \ *2.Heat(1) \ +-(1,{2|0}) \
 Overheat                        \ (31/64).Overheat(0,0) \ ^.PowTo(5) \
 Cool                            \ {3+*||2|1}.Cool(1/2) \ {5/2|2*} \
@@ -61,7 +64,7 @@ Cool2                           \ {3+*||2|1}.Cool(1) \ 9/4 \
 NortonMultiply                  \ ^.NortonMultiply(^) \ {^^*||0|v4} \
 ConwayMultiply                  \ *4.ConwayMultiply(*4) \ *6 \
 OrdinalSum                      \ *4.OrdinalSum(*5) \ *9 \
-Pow                             \ ^^.Pow(3) \ ^.Pow(2) \
+Pow                             \ ^^.Pow(3) \ ^.Pow(3) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
 Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
 
@@ -74,8 +77,10 @@ Count of day-2 antichains       \ DayN(2).Antichains.Size \ 98 \
 
 // Specific game implementations
 
-Amazons                         \ game.grid.Amazons("x...|o...").CanonicalForm \ +-(3,{4|0,{1|0,*}},{4|+-1,+-(1,{2|0}),{0,{1/2|0}|v}}) \
+Amazons                         \ game.grid.Amazons("x...|o...").CanonicalForm \ +-(3,{4|0,{1|0,*}},{4|+-1,{0,{1/2|0}|v},+-(1,{2|0})}) \
 Clobber                         \ game.grid.Clobber("xox|ox.").CanonicalForm \ {^^*|*,v} \
 Clobber (Diagonal)              \ game.grid.Clobber("xoxo|oox.|xxx.", directions => Direction.Diagonal).CanonicalForm \ {0,v*|vv} \
 Clobber (Anti)                  \ game.grid.Clobber("xoxo|oo..", anti => true).CanonicalForm \ {*|-1} \
-Domineering                     \ game.grid.Domineering(Grid(4,4)).CanonicalForm \ +-(0,{{2|0},2+Tiny(2)|{2|0},Miny(2)}) \
+Domineering                     \ game.grid.Domineering(Grid(4,4)).CanonicalForm \ +-(0,{{2|0},2+2.Tiny|{2|0},2.Miny}) \
+ToadsAndFrogs                   \ game.grid.ToadsAndFrogs("ttttt..fffff").CanonicalForm \ +-({2|*},{5/2||2|{0||||{0||v.Pow(2)|-1},{0||||0||(1/32).Miny|-2|||-1/2*}|||v.Pow(2)|-1/2||-1*}|||0}) \
+TopplingDominoes                \ game.grid.TopplingDominoes("xoxeoxeeo").CanonicalForm \ {1/2,{1/2|*},{1/2|0,*2}|-1,{0|-1},{*,*2|-1}} \

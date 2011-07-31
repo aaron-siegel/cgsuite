@@ -31,7 +31,6 @@ package org.cgsuite.ui.worksheet;
 import java.awt.Font;
 import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
 import org.netbeans.modules.editor.NbEditorDocument;
 import org.netbeans.modules.editor.NbEditorKit;
 import org.openide.text.CloneableEditorSupport;

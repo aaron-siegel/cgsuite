@@ -91,10 +91,20 @@ public class LanguageFunctionalTest
         Assert.assertTrue("[" + description + "] Lexer errors: " + lexer.getErrors(), lexer.getErrors().isEmpty());
         Assert.assertTrue("[" + description + "] Parser errors: " + parser.getErrors(), parser.getErrors().isEmpty());
         
-        Output output = domain.script(tree).simplify().toOutput();
-        StringWriter sw = new StringWriter();
-        output.write(new PrintWriter(sw), Output.Mode.PLAIN_TEXT);
+        String result;
         
-        Assert.assertEquals("[" + description + "] Incorrect output.", expected, sw.toString());
+        try
+        {
+            Output output = domain.script(tree).simplify().toOutput();
+            StringWriter sw = new StringWriter();
+            output.write(new PrintWriter(sw), Output.Mode.PLAIN_TEXT);
+            result = sw.toString();
+        }
+        catch (InputException exc)
+        {
+            result = "!!" + exc.getMessage();
+        }
+        
+        Assert.assertEquals("[" + description + "] Incorrect output.", expected, result);
     }
 }

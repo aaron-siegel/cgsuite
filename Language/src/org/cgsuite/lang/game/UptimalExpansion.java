@@ -339,9 +339,8 @@ public class UptimalExpansion
             }
             if (up)
             {
-                output.appendText(Output.Mode.PLAIN_TEXT, "Pow(");
                 output.appendSymbol(UP);
-                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(Output.Mode.PLAIN_TEXT, ".Pow(");
                 output.appendText(
                     EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
                     String.valueOf(n)
@@ -350,9 +349,8 @@ public class UptimalExpansion
             }
             else
             {
-                output.appendText(Output.Mode.PLAIN_TEXT, "Pow(");
                 output.appendSymbol(DOWN);
-                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(Output.Mode.PLAIN_TEXT, ".Pow(");
                 output.appendText(
                     EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
                     String.valueOf(n)
@@ -366,9 +364,8 @@ public class UptimalExpansion
             boolean up = (getCoefficient(1) > 0);
             if (up)
             {
-                output.appendText(Output.Mode.PLAIN_TEXT, "PowTo(");
                 output.appendSymbol(UP);
-                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(Output.Mode.PLAIN_TEXT, ".PowTo(");
                 output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
                 output.appendText(
                     EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
@@ -379,9 +376,8 @@ public class UptimalExpansion
             }
             else
             {
-                output.appendText(Output.Mode.PLAIN_TEXT, "PowTo(");
                 output.appendSymbol(DOWN);
-                output.appendText(Output.Mode.PLAIN_TEXT, ",");
+                output.appendText(Output.Mode.PLAIN_TEXT, ".PowTo(");
                 output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
                 output.appendText(
                     EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),

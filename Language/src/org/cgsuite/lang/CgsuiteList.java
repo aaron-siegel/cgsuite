@@ -1,7 +1,6 @@
 package org.cgsuite.lang;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -77,11 +76,13 @@ public class CgsuiteList extends CgsuiteCollection
         return objects;
     }
 
+    @Override
     public int size()
     {
         return objects.size();
     }
 
+    @Override
     public void add(CgsuiteObject obj)
     {
         set(obj, objects.size()+1);
@@ -89,6 +90,10 @@ public class CgsuiteList extends CgsuiteCollection
 
     public CgsuiteObject get(int index)
     {
+        if (index > objects.size())
+        {
+            throw new InputException("Index out of bounds: " + index);
+        }
         return objects.get(index-1);
     }
 
