@@ -14,6 +14,11 @@ mutable class Strip extends Grid
     
     override mutable method op[]:=(Integer value, Integer col) : java "putAtCol(int,int)";
     
+    override method LibertyCount(Integer col, Integer libertyValue)
+        return super.LibertyCount(1, col, libertyValue);
+    end
+ 
+    
     method SubStrip(Integer startCol, Integer endCol)
         return SubGrid(1, 1, startCol, endCol);
     end
