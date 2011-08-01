@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.antlr.runtime.Token;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
@@ -343,17 +344,43 @@ public class Domain
                 for (CgsuiteTree child : tree.getChildren())
                     lo.add(expression(child));
                 ro = new CgsuiteSet();
-                for (CgsuiteObject obj : lo)
-                    ro.add(obj.invokeMethod("op neg"));
+                try
+                {
+                    for (CgsuiteObject obj : lo)
+                        ro.add(obj.invokeMethod("op neg"));
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
                 return new ExplicitGame(lo, ro);
 
             case UNARY_MINUS:
 
-                return expression(tree.getChild(0)).invokeMethod("op neg");
+                x = expression(tree.getChild(0));
+                try
+                {
+                    return x.invokeMethod("op neg");
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
 
             case UNARY_PLUS:
 
-                return expression(tree.getChild(0)).invokeMethod("op pos");
+                x = expression(tree.getChild(0));
+                try
+                {
+                    return x.invokeMethod("op pos");
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
 
             case UNARY_AST:
 

@@ -420,28 +420,38 @@ standardRelationalToken
 	;
 
 addExpr
-	: multiplyExpr ((PLUS^ | MINUS^) multiplyExpr)*
-	;
-	
-multiplyExpr
-	: expExpr ((AST^ | FSLASH^ | PERCENT^) expExpr)*
+	: unaryAddExpr ((PLUS^ | MINUS^) unaryAddExpr | binaryPlusMinus^)*
 	;
 
-expExpr
-	: plusminusExpr (CARET^ plusminusExpr { $CARET.setType(EXP); })?
-	;
+binaryPlusMinus
+    : plusMinus -> ^(PLUS plusMinus)
+    ;
 	
-plusminusExpr
+unaryAddExpr
+    : plusMinus
+    | MINUS multiplyExpr -> ^(UNARY_MINUS[$MINUS] multiplyExpr)
+    | PLUS multiplyExpr -> ^(UNARY_PLUS[$PLUS] multiplyExpr)
+    | multiplyExpr
+    ;
+
+plusMinus
 options
 {
     backtrack = true;
     memoize = true;
 }
     : PLUSMINUS LPAREN expression (COMMA expression)* RPAREN -> ^(PLUSMINUS expression*)
-    | PLUSMINUS unaryExpr -> ^(PLUSMINUS unaryExpr)
-    | unaryExpr
+    | PLUSMINUS^ multiplyExpr
     ;
 
+multiplyExpr
+	: expExpr ((AST^ | FSLASH^ | PERCENT^) expExpr)*
+	;
+
+expExpr
+	: postfixExpr (CARET^ postfixExpr { $CARET.setType(EXP); })?
+	;
+	
 unaryExpr
 	: MINUS unaryExpr -> ^(UNARY_MINUS unaryExpr)
     | PLUS unaryExpr -> ^(UNARY_PLUS unaryExpr)

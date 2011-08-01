@@ -30,6 +30,7 @@
 package org.cgsuite.lang.game;
 
 
+import org.cgsuite.lang.InputException;
 import java.util.Comparator;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -1873,7 +1874,7 @@ public final class CanonicalShortGame extends Game
         }
         else if (!isInfinitesimal())
         {
-            throw new UnsupportedOperationException();
+            throw new InputException("That game is not atomic.");
         }
 
         // We use the following algorithm suggested by David Wolfe:
@@ -1895,6 +1896,7 @@ public final class CanonicalShortGame extends Game
 
         if (!(difference.leq(e) && (e.getInverse()).leq(difference)))
         {
+            throw new InputException("That game is not atomic.");
         }
 
         return g;

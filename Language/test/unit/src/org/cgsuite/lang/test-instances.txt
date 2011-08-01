@@ -10,7 +10,10 @@ Multivee/identifier parse check \ vvvvx := vvvvv \ v5 \
 
 Integer addition                \ 3+5 \ 8 \
 Integer multiplication          \ 3*5 \ 15 \
+Integer exponentiation          \ 3^5 \ 243 \
 Rational number                 \ 4/6 \ 2/3 \
+Rational exponentiation         \ (1/2)^4 \ 1/16 \
+Negative power                  \ 2^(-4) \ 1/16 \
 Nimber addition                 \ *3+*5 \ *6 \
 Nimber operator                 \ *(3+5) \ *8 \
 Ups                             \ ^^^^^^+vvv*+^19*3+v14 \ ^8*2 \
@@ -22,9 +25,15 @@ Slashes                         \ {3|||2||1|0,*||||-1/2} \ {3|||2||1|0,*||||-1/2
 Switch                          \ +-1 \ +-1 \
 Fractional switch               \ +-1/2 \ +-1/2 \
 Multiple switch                 \ +-(1,1+*) \ +-(1,1*) \
+Number + switch                 \ 3+-1 \ {4|2} \
+Compound switch                 \ +-1+-2+-3+-4 \ +-{10|8||6|4|||4|2||0|-2} \
 Tiny                            \ {0||0|-1} \ 1.Tiny \
 Tiny fraction                   \ {0||0|-1/4} \ (1/4).Tiny \
 Tiny G                          \ {0|||0||-1|-2} \ {2|1}.Tiny \
+Pow                             \ {0|v*} \ ^.Pow(2) \
+Pow*                            \ {0,*|v} \ ^.Pow(2)+* \
+PowTo                           \ {^|*} \ ^.PowTo(2) \
+PowTo*                          \ {0,^*|0} \ ^.PowTo(2)+* \
 
 // Collections
 
@@ -39,6 +48,9 @@ Game relations (0,*)            \ [*==0, *>=0, *<=0, *>0, *<0, *<>0, *|>0, *<|0,
 Game relations (0,1)            \ [1==0, 1>=0, 1<=0, 1>0, 1<0, 1<>0, 1|>0, 1<|0, 1!=0, 1<=>0] \ [false,true,false,true,false,false,true,false,true,1] \
 Simplification                  \ 1-1==0 \ true \
 AtomicWeight                    \ {^^*|*,v}.AtomicWeight \ 1/2 \
+AtomicWeight (not infinitesimal)\ 1.AtomicWeight \ !!That game is not atomic. \
+AtomicWeight (not atomic)       \ {2|^^||0}.AtomicWeight \ !!That game is not atomic. \
+AtomicWeight (not all small)    \ {1|^||0}.AtomicWeight \ 1 \
 Birthday                        \ ^^*2.Birthday \ 4 \
 Birthday2                       \ (117/64).Birthday \ 8 \
 Companion                       \ {1|^^}.Companion \ {1|^^*} \
@@ -82,6 +94,7 @@ Clobber                         \ game.grid.Clobber("xox|ox.").CanonicalForm \ {
 Clobber (Diagonal)              \ game.grid.Clobber("xoxo|oox.|xxx.", directions => Direction.Diagonal).CanonicalForm \ {0,v*|vv} \
 Clobber (Anti)                  \ game.grid.Clobber("xoxo|oo..", anti => true).CanonicalForm \ {*|-1} \
 Domineering                     \ game.grid.Domineering(Grid(4,4)).CanonicalForm \ +-(0,{{2|0},2+2.Tiny|{2|0},2.Miny}) \
+Konane                          \ game.grid.Konane(".xo.o.o.|.o......|.x......").CanonicalForm \ {1,1*,{1,1*|0}|0} \
 
 // Strip games
 

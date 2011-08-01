@@ -1,5 +1,5 @@
 class Integer extends Number : java "org.cgsuite.lang.CgsuiteInteger"
 
-    
+    override method op neg () : java "negate";
 
 end
