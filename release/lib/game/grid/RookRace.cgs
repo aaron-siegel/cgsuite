@@ -29,8 +29,8 @@ class RookRace extends GridGame
 
         us := player.Ordinal;
         
-        for m from 1 to grid.NumRows do
-            for n from 1 to grid.NumColumns do
+        for m from 1 to grid.RowCount do
+            for n from 1 to grid.ColumnCount do
                 if grid[m,n] == us then
                     for d in Direction.Orthogonal do
                         gap := 1;

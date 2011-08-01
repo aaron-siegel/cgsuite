@@ -11,7 +11,7 @@ class Push extends StripGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
 
-        for n from 1 to grid.NumColumns do
+        for n from 1 to grid.ColumnCount do
             if grid[n] == us then
                 copy := grid;
                 for k from n-1 to 1 by -1 while copy[k] != 0 do end;

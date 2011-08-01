@@ -9,8 +9,8 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
 
     static method ParseGrid(String str, String charmap) : java "parseGrid(java.lang.String,java.lang.String)";
 
-    property NumRows.get : java "getNumRows";
-    property NumColumns.get : java "getNumColumns";
+    property RowCount.get : java "getNumRows";
+    property ColumnCount.get : java "getNumColumns";
     property SymmetryInvariantRepresentation.get : java "symmetryInvariantRepresentation";
 
     override property ToString.get

@@ -13,7 +13,7 @@ class ToadsAndFrogs extends StripGame
         us := player.Ordinal;
         them := player.Opponent.Ordinal;
 
-        for n from 1 to grid.NumColumns do
+        for n from 1 to grid.ColumnCount do
             if grid[n] == us then
 
                 if grid[n+player.Sign] == 0 then
@@ -61,7 +61,7 @@ class ToadsAndFrogs extends StripGame
         // Check the death leap principle (Erickson's criterion).
 
         deathLeap := true;
-        for n from 1 to grid.NumColumns-1 do
+        for n from 1 to grid.ColumnCount-1 do
             if grid[n] == 1 and grid[n+1] == 0 or
                grid[n] == 0 and grid[n+1] == 2 or
                grid[n] == 1 and grid[n+1] == 2 and grid[n+2] == 0 and grid[n+3] == 0 or

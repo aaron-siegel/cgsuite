@@ -16,8 +16,8 @@ class Domineering extends GridGame
             mDelta := 0; nDelta := 1;
         end
 
-        for m from 1 to grid.NumRows do
-            for n from 1 to grid.NumColumns do
+        for m from 1 to grid.RowCount do
+            for n from 1 to grid.ColumnCount do
                 if grid[m,n] == 0 and grid[m+mDelta,n+nDelta] == 0 then
                     copy := grid;
                     copy[m,n] := 1;

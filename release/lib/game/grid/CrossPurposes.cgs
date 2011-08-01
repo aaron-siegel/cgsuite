@@ -30,8 +30,8 @@ class CrossPurposes extends GridGame
             ds := Direction.Horizontal
         end
 
-        for m from 1 to grid.NumRows do
-            for n from 1 to grid.NumColumns do
+        for m from 1 to grid.RowCount do
+            for n from 1 to grid.ColumnCount do
                 if grid[m,n] == 1 then
 
                     for d in ds do

@@ -10,17 +10,17 @@ class Amazons extends GridGame
 
         us := player.Ordinal;
 
-        for m from 1 to grid.NumRows do
-            for n from 1 to grid.NumColumns do
+        for m from 1 to grid.RowCount do
+            for n from 1 to grid.ColumnCount do
                 if grid[m,n] == us then
 
                     for d in Direction.All do
-                        for k from 1 to grid.NumRows do
+                        for k from 1 to grid.RowCount do
                             m2 := m + d.RowShift * k;
                             n2 := n + d.ColumnShift * k;
                             if grid[m2,n2] == 0 then
                                 for e in Direction.All do
-                                    for l from 1 to grid.NumRows do
+                                    for l from 1 to grid.RowCount do
                                         mArrow := m2 + e.RowShift * l;
                                         nArrow := n2 + e.ColumnShift * l;
                                         if (grid[mArrow,nArrow] == 0) or (mArrow == m and nArrow == n) then

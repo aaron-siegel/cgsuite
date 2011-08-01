@@ -39,8 +39,8 @@ class Clobber extends GridGame
         // Iterate over all squares in the grid, looking for
         // occupied spaces that match our color.
 
-        for m from 1 to grid.NumRows do
-            for n from 1 to grid.NumColumns do
+        for m from 1 to grid.RowCount do
+            for n from 1 to grid.ColumnCount do
                 if grid[m,n] == us then
                 
                     // Found one.  Now look in all directions

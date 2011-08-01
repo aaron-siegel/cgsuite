@@ -38,8 +38,8 @@ class Lasers extends GridGame
         either := 3;
         burned := 4;
         
-        for m from 1 to grid.NumRows do
-            for n from 1 to grid.NumColumns do
+        for m from 1 to grid.RowCount do
+            for n from 1 to grid.ColumnCount do
                 if grid[m,n] == us or grid[m,n] == either then
                     copy := grid;
                     copy[m,n] := burned;

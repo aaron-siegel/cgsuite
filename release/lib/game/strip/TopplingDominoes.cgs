@@ -14,12 +14,12 @@ class TopplingDominoes extends StripGame
         
         options := {};
         
-        for n from 1 to grid.NumColumns do
+        for n from 1 to grid.ColumnCount do
         
             if grid[n] == player.Ordinal or grid[n] == 3 then
             
                 options.Add(TopplingDominoes(grid.SubStrip(1, n-1)));
-                options.Add(TopplingDominoes(grid.SubStrip(n+1, grid.NumColumns)));
+                options.Add(TopplingDominoes(grid.SubStrip(n+1, grid.ColumnCount)));
             
             end
         
