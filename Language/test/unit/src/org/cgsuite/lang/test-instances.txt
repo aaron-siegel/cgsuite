@@ -35,6 +35,16 @@ Pow*                            \ {0,*|v} \ ^.Pow(2)+* \
 PowTo                           \ {^|*} \ ^.PowTo(2) \
 PowTo*                          \ {0,^*|0} \ ^.PowTo(2)+* \
 
+// Loopy game specification
+
+on                              \ {pass|} \ on \
+off                             \ {|pass} \ off \
+over                            \ {0|pass} \ over \
+under                           \ {pass|0} \ under \
+upon                            \ {pass|*} \ {pass|*} \
+Hanging pass                    \ pass \ !!Unexpected "pass". \
+Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
+
 // Collections
 
 List                            \ [3,5,3,1] \ [3,5,3,1] \

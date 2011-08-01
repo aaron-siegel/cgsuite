@@ -122,6 +122,10 @@ class Game : java "org.cgsuite.lang.Game"
         return CanonicalForm.Mean;
     end
     
+    property Outcome.get
+        return CanonicalForm.Outcome;
+    end
+    
     property Rcf.get
         return CanonicalForm.Rcf;
     end

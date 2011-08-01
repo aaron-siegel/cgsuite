@@ -32,7 +32,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         {
             AND, BEGIN, BREAK, BY, CLASS, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
             FALSE, FOR, FOREACH, FROM, GET, IF, IN, IS, JAVA, LISTOF, METHOD, MUTABLE, NEG,
-            NIL, NOT, OP, OR, OVERRIDE, POS, PROPERTY, RETURN,
+            NIL, NOT, OP, OR, OVERRIDE, PASS, POS, PROPERTY, RETURN,
             SET, SETOF, SUPER, STATIC, TABLEOF, THEN, THIS, TO, TRUE, VAR, WHERE, WHILE
         });
         tokenTypes.put("identifier", new int[] { IDENTIFIER });

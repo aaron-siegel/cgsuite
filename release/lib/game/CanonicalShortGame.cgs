@@ -60,5 +60,19 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
         return this == Rcf;
         
     end
+    
+    override property Outcome.get
+    
+        if this == 0 then
+            return OutcomeClass.P;
+        elseif this >= 0 then
+            return OutcomeClass.L;
+        elseif this <= 0 then
+            return OutcomeClass.R;
+        else
+            return OutcomeClass.N;
+        end
+    
+    end
 
 end

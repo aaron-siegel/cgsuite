@@ -557,6 +557,10 @@ public class Domain
 
                 String msg = expression(tree.getChild(0)).toString();
                 throw new InputException(tree.getToken(), msg);
+                
+            case PASS:
+                
+                throw new InputException(tree.getToken(), "Unexpected \"pass\".");
 
             default:
 
@@ -1205,14 +1209,17 @@ public class Domain
                 default:
 
                     CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).simplify();
-                    if (obj instanceof RationalNumber)
+                    if (obj instanceof CgsuiteInteger)
+                        curNode.addLeftEdge(new CanonicalShortGame((CgsuiteInteger) obj));
+                    else if (obj instanceof RationalNumber)
                         curNode.addLeftEdge(new CanonicalShortGame((RationalNumber) obj));
                     else if(obj instanceof CanonicalShortGame)
                         curNode.addLeftEdge((CanonicalShortGame) obj);
                     else if (obj instanceof LoopyGame)
                         curNode.addLeftEdge((LoopyGame) obj);
                     else
-                        throw new InputException(tree.getChild(0).getChild(i).getToken(), "Expression not permitted in a loopy game constructor.");
+                        throw new InputException(tree.getChild(0).getChild(i).getToken(),
+                            "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
                     break;
             }
         }
@@ -1245,14 +1252,17 @@ public class Domain
                 default:
 
                     CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).simplify();
-                    if (obj instanceof RationalNumber)
+                    if (obj instanceof CgsuiteInteger)
+                        curNode.addRightEdge(new CanonicalShortGame((CgsuiteInteger) obj));
+                    else if (obj instanceof RationalNumber)
                         curNode.addRightEdge(new CanonicalShortGame((RationalNumber) obj));
                     else if (obj instanceof CanonicalShortGame)
                         curNode.addRightEdge((CanonicalShortGame) obj);
                     else if (obj instanceof LoopyGame)
                         curNode.addRightEdge((LoopyGame) obj);
                     else
-                        throw new InputException(tree.getChild(1).getChild(i).getToken(), "Expression not permitted in a loopy game constructor.");
+                        throw new InputException(tree.getChild(1).getChild(i).getToken(),
+                            "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
                     break;
             }
         }

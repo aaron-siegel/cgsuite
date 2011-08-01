@@ -1,0 +1,18 @@
+/*
+ * OutcomeClass.cgs
+ *
+ * Created by asiegel on Jul 31, 2011
+ */
+
+enum OutcomeClass
+
+    P,
+    N,
+    L,
+    R;
+
+    // TODO Allow this constructor to be removed
+    method OutcomeClass()
+    end
+
+end
