@@ -8,13 +8,15 @@
  * captured and removed from the game. Likewise, Right may move any
  * white stone onto a targeted black stone.
  *
- * This implementation supports two rule variations
+ * This implementation supports several rule variations
  * through the use of optional parameters:
  *   - the allowed set of directions for clobbering can
  *     be changed.
  *   - in antiClobber, stones are moved onto vacant spaces
  *     and leave behind a stone of the opponent's colour
-       on the original square.
+ *     on the original square.
+ *   - in impartial Clobber, either player can use either
+ *     type of stone
  *
  * Mandatory parameters:
  *   - a grid, or string representation of a grid
@@ -22,7 +24,8 @@
  * Optional parameters:
  *   - (directions) the allowed movement directions 
  *   - (anti) a boolean 
- *
+ *   - (impartial) a boolean
+ * 
  * Examples:
  * g := game.grid.Clobber("oox|oo.|oox");
  * g.CanonicalForm; (should be down-4-*)
@@ -36,8 +39,9 @@ class Clobber extends GridGame
 
     var directions;
     var anti;
+    var impartial;
 
-    method Clobber(grid, directions ? Direction.Orthogonal, anti ? false)
+    method Clobber(grid, directions ? Direction.Orthogonal, anti ? false, impartial ? false)
     
         this.GridGame(grid);
         
@@ -61,20 +65,23 @@ class Clobber extends GridGame
         for m from 1 to grid.RowCount do
             for n from 1 to grid.ColumnCount do
                 if grid[m,n] == us then
-
                     for d in directions do
                         if grid[m+d.RowShift,n+d.ColumnShift] == clobbered then
                             copy := grid;
                             copy[m,n] := behind;
                             copy[m+d.RowShift,n+d.ColumnShift] := us;
-                            options.Add(Clobber(copy, directions, anti));
+                            options.Add(Clobber(copy, directions, anti, impartial));
                         end
                     end
 
                 end
             end
         end
-
+        
+        if impartial then
+            options.AddAll(setof(Clobber(g.Grid, directions, anti, true) for g in Clobber(grid, directions, anti, false).Options(player.Opponent)));
+        end
+       
         return options;
 
     end
