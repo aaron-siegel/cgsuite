@@ -48,8 +48,6 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
@@ -260,9 +258,7 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     
     public void copy()
     {
-        StringWriter sw = new StringWriter();
-        output.write(new PrintWriter(sw), Output.Mode.PLAIN_TEXT);
-        StringSelection text = new StringSelection(sw.toString());
+        StringSelection text = new StringSelection(output.toString());
         getToolkit().getSystemClipboard().setContents(text, text);
     }
     

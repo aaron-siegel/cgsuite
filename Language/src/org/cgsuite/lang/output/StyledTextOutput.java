@@ -75,7 +75,7 @@ import java.util.Stack;
  * @author  Aaron Siegel
  * @version $Revision: 1.23 $ $Date: 2007/08/13 20:43:45 $
  */
-public class StyledTextOutput implements Output
+public class StyledTextOutput extends AbstractOutput
 {
     private static Map<FontKey,Font> fontCache;
     private static Map<FontKey,AffineTransform> transformCache;
@@ -389,7 +389,7 @@ public class StyledTextOutput implements Output
     {
         if (screenFrc == null)
         {
-            screenFrc = new BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_RGB)
+            screenFrc = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)
                 .createGraphics().getFontRenderContext();
         }
         return screenFrc;
@@ -1305,7 +1305,7 @@ public class StyledTextOutput implements Output
      * Gets a <code>Font</code> that can display the specified symbol with
      * the specified style attributes.  All style attributes will be
      * pre-applied to the font, except for <code>COLOR</code> attributes.
-     * An appropriate {@link java.awt.geom.AffineTransform} will be applied to
+     * An appropriate {@link AffineTransform} will be applied to
      * resolve the <code>LOCATION</code> attribute (if any).
      * 
      * @param   styles The style attributes to apply to the font.

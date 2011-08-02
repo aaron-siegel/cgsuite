@@ -96,9 +96,7 @@ public class LanguageFunctionalTest
         try
         {
             Output output = domain.script(tree).simplify().toOutput();
-            StringWriter sw = new StringWriter();
-            output.write(new PrintWriter(sw), Output.Mode.PLAIN_TEXT);
-            result = sw.toString();
+            result = output.toString();
         }
         catch (InputException exc)
         {

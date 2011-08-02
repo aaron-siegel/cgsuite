@@ -245,8 +245,6 @@ public class WorksheetPanel extends JPanel
         catch (InterruptedException exc)
         {
         }
-
-        Output[] output;
         
         if (finished)
         {

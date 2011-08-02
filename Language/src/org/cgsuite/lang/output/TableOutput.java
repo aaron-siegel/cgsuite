@@ -4,7 +4,9 @@
  */
 package org.cgsuite.lang.output;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.EnumSet;
@@ -15,7 +17,7 @@ import org.cgsuite.lang.Table;
  *
  * @author asiegel
  */
-public class TableOutput implements Output
+public class TableOutput extends AbstractOutput
 {
     int numColumns, maxCellWidth;
     EnumSet<Table.Format> format;
@@ -97,16 +99,16 @@ public class TableOutput implements Output
             width += colWidth[j] + hSpace * 2;
         }
         width += numColumns + 1;
-        return new java.awt.Dimension(width, height);
+        return new Dimension(width, height);
     }
     
     @Override
-    public void paint(java.awt.Graphics2D g, int preferredWidth)
+    public void paint(Graphics2D g, int preferredWidth)
     {
         Dimension size = getSize(0);
         
-        g.setBackground(java.awt.Color.white);
-        g.setColor(java.awt.Color.black);
+        g.setBackground(Color.white);
+        g.setColor(Color.black);
         g.clearRect(0, 0, size.width, size.height);
         
         int hSpace, vSpace;
@@ -187,7 +189,7 @@ public class TableOutput implements Output
                     int leftEdge = (colWidth[j] - cellSize.width) / 2;
                     if (g.hitClip(hPos+hSpace+1+leftEdge, vPos+vSpace+1+topEdge, cellSize.width, cellSize.height))
                     {
-                        cells[i][j].paint((java.awt.Graphics2D) g.create(hPos+hSpace+1+leftEdge, vPos+vSpace+1+topEdge, cellSize.width, cellSize.height), 0);
+                        cells[i][j].paint((Graphics2D) g.create(hPos+hSpace+1+leftEdge, vPos+vSpace+1+topEdge, cellSize.width, cellSize.height), 0);
                     }
                 }
                 hPos += hSpace * 2 + 1 + colWidth[j];
@@ -215,10 +217,7 @@ public class TableOutput implements Output
                 }
                 else
                 {
-                    StringWriter sw = new java.io.StringWriter();
-                    PrintWriter pw = new java.io.PrintWriter(sw);
-                    cells[i][j].write(pw, mode);
-                    outputStrings[i*numColumns+j] = sw.toString();
+                    outputStrings[i*numColumns+j] = cells[i][j].toString();
                     int width = stringWidth(outputStrings[i*numColumns+j]);
                     if (maxCellWidth != 0 && width > maxCellWidth)
                     {

@@ -32,6 +32,7 @@ package org.cgsuite.lang.output;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,17 +49,12 @@ import org.cgsuite.lang.game.Grid;
  * @author  Aaron Siegel
  * @version $Revision: 1.5 $ $Date: 2006/04/07 06:02:47 $
  */
-public class GridOutput implements Output
+public class GridOutput extends AbstractOutput
 {
     protected Grid grid;
     protected Icon[] icons;
     protected Dimension size, cellSize;
     protected String alt;
-
-    public GridOutput(Grid grid, CgsuiteList icons)
-    {
-        this(grid, icons, grid.toString());
-    }
 
     public GridOutput(Grid grid, CgsuiteList icons, String alt)
     {
@@ -78,7 +74,7 @@ public class GridOutput implements Output
     }
 
     @Override
-    public void write(java.io.PrintWriter out, Output.Mode mode)
+    public void write(PrintWriter out, Output.Mode mode)
     {
         if (mode == Output.Mode.PLAIN_TEXT)
         {

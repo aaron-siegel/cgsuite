@@ -29,6 +29,10 @@
 
 package org.cgsuite.lang.output;
 
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.io.PrintWriter;
+
 /**
  * An abstract output scheme that can be converted to any of several forms of
  * output.  Combinatorial Game Suite supports numerous object types (various
@@ -51,21 +55,21 @@ public interface Output
     /**
      * Writes this output in text format.
      */
-    void write(java.io.PrintWriter out, Mode mode);
+    void write(PrintWriter out, Mode mode);
     
     /**
      * Gets the amount of space required to display this output completely
      * with the specified preferred width.  The result should be
      * <i>exactly</i> the amount of space needed to render this output
      * completely using
-     * {@link #paint(java.awt.Graphics2D, int) paint}.
+     * {@link #paint(Graphics2D, int) paint}.
      *
      * @param   preferredWidth The desired width of the output, in pixels.
      * @return  The amount of space required to render this output
      *          completely.
-     * @see     #paint(java.awt.Graphics2D, int) paint
+     * @see     #paint(Graphics2D, int) paint
      */
-    java.awt.Dimension getSize(int preferredWidth);
+    Dimension getSize(int preferredWidth);
     
     /**
      * Paints this output on the specified <code>Graphics2D</code>.
@@ -82,8 +86,8 @@ public interface Output
      *          painted.
      * @param   preferredWidth The desired width of the output, in pixels.
      */
-    void paint(java.awt.Graphics2D graphics, int preferredWidth);
-    
+    void paint(Graphics2D graphics, int preferredWidth);
+        
     /**
      * An output mode.
      *
@@ -113,4 +117,3 @@ public interface Output
         }
     }
 }
-
