@@ -65,29 +65,37 @@ public class ExplorerNode
     {
         synchronized(explorer)
         {
-            return explorer.getRootNode().getLeftChildren().contains(this);
+            return explorer.isRoot(this);
         }
     }
     
-    public List<? extends ExplorerNode> getLeftChildren()
+    public List<ExplorerNode> getLeftChildren()
     {
         return Collections.unmodifiableList(leftChildren);
     }
     
-    public List<? extends ExplorerNode> getRightChildren()
+    public List<ExplorerNode> getRightChildren()
     {
         return Collections.unmodifiableList(rightChildren);
+    }
+    
+    public ExplorerNode addChild(Game h, boolean left)
+    {
+        return left? addLeftChild(h) : addRightChild(h);
     }
     
     public ExplorerNode addLeftChild(Game h)
     {
         synchronized (explorer)
         {
-            ExplorerNode node = explorer.lookupOrCreate(h);
-
-            if (!leftChildren.contains(node))
+            ExplorerNode node = findLeftChild(h);
+            
+            if (node == null)
+            {
+                node = explorer.create(h);
                 leftChildren.add(node);
-
+            }
+            
             return node;
         }
     }
@@ -96,12 +104,41 @@ public class ExplorerNode
     {
         synchronized (explorer)
         {
-            ExplorerNode node = explorer.lookupOrCreate(h);
-
-            if (!rightChildren.contains(node))
+            ExplorerNode node = findRightChild(h);
+            
+            if (node == null)
+            {
+                node = explorer.create(h);
                 rightChildren.add(node);
-
+            }
+            
             return node;
+        }
+    }
+    
+    public ExplorerNode findLeftChild(Game h)
+    {
+        synchronized (explorer)
+        {
+            for (ExplorerNode node : leftChildren)
+            {
+                if (node.getG().equals(h))
+                    return node;
+            }
+            return null;
+        }
+    }
+    
+    public ExplorerNode findRightChild(Game h)
+    {
+        synchronized (explorer)
+        {
+            for (ExplorerNode node : rightChildren)
+            {
+                if (node.getG().equals(h))
+                    return node;
+            }
+            return null;
         }
     }
     

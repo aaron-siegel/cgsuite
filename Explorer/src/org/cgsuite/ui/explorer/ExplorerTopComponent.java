@@ -93,6 +93,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
         treePopupMenu = new javax.swing.JPopupMenu();
         expandSensibleOptionsMenuItem = new javax.swing.JMenuItem();
+        expandSensibleLinesMenuItem = new javax.swing.JMenuItem();
         primarySplitPane = new javax.swing.JSplitPane();
         detailSplitPane = new javax.swing.JSplitPane();
         editorScrollPane = new javax.swing.JScrollPane();
@@ -115,6 +116,14 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
             }
         });
         treePopupMenu.add(expandSensibleOptionsMenuItem);
+
+        org.openide.awt.Mnemonics.setLocalizedText(expandSensibleLinesMenuItem, org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.expandSensibleLinesMenuItem.text")); // NOI18N
+        expandSensibleLinesMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                expandSensibleLinesMenuItemActionPerformed(evt);
+            }
+        });
+        treePopupMenu.add(expandSensibleLinesMenuItem);
 
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
@@ -200,7 +209,8 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         add(infoPanel, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
-    private CgsuiteObject lo, ro;
+    private CgsuiteObject leftOptions, rightOptions;
+    private CgsuiteObject leftLines, rightLines;
 
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
@@ -215,19 +225,19 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
             @Override
             public void run()
             {
-                lo = g.invokeMethod("SensibleLeftOptions$get");
-                ro = g.invokeMethod("SensibleRightOptions$get");
+                leftOptions = g.invokeMethod("SensibleLeftOptions$get");
+                rightOptions = g.invokeMethod("SensibleRightOptions$get");
             }
         });
 
         task.schedule(0);
         task.waitFinished();
 
-        for (CgsuiteObject gl : (CgsuiteCollection) lo)
+        for (CgsuiteObject gl : (CgsuiteCollection) leftOptions)
         {
             node.addLeftChild((Game) gl);
         }
-        for (CgsuiteObject gr : (CgsuiteCollection) ro)
+        for (CgsuiteObject gr : (CgsuiteCollection) rightOptions)
         {
             node.addRightChild((Game) gr);
         }
@@ -264,6 +274,50 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         setCommand((String) commandComboBox.getSelectedItem());
     }//GEN-LAST:event_commandComboBoxActionPerformed
 
+private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_expandSensibleLinesMenuItemActionPerformed
+        final ExplorerNode node = tree.getSelectedNode();
+        if (node == null)
+            return;
+        
+        final Game g = node.getG();
+        
+        RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                leftLines = g.invokeMethod("SensibleLeftLines$get");
+                rightLines = g.invokeMethod("SensibleRightLines$get");
+            }
+        });
+
+        task.schedule(0);
+        task.waitFinished();
+
+        for (CgsuiteObject line : (CgsuiteCollection) leftLines)
+        {
+            ExplorerNode curNode = node;
+            boolean left = true;
+            for (CgsuiteObject follower : (CgsuiteCollection) line)
+            {
+                curNode = curNode.addChild((Game) follower, left);
+                left = !left;
+            }
+        }
+        for (CgsuiteObject line : (CgsuiteCollection) rightLines)
+        {
+            ExplorerNode curNode = node;
+            boolean left = false;
+            for (CgsuiteObject follower : (CgsuiteCollection) line)
+            {
+                curNode = curNode.addChild((Game) follower, left);
+                left = !left;
+            }
+        }
+
+        tree.refresh();
+}//GEN-LAST:event_expandSensibleLinesMenuItemActionPerformed
+
     private void doTreePopup(MouseEvent evt)
     {
         treePopupMenu.show(tree, evt.getX(), evt.getY());
@@ -278,6 +332,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     private javax.swing.JPanel commandPanel;
     private javax.swing.JSplitPane detailSplitPane;
     private javax.swing.JScrollPane editorScrollPane;
+    private javax.swing.JMenuItem expandSensibleLinesMenuItem;
     private javax.swing.JMenuItem expandSensibleOptionsMenuItem;
     private javax.swing.JPanel infoPanel;
     private org.cgsuite.ui.worksheet.InputPanel inputPanel;

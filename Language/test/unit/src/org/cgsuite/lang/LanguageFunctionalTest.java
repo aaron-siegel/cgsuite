@@ -75,7 +75,7 @@ public class LanguageFunctionalTest
         this.expected = expected;
     }
     
-    @Test(timeout=5000L)
+    @Test(timeout=10000L)
     public void testLanguage() throws Exception
     {
         log.info("Running functional test " + testNumber + ": " + description);

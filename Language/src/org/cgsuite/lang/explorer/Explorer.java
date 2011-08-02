@@ -26,9 +26,9 @@ public class Explorer extends CgsuiteObject
     public static final CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Explorer");
 
     private ExplorerWindow window;
-    private ExplorerNode root;
+    private List<ExplorerNode> roots;
     private List<ExplorerListener> listeners;
-    Map<Game,ExplorerNode> gameLookup;
+    private Map<Game,ExplorerNode> gameLookup;
 
     public Explorer()
     {
@@ -39,7 +39,7 @@ public class Explorer extends CgsuiteObject
     {
         super(TYPE);
 
-        this.root = new ExplorerNode(this, null);
+        this.roots = new ArrayList<ExplorerNode>();
         this.listeners = new ArrayList<ExplorerListener>();
         this.gameLookup = new HashMap<Game,ExplorerNode>();
 
@@ -77,10 +77,29 @@ public class Explorer extends CgsuiteObject
             }
         });
     }
+    
+    public synchronized List<ExplorerNode> roots()
+    {
+        List<ExplorerNode> copy = new ArrayList<ExplorerNode>();
+        copy.addAll(roots);
+        return copy;
+    }
+    
+    public synchronized ExplorerNode firstRoot()
+    {
+        return roots.isEmpty() ? null : roots.get(0);
+    }
+    
+    public boolean isRoot(ExplorerNode node)
+    {
+        return roots.contains(node);
+    }
 
     public synchronized ExplorerNode addAsRoot(Game g)
     {
-        return this.root.addLeftChild(g);
+        ExplorerNode root = new ExplorerNode(this, g);
+        roots.add(root);
+        return root;
     }
 
     public synchronized ExplorerNode findOrAdd(Game g)
@@ -92,11 +111,6 @@ public class Explorer extends CgsuiteObject
         return node;
     }
 
-    public synchronized ExplorerNode getRootNode()
-    {
-        return root;
-    }
-    
     public synchronized Game getSelection()
     {
         ExplorerNode node = window.getSelectedNode();
@@ -119,15 +133,12 @@ public class Explorer extends CgsuiteObject
         return gameLookup.get(g);
     }
 
-    synchronized ExplorerNode lookupOrCreate(Game g)
+    synchronized ExplorerNode create(Game g)
     {
-        ExplorerNode node = gameLookup.get(g);
-        if (node == null)
-        {
-            node = new ExplorerNode(this, g);
-            this.gameLookup.put(g, node);
-            fireNodeAddedEvent(node);
-        }
+        ExplorerNode node = new ExplorerNode(this, g);
+        if (!gameLookup.containsKey(g))
+            gameLookup.put(g, node);
+        fireNodeAddedEvent(node);
         return node;
     }
 }

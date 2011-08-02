@@ -140,6 +140,9 @@ public class GridEditorPanel extends EditorPanel
         this.type = type;
         this.permissions = EnumSet.allOf(Permission.class);
         
+        if (initialGrid.getCgsuiteClass() == Grid.STRIP_TYPE)
+            this.permissions.remove(Permission.RESIZE_VERTICAL);
+        
         this.icons = new Icon[iconList.size()];
         for (int i = 0; i < iconList.size(); i++)
         {

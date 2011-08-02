@@ -154,7 +154,12 @@ public class Grid extends CgsuiteObject implements Serializable
     
     public static Grid parseStrip(String str, String charMap)
     {
-        return parse(STRIP_TYPE, str, charMap);
+        Grid strip = parse(STRIP_TYPE, str, charMap);
+        
+        if (strip.getNumRows() == 1)
+            return strip;
+        else
+            throw new InputException("The position must contain just one row.");
     }
     
     public static Grid parseGrid(String str, String charMap)

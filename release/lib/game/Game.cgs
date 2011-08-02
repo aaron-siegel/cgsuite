@@ -57,6 +57,55 @@ class Game : java "org.cgsuite.lang.Game"
         return sopts;
 
     end
+    
+    method SensibleLines(Player player)
+    
+        copts := CanonicalForm.Options(player);
+        lines := {};
+        
+        for k in copts do
+        
+            cur := this;
+            line := [];
+            
+            do
+            
+                for g in cur.Options(player) do
+                    if (player == Player.Left  and g.CanonicalForm >= k) or
+                       (player == Player.Right and g.CanonicalForm <= k) then
+                        
+                        line.Add(g);
+                        break;
+                        
+                    end
+                end
+                
+                if g.CanonicalForm == k then
+                    break;
+                end
+                
+                // Find a reversible option
+                
+                for h in g.Options(player.Opponent) do
+                    if (player == Player.Left  and h.CanonicalForm <= this.CanonicalForm) or
+                       (player == Player.Right and h.CanonicalForm >= this.CanonicalForm) then
+                       
+                        line.Add(h);
+                        cur := h;
+                        break;
+                    
+                    end
+                end
+            
+            end
+            
+            lines.Add(line);
+
+        end
+        
+        return lines;
+    
+    end
 
     property SensibleLeftOptions.get
         return SensibleOptions(Player.Left);
@@ -64,6 +113,14 @@ class Game : java "org.cgsuite.lang.Game"
 
     property SensibleRightOptions.get
         return SensibleOptions(Player.Right);
+    end
+    
+    property SensibleLeftLines.get
+        return SensibleLines(Player.Left);
+    end
+
+    property SensibleRightLines.get
+        return SensibleLines(Player.Right);
     end
     
     property AtomicWeight.get
