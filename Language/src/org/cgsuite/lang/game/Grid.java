@@ -419,7 +419,6 @@ public class Grid extends CgsuiteObject implements Serializable
         symmetries = null;
     }
     
-    
     /**
      * Clones this grid, changing the number of bits per entry as specified.
      * The clone will be indentical in value to this grid, but with the bits
@@ -432,9 +431,9 @@ public class Grid extends CgsuiteObject implements Serializable
     public Grid clone(BitsPerEntry newBitsPerEntry)
     {
         Grid clone = new Grid(type, numRows, numColumns, newBitsPerEntry);
-        for (int i = 0; i < numRows; i++)
+        for (int i = 1; i <= numRows; i++)
         {
-            for (int j = 0; j < numColumns; j++)
+            for (int j = 1; j <= numColumns; j++)
             {
                 clone.putAt(getAt(i, j), i, j);
             }

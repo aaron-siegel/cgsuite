@@ -32,6 +32,8 @@ import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
 import org.openide.util.RequestProcessor;
 
+// TODO Kill calculation
+
 /**
  *
  * @author asiegel

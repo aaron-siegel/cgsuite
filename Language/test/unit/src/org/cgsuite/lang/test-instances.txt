@@ -111,6 +111,7 @@ Clobber (Diagonal)              \ game.grid.Clobber("xoxo|oox.|xxx.", directions
 Clobber (Anti)                  \ game.grid.Clobber("xoxo|oo..", anti => true).CanonicalForm \ {*|-1} \
 Domineering                     \ game.grid.Domineering(Grid(4,4)).CanonicalForm \ +-(0,{{2|0},2+2.Tiny|{2|0},2.Miny}) \
 Konane                          \ game.grid.Konane(".xo.o.o.|.o......|.x......").CanonicalForm \ {1,1*,{1,1*|0}|0} \
+NoGo                            \ game.grid.NoGo("x..|...|x.x").CanonicalForm \ {3||2|1|||{1|0},{1,{2|1}|{1|0},1.Miny}} \
 
 // Strip games
 

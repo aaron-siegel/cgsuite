@@ -201,7 +201,7 @@ public class GridEditorPanel extends EditorPanel
      */
     public final void setGrid(Grid grid)
     {
-        this.grid = (Grid) grid.createCrosslink();
+        this.grid = grid.clone(grid.getBitsPerEntry());
         revalidate();
         repaint();
     }

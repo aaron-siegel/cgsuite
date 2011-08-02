@@ -17,6 +17,8 @@ import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
 import org.openide.util.Lookup;
 
+// TODO Add nodes as children of existing ones when possible
+
 /**
  *
  * @author asiegel
