@@ -855,7 +855,7 @@ public final class CanonicalShortGame extends Game
             if (!translate.equals(CanonicalShortGame.ZERO))
             {
                 output.appendOutput(translate.getNumberPart().toOutput());
-                output.appendText(Output.Mode.PLAIN_TEXT, "+");
+                output.appendText(Output.Mode.PLAIN_TEXT, tiny ? "+" : "-");
             }
             // First get a sequence for the subscript.  If that sequence contains any
             // subscripts or superscripts, then we display this as Tiny(G) rather than +_G.
