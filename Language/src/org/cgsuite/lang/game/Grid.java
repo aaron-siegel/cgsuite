@@ -746,8 +746,8 @@ public class Grid extends CgsuiteObject implements Serializable
     public int libertyCount(int row, int col, int libertyValue)
     {
         int chainValue = getAt(row, col);
-        if (chainValue == libertyValue)
-            throw new IllegalArgumentException("Chain value and liberty value are equal.");
+        if (chainValue == libertyValue || chainValue == -1)
+            return -1;
         
         initMarkers();
         return libertyCount(row-1, col-1, libertyValue, chainValue);
