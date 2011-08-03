@@ -491,7 +491,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 for (CgsuiteTree node : tree.getChildren())
                 {
-                    CgsuiteClass parent = CgsuitePackage.forceLookupClass(node.getText());
+                    CgsuiteClass parent = CgsuitePackage.forceLookupClass(node.getText(), imports);
                     assert parent != null : node.getText();
                     parents.add(parent);
                 }
@@ -569,7 +569,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             assert tree.getChild(2).getChild(i).getType() == ENUM_ELEMENT : tree.getChild(2).toStringTree();
             String literal = tree.getChild(2).getChild(i).getChild(0).getChild(0).getText();
-            declareVar(literal, EnumSet.of(Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i+1);
+            declareVar(tree.getChild(2).getChild(i).getChild(0).getChild(0), literal, EnumSet.of(Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i+1);
 //            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
 //            assign(literal, value);
 //            value.assign("Ordinal", new RationalNumber(i, 1));
@@ -648,12 +648,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     {
                         case IDENTIFIER:
                             String varName = tree.getChild(i).getText();
-                            declareVar(varName, modifiers, null, -1);
+                            declareVar(tree.getChild(i), varName, modifiers, null, -1);
                             break;
                             
                         case ASSIGN:
                             varName = tree.getChild(i).getChild(0).getText();
-                            declareVar(varName, modifiers, tree.getChild(i).getChild(1), -1);
+                            declareVar(tree.getChild(i).getChild(0), varName, modifiers, tree.getChild(i).getChild(1), -1);
                             break;
                             
                         default:
@@ -736,12 +736,24 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName));
     }
 
-    private void declareVar(String name, EnumSet<Modifier> modifiers, CgsuiteTree initializer, int declRank)
+    private void declareVar(CgsuiteTree tree, String name, EnumSet<Modifier> modifiers, CgsuiteTree initializer, int declRank)
     {
+        if (vars.containsKey(name))
+        {
+            CgsuiteClass decl = vars.get(name).getDeclaringClass();
+            if (decl == this)
+            {
+                throw new InputException(tree.getToken(), "Duplicate variable: " + name);
+            }
+            else
+            {
+                throw new InputException(tree.getToken(), "Variable shadows superclass var: " + name + " (from class " + decl.getQualifiedName() + ")");
+            }
+        }
         Variable var = new Variable(this, name, modifiers, initializer, declRank);
         log.info("Declaring var: " + this.name + "." + name);
-        this.vars.put(name, var);
-        this.varsInOrder.add(var);
+        vars.put(name, var);
+        varsInOrder.add(var);
     }
 
     private String methodName(CgsuiteTree tree) throws CgsuiteException

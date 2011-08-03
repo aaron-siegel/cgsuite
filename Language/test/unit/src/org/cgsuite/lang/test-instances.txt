@@ -62,7 +62,7 @@ Map                             \ {"foo" => 1, "bar" => *2, 16 => 22} \ {"bar" =
 Copy on write                   \ x := [1,2,3]; y := [4,x,5]; x[2] := 6; [x,y] \ [[1,6,3],[4,[1,2,3],5]] \
 Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] := x; y \ [4,[1,[4,[1,2,3],5],3],5] \
 
-// Immutability tests
+// Immutability
 
 Immutable retrieval             \ mut := test.TestImmutable(); mut.Retrieve(3); \ 3 \
 Immutable assignment            \ mut := test.TestImmutable(); mut.AssignBad([5,6,7]); \ !!Cannot change member variable of immutable object: x \
@@ -73,6 +73,16 @@ Mutable member mutation         \ mut := test.TestMutable(); mut.MutateGood(3, 9
 Immutable method - assignment   \ mut := test.TestMutable(); mut.AssignBad([5,6,7]); \ !!Illegal \
 Immutable method - mutation     \ mut := test.TestMutable(); mut.MutateBad(3, 9); \ !!Illegal \
 Immutable declares mutable      \ mut := test.TestBadImmutable(); \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
+
+// Var shadowing
+
+Loop variable shadows member var        \ shadow := test.TestShadowing(); shadow.ShadowLoop(); \ !!Loop variable name shadows member variable: x \
+Loop variable shadows super var         \ shadow := test.TestShadowingSubclass(); shadow.SubShadowLoop(); \ !!Loop variable name shadows member variable: x \
+Loop variable shadows subclass var      \ shadow := test.TestShadowingSubclass(); shadow.NonShadowLoop(); \ "ok" \
+Local variable shadows subclass var     \ shadow := test.TestShadowingSubclass(); shadow.NonShadowLocalSub(); \ 5 \
+Method parameter shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowParamSub(); \ 5 \
+Duplicate var                           \ test.TestDuplicateVar; \ !!Duplicate variable: x \
+Member var shadows superclass var       \ test.TestBadShadow; \ !!Variable shadows superclass var: x (from class test.TestShadowing) \
 
 // Grids and Strips
 // TODO Add more

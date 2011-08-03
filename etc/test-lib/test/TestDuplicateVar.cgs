@@ -1,0 +1,12 @@
+/*
+ * TestDuplicateVar.cgs
+ *
+ * Created by asiegel on Aug 3, 2011
+ */
+
+class TestDuplicateVar
+
+    var x;
+    var x;
+
+end

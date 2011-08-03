@@ -1,0 +1,37 @@
+/*
+ * TestShadowingSubclass.cgs
+ *
+ * Created by asiegel on Aug 3, 2011
+ */
+
+mutable class TestShadowingSubclass extends TestShadowing
+
+    var y;
+
+    method TestShadowingSubclass()
+    end
+    
+    method SubShadowLoop()
+    
+        for x from 1 to 10 do end
+        return "ok";
+        
+    end
+    
+    method NonShadowLocalSub()
+    
+        y := 5;
+        super.NonShadowLocal();
+        return y;
+    
+    end
+    
+    method NonShadowParamSub()
+    
+        y := 5;
+        super.NonShadowParam(3);
+        return y;
+    
+    end
+
+end

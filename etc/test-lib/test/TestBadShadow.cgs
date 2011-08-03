@@ -1,0 +1,11 @@
+/*
+ * TestBadShadow.cgs
+ *
+ * Created by asiegel on Aug 3, 2011
+ */
+
+class TestBadShadow extends TestShadowing
+
+    var x;
+
+end

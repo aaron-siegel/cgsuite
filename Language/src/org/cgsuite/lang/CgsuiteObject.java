@@ -208,7 +208,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         return null;
     }
 
-    public void assign(String name, CgsuiteObject value, CgsuiteObject context)
+    public void assign(String name, CgsuiteObject value, CgsuiteObject enclosingObject)
     {
         Variable var = type.lookupVar(name);
         if (!isMutable)
@@ -217,8 +217,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
             throw new InputException("Unknown variable: " + name);
         if (var.isStatic())
             throw new InputException("Cannot reference static variable in dynamic context: " + name);
-        if (context == null || !context.getCgsuiteClass().hasAncestor(var.getDeclaringClass()))
-            throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + context.getCgsuiteClass().getQualifiedName());
+        if (enclosingObject == null || !enclosingObject.getCgsuiteClass().hasAncestor(var.getDeclaringClass()))
+            throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + enclosingObject.getCgsuiteClass().getQualifiedName());
         objectNamespace.put(name, value.createCrosslink());
     }
 
