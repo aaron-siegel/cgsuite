@@ -53,6 +53,7 @@ public class WorksheetPanel extends JPanel
     
     private CalculationCapsule currentCapsule;
     private InputPane currentSource;
+    private RequestProcessor.Task currentTask;
     private Box.Filler strut;
 
     private String commandHistoryPrefix;
@@ -261,6 +262,7 @@ public class WorksheetPanel extends JPanel
             
             this.currentCapsule = capsule;
             this.currentSource = source;
+            this.currentTask = task;
         }
 
         if (finished)
@@ -310,6 +312,7 @@ public class WorksheetPanel extends JPanel
         remove(getComponentCount()-1);
         currentSource = null;
         currentCapsule = null;
+        currentTask = null;
         
         postOutput(output);
         
@@ -375,6 +378,14 @@ public class WorksheetPanel extends JPanel
             }
         }
         getScrollPane().validate();
+    }
+    
+    public void killCalculation()
+    {
+        if (currentTask != null)
+        {
+            currentTask.cancel();
+        }
     }
     
     @Override

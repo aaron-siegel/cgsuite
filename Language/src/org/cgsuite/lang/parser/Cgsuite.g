@@ -80,6 +80,7 @@ tokens
     ERROR       = 'error';
 	EXTENDS		= 'extends';
 	FALSE		= 'false';
+    FINALLY     = 'finally';
 	FOR			= 'for';
 	FOREACH		= 'foreach';
 	FROM		= 'from';
@@ -113,6 +114,7 @@ tokens
 	THIS        = 'this';
 	TO			= 'to';
 	TRUE		= 'true';
+    TRY         = 'try';
 	VAR         = 'var';
 	WHERE		= 'where';
 	WHILE		= 'while';
@@ -345,6 +347,7 @@ statementSequence
 
 statementChain
     : (IF | inLoopAntecedent DO | doLoopAntecedent DO) => controlExpression statementChain?
+    | (TRY) => tryStatement statementChain?
     | statement (SEMI! statementChain?)?
     | SEMI! statementChain?
     ;
@@ -354,7 +357,12 @@ statement
 	| CONTINUE
 	| RETURN^ expression
     | CLEAR
+    | tryStatement
     | expression
+    ;
+
+tryStatement
+    : TRY^ statementSequence FINALLY! statementSequence END!
     ;
 
 expression

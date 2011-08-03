@@ -124,6 +124,11 @@ public final class WorksheetTopComponent extends TopComponent
                 + "' ID. That is a potential source of errors and unexpected behavior.");
         return getDefault();
     }
+    
+    public WorksheetPanel getWorksheetPanel()
+    {
+        return worksheetPanel1;
+    }
 
     @Override
     public int getPersistenceType()

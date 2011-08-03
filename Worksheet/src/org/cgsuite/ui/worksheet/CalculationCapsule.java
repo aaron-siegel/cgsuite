@@ -43,7 +43,8 @@ public class CalculationCapsule implements Runnable
     private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
     private final static Domain WORKSPACE_DOMAIN = new Domain(null, CgsuitePackage.DEFAULT_IMPORT);
 
-    public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(WorksheetPanel.class);
+    public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor
+            (WorksheetPanel.class.getName(), 1, true);
 
     private Domain domain;
     private String text;

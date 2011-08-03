@@ -28,4 +28,9 @@
             </folder>
         </folder>
     </folder>
+    <folder name="Shortcuts">
+        <file name="D-K.shadow">
+            <attr name="originalFile" stringvalue="Actions/System/org-cgsuite-ui-worksheet-actions-KillCalculationAction.instance"/>
+        </file>
+    </folder>
 </filesystem>

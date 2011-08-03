@@ -6,25 +6,36 @@
 
 class ImpartialGame extends Game
 
-    static var placeholder := Object();
+    static var idescent := {};
 
     property NimValue.get
     
+        if ImpartialGame.idescent.Contains(this) then
+            error("Unable to compute nim value: the specified game is loopy.");
+        end
+        
         value := this.Class.Memory[this];
+        
         if nil != value then
-            if ImpartialGame.placeholder == value then
-                error("Unable to compute nim value: the specified game is loopy.");
-            else
-                return value;
+            return value;
+        end
+
+        try
+        
+            ImpartialGame.idescent.Add(this);
+            excl := setof(g.NimValue for g in LeftOptions);
+            for n from 0 do
+                if not excl.Contains(n) then
+                    break;
+                end
             end
-        end;
-        this.Class.Memory[this] := Game.placeholder;
-        excl := setof(g.NimValue for g in LeftOptions);
-        for n from 0 do
-            if not excl.Contains(n) then
-                break;
-            end
-        end;
+            
+        finally
+        
+            ImpartialGame.idescent.Remove(this);
+            
+        end
+        
         this.Class.Memory[this] := n;
         return n;
     

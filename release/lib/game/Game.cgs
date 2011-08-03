@@ -1,6 +1,6 @@
 class Game : java "org.cgsuite.lang.Game"
 
-    static var placeholder := Object();
+    static var descent := {};
 
     method op+ (Game obj) : java "buildSum";
     method op- (Game obj)
@@ -16,21 +16,32 @@ class Game : java "org.cgsuite.lang.Game"
     end
 
     property CanonicalForm.get
+    
+        if Game.descent.Contains(this) then
+            error("Unable to compute canonical form: the specified game is loopy.");
+        end
 
         cg := this.Class.Memory[this];
+        
         if nil != cg then
-            if Game.placeholder == cg then
-                error("Unable to compute canonical form: the specified game is loopy.");
-            else
-                return cg;
-            end
-        end;
-        this.Class.Memory[this] := Game.placeholder;
-        lo := LeftOptions;
-        ro := RightOptions;
-        clo := setof(g.CanonicalForm for g in lo);
-        cro := setof(g.CanonicalForm for g in ro);
-        cg := {clo|cro};
+            return cg;
+        end
+        
+        try
+        
+            Game.descent.Add(this);
+            lo := LeftOptions;
+            ro := RightOptions;
+            clo := setof(g.CanonicalForm for g in lo);
+            cro := setof(g.CanonicalForm for g in ro);
+            cg := {clo|cro};
+            
+        finally
+        
+            Game.descent.Remove(this);
+            
+        end
+        
         this.Class.Memory[this] := cg;
         return cg;
         
@@ -52,7 +63,7 @@ class Game : java "org.cgsuite.lang.Game"
 
                 end
             end
-        end;
+        end
 
         return sopts;
 

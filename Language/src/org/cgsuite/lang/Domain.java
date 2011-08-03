@@ -120,6 +120,11 @@ public class Domain
 
     private CgsuiteObject statement(CgsuiteTree tree) throws CgsuiteException
     {
+        if (Thread.interrupted())
+        {
+            throw new InputException("Calculation canceled by user.");
+        }
+        
         switch (tree.token.getType())
         {
             case BREAK:     mode = Mode.BREAKING; return null;
@@ -130,9 +135,37 @@ public class Domain
 
             case CLEAR:     namespace.clear();  // XXX Clear classes?
                             return CgsuiteObject.NIL;
+                
+            case TRY:       return tryStatement(tree);
 
             default:        return expression(tree);
         }
+    }
+    
+    private CgsuiteObject tryStatement(CgsuiteTree tree) throws CgsuiteException
+    {
+        assert tree.token.getType() == TRY;
+        
+        InputException ie = null;
+        CgsuiteObject retval = Nil.NIL;
+        
+        try
+        {
+            retval = statementSequence(tree.getChild(0));
+        }
+        catch (InputException exc)
+        {
+            ie = exc;
+        }
+        
+        statementSequence(tree.getChild(1));
+        
+        if (ie != null)
+        {
+            throw ie;
+        }
+        
+        return retval;
     }
 
     private void assignTo(CgsuiteTree tree, CgsuiteObject x) throws CgsuiteException
