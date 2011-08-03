@@ -18,6 +18,11 @@ Nimber addition                 \ *3+*5 \ *6 \
 Nimber operator                 \ *(3+5) \ *8 \
 Ups                             \ ^^^^^^+vvv*+^19*3+v14 \ ^8*2 \
 
+Integer plus rational           \ 2 + 3/4 \ 11/4 \
+Integer plus canonical game     \ 2 + (1+*) \ 3* \
+Integer minus rational          \ 2 - 3/4 \ 5/4 \
+Integer minus canonical game    \ 2 - (1+*) \ 1* \
+
 // Canonical form specification
 
 Composition                     \ {0|^*5} \ ^^*4 \

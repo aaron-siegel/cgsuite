@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import org.antlr.runtime.Token;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
@@ -953,9 +952,9 @@ public class Domain
             if (y instanceof CgsuiteInteger)
                 return ((CgsuiteInteger) x).add((CgsuiteInteger) y);
             else if (y instanceof RationalNumber)
-                return ((RationalNumber) y).add(new RationalNumber((CgsuiteInteger) x));
+                return new RationalNumber((CgsuiteInteger) x).add((RationalNumber) y);
             else if (y instanceof CanonicalShortGame)
-                return ((CanonicalShortGame) y).add(new CanonicalShortGame((CgsuiteInteger) x));
+                return new CanonicalShortGame((CgsuiteInteger) x).add((CanonicalShortGame) y);
         }
         else if (x instanceof RationalNumber)
         {
@@ -986,9 +985,9 @@ public class Domain
             if (y instanceof CgsuiteInteger)
                 return ((CgsuiteInteger) x).subtract((CgsuiteInteger) y);
             else if (y instanceof RationalNumber)
-                return ((RationalNumber) y).subtract(new RationalNumber((CgsuiteInteger) x));
+                return new RationalNumber((CgsuiteInteger) x).subtract((RationalNumber) y);
             else if (y instanceof CanonicalShortGame)
-                return ((CanonicalShortGame) y).subtract(new CanonicalShortGame((CgsuiteInteger) x));
+                return new CanonicalShortGame((CgsuiteInteger) x).subtract((CanonicalShortGame) y);
         }
         else if (x instanceof RationalNumber)
         {
