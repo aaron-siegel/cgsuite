@@ -32,8 +32,6 @@ import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.CgsuiteTreeAdaptor;
 import org.openide.util.RequestProcessor;
 
-// TODO Kill calculation
-
 /**
  *
  * @author asiegel
@@ -44,7 +42,7 @@ public class CalculationCapsule implements Runnable
     private final static Domain WORKSPACE_DOMAIN = new Domain(null, CgsuitePackage.DEFAULT_IMPORT);
 
     public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor
-            (WorksheetPanel.class.getName(), 1, true);
+        (WorksheetPanel.class.getName(), 1, true);
 
     private Domain domain;
     private String text;
@@ -85,7 +83,12 @@ public class CalculationCapsule implements Runnable
             else if (!parser.getErrors().isEmpty())
             {
                 RecognitionException exc = parser.getErrors().get(0).getException();
-                output = getLineColOutput(text, exc.line, exc.charPositionInLine, "Syntax error.");
+                String message;
+                if (exc.token.getType() == CgsuiteParser.SLASHES)
+                    message = "Syntax error: every slash | must be enclosed by braces { }.";
+                else
+                    message = "Syntax error.";
+                output = getLineColOutput(text, exc.line, exc.charPositionInLine, message);
                 isErrorOutput = true;
             }
             else
@@ -274,11 +277,6 @@ public class CalculationCapsule implements Runnable
         if (exc instanceof InputException)
         {
             return exc.getMessage();
-        }
-        else if (exc instanceof antlr.NoViableAltException &&
-                 ((antlr.NoViableAltException) exc).token.getType() == CgsuiteLexer.SLASHES)
-        {
-            return "Syntax error: Every slash | must be enclosed in braces { }.";
         }
         else
         {
