@@ -23,14 +23,16 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     public static final Nil NIL = new Nil();
     
     protected CgsuiteClass type;
-    protected Namespace objectNamespace;
+    Namespace objectNamespace;
     
     private CgsuiteObject crosslink;
+    private boolean isMutable;
 
     CgsuiteObject()
     {
         this.objectNamespace = new Namespace();
         this.crosslink = this;
+        this.isMutable = true;
     }
 
     public CgsuiteObject(CgsuiteClass type)
@@ -98,12 +100,30 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         return 0;
     }
     
+    public void markImmutable()
+    {
+        if (isMutable)
+        {
+            isMutable = false;
+            for (CgsuiteObject member : objectNamespace.values())
+            {
+                member.markImmutable();
+            }
+        }
+    }
+    
+    public boolean isMutable()
+    {
+        return isMutable;
+    }
+    
     public CgsuiteObject createCrosslink()
     {
         if (!type.isMutable())
             return this;
         
         CgsuiteObject clone = this.clone();
+        clone.isMutable = true;     // Crosslink is mutable even if this is not
         clone.crosslink = this.crosslink;
         this.crosslink = clone;
         return clone;
@@ -191,6 +211,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     public void assign(String name, CgsuiteObject value, CgsuiteObject context)
     {
         Variable var = type.lookupVar(name);
+        if (!isMutable)
+            throw new InputException("Cannot change member variable of immutable object: " + name);
         if (var == null)
             throw new InputException("Unknown variable: " + name);
         if (var.isStatic())

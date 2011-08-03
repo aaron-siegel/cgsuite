@@ -57,6 +57,8 @@ Set                             \ {3,5,3,1} \ {1,3,5} \
 Heterogeneous set               \ {3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"} \ {nil,true,"bar","foo",3,*2,+-6,[3,5,3,1]} \
 Map                             \ {"foo" => 1, "bar" => *2, 16 => 22} \ {"bar" => *2, "foo" => 1, 16 => 22} \
 
+// TODO Immutability tests
+
 // Grids and Strips
 // TODO Add more
 Grid (invalid char violation)   \ Grid.ParseGrid("xox.|.oxj", ".xo") \ !!The position may only contain the following characters: .xo \

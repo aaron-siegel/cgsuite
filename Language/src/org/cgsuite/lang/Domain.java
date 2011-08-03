@@ -18,7 +18,6 @@ import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
-// TODO Enforce immutability
 // TODO Simple enum assignment to grids
 // TODO Check that parameter vars and forIds don't shadow member vars
 

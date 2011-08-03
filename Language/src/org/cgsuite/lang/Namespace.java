@@ -1,5 +1,6 @@
 package org.cgsuite.lang;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -32,6 +33,11 @@ public final class Namespace
     public Set<String> keys()
     {
         return objects.keySet();
+    }
+    
+    public Collection<CgsuiteObject> values()
+    {
+        return objects.values();
     }
 
     public void clear()

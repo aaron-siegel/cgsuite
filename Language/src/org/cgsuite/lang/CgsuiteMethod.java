@@ -135,7 +135,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         return modifiers;
     }
     
-    public boolean isMutable()
+    public boolean isMutableMethod()
     {
         return modifiers.contains(Modifier.MUTABLE);
     }
@@ -173,9 +173,13 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     {
         ensureLoaded();
         
-        if (isMutable())
+        if (isMutableMethod())
         {
             assert obj != null;
+            
+            if (!obj.isMutable())
+                throw new InputException("Cannot call mutable method on member of immutable object: " + getQualifiedName());
+
             obj.unlinkIfNecessary();
         }
 
@@ -222,7 +226,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
             try
             {
-                if (javaMethod == null)
+                if (isConstructor)
                 {
                     javaObj = javaConstructor.newInstance(castArguments);
                 }
@@ -258,7 +262,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 throw new InputException("Java exception thrown during a call to " + name + ".", exc);
             }
             
-            return castReturn(javaObj);
+            retval = castReturn(javaObj);
         }
         else
         {
@@ -312,6 +316,15 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             
             if (isConstructor)
                 retval = obj;
+        }
+        
+        if (isConstructor)
+        {
+            // If the class is not mutable, then the object is
+            // marked immutable once constructed.
+
+            if (!declaringClass.isMutable())
+                obj.markImmutable();
         }
 
         return retval;
