@@ -110,7 +110,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     }
 
     @Override
-    public CgsuiteObject resolve(String identifier, CgsuiteObject context)
+    public CgsuiteObject resolve(String identifier, CgsuiteMethod contextMethod)
     {
         ensureLoaded();
         
@@ -132,7 +132,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             return (obj == null)? NIL : obj;
         }
 
-        return super.resolve(identifier, context);
+        return super.resolve(identifier, contextMethod);
     }
 
     public boolean isLoaded()
@@ -221,7 +221,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     }
 
     @Override
-    public void assign(String name, CgsuiteObject object, CgsuiteObject context)
+    public void assign(String name, CgsuiteObject object, CgsuiteMethod contextMethod)
     {
         Variable var = lookupVar(name);
         if (var == null)
@@ -420,7 +420,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 CgsuiteObject initialValue = NIL;
 
                 if (var.getInitializer() != null)
-                    initialValue = new Domain(this, imports).expression(var.getInitializer());
+                    initialValue = new Domain(this, null, imports).expression(var.getInitializer());
                 
                 objectNamespace.put(var.getName(), initialValue);
 

@@ -174,7 +174,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         return resolve(identifier, null);
     }
 
-    public CgsuiteObject resolve(String identifier, CgsuiteObject context) throws CgsuiteException
+    public CgsuiteObject resolve(String identifier, CgsuiteMethod contextMethod) throws CgsuiteException
     {
         CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
 
@@ -198,7 +198,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         
         if (var != null)
         {
-            if (context == null || !context.getCgsuiteClass().hasAncestor(var.getDeclaringClass()))
+            if (contextMethod == null || !contextMethod.getDeclaringClass().hasAncestor(var.getDeclaringClass()))
                 throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + identifier);
             
             CgsuiteObject obj = objectNamespace.get(identifier);
@@ -208,7 +208,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         return null;
     }
 
-    public void assign(String name, CgsuiteObject value, CgsuiteObject enclosingObject)
+    public void assign(String name, CgsuiteObject value, CgsuiteMethod contextMethod)
     {
         Variable var = type.lookupVar(name);
         if (!isMutable)
@@ -217,8 +217,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
             throw new InputException("Unknown variable: " + name);
         if (var.isStatic())
             throw new InputException("Cannot reference static variable in dynamic context: " + name);
-        if (enclosingObject == null || !enclosingObject.getCgsuiteClass().hasAncestor(var.getDeclaringClass()))
-            throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + enclosingObject.getCgsuiteClass().getQualifiedName());
+        if (contextMethod == null || !contextMethod.getDeclaringClass().hasAncestor(var.getDeclaringClass()))
+            throw new InputException("Cannot assign variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + name);
         objectNamespace.put(name, value.createCrosslink());
     }
 

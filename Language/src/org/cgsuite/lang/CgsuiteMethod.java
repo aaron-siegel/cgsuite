@@ -279,7 +279,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
             }
             
-            Domain domain = new Domain(obj, declaringClass.getImports());
+            Domain domain = new Domain(obj, this, declaringClass.getImports());
             if (obj != null)
                 domain.put("this", obj);
 
@@ -324,7 +324,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             // marked immutable once constructed.
 
             if (!declaringClass.isMutable())
-                obj.markImmutable();
+                retval.markImmutable();
         }
 
         return retval;

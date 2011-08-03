@@ -19,20 +19,21 @@ import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 // TODO Simple enum assignment to grids
-// TODO Check that parameter vars and forIds don't shadow member vars
 
 public class Domain
 {
     private final static Logger log = Logger.getLogger(Domain.class.getName());
 
-    private CgsuiteObject context;
+    private CgsuiteObject contextObject;
+    private CgsuiteMethod contextMethod;
     private Namespace namespace;
     private List<CgsuitePackage> imports;
     private Mode mode;
 
-    public Domain(CgsuiteObject context, List<CgsuitePackage> imports)
+    public Domain(CgsuiteObject contextObject, CgsuiteMethod contextMethod, List<CgsuitePackage> imports)
     {
-        this.context = context;
+        this.contextObject = contextObject;
+        this.contextMethod = contextMethod;
         this.imports = imports;
         this.namespace = new Namespace();
         this.mode = Mode.NORMAL;
@@ -45,9 +46,9 @@ public class Domain
         if (type != null)
             return type;
 
-        if (context != null)
+        if (contextObject != null)
         {
-            CgsuiteObject obj = context.resolve(str, context);
+            CgsuiteObject obj = contextObject.resolve(str, contextMethod);
             
             if (obj != null)
                 return obj;
@@ -58,9 +59,9 @@ public class Domain
 
     public void put(String str, CgsuiteObject object)
     {
-        if (context != null && context.getCgsuiteClass().lookupVar(str) != null)
+        if (contextObject != null && contextMethod.getDeclaringClass().lookupVar(str) != null)
         {
-            context.assign(str, object, context);
+            contextObject.assign(str, object, contextMethod);
         }
         else
         {
@@ -200,7 +201,7 @@ public class Domain
                 id = tree.getChild(1).getText();
                 try
                 {
-                    obj.assign(id, x, context);
+                    obj.assign(id, x, contextMethod);
                 }
                 catch (InputException exc)
                 {
@@ -440,7 +441,7 @@ public class Domain
                     CgsuiteObject retval;
                     try
                     {
-                        retval = x.resolve(id, context);
+                        retval = x.resolve(id, contextMethod);
                     }
                     catch (InputException exc)
                     {
@@ -536,7 +537,15 @@ public class Domain
 
             case THIS:
 
-                x = lookup("this");
+                try
+                {
+                    x = lookup("this");
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.getToken());
+                    throw exc;
+                }
                 if (x == null)
                     // We use tree.getText() because this might actually be a reference to "super" (stealth "this")
                     throw new InputException(tree.getToken(), "Reference to \"" + tree.getText() + "\" is not permitted in a static context.");
@@ -670,7 +679,7 @@ public class Domain
                 case FOR:
 
                     forId = child.getChild(0).getText();
-                    if (context != null && context.getCgsuiteClass().lookupVar(forId) != null)
+                    if (contextMethod != null && contextMethod.getDeclaringClass().lookupVar(forId) != null)
                     {
                         throw new InputException(child.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
                     }
@@ -801,7 +810,7 @@ public class Domain
         CgsuiteTree body;
 
         forId = tree.getChild(0).getText();
-        if (context != null && context.getCgsuiteClass().lookupVar(forId) != null)
+        if (contextMethod != null && contextMethod.getDeclaringClass().lookupVar(forId) != null)
         {
             throw new InputException(tree.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
         }
@@ -909,23 +918,16 @@ public class Domain
 
         switch (tree.token.getType())
         {
-            case REFEQUALS:
-            case REFNEQ:
-            case EQUALS:
-            case NEQ:
-            case LEQ:
-            case GEQ:
-            case LT:
-            case GT:
-            case CONFUSED:
-            case LCONFUSED:
-            case GCONFUSED:
-            case COMPARE:
+            case PLUS:
+            case MINUS:
+                break;
+                
+            default:
                 x = x.simplify();
                 y = y.simplify();
                 break;
         }
-
+        
         try
         {
             switch (tree.token.getType())

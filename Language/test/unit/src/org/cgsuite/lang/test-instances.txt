@@ -50,6 +50,11 @@ upon                            \ {pass|*} \ {pass|*} \
 Hanging pass                    \ pass \ !!Unexpected "pass". \
 Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
 
+// Simplification
+
+Multiplier simplification       \ (*+*)*3 \ 0 \
+Integer exponent simplification \ 2^(*+*) \ 1 \
+
 // Collections
 
 List                            \ [3,5,3,1] \ [3,5,3,1] \
@@ -75,6 +80,9 @@ Immutable method - mutation     \ mut := test.TestMutable(); mut.MutateBad(3, 9)
 Immutable declares mutable      \ mut := test.TestBadImmutable(); \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
 
 // Var shadowing
+
+// IN LOOPS
+// SEPARATE NAMESPACE FOR LOCAL
 
 Loop variable shadows member var        \ shadow := test.TestShadowing(); shadow.ShadowLoop(); \ !!Loop variable name shadows member variable: x \
 Loop variable shadows super var         \ shadow := test.TestShadowingSubclass(); shadow.SubShadowLoop(); \ !!Loop variable name shadows member variable: x \

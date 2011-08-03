@@ -5,8 +5,6 @@
 package org.cgsuite.lang;
 
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +31,7 @@ public class LanguageFunctionalTest
 {
     private final static Logger log = Logger.getLogger(LanguageFunctionalTest.class.getName());
     
-    public static Domain domain = new Domain(null, CgsuitePackage.DEFAULT_IMPORT);
+    public final static Domain TEST_DOMAIN = new Domain(null, null, CgsuitePackage.DEFAULT_IMPORT);
     
     @Parameters
     public static Collection<Object[]> data() throws Exception
@@ -95,7 +93,7 @@ public class LanguageFunctionalTest
         
         try
         {
-            Output output = domain.script(tree).simplify().toOutput();
+            Output output = TEST_DOMAIN.script(tree).simplify().toOutput();
             result = output.toString();
         }
         catch (InputException exc)
