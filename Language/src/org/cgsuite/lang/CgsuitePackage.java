@@ -38,6 +38,7 @@ public class CgsuitePackage implements FileChangeListener
 
     public final static File LIB_FOLDER;
     public final static File USER_FOLDER;
+    public final static File TEST_FOLDER;
     public final static CgsuitePackage ROOT_PACKAGE = new CgsuitePackage("");
     public final static CgsuitePackage LANG_PACKAGE = new CgsuitePackage("cgsuite.lang");
     public final static CgsuitePackage UI_PACKAGE   = new CgsuitePackage("cgsuite.ui");
@@ -78,6 +79,16 @@ public class CgsuitePackage implements FileChangeListener
             
             ROOT_PACKAGE.addRootFolder(LIB_FOLDER);
             ROOT_PACKAGE.addRootFolder(USER_FOLDER);
+            
+            if (devbuildPath == null)
+            {
+                TEST_FOLDER = null;
+            }
+            else
+            {
+                TEST_FOLDER = new File(new File(devbuildPath, "etc"), "test-lib");
+                ROOT_PACKAGE.addRootFolder(TEST_FOLDER);
+            }
         }
         catch (IOException exc)
         {

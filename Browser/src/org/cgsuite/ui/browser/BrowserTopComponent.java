@@ -81,6 +81,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
             // Add some convenience folders for developers
             File defaultUserdir = new File(System.getProperty("org.cgsuite.devbuild"), "release/etc/default-userdir");
             jComboBox1.addItem(new RootFolder(defaultUserdir, "[dev] Default User Folder"));
+            jComboBox1.addItem(new RootFolder(CgsuitePackage.TEST_FOLDER, "[dev] Test Folder"));
             jComboBox1.addItem(new RootFolder(null, "[dev] System Filesystem"));
         }
     }

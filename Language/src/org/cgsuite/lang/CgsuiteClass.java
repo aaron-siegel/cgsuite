@@ -685,11 +685,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     {
                         throw new InputException(tree.getChild(i).getToken(), "Duplicate modifier.");
                     }
-                    
-                    if (mod == Modifier.MUTABLE && classModifiers != null && !classModifiers.contains(Modifier.MUTABLE))
-                    {
-                        throw new InputException(tree.getChild(i).getToken(), "Immutable class cannot declare mutable member.");
-                    }
 
                     mods.add(mod);
                 }
@@ -731,7 +726,11 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             throw new InputException(tree.getToken(), "Declaration is marked \"override\" but does not override an ancestor " +
                 tree.getToken().getText() + ": " + name);
         }
-        
+        else if (modifiers.contains(Modifier.MUTABLE) && !classModifiers.contains(Modifier.MUTABLE))
+        {
+            throw new InputException(tree.getToken(), "Declaration is marked \"mutable\" but enclosing class is not: " + name);
+        }
+                
         // It's a legit method declaration.
         
         this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName));

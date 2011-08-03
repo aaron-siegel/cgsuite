@@ -1,0 +1,36 @@
+/*
+ * TestMutable.cgs
+ *
+ * Created by asiegel on Aug 3, 2011
+ */
+
+mutable class TestMutable
+
+    var x;
+    
+    method TestMutable()
+        x := [1,2,3,4];
+        x[5] := 5;
+    end
+    
+    method Retrieve(Integer index)
+        return x[index];
+    end
+    
+    method AssignBad(value)
+        x := value;
+    end
+    
+    mutable method AssignGood(value)
+        x := value;
+    end
+    
+    method MutateBad(Integer index, Integer value)
+        x[index] := value;
+    end
+    
+    mutable method MutateGood(Integer index, Integer value)
+        x[index] := value;
+    end
+    
+end

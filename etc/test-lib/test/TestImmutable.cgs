@@ -1,0 +1,28 @@
+/*
+ * TestImmutable.cgs
+ *
+ * Created by asiegel on Aug 3, 2011
+ */
+
+class TestImmutable
+
+    var x;
+    
+    method TestImmutable()
+        x := [1,2,3,4];
+        x[5] := 5;
+    end
+    
+    method Retrieve(Integer index)
+        return x[index];
+    end
+    
+    method AssignBad(value)
+        x := value;
+    end
+    
+    method MutateBad(Integer index, Integer value)
+        x[index] := value;
+    end
+    
+end
