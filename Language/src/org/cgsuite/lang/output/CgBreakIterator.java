@@ -22,14 +22,14 @@ public class CgBreakIterator extends BreakIterator
     @Override
     public int first()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return 0;
     }
 
     @Override
     public int last()
     {
-        char c = text.last();
-        return previous();
+        text.setIndex(text.getEndIndex());
+        return text.getEndIndex();
     }
 
     @Override
@@ -57,9 +57,9 @@ public class CgBreakIterator extends BreakIterator
             nextC = c;
             c = text.previous();
             if (c == CharacterIterator.DONE)
-                return DONE;
+                return 0;
         }
-        while (!isBreakChar(c, nextC));
+        while (!isBreak(c, nextC));
         
         text.next();
         return text.getIndex();
@@ -68,26 +68,25 @@ public class CgBreakIterator extends BreakIterator
     @Override
     public int following(int offset)
     {
-        if (this.text == null)
+        if (this.text == null || this.text.getEndIndex() == 0)
             return DONE;
         
         text.setIndex(offset);
         
-        char c = text.next();
-        if (c == CharacterIterator.DONE)
-            return DONE;
-        
-        char nextC = text.next();
+        char nextC = text.current();
         if (nextC == CharacterIterator.DONE)
             return DONE;
         
-        while (!isBreakChar(c, nextC))
+        char prevC;
+        
+        do
         {
-            nextC = c;
-            c = text.next();
-            if (c == CharacterIterator.DONE)
-                return DONE;
+            prevC = nextC;
+            nextC = text.next();
+            if (nextC == CharacterIterator.DONE)
+                return text.getEndIndex();
         }
+        while (!isBreak(prevC, nextC));
         
         return text.getIndex();
     }
@@ -110,9 +109,11 @@ public class CgBreakIterator extends BreakIterator
         this.text = newText;
     }
     
-    private boolean isBreakChar(char c, char nextC)
+    private boolean isBreak(char prevC, char nextC)
     {
-        return c == ',' || (isCloseParen(c) && !isCloseParen(nextC) && nextC != ',') || (Character.isWhitespace(c) && !Character.isWhitespace(nextC));
+        return prevC == ','
+            || (isCloseParen(prevC) && !isCloseParen(nextC) && nextC != ',')
+            || (Character.isWhitespace(prevC) && !Character.isWhitespace(nextC));
     }
     
     private boolean isCloseParen(char c)
