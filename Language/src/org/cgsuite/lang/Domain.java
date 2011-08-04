@@ -612,7 +612,7 @@ public class Domain
         }
     }
 
-    private CgsuitePackage findPackage(CgsuiteTree tree) throws CgsuiteException
+    public static CgsuitePackage findPackage(CgsuiteTree tree) throws CgsuiteException
     {
         if (tree.checkedPackage())
             return tree.getPackageValue();
@@ -625,7 +625,7 @@ public class Domain
         return packageValue;
     }
 
-    private String stringifyDotSequence(CgsuiteTree tree) throws CgsuiteException
+    private static String stringifyDotSequence(CgsuiteTree tree) throws CgsuiteException
     {
         switch (tree.getType())
         {

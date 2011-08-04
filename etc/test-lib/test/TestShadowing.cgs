@@ -11,16 +11,32 @@ class TestShadowing
     method TestShadowing()
     end
     
-    method ShadowLoop()
+    method ShadowDoLoop()
     
         for x from 1 to 10 do end
         return "ok";
     
     end
     
-    method NonShadowLoop()
+    method NonShadowDoLoop()
     
         for y from 1 to 10 do
+            y;
+        end
+        return "ok";
+        
+    end
+    
+    method ShadowInLoop()
+    
+        for x in {1,2,3} do end
+        return "ok";
+    
+    end
+    
+    method NonShadowInLoop()
+    
+        for y in {1,2,3} do
             y;
         end
         return "ok";

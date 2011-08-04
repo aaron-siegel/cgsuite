@@ -256,8 +256,12 @@ classModifiers
     ;
 	
 extendsClause
-	: EXTENDS^ IDENTIFIER (COMMA! IDENTIFIER)*
+	: EXTENDS^ extendsItem (COMMA! extendsItem)*
 	;
+
+extendsItem
+    : IDENTIFIER (DOT^ IDENTIFIER)*
+    ;
 
 javaClause
     : COLON! JAVA^ STRING

@@ -491,14 +491,32 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 for (CgsuiteTree node : tree.getChildren())
                 {
-                    CgsuiteClass parent = CgsuitePackage.forceLookupClass(node.getText(), imports);
-                    assert parent != null : node.getText();
+                    CgsuiteClass parent = extendsItem(node);
                     parents.add(parent);
                 }
                 return;
 
             default:
 
+                throw new MalformedParseTreeException(tree);
+        }
+    }
+    
+    private CgsuiteClass extendsItem(CgsuiteTree tree) throws CgsuiteException
+    {
+        switch (tree.token.getType())
+        {
+            case IDENTIFIER:
+                
+                return CgsuitePackage.forceLookupClass(tree.getText(), imports);
+                
+            case DOT:
+                
+                CgsuitePackage pkg = Domain.findPackage(tree.getChild(0));
+                return pkg.forceLookupClassInPackage(tree.getChild(1).getText());
+                
+            default:
+                
                 throw new MalformedParseTreeException(tree);
         }
     }

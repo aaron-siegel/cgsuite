@@ -11,9 +11,16 @@ mutable class TestShadowingSubclass extends TestShadowing
     method TestShadowingSubclass()
     end
     
-    method SubShadowLoop()
+    method SubShadowDoLoop()
     
         for x from 1 to 10 do end
+        return "ok";
+        
+    end
+    
+    method SubShadowInLoop()
+    
+        for x in {1,2,3} do end
         return "ok";
         
     end

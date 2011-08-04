@@ -73,7 +73,7 @@ Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] :=
 
 // Extends clause
 
-Extends qualified class name    \ test.TestExtends(); \ "ok" \
+Extends qualified class name    \ test.TestExtendsSubclass(); \ ok \
 
 // Immutability
 
@@ -89,12 +89,14 @@ Immutable declares mutable      \ mut := test.TestBadImmutable(); \ !!Declaratio
 
 // Var shadowing
 
-// SHADOWING IN LOOPS
 // SEPARATE NAMESPACE FOR LOCAL
 
-Loop variable shadows member var        \ shadow := test.TestShadowing(); shadow.ShadowLoop(); \ !!Loop variable name shadows member variable: x \
-Loop variable shadows super var         \ shadow := test.TestShadowingSubclass(); shadow.SubShadowLoop(); \ !!Loop variable name shadows member variable: x \
-Loop variable shadows subclass var      \ shadow := test.TestShadowingSubclass(); shadow.NonShadowLoop(); \ "ok" \
+Do loop variable shadows member var     \ shadow := test.TestShadowing(); shadow.ShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
+Do loop variable shadows super var      \ shadow := test.TestShadowingSubclass(); shadow.SubShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
+Do loop variable shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowDoLoop(); \ "ok" \
+In loop variable shadows member var     \ shadow := test.TestShadowing(); shadow.ShadowInLoop(); \ !!Loop variable name shadows member variable: x \
+In loop variable shadows super var      \ shadow := test.TestShadowingSubclass(); shadow.SubShadowInLoop(); \ !!Loop variable name shadows member variable: x \
+In loop variable shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowInLoop(); \ "ok" \
 Local variable shadows subclass var     \ shadow := test.TestShadowingSubclass(); shadow.NonShadowLocalSub(); \ 5 \
 Method parameter shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowParamSub(); \ 5 \
 Duplicate var                           \ test.TestDuplicateVar; \ !!Duplicate variable: x \

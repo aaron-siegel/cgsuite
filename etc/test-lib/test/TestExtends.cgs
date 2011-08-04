@@ -4,16 +4,9 @@
  * Created by asiegel on Aug 3, 2011
  */
 
-class TestExtends extends cgsuite.lang.String
+class TestExtends
 
-    method TestExtends
-    
-        if not (this is String) then
-        
-            error("Test failed.");
-        
-        end
-    
+    method TestExtends()
     end
 
 end
