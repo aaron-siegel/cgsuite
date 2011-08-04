@@ -23,7 +23,7 @@ mutable class SequenceIterator extends Iterator
     end
     
     override property HasNext.get
-        seq.Length == n;
+        seq.Length == n and (n == 0 or seq[1] <= valueList.Length);
     end
     
     override property Next.get
