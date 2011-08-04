@@ -61,11 +61,19 @@ List                            \ [3,5,3,1] \ [3,5,3,1] \
 Set                             \ {3,5,3,1} \ {1,3,5} \
 Heterogeneous set               \ {3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"} \ {nil,true,"bar","foo",3,*2,+-6,[3,5,3,1]} \
 Map                             \ {"foo" => 1, "bar" => *2, 16 => 22} \ {"bar" => *2, "foo" => 1, 16 => 22} \
+Listof                          \ listof(x^2 for x from 1 to 5) \ [1,4,9,16,25] \
+Setof                           \ setof(x^2 for x in [1,3,5,3]) \ {1,9,25} \
+Empty setof                     \ setof(x) \ !!Syntax error. \
+// TODO Tables
 
 // Copy on write
 
 Copy on write                   \ x := [1,2,3]; y := [4,x,5]; x[2] := 6; [x,y] \ [[1,6,3],[4,[1,2,3],5]] \
 Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] := x; y \ [4,[1,[4,[1,2,3],5],3],5] \
+
+// Extends clause
+
+Extends qualified class name    \ test.TestExtends(); \ "ok" \
 
 // Immutability
 
@@ -81,7 +89,7 @@ Immutable declares mutable      \ mut := test.TestBadImmutable(); \ !!Declaratio
 
 // Var shadowing
 
-// IN LOOPS
+// SHADOWING IN LOOPS
 // SEPARATE NAMESPACE FOR LOCAL
 
 Loop variable shadows member var        \ shadow := test.TestShadowing(); shadow.ShadowLoop(); \ !!Loop variable name shadows member variable: x \

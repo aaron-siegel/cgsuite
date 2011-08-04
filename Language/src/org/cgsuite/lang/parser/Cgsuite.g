@@ -605,19 +605,28 @@ explicitList
 
 setof
     : SETOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(SETOF_IN[$SETOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                              | doLoopAntecedent RPAREN -> ^(SETOF_DO[$SETOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                              | doLoopAntecedent RPAREN
+                                  { if ($doLoopAntecedent.tree == null)
+                                        throw new RecognitionException(input);
+                                  } -> ^(SETOF_DO[$SETOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
                               )
     ;
 
 listof
     : LISTOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(LISTOF_IN[$LISTOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                               | doLoopAntecedent RPAREN -> ^(LISTOF_DO[$LISTOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                               | doLoopAntecedent RPAREN
+                                  { if ($doLoopAntecedent.tree == null)
+                                        throw new RecognitionException(input);
+                                  } -> ^(LISTOF_DO[$LISTOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
                                )
     ;
 
 tableof
     : TABLEOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(TABLEOF_IN[$TABLEOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                                | doLoopAntecedent RPAREN -> ^(TABLEOF_DO[$TABLEOF] doLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                                | doLoopAntecedent RPAREN
+                                  { if ($doLoopAntecedent.tree == null)
+                                        throw new RecognitionException(input);
+                                  } -> ^(TABLEOF_DO[$TABLEOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
                                 )
     ;
 

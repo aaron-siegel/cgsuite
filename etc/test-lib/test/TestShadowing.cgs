@@ -20,7 +20,9 @@ class TestShadowing
     
     method NonShadowLoop()
     
-        for y from 1 to 10 do end
+        for y from 1 to 10 do
+            y;
+        end
         return "ok";
         
     end
