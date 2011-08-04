@@ -1,7 +1,8 @@
 /*
  * SequenceIterator.cgs
  *
- * An iterator for all sequences of length n from a set or list of values. A common
+ * An iterator for all sequences of length n from a set or list of values. The
+ * arguments may be given in either order. A common
  * trick is employed -- the sequence currently stored (seq) is actually the
  * next one to be returned. When Next is called, seq is copied and then updated.
  * The update is such that when we have reached the last sequence, the state
@@ -17,23 +18,38 @@ mutable class SequenceIterator extends Iterator
     var n;
     var seq;
     
-    method SequenceIterator(Integer n, Collection vals)
+    method SequenceIterator(arg1, arg2)
+        if arg1 is Integer then
+            n := arg1;
+            vals := arg2; 
+        elseif arg2 is Integer then
+            n := arg2;
+            vals := arg1;
+        else
+            error("SequenceIterator requires a sequence length.");
+        end
+        
         if vals is Set then
             valueList := listof(x for x in vals);
         elseif vals is List then
             valueList := vals;
         else
-            error("SequenceIterator requires a Set or List collection.");
+            error("SequenceIterator requires a set or list of values.");
         end
         
-        seq := listof(1 for x from 1 to n);
+        if n >=0 then
+            seq := listof(1 for x from 1 to n);
+        else
+            seq := nil;
+        end
+        
     end
     
     override property HasNext.get
-        seq.Length == n and (n == 0 or seq[1] <= valueList.Length);
+        return seq != nil;
     end
     
-    override property Next.get
+    override mutable property Next.get
         result := seq;
         i := 1;
         while i <= seq.Length and seq[i] == valueList.Length do
@@ -43,7 +59,7 @@ mutable class SequenceIterator extends Iterator
         if i <= seq.Length then
             seq[i] := seq[i] + 1;
         else
-            seq.Add(1); // We are done, update to an inconsistent state
+            seq := nil; // We are done, update to an inconsistent state
         end
         return listof(valueList[i] for i in result);
     end

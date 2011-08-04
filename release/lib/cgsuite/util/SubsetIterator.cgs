@@ -1,5 +1,17 @@
 /*
  * SubsetIterator.cgs
+ * 
+ * Iterator for subsets of a given set. Takes one or two parameters, with just
+ * one (a set or list) it iterates over all the subsets, in size order.
+ * With two parameters, one an integer, the other a set or list (in either
+ * order) it iterates over the subsets of that size. Note that if a list
+ * argument has repeated elements, then these may occur up to their
+ * multiplicities. However, the iterator will also return some duplicates in
+ * this case, as they are treated as being distinct.
+ *
+ * Examples:
+ * it := SubsetIterator([0, *, ^]);
+ * while it.HasNext do Worksheet.Print(it.Next); end;
  *
  * Created by malbert on 4/08/2011
  */
@@ -9,8 +21,20 @@ mutable class SubsetIterator extends Iterator
     var valueList;
     var subsetSize;
     var indexSeq;
-     
-    method SubsetIterator(Integer subsetSize, Collection vals) 
+    var allSubsets;
+    var iterators;
+    
+    method SubsetIterator(arg1 ? nil, arg2 ? nil) 
+        
+        if arg1 is Integer then
+            subsetSize := arg1;
+            vals := arg2;
+        else
+            vals := arg1;
+            subsetSize := arg2;
+        end
+        
+        allSubsets := not subsetSize is Integer;
         
         if vals is Set then
             valueList := listof(x for x in vals);
@@ -20,8 +44,9 @@ mutable class SubsetIterator extends Iterator
             error("SubsetIterator requires a Set or List collection.");
         end
         
-        
-         if subsetSize > valueList.Length or subsetSize < 0 then
+        if allSubsets then
+            iterators := IteratorSequence(listof(SubsetIterator(i, valueList) for i from 0 to valueList.Length));
+        elseif subsetSize > valueList.Length or subsetSize < 0 then
             indexSeq := nil;
         else
             indexSeq := listof(i for i from 1 to subsetSize);
@@ -29,11 +54,21 @@ mutable class SubsetIterator extends Iterator
         
     end
     
-    override property HasNext.get
-           return indexSeq != nil;     
+    override mutable property HasNext.get
+       
+        if not allSubsets then 
+                return indexSeq != nil;
+        end
+       
+        return iterators.HasNext;
+       
     end
     
-    override property Next.get
+    override mutable property Next.get
+    
+        if allSubsets then
+            return iterators.Next;
+        end
     
         result := {};
         for i from 1 to indexSeq.Length do    

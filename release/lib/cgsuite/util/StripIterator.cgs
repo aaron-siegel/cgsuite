@@ -1,0 +1,35 @@
+/*
+ * StripIterator.cgs
+ * 
+ * Iterator for all strips with a given number of columns and possible
+ * set of entries.
+ *
+ * Created by malbert on 5/08/2011
+ */
+
+mutable class StripIterator extends Iterator
+
+    var columns;
+    var it;
+    
+    method StripIterator(Integer columns, Collection vals) 
+               
+        it := SequenceIterator(columns, vals);
+        
+    end
+    
+    override property HasNext.get
+        return it.HasNext;
+    end
+    
+    override property Next.get
+        s := it.Next;
+        i := 1;
+        result := Strip(columns);
+        for c from 1 to columns do
+            result[c] := s[c];
+        end
+        return result;
+    end
+
+end
