@@ -25,7 +25,7 @@ mutable class TestShadowingSubclass extends TestShadowing
         
     end
     
-    method NonShadowLocalSub()
+    mutable method NonShadowLocalSub()
     
         y := 5;
         super.NonShadowLocal();
@@ -33,7 +33,7 @@ mutable class TestShadowingSubclass extends TestShadowing
     
     end
     
-    method NonShadowParamSub()
+    mutable method NonShadowParamSub()
     
         y := 5;
         super.NonShadowParam(3);

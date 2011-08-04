@@ -33,6 +33,7 @@ import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
 // TODO Disallow immutable inherits mutable
 // TODO Disallow "static mutable"
+// TODO Disallow "explicit mutable constructor"
 
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {

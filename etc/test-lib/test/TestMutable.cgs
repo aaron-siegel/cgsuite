@@ -25,11 +25,11 @@ mutable class TestMutable
         x := value;
     end
     
-    method MutateBad(Integer index, Integer value)
+    method MutateImplicit(Integer index, Integer value)
         x[index] := value;
     end
     
-    mutable method MutateGood(Integer index, Integer value)
+    mutable method MutateExplicit(Integer index, Integer value)
         x[index] := value;
     end
     

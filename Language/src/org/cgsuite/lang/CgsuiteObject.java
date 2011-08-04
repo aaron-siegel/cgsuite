@@ -12,7 +12,6 @@ import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 // TODO Implement setters
-// TODO Improve comparator methodology
 // TODO Use weak references for crosslinks
 
 public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
@@ -234,6 +233,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         
         if (!isMutable)
             throw new InputException("Cannot change member variable of immutable object: " + identifier);
+        if (!contextMethod.isMutableMethod())
+            throw new InputException("Cannot assign to member variable from inside an immutable method: " + identifier);
         if (var == null)
             throw new InputException("Unknown variable: " + identifier);
         if (var.isStatic())

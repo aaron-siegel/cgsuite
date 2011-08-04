@@ -7,10 +7,12 @@
 class TestImmutable
 
     var x;
+    var mut;
     
     method TestImmutable()
         x := [1,2,3,4];
         x[5] := 5;
+        mut := TestMutable();
     end
     
     method Retrieve(Integer index)
@@ -23,6 +25,14 @@ class TestImmutable
     
     method MutateBad(Integer index, Integer value)
         x[index] := value;
+    end
+    
+    method CallMutateImplicit(Integer index, Integer value)
+        mut.MutateImplicit(index, value);
+    end
+    
+    method CallMutateExplicit(Integer index, Integer value)
+        mut.MutateExplicit(index, value);
     end
     
 end

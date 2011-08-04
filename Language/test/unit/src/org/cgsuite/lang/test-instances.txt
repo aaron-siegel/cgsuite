@@ -77,15 +77,16 @@ Extends qualified class name    \ test.TestExtendsSubclass(); \ ok \
 
 // Immutability
 
-Immutable retrieval             \ mut := test.TestImmutable(); mut.Retrieve(3); \ 3 \
-Immutable assignment            \ mut := test.TestImmutable(); mut.AssignBad([5,6,7]); \ !!Cannot change member variable of immutable object: x \
-Immutable member mutation       \ mut := test.TestImmutable(); mut.MutateBad(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-Mutable retrieval               \ mut := test.TestMutable(); mut.Retrieve(3); \ 3 \
-Mutable assignment              \ mut := test.TestMutable(); mut.AssignGood([5,6,7]); mut.Retrieve(3); \ 7 \
-Mutable member mutation         \ mut := test.TestMutable(); mut.MutateGood(3, 9); mut.Retrieve(3); \ 9 \
-Immutable method - assignment   \ mut := test.TestMutable(); mut.AssignBad([5,6,7]); \ !!Illegal \
-Immutable method - mutation     \ mut := test.TestMutable(); mut.MutateBad(3, 9); \ !!Illegal \
-Immutable declares mutable      \ mut := test.TestBadImmutable(); \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
+Immutable retrieval                     \ mut := test.TestImmutable(); mut.Retrieve(3); \ 3 \
+Immutable assignment                    \ mut := test.TestImmutable(); mut.AssignBad([5,6,7]); \ !!Cannot change member variable of immutable object: x \
+Immutable member mutation               \ mut := test.TestImmutable(); mut.MutateBad(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Mutable retrieval                       \ mut := test.TestMutable(); mut.Retrieve(3); \ 3 \
+Mutable assignment                      \ mut := test.TestMutable(); mut.AssignGood([5,6,7]); mut.Retrieve(3); \ 7 \
+Mutable member mutation                 \ mut := test.TestMutable(); mut.MutateExplicit(3, 9); mut.Retrieve(3); \ 9 \
+Immutable method - assignment           \ mut := test.TestMutable(); mut.AssignBad([5,6,7]); \ !!Cannot assign to member variable from inside an immutable method: x \
+Immutable object - call explicit mutable\ mut := test.TestImmutable(); mut.CallMutateExplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: test.TestMutable.MutateExplicit \
+Immutable object - call implicit mutable\ mut := test.TestImmutable(); mut.CallMutateImplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Immutable declares mutable              \ mut := test.TestBadImmutable(); \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
 
 // Var shadowing
 

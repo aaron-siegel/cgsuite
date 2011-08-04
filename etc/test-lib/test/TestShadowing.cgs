@@ -4,7 +4,7 @@
  * Created by asiegel on Aug 3, 2011
  */
 
-class TestShadowing
+mutable class TestShadowing
 
     var x;
 
@@ -46,7 +46,7 @@ class TestShadowing
     method NonShadowParam(y)
     end
     
-    method NonShadowLocal()
+    mutable method NonShadowLocal()
         y := 3;
     end
 

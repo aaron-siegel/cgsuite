@@ -4,7 +4,7 @@
 <!-- If you delete this file and reopen the project it will be recreated. -->
 <project name="org.cgsuite.lang" default="netbeans" basedir=".">
     <description>Builds, tests, and runs the project org.cgsuite.lang.</description>
-    <property name="test.run.args" value="-Dorg.cgsuite.devbuild=${basedir}/.."/>
+    <property name="test.run.args" value="-ea -Dorg.cgsuite.devbuild=${basedir}/.."/>
     <import file="nbproject/build-impl.xml"/>
 
     <path id="antlr.classpath">

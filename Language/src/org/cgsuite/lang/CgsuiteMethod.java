@@ -45,6 +45,12 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         this.tree = tree;
         this.javaMethodSpec = javaMethodSpec;
         this.isConstructor = name.equals(declaringClass.getName());
+        
+        if (isConstructor)
+        {
+            // Constructors are always mutable, even if the declaring class is not
+            this.modifiers.add(Modifier.MUTABLE);
+        }
 
         for (Parameter p : parameters)
         {
@@ -173,10 +179,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     {
         ensureLoaded();
         
-        if (isMutableMethod())
+        if (isMutableMethod() && obj != null)
         {
-            assert obj != null;
-            
             if (!obj.isMutable())
                 throw new InputException("Cannot call mutable method on member of immutable object: " + getQualifiedName());
 
