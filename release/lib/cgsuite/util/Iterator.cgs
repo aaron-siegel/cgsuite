@@ -1,0 +1,40 @@
+/*
+ * Iterator.cgs
+ *
+ * This class presents the interface for an Iterator. It can only be used by
+ * creating (or using a pre-supplied) subclass. Then, the standard form for
+ * using an iterator is as follows:
+ *
+ * iter := SomeIterator(some Parameters)
+ * while iter.HasNext do
+ *  x := iter.Next
+ *  (do stuff with x)
+ * end
+ *
+ * Note that if you will only use the result if iter.Next in a single place
+ * within the loop, there is no need to store it. However, if you need it on
+ * multiple occasions then you must because the (intended) behaviour of an
+ * iterator is that each access to Next will return the 'next' value.
+ *
+ * Note also that concrete iterators generally need to be mutable classes
+ * since the changeable state of the iterator will usually need to be stored
+ * in a var.
+ *
+ * The contract for an iterator is that, so long as HasNext is true, Next
+ * should be some sensible next value. If the user calls Next without first
+ * checking HasNext, then all bets are off.
+ * 
+ * Created by malbert on 4/08/2011
+ */
+
+class Iterator
+
+    property HasNext.get
+        return false;
+    end
+    
+    property Next.get
+        return nil;
+    end
+
+end
