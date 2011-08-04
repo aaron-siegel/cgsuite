@@ -103,6 +103,11 @@ public class Domain
 
     private CgsuiteObject statementSequence(CgsuiteTree tree) throws CgsuiteException
     {
+        if (Thread.interrupted())
+        {
+            throw new InputException("Calculation canceled by user.");
+        }
+        
         switch (tree.token.getType())
         {
             case STATEMENT_SEQUENCE:
@@ -796,10 +801,13 @@ public class Domain
                 }
             }
 
-            if (g != null && forId != null)
+            if (g != null)
             {
                 g = add(g, byG);
-                put(forId, g);
+                if (forId != null)
+                {
+                    put(forId, g);
+                }
             }
         }
 

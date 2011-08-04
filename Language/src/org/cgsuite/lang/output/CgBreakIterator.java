@@ -35,7 +35,17 @@ public class CgBreakIterator extends BreakIterator
     @Override
     public int next(int n)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        int result = current();
+        
+        for (int i = 0; i < n; i++)
+        {
+            if (result == CharacterIterator.DONE)
+                return result;
+            
+            result = next();
+        }
+        
+        return result;
     }
 
     @Override
