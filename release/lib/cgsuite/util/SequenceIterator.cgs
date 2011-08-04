@@ -1,7 +1,7 @@
 /*
  * SequenceIterator.cgs
  *
- * An iterator for all sequences of length n from a set of values. A common
+ * An iterator for all sequences of length n from a set or list of values. A common
  * trick is employed -- the sequence currently stored (seq) is actually the
  * next one to be returned. When Next is called, seq is copied and then updated.
  * The update is such that when we have reached the last sequence, the state
@@ -17,8 +17,19 @@ mutable class SequenceIterator extends Iterator
     var n;
     var seq;
     
-    method SequenceIterator(Integer n, Set values)
-        valueList := listof(x for x in values);
+    method SequenceIterator(Integer n, Set values ? nil, List valueList ? nil)
+        if (values != nil) and (valueList != nil) then
+            error("Sequence iterator can be constructed from either a set or a list, not both.");
+        end
+        
+        if (values == nil) and (valueList == nil) then
+            error("A set or list of values must be specified for a Sequence iterator.");
+        end
+        
+        if (values != nil) then
+            valueList := listof(x for x in values);
+        end
+        
         seq := listof(1 for x from 1 to n);
     end
     

@@ -23,8 +23,8 @@ mutable class GridIterator extends Iterator
     var rows;
     var columns;
     
-    method GridIterator(Integer rows, Integer columns, Set values) 
-        it := SequenceIterator(rows*columns, values);
+    method GridIterator(Integer rows, Integer columns, Set values ? nil, List valueList ? nil) 
+        it := SequenceIterator(rows*columns, values, valueList);
     end
     
     override property HasNext.get
