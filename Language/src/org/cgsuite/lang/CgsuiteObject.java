@@ -171,10 +171,10 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     
     public CgsuiteObject resolve(String identifier) throws CgsuiteException
     {
-        return resolve(identifier, null);
+        return resolve(identifier, null, false);
     }
 
-    public CgsuiteObject resolve(String identifier, CgsuiteMethod contextMethod) throws CgsuiteException
+    public CgsuiteObject resolve(String identifier, CgsuiteMethod contextMethod, boolean localAccess) throws CgsuiteException
     {
         CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
 
@@ -194,7 +194,17 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
             return new InstanceMethod(method);
         }
         
-        Variable var = type.lookupVar(identifier);
+        Variable var;
+        
+        if (localAccess)
+        {
+            assert contextMethod != null;
+            var = contextMethod.getDeclaringClass().lookupVar(identifier);
+        }
+        else
+        {
+            var = type.lookupVar(identifier);
+        }
         
         if (var != null)
         {
@@ -208,18 +218,29 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         return null;
     }
 
-    public void assign(String name, CgsuiteObject value, CgsuiteMethod contextMethod)
+    public void assign(String identifier, CgsuiteObject value, CgsuiteMethod contextMethod, boolean localAccess)
     {
-        Variable var = type.lookupVar(name);
+        Variable var;
+        
+        if (localAccess)
+        {
+            assert contextMethod != null;
+            var = contextMethod.getDeclaringClass().lookupVar(identifier);
+        }
+        else
+        {
+            var = type.lookupVar(identifier);
+        }
+        
         if (!isMutable)
-            throw new InputException("Cannot change member variable of immutable object: " + name);
+            throw new InputException("Cannot change member variable of immutable object: " + identifier);
         if (var == null)
-            throw new InputException("Unknown variable: " + name);
+            throw new InputException("Unknown variable: " + identifier);
         if (var.isStatic())
-            throw new InputException("Cannot reference static variable in dynamic context: " + name);
+            throw new InputException("Cannot reference static variable in dynamic context: " + identifier);
         if (contextMethod == null || !contextMethod.getDeclaringClass().hasAncestor(var.getDeclaringClass()))
-            throw new InputException("Cannot assign variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + name);
-        objectNamespace.put(name, value.createCrosslink());
+            throw new InputException("Cannot assign variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + identifier);
+        objectNamespace.put(identifier, value.createCrosslink());
     }
 
     public CgsuiteObject invokeMethod(String methodName)

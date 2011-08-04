@@ -21,6 +21,8 @@ public class CgsuiteClassLoadException extends CgsuiteException
 
     public CgsuiteClassLoadException(FileObject fo, List<SyntaxError> syntaxErrors)
     {
+        super(syntaxErrors.get(0).getMessage());
+        
         this.fo = fo;
         this.syntaxErrors = syntaxErrors;
     }

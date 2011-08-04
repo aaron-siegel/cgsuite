@@ -86,12 +86,17 @@ public class LanguageFunctionalTest
         CgsuiteParser.script_return r = parser.script();
         CgsuiteTree tree = (CgsuiteTree) r.getTree();
 
-        Assert.assertTrue("[" + description + "] Lexer errors: " + lexer.getErrors(), lexer.getErrors().isEmpty());
-        Assert.assertTrue("[" + description + "] Parser errors: " + parser.getErrors(), parser.getErrors().isEmpty());
-        
         String result;
         
-        try
+        if (!lexer.getErrors().isEmpty())
+        {
+            result = "!!Syntax error: " + lexer.getErrors().get(0).getMessage();
+        }
+        else if (!parser.getErrors().isEmpty())
+        {
+            result = "!!Syntax error: " + parser.getErrors().get(0).getMessage();
+        }
+        else try
         {
             Output output = TEST_DOMAIN.script(tree).simplify().toOutput();
             result = output.toString();
@@ -99,6 +104,11 @@ public class LanguageFunctionalTest
         catch (InputException exc)
         {
             result = "!!" + exc.getMessage();
+        }
+        catch (CgsuiteClassLoadException exc)
+        {
+            result = "!!" + exc.getMessage();
+            exc.printStackTrace(System.err);
         }
         
         Assert.assertEquals("[" + description + "] Incorrect output.", expected, result);

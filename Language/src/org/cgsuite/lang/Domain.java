@@ -52,7 +52,7 @@ public class Domain
 
         if (contextObject != null)
         {
-            CgsuiteObject obj = contextObject.resolve(str, contextMethod);
+            CgsuiteObject obj = contextObject.resolve(str, contextMethod, true);
             
             if (obj != null)
                 return obj;
@@ -65,7 +65,7 @@ public class Domain
     {
         if (contextObject != null && contextMethod.getDeclaringClass().lookupVar(str) != null)
         {
-            contextObject.assign(str, object, contextMethod);
+            contextObject.assign(str, object, contextMethod, true);
         }
         else
         {
@@ -205,7 +205,7 @@ public class Domain
                 id = tree.getChild(1).getText();
                 try
                 {
-                    obj.assign(id, x, contextMethod);
+                    obj.assign(id, x, contextMethod, false);
                 }
                 catch (InputException exc)
                 {
@@ -445,7 +445,7 @@ public class Domain
                     CgsuiteObject retval;
                     try
                     {
-                        retval = x.resolve(id, contextMethod);
+                        retval = x.resolve(id, contextMethod, false);
                     }
                     catch (InputException exc)
                     {

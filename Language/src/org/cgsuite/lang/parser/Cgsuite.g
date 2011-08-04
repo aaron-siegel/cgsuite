@@ -606,6 +606,7 @@ explicitList
 setof
     : SETOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(SETOF_IN[$SETOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
                               | doLoopAntecedent RPAREN
+                                  // TODO These errors aren't being generated quite right
                                   { if ($doLoopAntecedent.tree == null)
                                         throw new RecognitionException(input);
                                   } -> ^(SETOF_DO[$SETOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
