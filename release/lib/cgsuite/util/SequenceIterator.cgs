@@ -17,17 +17,13 @@ mutable class SequenceIterator extends Iterator
     var n;
     var seq;
     
-    method SequenceIterator(Integer n, Set values ? nil, List valueList ? nil)
-        if (values != nil) and (valueList != nil) then
-            error("Sequence iterator can be constructed from either a set or a list, not both.");
-        end
-        
-        if (values == nil) and (valueList == nil) then
-            error("A set or list of values must be specified for a Sequence iterator.");
-        end
-        
-        if (values != nil) then
-            valueList := listof(x for x in values);
+    method SequenceIterator(Integer n, Collection vals)
+        if vals is Set then
+            valueList := listof(x for x in vals);
+        elseif vals is List then
+            valueList := vals;
+        else
+            error("SequenceIterator requires a Set or List collection.");
         end
         
         seq := listof(1 for x from 1 to n);

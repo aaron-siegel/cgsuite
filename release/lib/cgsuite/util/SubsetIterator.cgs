@@ -7,64 +7,50 @@
 mutable class SubsetIterator extends Iterator
 
     var valueList;
-    var values;
     var subsetSize;
-    var charSeq;
+    var indexSeq;
      
-    method SubsetIterator(Integer subsetSize, Set values ? nil, List valueList ? nil) 
-        if (valueList == nil) then
-            valueList := listof(x for x in values);
+    method SubsetIterator(Integer subsetSize, Collection vals) 
+        
+        if vals is Set then
+            valueList := listof(x for x in vals);
+        elseif vals is List then
+            valueList := vals;
+        else
+            error("SubsetIterator requires a Set or List collection.");
         end
         
-        charSeq := listof(false for i from 1 to valueList.Length);
         
-        if (subsetSize <= valueList.Length) then
-            for i from 1 to subsetSize do
-                charSeq[i] := true;
-            end
-        end
-        
-        if subsetSize > valueList.Length or subsetSize < 0 then
-            charSeq := nil;
+         if subsetSize > valueList.Length or subsetSize < 0 then
+            indexSeq := nil;
+        else
+            indexSeq := listof(i for i from 1 to subsetSize);
         end
         
     end
     
     override property HasNext.get
-           return charSeq != nil;     
+           return indexSeq != nil;     
     end
     
     override property Next.get
     
         result := {};
-        for i from 1 to charSeq.Length do    
-            if charSeq[i] then
-                result.Add(valueList[i]);
+        for i from 1 to indexSeq.Length do    
+            result.Add(valueList[indexSeq[i]]);
+        end
+        
+        for i from indexSeq.Length to 1 by -1 while indexSeq[i] == valueList.Length - indexSeq.Length + i do end;
+        
+        if i == 0 then
+            indexSeq := nil;
+        else
+            indexSeq[i] := indexSeq[i] + 1;
+            for j from i+1 to indexSeq.Length do
+                indexSeq[j] := indexSeq[j-1] + 1;
             end
         end
         
-        count := 0;
-        if charSeq[charSeq.Length] then
-            count := count+1;
-        end;
-        i := charSeq.Length-1;
-        while i >= 1 do
-            if (charSeq[i] and not charSeq[i+1]) then
-                charSeq[i] := false;
-                for j from i+1 to charSeq.Length do
-                    charSeq[j] := (j-i <= count+1);
-                end
-                break;
-            elseif charSeq[i] then
-                count := count+1;
-            end
-            i := i-1;
-        end;
-        
-        if (i == 0) then
-            charSeq := nil;
-        end
-            
         return result;
     end
 
