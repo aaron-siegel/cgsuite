@@ -122,6 +122,7 @@ tokens
 	ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
 	ASN_ANTECEDENT;
+    DO_IN;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
     EXP;
@@ -131,16 +132,10 @@ tokens
 	EXPRESSION_LIST;
 	FUNCTION_CALL;
 	FUNCTION_CALL_ARGUMENT_LIST;
-    LISTOF_DO;
-    LISTOF_IN;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
     PROCEDURE_PARAMETER_LIST;
-    SETOF_DO;
-    SETOF_IN;
 	STATEMENT_SEQUENCE;
-    TABLEOF_DO;
-    TABLEOF_IN;
     UNARY_AST;
 	UNARY_MINUS;
 	UNARY_PLUS;
@@ -538,9 +533,7 @@ primaryExpr
 	| (LBRACE expression? BIGRARROW) => explicitMap
 	| explicitSet
 	| explicitList
-    | setof
-    | listof
-    | tableof
+    | of
     | controlExpression
 	;
 
@@ -607,32 +600,18 @@ explicitList
 	: LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
 	;
 
-setof
-    : SETOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(SETOF_IN[$SETOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                              | doLoopAntecedent RPAREN
-                                  // TODO These errors aren't being generated quite right
-                                  { if ($doLoopAntecedent.tree == null)
-                                        throw new RecognitionException(input);
-                                  } -> ^(SETOF_DO[$SETOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
-                              )
-    ;
-
-listof
-    : LISTOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(LISTOF_IN[$LISTOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                               | doLoopAntecedent RPAREN
-                                  { if ($doLoopAntecedent.tree == null)
-                                        throw new RecognitionException(input);
-                                  } -> ^(LISTOF_DO[$LISTOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
-                               )
-    ;
-
-tableof
-    : TABLEOF LPAREN expression ( inLoopAntecedent RPAREN -> ^(TABLEOF_IN[$TABLEOF] inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+of
+    : ofToken LPAREN expression ( inLoopAntecedent RPAREN -> ^(DO_IN[$ofToken.tree.getToken()] ofToken inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
                                 | doLoopAntecedent RPAREN
-                                  { if ($doLoopAntecedent.tree == null)
+                                    // TODO These errors aren't being generated quite right
+                                    { if ($doLoopAntecedent.tree == null)
                                         throw new RecognitionException(input);
-                                  } -> ^(TABLEOF_DO[$TABLEOF] doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
+                                    } -> ^(DO[$ofToken.tree.getToken()] ofToken doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
                                 )
+    ;
+
+ofToken
+    : SETOF | LISTOF | TABLEOF
     ;
 
 expressionList
@@ -646,7 +625,7 @@ range
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
 	| doLoopAntecedent DO^ statementSequence END!
-	| inLoopAntecedent DO statementSequence END -> ^(IN[$DO] inLoopAntecedent statementSequence)
+	| inLoopAntecedent DO statementSequence END -> ^(DO_IN[$DO] inLoopAntecedent statementSequence)
 	;
 
 doLoopAntecedent
@@ -654,7 +633,7 @@ doLoopAntecedent
     ;
 
 inLoopAntecedent
-    : FOR! expression IN! expression whereClause?
+    : forClause inClause whereClause?
     ;
 
 forClause
@@ -679,6 +658,10 @@ whileClause
 
 whereClause
     : WHERE^ expression
+    ;
+
+inClause
+    : IN^ expression
     ;
 
 elseifClause

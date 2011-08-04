@@ -289,26 +289,11 @@ public class Domain
 
             case DO:
                 
-                return doLoop(tree, null);
+                return doLoop(tree);
 
-            case IN:
+            case DO_IN:
 
-                return inLoop(tree, null);
-
-            case SETOF_IN:
-            case SETOF_DO:
-
-                return setOf(tree);
-                
-            case LISTOF_IN:
-            case LISTOF_DO:
-                
-                return listOf(tree);
-                
-            case TABLEOF_IN:
-            case TABLEOF_DO:
-                
-                return tableOf(tree);
+                return inLoop(tree);
 
             case IF:
             case ELSEIF:
@@ -670,8 +655,10 @@ public class Domain
         }
     }
 
-    private CgsuiteObject doLoop(CgsuiteTree tree, CgsuiteCollection target) throws CgsuiteException
+    private CgsuiteObject doLoop(CgsuiteTree tree) throws CgsuiteException
     {
+        CgsuiteCollection target = null;
+        
         String forId = null;
         CgsuiteObject fromG = null;
         CgsuiteObject toG = null;
@@ -685,6 +672,21 @@ public class Domain
         {
             switch (child.getToken().getType())
             {
+                case SETOF:
+                    
+                    target = new CgsuiteSet();
+                    break;
+                    
+                case LISTOF:
+                    
+                    target = new CgsuiteList();
+                    break;
+                    
+                case TABLEOF:
+                    
+                    target = new Table();
+                    break;
+                
                 case FOR:
 
                     forId = child.getChild(0).getText();
@@ -749,8 +751,7 @@ public class Domain
             CgsuiteObject forObj = lookup(forId);
             if (forObj == null)
             {
-                throw new InputException(tree.getChild(0).getChild(0).getToken(),
-                    "Undefined variable in for loop with no \"from\" clause: " + forId);
+                throw new InputException(tree.getToken(), "Undefined variable in for loop with no \"from\" clause: " + forId);
             }
             g = canonicalGame(forObj, tree);
         }
@@ -811,30 +812,69 @@ public class Domain
             }
         }
 
-        return retval;
+        if (target == null)
+            return retval;
+        else
+            return target;
     }
 
-    private CgsuiteObject inLoop(CgsuiteTree tree, CgsuiteCollection target) throws CgsuiteException
+    private CgsuiteObject inLoop(CgsuiteTree tree) throws CgsuiteException
     {
-        String forId;
-        CgsuiteObject collection;
+        CgsuiteCollection target = null;
+        
+        String forId = null;
+        CgsuiteObject collection = null;
         CgsuiteTree whereCondition = null;
-        CgsuiteTree body;
+        CgsuiteTree body = null;
 
-        forId = tree.getChild(0).getText();
+        for (CgsuiteTree child : tree.getChildren())
+        {
+            switch (child.getToken().getType())
+            {
+                case SETOF:
+                    
+                    target = new CgsuiteSet();
+                    break;
+                    
+                case LISTOF:
+                    
+                    target = new CgsuiteList();
+                    break;
+                    
+                case TABLEOF:
+                    
+                    target = new Table();
+                    break;
+                
+                case FOR:
+                    
+                    forId = child.getChild(0).getText();
+                    break;
+                    
+                case IN:
+                    
+                    collection = expression(child.getChild(0));
+                    break;
+                    
+                case WHERE:
+                    
+                    whereCondition = child.getChild(0);
+                    break;
+                    
+                case STATEMENT_SEQUENCE:
+                    
+                    body = child;
+                    break;
+                    
+                default:
+                    
+                    throw new MalformedParseTreeException(tree);
+            }
+        }
+        
         if (contextMethod != null && contextMethod.getDeclaringClass().lookupVar(forId) != null)
         {
             throw new InputException(tree.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
-        }
-        collection = expression(tree.getChild(1));
-        if (tree.getChild(2).getType() == WHERE)
-        {
-            whereCondition = tree.getChild(2).getChild(0);
-            body = tree.getChild(3);
-        }
-        else
-        {
-            body = tree.getChild(2);
         }
 
         if (!(collection instanceof CgsuiteCollection))
@@ -872,56 +912,12 @@ public class Domain
             }
         }
 
-        return retval;
+        if (target == null)
+            return retval;
+        else
+            return target;
     }
 
-    private CgsuiteObject setOf(CgsuiteTree tree) throws CgsuiteException
-    {
-        CgsuiteSet target = new CgsuiteSet();
-        switch (tree.getType())
-        {
-            case SETOF_IN:
-                inLoop(tree, target);
-                break;
-                
-            case SETOF_DO:
-                doLoop(tree, target);
-                break;
-        }
-        return target;
-    }
-    
-    private CgsuiteObject listOf(CgsuiteTree tree) throws CgsuiteException
-    {
-        CgsuiteList target = new CgsuiteList();
-        switch (tree.getType())
-        {
-            case LISTOF_IN:
-                inLoop(tree, target);
-                break;
-                
-            case LISTOF_DO:
-                doLoop(tree, target);
-                break;
-        }
-        return target;
-    }
-    
-    private CgsuiteObject tableOf(CgsuiteTree tree) throws CgsuiteException
-    {
-        Table target = new Table();
-        switch (tree.getType())
-        {
-            case TABLEOF_IN:
-                inLoop(tree, target);
-                break;
-                
-            case TABLEOF_DO:
-                doLoop(tree, target);
-                break;
-        }
-        return target;
-    }
 
     private CgsuiteObject binopExpression(CgsuiteTree tree) throws CgsuiteException
     {
