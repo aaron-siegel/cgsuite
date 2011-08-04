@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
@@ -244,14 +245,14 @@ public class LoopyGame extends Game
             else
             {
                 int k;
-                CgsuiteSet leftEdges, rightEdges;
+                CgsuiteCollection leftEdges, rightEdges;
                 if (o instanceof Node)
                 {
                     Node node = (Node) o;
                     node.graphInfo = graphInfo;
                     node.startVertex = vertex;
-                    CgsuiteSet leftEdgeObjs = new CgsuiteSet(),
-                               rightEdgeObjs = new CgsuiteSet();
+                    CgsuiteCollection leftEdgeObjs = new CgsuiteSet(),
+                                      rightEdgeObjs = new CgsuiteSet();
                     for (Node target : node.getLeftEdges())
                     {
                         if (target.isTerminal())

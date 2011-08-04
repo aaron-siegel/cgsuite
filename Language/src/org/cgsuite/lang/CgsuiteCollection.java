@@ -28,6 +28,16 @@ public abstract class CgsuiteCollection extends CgsuiteObject implements Iterabl
     public abstract int size();
     
     public abstract void add(CgsuiteObject obj);
+    
+    public boolean contains(CgsuiteObject obj)
+    {
+        return getUnderlyingCollection().contains(obj);
+    }
+    
+    public boolean isEmpty()
+    {
+        return size() == 0;
+    }
 
     public abstract Collection<CgsuiteObject> getUnderlyingCollection();
 }

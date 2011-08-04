@@ -32,14 +32,14 @@ public class Game extends CgsuiteObject
             return new SumGame(this, other);
     }
 
-    public CgsuiteSet getLeftOptions()
+    public CgsuiteCollection getLeftOptions()
     {
-        return (CgsuiteSet) invokeMethod("LeftOptions$get");
+        return (CgsuiteCollection) invokeMethod("LeftOptions$get");
     }
 
-    public CgsuiteSet getRightOptions()
+    public CgsuiteCollection getRightOptions()
     {
-        return (CgsuiteSet) invokeMethod("RightOptions$get");
+        return (CgsuiteCollection) invokeMethod("RightOptions$get");
     }
 
     public EditorPanel toEditor()

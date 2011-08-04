@@ -19,10 +19,6 @@ import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
 // TODO Simple enum assignment to grids
-// TODO Loops like "from 1 to 3 do end" are broken
-// TODO Interrupt doesn't work in tight loops such as
-//    "from 1 to 1000000 do end"
-// TODO Consolidate listof/setof/tableof
 
 public class Domain
 {

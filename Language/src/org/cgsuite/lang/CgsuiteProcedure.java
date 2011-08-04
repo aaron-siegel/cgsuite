@@ -71,7 +71,15 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
     @Override
     public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String, CgsuiteObject> optionalArguments) throws CgsuiteException
     {
-        // TODO Validate number of arguments etc.
+        if (arguments.size() != parameters.size())
+        {
+            throw new InputException("Expecting " + parameters.size() + " argument(s); found " + arguments.size());
+        }
+        
+        if (optionalArguments != null && !optionalArguments.isEmpty())
+        {
+            throw new InputException("Invalid optional parameter: " + optionalArguments.keySet().iterator().next());
+        }
 
         List<CgsuiteObject> oldValues = new ArrayList<CgsuiteObject>(parameters.size());
 
