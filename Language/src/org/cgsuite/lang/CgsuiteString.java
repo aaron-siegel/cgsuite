@@ -16,15 +16,9 @@ public class CgsuiteString extends CgsuiteObject
     }
 
     @Override
-    public String toString()
-    {
-        return "\"" + str + "\"";
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
-        return new StyledTextOutput(toString());
+        return new StyledTextOutput("\"" + str + "\"");
     }
     
     public String toJavaString()

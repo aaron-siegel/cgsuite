@@ -16,18 +16,6 @@ public class Nil extends CgsuiteObject
     Nil()
     {
     }
-    
-    @Override
-    public String toString()
-    {
-        return "nil";
-    }
-
-    @Override
-    public CgsuiteString toCgsuiteString()
-    {
-        return new CgsuiteString("nil");
-    }
 
     @Override
     public Output toOutput()

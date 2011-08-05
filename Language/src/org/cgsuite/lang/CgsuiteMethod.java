@@ -1,28 +1,29 @@
 package org.cgsuite.lang;
 
-import org.cgsuite.lang.parser.CgsuiteTree;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-
 import org.cgsuite.lang.game.RationalNumber;
-
-// TODO Optional parameter validation!  (Make sure it's a ligit OP)
+import org.cgsuite.lang.parser.CgsuiteTree;
 
 public class CgsuiteMethod extends CgsuiteObject implements Callable
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Method");
+    
     private final static Logger log = Logger.getLogger(CgsuiteMethod.class.getName());
 
     private CgsuiteClass declaringClass;
     private String name;
     private EnumSet<Modifier> modifiers;
     private List<Parameter> parameters;
+    private Set<String> optionalParameterNames;
     private int nRequiredParameters;
     private CgsuiteTree tree;
     private boolean isConstructor;
@@ -36,12 +37,13 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     public CgsuiteMethod(CgsuiteClass declaringClass, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
         throws CgsuiteException
     {
-        super(CgsuitePackage.forceLookupClass("Method"));
+        super(TYPE);
 
         this.declaringClass = declaringClass;
         this.name = name;
         this.modifiers = modifiers;
         this.parameters = parameters;
+        this.optionalParameterNames = new HashSet<String>();
         this.tree = tree;
         this.javaMethodSpec = javaMethodSpec;
         this.isConstructor = name.equals(declaringClass.getName());
@@ -54,7 +56,9 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
         for (Parameter p : parameters)
         {
-            if (!p.optional)
+            if (p.optional)
+                optionalParameterNames.add(p.name);
+            else
                 nRequiredParameters++;
         }
     }
@@ -188,10 +192,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
 
         if (arguments.size() < nRequiredParameters)
-            throw new InputException("Call to " + getQualifiedName() + " requires at least " + nRequiredParameters + " parameters.");
+            throw new InputException("Expecting at least " + nRequiredParameters + " argument(s) for method call: " + getQualifiedName());
 
         if (arguments.size() > parameters.size())
-            throw new InputException("Call to " + getQualifiedName() + " accepts at most " + parameters.size() + " parameters.");
+            throw new InputException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
 
         CgsuiteObject retval;
 
@@ -289,13 +293,20 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 domain.put(parameters.get(i).name, arguments.get(i));
             }
+            
+            int nOptionalArgumentsProcessed = 0;
 
             for (int i = nRequiredParameters; i < parameters.size(); i++)
             {
                 Parameter p = parameters.get(i);
                 if (optionalArguments != null && optionalArguments.containsKey(p.name))
                 {
+                    if (arguments.size() > i)
+                    {
+                        throw new InputException("Duplicate parameter: " + p.name + " (in call to method " + getQualifiedName() + ")");
+                    }
                     domain.put(p.name, optionalArguments.get(p.name));
+                    nOptionalArgumentsProcessed++;
                 }
                 else if (arguments.size() > i)
                 {
@@ -310,6 +321,18 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                     CgsuiteObject defaultValue = domain.expression(p.defaultValue);
                     domain.put(p.name, defaultValue);
                 }
+            }
+            
+            if (optionalArguments != null && nOptionalArgumentsProcessed != optionalArguments.size())
+            {
+                // There must be an invalid optional argument.  Find it and generate an error.
+                for (String str : optionalArguments.keySet())
+                {
+                    if (!optionalParameterNames.contains(str))
+                        throw new InputException("Not a valid optional parameter: " + str + " (in call to method " + getQualifiedName() + ")");
+                }
+                
+                assert false : "All arguments matched, but the count was off";
             }
 
             retval = domain.invocation(tree);

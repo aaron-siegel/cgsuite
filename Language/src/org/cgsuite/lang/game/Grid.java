@@ -378,7 +378,7 @@ public class Grid extends CgsuiteObject implements Serializable
     {
         if (numRows == 0)
         {
-            return "";
+            return "\"\"";
         }
         
         if (charMap == null)
@@ -388,6 +388,7 @@ public class Grid extends CgsuiteObject implements Serializable
         // For each row, we need a character for each column, two quote marks,
         // and a comma (no comma needed for the first row).
         StringBuilder buf = new StringBuilder(numRows * (numColumns + 3) - 1);
+        buf.append('"');
         for (int row = 1; row <= numRows; row++)
         {
             for (int col = 1; col <= numColumns; col++)
@@ -407,6 +408,7 @@ public class Grid extends CgsuiteObject implements Serializable
                 buf.append('|');
             }
         }
+        buf.append('"');
         return buf.toString();
     }
     

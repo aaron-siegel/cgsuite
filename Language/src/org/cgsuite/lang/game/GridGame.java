@@ -27,7 +27,7 @@ public class GridGame extends Game
     @Override
     public GridOutput toOutput()
     {
-        return new GridOutput(getGrid(), getIcons(), toString());
+        return new GridOutput(getGrid(), getIcons(), super.toOutput().toString());
     }
 
     @Override

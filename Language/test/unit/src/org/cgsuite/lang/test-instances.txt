@@ -121,6 +121,17 @@ Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] :=
 Class name != filename          \ test.TestBadClassName(); \ !!Classname in file does not match filename: TestBadClassName.cgs \
 Extends qualified class name    \ test.TestExtendsSubclass(); \ ok \
 
+// Method calls
+
+Optional parameters - defaults      \ meth := test.TestMethods(); meth.Method1(1, 2) \ [1,2,nil,nil,7,7] \
+Too few required parameters         \ meth.Method1(1) \ !!Expecting at least 2 argument(s) for method call: test.TestMethods.Method1 \
+Too many parameters                 \ meth.Method1(1, 2, 3, 4, 5, 6, 7) \ !!Expecting at most 6 argument(s) for method call: test.TestMethods.Method1 \
+Implicit optional parameters        \ meth.Method1(1, 2, 3, 4, 5) \ [1,2,3,4,5,5] \
+Optional parameters - specified 1   \ meth.Method1(1, 2, param5 => 5) \ [1,2,nil,nil,5,5] \
+Optional parameters - specified 2   \ meth.Method1(1, 2, param5 => 5, param6 => 6) \ [1,2,nil,nil,5,6] \
+Optional parameters - invalid       \ meth.Method1(1, 2, noGood => 5) \ !!Not a valid optional parameter: noGood (in call to method test.TestMethods.Method1) \
+Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \ !!Duplicate parameter: param5 (in call to method test.TestMethods.Method1) \
+
 // Immutability
 
 Immutable retrieval                     \ mut := test.TestImmutable(); mut.Retrieve(3); \ 3 \
@@ -194,6 +205,12 @@ OrdinalSum                      \ *4.OrdinalSum(*5) \ *9 \
 Pow                             \ ^^.Pow(3) \ ^.Pow(3) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
 Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
+
+// ExplicitGame
+
+ExplicitGame construction       \ g := { -100, game.grid.Clobber("xo|ox")|0} \ {-100,Clobber("xo|ox")|0} \
+ExplicitGame options            \ g.LeftOptions \ {-100,Clobber("xo|ox")} \
+ExplicitGame canonical form     \ g.CanonicalForm \ v \
 
 // DayN
 

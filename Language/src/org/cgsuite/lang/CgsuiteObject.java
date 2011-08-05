@@ -153,14 +153,10 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         return this;
     }
 
-    public CgsuiteString toCgsuiteString()
-    {
-        return (CgsuiteString) invokeMethod("ToString$get");
-    }
-
     public Output toOutput()
     {
-        return new StyledTextOutput(toCgsuiteString().toJavaString());
+        CgsuiteString str = (CgsuiteString) invokeMethod("ToString$get");
+        return new StyledTextOutput(str.toJavaString());
     }
 
     public CgsuiteClass getCgsuiteClass()
@@ -351,5 +347,11 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         } else if (!type.equals(other.type))
             return false;
         return true;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return toOutput().toString();
     }
 }

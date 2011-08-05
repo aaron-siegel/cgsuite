@@ -1710,7 +1710,7 @@ public class CoreIOHandler
         }*/
         else
         {
-            output.appendText(obj.toCgsuiteString().toJavaString());
+            //output.appendText(obj.toCgsuiteString().toJavaString());
         }
         return output;
     }

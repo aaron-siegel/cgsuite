@@ -1,0 +1,18 @@
+/*
+ * TestMethods.cgs
+ *
+ * Created by asiegel on Aug 5, 2011
+ */
+
+class TestMethods
+
+    method TestMethods()
+    end
+    
+    method Method1(param1, Integer param2, param3?, Integer param4?, param5 ? 7, Integer param6 ? param5)
+    
+        return [param1,param2,param3,param4,param5,param6];
+    
+    end
+
+end
