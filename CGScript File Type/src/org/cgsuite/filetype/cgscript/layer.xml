@@ -52,10 +52,6 @@
                         <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-RenameAction.instance"/>
                         <attr name="position" intvalue="700"/>
                     </file>
-                    <file name="org-openide-actions-SaveAsTemplateAction.shadow">
-                        <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-SaveAsTemplateAction.instance"/>
-                        <attr name="position" intvalue="900"/>
-                    </file>
                     <file name="sep-1.instance">
                         <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
                         <attr name="position" intvalue="200"/>
@@ -75,8 +71,8 @@
                 </folder>
                 <folder name="Factories">
                     <file name="CgscriptDataLoader.instance">
-                        <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/org/cgsuite/filetype/cgscript/icon.png"/>
                         <attr name="dataObjectClass" stringvalue="org.cgsuite.filetype.cgscript.CgscriptDataObject"/>
+                        <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
                         <attr name="instanceCreate" methodvalue="org.openide.loaders.DataLoaderPool.factory"/>
                         <attr name="mimeType" stringvalue="text/x-cgscript"/>
                     </file>
@@ -102,8 +98,8 @@
             </file>
             <file name="Folder_hidden"/>
             <file name="Package">
+                <attr name="displayName" bundlevalue="org.netbeans.modules.project.ui.Bundle#Templates/Other/Package"/>
                 <attr name="template" boolvalue="true"/>
-                <attr name="SystemFileSystem.localizingBundle" stringvalue="org.netbeans.modules.project.ui.Bundle"/>
                 <attr name="instantiatingWizardURL" urlvalue="nbresloc:/org/netbeans/modules/project/ui/resources/templatesFolder.html"/>
                 <attr name="templateCategory" stringvalue="simple-files"/>
             </file>
