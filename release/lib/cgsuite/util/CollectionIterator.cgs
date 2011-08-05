@@ -1,0 +1,41 @@
+/*
+ * CollectionIterator.cgs
+ *
+ * A convenience class (mostly for use in NestedIterator) for iterating
+ * over a given Collection. Normally one would use a for loop!
+ *
+ * Created by malbert on 5/08/2011
+ */
+
+mutable class CollectionIterator extends Iterator
+
+    var valueList;
+    var index;
+    
+    method CollectionIterator(Collection vals)
+        
+        valueList := listof(x for x in vals);
+        index := 1;
+        
+    end
+    
+    override property HasNext.get
+    
+        return index <= valueList.Length;
+        
+    end
+    
+    override mutable property Next.get
+    
+        index := index+1;
+        return valueList[index-1];
+
+    end
+    
+    override mutable method Reset()
+    
+        index := 1;
+        
+    end
+    
+end

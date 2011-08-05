@@ -24,7 +24,7 @@ mutable class SubsetIterator extends Iterator
     var allSubsets;
     var iterators;
     
-    method SubsetIterator(arg1 ? nil, arg2 ? nil) 
+    method SubsetIterator(arg1?, arg2?) 
         
         if arg1 is Integer then
             subsetSize := arg1;
@@ -36,28 +36,20 @@ mutable class SubsetIterator extends Iterator
         
         allSubsets := not subsetSize is Integer;
         
-        if vals is Set then
+        if vals is Collection then
             valueList := listof(x for x in vals);
-        elseif vals is List then
-            valueList := vals;
         else
-            error("SubsetIterator requires a Set or List collection.");
+            error("SubsetIterator requires a collection.");
         end
         
-        if allSubsets then
-            iterators := IteratorSequence(listof(SubsetIterator(i, valueList) for i from 0 to valueList.Length));
-        elseif subsetSize > valueList.Length or subsetSize < 0 then
-            indexSeq := nil;
-        else
-            indexSeq := listof(i for i from 1 to subsetSize);
-        end
-        
+        this.Reset();
+   
     end
     
     override mutable property HasNext.get
        
         if not allSubsets then 
-                return indexSeq != nil;
+                return this.indexSeq != nil;
         end
        
         return iterators.HasNext;
@@ -71,22 +63,34 @@ mutable class SubsetIterator extends Iterator
         end
     
         result := {};
-        for i from 1 to indexSeq.Length do    
-            result.Add(valueList[indexSeq[i]]);
+        for i from 1 to this.indexSeq.Length do    
+            result.Add(valueList[this.indexSeq[i]]);
         end
         
-        for i from indexSeq.Length to 1 by -1 while indexSeq[i] == valueList.Length - indexSeq.Length + i do end;
+        for i from this.indexSeq.Length to 1 by -1 while this.indexSeq[i] == valueList.Length - this.indexSeq.Length + i do end;
         
         if i == 0 then
-            indexSeq := nil;
+            this.indexSeq := nil;
         else
-            indexSeq[i] := indexSeq[i] + 1;
-            for j from i+1 to indexSeq.Length do
-                indexSeq[j] := indexSeq[j-1] + 1;
+            this.indexSeq[i] := this.indexSeq[i] + 1;
+            for j from i+1 to this.indexSeq.Length do
+                this.indexSeq[j] := this.indexSeq[j-1] + 1;
             end
         end
         
         return result;
+    end
+    
+    override mutable method Reset() 
+        
+        if allSubsets then
+            iterators := ChainedIterator(listof(SubsetIterator(i, valueList) for i from 0 to valueList.Length));
+        elseif subsetSize > valueList.Length or subsetSize < 0 then
+            this.indexSeq := nil;
+        else
+            this.indexSeq := listof(i for i from 1 to subsetSize);
+        end
+        
     end
 
 end

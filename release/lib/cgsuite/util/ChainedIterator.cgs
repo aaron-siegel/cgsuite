@@ -1,0 +1,53 @@
+/*
+ * ChainedIterator.cgs
+ *
+ * This class constructs a single iterator from a list of iterators.
+ * The iterators operate in order one after the other.
+ * 
+ * Example:
+ * (list all the values that occur in Toppling Dominoes up to length 5)
+ * maxLength := 5; values := {};
+ * it := ChainedIterator(listof(StripIterator(n,{1,2,3}) for n from 0 to maxLength));
+ * while it.HasNext do 
+ *     g := game.strip.TopplingDominoes(it.Next);
+ *     if not values.Contains(g.CanonicalForm) then
+ *         values.Add(g.CanonicalForm);
+ *         Worksheet.Print([g,g.CanonicalForm]);
+ *     end
+ * end
+ *
+ * Created by malbert on 5/08/2011
+ */
+
+mutable class ChainedIterator extends Iterator
+
+    var iterators;
+    var iteratorIndex;
+    
+    method ChainedIterator(iterators)
+        iteratorIndex := 1;
+    end
+    
+    override mutable property HasNext.get
+        
+        if iteratorIndex > iterators.Length then
+            return false;
+        end
+        
+        if iterators[iteratorIndex].HasNext then
+            return true;
+        end
+        
+        iteratorIndex := iteratorIndex+1;
+        
+        return this.HasNext;
+        
+    end
+    
+    override property Next.get
+    
+        return iterators[iteratorIndex].Next;
+        
+    end
+
+end
