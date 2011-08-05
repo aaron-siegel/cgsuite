@@ -37,6 +37,9 @@ public class Domain
         this.imports = imports;
         this.namespace = new Namespace();
         this.mode = Mode.NORMAL;
+        
+        if (contextObject != null)
+            this.namespace.put("this", contextObject);
     }
 
     public CgsuiteObject lookup(String str)

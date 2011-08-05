@@ -175,6 +175,9 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
 
     public CgsuiteObject resolve(String identifier, CgsuiteMethod contextMethod, boolean localAccess) throws CgsuiteException
     {
+        if ("value".equals(identifier))
+            System.out.println("Here we are! " + this.getCgsuiteClass().getQualifiedName());
+        
         CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
 
         if (getter != null)
@@ -211,6 +214,8 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
                 throw new InputException("Cannot access variable from outside class " + var.getDeclaringClass().getQualifiedName() + ": " + identifier);
             
             CgsuiteObject obj = objectNamespace.get(identifier);
+            if ("value".equals(identifier))
+                System.out.println("Answer: " + obj);
             return (obj == null)? CgsuiteObject.NIL : obj;
         }
         

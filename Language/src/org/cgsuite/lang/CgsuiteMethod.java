@@ -187,8 +187,6 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             obj.unlinkIfNecessary();
         }
 
-//        log.info("Invoking: " + declaringClass.getName() + "." + name);
-
         if (arguments.size() < nRequiredParameters)
             throw new InputException("Call to " + getQualifiedName() + " requires at least " + nRequiredParameters + " parameters.");
 
@@ -284,8 +282,6 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             
             Domain domain = new Domain(obj, this, declaringClass.getImports());
-            if (obj != null)
-                domain.put("this", obj);
 
             // TODO Validation
 

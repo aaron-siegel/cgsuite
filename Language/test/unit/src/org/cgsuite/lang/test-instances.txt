@@ -104,6 +104,13 @@ Do loop: to (illegal)           \ listof(newvar for newvar to 10) \ !!Undefined 
 
 // TODO In loops
 
+// Implicit semicolons
+
+Implicit semicolon after if/then    \ if true then end 5 \ 5 \
+Implicit semicolon after do loop    \ from 1 to 1 do end 5 \ 5 \
+Implicit semicolon after in loop    \ for x in {1} do end 5 \ 5 \
+Implicit semicolon after begin/end  \ begin end 5 \ 5 \
+
 // Copy on write
 
 Copy on write                   \ x := [1,2,3]; y := [4,x,5]; x[2] := 6; [x,y] \ [[1,6,3],[4,[1,2,3],5]] \

@@ -345,7 +345,7 @@ statementSequence
 	;
 
 statementChain
-    : (IF | inLoopAntecedent DO | doLoopAntecedent DO) => controlExpression statementChain?
+    : (IF | inLoopAntecedent DO | doLoopAntecedent DO | BEGIN) => controlExpression statementChain?
     | (TRY) => tryStatement statementChain?
     | statement (SEMI! statementChain?)?
     | SEMI! statementChain?
@@ -528,7 +528,6 @@ primaryExpr
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! statementSequence RPAREN!
 	| LPAREN! statementSequence RPAREN!
-	| BEGIN! statementSequence END!
     | (LBRACE expressionList SLASHES) => explicitGame
 	| (LBRACE expression? BIGRARROW) => explicitMap
 	| explicitSet
@@ -626,6 +625,7 @@ controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
 	| doLoopAntecedent DO^ statementSequence END!
 	| inLoopAntecedent DO statementSequence END -> ^(DO_IN[$DO] inLoopAntecedent statementSequence)
+    | BEGIN! statementSequence END!
 	;
 
 doLoopAntecedent
