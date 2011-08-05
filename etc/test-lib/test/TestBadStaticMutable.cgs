@@ -1,0 +1,12 @@
+/*
+ * TestBadStaticMutable.cgs
+ *
+ * Created by asiegel on Aug 5, 2011
+ */
+
+mutable class TestBadStaticMutable
+
+    static mutable method StaticMutable()
+    end
+
+end

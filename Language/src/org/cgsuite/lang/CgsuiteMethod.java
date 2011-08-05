@@ -81,10 +81,15 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
         else try
         {
-            // TODO Validate closing paren
             javaMethodName = javaMethodSpec.substring(0, parenpos);
             String[] parameterNames = javaMethodSpec.substring(parenpos+1, javaMethodSpec.length()-1).split(",");
-            // TODO Validate number of parameters
+            
+            if (javaMethodSpec.charAt(javaMethodSpec.length()-1) != ')')
+                throw new IllegalArgumentException("Ill-formed Java spec.");
+            
+            if (parameterNames.length != javaParameterTypes.length)
+                throw new IllegalArgumentException("Expecting " + javaParameterTypes.length + " parameters for Java method.");
+            
             for (int i = 0; i < parameterNames.length; i++)
             {
                 if ("int".equals(parameterNames[i]))
@@ -100,9 +105,11 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             throw new IllegalArgumentException("Unknown Java class: " + exc.getMessage(), exc);
         }
 
-        // TODO Validate: CGSuite constructor *iff* Java constructor
         if (javaMethodName.equals(declaringClass.getJavaClass().getSimpleName()))
         {
+            if (!isConstructor)
+                throw new IllegalArgumentException("Java constructor specified, but method is not a constructor.");
+                
             try
             {
                 javaConstructor = declaringClass.getJavaClass().getConstructor(javaParameterTypes);
@@ -114,6 +121,9 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
         else
         {
+            if (isConstructor)
+                throw new IllegalArgumentException("Ordinary method specified, but method is a constructor.");
+            
             try
             {
                 javaMethod = declaringClass.getJavaClass().getMethod(javaMethodName, javaParameterTypes);
@@ -346,7 +356,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             // If the class is not mutable, then the object is
             // marked immutable once constructed.
 
-            if (!declaringClass.isMutable())
+            if (!declaringClass.isMutableClass())
                 retval.markImmutable();
         }
 
@@ -375,9 +385,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 return ((CgsuiteInteger) obj).intValue();
             }
-            else if (int.class.equals(javaClass) && obj instanceof RationalNumber)
+            else if (int.class.equals(javaClass) && obj instanceof RationalNumber && ((RationalNumber) obj).isSmallInteger())
             {
-                // TODO: isInteger, isSmall validation
                 return ((RationalNumber) obj).intValue();
             }
             else if (String.class.equals(javaClass) && obj instanceof CgsuiteString)

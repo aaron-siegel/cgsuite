@@ -118,7 +118,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
     
     public CgsuiteObject createCrosslink()
     {
-        if (!type.isMutable())
+        if (!type.isMutableClass())
             return this;
         
         CgsuiteObject clone = this.clone();

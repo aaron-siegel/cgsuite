@@ -31,10 +31,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
 import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
-// TODO Disallow immutable inherits mutable
-// TODO Disallow "static mutable"
-// TODO Disallow "explicit mutable constructor"
-
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
     private static final Logger log = Logger.getLogger(CgsuiteClass.class.getName());
@@ -155,7 +151,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             return pkgName + "." + name;
     }
     
-    public boolean isMutable()
+    public boolean isMutableClass()
     {
         ensureLoaded();
         return classModifiers.contains(Modifier.MUTABLE);
@@ -493,6 +489,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 for (CgsuiteTree node : tree.getChildren())
                 {
                     CgsuiteClass parent = extendsItem(node);
+                    
+                    if (parent.isMutableClass() && !classModifiers.contains(Modifier.MUTABLE))
+                        throw new InputException(node.getToken(), "Class is not marked \"mutable\", but has a mutable parent: " + parent.getQualifiedName());
+                    
                     parents.add(parent);
                 }
                 return;
@@ -748,6 +748,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         else if (modifiers.contains(Modifier.MUTABLE) && !classModifiers.contains(Modifier.MUTABLE))
         {
             throw new InputException(tree.getToken(), "Declaration is marked \"mutable\" but enclosing class is not: " + name);
+        }
+        else if (modifiers.contains(Modifier.MUTABLE) && modifiers.contains(Modifier.STATIC))
+        {
+            throw new InputException(tree.getToken(), "Static method cannot be marked \"mutable\": " + name);
         }
                 
         // It's a legit method declaration.

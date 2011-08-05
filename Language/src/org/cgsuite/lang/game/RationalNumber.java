@@ -376,6 +376,11 @@ public class RationalNumber extends Game
     {
         return denominator.equals(BigInteger.ONE);
     }
+    
+    public boolean isSmallInteger()
+    {
+        return isInteger() && numerator.bitLength() <= 31;
+    }
 
     /**
      * Returns the largest <code>n</code> for which <code>2<sup>n</sup></code>
