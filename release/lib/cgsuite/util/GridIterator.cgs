@@ -23,7 +23,17 @@ mutable class GridIterator extends Iterator
     var rows;
     var columns;
     
-    method GridIterator(Integer rows, Integer columns, vals) 
+    method GridIterator(arg1, arg2, arg3) 
+        
+        if arg1 is Collection then
+            vals := arg1;
+            rows := arg2;
+            columns := arg3;
+        else
+            rows := arg1;
+            columns := arg2;
+            vals := arg3;
+        end
         it := SequenceIterator(rows*columns, vals);
     end
     
@@ -42,6 +52,10 @@ mutable class GridIterator extends Iterator
             end
         end
         return result;
+    end
+    
+    override method Reset()
+        it.Reset();
     end
 
 end

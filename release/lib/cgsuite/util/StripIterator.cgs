@@ -12,9 +12,11 @@ mutable class StripIterator extends Iterator
     var columns;
     var it;
     
-    method StripIterator(Integer columns, Collection vals) 
+    method StripIterator(arg1, arg2) 
                
-        it := SequenceIterator(columns, vals);
+        it := SequenceIterator(arg1, arg2);
+        
+        columns := if arg1 is Integer then arg1 else arg2 end;
         
     end
     
@@ -30,6 +32,10 @@ mutable class StripIterator extends Iterator
             result[c] := s[c];
         end
         return result;
+    end
+    
+    override mutable method Reset()
+        it.Reset();
     end
 
 end

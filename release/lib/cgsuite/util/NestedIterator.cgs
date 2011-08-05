@@ -67,6 +67,8 @@ mutable class NestedIterator extends Iterator
                 break;
             end
         end
+        
+        return nil;
       
     end
                 

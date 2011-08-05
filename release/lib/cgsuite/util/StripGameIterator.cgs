@@ -1,0 +1,30 @@
+/*
+ * StripGameIterator.cgs
+ *
+ * Created by malbert on 6/08/2011
+ */
+
+mutable class StripGameIterator extends Iterator
+
+    var iterator;
+    var gameName;
+    
+    method StripGameIterator(gameName, arg1, arg2)
+    
+        iterator := StripIterator(arg1, arg2)
+        
+    end
+    
+    override property HasNext.get
+        return iterator.HasNext
+    end
+    
+    override property Next.get
+        return gameName(iterator.Next);
+    end
+    
+    override method Reset()
+        iterator.Reset();
+    end
+
+end

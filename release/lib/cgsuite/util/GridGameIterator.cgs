@@ -1,0 +1,30 @@
+/*
+ * GridGameIterator.cgs
+ *
+ * Created by malbert on 6/08/2011
+ */
+
+mutable class GridGameIterator extends Iterator
+
+    var iterator;
+    var gameName;
+    
+    method GridGameIterator(gameName, arg1, arg2, arg3)
+    
+        iterator := GridIterator(arg1, arg2, arg3)
+        
+    end
+    
+    override property HasNext.get
+        return iterator.HasNext
+    end
+    
+    override property Next.get
+        return gameName(iterator.Next);
+    end
+    
+    override method Reset()
+        iterator.Reset();
+    end
+
+end

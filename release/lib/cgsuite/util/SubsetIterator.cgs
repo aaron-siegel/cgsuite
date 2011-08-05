@@ -90,6 +90,7 @@ mutable class SubsetIterator extends Iterator
         else
             this.indexSeq := listof(i for i from 1 to subsetSize);
         end
+        return nil;
         
     end
 
