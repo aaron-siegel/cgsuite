@@ -1,3 +1,16 @@
 class ExplicitGame extends Game : java "org.cgsuite.lang.game.ExplicitGame"
 
+    override property LeftOptions.get : java "getLeftOptions";
+    override property RightOptions.get : java "getRightOptions";
+    
+    method Options(Player player)
+    
+        if player == Player.Left then
+            return LeftOptions;
+        else
+            return RightOptions;
+        end
+    
+    end
+
 end
