@@ -1,0 +1,71 @@
+/*
+ * NestedIterator.cgs
+ *
+ * Created by malbert on 5/08/2011
+ */
+
+mutable class NestedIterator extends Iterator
+
+    var iterators;
+    var value;
+    
+    method NestedIterator(List args)
+    
+        iterators := [];
+        for i from 1 to args.Length do
+            if args[i] is Iterator then
+                iterators.Add(args[i]);
+            elseif args[i] is Collection then
+                iterators.Add(CollectionIterator(args[i]));
+            else
+                error("Arguments to NestedIterator must be iterators or collections");
+            end
+        end
+        
+        value := [];
+        for i from 1 to iterators.Length do
+            if iterators[i].HasNext then
+                value.Add(iterators[i].Next);
+            else
+                value := nil;
+                break;
+            end
+        end
+        
+    end
+    
+    override property HasNext.get
+    
+        return value != nil;
+        
+    end
+    
+    override mutable property Next.get
+    
+        result := value;
+        
+        for n from iterators.Length to 1 by -1 while not iterators[n].HasNext do
+             iterators[n].Reset();
+        end
+        
+        if n == 0 then
+            value := nil
+        else
+            for k from n to iterators.Length do
+                value[k] := iterators[k].Next;
+            end
+        end
+        
+        return result;
+    
+    end
+    
+    override method Reset()
+    
+        for i from 1 to iterators.Length do
+            iterators[i].Reset();
+        end
+      
+    end
+                
+end

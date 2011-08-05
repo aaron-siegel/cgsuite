@@ -37,6 +37,9 @@
 
 class Iterator
 
+    method Iterator()
+    end
+
     property HasNext.get
         return false;
     end
