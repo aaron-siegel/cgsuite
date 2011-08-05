@@ -1,0 +1,120 @@
+/*
+ * ClearThePond.cgs
+ *
+ * Clear the pond is a strip game played with black and white stones and
+ * vacant cells. A move for Left is to shift a black stone rightwards and
+ * place it in the next empty square, or remove it entirely if there is
+ * no such square. Right moves white stones leftwards.
+ *
+ * An interesting feature of Clear the pond is that it appears that all
+ * the canonical forms (certainly through length 6) have unique Left and
+ * Right options (or none), and moreover that
+ * 
+ * g = { g^L | g^R }
+ *
+ * for some single 'actual' option of g.
+ *
+ * In Lessons In Play an all small version is mentioned (once the pond is
+ * monochromatic play ceases). This is supported by using the constructor
+ * parameter: allSmall => true
+ *
+ * Another variation is that if Left succeeds in clearing the pond while 
+ * White stones still remain, then she is paid a number of moves equal to the
+ * sum of their remaining distances from the end of the pond [other payments
+ * could be contemplated -- e.g. the least number of moves which could be
+ * used to remove them]. This variation is also supported by the constructor
+ * parameter: race => true 
+ *
+ * Created by malbert on 5/08/2011
+ */
+
+class ClearThePond extends StripGame
+
+    var AllSmall;
+    var Race;
+
+    method ClearThePond(grid, AllSmall ? false, Race ? false)
+        this.StripGame(grid);
+        if AllSmall and Race then
+            error("At most of the options AllSmall and Race can be true");
+        end
+    end
+    
+    method Options(Player player)
+     
+        options := {};
+        
+        if (AllSmall or Race) and IsMonochrome() then
+            if AllSmall or HasStone(player) then
+                return options;
+            end
+            s := 0; stones := 0;
+            for n from 1 to grid.ColumnCount do
+                if grid[n] != 0 then
+                    s := s + n;
+                    stones := stones+1
+                end
+            end
+            if player == Player.Left then
+                options.Add(s-1);
+            else
+                options.Add(-stones*(grid.ColumnCount+1)+s+1);
+            end
+            return options;
+        end
+         
+        for n from 1 to grid.ColumnCount do
+            if grid[n] == player.Ordinal then
+                dir := player.Sign;
+                copy := grid;
+                copy[n] := 0;
+                step := 1;
+                while copy[n + step*dir] > 0 do
+                    step := step+1;
+                end
+                // Worksheet.Print(step.ToString + " " + copy[n+step*dir].ToString);
+                
+                if copy[n+step*dir] == 0 then
+                    copy[n+step*dir] := player.Ordinal;
+                end
+                options.Add(ClearThePond(copy, AllSmall, Race));
+            end
+        end
+        return options;
+    end
+    
+    method IsMonochrome() 
+    
+        noLeft := true;
+        noRight := true;
+        for n from 1 to grid.ColumnCount while noLeft or noRight do
+            noLeft := noLeft and grid[n] != Player.Left.Ordinal;
+            noRight := noRight and grid[n] != Player.Right.Ordinal;
+        end
+        return noLeft or noRight;
+    end
+    
+    method HasStone(Player player) 
+    
+        for n from 1 to grid.ColumnCount do
+            if grid[n] == player.Ordinal then
+                return true;
+            end
+        end
+        return false;
+    end
+    
+    override property CharMap.get
+        return ".xo";
+    end
+    
+    override property Icons.get
+        return
+        [
+            GridIcon.Blank,
+            GridIcon.BlackStone,
+            GridIcon.WhiteStone
+        ];
+    end
+
+end
