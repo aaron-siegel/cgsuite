@@ -22,15 +22,7 @@ mutable class NestedIterator extends Iterator
             end
         end
         
-        value := [];
-        for i from 1 to iterators.Length do
-            if iterators[i].HasNext then
-                value.Add(iterators[i].Next);
-            else
-                value := nil;
-                break;
-            end
-        end
+        Reset();
         
     end
     
@@ -60,10 +52,20 @@ mutable class NestedIterator extends Iterator
     
     end
     
-    override method Reset()
+    override mutable method Reset()
     
         for i from 1 to iterators.Length do
             iterators[i].Reset();
+        end
+        
+        value := [];
+        for i from 1 to iterators.Length do
+            if iterators[i].HasNext then
+                value.Add(iterators[i].Next);
+            else
+                value := nil;
+                break;
+            end
         end
       
     end

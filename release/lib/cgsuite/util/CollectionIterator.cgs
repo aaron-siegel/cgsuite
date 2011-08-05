@@ -35,6 +35,7 @@ mutable class CollectionIterator extends Iterator
     override mutable method Reset()
     
         index := 1;
+        return nil;
         
     end
     

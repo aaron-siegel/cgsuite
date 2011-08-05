@@ -1,22 +1,15 @@
 /*
  * SequenceIterator.cgs
  *
- * An iterator for all sequences of length n from a set or list of values. The
- * arguments may be given in either order. A common
- * trick is employed -- the sequence currently stored (seq) is actually the
- * next one to be returned. When Next is called, seq is copied and then updated.
- * The update is such that when we have reached the last sequence, the state
- * of seq is clearly incorrect (it is one element too long). This means that
- * the HasNext test is very simple.
- *
- * Created by malbert on 4/08/2011
+ * Created by malbert on 5/08/2011
  */
 
 mutable class SequenceIterator extends Iterator
 
-    var valueList;
+var valueList;
+
     var n;
-    var seq;
+    var iterator;
     
     method SequenceIterator(arg1, arg2)
         if arg1 is Integer then
@@ -29,40 +22,30 @@ mutable class SequenceIterator extends Iterator
             error("SequenceIterator requires a sequence length.");
         end
         
-        if vals is Set then
+        if vals is Collection then
             valueList := listof(x for x in vals);
-        elseif vals is List then
-            valueList := vals;
         else
-            error("SequenceIterator requires a set or list of values.");
+           error("SequenceIterator requires a Collection of values.");
         end
         
-        if n >=0 then
-            seq := listof(1 for x from 1 to n);
+        if n >= 0 then
+            iterator := NestedIterator(listof(vals for k from 1 to n));
         else
-            seq := nil;
+            iterator := Iterator();
         end
         
     end
     
-    override property HasNext.get
-        return seq != nil;
+    override mutable property HasNext.get
+        return iterator.HasNext;
     end
     
     override mutable property Next.get
-        result := seq;
-        i := 1;
-        while i <= seq.Length and seq[i] == valueList.Length do
-            seq[i] := 1;
-            i := i+1;
-        end
-        if i <= seq.Length then
-            seq[i] := seq[i] + 1;
-        else
-            seq := nil; // We are done, update to an inconsistent state
-        end
-        return listof(valueList[i] for i in result);
+        return iterator.Next;
     end
     
+    override method Reset()
+        iterator.Reset();
+    end
 
 end

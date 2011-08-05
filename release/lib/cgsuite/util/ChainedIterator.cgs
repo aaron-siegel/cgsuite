@@ -49,5 +49,13 @@ mutable class ChainedIterator extends Iterator
         return iterators[iteratorIndex].Next;
         
     end
+    
+    override method Reset()
+        for i from 1 to iterators.Length do
+            iterators[i].Reset();
+        end
+        iteratorIndex := 1;
+        return nil;
+    end
 
 end

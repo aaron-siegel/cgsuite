@@ -12,7 +12,10 @@
  * end
  *
  * Iterators may optionally support a Reset() method that returns the iterator
- * to its initial state.
+ * to its initial state. Its undefined behaviour is to do nothing.
+ *
+ * TraverseWith(f) takes one run through the iterator applying f to each of
+ * the results. It then attempts to reset the iterator.
  * 
  * Note that if you will only use the result if iter.Next in a single place
  * within the loop, there is no need to store it. However, if you need it on
@@ -49,7 +52,14 @@ class Iterator
     end
     
     method Reset()
-        error("Reset is not supported by iterators of this type");
+        // error("Reset is not supported by iterators of this type");
+    end
+    
+    method TraverseWith(f)
+        while HasNext do
+            f(Next);
+        end
+        Reset();
     end
 
 end
