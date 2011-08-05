@@ -444,7 +444,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 if (!name.equals(tree.getChild(1).getText()))
                 {
-                    throw new InputException(tree.getChild(0).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
+                    throw new InputException(tree.getChild(1).getToken(), "Classname in file does not match filename: " + fo.getNameExt());
                 }
 
                 int i = 2;

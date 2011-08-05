@@ -109,8 +109,9 @@ Do loop: to (illegal)           \ listof(newvar for newvar to 10) \ !!Undefined 
 Copy on write                   \ x := [1,2,3]; y := [4,x,5]; x[2] := 6; [x,y] \ [[1,6,3],[4,[1,2,3],5]] \
 Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] := x; y \ [4,[1,[4,[1,2,3],5],3],5] \
 
-// Extends clause
+// Classdefs
 
+Class name != filename          \ test.TestBadClassName(); \ !!Classname in file does not match filename: TestBadClassName.cgs \
 Extends qualified class name    \ test.TestExtendsSubclass(); \ ok \
 
 // Immutability
@@ -140,6 +141,8 @@ Local variable shadows subclass var     \ shadow := test.TestShadowingSubclass()
 Method parameter shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowParamSub(); \ 5 \
 Duplicate var                           \ test.TestDuplicateVar; \ !!Duplicate variable: x \
 Member var shadows superclass var       \ test.TestBadShadow; \ !!Variable shadows superclass var: x (from class test.TestShadowing) \
+Var assigned by constructor delegate 1  \ shadow := test.TestConstructorDelegate(); shadow.Value \ 5 \
+Var assigned by constructor delegate 2  \ shadow := test.TestConstructorDelegate(); shadow.ThisValue \ 5 \
 
 // Grids and Strips
 // TODO Add more
