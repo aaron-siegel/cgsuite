@@ -36,5 +36,9 @@ class Iterator
     property Next.get
         return nil;
     end
+    
+    method Reset()
+        error("Reset is not supported by iterators of this type");
+    end
 
 end
