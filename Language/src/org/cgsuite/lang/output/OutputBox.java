@@ -38,6 +38,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
 import java.awt.Stroke;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,10 +51,14 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.text.DefaultEditorKit;
+import org.openide.util.Lookup;
 
 /**
  * A panel that displays {@link org.cgsuite.plugin.Output}.
@@ -60,6 +66,8 @@ import javax.swing.JPopupMenu;
 public class OutputBox extends JPanel implements MouseListener, FocusListener
 {
     private final static int CHARACTERS_AT_A_TIME = Integer.MAX_VALUE;
+    
+    private Action copyAction;
     
     private Output output;
     private int worksheetWidth;
@@ -117,43 +125,21 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
             {
             }
         });
-        /*
-        copyAsMenu = new JMenu("Copy As");
-        JMenuItem copyAsImageMenuItem = new JMenuItem("Image");
-        copyAsImageMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                JOptionPane.showMessageDialog(
-                    MainFrame.getMainFrame(),
-                    "Copying as an image is not supported in this version.",
-                    "Unsupported Operation",
-                    JOptionPane.ERROR_MESSAGE
-                    );
-        }});
-        copyAsMenu.add(copyAsImageMenuItem);
-        */
-        copyMenuItem = new JMenuItem("Copy");
-        copyMenuItem.addActionListener(new ActionListener()
+        
+        copyAction = new AbstractAction("Copy")
         {
             @Override
             public void actionPerformed(ActionEvent evt)
             {
                 copy();
             }
-        });
-        JMenuItem qsave = new JMenuItem("QuickSave");
-        qsave.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent evt)
-            {
-                quickSave();
-            }
-        });
-        //copyAsMenu.add(copyAsTextMenuItem);
+        };
+        
+        getActionMap().put(DefaultEditorKit.copyAction, copyAction);
+        copyMenuItem = new JMenuItem(copyAction);
         
         mainPopupMenu = new JPopupMenu();
         mainPopupMenu.add(copyMenuItem);
-        mainPopupMenu.add(qsave);
 
         setBackground(Color.white);
         worksheetWidth = 0;
@@ -259,7 +245,19 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     public void copy()
     {
         StringSelection text = new StringSelection(output.toString());
-        getToolkit().getSystemClipboard().setContents(text, text);
+        getClipboard().setContents(text, text);
+    }
+    
+    private Clipboard getClipboard()
+    {
+        Clipboard c = Lookup.getDefault().lookup(Clipboard.class);
+
+        if (c == null)
+        {
+            c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        }
+        
+        return c;
     }
     
     private void quickSave()
