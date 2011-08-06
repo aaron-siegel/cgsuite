@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<link rel="stylesheet" href="nbdocs:/org/netbeans/modules/usersguide/ide.css" type="text/css">
+<style type="text/css">
+code { font-size: 13pt; }
+ul { list-style-type: disc; list-style-image: none; list-style-position: outside; }
+</style>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Authoring CGScript Classes</title>
+</head><body>
+<h2>Authoring CGScript Classes</h2>
+<p>
+<a name="+AuthoringCGScriptClasses"></a><h3>+ Authoring CGScript Classes </h3>+
+
+<p>In some of these files you might see expressions like
+
+<p><code>java &quot;atomicWeight&quot;</code>
+
+<p>These are the connection points where CGScript interfaces with Java, its host language.  You won't ordinarily need to
+use the <code>java</code> keyword at all, unless you want to get involved in low-level CGSuite programming.  And I suspect that if
+you're in that camp, then you'll be able to figure out the semantics of the <code>java</code> connectors on your own...<a name="Exercises"></a><h3> Exercises </h3>
+
+<p><ol>
+<li>Write a new class <code>PartizanSubtraction2</code> which is just like <code>examples.PartizanSubtraction</code>, but which takes a pair
+of <em>procedures</em> f<sub>L and f</sub>R, enumerating the (possibly infinite) subtraction sets.  For example,
+
+<p><code>PartizanSubtraction2(n -> n^2, n -> n*(n+1)/2, 10)</code>
+
+<p>would construct a heap of size 10 in the game where Left can take a perfect-square number of tokens, and Right a
+triangular number of tokens.  (You can assume that f<sub>L and f</sub>R are nondecreasing as functions of <em>n</em>.)
+</ol>
+
+</body></html>

@@ -1,12 +1,11 @@
-
-+++CGScript+++
-
-CGScript is a powerful scripting language used in cgsuite for just about everything.  When you type commands into
-the worksheet, you're typing them in CGScript.  But it can also be used for more complicated tasks, like
+CGScript is a powerful scripting language used in CGSuite for just about everything.  When you type commands into
+the worksheet, you're writing them in CGScript.  But it can also be used for more complicated tasks, like
 specifying the rules for new combinatorial games.  This tutorial will introduce you to the basic elements of
 CGScript, and in the next one we'll see how to use it to design new classes.
 
-++Sets++
+##TOC##
+
+++ Sets ++
 
 When you type, say,
 
@@ -236,12 +235,9 @@ If you see an object you don't quite understand, often a good way to get a feel 
 for its class.
 
 ++ Exercises ++
-
 <ol>
-
 <li>Consider the partizan subtraction game we studied above, ${1,3}$ vs. ${2,3}$.  Print the first 10 canonical forms just as we
 did in the $tableof$ section above, and note that they rapidly become a mess.  Now print the first 30 ~reduced~ canonical
 forms.  (You can do this by using the $Rcf$ property in place of $CanonicalForm$.)  Make a conjecture about the RCFs of
 arbitrary positions.
-
 </ol>

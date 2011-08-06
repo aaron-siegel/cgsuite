@@ -8,15 +8,25 @@ ul { list-style-type: disc; list-style-image: none; list-style-position: outside
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>CGScript</title>
 </head><body>
-
 <h2>CGScript</h2>
-
-<p>CGScript is a powerful scripting language used in cgsuite for just about everything.  When you type commands into
+<p>
+CGScript is a powerful scripting language used in cgsuite for just about everything.  When you type commands into
 the worksheet, you're typing them in CGScript.  But it can also be used for more complicated tasks, like
 specifying the rules for new combinatorial games.  This tutorial will introduce you to the basic elements of
 CGScript, and in the next one we'll see how to use it to design new classes.
 
-<p><h3>Sets</h3>
+<p><ul>
+<li><a href="#Sets">Sets</a>
+<li><a href="#ListsandMaps">Lists and Maps</a>
+<li><a href="#ExamplePartizanSubtraction">Example: PartizanSubtraction</a>
+<li><a href="#setoflistoftableof">setof, listof, tableof</a>
+<li><a href="#PropertiesMethodsandConstructors">Properties, Methods and Constructors</a>
+<li><a href="#OptionalParameters">Optional Parameters</a>
+<li><a href="#Procedures">Procedures</a>
+<li><a href="#OtherTypes">Other Types</a>
+<li><a href="#Exercises">Exercises</a>
+</ul>
+<p><a name="Sets"></a><h3> Sets </h3>
 
 <p>When you type, say,
 
@@ -48,9 +58,7 @@ CGScript, and in the next one we'll see how to use it to design new classes.
 
 <p>for a set with elements.
 
-<p>Note that a pair of braces <code>{ }</code> denotes a <em>game</em> if there's at least one slash in between, and a <em>set</em> otherwise.
-
-<p><h3>Lists and Maps</h3>
+<p>Note that a pair of braces <code>{ }</code> denotes a <em>game</em> if there's at least one slash in between, and a <em>set</em> otherwise.<a name="ListsandMaps"></a><h3>Lists and Maps</h3>
 
 <p>A list is like a set, but the elements are ordered and can be duplicated.  Lists are created just like sets, but using
 square brackets instead of curly braces.  For example,
@@ -91,9 +99,7 @@ for constructing a map looks like this:
 
 <p><code>{ => }</code>
 
-<p>is used to denote an empty map (this distinguishes it from <code>{}</code>, which denotes an empty set).
-
-<p><h3> Example: PartizanSubtraction </h3>
+<p>is used to denote an empty map (this distinguishes it from <code>{}</code>, which denotes an empty set).<a name="ExamplePartizanSubtraction"></a><h3> Example: PartizanSubtraction </h3>
 
 <p>Here's an example that illustrates the use of collections in practice.  Let S<sub>L</sub> and S<sub>R</sub> be sets of positive
 integers.  The <em>Partizan Subtraction Game</em> on (S<sub>L</sub>,S<sub>R</sub>) is played with heaps of tokens.  Left may remove <em>k</em> tokens
@@ -108,9 +114,7 @@ simply specified as parameters.  For example,
 
 <p><code>g.CanonicalForm</code>
 
-<p>to see the canonical form.
-
-<p><h3> setof, listof, tableof </h3>
+<p>to see the canonical form.<a name="setoflistoftableof"></a><h3> setof, listof, tableof </h3>
 
 <p><code>setof</code>, <code>listof</code> and <code>tableof</code> are powerful commands for constructing new collections from existing ones.
 The basic syntax looks like this:
@@ -132,9 +136,7 @@ whose elements are themselves lists.  Each list in the table describes a <em>row
 <p><code>tableof([n,examples.PartizanSubtraction({1,3},{2,3},n).CanonicalForm] for n from 1 to 10)</code>
 
 <p>This gives the first 10 values of the partizan subtraction game we introduced above.  As you can see (by typing it
-into the worksheet), CGSuite prints tables in a neatly readable format.
-
-<p><h3> Properties, Methods and Constructors </h3>
+into the worksheet), CGSuite prints tables in a neatly readable format.<a name="PropertiesMethodsandConstructors"></a><h3> Properties, Methods and Constructors </h3>
 
 <p>We've already seen that objects have various <em>properties</em> associated to them, which are accessible using &quot;dot notation,&quot;
 such as
@@ -171,9 +173,7 @@ we can type
 
 <p><code>f := examples.PartizanSubtraction</code>
 
-<p>and then <code>f({1,3},{2,3},10)</code> to get the same result.
-
-<p><h3> Optional Parameters </h3>
+<p>and then <code>f({1,3},{2,3},10)</code> to get the same result.<a name="OptionalParameters"></a><h3> Optional Parameters </h3>
 
 <p>A method takes a fixed number of parameters.  For <code>Cool</code> this is just one; for <code>examples.PartizanSubtraction</code>, it's
 three.  Some methods also have <em>optional parameters</em> that can be specified or omitted depending on the situation.  For
@@ -191,9 +191,7 @@ restricts the computation just to all-small games.  The syntax for this is
 <p><code>d := DayN(3, allSmall => true)</code>
 
 <p>which sets the optional parameter <code>allSmall</code> to the value <code>true</code> (the default, of course, is <code>false</code>).  Now typing
-<code>d.Size</code> gives the answer 67.
-
-<p><h3> Procedures </h3>
+<code>d.Size</code> gives the answer 67.<a name="Procedures"></a><h3> Procedures </h3>
 
 <p>In addition to methods and constructors, there is another type of function in CGSuite: procedures.  A <em>procedure</em> is a
 simple rule that defines a mapping.  Unlike a map, it's an implicit rule rather than an explicit list of keys and values.
@@ -216,9 +214,7 @@ is no longer used in 1.0, but if you like it you can bring it back with a proced
 
 <p><code>C := g -> g.CanonicalForm</code>
 
-<p>You can use similar aliases to create shortcuts for other commonly used commands.
-
-<p><h3> Other Types </h3>
+<p>You can use similar aliases to create shortcuts for other commonly used commands.<a name="OtherTypes"></a><h3> Other Types </h3>
 
 <p>A few other types are worth mentioning.  Strings like
 
@@ -230,9 +226,8 @@ is no longer used in 1.0, but if you like it you can bring it back with a proced
 
 <p>are objects of class <code>String</code>, and the special values <code>true</code> and <code>false</code> are objects of class <code>Boolean</code>.
 
-<p>There is one
-more primitive class that you should know about: the class <code>Nil</code>, which has a single object, <code>nil</code>.  A value of <code>nil</code>
-is like saying &quot;nothing&quot;: it's like a generic, universal default.  If you type <code>nil</code> into the worksheet, you'll get no
+<p>Finally, there is the class <code>Nil</code>, which has a single object, <code>nil</code>.  A value of <code>nil</code>
+is like saying &quot;nothing&quot;: it's a universal default.  If you type <code>nil</code> into the worksheet, you'll get no
 output.
 
 <p>You can test whether any object <code>x</code> matches a given type (say <code>String</code>) with the syntax
@@ -244,16 +239,13 @@ output.
 <p><code>x.Class</code>
 
 <p>If you see an object you don't quite understand, often a good way to get a feel for what CGSuite is thinking is to ask
-for its class.
-
-<p><h3> Exercises </h3>
+for its class.<a name="Exercises"></a><h3> Exercises </h3>
 
 <p><ol>
-
-<p><li>Consider the partizan subtraction game we studied above, <code>{1,3}</code> vs. <code>{2,3}</code>.  Print the first 10 canonical forms just as we
+<li>Consider the partizan subtraction game we studied above, <code>{1,3}</code> vs. <code>{2,3}</code>.  Print the first 10 canonical forms just as we
 did in the <code>tableof</code> section above, and note that they rapidly become a mess.  Now print the first 30 <em>reduced</em> canonical
 forms.  (You can do this by using the <code>Rcf</code> property in place of <code>CanonicalForm</code>.)  Make a conjecture about the RCFs of
 arbitrary positions.
+</ol>
 
-<p></ol>
 </body></html>

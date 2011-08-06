@@ -1,0 +1,22 @@
+
++++ Authoring CGScript Classes +++
+
+In some of these files you might see expressions like
+
+$java "atomicWeight"$
+
+These are the connection points where CGScript interfaces with Java, its host language.  You won't ordinarily need to
+use the $java$ keyword at all, unless you want to get involved in low-level CGSuite programming.  And I suspect that if
+you're in that camp, then you'll be able to figure out the semantics of the $java$ connectors on your own...
+
+++ Exercises ++
+
+<ol>
+<li>Write a new class $PartizanSubtraction2$ which is just like $examples.PartizanSubtraction$, but which takes a pair
+of ~procedures~ f_L and f_R, enumerating the (possibly infinite) subtraction sets.  For example,
+
+$PartizanSubtraction2(n -> n^2, n -> n*(n+1)/2, 10)$
+
+would construct a heap of size 10 in the game where Left can take a perfect-square number of tokens, and Right a
+triangular number of tokens.  (You can assume that f_L and f_R are nondecreasing as functions of ~n~.)
+</ol>

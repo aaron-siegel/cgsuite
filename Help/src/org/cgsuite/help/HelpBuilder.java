@@ -29,7 +29,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -68,6 +72,18 @@ public class HelpBuilder
         }
         in.close();
         
+        String title = file.getName().substring(0, file.getName().lastIndexOf('.'));
+        String input = str.toString();
+        List<String> tocItems = new ArrayList<String>();
+        Pattern pattern = Pattern.compile("\\+\\+(.*)\\+\\+");
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find())
+        {
+            tocItems.add(matcher.group(1));
+        }
+        
+        String markedUp = markup(input, tocItems);
+        
         File output = new File(file.getParent(), file.getName().replace(".cgsh", ".html"));
         PrintStream out = new PrintStream(new FileOutputStream(output));
         
@@ -79,14 +95,20 @@ public class HelpBuilder
         out.println("ul { list-style-type: disc; list-style-image: none; list-style-position: outside; }");
         out.println("</style>");
         out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
-        out.println("<title>" + file.getName().substring(0, file.getName().lastIndexOf('.')) + "</title>");
+        out.println("<title>" + title + "</title>");
         out.println("</head><body>");
         
-        String markedUp = markup(str.toString());
+        out.println("<h2>" + title + "</h2>");
         
-        out.print(markedUp);
+        out.println("<p>");
+        out.println(markedUp);
         out.println("</body></html>");
         out.close();
+    }
+    
+    private static String toAnchor(String str)
+    {
+        return str.replaceAll("\\:|\\,|\\ ", "");
     }
     
     protected static int indexOf(String str, List<String> list){
@@ -108,6 +130,11 @@ public class HelpBuilder
     
     private static String markup(String input)
     {
+        return markup(input, Collections.<String>emptyList());
+    }
+    
+    private static String markup(String input, List<String> tocItems)
+    {
         String markup = input;
         markup = markup.replaceAll("\\\\\\>", "&gt;");
         markup = markup.replaceAll("\\\\\\<", "&lt;");
@@ -119,11 +146,44 @@ public class HelpBuilder
         markup = markup.replaceAll("\\_(.*?)\\_", "<sub>$1</sub>");
         markup = markup.replaceAll("\\^(.*?)\\^", "<sup>$1</sup>");
         markup = markup.replaceAll("\\~(.*?)\\~", "<em>$1</em>");
-        markup = markup.replaceAll("\\+\\+\\+(.*?)\\+\\+\\+", "<h2>$1</h2>");
-        markup = markup.replaceAll("\\+\\+(.*?)\\+\\+", "<h3>$1</h3>");
+        markup = replaceAllSectionHeadings(markup);
+        markup = markup.replaceAll("##TOC##", makeToc(tocItems));
         markup = markup.replaceAll("\n\n", "\n\n<p>");
         markup = markup.replaceAll("&renderascaret;", "^");
         return markup;
+    }
+    
+    private static String makeToc(List<String> tocItems)
+    {
+        StringBuilder str = new StringBuilder();
+        str.append("<ul>\n");
+        
+        for (String tocItem : tocItems)
+        {
+            str.append("<li><a href=\"#");
+            str.append(toAnchor(tocItem));
+            str.append("\">");
+            str.append(tocItem.trim());
+            str.append("</a>\n");
+        }
+        
+        str.append("</ul>\n");
+        str.append("<p>");
+        
+        return str.toString();
+    }
+    
+    private static String replaceAllSectionHeadings(String input)
+    {
+        Pattern pattern = Pattern.compile("\n*\\+\\+(.*?)\\+\\+");
+        Matcher matcher = pattern.matcher(input);
+        StringBuffer buf = new StringBuffer();
+        while (matcher.find())
+        {
+            matcher.appendReplacement(buf, "<a name=\"" + toAnchor(matcher.group(1)) + "\"></a><h3>$1</h3>");
+        }
+        matcher.appendTail(buf);
+        return buf.toString();
     }
     
     public static void generateHelpPages(File inputXml, File outputDir) throws javax.xml.parsers.ParserConfigurationException, org.xml.sax.SAXException, java.io.IOException
