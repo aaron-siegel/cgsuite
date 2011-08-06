@@ -17,6 +17,8 @@
  *     on the original square.
  *   - in impartial Clobber, either player can use either
  *     type of stone
+ *   - in enlightened clobber, you may not clobber a stone
+ *     if this would leave a monochrome connected component
  *
  * Mandatory parameters:
  *   - a grid, or string representation of a grid
@@ -25,6 +27,7 @@
  *   - (directions) the allowed movement directions 
  *   - (anti) a boolean 
  *   - (impartial) a boolean
+ *   - (enlightened) a boolean
  * 
  * Examples:
  * g := game.grid.Clobber("oox|oo.|oox");
@@ -33,6 +36,7 @@
  * h.CanonicalForm; (should be double-up-*)
  * k := game.grid.Clobber(".#x#|...o", anti => true);
  * k.CanonicalForm; (should be +/- 3)
+ * m := game.grid.Clobber("oooox").CanonicalForm (should be 3)
  */
 
 class Clobber extends GridGame
@@ -40,8 +44,9 @@ class Clobber extends GridGame
     var directions;
     var anti;
     var impartial;
+    var enlightened;
 
-    method Clobber(grid, directions ? Direction.Orthogonal, anti ? false, impartial ? false)
+    method Clobber(grid, directions ? Direction.Orthogonal, anti ? false, impartial ? false, enlightened ? false)
     
         this.GridGame(grid);
         
@@ -70,7 +75,18 @@ class Clobber extends GridGame
                             copy := grid;
                             copy[m,n] := behind;
                             copy[m+d.RowShift,n+d.ColumnShift] := us;
-                            options.Add(Clobber(copy, directions, anti, impartial));
+                            moveOk := true;
+                            if enlightened then
+                                moveOk := copy.LibertyCount(m+d.RowShift,n+d.ColumnShift,them) > 0;
+                                for dd in Direction.Orthogonal do
+                                    r := m + dd.RowShift;
+                                    c := n + dd.ColumnShift;
+                                    moveOk := moveOk and (copy[r,c] <= 0 or copy.LibertyCount(r,c,3-copy[r,c]) > 0);
+                                end
+                            end
+                            if moveOk then
+                                options.Add(Clobber(copy, directions, anti, impartial, enlightened));
+                            end
                         end
                     end
 
@@ -79,7 +95,7 @@ class Clobber extends GridGame
         end
         
         if impartial then
-            options.AddAll(setof(Clobber(g.Grid, directions, anti, true) for g in Clobber(grid, directions, anti, false).Options(player.Opponent)));
+            options.AddAll(setof(Clobber(g.Grid, directions, anti, true, enlightened) for g in Clobber(grid, directions, anti, false, enlightened).Options(player.Opponent)));
         end
        
         return options;

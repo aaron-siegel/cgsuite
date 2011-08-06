@@ -1,5 +1,8 @@
 class String : java "org.cgsuite.lang.CgsuiteString"
 
     method op+(String other) : java "append";
+    
+    property Length.get : java "length";
+    
 
 end
