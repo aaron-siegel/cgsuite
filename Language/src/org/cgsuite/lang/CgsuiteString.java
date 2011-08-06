@@ -30,6 +30,11 @@ public class CgsuiteString extends CgsuiteObject
     {
         return new CgsuiteString(str + other.str);
     }
+    
+    public int length() 
+    {
+        return str.length();
+    }
 
     @Override
     public int hashCode()
