@@ -13,7 +13,7 @@ and open the template in the editor.
     <mapID target="tutorials.using-cgsuite.CGScript" url="tutorials/using-cgsuite/CGScript.html"/>
     <mapID target="tutorials.using-cgsuite.explorer_Exercises" url="tutorials/using-cgsuite/explorer.html#Exercises"/>
     <mapID target="tutorials.using-cgsuite.loopygames_EnteringLoopyGames" url="tutorials/using-cgsuite/loopygames.html#EnteringLoopyGames"/>
-    <mapID target="tutorials.using-cgsuite.worksheet_CanonicalForms" url="tutorials/using-cgsuite/worksheet.html#CanonicalForms"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_CanonicalForms" url="tutorials/using-cgsuite/Worksheet Basics.html#CanonicalForms"/>
     <mapID target="tutorials.using-cgsuite.glossary_Specific" url="tutorials/using-cgsuite/glossary.html#Specific"/>
     <mapID target="tutorials.using-cgsuite.functions_SeqKeyword" url="tutorials/using-cgsuite/functions.html#SeqKeyword"/>
     <mapID target="tutorials.using-cgsuite.functions_ExampleBlockbusting" url="tutorials/using-cgsuite/functions.html#ExampleBlockbusting"/>
@@ -23,7 +23,7 @@ and open the template in the editor.
     <mapID target="tutorials.using-cgsuite.impartialgames" url="tutorials/using-cgsuite/impartialgames.html"/>
     <mapID target="tutorials.using-cgsuite.impartialgames_TBCodes" url="tutorials/using-cgsuite/impartialgames.html#TBCodes"/>
     <mapID target="tutorials.using-cgsuite.glossary_Loopy" url="tutorials/using-cgsuite/glossary.html#Loopy"/>
-    <mapID target="tutorials.using-cgsuite.worksheet" url="tutorials/using-cgsuite/worksheet.html"/>
+    <mapID target="tutorials.using-cgsuite.worksheet" url="tutorials/using-cgsuite/Worksheet Basics.html"/>
     <mapID target="tutorials.using-cgsuite.impartialgames_Misere" url="tutorials/using-cgsuite/impartialgames.html#Misere"/>
     <mapID target="tutorials.using-cgsuite.functions_MoreAboutLists" url="tutorials/using-cgsuite/functions.html#MoreAboutLists"/>
     <mapID target="tutorials.using-cgsuite.functions_Exercises" url="tutorials/using-cgsuite/functions.html#Exercises"/>
@@ -33,7 +33,7 @@ and open the template in the editor.
     <mapID target="tutorials.using-cgsuite.scripts_Domineering" url="tutorials/using-cgsuite/scripts.html#Domineering"/>
     <mapID target="tutorials.using-cgsuite.scripts_LogErr" url="tutorials/using-cgsuite/scripts.html#LogErr"/>
     <mapID target="tutorials.using-cgsuite.impartialgames_MisereQuotients" url="tutorials/using-cgsuite/impartialgames.html#MisereQuotients"/>
-    <mapID target="tutorials.using-cgsuite.worksheet_Exercises" url="tutorials/using-cgsuite/worksheet.html#Exercises"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_Exercises" url="tutorials/using-cgsuite/Worksheet Basics.html#Exercises"/>
     <mapID target="tutorials.using-cgsuite.loopygames_Exercises" url="tutorials/using-cgsuite/loopygames.html#Exercises"/>
     <mapID target="tutorials.using-cgsuite.loopygames_ExtendedThermography" url="tutorials/using-cgsuite/loopygames.html#ExtendedThermography"/>
     <mapID target="tutorials.using-cgsuite.explorer_CreatingGamePositions" url="tutorials/using-cgsuite/explorer.html#CreatingGamePositions"/>
@@ -49,13 +49,13 @@ and open the template in the editor.
     <mapID target="tutorials.using-cgsuite.glossary_Analysis" url="tutorials/using-cgsuite/glossary.html#Analysis"/>
     <mapID target="tutorials.using-cgsuite.functions" url="tutorials/using-cgsuite/functions.html"/>
     <mapID target="tutorials.using-cgsuite.glossary_Keywords" url="tutorials/using-cgsuite/glossary.html#Keywords"/>
-    <mapID target="tutorials.using-cgsuite.worksheet_EnteringGames" url="tutorials/using-cgsuite/worksheet.html#EnteringGames"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_EnteringGames" url="tutorials/using-cgsuite/Worksheet Basics.html#EnteringGames"/>
     <mapID target="tutorials.using-cgsuite.functions_TabulateKeyword" url="tutorials/using-cgsuite/functions.html#TabulateKeyword"/>
     <mapID target="tutorials.using-cgsuite.impartialgames_HeapGames" url="tutorials/using-cgsuite/impartialgames.html#HeapGames"/>
     <mapID target="tutorials.using-cgsuite.functions_Functions" url="tutorials/using-cgsuite/functions.html#Functions"/>
     <mapID target="tutorials.using-cgsuite.glossary_General" url="tutorials/using-cgsuite/glossary.html#General"/>
     <mapID target="tutorials.using-cgsuite.glossary_Miscellaneous" url="tutorials/using-cgsuite/glossary.html#Miscellaneous"/>
-    <mapID target="tutorials.using-cgsuite.worksheet_OperationsOnGames" url="tutorials/using-cgsuite/worksheet.html#OperationsOnGames"/>
+    <mapID target="tutorials.using-cgsuite.worksheet_OperationsOnGames" url="tutorials/using-cgsuite/Worksheet Basics.html#OperationsOnGames"/>
     <mapID target="tutorials.using-cgsuite.explorer" url="tutorials/using-cgsuite/explorer.html"/>
     <mapID target="tutorials.using-cgsuite.scripts_Procedures" url="tutorials/using-cgsuite/scripts.html#Procedures"/>
     <mapID target="tutorials.using-cgsuite.loopygames" url="tutorials/using-cgsuite/loopygames.html"/>

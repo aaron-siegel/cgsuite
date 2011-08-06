@@ -142,7 +142,7 @@ public class HelpBuilder
         markup = markup.replaceAll("\\\\u", "&uarr;");
         markup = markup.replaceAll("\\\\d", "&darr;");
         markup = markup.replaceAll("\\\"", "&quot;");
-        markup = markup.replaceAll("\\$(.*?)\\$", "<code>$1</code>");
+        markup = replaceAllCode(markup);
         markup = markup.replaceAll("\\_(.*?)\\_", "<sub>$1</sub>");
         markup = markup.replaceAll("\\^(.*?)\\^", "<sup>$1</sup>");
         markup = markup.replaceAll("\\~(.*?)\\~", "<em>$1</em>");
@@ -171,6 +171,19 @@ public class HelpBuilder
         str.append("<p>");
         
         return str.toString();
+    }
+    
+    private static String replaceAllCode(String input)
+    {
+        Pattern pattern = Pattern.compile("\\$(.*?)\\$", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(input);
+        StringBuffer buf = new StringBuffer();
+        while (matcher.find())
+        {
+            matcher.appendReplacement(buf, "<code>" + matcher.group(1).replaceAll("\n", "<br>\n") + "</code>");
+        }
+        matcher.appendTail(buf);
+        return buf.toString();
     }
     
     private static String replaceAllSectionHeadings(String input)
