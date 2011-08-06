@@ -13,6 +13,7 @@ and open the template in the editor.
    <tocitem text="Getting Started" target="tutorials.using-cgsuite.index">
     <tocitem text="Worksheet Basics" target="tutorials.using-cgsuite.worksheet"/>
     <tocitem text="Using the Explorer" target="tutorials.using-cgsuite.explorer"/>
+    <tocitem text="CGScript" target="tutorials.using-cgsuite.CGScript"/>
     <tocitem text="Functions and Lists" target="tutorials.using-cgsuite.functions"/>
     <tocitem text="Writing Scripts" target="tutorials.using-cgsuite.scripts"/>
     <tocitem text="Impartial Games" target="tutorials.using-cgsuite.impartialgames"/>

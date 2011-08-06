@@ -10,6 +10,7 @@ and open the template in the editor.
     <mapID target="acknowledgements" url="acknowledgements.html"/>
     <mapID target="license" url="../../../org/cgsuite/ui/resources/license.txt"/>
     <mapID target="tutorials" url="tutorials/index.html"/>
+    <mapID target="tutorials.using-cgsuite.CGScript" url="tutorials/using-cgsuite/CGScript.html"/>
     <mapID target="tutorials.using-cgsuite.explorer_Exercises" url="tutorials/using-cgsuite/explorer.html#Exercises"/>
     <mapID target="tutorials.using-cgsuite.loopygames_EnteringLoopyGames" url="tutorials/using-cgsuite/loopygames.html#EnteringLoopyGames"/>
     <mapID target="tutorials.using-cgsuite.worksheet_CanonicalForms" url="tutorials/using-cgsuite/worksheet.html#CanonicalForms"/>

@@ -1,11 +1,16 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
     <link rel="stylesheet" href="nbdocs:/org/netbeans/modules/usersguide/ide.css" type="text/css">
+    <style type="text/css">
+        code { font-size: 13pt; }
+        ul { list-style-type: disc; list-style-image: none; list-style-position: outside; }
+    </style>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Worksheet Basics</title>
 </head>
 
-  <body bgcolor="#FFFFFF">
+  <body>
     <h2>Worksheet Basics</h2>
 
     <h3>Contents</h3>
@@ -13,7 +18,9 @@
     <ul>
       <li><a href="#EnteringGames">Entering Games</a></li>
       <li><a href="#OperationsOnGames">Operations on Games</a></li>
-      <li><a href="#CanonicalForms">Types and Canonical Forms</a></li>
+      <li><a href="#Objects">Objects</a></li>
+      <li><a href="#CanonicalForms">Classes and Canonical Forms</a></li>
+      <li><a href="#TipsAndTricks">Tips and Tricks</a></li>
       <li><a href="#Exercises">Exercises</a></li>
   </ul>
 
@@ -44,9 +51,7 @@
     into the worksheet. If you're interested in seeing the results, but 
     you don't want to type everything in manually, you can copy-paste directly 
     from this tutorial into the worksheet. Simply highlight the command 
-    with the mouse and select &quot;Copy&quot; from the Edit menu. Then click back 
-    on the Worksheet and select &quot;Paste&quot; from the Edit menu. Make sure to 
-    copy each command separately onto its own line of the Worksheet.</p>
+    with the mouse and drag the highlighted text onto the worksheet.</p>
     
     <h3><a name="OperationsOnGames"></a>Operations on Games</h3>
 
@@ -76,7 +81,7 @@
     <p>This assigns the value of <code>{2||1|0}</code> to the variable <code>g</code>, for later use in expressions
         such as (say) <code>g + ^*</code>.</p>
     
-    <h3><a name="Objects" />Objects</h3>
+    <h3><a name="Objects"></a>Objects</h3>
     
     <p>In cgsuite, <i>everything</i> is an object.  You can access properties of objects with the &quot;dot operator&quot;.
         For example, with <code>g</code> as above, try typing some of the following commands (remember to type each on
@@ -91,8 +96,8 @@ g.Freeze</code></p>
 
     <p>In addition to properties, cgsuite supports various <i>method calls</i> on objects:</p>
 
-    <p><code>g.Cool(1/2)</code>
-        g.Heat(1)
+    <p><code>g.Cool(1/2)<br>
+        g.Heat(1)<br>
         g.Thermograph.Plot()
     </code></p>
   
@@ -135,29 +140,62 @@ g.Freeze</code></p>
         
     <p><code>g.CanonicalForm</code></p>
     
+    <h3><a name="TipsAndTricks"></a>Tips and Tricks</h3>
     
+    <p>A few tricks to help you use the worksheet more effectively:</p>
+    
+    <ul>
+        <li><p>You can press the up arrow key on a blank worksheet line to repeat the previous command.  Repeatedly pressing
+                the up arrow will cycle through all previous commands.</p>
+            
+            <p>You can also type a fragment of a command, and then press the up arrow, to jump to the most recent command
+                that begins with that fragment.  For example, if you type</p>
+            
+            <p><code>g :=</code></p>
+            
+            <p>and then press up, cgsuite will jump to the most recent command that started with &quot;<code>g :=</code>&quot;.
+                This can be extremely handy when you need to enter a slight modification of an earlier command.  You can
+                press up repeatedly to cycle through all previous commands that started with that
+                fragment.</p>
+            
+        <li><p>You might have noticed that every time you enter a command, it appears in the Command History window.  This
+                provides a record of all previous commands (and it's saved even after you restart cgsuite).  You can double-click
+                on a command in the Command History window to copy its contents directly to the worksheet.</p>
+        
+        <li><p>Sometimes you might start a calculation and find that it runs for a very long time.  For example, computing
+        the canonical form of a large Clobber position such as</p>
+    
+        <p><code>examples.Clobber("xoxo|oxox|xoxo|oxox").CanonicalForm</code></p>
+
+        <p>takes a rather long time.  If you find it's taking longer than expected and want to abort, just click
+            &quot;Kill Calculation&quot; in the System menu, or press Ctrl-K (Command-K on MacOS).  This instructs cgsuite
+            to stop the current calculation immediately.</p>
+
+        <li><p>It can also be useful to enter multi-line commands into the worksheet.  You can do this by pressing Shift-Enter.</p>
+        
+    </ul>
     
     <h3><a name="Exercises"></a>Exercises</h3>
     
-    <p>1. Let <code>G</code> be the game <code>{2||1|*}</code>. Calculate 
-    the canonical forms of <code>G + G</code> and <code>G + G + G + G</code>. 
-    Compute the mean and temperature of <code>G</code>. How does <code>G</code> 
-    compare with <code>1</code> and <code>1*</code>?</p>
+    <ol>
+    <li>Let <code>g</code> be the game <code>{3||1|*}</code>. Calculate 
+    the canonical forms of <code>g + g</code> and <code>g + g + g + g</code>. 
+    Compute the mean and temperature of <code>g</code>. How does <code>g</code> 
+    compare with <code>1</code> and <code>1*</code>?</li>
     
-    <p>2. Use the <code>LeftOptions</code> and <code>RightOptions</code> 
-    commands to determine the canonical form of <code>^5</code>.</p>
+    <li>Use the <code>LeftOptions</code> and <code>RightOptions</code> 
+    properties to determine the canonical form of <code>^5</code>.</li>
     
-    <p>3. Let <code>H</code> be the canonical form of the 4x4 Domineering 
-    rectangle that we calculated above. Try comparing <code>H</code> with 
+    <li>You can construct a 4x4 Domineering position by typing
+        
+        <p><code>Domineering(Grid(4,4))</code>
+            
+        <p>Let <code>h</code> be the canonical form of this position. Try comparing <code>h</code> with 
     small positive and negative numbers. Make a conjecture as to whether 
-    or not <code>H</code> is an infinitesimal, and then use <code>IsInfinitesimal(H)</code> 
-    to verify it. How does <code>H</code> compare with various tinies?</p>
+    or not <code>h</code> is an infinitesimal, and then use <code>h.IsInfinitesimal</code> 
+    to verify it. How does <code>h</code> compare with various tinies?</li>
     
-    <p>4. Heat <code>*6</code> by <code>1</code>. Note that only the first 
-    few lines of the canonical form are displayed. Click on the &quot;More ...&quot; 
-    button to display the full canonical form.</p>
-    
-    <p>5. Try to find constraints on positive numbers a, b, c (a &gt; b) such that <code>{a|b} + +<sub>c</sub> = {a+<sub>c</sub>|b+<sub>c</sub>}</code>.</p>
-    
+    <li>Try to find constraints on positive numbers a, b, c (a &gt; b) such that <code>{a|b} + +<sub>c</sub> = {a+<sub>c</sub>|b+<sub>c</sub>}</code>.</li>
+    </ol>
     <hr>
     Continue on to <a href="explorer.html">Using the Explorer</a></body></html>
