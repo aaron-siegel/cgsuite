@@ -40,26 +40,66 @@ import org.w3c.dom.NodeList;
 
 public class HelpBuilder
 {
+    private final static String[] CONVERT_PATHS =
+    {
+        "tutorials/using-cgsuite"
+    };
+    
+    private final static FileFilter CGSH_FILTER = new FileFilter()
+    {
+        @Override
+        public boolean accept(File file)
+        {
+            return file.getName().endsWith(".cgsh");
+        }
+    };
+    
+    private File srcRoot;
+    private File targetRoot;
+    
     public static void main(String[] args) throws Exception
     {
-        File dir = new File("/Users/asiegel/NetBeansProjects/CGSuite/Help/src/org/cgsuite/help/docs/tutorials/using-cgsuite/");
+        new HelpBuilder(new File(args[0]), new File(args[1])).run();
+    }
+    
+    private HelpBuilder(File srcRoot, File targetRoot)
+    {
+        this.srcRoot = srcRoot;
+        this.targetRoot = targetRoot;
+    }
+    
+    private void run() throws Exception
+    {
+        System.out.println("Running CGSuite Help Builder");
+        System.out.println("Source root: " + srcRoot);
+        System.out.println("Target root: " + targetRoot);
         
-        System.out.println("Converting: " + dir.getAbsolutePath());
-        
-        for (File file : dir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return file.getName().endsWith(".cgsh");
-            }
-        }))
+        for (String relPath : CONVERT_PATHS)
         {
-            convert(file);
+            convertDir(relPath);
         }
     }
     
-    private static void convert(File file) throws Exception
+    private void convertDir(String relPath) throws Exception
     {
-        System.out.println("Converting: " + file.getName());
+        File srcDir = new File(srcRoot, relPath);
+        File targetDir = new File(targetRoot, relPath);
+        
+        System.out.println("Converting dir: " + srcDir);
+        
+        targetDir.mkdirs();
+        
+        for (File file : srcDir.listFiles(CGSH_FILTER))
+        {
+            convert(file, targetDir);
+        }
+    }
+    
+    private void convert(File file, File targetDir) throws Exception
+    {
+        File targetFile = new File(targetDir, file.getName().replace(".cgsh", ".html"));
+        
+        System.out.println("Converting file: " + file.getName() + " -> " + targetFile);
         
         BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
         
@@ -84,8 +124,7 @@ public class HelpBuilder
         
         String markedUp = markup(input, tocItems);
         
-        File output = new File(file.getParent(), file.getName().replace(".cgsh", ".html"));
-        PrintStream out = new PrintStream(new FileOutputStream(output));
+        PrintStream out = new PrintStream(new FileOutputStream(targetFile));
         
         out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
         out.println("<html><head>");
@@ -201,7 +240,7 @@ public class HelpBuilder
         matcher.appendTail(buf);
         return buf.toString();
     }
-    
+    /*
     public static void generateHelpPages(File inputXml, File outputDir) throws javax.xml.parsers.ParserConfigurationException, org.xml.sax.SAXException, java.io.IOException
     {
         Document document = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(inputXml);
@@ -270,4 +309,5 @@ public class HelpBuilder
             out.close();
         }
     }
+     */
 }
