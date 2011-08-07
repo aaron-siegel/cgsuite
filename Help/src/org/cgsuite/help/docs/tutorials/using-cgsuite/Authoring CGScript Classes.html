@@ -10,9 +10,56 @@ ul { list-style-type: disc; list-style-image: none; list-style-position: outside
 </head><body>
 <h2>Authoring CGScript Classes</h2>
 <p>
-In some of these files you might see expressions like
+In the previous tutorial, we saw how to write simple expression in CGScript.  In this chapter, we'll see how to specify
+rulesets by designing new classes in CGScript.
 
-<p><code>java &quot;atomicWeight&quot;</code>
+<p><ul>
+<li><a href="#ExampleNim">Example: Nim</a>
+<li><a href="#TheSystemFolder">The System Folder</a>
+<li><a href="#Exercises">Exercises</a>
+</ul>
+<p><a name="ExampleNim"></a><h3> Example: Nim </h3>
+
+<p>Every class in CGScript is stored in a file with the <code>.cgs</code> extension.  For example, <code>examples.Clobber</code> is stored in
+the file <code>examples/Clobber.cgs</code>.  We'll take a look at this file a bit later, but first let's start with something
+simpler: Nim.
+
+<p>In the Browser window of CGSuite, you'll see a list of files and directories that store <code>.cgs</code> files.  (If you don't
+see the Browser, click &quot;Browser&quot; in the Window menu, and then you should see it.)  Open up the examples folder, and
+double-click <code>Nim.cgs</code>.
+
+<p>Now you'll see the code that specifies the <code>examples.Nim</code> class in CGScript.  The first line of code (aside from the
+comments) is
+
+<p><code>class&nbsp;Nim&nbsp;extends&nbsp;ImpartialGame</code>
+
+<p>This declares <code>Nim</code> as a subclass of <code>ImpartialGame</code>, indicating (obviously) that it's impartial.  The next line
+
+<p><code>var&nbsp;n;</code>
+
+<p>declares <code>n</code> (the heap size) as a <em>member variable</em> of <code>Nim</code>.  Each object of class <code>Nim</code> will have a specific value of
+<code>n</code> associated with it.
+
+<p>The next two lines
+
+<p><code>method&nbsp;Nim(Integer&nbsp;n)<br>
+end</code>
+
+<p>declare the constructor for <code>Nim</code>.  Note that the constructor doesn't do anything at all - it just takes in <code>n</code>, the
+heap size, as a parameter.  Since the paramter name matches the name of the member variable <code>n</code>, it's automatically
+assigned and we don't need to take any other action.
+
+<p>The meat of the class is the <code>Options</code> method:
+
+<p><code>method&nbsp;Options(Player&nbsp;player)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;setof(Nim(k)&nbsp;for&nbsp;k&nbsp;from&nbsp;0&nbsp;to&nbsp;n-1);<br>
+<br>
+end</code><a name="TheSystemFolder"></a><h3> The System Folder </h3>
+
+<p>In some of these files you might see expressions like
+
+<p><code>java&nbsp;&quot;atomicWeight&quot;</code>
 
 <p>These are the connection points where CGScript interfaces with Java, its host language.  You won't ordinarily need to
 use the <code>java</code> keyword at all, unless you want to get involved in low-level CGSuite programming.  And I suspect that if
@@ -20,12 +67,12 @@ you're in that camp, then you'll be able to figure out the semantics of the <cod
 
 <p><ol>
 <li>Write a new class <code>PartizanSubtraction2</code> which is just like <code>examples.PartizanSubtraction</code>, but which takes a pair
-of <em>procedures</em> f<sub>L and f</sub>R, enumerating the (possibly infinite) subtraction sets.  For example,
+of <em>procedures</em> f<sub>L</sub> and f<sub>R</sub>, enumerating the (possibly infinite) subtraction sets.  For example,
 
-<p><code>PartizanSubtraction2(n -> n^2, n -> n*(n+1)/2, 10)</code>
+<p><code>PartizanSubtraction2(n&nbsp;->&nbsp;n^2,&nbsp;n&nbsp;->&nbsp;n*(n+1)/2,&nbsp;10)</code>
 
 <p>would construct a heap of size 10 in the game where Left can take a perfect-square number of tokens, and Right a
-triangular number of tokens.  (You can assume that f<sub>L and f</sub>R are nondecreasing as functions of <em>n</em>.)
+triangular number of tokens.  (You can assume that f<sub>L</sub> and f<sub>R</sub> are nondecreasing as functions of <em>n</em>.)
 </ol>
 
 </body></html>

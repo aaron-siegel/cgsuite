@@ -19,6 +19,7 @@ and open the template in the editor.
     <indexitem text="explorer - game positions " target="tutorials.using-cgsuite.explorer_CreatingGamePositions"/>
     <indexitem text="explorer - game tree " target="tutorials.using-cgsuite.explorer_TheGameTree"/>
     <indexitem text="CGScript " target="tutorials.using-cgsuite.CGScript"/>
+    <indexitem text="Authoring CGScript Classes " target="tutorials.using-cgsuite.Authoring CGScript Classes"/>
     <indexitem text="functions " target="tutorials.using-cgsuite.functions"/>
     <indexitem text="functions - example: blockbusting " target="tutorials.using-cgsuite.functions_ExampleBlockbusting"/>
     <indexitem text="functions - example: partizan subtraction " target="tutorials.using-cgsuite.functions_ExamplePartizanSubtraction"/>

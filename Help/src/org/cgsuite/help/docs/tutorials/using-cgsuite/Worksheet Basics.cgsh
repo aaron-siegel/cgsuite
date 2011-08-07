@@ -40,7 +40,7 @@ ${3|2} + {2|0}
 
 Note that $*$ is used both for multiplication and to specify nimbers.  Observe the difference between
 these two expressions:
-    
+
 $*2
 3*2$
 
@@ -53,7 +53,7 @@ $&nbsp;==&nbsp; &lt;=&nbsp; &gt;=&nbsp; &lt;&nbsp; &gt;&nbsp; !=&nbsp; &lt;|&nbs
 
 (Respectively: equals, less than or equal to, greater than or equal to, less than, greater than, not equal to, less than or confused with,
 greater than or confused with, confused with.) For example, try entering:
-    
+
 $\^\^ > *
 0 &lt;| \^*$
 
@@ -69,7 +69,7 @@ such as (say) $g + \^*$.
 In cgsuite, ~everything~ is an object.  You can access properties of objects with the "dot operator".
 For example, with $g$ as above, try typing some of the following commands (remember to type each on
 a separate line):
-    
+
 $g.Mean
 g.Temperature
 g.LeftStop

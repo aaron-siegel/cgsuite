@@ -180,7 +180,10 @@ public class HelpBuilder
         StringBuffer buf = new StringBuffer();
         while (matcher.find())
         {
-            matcher.appendReplacement(buf, "<code>" + matcher.group(1).replaceAll("\n", "<br>\n") + "</code>");
+            String codeBlock = matcher.group(1);
+            codeBlock = codeBlock.replaceAll("\n", "<br>\n");
+            codeBlock = codeBlock.replaceAll("\\ ", "&nbsp;");
+            matcher.appendReplacement(buf, "<code>" + codeBlock + "</code>");
         }
         matcher.appendTail(buf);
         return buf.toString();

@@ -51,40 +51,40 @@ with the mouse and drag the highlighted text onto the worksheet.<a name="Operati
 
 <p>You can enter sums and products directly.  <code>*</code> is used for multiples.  For example:
 
-<p><code>{3|2} + {2|0}<br>
-4 * {2||1|0}</code>
+<p><code>{3|2}&nbsp;+&nbsp;{2|0}<br>
+4&nbsp;*&nbsp;{2||1|0}</code>
 
 <p>Note that <code>*</code> is used both for multiplication and to specify nimbers.  Observe the difference between
 these two expressions:
-    
-<code>*2<br>
+
+<p><code>*2<br>
 3*2</code>
 
 <p>Here <code>3*2</code> is equal to 6, <em>not</em> three-star-two.  For the latter, you'll need to type
-<code>3 + *2</code>.  Similarly, <code>3^2</code> is equal to 9 (exponentiation), not three-double-up.
+<code>3&nbsp;+&nbsp;*2</code>.  Similarly, <code>3^2</code> is equal to 9 (exponentiation), not three-double-up.
 
 <p>There are nine <em>comparison operators</em>:
 
-<p><code>&nbsp;==&nbsp; &lt;=&nbsp; &gt;=&nbsp; &lt;&nbsp; &gt;&nbsp; !=&nbsp; &lt;|&nbsp; |&gt;&nbsp; &lt;&gt; </code>
+<p><code>&nbsp;==&nbsp;&nbsp;&lt;=&nbsp;&nbsp;&gt;=&nbsp;&nbsp;&lt;&nbsp;&nbsp;&gt;&nbsp;&nbsp;!=&nbsp;&nbsp;&lt;|&nbsp;&nbsp;|&gt;&nbsp;&nbsp;&lt;&gt;&nbsp;</code>
 
 <p>(Respectively: equals, less than or equal to, greater than or equal to, less than, greater than, not equal to, less than or confused with,
 greater than or confused with, confused with.) For example, try entering:
-    
-<code>^^ > *<br>
-0 &lt;| ^*</code>
+
+<p><code>^^&nbsp;>&nbsp;*<br>
+0&nbsp;&lt;|&nbsp;^*</code>
 
 <p>You can assign variables as follows:
 
-<p><code>g := {2||1|0}</code>
+<p><code>g&nbsp;:=&nbsp;{2||1|0}</code>
 
 <p>This assigns the value of <code>{2||1|0}</code> to the variable <code>g</code>, for later use in expressions
-such as (say) <code>g + ^*</code>.<a name="Objects"></a><h3>Objects</h3>
+such as (say) <code>g&nbsp;+&nbsp;^*</code>.<a name="Objects"></a><h3>Objects</h3>
 
 <p>In cgsuite, <em>everything</em> is an object.  You can access properties of objects with the &quot;dot operator&quot;.
 For example, with <code>g</code> as above, try typing some of the following commands (remember to type each on
 a separate line):
-    
-<code>g.Mean<br>
+
+<p><code>g.Mean<br>
 g.Temperature<br>
 g.LeftStop<br>
 g.RightOptions<br>
@@ -106,12 +106,12 @@ cgsuite expressions.
 ^^*.AtomicWeight<br>
 ^.Pow(3)<br>
 {2||1|0}.Heat(1)<br>
-(g + {2|*}).Temperature</code>
+(g&nbsp;+&nbsp;{2|*}).Temperature</code>
 
 <p>You can also put several commands on the same line by separating them with semicolons, as the following example
 illustrates.  Output will only be generated for the last command on the line.
 
-<p><code>g := {2|*}; h := g + {1|0}; h.Thermograph.Plot()</code><a name="ClassesandCanonicalForms"></a><h3>Classes and Canonical Forms</h3>
+<p><code>g&nbsp;:=&nbsp;{2|*};&nbsp;h&nbsp;:=&nbsp;g&nbsp;+&nbsp;{1|0};&nbsp;h.Thermograph.Plot()</code><a name="ClassesandCanonicalForms"></a><h3>Classes and Canonical Forms</h3>
 
 <p>Every object in cgsuite belongs to a particular <em>class</em>.  For example, <code>3</code> is an <code>Integer</code>,
 <code>5/4</code> is a <code>Number</code> and <code>{2|*}</code> is a <code>CanonicalShortGame</code>.
@@ -128,7 +128,7 @@ a class called
 
 <p>which can be used to represent Clobber positions.  Try the following:
 
-<p><code>g := examples.Clobber(&quot;xox|ox.&quot;)</code>
+<p><code>g&nbsp;:=&nbsp;examples.Clobber(&quot;xox|ox.&quot;)</code>
 
 <p>This constructs a 2x3 Clobber position with the layout you see on the worksheet.  To get the canonical form, type
 
@@ -137,47 +137,46 @@ a class called
 <p>A few tricks to help you use the worksheet more effectively:
 <ul>
     <li>You can press the up arrow key on a blank worksheet line to repeat the previous command.  Repeatedly pressing
-            the up arrow will cycle through all previous commands.
+    the up arrow will cycle through all previous commands.
 
-<p>        You can also type a fragment of a command, and then press the up arrow, to jump to the most recent command
-            that begins with that fragment.  For example, if you type
+<p>    You can also type a fragment of a command, and then press the up arrow, to jump to the most recent command
+    that begins with that fragment.  For example, if you type
 
-<p>        <code>g :=</code>
+<p>    <code>g&nbsp;:=</code>
 
-<p>        and then press up, cgsuite will jump to the most recent command that started with &quot;<code>g :=</code>&quot;.
-            This can be extremely handy when you need to enter a slight modification of an earlier command.  You can
-            press up repeatedly to cycle through all previous commands that started with that
-            fragment.
+<p>    and then press up, cgsuite will jump to the most recent command that started with &quot;<code>g&nbsp;:=</code>&quot;.
+    This can be extremely handy when you need to enter a slight modification of an earlier command.  You can
+    press up repeatedly to cycle through all previous commands that started with that
+    fragment.
     <li>You might have noticed that every time you enter a command, it appears in the Command History window.  This
-            provides a record of all previous commands (and it's saved even after you restart cgsuite).  You can double-click
-            on a command in the Command History window to copy its contents directly to the worksheet.
+    provides a record of all previous commands (and it's saved even after you restart cgsuite).  You can double-click
+    on a command in the Command History window to copy its contents directly to the worksheet.
     <li>Sometimes you might start a calculation and find that it runs for a very long time.  For example, computing
     the canonical form of a large Clobber position such as
 
 <p>    <code>examples.Clobber(&quot;xoxo|oxox|xoxo|oxox&quot;).CanonicalForm</code>
 
 <p>    takes a rather long time.  If you find it's taking longer than expected and want to abort, just click
-        &quot;Kill Calculation&quot; in the System menu, or press Ctrl-K (Command-K on MacOS).  This instructs cgsuite
-        to stop the current calculation immediately.
-
-<p>    <li>It can also be useful to enter multi-line commands into the worksheet.  You can do this by pressing Shift-Enter.
+    &quot;Kill Calculation&quot; in the System menu, or press Ctrl-K (Command-K on MacOS).  This instructs cgsuite
+    to stop the current calculation immediately.
+    <li>It can also be useful to enter multi-line commands into the worksheet.  You can do this by pressing Shift-Enter.
 </ul><a name="Exercises"></a><h3>Exercises</h3>
 <ol>
-<li>Let <code>g</code> be the game <code>{3||1|*}</code>. Calculate 
-the canonical forms of <code>g + g</code> and <code>g + g + g + g</code>. 
-Compute the mean and temperature of <code>g</code>. How does <code>g</code> 
-compare with <code>1</code> and <code>1*</code>?
-<li>Use the <code>LeftOptions</code> and <code>RightOptions</code> 
-properties to determine the canonical form of <code>^5</code>.
-<li>You can construct a 4x4 Domineering position by typing
+    <li>Let <code>g</code> be the game <code>{3||1|*}</code>. Calculate 
+    the canonical forms of <code>g&nbsp;+&nbsp;g</code> and <code>g&nbsp;+&nbsp;g&nbsp;+&nbsp;g&nbsp;+&nbsp;g</code>. 
+    Compute the mean and temperature of <code>g</code>. How does <code>g</code> 
+    compare with <code>1</code> and <code>1*</code>?
+    <li>Use the <code>LeftOptions</code> and <code>RightOptions</code> 
+    properties to determine the canonical form of <code>^5</code>.
+    <li>You can construct a 4x4 Domineering position by typing
 
 <p>    <code>Domineering(Grid(4,4))</code>
 
 <p>    Let <code>h</code> be the canonical form of this position. Try comparing <code>h</code> with 
-small positive and negative numbers. Make a conjecture as to whether 
-or not <code>h</code> is an infinitesimal, and then use <code>h.IsInfinitesimal</code> 
-to verify it. How does <code>h</code> compare with various tinies?
-<li>Try to find constraints on positive numbers a, b, c (a &gt; b) such that <code>{a|b} + +<sub>c</sub> = {a+<sub>c</sub>|b+<sub>c</sub>}</code>.
+    small positive and negative numbers. Make a conjecture as to whether 
+    or not <code>h</code> is an infinitesimal, and then use <code>h.IsInfinitesimal</code> 
+    to verify it. How does <code>h</code> compare with various tinies?
+    <li>Try to find constraints on positive numbers a, b, c (a &gt; b) such that <code>{a|b}&nbsp;+&nbsp;+<sub>c</sub>&nbsp;=&nbsp;{a+<sub>c</sub>|b+<sub>c</sub>}</code>.
 </ol>
 
 </body></html>

@@ -30,7 +30,7 @@ CGScript, and in the next one we'll see how to use it to design new classes.
 
 <p>When you type, say,
 
-<p><code>opts := *8.LeftOptions</code>
+<p><code>opts&nbsp;:=&nbsp;*8.LeftOptions</code>
 
 <p>you get back all the Left options of <code>*8</code>.  The resulting <em>set</em> is itself an object and can be
     manipulated in various ways.  For example,
@@ -44,7 +44,7 @@ CGScript, and in the next one we'll see how to use it to design new classes.
 <p>returns true or false depending on whether <code>*3</code> is in the set.  You can use these sets to construct
     games, as in
 
-<p><code>{ opts | opts }</code>
+<p><code>{&nbsp;opts&nbsp;|&nbsp;opts&nbsp;}</code>
 
 <p>which returns the expected <code>*9</code> (since we just added <code>*8</code> to the set).
 
@@ -58,7 +58,7 @@ CGScript, and in the next one we'll see how to use it to design new classes.
 
 <p>for a set with elements.
 
-<p>Note that a pair of braces <code>{ }</code> denotes a <em>game</em> if there's at least one slash in between, and a <em>set</em> otherwise.<a name="ListsandMaps"></a><h3>Lists and Maps</h3>
+<p>Note that a pair of braces <code>{&nbsp;}</code> denotes a <em>game</em> if there's at least one slash in between, and a <em>set</em> otherwise.<a name="ListsandMaps"></a><h3>Lists and Maps</h3>
 
 <p>A list is like a set, but the elements are ordered and can be duplicated.  Lists are created just like sets, but using
 square brackets instead of curly braces.  For example,
@@ -78,12 +78,12 @@ two commands into the worksheet:
 
 <p>or
 
-<p><code>x[2] := 5</code>
+<p><code>x[2]&nbsp;:=&nbsp;5</code>
 
 <p>Maps are another useful abstraction.  They associate keys to values (both of which can be any object).  The syntax
 for constructing a map looks like this:
 
-<p><code>{ * => 1, *2 => 4, *3 => 9 }</code>
+<p><code>{&nbsp;*&nbsp;=>&nbsp;1,&nbsp;*2&nbsp;=>&nbsp;4,&nbsp;*3&nbsp;=>&nbsp;9&nbsp;}</code>
 
 <p>If <code>x</code> is a list, then you can access the mapping with square brackets:
 
@@ -91,13 +91,13 @@ for constructing a map looks like this:
 
 <p>would return <code>4</code> for the above example, and
 
-<p><code>x[*4] := 16</code>
+<p><code>x[*4]&nbsp;:=&nbsp;16</code>
 
 <p>would assign the value <code>16</code> to the key <code>*4</code>.
 
 <p>The special syntax
 
-<p><code>{ => }</code>
+<p><code>{&nbsp;=>&nbsp;}</code>
 
 <p>is used to denote an empty map (this distinguishes it from <code>{}</code>, which denotes an empty set).<a name="ExamplePartizanSubtraction"></a><h3> Example: PartizanSubtraction </h3>
 
@@ -108,7 +108,7 @@ from a heap, for any <em>k</em> in S<sub>L</sub>.  Likewise Right may remove <co
 <p>The CGSuite class <code>examples.PartizanSubtraction</code> can represent <em>any</em> partizan subtraction game: the subtraction sets are
 simply specified as parameters.  For example,
 
-<p><code>g := examples.PartizanSubtraction({1,3},{2,3},10)</code>
+<p><code>g&nbsp;:=&nbsp;examples.PartizanSubtraction({1,3},{2,3},10)</code>
 
 <p>constructs a partizan subtraction game with S<sub>L</sub> = {1,3}, S<sub>R</sub> = {2,3}, and heap size 10.  As always, you can type
 
@@ -119,21 +119,21 @@ simply specified as parameters.  For example,
 <p><code>setof</code>, <code>listof</code> and <code>tableof</code> are powerful commands for constructing new collections from existing ones.
 The basic syntax looks like this:
 
-<p><code>setof(g.CanonicalForm for g in x)</code>
+<p><code>setof(g.CanonicalForm&nbsp;for&nbsp;g&nbsp;in&nbsp;x)</code>
 
 <p>If <code>x</code> is an existing collection, this command returns the set of all canonical forms of games in <code>x</code>.  <code>listof</code> is
 similar, but gives the answer as a list instead of a set.  You can also use the syntax
 
-<p><code>setof(k^2 for k from 1 to 10)</code>
+<p><code>setof(k^2&nbsp;for&nbsp;k&nbsp;from&nbsp;1&nbsp;to&nbsp;10)</code>
 
 <p>to iterate over integers spanning a certain range.  For example, the following is equivalent to <code>*n.LeftOptions</code>:
 
-<p><code>setof(*k for k from 0 to n-1)</code>
+<p><code>setof(*k&nbsp;for&nbsp;k&nbsp;from&nbsp;0&nbsp;to&nbsp;n-1)</code>
 
 <p>The <code>tableof</code> command can be useful for visualizing large amounts of data.  A <em>table</em> is another type of collection,
 whose elements are themselves lists.  Each list in the table describes a <em>row</em> of the table.  Here's an example:
 
-<p><code>tableof([n,examples.PartizanSubtraction({1,3},{2,3},n).CanonicalForm] for n from 1 to 10)</code>
+<p><code>tableof([n,examples.PartizanSubtraction({1,3},{2,3},n).CanonicalForm]&nbsp;for&nbsp;n&nbsp;from&nbsp;1&nbsp;to&nbsp;10)</code>
 
 <p>This gives the first 10 values of the partizan subtraction game we introduced above.  As you can see (by typing it
 into the worksheet), CGSuite prints tables in a neatly readable format.<a name="PropertiesMethodsandConstructors"></a><h3> Properties, Methods and Constructors </h3>
@@ -152,7 +152,7 @@ as the <code>Cool</code> method:
 
 <p>Methods themselves are objects, and can be assigned to variables too; for example
 
-<p><code>f := {5|1}.Cool</code>
+<p><code>f&nbsp;:=&nbsp;{5|1}.Cool</code>
 
 <p>enables us to type
 
@@ -160,7 +160,7 @@ as the <code>Cool</code> method:
 
 <p>or, say
 
-<p><code>listof(f(k) for k from 0 to 2)</code>
+<p><code>listof(f(k)&nbsp;for&nbsp;k&nbsp;from&nbsp;0&nbsp;to&nbsp;2)</code>
 
 <p>Moreover, every class has a special method known as its <em>constructor</em>.  The constructor is a rule for creating new
 objects of that class.  When you type
@@ -171,7 +171,7 @@ objects of that class.  When you type
 <code>examples.PartizanSubtraction</code> is a class, it's identified with its constructor and can be used like a method.  In fact
 we can type
 
-<p><code>f := examples.PartizanSubtraction</code>
+<p><code>f&nbsp;:=&nbsp;examples.PartizanSubtraction</code>
 
 <p>and then <code>f({1,3},{2,3},10)</code> to get the same result.<a name="OptionalParameters"></a><h3> Optional Parameters </h3>
 
@@ -179,7 +179,7 @@ we can type
 three.  Some methods also have <em>optional parameters</em> that can be specified or omitted depending on the situation.  For
 example, the <code>DayN</code> class is used to construct all the games born by day <em>n</em>.  Typing
 
-<p><code>d := DayN(3)</code>
+<p><code>d&nbsp;:=&nbsp;DayN(3)</code>
 
 <p>for example, gives all the games born by day 3, and you can now type (say)
 
@@ -188,7 +188,7 @@ example, the <code>DayN</code> class is used to construct all the games born by 
 <p>to get the number of such games (1474).  But the <code>DayN</code> class also allows the optional parameter <code>allSmall</code>, which
 restricts the computation just to all-small games.  The syntax for this is
 
-<p><code>d := DayN(3, allSmall => true)</code>
+<p><code>d&nbsp;:=&nbsp;DayN(3,&nbsp;allSmall&nbsp;=>&nbsp;true)</code>
 
 <p>which sets the optional parameter <code>allSmall</code> to the value <code>true</code> (the default, of course, is <code>false</code>).  Now typing
 <code>d.Size</code> gives the answer 67.<a name="Procedures"></a><h3> Procedures </h3>
@@ -199,20 +199,20 @@ And unlike a method, it's not associated with any object (though the procedure i
 
 <p>An example of a procedure is
 
-<p><code>x -> x+1</code>
+<p><code>x&nbsp;->&nbsp;x+1</code>
 
 <p>If we type
 
-<p><code>f := x -> x+1</code>
+<p><code>f&nbsp;:=&nbsp;x&nbsp;->&nbsp;x+1</code>
 
 <p>then <code>f(5)</code> gives the expected answer, <code>6</code>.  Multi-argument procedures are allowed via the syntax
 
-<p><code>(x,y) -> (x+y)/2</code>
+<p><code>(x,y)&nbsp;->&nbsp;(x+y)/2</code>
 
 <p>For example, in versions of CGSuite prior to 1.0, the notation <code>C(g)</code> was used to get the canonical form of <code>g</code>.  This
 is no longer used in 1.0, but if you like it you can bring it back with a procedure definition:
 
-<p><code>C := g -> g.CanonicalForm</code>
+<p><code>C&nbsp;:=&nbsp;g&nbsp;->&nbsp;g.CanonicalForm</code>
 
 <p>You can use similar aliases to create shortcuts for other commonly used commands.<a name="OtherTypes"></a><h3> Other Types </h3>
 
@@ -222,7 +222,7 @@ is no longer used in 1.0, but if you like it you can bring it back with a proced
 
 <p>or
 
-<p><code>&quot;Hello there!&quot;</code>
+<p><code>&quot;Hello&nbsp;there!&quot;</code>
 
 <p>are objects of class <code>String</code>, and the special values <code>true</code> and <code>false</code> are objects of class <code>Boolean</code>.
 
@@ -232,7 +232,7 @@ output.
 
 <p>You can test whether any object <code>x</code> matches a given type (say <code>String</code>) with the syntax
 
-<p><code>x is String</code>
+<p><code>x&nbsp;is&nbsp;String</code>
 
 <p>and you can get the exact type of <code>x</code> by typing
 
