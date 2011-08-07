@@ -1381,9 +1381,12 @@ public class Domain
         if (x instanceof CgsuiteClass)
         {
             CgsuiteClass type = (CgsuiteClass) x;
+            if (type.getScript() != null)
+                return new Script(type);
+            
             CgsuiteMethod ctor = type.lookupConstructor();
             if (ctor == null)
-                throw new InputException(tree.token, "No constructor available: " + type);
+                throw new InputException(tree.token, "No constructor available: " + type.getQualifiedName());
             else
                 return ctor;
         }
@@ -1466,6 +1469,27 @@ public class Domain
         }
 
         return (CanonicalShortGame) x;
+    }
+    
+    private class Script implements Callable
+    {
+        private CgsuiteClass type;
+
+        public Script(CgsuiteClass type)
+        {
+            this.type = type;
+        }
+
+        @Override
+        public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String, CgsuiteObject> optionalArguments) throws CgsuiteException
+        {
+            if (!arguments.isEmpty() || optionalArguments != null)
+                throw new InputException(type.getQualifiedName() + " is a script, and must be called without arguments.");
+            
+            statementSequence(type.getScript());
+            
+            return Nil.NIL;
+        }
     }
 
     private enum Mode

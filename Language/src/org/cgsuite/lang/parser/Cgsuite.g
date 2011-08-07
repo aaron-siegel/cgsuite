@@ -86,7 +86,7 @@ tokens
 	FROM		= 'from';
 	GET         = 'get';
 	IF			= 'if';
-//	IMPORT		= 'import';
+    IMPORT		= 'import';
 	IN			= 'in';
     INF         = 'inf';
     IS          = 'is';
@@ -94,7 +94,6 @@ tokens
     LISTOF      = 'listof';
 	METHOD		= 'method';
     MUTABLE     = 'mutable';
-//	NAMESPACE	= 'namespace';
     NEG         = 'neg';
     NIL         = 'nil';
 	NOT			= 'not';
@@ -105,6 +104,7 @@ tokens
 	POS         = 'pos';
 	PROPERTY	= 'property';
 	RETURN		= 'return';
+    SCRIPT      = 'script';
 	SET         = 'set';
     SETOF       = 'setof';
     STATIC      = 'static';
@@ -242,6 +242,14 @@ compilationUnit
 	: (classDeclaration | enumDeclaration | block) EOF^
 	;
 
+importStatement
+    : IMPORT^ importClause SEMI!
+    ;
+
+importClause
+    : qualifiedId (DOT^ AST)?
+    ;
+
 classDeclaration
 	: classModifiers CLASS^ IDENTIFIER extendsClause? javaClause? declaration* END!
 	;
@@ -251,10 +259,10 @@ classModifiers
     ;
 	
 extendsClause
-	: EXTENDS^ extendsItem (COMMA! extendsItem)*
+	: EXTENDS^ qualifiedId (COMMA! qualifiedId)*
 	;
 
-extendsItem
+qualifiedId
     : IDENTIFIER (DOT^ IDENTIFIER)*
     ;
 

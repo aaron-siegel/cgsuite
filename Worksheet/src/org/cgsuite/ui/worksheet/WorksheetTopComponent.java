@@ -20,11 +20,12 @@ import org.netbeans.api.settings.ConvertAsProperties;
 autostore = false)
 public final class WorksheetTopComponent extends TopComponent
 {
-
     private static WorksheetTopComponent instance;
     /** path to the icon used by the component and its open action */
     private static final String ICON_PATH = "org/cgsuite/ui/worksheet/thermograph.png";
     private static final String PREFERRED_ID = "WorksheetTopComponent";
+    
+    private boolean started = false;
 
     public WorksheetTopComponent()
     {
@@ -139,6 +140,8 @@ public final class WorksheetTopComponent extends TopComponent
     @Override
     public void componentOpened()
     {
+        started = true;
+        worksheetPanel1.initialize();
     }
 
     @Override

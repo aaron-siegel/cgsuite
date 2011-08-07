@@ -11,8 +11,6 @@
 
 package org.cgsuite.ui.worksheet;
 
-import javax.swing.event.DocumentEvent;
-import org.cgsuite.lang.output.OutputBox;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -28,8 +26,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.OutputBox;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.ui.history.CommandHistoryBuffer;
 import org.cgsuite.ui.history.CommandListener;
@@ -38,6 +39,7 @@ import org.openide.util.Task;
 import org.openide.util.TaskListener;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
+
 
 // TODO Check if there are unsaved files before starting a calculation
 // TODO Fix copy/paste of worksheet output
@@ -52,7 +54,6 @@ public class WorksheetPanel extends JPanel
     private InputPanel activeInputPanel;
     
     private CalculationCapsule currentCapsule;
-    private InputPane currentSource;
     private RequestProcessor.Task currentTask;
     private Box.Filler strut;
 
@@ -69,7 +70,6 @@ public class WorksheetPanel extends JPanel
         strut = (Box.Filler) Box.createHorizontalStrut(0);
         strut.setAlignmentX(LEFT_ALIGNMENT);
         add(strut);
-        addNewCell();
     }
 
     /** This method is called from within the constructor to
@@ -108,6 +108,15 @@ public class WorksheetPanel extends JPanel
         }
     }//GEN-LAST:event_formHierarchyChanged
 
+    public void initialize()
+    {
+        // Instantiate a RationalNumber so that the interface will seem snappier
+        // once the user starts using it
+        new RationalNumber(1, 2);
+        processCommand("startup();");
+        this.requestFocusInWindow();
+    }
+    
     private CommandHistoryBuffer getBuffer()
     {
         if (buffer == null)
@@ -232,7 +241,12 @@ public class WorksheetPanel extends JPanel
         activeInputPanel.getInputPane().getDocument().removeDocumentListener(this);
         activeInputPanel = null;
         commandHistoryPrefix = null;
-        CalculationCapsule capsule = new CalculationCapsule(source.getText());
+        processCommand(source.getText());
+    }
+    
+    private synchronized void processCommand(String command)
+    {
+        CalculationCapsule capsule = new CalculationCapsule(command);
         RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
         task.addTaskListener(this);
         task.schedule(0);
@@ -261,7 +275,6 @@ public class WorksheetPanel extends JPanel
             postOutput(new StyledTextOutput("Calculating ..."));
             
             this.currentCapsule = capsule;
-            this.currentSource = source;
             this.currentTask = task;
         }
 
@@ -300,7 +313,7 @@ public class WorksheetPanel extends JPanel
     @Override
     public synchronized void taskFinished(Task task)
     {
-        if (currentSource == null)
+        if (currentCapsule == null)
             return;
 
         Output[] output = currentCapsule.getOutput();
@@ -310,7 +323,6 @@ public class WorksheetPanel extends JPanel
             getToolkit().beep();
 
         remove(getComponentCount()-1);
-        currentSource = null;
         currentCapsule = null;
         currentTask = null;
         
@@ -328,7 +340,11 @@ public class WorksheetPanel extends JPanel
 
     private void advanceToNext()
     {
-        add(Box.createVerticalStrut(10));
+        if (getComponentCount() > 2)
+        {
+            add(Box.createVerticalStrut(10));
+        }
+        
         addNewCell();
         updateComponentSizes();
         scrollToBottomLeft();
@@ -354,7 +370,7 @@ public class WorksheetPanel extends JPanel
         {
             return;
         }
-        int width = getViewport().getWidth();
+        int width = Math.max(0, getViewport().getWidth());
         Dimension dim = new Dimension(width, 0);
         strut.changeShape(dim, dim, dim);
         

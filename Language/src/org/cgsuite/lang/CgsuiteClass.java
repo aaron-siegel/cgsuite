@@ -264,6 +264,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         ensureLoaded();
         return varsInOrder;
     }
+    
+    public CgsuiteTree getScript()
+    {
+        ensureLoaded();
+        return script;
+    }
 
     /////////////////////////////////
     // Loader Logic
