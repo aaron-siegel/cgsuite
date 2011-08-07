@@ -10,6 +10,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +18,7 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
+import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteClassLoadException;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -39,7 +41,8 @@ import org.openide.util.RequestProcessor;
 public class CalculationCapsule implements Runnable
 {
     private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
-    private final static Domain WORKSPACE_DOMAIN = new Domain(null, null, CgsuitePackage.DEFAULT_IMPORT);
+    private final static Domain WORKSPACE_DOMAIN = new Domain
+        (null, null, new ArrayList<CgsuitePackage>(CgsuitePackage.DEFAULT_PACKAGE_IMPORTS), new HashMap<String,CgsuiteClass>());
 
     public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor
         (WorksheetPanel.class.getName(), 1, true);

@@ -498,7 +498,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             tree.getSelectedNode() != null &&
             !activeEvaluationText.equals(enterCommandHint))
         {
-            Domain domain = new Domain(explorer, null, CgsuitePackage.DEFAULT_IMPORT);
+            Domain domain = new Domain(explorer, null);
             CalculationCapsule capsule = new CalculationCapsule(activeEvaluationText, domain);
             RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
             task.addTaskListener(this);

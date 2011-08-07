@@ -31,7 +31,7 @@ public class LanguageFunctionalTest
 {
     private final static Logger log = Logger.getLogger(LanguageFunctionalTest.class.getName());
     
-    public final static Domain TEST_DOMAIN = new Domain(null, null, CgsuitePackage.DEFAULT_IMPORT);
+    public final static Domain TEST_DOMAIN = new Domain(null, null);
     
     @Parameters
     public static Collection<Object[]> data() throws Exception

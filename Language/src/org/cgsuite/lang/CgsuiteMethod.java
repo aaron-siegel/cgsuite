@@ -295,7 +295,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
             }
             
-            Domain domain = new Domain(obj, this, declaringClass.getImports());
+            Domain domain = new Domain(obj, this, declaringClass.getPackageImports(), declaringClass.getClassImports());
 
             // TODO Validation
 
@@ -345,7 +345,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 assert false : "All arguments matched, but the count was off";
             }
 
-            retval = domain.invocation(tree);
+            retval = domain.methodInvocation(tree);
             
             if (isConstructor)
                 retval = obj;

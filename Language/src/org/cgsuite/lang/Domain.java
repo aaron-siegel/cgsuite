@@ -27,14 +27,21 @@ public class Domain
     private CgsuiteObject contextObject;
     private CgsuiteMethod contextMethod;
     private Namespace namespace;
-    private List<CgsuitePackage> imports;
+    private List<CgsuitePackage> packageImports;
+    private Map<String,CgsuiteClass> classImports;
     private Mode mode;
+    
+    public Domain(CgsuiteObject contextObject, CgsuiteMethod contextMethod)
+    {
+        this(contextObject, contextMethod, CgsuitePackage.DEFAULT_PACKAGE_IMPORTS, CgsuitePackage.DEFAULT_CLASS_IMPORTS);
+    }
 
-    public Domain(CgsuiteObject contextObject, CgsuiteMethod contextMethod, List<CgsuitePackage> imports)
+    public Domain(CgsuiteObject contextObject, CgsuiteMethod contextMethod, List<CgsuitePackage> packageImports, Map<String,CgsuiteClass> classImports)
     {
         this.contextObject = contextObject;
         this.contextMethod = contextMethod;
-        this.imports = imports;
+        this.packageImports = packageImports;
+        this.classImports = classImports;
         this.namespace = new Namespace();
         this.mode = Mode.NORMAL;
         
@@ -44,7 +51,7 @@ public class Domain
 
     public CgsuiteObject lookup(String str)
     {
-        CgsuiteClass type = CgsuitePackage.lookupClass(str, imports);
+        CgsuiteClass type = CgsuitePackage.lookupClass(str, packageImports, classImports);
         
         if (type != null)
             return type;
@@ -89,15 +96,19 @@ public class Domain
         }
     }
 
-    public CgsuiteObject invocation(CgsuiteTree tree) throws CgsuiteException
+    public CgsuiteObject methodInvocation(CgsuiteTree tree) throws CgsuiteException
     {
-        CgsuiteObject retval = statementSequence(tree);
+        statementSequence(tree);
+        
         if (mode == Mode.RETURNING)
         {
             mode = Mode.NORMAL;
-            retval = returnValue;
+            return returnValue;
         }
-        return retval;
+        else
+        {
+            return Nil.NIL;
+        }
     }
 
     private CgsuiteObject statementSequence(CgsuiteTree tree) throws CgsuiteException
@@ -144,9 +155,41 @@ public class Domain
             case CLEAR:     namespace.clear();  // XXX Clear classes?
                             return CgsuiteObject.NIL;
                 
+            case IMPORT:    declareImport(tree.getChild(0));
+                            return CgsuiteObject.NIL;
+
             case TRY:       return tryStatement(tree);
 
             default:        return expression(tree);
+        }
+    }
+    
+    // TODO There is some code duplication here with CgsuiteClass
+
+    private void declareImport(CgsuiteTree tree) throws CgsuiteException
+    {
+        String packageName = stringifyDotSequence(tree.getChild(0));
+        CgsuitePackage pkg = CgsuitePackage.forceLookupPackage(packageName);
+        
+        switch (tree.getChild(1).getType())
+        {
+            case AST:
+                
+                packageImports.add(pkg);
+                break;
+                
+            case IDENTIFIER:
+                
+                String className = tree.getChild(1).getText();
+                CgsuiteClass importClass = pkg.forceLookupClassInPackage(className);
+                if (classImports.containsKey(className))
+                    throw new InputException(tree.getToken(), "Duplicate import name: " + className);
+                classImports.put(className, importClass);
+                break;
+                
+            default:
+                
+                throw new MalformedParseTreeException(tree);
         }
     }
     
@@ -614,7 +657,7 @@ public class Domain
         return packageValue;
     }
 
-    private static String stringifyDotSequence(CgsuiteTree tree) throws CgsuiteException
+    public static String stringifyDotSequence(CgsuiteTree tree) throws CgsuiteException
     {
         switch (tree.getType())
         {

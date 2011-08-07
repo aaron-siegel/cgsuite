@@ -120,6 +120,9 @@ Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] :=
 
 Class name != filename          \ test.TestBadClassName(); \ !!Classname in file does not match filename: TestBadClassName.cgs \
 Extends qualified class name    \ test.TestExtendsSubclass(); \ ok \
+Imports package                 \ test.TestImports().testImportedPackage(); \ 1 \
+Imports class                   \ test.TestImports().testImportedClass(); \ 1/2 \
+Imports class - nonimported     \ test.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
 
 // Method calls
 

@@ -53,7 +53,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     }
 
     private CgsuitePackage enclosingPackage;
-    private List<CgsuitePackage> imports;
+    private List<CgsuitePackage> packageImports;
+    private Map<String,CgsuiteClass> classImports;
     private FileObject fo;
     private String name;
     private boolean loaded;
@@ -199,10 +200,16 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         return defaultJavaConstructor;
     }
 
-    public List<CgsuitePackage> getImports()
+    public List<CgsuitePackage> getPackageImports()
     {
         ensureLoaded();
-        return imports;
+        return packageImports;
+    }
+    
+    public Map<String,CgsuiteClass> getClassImports()
+    {
+        ensureLoaded();
+        return classImports;
     }
 
     public CgsuiteMethod lookupMethod(String name)
@@ -319,10 +326,11 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
         this.objectNamespace.clear();
         
-        this.imports = new ArrayList<CgsuitePackage>();
-        this.imports.addAll(CgsuitePackage.DEFAULT_IMPORT);
-        if (!CgsuitePackage.DEFAULT_IMPORT.contains(enclosingPackage))
-            this.imports.add(enclosingPackage);
+        this.packageImports = new ArrayList<CgsuitePackage>();
+        this.packageImports.addAll(CgsuitePackage.DEFAULT_PACKAGE_IMPORTS);
+        if (!CgsuitePackage.DEFAULT_PACKAGE_IMPORTS.contains(enclosingPackage))
+            this.packageImports.add(enclosingPackage);
+        this.classImports = new HashMap<String,CgsuiteClass>();
 
         this.parents = new HashSet<CgsuiteClass>();
         this.ancestors = new HashSet<CgsuiteClass>();
@@ -331,10 +339,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.varsInOrder = new ArrayList<Variable>();
         this.descendants = new HashSet<CgsuiteClass>();
 
-        classdef(parseTree.getChild(0));
-        
-        if (script != null)
+        if (parseTree.getChild(0).getType() == PREAMBLE)
         {
+            preamble(parseTree.getChild(0));
+            classdef(parseTree.getChild(1));
+        }
+        else
+        {
+            assert parseTree.getChild(0).getType() == STATEMENT_SEQUENCE : parseTree.toStringTree();
+            script = parseTree.getChild(0);
             loaded = true;
             return;
         }
@@ -395,7 +408,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             throw new InputException("The Java class for " + fo.getNameExt() + " is not a subclass of CgsuiteObject: " + javaClassname);
         }
 
-        declarations(parseTree.getChild(0));
+        declarations(parseTree.getChild(1));
         
         // Mark loaded
 
@@ -423,7 +436,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 CgsuiteObject initialValue = NIL;
 
                 if (var.getInitializer() != null)
-                    initialValue = new Domain(this, null, imports).expression(var.getInitializer());
+                    initialValue = new Domain(this, null, packageImports, classImports).expression(var.getInitializer());
                 
                 objectNamespace.put(var.getName(), initialValue);
 
@@ -433,6 +446,58 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     initialValue.objectNamespace.put("ordinal", new CgsuiteInteger(var.getDeclRank()));
                 }
             }
+        }
+    }
+    
+    private void preamble(CgsuiteTree tree) throws CgsuiteException
+    {
+        assert tree.getType() == PREAMBLE;
+        
+        for (CgsuiteTree child : tree.getChildren())
+        {
+            switch (child.getType())
+            {
+                case IMPORT:
+                    
+                    declareImport(child.getChild(0));
+                    break;
+                    
+                default:
+                    
+                    throw new MalformedParseTreeException(tree);
+            }
+        }
+        
+        // Protect the imports
+        
+        packageImports = Collections.unmodifiableList(packageImports);
+        classImports = Collections.unmodifiableMap(classImports);
+    }
+    
+    private void declareImport(CgsuiteTree tree) throws CgsuiteException
+    {
+        String packageName = Domain.stringifyDotSequence(tree.getChild(0));
+        CgsuitePackage pkg = CgsuitePackage.forceLookupPackage(packageName);
+        
+        switch (tree.getChild(1).getType())
+        {
+            case AST:
+                
+                packageImports.add(pkg);
+                break;
+                
+            case IDENTIFIER:
+                
+                String className = tree.getChild(1).getText();
+                CgsuiteClass importClass = pkg.forceLookupClassInPackage(className);
+                if (classImports.containsKey(className))
+                    throw new InputException(tree.getToken(), "Duplicate import name: " + className);
+                classImports.put(className, importClass);
+                break;
+                
+            default:
+                
+                throw new MalformedParseTreeException(tree);
         }
     }
 
@@ -472,13 +537,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 parents.add(CgsuitePackage.forceLookupClass("Enum"));
                 javaClassname = CgsuiteEnumValue.class.getName();
                 break;
-                
-            case STATEMENT_SEQUENCE:
-                
-                // This "class" is actually a script.
-                
-                script = tree;
-                break;
 
             default:
 
@@ -515,7 +573,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             case IDENTIFIER:
                 
-                return CgsuitePackage.forceLookupClass(tree.getText(), imports);
+                return CgsuitePackage.forceLookupClass(tree.getText(), packageImports, classImports);
                 
             case DOT:
                 
@@ -547,12 +605,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         switch (tree.getType())
         {
-            case CgsuiteParser.CLASS:
+            case CLASS:
 
                 classDeclarations(tree);
                 break;
 
-            case CgsuiteParser.ENUM:
+            case ENUM:
 
                 enumDeclarations(tree);
                 break;
@@ -829,7 +887,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             case IDENTIFIER:
 
                 parameterToken = tree.getToken();
-                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText(), imports) : CgsuiteClass.OBJECT_TYPE;
+                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText(), packageImports, classImports) : CgsuiteClass.OBJECT_TYPE;
                 isOptional = false;
                 defaultValue = null;
                 break;
@@ -838,7 +896,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 CgsuiteTree subt = tree.getChild(0);
                 parameterToken = subt.getToken();
-                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText(), imports) : CgsuiteClass.OBJECT_TYPE;
+                parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText(), packageImports, classImports) : CgsuiteClass.OBJECT_TYPE;
                 isOptional = true;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
                 break;

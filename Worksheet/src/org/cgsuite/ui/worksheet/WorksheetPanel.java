@@ -235,10 +235,10 @@ public class WorksheetPanel extends JPanel
     
     private synchronized void processCommand(InputPane source)
     {
-        source.deactivate();
         getBuffer().addCommand(source.getText());
         activeInputPanel.getInputPane().removeKeyListener(this);
         activeInputPanel.getInputPane().getDocument().removeDocumentListener(this);
+        activeInputPanel.getInputPane().deactivate();
         activeInputPanel = null;
         commandHistoryPrefix = null;
         processCommand(source.getText());

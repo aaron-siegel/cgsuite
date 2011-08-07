@@ -134,6 +134,7 @@ tokens
 	FUNCTION_CALL_ARGUMENT_LIST;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
+    PREAMBLE;
     PROCEDURE_PARAMETER_LIST;
 	STATEMENT_SEQUENCE;
     UNARY_AST;
@@ -239,11 +240,20 @@ tokens
 }
 
 compilationUnit
-	: (classDeclaration | enumDeclaration | block) EOF^
+	: cuDeclaration
+    | script
 	;
 
+cuDeclaration
+    : preamble (classDeclaration | enumDeclaration) EOF^
+    ;
+
+preamble
+    : (importStatement SEMI)* -> ^(PREAMBLE importStatement*)
+    ;
+
 importStatement
-    : IMPORT^ importClause SEMI!
+    : IMPORT^ importClause
     ;
 
 importClause

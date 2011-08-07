@@ -44,14 +44,15 @@ public class CgsuitePackage implements FileChangeListener
     public final static CgsuitePackage UI_PACKAGE   = new CgsuitePackage("cgsuite.ui");
     public final static CgsuitePackage UTIL_PACKAGE = new CgsuitePackage("cgsuite.util");
     public final static CgsuitePackage GAME_PACKAGE = new CgsuitePackage("game");
-    public final static List<CgsuitePackage> DEFAULT_IMPORT = Arrays.asList
+    public final static List<CgsuitePackage> DEFAULT_PACKAGE_IMPORTS = Arrays.asList
         (new CgsuitePackage[] { ROOT_PACKAGE, LANG_PACKAGE, UI_PACKAGE, UTIL_PACKAGE, GAME_PACKAGE });
+    public final static Map<String,CgsuiteClass> DEFAULT_CLASS_IMPORTS = Collections.emptyMap();
     
     private final static Map<String,CgsuitePackage> PACKAGE_LOOKUP = new HashMap<String,CgsuitePackage>();
 
     static
     {
-        for (CgsuitePackage pkg : DEFAULT_IMPORT)
+        for (CgsuitePackage pkg : DEFAULT_PACKAGE_IMPORTS)
         {
             PACKAGE_LOOKUP.put(pkg.getName(), pkg);
         }
@@ -185,28 +186,38 @@ public class CgsuitePackage implements FileChangeListener
             classes.put(node.getName(), new CgsuiteClass(node, this));
         }
     }
-
+    
+    public static CgsuitePackage forceLookupPackage(String name)
+    {
+        CgsuitePackage pkg = lookupPackage(name);
+        if (pkg == null)
+        {
+            throw new InputException("Package not found: " + name);
+        }
+        return pkg;
+    }
+    
     public static CgsuiteClass forceLookupClass(String name)
     {
-        return forceLookupClass(name, DEFAULT_IMPORT);
+        return forceLookupClass(name, DEFAULT_PACKAGE_IMPORTS, DEFAULT_CLASS_IMPORTS);
     }
     
     public static CgsuiteClass forceLookupClass(String name, CgsuitePackage pkg)
     {
-        return forceLookupClass(name, Collections.singletonList(pkg));
+        return forceLookupClass(name, Collections.singletonList(pkg), DEFAULT_CLASS_IMPORTS);
     }
 
-    public static CgsuiteClass forceLookupClass(String name, List<CgsuitePackage> packages)
+    public static CgsuiteClass forceLookupClass(String name, List<CgsuitePackage> packages, Map<String,CgsuiteClass> classImports)
     {
-        CgsuiteClass type = lookupClass(name, packages);
+        CgsuiteClass type = lookupClass(name, packages, classImports);
         if (type == null)
         {
-            throw new CgsuiteException("Class not found: " + name);
+            throw new InputException("Class not found: " + name);
         }
         return type;
     }
 
-    public static CgsuiteClass lookupClass(String name, List<CgsuitePackage> packages) throws CgsuiteException
+    public static CgsuiteClass lookupClass(String name, List<CgsuitePackage> packages, Map<String,CgsuiteClass> classImports) throws CgsuiteException
     {
         CgsuiteClass type = null;
 
@@ -216,9 +227,19 @@ public class CgsuitePackage implements FileChangeListener
             if (t != null)
             {
                 if (type != null)
-                    throw new CgsuiteException("Ambiguous class name: " + name);
+                    throw new InputException("Ambiguous class name: " + name);
                 type = t;
             }
+        }
+        
+        CgsuiteClass t = classImports.get(name);
+        
+        if (t != null)
+        {
+            if (type != null)
+                throw new InputException("Ambiguous class name: " + name);
+            
+            type = t;
         }
 
         return type;
