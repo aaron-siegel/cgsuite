@@ -59,6 +59,18 @@ public class CalculationCapsule implements Runnable
         this.domain = domain;
         this.text = text;
     }
+    
+    public RequestProcessor.Task createTask()
+    {
+        return REQUEST_PROCESSOR.create(this);
+    }
+    
+    public void runAndWait()
+    {
+        RequestProcessor.Task task = createTask();
+        REQUEST_PROCESSOR.submit(task);
+        task.waitFinished();
+    }
 
     @Override
     public void run()

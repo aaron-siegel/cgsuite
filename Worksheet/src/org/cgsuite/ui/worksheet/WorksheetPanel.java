@@ -110,9 +110,9 @@ public class WorksheetPanel extends JPanel
 
     public void initialize()
     {
-        // Instantiate a RationalNumber so that the interface will seem snappier
+        // Forcibly instantiate a CanonicalShortGame so that the interface will seem snappier
         // once the user starts using it
-        new RationalNumber(1, 2);
+        new CalculationCapsule("{1|1/2}").runAndWait();
         processCommand("startup();");
         this.requestFocusInWindow();
     }
@@ -247,7 +247,7 @@ public class WorksheetPanel extends JPanel
     private synchronized void processCommand(String command)
     {
         CalculationCapsule capsule = new CalculationCapsule(command);
-        RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
+        RequestProcessor.Task task = capsule.createTask();
         task.addTaskListener(this);
         task.schedule(0);
 
