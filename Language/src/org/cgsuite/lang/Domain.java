@@ -291,7 +291,7 @@ public class Domain
         Map<String,CgsuiteObject> argmap;
         CgsuiteSet lo, ro;
         LoopyGame.Node node;
-
+        
         switch (tree.token.getType())
         {
             case RARROW:
@@ -842,6 +842,7 @@ public class Domain
         
         String forId = null;
         CgsuiteObject collection = null;
+        CgsuiteTree whileCondition = null;
         CgsuiteTree whereCondition = null;
         CgsuiteTree body = null;
 
@@ -872,6 +873,11 @@ public class Domain
                 case IN:
                     
                     collection = expression(child.getChild(0));
+                    break;
+                    
+                case WHILE:
+                    
+                    whileCondition = child.getChild(0);
                     break;
                     
                 case WHERE:
@@ -908,6 +914,12 @@ public class Domain
         {
             CgsuiteObject obj = (CgsuiteObject) it.next();
             namespace.put(forId, obj.createCrosslink());
+            
+            if (whileCondition != null && !bool(expression(whileCondition), whileCondition))
+            {
+                break;
+            }
+            
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
                 retval = statementSequence(body);

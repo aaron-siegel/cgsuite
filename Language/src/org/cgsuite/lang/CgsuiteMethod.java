@@ -287,6 +287,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 // Create the object.
                 try
                 {
+                    // TODO Intelligent error message if there is no constructor
                     obj = declaringClass.getDefaultJavaConstructor().newInstance(declaringClass);
                 }
                 catch (Throwable exc)

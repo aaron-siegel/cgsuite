@@ -178,6 +178,9 @@ tokens
 
 @members
 {
+    // TODO Varargs
+    // TODO for-in-while
+
     private List<SyntaxError> errors = new ArrayList<SyntaxError>();
 
     @Override
@@ -650,7 +653,7 @@ doLoopAntecedent
     ;
 
 inLoopAntecedent
-    : forClause inClause whereClause?
+    : forClause inClause whileClause? whereClause?
     ;
 
 forClause
