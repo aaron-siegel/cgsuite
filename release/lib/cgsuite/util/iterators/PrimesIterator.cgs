@@ -38,6 +38,9 @@ mutable class PrimesIterator extends Iterator
             if k % p == 0 then 
                 return true;
             end
+            if p*p >= k then
+                break
+            end
         end
         return false;
     end
