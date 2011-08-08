@@ -32,6 +32,7 @@
             <file name="org-netbeans-modules-project-ui-groups-GroupsMenu.shadow_hidden"/>
         </folder>
         <folder name="Help">
+            <file name="master-help.xml_hidden"/>
             <file name="org-netbeans-modules-usersguide-master.xml_hidden"/>
         </folder>
         <file name="Refactoring_hidden"/>

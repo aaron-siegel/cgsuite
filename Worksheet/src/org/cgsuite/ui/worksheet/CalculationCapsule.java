@@ -140,13 +140,20 @@ public class CalculationCapsule implements Runnable
     {
         log.info("Beginning calculation.");
         long startTime = System.currentTimeMillis();
-        CgsuiteObject retval = domain.script(tree).simplify();
-        log.info("Calculation completed in " + (System.currentTimeMillis()-startTime) + " ms.");
+        
+        try
+        {
+            CgsuiteObject retval = domain.script(tree).simplify();
 
-        if (retval == Nil.NIL)
-            return new StyledTextOutput("");
-        else
-            return retval.toOutput();
+            if (retval == Nil.NIL)
+                return new StyledTextOutput("");
+            else
+                return retval.toOutput();
+        }
+        finally
+        {
+            log.info("Calculation completed in " + (System.currentTimeMillis()-startTime) + " ms.");
+        }
     }
     
     private static List<Output> getStackOutput(String input, InputException exc)
