@@ -1,0 +1,33 @@
+/*
+ * TestImports.cgs
+ *
+ * Created by asiegel on Aug 7, 2011
+ */
+
+import game.grid.*;
+import game.strip.TopplingDominoes;
+
+class TestImports
+
+    method TestImports()
+    end
+
+    method testImportedPackage()
+    
+        return Domineering(Grid(2,1)).CanonicalForm;
+    
+    end
+    
+    method testImportedClass()
+    
+        return TopplingDominoes("xox").CanonicalForm;
+        
+    end
+    
+    method testNonImportedClass()
+    
+        return ToadsAndFrogs("tt..ff").CanonicalForm;
+        
+    end
+
+end

@@ -135,6 +135,10 @@ Optional parameters - specified 2   \ meth.Method1(1, 2, param5 => 5, param6 => 
 Optional parameters - invalid       \ meth.Method1(1, 2, noGood => 5) \ !!Not a valid optional parameter: noGood (in call to method test.TestMethods.Method1) \
 Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \ !!Duplicate parameter: param5 (in call to method test.TestMethods.Method1) \
 
+// Return
+
+Return from loop               \ test.TestReturnFromLoop.LoopReturn(); \ 101 \
+
 // Immutability
 
 Immutable retrieval                     \ mut := test.TestImmutable(); mut.Retrieve(3); \ 3 \

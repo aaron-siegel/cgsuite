@@ -150,7 +150,9 @@ public class Domain
 
             case CONTINUE:  mode = Mode.CONTINUING; return null;
 
-            case RETURN:    returnValue = expression(tree.getChild(0)); mode = Mode.RETURNING; return null;
+            case RETURN:    returnValue = (tree.getChildCount() == 0 ? CgsuiteObject.NIL : expression(tree.getChild(0)));
+                            mode = Mode.RETURNING;
+                            return null;
 
             case CLEAR:     namespace.clear();  // XXX Clear classes?
                             return CgsuiteObject.NIL;
@@ -826,7 +828,12 @@ public class Domain
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
                 retval = statementSequence(body);
-                if (mode == Mode.BREAKING)
+                if (mode == Mode.RETURNING)
+                {
+                    retval = CgsuiteObject.NIL;
+                    break;
+                }
+                else if (mode == Mode.BREAKING)
                 {
                     mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
@@ -839,6 +846,7 @@ public class Domain
                 }
                 else
                 {
+                    assert mode == Mode.NORMAL;
                     if (target != null)
                         target.add(retval);
                 }
@@ -935,7 +943,12 @@ public class Domain
             {
                 retval = statementSequence(body);
 
-                if (mode == Mode.BREAKING)
+                if (mode == Mode.RETURNING)
+                {
+                    retval = CgsuiteObject.NIL;
+                    break;
+                }
+                else if (mode == Mode.BREAKING)
                 {
                     mode = Mode.NORMAL;
                     retval = CgsuiteObject.NIL;
@@ -948,6 +961,7 @@ public class Domain
                 }
                 else
                 {
+                    assert mode == Mode.NORMAL;
                     if (target != null)
                         target.add(retval);
                 }

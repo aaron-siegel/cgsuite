@@ -371,7 +371,7 @@ statementChain
 statement
 	: BREAK
 	| CONTINUE
-	| RETURN^ expression
+	| RETURN^ expression?
     | CLEAR
     | tryStatement
     | expression

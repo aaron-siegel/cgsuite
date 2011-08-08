@@ -31,6 +31,8 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
 import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
+// TODO Disallow "static constructor"
+
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
     private static final Logger log = Logger.getLogger(CgsuiteClass.class.getName());
