@@ -1378,13 +1378,13 @@ public class StyledTextOutput extends AbstractOutput
             affineTransform.scale(0.5, 0.5);
         }
         
-        if (symbol == null && !styles.contains(Style.FACE_MATH))
-        {
-            affineTransform.scale(0.75, 0.75);
-        }
-        else if (symbol == null && styles.contains(Style.SIZE_HUGE) || symbol == Symbol.INTEGRAL)
+        if (symbol == null && styles.contains(Style.SIZE_HUGE) || symbol == Symbol.INTEGRAL)
         {
             affineTransform.scale(1.4, 1.4);
+        }
+        else if (symbol == null && !styles.contains(Style.FACE_MATH) && !styles.contains(Style.SIZE_LARGE))
+        {
+            affineTransform.scale(0.75, 0.75);
         }
         
         if (symbol != null && symbol.getFont() == SYMBOL_FONT && symbol != Symbol.INTEGRAL)

@@ -1,5 +1,6 @@
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.output.Output;
 import org.antlr.runtime.Token;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
+import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
 import org.cgsuite.lang.parser.CgsuiteTree;
@@ -171,11 +173,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         return name.hashCode();
     }
-
+    
     @Override
-    public String toString()
+    public Output toOutput()
     {
-        return "Class[" + name + "]";
+        StyledTextOutput sto = new StyledTextOutput();
+        sto.appendText(StyledTextOutput.Mode.GRAPHICAL, "\u00AB");
+        sto.appendText(name);
+        sto.appendText(StyledTextOutput.Mode.GRAPHICAL, "\u00BB");
+        return sto;
     }
 
     @Override
