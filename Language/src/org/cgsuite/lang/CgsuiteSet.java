@@ -28,22 +28,7 @@ public class CgsuiteSet extends CgsuiteCollection
 
         objects = new HashSet<CgsuiteObject>(capacity);
     }
-
-    @Override
-    public String toString()
-    {
-        Iterator<CgsuiteObject> it = sortedIterator();
-        StringBuilder buf = new StringBuilder("{");
-        while (it.hasNext())
-        {
-            buf.append(it.next().toString());
-            if (it.hasNext())
-                buf.append(',');
-        }
-        buf.append("}");
-        return buf.toString();
-    }
-
+    
     @Override
     public StyledTextOutput toOutput()
     {

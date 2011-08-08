@@ -156,42 +156,10 @@ public class Domain
 
             case CLEAR:     namespace.clear();  // XXX Clear classes?
                             return CgsuiteObject.NIL;
-                
-            case IMPORT:    declareImport(tree.getChild(0));
-                            return CgsuiteObject.NIL;
 
             case TRY:       return tryStatement(tree);
 
             default:        return expression(tree);
-        }
-    }
-    
-    // TODO There is some code duplication here with CgsuiteClass
-
-    private void declareImport(CgsuiteTree tree) throws CgsuiteException
-    {
-        String packageName = stringifyDotSequence(tree.getChild(0));
-        CgsuitePackage pkg = CgsuitePackage.forceLookupPackage(packageName);
-        
-        switch (tree.getChild(1).getType())
-        {
-            case AST:
-                
-                packageImports.add(pkg);
-                break;
-                
-            case IDENTIFIER:
-                
-                String className = tree.getChild(1).getText();
-                CgsuiteClass importClass = pkg.forceLookupClassInPackage(className);
-                if (classImports.containsKey(className))
-                    throw new InputException(tree.getToken(), "Duplicate import name: " + className);
-                classImports.put(className, importClass);
-                break;
-                
-            default:
-                
-                throw new MalformedParseTreeException(tree);
         }
     }
     
@@ -927,18 +895,19 @@ public class Domain
             throw new InputException(tree.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
         }
 
-        if (!(collection instanceof CgsuiteCollection))
+        if (!(collection instanceof CgsuiteCollection) && !(collection instanceof CgsuiteIterator))
         {
-            throw new InputException(tree.getToken(), "Not a valid collection.");
+            throw new InputException(tree.getToken(), "Not a valid collection or iterator.");
         }
 
-        Iterator<CgsuiteObject> it = ((CgsuiteCollection) collection).iterator();
+        Iterator<?> it = ((Iterable<?>) collection).iterator();
 
         CgsuiteObject retval = CgsuiteObject.NIL;
 
         while (it.hasNext())
         {
-            namespace.put(forId, it.next().createCrosslink());
+            CgsuiteObject obj = (CgsuiteObject) it.next();
+            namespace.put(forId, obj.createCrosslink());
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
                 retval = statementSequence(body);
@@ -1457,12 +1426,12 @@ public class Domain
         }
     }
 
-    private boolean bool(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
+    public static boolean bool(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
     {
         return cgsuiteBool(x, tree).booleanValue();
     }
 
-    private CgsuiteBoolean cgsuiteBool(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
+    public static CgsuiteBoolean cgsuiteBool(CgsuiteObject x, CgsuiteTree tree) throws CgsuiteException
     {
         if (!(x instanceof CgsuiteBoolean))
         {

@@ -38,7 +38,7 @@
  * Created by malbert on 4/08/2011
  */
 
-class Iterator
+class Iterator : java "org.cgsuite.lang.CgsuiteIterator"
 
     method Iterator()
     end

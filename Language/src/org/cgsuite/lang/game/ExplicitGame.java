@@ -37,35 +37,11 @@ public class ExplicitGame extends Game
     }
 
     @Override
-    public String toString()
-    {
-        StringBuilder buf = new StringBuilder();
-        buf.append('{');
-        Iterator<CgsuiteObject> it = leftOptions.iterator();
-        while (it.hasNext())
-        {
-            buf.append(it.next().toString());
-            if (it.hasNext())
-                buf.append(',');
-        }
-        buf.append('|');
-        it = rightOptions.iterator();
-        while (it.hasNext())
-        {
-            buf.append(it.next().toString());
-            if (it.hasNext())
-                buf.append(',');
-        }
-        buf.append('}');
-        return buf.toString();
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
         output.appendMath("{");
-        for (Iterator<CgsuiteObject> it = getLeftOptions().iterator(); it.hasNext();)
+        for (Iterator<CgsuiteObject> it = getLeftOptions().sortedIterator(); it.hasNext();)
         {
             output.appendOutput(it.next().toOutput());
             if (it.hasNext())
@@ -74,7 +50,7 @@ public class ExplicitGame extends Game
             }
         }
         output.appendMath("|");
-        for (Iterator<CgsuiteObject> it = getRightOptions().iterator(); it.hasNext();)
+        for (Iterator<CgsuiteObject> it = getRightOptions().sortedIterator(); it.hasNext();)
         {
             output.appendOutput(it.next().toOutput());
             if (it.hasNext())

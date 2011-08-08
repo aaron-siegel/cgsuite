@@ -737,6 +737,6 @@ NEWLINE     : '\r'? '\n';
 
 WHITESPACE  : (' ' | '\t' | NEWLINE)+ { $channel = HIDDEN; };
 
-SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE { $channel = HIDDEN; };
+SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
 
 ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };

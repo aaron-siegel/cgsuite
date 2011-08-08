@@ -137,7 +137,7 @@ Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \
 
 // Return
 
-Return from loop               \ test.TestReturnFromLoop.LoopReturn(); \ 101 \
+Return from loop                \ test.TestReturnFromLoop.LoopReturn(); \ 101 \
 
 // Immutability
 
