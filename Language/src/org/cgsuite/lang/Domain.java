@@ -301,11 +301,7 @@ public class Domain
 
             case DO:
                 
-                return doLoop(tree);
-
-            case DO_IN:
-
-                return inLoop(tree);
+                return loop(tree);
 
             case IF:
             case ELSEIF:
@@ -667,11 +663,13 @@ public class Domain
         }
     }
 
-    private CgsuiteObject doLoop(CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteObject loop(CgsuiteTree tree) throws CgsuiteException
     {
         CgsuiteCollection target = null;
         
+        CgsuiteTree forTree = null;
         String forId = null;
+        Iterator<?> it = null;
         CgsuiteObject fromG = null;
         CgsuiteObject toG = null;
         CgsuiteObject byG = CgsuiteInteger.ONE;
@@ -701,6 +699,7 @@ public class Domain
                 
                 case FOR:
 
+                    forTree = child;
                     forId = child.getChild(0).getText();
                     if (contextMethod != null && contextMethod.getDeclaringClass().lookupVar(forId) != null)
                     {
@@ -708,6 +707,16 @@ public class Domain
                     }
                     break;
 
+                case IN:
+                    
+                    CgsuiteObject obj = expression(child.getChild(0));
+                    if (!(obj instanceof CgsuiteCollection) && !(obj instanceof CgsuiteIterator))
+                    {
+                        throw new InputException(child.getToken(), "Not a valid collection or iterator.");
+                    }
+                    it = ((Iterable<?>) obj).iterator();
+                    break;
+                
                 case FROM:
 
                     fromG = expression(child.getChild(0)).simplify();
@@ -745,53 +754,70 @@ public class Domain
                     throw new MalformedParseTreeException(tree);
             }
         }
+        
+        CgsuiteObject g = null;
 
-        if (forId != null && fromG != null)
+        if (it == null)
         {
-            put(forId, fromG);
-        }
-
-        CgsuiteObject g;
-
-        if (fromG != null)
-        {
-            g = fromG;
-        }
-        else if (forId != null)
-        {
-            // TODO Lookup validation; tree-> from tree
-            CgsuiteObject forObj = lookup(forId);
-            if (forObj == null)
+            if (fromG != null)
             {
-                throw new InputException(tree.getToken(), "Undefined variable in for loop with no \"from\" clause: " + forId);
+                g = fromG;
             }
-            g = canonicalGame(forObj, tree);
-        }
-        else
-        {
-            g = null;
+            else if (forId != null)
+            {
+                CgsuiteObject forObj = lookup(forId);
+                if (forObj == null)
+                {
+                    throw new InputException(forTree.getChild(0).getToken(), "Undefined variable in for loop with no \"from\" clause: " + forId);
+                }
+                g = canonicalGame(forObj, forTree.getChild(0));
+            }
         }
 
         CgsuiteObject retval = CgsuiteObject.NIL;
 
         while (true)
         {
-            if (g != null && toG != null)
+            if (g != null)
             {
-                boolean ok;
-                if (forward)
-                    ok = leq(g, toG, tree);
-                else
-                    ok = leq(toG, g, tree);
+                // Assign the forId.
+                
+                put(forId, g);
+                
+                // Check the "to" clause.
+                
+                if (toG != null)
+                {
+                    boolean ok;
+                    if (forward)
+                        ok = leq(g, toG, tree);
+                    else
+                        ok = leq(toG, g, tree);
 
-                if (!ok)
-                    break;
+                    if (!ok)
+                        break;
+                }
             }
+            
+            if (it != null)
+            {
+                // Advance the "in" clause iterator.
+            
+                if (!it.hasNext())
+                    break;
+                
+                CgsuiteObject obj = (CgsuiteObject) it.next();
+                put(forId, obj);
+            }
+            
+            // Test the while condition.
 
             if (whileCondition != null && !bool(expression(whileCondition), whileCondition))
             {
                 break;
             }
+            
+            // Test the where condition.
 
             if (whereCondition == null || bool(expression(whereCondition), whereCondition))
             {
@@ -819,14 +845,12 @@ public class Domain
                         target.add(retval);
                 }
             }
+            
+            // Step the dummy variable.
 
             if (g != null)
             {
                 g = add(g, byG);
-                if (forId != null)
-                {
-                    put(forId, g);
-                }
             }
         }
 
@@ -835,126 +859,6 @@ public class Domain
         else
             return target;
     }
-
-    private CgsuiteObject inLoop(CgsuiteTree tree) throws CgsuiteException
-    {
-        CgsuiteCollection target = null;
-        
-        String forId = null;
-        CgsuiteObject collection = null;
-        CgsuiteTree whileCondition = null;
-        CgsuiteTree whereCondition = null;
-        CgsuiteTree body = null;
-
-        for (CgsuiteTree child : tree.getChildren())
-        {
-            switch (child.getToken().getType())
-            {
-                case SETOF:
-                    
-                    target = new CgsuiteSet();
-                    break;
-                    
-                case LISTOF:
-                    
-                    target = new CgsuiteList();
-                    break;
-                    
-                case TABLEOF:
-                    
-                    target = new Table();
-                    break;
-                
-                case FOR:
-                    
-                    forId = child.getChild(0).getText();
-                    break;
-                    
-                case IN:
-                    
-                    collection = expression(child.getChild(0));
-                    break;
-                    
-                case WHILE:
-                    
-                    whileCondition = child.getChild(0);
-                    break;
-                    
-                case WHERE:
-                    
-                    whereCondition = child.getChild(0);
-                    break;
-                    
-                case STATEMENT_SEQUENCE:
-                    
-                    body = child;
-                    break;
-                    
-                default:
-                    
-                    throw new MalformedParseTreeException(tree);
-            }
-        }
-        
-        if (contextMethod != null && contextMethod.getDeclaringClass().lookupVar(forId) != null)
-        {
-            throw new InputException(tree.getChild(0).getToken(), "Loop variable name shadows member variable: " + forId);
-        }
-
-        if (!(collection instanceof CgsuiteCollection) && !(collection instanceof CgsuiteIterator))
-        {
-            throw new InputException(tree.getToken(), "Not a valid collection or iterator.");
-        }
-
-        Iterator<?> it = ((Iterable<?>) collection).iterator();
-
-        CgsuiteObject retval = CgsuiteObject.NIL;
-
-        while (it.hasNext())
-        {
-            CgsuiteObject obj = (CgsuiteObject) it.next();
-            namespace.put(forId, obj.createCrosslink());
-            
-            if (whileCondition != null && !bool(expression(whileCondition), whileCondition))
-            {
-                break;
-            }
-            
-            if (whereCondition == null || bool(expression(whereCondition), whereCondition))
-            {
-                retval = statementSequence(body);
-
-                if (mode == Mode.RETURNING)
-                {
-                    retval = CgsuiteObject.NIL;
-                    break;
-                }
-                else if (mode == Mode.BREAKING)
-                {
-                    mode = Mode.NORMAL;
-                    retval = CgsuiteObject.NIL;
-                    break;
-                }
-                else if (mode == Mode.CONTINUING)
-                {
-                    mode = Mode.NORMAL;
-                    retval = CgsuiteObject.NIL;
-                }
-                else
-                {
-                    assert mode == Mode.NORMAL;
-                    if (target != null)
-                        target.add(retval);
-                }
-            }
-        }
-
-        if (target == null)
-            return retval;
-        else
-            return target;
-    }
-
 
     private CgsuiteObject binopExpression(CgsuiteTree tree) throws CgsuiteException
     {

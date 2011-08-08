@@ -121,7 +121,6 @@ tokens
 	ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
 	ASN_ANTECEDENT;
-    DO_IN;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
     EXP;
@@ -620,7 +619,7 @@ explicitList
 	;
 
 of
-    : ofToken LPAREN expression ( inLoopAntecedent RPAREN -> ^(DO_IN[$ofToken.tree.getToken()] ofToken inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+    : ofToken LPAREN expression ( inLoopAntecedent RPAREN -> ^(DO[$ofToken.tree.getToken()] ofToken inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
                                 | doLoopAntecedent RPAREN
                                     // TODO These errors aren't being generated quite right
                                     { if ($doLoopAntecedent.tree == null)
@@ -644,7 +643,7 @@ range
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
 	| doLoopAntecedent DO^ statementSequence END!
-	| inLoopAntecedent DO statementSequence END -> ^(DO_IN[$DO] inLoopAntecedent statementSequence)
+	| inLoopAntecedent DO^ statementSequence END!
     | BEGIN! statementSequence END!
 	;
 
