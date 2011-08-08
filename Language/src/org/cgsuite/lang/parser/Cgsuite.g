@@ -104,7 +104,6 @@ tokens
 	POS         = 'pos';
 	PROPERTY	= 'property';
 	RETURN		= 'return';
-    SCRIPT      = 'script';
 	SET         = 'set';
     SETOF       = 'setof';
     STATIC      = 'static';
