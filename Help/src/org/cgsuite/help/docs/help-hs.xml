@@ -7,7 +7,7 @@ and open the template in the editor.
 <helpset version="2.0">
     <title>CGSuite Help</title>
     <maps>
-        <homeID>org.cgsuite.help.about</homeID>
+        <homeID>Welcome to CGSuite</homeID>
         <mapref location="help-map.xml"/>
     </maps>
     <view mergetype="javax.help.AppendMerge">

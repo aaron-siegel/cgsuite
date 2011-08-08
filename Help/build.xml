@@ -5,4 +5,13 @@
 <project name="org.cgsuite.help" default="netbeans" basedir=".">
     <description>Builds, tests, and runs the project org.cgsuite.help.</description>
     <import file="nbproject/build-impl.xml"/>
+    
+    <target name="compile" depends="projectized-common.compile,-post-compile"/>
+
+    <target name="-post-compile">
+        <java classname="org.cgsuite.help.HelpBuilder" classpath="${build.classes.dir}">
+            <arg value="${src.dir}/org/cgsuite/help/docs/"/>
+            <arg value="${build.classes.dir}/org/cgsuite/help/docs/"/>
+        </java>
+    </target>
 </project>

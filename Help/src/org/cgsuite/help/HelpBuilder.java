@@ -34,14 +34,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class HelpBuilder
 {
     private final static String[] CONVERT_PATHS =
     {
+        "",
+        "tutorials",
         "tutorials/using-cgsuite"
     };
     
@@ -56,6 +55,7 @@ public class HelpBuilder
     
     private File srcRoot;
     private File targetRoot;
+    private List<HelpInfo> info;
     
     public static void main(String[] args) throws Exception
     {
@@ -66,6 +66,7 @@ public class HelpBuilder
     {
         this.srcRoot = srcRoot;
         this.targetRoot = targetRoot;
+        this.info = new ArrayList<HelpInfo>();
     }
     
     private void run() throws Exception
@@ -78,6 +79,8 @@ public class HelpBuilder
         {
             convertDir(relPath);
         }
+        
+        writeMasterToc();
     }
     
     private void convertDir(String relPath) throws Exception
@@ -91,11 +94,11 @@ public class HelpBuilder
         
         for (File file : srcDir.listFiles(CGSH_FILTER))
         {
-            convert(file, targetDir);
+            convert(file, targetDir, relPath);
         }
     }
     
-    private void convert(File file, File targetDir) throws Exception
+    private void convert(File file, File targetDir, String relPath) throws Exception
     {
         File targetFile = new File(targetDir, file.getName().replace(".cgsh", ".html"));
         
@@ -143,6 +146,16 @@ public class HelpBuilder
         out.println(markedUp);
         out.println("</body></html>");
         out.close();
+        
+        if ("".equals(relPath))
+        {
+            info.add(new HelpInfo(targetFile.getName(), title, title));
+        }
+        else
+        {
+            String targetRelPath = relPath + "/" + targetFile.getName();
+            info.add(new HelpInfo(targetRelPath, relPath.replaceAll("/", ".") + "." + title, title));
+        }
     }
     
     private static String toAnchor(String str)
@@ -178,6 +191,7 @@ public class HelpBuilder
         markup = markup.replaceAll("\\\\\\>", "&gt;");
         markup = markup.replaceAll("\\\\\\<", "&lt;");
         markup = markup.replaceAll("\\\\\\^", "&renderascaret;");
+        markup = markup.replaceAll("\\\\\"", "&renderasquote;");
         markup = markup.replaceAll("\\\\u", "&uarr;");
         markup = markup.replaceAll("\\\\d", "&darr;");
         markup = markup.replaceAll("\\\"", "&quot;");
@@ -189,6 +203,7 @@ public class HelpBuilder
         markup = markup.replaceAll("##TOC##", makeToc(tocItems));
         markup = markup.replaceAll("\n\n", "\n\n<p>");
         markup = markup.replaceAll("&renderascaret;", "^");
+        markup = markup.replaceAll("&renderasquote;", "\"");
         return markup;
     }
     
@@ -240,6 +255,59 @@ public class HelpBuilder
         matcher.appendTail(buf);
         return buf.toString();
     }
+    
+    private void writeMasterToc() throws Exception
+    {
+        /*
+        File tocFile = new File(targetRoot, "help-toc.xml");
+        
+        System.out.println("Writing ToC: " + tocFile);
+        
+        PrintStream out = new PrintStream(new FileOutputStream(tocFile));
+        out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        out.println("<!DOCTYPE toc PUBLIC \"-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN\" \"http://java.sun.com/products/javahelp/toc_2_0.dtd\">");
+        out.println("<toc version=\"2.0\">");
+        
+        for (HelpInfo hi : info)
+        {
+            out.println("<tocitem text=\"" + hi.text + "\" target=\"" + hi.target + "\"/>");
+        }
+        
+        out.println("</toc>");
+        out.close();
+        */
+        File mapFile = new File(targetRoot, "help-map.xml");
+        
+        System.out.println("Writing Map: " + mapFile);
+        
+        PrintStream out = new PrintStream(new FileOutputStream(mapFile));
+        out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        out.println("<!DOCTYPE map PUBLIC \"-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN\" \"http://java.sun.com/products/javahelp/map_2_0.dtd\">");
+        out.println("<map version=\"2.0\">");
+        
+        for (HelpInfo hi : info)
+        {
+            out.println("<mapID target=\"" + hi.target + "\" url=\"" + hi.relPath + "\"/>");
+        }
+        
+        out.println("</map>");
+        out.close();
+    }
+    
+    private static class HelpInfo
+    {
+        String relPath;
+        String target;
+        String text;
+
+        HelpInfo(String relPath, String target, String text)
+        {
+            this.relPath = relPath;
+            this.target = target;
+            this.text = text;
+        }
+    }
+    
     /*
     public static void generateHelpPages(File inputXml, File outputDir) throws javax.xml.parsers.ParserConfigurationException, org.xml.sax.SAXException, java.io.IOException
     {
