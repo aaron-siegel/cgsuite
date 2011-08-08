@@ -18,5 +18,16 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
     end
 
     method MapString(String charMap) : java "toString(java.lang.String)";
+    
+    method Contains(Integer value)
+        for r from 1 to RowCount do
+            for c from 1 to ColumnCount do
+                if this[r,c] == value then
+                    return true;
+                end
+            end
+        end
+        return false;
+    end
 
 end
