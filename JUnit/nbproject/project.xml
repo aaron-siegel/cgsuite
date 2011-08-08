@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.apisupport.project</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
+            <code-name-base>org.junit</code-name-base>
+            <suite-component/>
+            <module-dependencies/>
+            <public-packages>
+                <package>junit.extensions</package>
+                <package>junit.framework</package>
+                <package>junit.runner</package>
+                <package>junit.textui</package>
+                <package>org.hamcrest</package>
+                <package>org.hamcrest.core</package>
+                <package>org.hamcrest.internal</package>
+                <package>org.junit</package>
+                <package>org.junit.experimental</package>
+                <package>org.junit.experimental.categories</package>
+                <package>org.junit.experimental.max</package>
+                <package>org.junit.experimental.results</package>
+                <package>org.junit.experimental.runners</package>
+                <package>org.junit.experimental.theories</package>
+                <package>org.junit.experimental.theories.internal</package>
+                <package>org.junit.experimental.theories.suppliers</package>
+                <package>org.junit.internal</package>
+                <package>org.junit.internal.builders</package>
+                <package>org.junit.internal.matchers</package>
+                <package>org.junit.internal.requests</package>
+                <package>org.junit.internal.runners</package>
+                <package>org.junit.internal.runners.model</package>
+                <package>org.junit.internal.runners.statements</package>
+                <package>org.junit.matchers</package>
+                <package>org.junit.rules</package>
+                <package>org.junit.runner</package>
+                <package>org.junit.runner.manipulation</package>
+                <package>org.junit.runner.notification</package>
+                <package>org.junit.runners</package>
+                <package>org.junit.runners.model</package>
+            </public-packages>
+            <class-path-extension>
+                <runtime-relative-path>ext/junit-4.8.2.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/junit-4.8.2.jar</binary-origin>
+            </class-path-extension>
+        </data>
+    </configuration>
+</project>

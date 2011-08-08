@@ -95,7 +95,15 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <test-dependencies/>
+            <test-dependencies>
+                <test-type>
+                    <name>unit</name>
+                    <test-dependency>
+                        <code-name-base>org.junit</code-name-base>
+                        <compile-dependency/>
+                    </test-dependency>
+                </test-type>
+            </test-dependencies>
             <public-packages>
                 <package>org.cgsuite.lang</package>
                 <package>org.cgsuite.lang.explorer</package>
