@@ -14,6 +14,7 @@ import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
 import org.cgsuite.lang.game.Grid;
 import org.cgsuite.lang.game.LoopyGame;
+import org.cgsuite.lang.game.Nimber;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
@@ -422,7 +423,7 @@ public class Domain
                     n = 1;
                 else
                     n = naturalNumber(expression(tree.getChild(0)), tree, "Argument to *");
-                return new CanonicalShortGame(RationalNumber.ZERO, 0, n);
+                return new Nimber(n);
 
             case CARET:
             case MULTI_CARET:
@@ -930,6 +931,11 @@ public class Domain
 
     private CgsuiteObject add(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
     {
+        if (x instanceof Nimber)
+            x = new CanonicalShortGame((Nimber) x);
+        if (y instanceof Nimber)
+            y = new CanonicalShortGame((Nimber) y);
+        
         if (x instanceof CgsuiteInteger)
         {
             if (y instanceof CgsuiteInteger)
@@ -963,6 +969,11 @@ public class Domain
 
     private CgsuiteObject subtract(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
     {
+        if (x instanceof Nimber)
+            x = new CanonicalShortGame((Nimber) x);
+        if (y instanceof Nimber)
+            y = new CanonicalShortGame((Nimber) y);
+
         if (x instanceof CgsuiteInteger)
         {
             if (y instanceof CgsuiteInteger)
@@ -1195,7 +1206,9 @@ public class Domain
                         curNode.addLeftEdge(new CanonicalShortGame((CgsuiteInteger) obj));
                     else if (obj instanceof RationalNumber)
                         curNode.addLeftEdge(new CanonicalShortGame((RationalNumber) obj));
-                    else if(obj instanceof CanonicalShortGame)
+                    else if (obj instanceof Nimber)
+                        curNode.addLeftEdge(new CanonicalShortGame((Nimber) obj));
+                    else if (obj instanceof CanonicalShortGame)
                         curNode.addLeftEdge((CanonicalShortGame) obj);
                     else if (obj instanceof LoopyGame)
                         curNode.addLeftEdge((LoopyGame) obj);
@@ -1238,6 +1251,8 @@ public class Domain
                         curNode.addRightEdge(new CanonicalShortGame((CgsuiteInteger) obj));
                     else if (obj instanceof RationalNumber)
                         curNode.addRightEdge(new CanonicalShortGame((RationalNumber) obj));
+                    else if (obj instanceof Nimber)
+                        curNode.addRightEdge(new CanonicalShortGame((Nimber) obj));
                     else if (obj instanceof CanonicalShortGame)
                         curNode.addRightEdge((CanonicalShortGame) obj);
                     else if (obj instanceof LoopyGame)

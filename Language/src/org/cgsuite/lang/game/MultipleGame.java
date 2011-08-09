@@ -9,7 +9,6 @@ import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.CgsuiteException;
 import org.cgsuite.lang.CgsuiteInteger;
-import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
@@ -23,13 +22,11 @@ public class MultipleGame extends Game
     private final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("MultipleGame");
 
     RationalNumber multiplier;
-    CgsuiteObject g;
+    Game g;
 
-    public MultipleGame(RationalNumber multiplier, CgsuiteObject g)
+    public MultipleGame(RationalNumber multiplier, Game g)
     {
         super(TYPE);
-
-        // TODO Some validation
 
         this.multiplier = multiplier;
         this.g = g;
@@ -74,7 +71,7 @@ public class MultipleGame extends Game
     @Override
     public Game simplify() throws CgsuiteException
     {
-        CgsuiteObject simp = g.simplify();
+        Game simp = g.simplify();
 
         if (simp instanceof CgsuiteInteger)
         {
@@ -83,6 +80,10 @@ public class MultipleGame extends Game
         else if (simp instanceof RationalNumber)
         {
             return multiplier.multiply((RationalNumber) simp);
+        }
+        else if (simp instanceof Nimber)
+        {
+            return new CanonicalShortGame(multiplier).nortonMultiply(new CanonicalShortGame((Nimber) simp));
         }
         else if (simp instanceof CanonicalShortGame)
         {

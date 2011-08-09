@@ -80,6 +80,8 @@ public class ExplicitGame extends Game
                 canonicalLeftOptions.add(new CanonicalShortGame((CgsuiteInteger) simp));
             else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
                 canonicalLeftOptions.add(new CanonicalShortGame((RationalNumber) simp));
+            else if (simp instanceof Nimber)
+                canonicalLeftOptions.add(new CanonicalShortGame((Nimber) simp));
             else if (simp instanceof CanonicalShortGame)
                 canonicalLeftOptions.add((CanonicalShortGame) simp);
             else
@@ -94,6 +96,8 @@ public class ExplicitGame extends Game
                 canonicalRightOptions.add(new CanonicalShortGame((CgsuiteInteger) simp));
             else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
                 canonicalRightOptions.add(new CanonicalShortGame((RationalNumber) simp));
+            else if (simp instanceof Nimber)
+                canonicalRightOptions.add(new CanonicalShortGame((Nimber) simp));
             else if (simp instanceof CanonicalShortGame)
                 canonicalRightOptions.add((CanonicalShortGame) simp);
             else
