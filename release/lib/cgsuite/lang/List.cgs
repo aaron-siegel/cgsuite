@@ -1,14 +1,18 @@
 mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
 
-    method op[]  (key)     : java "get(int)";
+            method op[]  (key)     : java "get(int)";
     mutable method op[]:=(val,key) : java "set(org.cgsuite.lang.CgsuiteObject,int)";
     
     mutable method Add(obj) : java "add";
-    method Contains(obj) : java "contains";
+    mutable method Clear() : java "clear";
+            method Contains(obj) : java "contains";
+    mutable method InsertAt(Integer index, value) : java "insertAt(int,org.cgsuite.lang.CgsuiteObject)";
+            method PeriodicTable(Integer period) : java "periodicTable(int)";
+    mutable method Remove(obj) : java "remove";
+    mutable method RemoveAt(Integer index) : java "removeAt(int)";
+            method SubList(Integer i1, Integer i2) : java "subList(int,int)";
     mutable method Sort(Procedure comparator) : java "sort";
-    method PeriodicTable(Integer period) : java "periodicTable(int)";
 
     property Length.get : java "size";
-    override property ToString.get : java "toString";
 
 end
