@@ -177,6 +177,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     @Override
     public Output toOutput()
     {
+        ensureLoaded();
         StyledTextOutput sto = new StyledTextOutput();
         sto.appendText(StyledTextOutput.Mode.GRAPHICAL, "\u00AB");
         sto.appendText(name);
