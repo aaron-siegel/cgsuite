@@ -54,6 +54,7 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     override property Temperature.get : java "temperature";
     override property Thermograph.get : java "thermograph";
              property Tiny.get : java "tiny";
+    override property ToString.get : java "toString";
 
     property IsReduced.get
     

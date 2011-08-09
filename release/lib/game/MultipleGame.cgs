@@ -1,3 +1,5 @@
 class MultipleGame extends Game : java "org.cgsuite.lang.game.MultipleGame"
 
+    override property ToString.get : java "toString";
+
 end

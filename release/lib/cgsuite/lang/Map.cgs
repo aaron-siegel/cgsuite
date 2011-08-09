@@ -5,5 +5,6 @@ mutable class Map : java "org.cgsuite.lang.CgsuiteMap"
     property Size.get : java "size";
     property Keys.get : java "keys";
     mutable method Clear() : java "clear";
+    override property ToString.get : java "toString";
 
 end

@@ -9,5 +9,9 @@ class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
     property CanonicalForm.get
         return -Underlying.CanonicalForm;
     end
+    
+    override property ToString.get
+        return "-(" + Underlying.ToString + ")";
+    end
 
 end

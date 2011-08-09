@@ -21,5 +21,11 @@ class Heap extends ImpartialGame
         return rules.NimValue(n);
         
     end
+    
+    override property ToString.get
+    
+        return "Heap(" + rules.ToString + "," + n.ToString + ")";
+    
+    end
 
 end

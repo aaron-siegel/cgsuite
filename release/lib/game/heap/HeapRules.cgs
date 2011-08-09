@@ -39,5 +39,7 @@ class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
     method HeapOptions(Integer heapSize) : java "allOptions(int)";
     
     method CheckPeriod(Integer toHeap) : java "checkPeriodicity(int)";
+    
+    override property ToString.get : java "toString";
 
 end

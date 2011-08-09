@@ -4,5 +4,8 @@ class String : java "org.cgsuite.lang.CgsuiteString"
     
     property Length.get : java "length";
     
+    override property ToString.get
+        return this;
+    end
 
 end

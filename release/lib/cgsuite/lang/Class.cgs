@@ -11,8 +11,6 @@ class Class : java "org.cgsuite.lang.CgsuiteClass"
         return this.memory;
     end
 
-    override property ToString.get
-        return "<Class " + this.Name + ">";
-    end
+    override property ToString.get : java "toString";
 
 end

@@ -6,4 +6,6 @@
 
 class Nimber extends CanonicalShortGame : java "org.cgsuite.lang.game.Nimber"
 
+    override property ToString.get : java "toString";
+
 end

@@ -1,3 +1,5 @@
 class Boolean : java "org.cgsuite.lang.CgsuiteBoolean"
 
+    override property ToString.get : java "toString";
+
 end

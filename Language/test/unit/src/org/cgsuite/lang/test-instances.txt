@@ -200,6 +200,7 @@ List.PeriodicTable                      \ list.PeriodicTable(3) \
 1 | 2 | 4
 --+---+--
 5 | 7 |    \
+List.ToString                           \ list.ToString \ "[1,2,4,5,7]" \
 List - lookup negative                  \ list[-1] \ !!Invalid list index: -1 \
 List - lookup large                     \ list[10] \ nil \
 List - assign negative                  \ list[0] := 5 \ !!Invalid list index: 0 \
