@@ -5,6 +5,9 @@
 
 package org.cgsuite.lang;
 
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
+
 /**
  *
  * @author asiegel
@@ -17,9 +20,9 @@ public class CgsuiteEnumValue extends CgsuiteObject
     }
 
     @Override
-    public String toString()
+    public Output toOutput()
     {
-        return ((CgsuiteString) resolve("Literal")).toJavaString();
+        return new StyledTextOutput(((CgsuiteString) resolve("Literal")).toJavaString());
     }
     
     public int getOrdinal()

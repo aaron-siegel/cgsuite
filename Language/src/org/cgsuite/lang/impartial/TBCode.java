@@ -32,6 +32,7 @@ package org.cgsuite.lang.impartial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 /*
  * <p>
@@ -614,9 +615,10 @@ public class TBCode extends HeapRules
     ////////////////////////////////////////////////////////////////
     // toString()
     
-    public String toString()
+    @Override
+    public StyledTextOutput toOutput()
     {
-        return appendToStringBuilder(new StringBuilder()).toString();
+        return new StyledTextOutput(appendToStringBuilder(new StringBuilder()).toString());
     }
     
     public StringBuilder appendToStringBuilder(StringBuilder sb)

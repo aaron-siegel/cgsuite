@@ -7,6 +7,8 @@ package org.cgsuite.lang;
 
 import org.cgsuite.lang.parser.CgsuiteTree;
 import java.util.EnumSet;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
  *
@@ -31,9 +33,9 @@ public class Variable extends CgsuiteObject
     }
 
     @Override
-    public String toString()
+    public Output toOutput()
     {
-        return "<" + Modifier.toString(modifiers) + "var " + name + ">";
+        return new StyledTextOutput("<" + Modifier.toString(modifiers) + "var " + name + ">");
     }
     
     public CgsuiteClass getDeclaringClass()

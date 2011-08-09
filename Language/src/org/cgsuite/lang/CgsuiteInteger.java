@@ -69,16 +69,10 @@ public class CgsuiteInteger extends Game
     }
 
     @Override
-    public String toString()
-    {
-        return String.valueOf(value);
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
-        output.appendMath(toString());
+        output.appendMath(String.valueOf(value));
         return output;
     }
 

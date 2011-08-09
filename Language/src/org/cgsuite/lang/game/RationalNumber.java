@@ -46,26 +46,6 @@ public class RationalNumber extends Game
     }
 
     @Override
-    public String toString()
-    {
-        if (isInfinite())
-        {
-            if (compareTo(ZERO) < 0)
-                return "-inf";
-            else
-                return "inf";
-        }
-        else if(isInteger())
-        {
-            return numerator.toString();
-        }
-        else
-        {
-            return numerator + "/" + denominator;
-        }
-    }
-
-    @Override
     protected int compareLike(CgsuiteObject other)
     {
         RationalNumber r = (RationalNumber) other;

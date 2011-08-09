@@ -55,20 +55,6 @@ public class SumGame extends Game
     }
 
     @Override
-    public String toString()
-    {
-        StringBuilder buf = new StringBuilder();
-        Iterator<CgsuiteObject> it = components.iterator();
-        while (it.hasNext())
-        {
-            buf.append(it.next().toString());
-            if (it.hasNext())
-                buf.append(" + ");
-        }
-        return buf.toString();
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();

@@ -83,15 +83,6 @@ public class APInfo extends CgsuiteObject
 		return saltus;
 	}
 	
-    /**
-     * String representation, for example: "Preperiod = 23, Period = 57, Saltus = 12".
-     * @return A String representing this APInfo object.
-     */
-    @Override
-	public String toString() {
-		return "Preperiod = " + preperiod + ", Period = " + period + ", Saltus = " + saltus;
-	}
-
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {

@@ -392,12 +392,6 @@ public class LoopyGame extends Game
     }
     
     @Override
-    public String toString()
-    {
-        return graph.toString();
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();

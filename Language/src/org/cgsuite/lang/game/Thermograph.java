@@ -115,12 +115,6 @@ public class Thermograph extends CgsuiteObject
         return leftWall.hashCode() ^ rightWall.hashCode();
     }
 
-    @Override
-    public String toString()
-    {
-        return "Thermograph(" + getMast() + "," + leftWall + "," + rightWall + ")";
-    }
-
     /**
      * Gets the left wall of this thermograph.
      *

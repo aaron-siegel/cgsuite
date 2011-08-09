@@ -25,30 +25,6 @@ public class CgsuiteMap extends CgsuiteObject
     }
 
     @Override
-    public String toString()
-    {
-        if (map.isEmpty())
-            return "{=>}";
-
-        List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(map.size());
-        list.addAll(map.keySet());
-        Collections.sort(list);
-        StringBuilder buf = new StringBuilder("{");
-        Iterator<CgsuiteObject> it = list.iterator();
-        while (it.hasNext())
-        {
-            CgsuiteObject key = it.next();
-            buf.append(key);
-            buf.append("=>");
-            buf.append(map.get(key));
-            if (it.hasNext())
-                buf.append(',');
-        }
-        buf.append("}");
-        return buf.toString();
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();

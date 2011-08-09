@@ -66,16 +66,10 @@ public class CgsuiteBoolean extends CgsuiteObject
     }
 
     @Override
-    public String toString()
-    {
-        return String.valueOf(booleanValue);
-    }
-
-    @Override
     public Output toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
-        output.appendText(toString());
+        output.appendText(String.valueOf(booleanValue));
         return output;
     }
 

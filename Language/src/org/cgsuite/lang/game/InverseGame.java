@@ -66,12 +66,6 @@ public class InverseGame extends Game
     }
 
     @Override
-    public String toString()
-    {
-        return "-(" + g.toString() + ")";
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();

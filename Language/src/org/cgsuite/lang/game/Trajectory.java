@@ -36,7 +36,6 @@ import java.util.List;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
-import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
@@ -207,19 +206,6 @@ public class Trajectory extends CgsuiteObject
         return hc;
     }
 
-    @Override
-    public String toString()
-    {
-        String s = xIntercepts[0].toString();
-
-        for (int i = 0; i < criticalPoints.length; i++)
-        {
-            s += " (" + criticalPoints[i] + " : " + slopes[i] + "x + " + xIntercepts[i] + ")";
-        }
-
-        return s + " (" + slopes[criticalPoints.length] + "x + " + xIntercepts[criticalPoints.length] + ")";
-    }
-    
     @Override
     public StyledTextOutput toOutput()
     {

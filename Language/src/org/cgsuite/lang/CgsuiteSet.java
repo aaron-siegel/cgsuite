@@ -98,6 +98,7 @@ public class CgsuiteSet extends CgsuiteCollection
         objects.clear();
     }
     
+    @Override
     public boolean contains(CgsuiteObject obj)
     {
         return objects.contains(obj);
@@ -109,6 +110,7 @@ public class CgsuiteSet extends CgsuiteCollection
         return objects.size();
     }
 
+    @Override
     public boolean isEmpty()
     {
         return objects.isEmpty();

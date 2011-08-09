@@ -344,12 +344,6 @@ public class Grid extends CgsuiteObject implements Serializable
         return (hc1 + hc3) * (hc2 + hc4);
     }
 
-    @Override
-    public String toString()
-    {
-        return toString(null);
-    }
-    
     /**
      * Converts this <code>Grid</code> to a <code>String</code> using the
      * specified character map.  This will map grid entries to characters

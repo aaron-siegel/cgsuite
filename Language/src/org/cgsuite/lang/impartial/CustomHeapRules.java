@@ -13,6 +13,8 @@ import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteProcedure;
 import org.cgsuite.lang.InputException;
+import org.cgsuite.lang.output.Output;
+import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
  *
@@ -55,9 +57,9 @@ public class CustomHeapRules extends HeapRules
     }
 
     @Override
-    public String toString()
+    public StyledTextOutput toOutput()
     {
-        return "<Custom HeapRules>";
+        return new StyledTextOutput("<Custom HeapRules>");
     }
 
     @Override
