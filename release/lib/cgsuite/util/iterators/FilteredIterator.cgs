@@ -21,32 +21,39 @@ mutable class FilteredIterator extends Iterator
 
     var iterator;
     var filter;
-    var nextValue;
+    var nextCandidate;
+    var flag;
     
     method FilteredIterator(Iterator iterator, Procedure filter)
+        fireIterator();
     end
     
     override mutable property HasNext.get
-        if not iterator.HasNext then
+        if not flag then
             return false;
         end
-        nextValue := iterator.Next;
-        if filter(nextValue) then
+        if filter(nextCandidate) then
             return true;
         end
-        return this.HasNext
+        fireIterator();
+        return this.HasNext;
      end
      
      override mutable property Next.get
-        return nextValue;
+        result := nextCandidate;
+        fireIterator();
+        return result;
      end
      
      override mutable method Reset() 
         iterator.Reset();
-        if iterator.HasNext then
-            currentValue := iterator.Next;
-        else
-            currentValue := nil;
+        fireIterator();
+     end
+     
+     mutable method fireIterator()
+        flag := iterator.HasNext;
+        if flag then
+            nextCandidate := iterator.Next;
         end
      end
      
