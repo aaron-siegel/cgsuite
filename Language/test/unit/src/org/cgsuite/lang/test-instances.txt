@@ -179,6 +179,37 @@ Member var shadows superclass var       \ test.TestBadShadow; \ !!Variable shado
 Var assigned by constructor delegate 1  \ shadow := test.TestConstructorDelegate(); shadow.Value \ 5 \
 Var assigned by constructor delegate 2  \ shadow := test.TestConstructorDelegate(); shadow.ThisValue \ 5 \
 
+// cgsuite.lang.List
+
+List - create                           \ list := ["znear","el","diablo"]; \ ["znear","el","diablo"] \
+List - lookup                           \ list[3] \ "diablo" \
+list - assign                           \ list[2] := "the" \ "the" \
+List - check result                     \ list \ ["znear","the","diablo"] \
+List.Add                                \ list.Add("foo"); \ nil \
+List.Remove                             \ list.Remove("the"); \ true \
+List.InsertAt                           \ list.InsertAt(1, "bar"); \ nil \
+List.RemoveAt                           \ list.RemoveAt(2); \ "znear" \
+List - check result                     \ list \ ["bar","diablo","foo"] \
+List.SubList                            \ list.SubList(2,3) \ ["diablo","foo"] \
+List.Length                             \ list.Length \ 3 \
+List.Contains                           \ list.Contains("diablo") \ true \
+List.Clear                              \ list.Clear(); \ nil \
+List - check result again               \ list \ [] \
+List.Sort                               \ list := [1,7,2,5,4]; list.Sort((x,y) -> x-y); list \ [1,2,4,5,7] \
+List.PeriodicTable                      \ list.PeriodicTable(3) \
+1 | 2 | 4
+--+---+--
+5 | 7 |    \
+List - lookup negative                  \ list[-1] \ !!Invalid list index: -1 \
+List - lookup large                     \ list[10] \ nil \
+List - assign negative                  \ list[0] := 5 \ !!Invalid list index: 0 \
+List - assign large                     \ list[10] := 5; list \ [1,2,4,5,7,nil,nil,nil,nil,5] \
+List - InsertAt negative                \ list.InsertAt(0, 8) \ !!Invalid list index: 0 \
+List - InsertAt large                   \ list.InsertAt(13, 0); list \ [1,2,4,5,7,nil,nil,nil,nil,5,nil,nil,0] \
+List - RemoveAt negative                \ list.RemoveAt(-1) \ !!Invalid list index: -1 \
+List - RemoveAt large                   \ list.RemoveAt(22) \ nil \
+List - check result                     \ list \ [1,2,4,5,7,nil,nil,nil,nil,5,nil,nil,0] \
+
 // Grids and Strips
 // TODO Add more
 Grid (invalid char violation)   \ Grid.ParseGrid("xox.|.oxj", ".xo") \ !!The position may only contain the following characters: .xo \

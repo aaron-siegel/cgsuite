@@ -99,7 +99,7 @@ public class LanguageFunctionalTest
         else try
         {
             Output output = TEST_DOMAIN.script(tree).simplify().toOutput();
-            result = output.toString();
+            result = output.toString().trim();
         }
         catch (InputException exc)
         {

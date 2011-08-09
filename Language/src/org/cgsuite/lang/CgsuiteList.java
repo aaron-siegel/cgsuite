@@ -28,20 +28,6 @@ public class CgsuiteList extends CgsuiteCollection
     }
 
     @Override
-    public String toString()
-    {
-        StringBuilder buf = new StringBuilder("[");
-        for (int i = 0; i < objects.size(); i++)
-        {
-            buf.append(objects.get(i));
-            if (i < objects.size()-1)
-                buf.append(',');
-        }
-        buf.append("]");
-        return buf.toString();
-    }
-
-    @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
@@ -90,15 +76,18 @@ public class CgsuiteList extends CgsuiteCollection
 
     public CgsuiteObject get(int index)
     {
-        if (index > objects.size())
-        {
-            throw new InputException("Index out of bounds: " + index);
-        }
-        return objects.get(index-1);
+        if (index <= 0)
+            throw new InputException("Invalid list index: " + index);
+        else if (index > objects.size())
+            return null;
+        else
+            return objects.get(index-1);
     }
 
     public CgsuiteObject set(CgsuiteObject value, int index)
     {
+        if (index <= 0)
+            throw new InputException("Invalid list index: " + index);
         objects.ensureCapacity(index - objects.size());
         while (objects.size() < index)
         {
@@ -111,8 +100,38 @@ public class CgsuiteList extends CgsuiteCollection
     public CgsuiteList subList(int from, int to)
     {
         CgsuiteList list = new CgsuiteList();
-        list.objects.addAll(this.objects.subList(from, to));
+        list.objects.addAll(this.objects.subList(from-1, to));
         return list;
+    }
+    
+    public boolean remove(CgsuiteObject obj)
+    {
+        return objects.remove(obj);
+    }
+    
+    public CgsuiteObject removeAt(int index)
+    {
+        if (index <= 0)
+            throw new InputException("Invalid list index: " + index);
+        else if (index > objects.size())
+            return CgsuiteObject.NIL;
+        else
+            return objects.remove(index-1);
+    }
+    
+    public void insertAt(int index, CgsuiteObject value)
+    {
+        if (index <= 0)
+            throw new InputException("Invalid list index: " + index);
+        else if (index > objects.size())
+            set(value, index);
+        else
+            objects.add(index-1, value);
+    }
+    
+    public void clear()
+    {
+        objects.clear();
     }
 
     public void sort(final CgsuiteProcedure comparator)
@@ -135,9 +154,9 @@ public class CgsuiteList extends CgsuiteCollection
     public Table periodicTable(int period)
     {
         Table table = new Table();
-        for (int i = 0; i < size(); i += period)
+        for (int i = 1; i <= size(); i += period)
         {
-            table.add(subList(i, Math.min(size(), i+period)));
+            table.add(subList(i, Math.min(size(), i+period-1)));
         }
         return table;
     }
