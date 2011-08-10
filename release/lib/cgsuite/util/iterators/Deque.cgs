@@ -1,0 +1,72 @@
+/*
+ * Deque.cgs
+ *
+ * Implementation of a deque (double ended queue) using a backing list.
+ * The supplied iterator is *non destructive* and simply runs over the
+ * items of the list in index order (see Stack and Queue for other versions)
+ *
+ *  Methods and Properites:
+ *  Constructor assumes empty contents if no argument, or can be passed a list.
+ *  Append, Prepend: self explanatory
+ *  Pop: remove and return the element at the beginning of the list
+ *  Drop: remove and return the element at the end of the list
+ *  Size: Property, the size of the deque. 
+ *
+ * Created by malbert on 9/08/2011
+ */
+
+mutable class Deque extends Iterator
+
+    var valueList;
+    var index;
+    
+    method Deque(List valueList ? [])
+        index := 1;
+    end
+    
+    mutable method Append(value) 
+        valueList.Add(value);
+    end
+
+    mutable method Prepend(value)
+        valueList.InsertAt(1, value);
+    end
+    
+    mutable method Pop()
+        return valueList.RemoveAt(1);
+    end
+    
+    mutable method Drop()
+        return valueList.RemoveAt(valueList.Length);
+    end
+    
+    property Size.get  
+        return valueList.Length;
+    end
+    
+    override property HasNext.get
+        return index <= valueList.Length;
+    end
+    
+    override mutable property Next.get
+        index := index+1;
+        return valueList[index-1];
+    end
+    
+    override mutable method Reset()
+        index := 1;
+    end
+    
+    override property ToString.get
+        result := "Deque[ ";
+        for val in valueList do
+            result := result + val.ToString + " ";
+        end
+        result := result + "]";
+        return result;
+    end
+            
+
+
+
+end
