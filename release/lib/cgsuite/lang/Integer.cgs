@@ -1,5 +1,8 @@
 class Integer extends Number : java "org.cgsuite.lang.CgsuiteInteger"
 
     override method op neg () : java "negate";
+    
+    static method Random(Integer obj) : java "random";
+    static method SetSeed(Integer seed) : java "setSeed";
 
 end
