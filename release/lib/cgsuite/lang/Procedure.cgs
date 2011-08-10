@@ -1,12 +1,40 @@
 class Procedure : java "org.cgsuite.lang.CgsuiteProcedure"
 
-    method Iterate(Integer n)
+    property ParameterCount.get : java "getNumParameters";
+    
+    method op*(Procedure f)
+    
+        if ParameterCount != 1 then
+            error("The left-hand-side of a procedure composition must have exactly 1 parameter.");
+        end
+    
+        return x -> this(f(x));
+    
+    end
+
+    method op^(Integer n)
+    
+        if ParameterCount != 1 then
+            error("The iterated procedure must have exactly 1 parameter.");
+        end
     
         return x ->
             for k from 1 to n do
                 x := this(x);
             end
 
+    end
+    
+    method Iterate(Integer steps)
+    
+        return x -> listof(x := this(x) from 1 to steps);
+    
+    end
+    
+    method IterateUntil(Procedure condition)
+    
+        return x -> listof(x := this(x) while not condition(x));
+    
     end
     
 end
