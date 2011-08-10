@@ -17,11 +17,18 @@ class Procedure : java "org.cgsuite.lang.CgsuiteProcedure"
         if ParameterCount != 1 then
             error("The iterated procedure must have exactly 1 parameter.");
         end
+        
+        if n < 0 then
+            error("Iteration exponent must be non-negative.");
+        end
     
         return x ->
-            from 1 to n do
-                x := this(x);
-            end
+            begin
+                from 1 to n do
+                    x := this(x);
+                end
+                x
+            end;
 
     end
     
