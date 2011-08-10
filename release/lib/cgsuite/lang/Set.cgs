@@ -15,4 +15,18 @@ mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
 
     override property ToString.get : java "toString";
 
+    override method Apply(Procedure f) 
+        return setof(f(x) for x  in this);
+    end
+    
+    override method FilterWith(Procedure f)
+        result := {};
+        for x in this do
+            if f(x) then
+                result.Add(x);
+            end
+        end
+        return result;
+    end
+    
 end
