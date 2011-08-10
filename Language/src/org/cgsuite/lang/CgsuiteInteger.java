@@ -5,6 +5,7 @@
 
 package org.cgsuite.lang;
 
+import java.util.Random;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.StyledTextOutput;
 
@@ -20,6 +21,8 @@ public class CgsuiteInteger extends Game
     public final static CgsuiteInteger ONE = new CgsuiteInteger(1);
 
     private int value;
+    
+    private static Random random = new Random();
 
     public CgsuiteInteger(int value)
     {
@@ -61,6 +64,16 @@ public class CgsuiteInteger extends Game
             return new CgsuiteInteger((int) product);
         else
             return new RationalNumber(product, 1L);
+    }
+    
+    public static CgsuiteObject random(CgsuiteInteger max)
+    {
+        return new CgsuiteInteger(1 + random.nextInt(max.value));
+    }
+    
+    public static void setSeed(CgsuiteInteger seed) 
+    {
+        random.setSeed(seed.value);
     }
 
     public int intValue()
