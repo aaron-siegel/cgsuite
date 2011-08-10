@@ -19,7 +19,7 @@ class Procedure : java "org.cgsuite.lang.CgsuiteProcedure"
         end
     
         return x ->
-            for k from 1 to n do
+            from 1 to n do
                 x := this(x);
             end
 
