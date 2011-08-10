@@ -513,7 +513,7 @@ public final class CanonicalShortGame extends Game
         if (isInteger() && !isExtendedRecord(id))
             return new CgsuiteInteger(getSmallNumeratorPart(id));
         else if (isNumber())
-            return getNumberPart();
+            return getNumberPart().simplify();
         else if (isNimber())
             return new Nimber(getNimberPart());
         else

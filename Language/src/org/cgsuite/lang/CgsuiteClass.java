@@ -1,8 +1,7 @@
 package org.cgsuite.lang;
 
-import org.cgsuite.lang.output.Output;
-import org.antlr.runtime.Token;
-import java.util.logging.Logger;
+import static org.cgsuite.lang.parser.CgsuiteParser.*;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -15,10 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.Token;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
+import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
@@ -31,7 +33,6 @@ import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
-import static org.cgsuite.lang.parser.CgsuiteParser.*;
 
 // TODO Disallow "static constructor"
 

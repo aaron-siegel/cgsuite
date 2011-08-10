@@ -25,7 +25,7 @@ public class RationalNumber extends Game
 
     public RationalNumber(CgsuiteInteger integer)
     {
-        this(integer.intValue(), 1L);
+        this(integer.bigValue(), BigInteger.ONE);
     }
 
     public RationalNumber(BigInteger numerator, BigInteger denominator)
@@ -62,8 +62,8 @@ public class RationalNumber extends Game
     @Override
     public Game simplify()
     {
-        if (isInteger() && isSmall())
-            return new CgsuiteInteger(intValue());
+        if (isInteger())
+            return new CgsuiteInteger(numerator);
         else
             return this;
     }
@@ -229,14 +229,6 @@ public class RationalNumber extends Game
                 numerator.pow(r.intValue())
                 );
         }
-    }
-    
-    public RationalNumber nimSum(RationalNumber r)
-    {
-        if (!isInteger() || !r.isInteger())
-            throw new ArithmeticException("n/a");
-        
-        return new RationalNumber(numerator.xor(r.numerator), BigInteger.ONE);
     }
 
     public RationalNumber reciprocal()

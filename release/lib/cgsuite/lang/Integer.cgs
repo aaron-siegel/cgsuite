@@ -1,6 +1,9 @@
 class Integer extends Number : java "org.cgsuite.lang.CgsuiteInteger"
 
     override method op neg () : java "negate";
+    method NimSum(Integer n) : java "nimSum";
+    
+    property IsSmall.get : java "isSmall";
     
     static method Random(Integer obj) : java "random";
     static method SetSeed(Integer seed) : java "setSeed";

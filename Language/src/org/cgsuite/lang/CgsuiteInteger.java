@@ -5,8 +5,8 @@
 
 package org.cgsuite.lang;
 
+import java.math.BigInteger;
 import java.util.Random;
-import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
@@ -19,56 +19,81 @@ public class CgsuiteInteger extends Game
 
     public final static CgsuiteInteger ZERO = new CgsuiteInteger(0);
     public final static CgsuiteInteger ONE = new CgsuiteInteger(1);
-
-    private int value;
     
     private static Random random = new Random();
 
-    public CgsuiteInteger(int value)
+    private int value;
+    private BigInteger bigValue;
+
+    public CgsuiteInteger(long value)
     {
         super(TYPE);
         
-        this.value = value;
+        if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE)
+            this.value = (int) value;
+        else
+            this.bigValue = BigInteger.valueOf(value);
+    }
+    
+    public CgsuiteInteger(BigInteger bigValue)
+    {
+        super(TYPE);
+        
+        if (bigValue.bitLength() <= 31)
+            this.value = bigValue.intValue();
+        else
+            this.bigValue = bigValue;
     }
     
     public CgsuiteInteger negate()
     {
-        return new CgsuiteInteger(-value);
+        if (bigValue == null)
+            return new CgsuiteInteger(-(long) value);
+        else
+            return new CgsuiteInteger(bigValue.negate());
     }
 
-    public CgsuiteObject add(CgsuiteInteger other)
+    public CgsuiteInteger add(CgsuiteInteger other)
     {
-        long sum = (long) value + (long) other.value;
-        
-        if (sum >= Integer.MIN_VALUE && sum <= Integer.MAX_VALUE)
-            return new CgsuiteInteger((int) sum);
+        if (bigValue == null && other.bigValue == null)
+            return new CgsuiteInteger((long) value + (long) other.value);
         else
-            return new RationalNumber(sum, 1L);
+            return new CgsuiteInteger(bigValue().add(other.bigValue()));
     }
 
-    public CgsuiteObject subtract(CgsuiteInteger other)
+    public CgsuiteInteger subtract(CgsuiteInteger other)
     {
-        long diff = (long) value - (long) other.value;
-
-        if (diff >= Integer.MIN_VALUE && diff <= Integer.MAX_VALUE)
-            return new CgsuiteInteger((int) diff);
+        if (bigValue == null && other.bigValue == null)
+            return new CgsuiteInteger((long) value - (long) other.value);
         else
-            return new RationalNumber(diff, 1L);
+            return new CgsuiteInteger(bigValue().subtract(other.bigValue()));
     }
 
-    public CgsuiteObject multiply(CgsuiteInteger other)
+    public CgsuiteInteger multiply(CgsuiteInteger other)
     {
-        long product = (long) value * (long) other.value;
-
-        if (product >= Integer.MIN_VALUE && product <= Integer.MAX_VALUE)
-            return new CgsuiteInteger((int) product);
+        if (bigValue == null && other.bigValue == null)
+            return new CgsuiteInteger((long) value * (long) other.value);
         else
-            return new RationalNumber(product, 1L);
+            return new CgsuiteInteger(bigValue().multiply(other.bigValue()));
+    }
+
+    public CgsuiteInteger nimSum(CgsuiteInteger other)
+    {
+        if (bigValue == null && other.bigValue == null)
+            return new CgsuiteInteger((long) value ^ (long) other.value);
+        else
+            return new CgsuiteInteger(bigValue().xor(other.bigValue()));
+    }
+    
+    public boolean isSmall()
+    {
+        return bigValue == null;
     }
     
     public static CgsuiteObject random(CgsuiteInteger max)
     {
-        return new CgsuiteInteger(1 + random.nextInt(max.value));
+        // TODO Implement if max is a big value?
+        return new CgsuiteInteger(1 + random.nextInt(max.intValue()));
     }
     
     public static void setSeed(CgsuiteInteger seed) 
@@ -78,37 +103,51 @@ public class CgsuiteInteger extends Game
 
     public int intValue()
     {
+        if (bigValue != null)
+            throw new InputException("Overflow.");
         return value;
+    }
+    
+    public BigInteger bigValue()
+    {
+        return (bigValue == null)? BigInteger.valueOf(value) : bigValue;
     }
 
     @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
-        output.appendMath(String.valueOf(value));
+        if (bigValue == null)
+            output.appendMath(String.valueOf(value));
+        else
+            output.appendMath(bigValue.toString());
         return output;
     }
 
     @Override
-    protected int compareLike(CgsuiteObject other)
+    protected int compareLike(CgsuiteObject obj)
     {
-        return value - ((CgsuiteInteger) other).value;
+        CgsuiteInteger other = (CgsuiteInteger) obj;
+        if (bigValue == null && other.bigValue == null)
+            return value - other.value;
+        else
+            return bigValue().compareTo(other.bigValue());
     }
 
     @Override
     public boolean equals(Object obj)
     {
-        if (obj == null)
-        {
+        if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass())
-        {
+        if (getClass() != obj.getClass()) {
             return false;
         }
         final CgsuiteInteger other = (CgsuiteInteger) obj;
-        if (this.value != other.value)
-        {
+        if (this.value != other.value) {
+            return false;
+        }
+        if (this.bigValue != other.bigValue && (this.bigValue == null || !this.bigValue.equals(other.bigValue))) {
             return false;
         }
         return true;
@@ -117,8 +156,10 @@ public class CgsuiteInteger extends Game
     @Override
     public int hashCode()
     {
-        int hash = 7;
+        int hash = 3;
         hash = 79 * hash + this.value;
+        hash = 79 * hash + (this.bigValue != null ? this.bigValue.hashCode() : 0);
         return hash;
     }
+
 }

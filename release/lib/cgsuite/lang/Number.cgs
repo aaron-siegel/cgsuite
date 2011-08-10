@@ -9,7 +9,6 @@ class Number extends CanonicalShortGame : java "org.cgsuite.lang.game.RationalNu
     method Min(Number obj) : java "min";
     method Max(Number obj) : java "max";
     method Mod(Number obj) : java "mod";
-    method NimSum(Number obj) : java "nimSum";
 
     override property ToString.get : java "toString";
     override property CanonicalForm.get : java "canonicalForm";

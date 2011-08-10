@@ -1418,7 +1418,7 @@ public class Domain
         {
             x = x.simplify();
             if (x instanceof CgsuiteInteger)
-                x = new CanonicalShortGame(((CgsuiteInteger) x).intValue());
+                x = new CanonicalShortGame((CgsuiteInteger) x);
             else if(x instanceof RationalNumber)
                 x = new CanonicalShortGame((RationalNumber) x);
             if (!(x instanceof CanonicalShortGame))
