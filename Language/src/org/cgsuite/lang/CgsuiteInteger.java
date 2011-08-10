@@ -20,7 +20,7 @@ public class CgsuiteInteger extends Game
     public final static CgsuiteInteger ZERO = new CgsuiteInteger(0);
     public final static CgsuiteInteger ONE = new CgsuiteInteger(1);
     
-    private static Random random = new Random();
+    private final static Random RANDOM = new Random();
 
     private int value;
     private BigInteger bigValue;
@@ -92,13 +92,27 @@ public class CgsuiteInteger extends Game
     
     public static CgsuiteObject random(CgsuiteInteger max)
     {
-        // TODO Implement if max is a big value?
-        return new CgsuiteInteger(1 + random.nextInt(max.intValue()));
+        if (max.bigValue == null) {
+            return new CgsuiteInteger(1 + RANDOM.nextInt(max.intValue()));
+        }
+        
+        if (max.bigValue.signum() <= 0) {
+            return ZERO;
+        }
+        
+        int bits = max.bigValue.bitLength();
+        while (true) {
+            BigInteger result = new BigInteger(bits, RANDOM);
+            if (result.compareTo(max.bigValue) < 0) {
+                return new CgsuiteInteger(result);
+            }
+        }
+        
     }
     
     public static void setSeed(CgsuiteInteger seed) 
     {
-        random.setSeed(seed.value);
+        RANDOM.setSeed(seed.value);
     }
 
     public int intValue()
