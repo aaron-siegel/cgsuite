@@ -112,7 +112,8 @@ public final class NewCgsuiteFileAction extends AbstractAction implements Contex
 
         DataObject templates[] = new DataObject[]
         {
-            findTemplate("Templates/Other/CgscriptTemplate.cgs"),
+            findTemplate("Templates/Other/ClassTemplate.cgs"),
+            findTemplate("Templates/Other/ScriptTemplate.cgs"),
             findTemplate("Templates/Other/Package")
         };
     
