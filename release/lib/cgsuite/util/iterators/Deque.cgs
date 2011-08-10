@@ -43,7 +43,11 @@ mutable class Deque extends Iterator
     property Size.get  
         return valueList.Length;
     end
-    
+
+    method Contains(value)  
+        return valueList.Contains(value);
+    end
+
     override property HasNext.get
         return index <= valueList.Length;
     end
@@ -56,6 +60,7 @@ mutable class Deque extends Iterator
     override mutable method Reset()
         index := 1;
     end
+    
     
     override property ToString.get
         result := "Deque[ ";
