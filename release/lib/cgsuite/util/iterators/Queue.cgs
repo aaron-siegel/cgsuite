@@ -18,6 +18,9 @@
  * To further facilitate the use of this metaphor a non-destructive 'Contains'
  * method is included.
  *
+ * Additionally, TraverseWith operates on the underlying deque and so is
+ * non-destructive.
+ *
  * Created by malbert on 10/08/2011
  */
 
@@ -53,9 +56,7 @@ mutable class Queue extends Iterator
     end
     
     override method TraverseWith(f)
-        while HasNext do
-            f(Next);
-        end
+        valueDeque.Traversewith(f);
     end
     
     override property ToString.get

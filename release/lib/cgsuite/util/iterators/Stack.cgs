@@ -15,8 +15,12 @@
  *    s.Push(n);
  * end
  *
- * To further facilitate this metaphor a non-destructive 'Contains' method is included.
- * 
+ * To further facilitate the use of this metaphor a non-destructive 
+ * 'Contains' method is included.
+ *
+ * Additionally, TraverseWith operates on the underlying deque and so is
+ * non-destructive.
+ *
  * Created by malbert on 10/08/2011
  */
 
@@ -53,9 +57,7 @@ mutable class Stack extends Iterator
     end
     
     override method TraverseWith(f)
-        while HasNext do
-            f(Next);
-        end
+        valueDeque.TraverseWith(f);
     end
     
     override property ToString.get

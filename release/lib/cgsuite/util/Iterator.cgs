@@ -14,9 +14,9 @@
  * Iterators may optionally support a Reset() method that returns the iterator
  * to its initial state. Its undefined behaviour is to do nothing.
  *
- * TraverseWith(f) takes one run through the iterator applying f to each of
- * the results. It then attempts to reset the iterator.
- * 
+ * TraverseWith(f) resets the iterator, then takes one run through 
+ * applying f to each of the results. It then resets the iterator.
+ *
  * Note that if you will only use the result if iter.Next in a single place
  * within the loop, there is no need to store it. However, if you need it on
  * multiple occasions then you must because the (intended) behaviour of an
@@ -35,6 +35,7 @@
  * is for Next to return nil when HasNext is false, but this is not required
  * by the contract.
  * 
+ *
  * Created by malbert on 4/08/2011
  */
 
@@ -56,6 +57,7 @@ class Iterator : java "org.cgsuite.lang.CgsuiteIterator"
     end
     
     method TraverseWith(f)
+        Reset();
         while HasNext do
             f(Next);
         end
