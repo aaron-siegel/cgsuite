@@ -90,11 +90,7 @@
     <folder name="Editors">
         <folder name="text">
             <folder name="x-cgscript">
-                <file name="EditorKit.instance">
-                    <attr name="instanceClass" stringvalue="org.cgsuite.filetype.cgscript.CgscriptEditorKit"/>
-                    <attr name="instanceOf" stringvalue="javax.swing.text.EditorKit,org.cgsuite.filetype.cgscript.CgscriptEditorKit"/>
-                    <attr name="beaninfo" boolvalue="false"/>
-                </file>
+                <file name="org-cgsuite-filetype-cgscript-CgscriptEditorKit.instance"/>
             </folder>
         </folder>
     </folder>
