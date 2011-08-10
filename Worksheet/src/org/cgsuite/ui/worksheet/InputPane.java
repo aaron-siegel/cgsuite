@@ -31,6 +31,7 @@ package org.cgsuite.ui.worksheet;
 import java.awt.Font;
 import javax.swing.JEditorPane;
 import javax.swing.text.BadLocationException;
+import org.cgsuite.filetype.cgscript.CgscriptEditorKit;
 import org.netbeans.modules.editor.NbEditorDocument;
 import org.netbeans.modules.editor.NbEditorKit;
 import org.openide.text.CloneableEditorSupport;
@@ -45,7 +46,7 @@ public class InputPane extends JEditorPane
     {
         try
         {
-            NbEditorKit kit = new NbEditorKit();
+            NbEditorKit kit = new CgscriptEditorKit();
             NbEditorDocument doc = new NbEditorDocument("text/x-cgscript");
 
             setEditorKit(kit);

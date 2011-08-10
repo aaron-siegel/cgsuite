@@ -11,18 +11,33 @@
 
 package org.cgsuite.ui.worksheet;
 
+import java.awt.Font;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  *
  * @author asiegel
  */
-public class InputPanel extends javax.swing.JPanel
+public class InputPanel extends JPanel
 {
     /** Creates new form InputPanel */
     public InputPanel()
     {
         initComponents();
+        inputPane.addPropertyChangeListener(new PropertyChangeListener()
+        {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt)
+            {
+                if ("font".equals(evt.getPropertyName()))
+                {
+                    inputLabel.setFont((Font) evt.getNewValue());
+                }
+            }
+        });
     }
 
     public InputPane getInputPane()
@@ -51,14 +66,15 @@ public class InputPanel extends javax.swing.JPanel
         setAlignmentX(0.0F);
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
 
+        inputLabel.setBackground(new java.awt.Color(255, 255, 255));
         inputLabel.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
         inputLabel.setText(org.openide.util.NbBundle.getMessage(InputPanel.class, "InputPanel.inputLabel.text")); // NOI18N
         inputLabel.setAlignmentY(0.0F);
         inputLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 8));
         add(inputLabel);
 
+        inputPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 0, 0, 0));
         inputPane.setAlignmentY(0.0F);
-        inputPane.setMargin(new java.awt.Insets(0, 0, 0, 0));
         inputPane.setMinimumSize(new java.awt.Dimension(0, 0));
         add(inputPane);
     }// </editor-fold>//GEN-END:initComponents
