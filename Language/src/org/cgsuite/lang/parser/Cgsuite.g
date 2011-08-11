@@ -488,8 +488,8 @@ postfixExpr
 	: (upstarExpr -> upstarExpr)
 	  ( DOT SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT $postfixExpr $id)
       | DOT id=generalizedId  -> ^(DOT $postfixExpr $id)
-	  | x=arrayReference-> ^(ARRAY_REFERENCE[((CgsuiteTree) x.getTree()).getToken()] $postfixExpr arrayReference)
-	  | y=functionCall	-> ^(FUNCTION_CALL[((CgsuiteTree) y.getTree()).getToken()] $postfixExpr functionCall)
+	  | x=arrayReference-> ^(ARRAY_REFERENCE[$x.tree.getToken()] $postfixExpr arrayReference)
+	  | y=functionCall	-> ^(FUNCTION_CALL[$y.tree.getToken()] $postfixExpr functionCall)
 	  )*
 	  ;
 

@@ -59,6 +59,19 @@ public class CgsuiteSet extends CgsuiteCollection
     }
     
     @Override
+    public void markImmutable()
+    {
+        if (isMutable())
+        {
+            super.markImmutable();
+            for (CgsuiteObject obj : objects)
+            {
+                obj.markImmutable();
+            }
+        }
+    }
+
+    @Override
     public Collection<CgsuiteObject> getUnderlyingCollection()
     {
         return objects;

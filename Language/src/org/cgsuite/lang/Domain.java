@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.antlr.runtime.Token;
 
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
@@ -30,7 +31,9 @@ public class Domain
     private Namespace namespace;
     private List<CgsuitePackage> packageImports;
     private Map<String,CgsuiteClass> classImports;
+    
     private Mode mode;
+    private Token controlToken;
     
     public Domain(CgsuiteObject contextObject, CgsuiteMethod contextMethod)
     {
@@ -87,28 +90,56 @@ public class Domain
 
     public CgsuiteObject script(CgsuiteTree tree) throws CgsuiteException
     {
-        switch (tree.token.getType())
+        if (tree.getType() != EOF)
+            throw new MalformedParseTreeException(tree);
+        
+        // Just in case there was a serious error on the previous invocation
+        mode = Mode.NORMAL;
+        
+        CgsuiteObject retval = statementSequence(tree.getChild(0));
+        
+        if (mode != Mode.NORMAL)
         {
-            case EOF:
-                return statementSequence(tree.getChild(0));
-
-            default:
-                throw new MalformedParseTreeException(tree);
+            mode = Mode.NORMAL;
+            throw new InputException(controlToken, "Unexpected control statement: " + controlToken.getText());
         }
+        
+        return retval;
+    }
+    
+    public CgsuiteObject procedureInvocation(CgsuiteTree tree) throws CgsuiteException
+    {
+        mode = Mode.NORMAL;
+        
+        CgsuiteObject retval = expression(tree);
+        
+        if (mode != Mode.NORMAL)
+        {
+            mode = Mode.NORMAL;
+            throw new InputException(controlToken, "Unexpected control statement in procedure: " + controlToken.getText());
+        }
+        
+        return retval;
     }
 
     public CgsuiteObject methodInvocation(CgsuiteTree tree) throws CgsuiteException
     {
+        mode = Mode.NORMAL;
+        
         statementSequence(tree);
         
-        if (mode == Mode.RETURNING)
+        switch (mode)
         {
-            mode = Mode.NORMAL;
-            return returnValue;
-        }
-        else
-        {
-            return Nil.NIL;
+            case RETURNING:
+                mode = Mode.NORMAL;
+                return returnValue;
+                
+            case NORMAL:
+                return CgsuiteObject.NIL;
+                
+            default:
+                mode = Mode.NORMAL;
+                throw new InputException(controlToken, "Unexpected control statement in method: " + controlToken.getText());
         }
     }
 
@@ -147,12 +178,13 @@ public class Domain
         
         switch (tree.token.getType())
         {
-            case BREAK:     mode = Mode.BREAKING; return null;
+            case BREAK:     mode = Mode.BREAKING; controlToken = tree.getToken(); return null;
 
-            case CONTINUE:  mode = Mode.CONTINUING; return null;
+            case CONTINUE:  mode = Mode.CONTINUING; controlToken = tree.getToken(); return null;
 
             case RETURN:    returnValue = (tree.getChildCount() == 0 ? CgsuiteObject.NIL : expression(tree.getChild(0)));
                             mode = Mode.RETURNING;
+                            controlToken = tree.getToken(); 
                             return null;
 
             case CLEAR:     namespace.clear();  // XXX Clear classes?
@@ -214,7 +246,15 @@ public class Domain
             case ARRAY_REFERENCE:
 
                 obj = expression(tree.getChild(0));
-                obj.invokeMethod("op []:=", arrayIndexList(tree.getChild(1), x));
+                try
+                {
+                    obj.invokeMethod("op []:=", arrayIndexList(tree.getChild(1), x));
+                }
+                catch (InputException exc)
+                {
+                    exc.addToken(tree.token);
+                    throw exc;
+                }
                 return;
 
             case DOT:

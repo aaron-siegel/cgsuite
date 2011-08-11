@@ -91,7 +91,7 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
 
         try
         {
-            return domain.expression(tree.getChild(1));
+            return domain.procedureInvocation(tree.getChild(1));
         }
         finally
         {

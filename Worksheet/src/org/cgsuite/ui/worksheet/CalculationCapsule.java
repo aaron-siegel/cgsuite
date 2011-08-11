@@ -180,7 +180,7 @@ public class CalculationCapsule implements Runnable
         }
         for (Token token : exc.getTokenStack())
         {
-            assert token.getInputStream() != null : "Input stream is null: " + token;
+            assert token.getInputStream() != null : "Input stream is null: " + token + " (" + exc.getMessage() + ")";
             String source = token.getInputStream().getSourceName();
             if (source == null)
             {

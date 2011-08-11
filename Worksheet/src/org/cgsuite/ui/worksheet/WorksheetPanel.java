@@ -28,7 +28,6 @@ import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.OutputBox;
 import org.cgsuite.lang.output.StyledTextOutput;
@@ -43,6 +42,7 @@ import org.openide.windows.WindowManager;
 
 // TODO Check if there are unsaved files before starting a calculation
 // TODO Fix copy/paste of worksheet output
+// TODO Make error output singly selectable
 
 /**
  *

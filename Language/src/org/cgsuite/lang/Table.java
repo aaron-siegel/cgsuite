@@ -103,6 +103,19 @@ public class Table extends CgsuiteCollection
     }
     
     @Override
+    public void markImmutable()
+    {
+        if (isMutable())
+        {
+            super.markImmutable();
+            for (CgsuiteObject obj : rows)
+            {
+                obj.markImmutable();
+            }
+        }
+    }
+
+    @Override
     public List<CgsuiteObject> getUnderlyingCollection()
     {
         return rows;

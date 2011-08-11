@@ -66,6 +66,20 @@ public class CgsuiteMap extends CgsuiteObject
         map = newMap;
     }
     
+    @Override
+    public void markImmutable()
+    {
+        if (isMutable())
+        {
+            super.markImmutable();
+            for (Entry<CgsuiteObject,CgsuiteObject> e : map.entrySet())
+            {
+                e.getKey().markImmutable();
+                e.getValue().markImmutable();
+            }
+        }
+    }
+    
     public boolean isEmpty()
     {
         return map.isEmpty();

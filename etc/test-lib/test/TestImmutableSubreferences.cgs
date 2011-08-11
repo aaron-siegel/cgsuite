@@ -1,0 +1,40 @@
+/*
+ * TestImmutableSubreference.cgs
+ *
+ * Created by asiegel on Aug 9, 2011
+ */
+
+class TestImmutableSubreferences
+
+    var obj;
+    
+    method TestImmutableSubreferences(obj)
+    end
+    
+    method TestImmutableList()
+        obj[1][1] := 5;
+    end
+    
+    method TestImmutableSet()
+        // TODO Implement
+    end
+    
+    method TestImmutableMap()
+        obj["znear"][1] := "diablo";
+    end
+    
+    method TestImmutableTable()
+        // TODO Implement
+    end
+    
+    method TestCrosslinkedList()
+        copy := obj;
+        copy[1][1] := 5;
+    end
+    
+    method TestCrosslinkedMap()
+        copy := obj;
+        copy["znear"][1] := "diablo";
+    end
+    
+end

@@ -4,7 +4,7 @@
  * Created by asiegel on Aug 9, 2011
  */
 
-class Nimber extends CanonicalShortGame : java "org.cgsuite.lang.game.Nimber"
+class Nimber extends CanonicalShortGame, ImpartialGame : java "org.cgsuite.lang.game.Nimber"
 
     override property ToString.get : java "toString";
 

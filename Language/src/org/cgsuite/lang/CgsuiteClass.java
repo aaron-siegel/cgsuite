@@ -371,14 +371,38 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 String nameInParent = e.getKey();
                 if (nameInParent.startsWith("super$"))
                     continue;
+                
                 CgsuiteMethod method = e.getValue();
-                if (methods.containsKey(method.getName()))
+                
+                boolean applyMethod;
+                
+                CgsuiteMethod otherMethod = methods.get(method.getName());
+                
+                if (otherMethod == null)
                 {
-                    if (methods.get(method.getName()) != method)
-                        throw new InputException(parseTree.getChild(0).getToken(),
-                            "Multiple ancestor classes declare the same non-private method: " + method.getName());
+                    applyMethod = true;
                 }
                 else
+                {
+                    // This method is declared by multiple ancestors.  Use
+                    // the *most specific* implementation.
+                    
+                    if (otherMethod.getDeclaringClass().hasAncestor(method.getDeclaringClass()))
+                    {
+                        applyMethod = false;
+                    }
+                    else if (method.getDeclaringClass().hasAncestor(otherMethod.getDeclaringClass()))
+                    {
+                        applyMethod = true;
+                    }
+                    else 
+                    {
+                        throw new InputException(parseTree.getChild(1).getToken(),
+                            "Method is ambiguous because it is declared by multiple incompatible ancestors: " + method.getName());
+                    }
+                }
+
+                if (applyMethod)
                 {
                     methods.put(method.getName(), method);
                     methods.put("super$" + method.getName(), method);

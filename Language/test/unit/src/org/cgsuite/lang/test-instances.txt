@@ -143,9 +143,17 @@ Optional parameters - specified 2   \ meth.Method1(1, 2, param5 => 5, param6 => 
 Optional parameters - invalid       \ meth.Method1(1, 2, noGood => 5) \ !!Not a valid optional parameter: noGood (in call to method test.TestMethods.Method1) \
 Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \ !!Duplicate parameter: param5 (in call to method test.TestMethods.Method1) \
 
-// Return
+// Control statements
 
-Return from loop                \ test.TestReturnFromLoop.LoopReturn(); \ 101 \
+Unexpected break                \ break; \ !!Unexpected control statement: break \
+Unexpected continue             \ continue; \ !!Unexpected control statement: continue \
+Unexpected return               \ return 5; \ !!Unexpected control statement: return \
+Unexpected break in procedure   \ f := x -> (break); f(0) \ !!Unexpected control statement in procedure: break \
+Unexpected continue in procedure\ f := x -> (continue); f(0) \ !!Unexpected control statement in procedure: continue \
+Unexpected return in procedure  \ f := x -> (return); f(0) \ !!Unexpected control statement in procedure: return \
+Unexpected break in method      \ test.TestControlStatements.UnexpectedBreak(); \ !!Unexpected control statement in method: break \
+Unexpected continue in method   \ test.TestControlStatements.UnexpectedContinue(); \ !!Unexpected control statement in method: continue \
+Return from loop                \ test.TestControlStatements.ReturnFromLoop(); \ 101 \
 
 // Immutability
 
@@ -210,6 +218,13 @@ List - InsertAt large                   \ list.InsertAt(13, 0); list \ [1,2,4,5,
 List - RemoveAt negative                \ list.RemoveAt(-1) \ !!Invalid list index: -1 \
 List - RemoveAt large                   \ list.RemoveAt(22) \ nil \
 List - check result                     \ list \ [1,2,4,5,7,nil,nil,nil,nil,5,nil,nil,0] \
+List - immutable subreferences          \ mut := test.TestImmutableSubreferences([[1]]); mut.TestImmutableList(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+List - crosslinked subreferences        \ mut.TestCrosslinkedList(); \ nil \
+
+// cgsuite.lang.Map
+
+Map - immutable subreferences           \ mut := test.TestImmutableSubreferences({"znear"=>[1,2,3]}); mut.TestImmutableMap(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Map - crosslinked subreferences         \ mut.TestCrosslinkedMap(); \ nil \
 
 // Grids and Strips
 // TODO Add more
