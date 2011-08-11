@@ -231,10 +231,18 @@ Set - crosslinked subreferences         \ mut.TestCrosslinkedSet(); \ nil \
 Map - immutable subreferences           \ mut := test.TestImmutableSubreferences({"znear"=>[1,2,3]}); mut.TestImmutableMap(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Map - crosslinked subreferences         \ mut.TestCrosslinkedMap(); \ nil \
 
+// cgsuite.lang.Table
+
 Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Table - crosslinked subreferences       \ mut.TestCrosslinkedTable(); \ nil \
 
-// TODO: Immutable subreferences tests for Table
+// cgsuite.lang.Procedure
+
+Procedure.op*                           \ f := x -> x^2; g := x -> x+1; [(f*g)(5),(g*f)(5)] \ [36,26] \
+Procedure.op^                           \ f := x -> x*2; listof((f^n)(1) for n from 0 to 5) \ [1,2,4,8,16,32] \
+Define 3n+1 procedure                   \ threen := n -> if n%2 == 0 then n/2 else 3*n+1 end \ <Object of type Procedure> \
+Procedure.Iterate                       \ threen.Iterate(10)(27) \ [82,41,124,62,31,94,47,142,71,214] \
+Procedure.IterateUntil                  \ threen.IterateUntil(x -> x == 1)(27).Length \ 111 \
 
 // Grids and Strips
 // TODO Add more
