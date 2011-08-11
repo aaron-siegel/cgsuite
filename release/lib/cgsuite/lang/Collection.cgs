@@ -14,4 +14,8 @@ class Collection : java "org.cgsuite.lang.CgsuiteCollection"
         return result;
     end
     
+    property RandomElement.get
+        return listof(x for x in this).RandomElement;
+    end
+    
 end

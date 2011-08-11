@@ -15,5 +15,11 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
 
     property Length.get : java "size";
     override property ToString.get : java "toString";
+    
+    override property RandomElement.get
+        if this.Length > 0 then
+            return this[Integer.Random(this.Length)];
+        end
+    end
 
 end
