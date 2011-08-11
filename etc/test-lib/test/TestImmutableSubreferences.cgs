@@ -16,7 +16,7 @@ class TestImmutableSubreferences
     end
     
     method TestImmutableSet()
-        // TODO Implement
+        error("not yet implemented");
     end
     
     method TestImmutableMap()
@@ -24,7 +24,7 @@ class TestImmutableSubreferences
     end
     
     method TestImmutableTable()
-        // TODO Implement
+        error("not yet implemented");
     end
     
     method TestCrosslinkedList()
@@ -32,9 +32,17 @@ class TestImmutableSubreferences
         copy[1][1] := 5;
     end
     
+    method TestCrosslinkedSet()
+        error("not yet implemented");
+    end
+    
     method TestCrosslinkedMap()
         copy := obj;
         copy["znear"][1] := "diablo";
+    end
+    
+    method TestCrosslinkedTable()
+        error("not yet implemented");
     end
     
 end

@@ -47,7 +47,7 @@ public class CgsuiteSet extends CgsuiteCollection
     }
     
     @Override
-    public void unlink()
+    protected void unlink()
     {
         super.unlink();
         Set<CgsuiteObject> newObjects = new HashSet<CgsuiteObject>(objects.size());
@@ -56,6 +56,18 @@ public class CgsuiteSet extends CgsuiteCollection
             newObjects.add(obj.createCrosslink());
         }
         objects = newObjects;
+    }
+    
+    @Override
+    protected boolean hasMutableReferent()
+    {
+        for (CgsuiteObject obj : objects)
+        {
+            if (obj.getCgsuiteClass().isMutable())
+                return true;
+        }
+        
+        return false;
     }
     
     @Override

@@ -221,10 +221,20 @@ List - check result                     \ list \ [1,2,4,5,7,nil,nil,nil,nil,5,ni
 List - immutable subreferences          \ mut := test.TestImmutableSubreferences([[1]]); mut.TestImmutableList(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 List - crosslinked subreferences        \ mut.TestCrosslinkedList(); \ nil \
 
+// cgsuite.lang.Set
+
+Set - immutable subreferences           \ mut := test.TestImmutableSubreferences({[1]}); mut.TestImmutableSet(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Set - crosslinked subreferences         \ mut.TestCrosslinkedSet(); \ nil \
+
 // cgsuite.lang.Map
 
 Map - immutable subreferences           \ mut := test.TestImmutableSubreferences({"znear"=>[1,2,3]}); mut.TestImmutableMap(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Map - crosslinked subreferences         \ mut.TestCrosslinkedMap(); \ nil \
+
+Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Table - crosslinked subreferences       \ mut.TestCrosslinkedTable(); \ nil \
+
+// TODO: Immutable subreferences tests for Table
 
 // Grids and Strips
 // TODO Add more

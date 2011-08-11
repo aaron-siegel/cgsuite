@@ -103,6 +103,12 @@ public class Table extends CgsuiteCollection
     }
     
     @Override
+    protected boolean hasMutableReferent()
+    {
+        return !rows.isEmpty();
+    }
+    
+    @Override
     public void markImmutable()
     {
         if (isMutable())

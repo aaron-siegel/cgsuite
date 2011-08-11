@@ -125,10 +125,30 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         clone.isMutable = true;     // Crosslink is mutable even if this is not
         clone.crosslink = this.crosslink;
         this.crosslink = clone;
+        
+        if (hasMutableReferent())
+        {
+            clone.unlink();
+        }
+        
         return clone;
     }
     
-    public void unlink()
+    // Returns true if this object references an object belonging to
+    // a mutable CLASS.
+    
+    protected boolean hasMutableReferent()
+    {
+        for (CgsuiteObject value : objectNamespace.values())
+        {
+            if (value.getCgsuiteClass().isMutable())
+                return true;
+        }
+        
+        return false;
+    }
+    
+    protected void unlink()
     {
         this.objectNamespace = objectNamespace.crosslinkedNamespace();
         CgsuiteObject next = crosslink;

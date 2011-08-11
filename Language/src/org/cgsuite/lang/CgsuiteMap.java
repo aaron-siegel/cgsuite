@@ -13,6 +13,8 @@ import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 
 public class CgsuiteMap extends CgsuiteObject
 {
+    // TODO Mark keys immutable!
+    
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Map");
     
     private Map<CgsuiteObject,CgsuiteObject> map;
@@ -64,6 +66,18 @@ public class CgsuiteMap extends CgsuiteObject
             newMap.put(e.getKey().createCrosslink(), e.getValue().createCrosslink());
         }
         map = newMap;
+    }
+    
+    @Override
+    protected boolean hasMutableReferent()
+    {
+        for (Entry<CgsuiteObject,CgsuiteObject> e : map.entrySet())
+        {
+            if (e.getKey().getCgsuiteClass().isMutable() || e.getValue().getCgsuiteClass().isMutable())
+                return true;
+        }
+        
+        return false;
     }
     
     @Override
