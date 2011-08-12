@@ -7,6 +7,8 @@ package org.cgsuite.lang;
 
 import java.math.BigInteger;
 import java.util.Random;
+import org.cgsuite.lang.game.CanonicalShortGame;
+import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
@@ -45,12 +47,27 @@ public class CgsuiteInteger extends Game
             this.bigValue = bigValue;
     }
     
+    @Override
     public CgsuiteInteger negate()
     {
         if (bigValue == null)
             return new CgsuiteInteger(-(long) value);
         else
             return new CgsuiteInteger(bigValue.negate());
+    }
+    
+    public CgsuiteObject add(CgsuiteObject other)
+    {
+        if (other instanceof CgsuiteInteger)
+            return add((CgsuiteInteger) other);
+        else if (other instanceof CanonicalShortGame)
+            return CanonicalShortGame.construct(this).add((CanonicalShortGame) other);
+        else if (other instanceof RationalNumber)
+            return new RationalNumber(this).add((RationalNumber) other);
+        else if (other instanceof Game)
+            return super.add((Game) other);
+        else
+            throw new InputException("Cannot add Integer to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
 
     public CgsuiteInteger add(CgsuiteInteger other)
@@ -59,6 +76,20 @@ public class CgsuiteInteger extends Game
             return new CgsuiteInteger((long) value + (long) other.value);
         else
             return new CgsuiteInteger(bigValue().add(other.bigValue()));
+    }
+    
+    public CgsuiteObject subtract(CgsuiteObject other)
+    {
+        if (other instanceof CgsuiteInteger)
+            return subtract((CgsuiteInteger) other);
+        else if (other instanceof CanonicalShortGame)
+            return CanonicalShortGame.construct(this).subtract((CanonicalShortGame) other);
+        else if (other instanceof RationalNumber)
+            return new RationalNumber(this).subtract((RationalNumber) other);
+        else if (other instanceof Game)
+            return super.subtract((Game) other);
+        else
+            throw new InputException("Cannot add Integer to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
 
     public CgsuiteInteger subtract(CgsuiteInteger other)
@@ -88,6 +119,23 @@ public class CgsuiteInteger extends Game
     public boolean isSmall()
     {
         return bigValue == null;
+    }
+    
+    public boolean is2Power()
+    {
+        if (bigValue == null)
+            return value >= 1 && Integer.bitCount(value) == 1;
+        else
+            return bigValue.compareTo(BigInteger.ONE) >= 0 && bigValue.bitCount() == 1;
+    }
+    
+    public CgsuiteInteger lb()
+    {
+        // TODO Check for negative values
+        if (bigValue == null)
+            return new CgsuiteInteger(31-Integer.numberOfLeadingZeros(value));
+        else
+            return new CgsuiteInteger(bigValue.bitLength()-1);
     }
     
     public static CgsuiteObject random(CgsuiteInteger max)

@@ -77,9 +77,9 @@ public class ExplicitGame extends Game
             simplifiedLeftOptions.add(simp);
 
             if (simp instanceof CgsuiteInteger)
-                canonicalLeftOptions.add(new CanonicalShortGame((CgsuiteInteger) simp));
+                canonicalLeftOptions.add(CanonicalShortGame.construct((CgsuiteInteger) simp));
             else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
-                canonicalLeftOptions.add(new CanonicalShortGame((RationalNumber) simp));
+                canonicalLeftOptions.add(CanonicalShortGame.construct((RationalNumber) simp));
             else if (simp instanceof CanonicalShortGame)
                 canonicalLeftOptions.add((CanonicalShortGame) simp);
             else
@@ -91,9 +91,9 @@ public class ExplicitGame extends Game
             simplifiedRightOptions.add(simp);
 
             if (simp instanceof CgsuiteInteger)
-                canonicalRightOptions.add(new CanonicalShortGame((CgsuiteInteger) simp));
+                canonicalRightOptions.add(CanonicalShortGame.construct((CgsuiteInteger) simp));
             else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
-                canonicalRightOptions.add(new CanonicalShortGame((RationalNumber) simp));
+                canonicalRightOptions.add(CanonicalShortGame.construct((RationalNumber) simp));
             else if (simp instanceof CanonicalShortGame)
                 canonicalRightOptions.add((CanonicalShortGame) simp);
             else
@@ -101,7 +101,7 @@ public class ExplicitGame extends Game
         }
 
         if (allCanonical)
-            return new CanonicalShortGame(canonicalLeftOptions, canonicalRightOptions).simplify();
+            return CanonicalShortGame.construct(canonicalLeftOptions, canonicalRightOptions).simplify();
         else
             return new ExplicitGame(simplifiedLeftOptions, simplifiedRightOptions);
     }

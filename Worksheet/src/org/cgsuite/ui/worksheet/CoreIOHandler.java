@@ -187,7 +187,7 @@ public class CoreIOHandler
         if (g.getNumLeftOptions() == 1 && g.getNumRightOptions() == 1 &&
             g.getLeftOption(0).equals(CanonicalShortGame.ZERO))
         {
-            int n = getUptoStarExponent(g.getRightOption(0).getInverse());
+            int n = getUptoStarExponent(g.getRightOption(0).negate());
             return (n == -1 ? -1 : n + 1);
         }
         else
@@ -242,9 +242,9 @@ public class CoreIOHandler
         {
             return uptimalMap.get(g);
         }
-        if (uptimalMap.containsKey(g.getInverse()))
+        if (uptimalMap.containsKey(g.negate()))
         {
-            return uptimalMap.get(g.getInverse()).getInverse();
+            return uptimalMap.get(g.negate()).getInverse();
         }
         if (g.isZero())
         {
@@ -261,11 +261,11 @@ public class CoreIOHandler
             uptimalMap.put(g, uptimal);
             return uptimal;
         }
-        uptimal = getUptimal2(g.getInverse());
+        uptimal = getUptimal2(g.negate());
         if (uptimal != null)
         {
             //System.out.println("B " + g + ": " + Arrays.toString(uptimal.indices));
-            uptimalMap.put(g.getInverse(), uptimal);
+            uptimalMap.put(g.negate(), uptimal);
             return uptimal.getInverse();
         }
         return null;
@@ -431,7 +431,7 @@ public class CoreIOHandler
             }
             if (indices[k] < 0)
             {
-                return getInverse().matches(g.getInverse());
+                return getInverse().matches(g.negate());
             }
             assert indices[k] > 0;
             int j = 0, m = 0;
@@ -648,7 +648,7 @@ public class CoreIOHandler
             if (!mean.equals(RationalNumber.ZERO))
             {
                 prefix = rationalToOutput(mean);
-                g = g.subtract(new CanonicalShortGame(mean, 0, 0));
+                g = g.subtract(CanonicalShortGame.construct(mean, 0, 0));
             }
         }
         
@@ -682,7 +682,7 @@ public class CoreIOHandler
         boolean forceParens
         )
     {
-        CanonicalShortGame inverse = g.getInverse();
+        CanonicalShortGame inverse = g.negate();
         
         // Check for number-up-star.
         if (displayAsNumberUpStar(g))
@@ -766,7 +766,7 @@ public class CoreIOHandler
             // subscripts or superscripts, then we display this as Tiny(G) rather than +_G.
             StyledTextOutput sub = new StyledTextOutput();
             canonicalGameToOutput(
-                (g.getRightOption(0).getRightOption(0).getInverse()).add
+                (g.getRightOption(0).getRightOption(0).negate()).add
                     (g.getLeftOption(0)),
                 sub,
                 true,
@@ -894,11 +894,11 @@ public class CoreIOHandler
             leftOutput.appendText(Output.Mode.PLAIN_TEXT, ">");
         }
         else if (displayOptions.contains(DisplayOption.ZERO_POW) &&
-            (gip = getZeroNth(g.getInverse())) != null && gip.n > 1)
+            (gip = getZeroNth(g.negate())) != null && gip.n > 1)
         {
             // Case 2: {h|0^n}
             numSlashes = canonicalGameToOutput
-                (gip.g.getInverse(), leftOutput, false, false) + 1;
+                (gip.g.negate(), leftOutput, false, false) + 1;
             rightOutput.appendMath("0");
             rightOutput.appendText(Output.Mode.PLAIN_TEXT, "<");
             rightOutput.appendText(

@@ -2,6 +2,7 @@ package org.cgsuite.lang.game;
 
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.CgsuiteException;
+import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.output.StyledTextOutput;
@@ -27,10 +28,10 @@ public class InverseGame extends Game
     public Game simplify() throws CgsuiteException
     {
         CgsuiteObject gSimp = g.simplify();
-        if (gSimp instanceof RationalNumber)
-            return ((RationalNumber) gSimp).negate();
+        if (gSimp instanceof CgsuiteInteger)
+            return ((CgsuiteInteger) gSimp).negate();
         else if (gSimp instanceof CanonicalShortGame)
-            return ((CanonicalShortGame) gSimp).getInverse();
+            return ((CanonicalShortGame) gSimp).negate();
         else if (gSimp instanceof Game)
             return new InverseGame((Game) gSimp);
         else

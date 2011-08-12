@@ -22,6 +22,7 @@ import org.antlr.runtime.Token;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
+import org.cgsuite.lang.output.Utilities;
 import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
 import org.cgsuite.lang.parser.CgsuiteTree;
@@ -260,7 +261,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         CgsuiteMap map = new CgsuiteMap();
         for (Entry<String,CgsuiteMethod> e : methods.entrySet())
         {
-            map.put(new CgsuiteString(e.getKey()), e.getValue());
+            map.put(e.getValue(), new CgsuiteString(e.getKey()));
         }
         return map;
     }
@@ -348,6 +349,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.vars = new HashMap<String,Variable>();
         this.varsInOrder = new ArrayList<Variable>();
         this.descendants = new HashSet<CgsuiteClass>();
+        
+        Set<String> requiredDeclarations = new HashSet<String>();
 
         if (parseTree.getChild(0).getType() == PREAMBLE)
         {
@@ -395,10 +398,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     {
                         applyMethod = true;
                     }
-                    else 
+                    else
                     {
-                        throw new InputException(parseTree.getChild(1).getToken(),
-                            "Method is ambiguous because it is declared by multiple incompatible ancestors: " + method.getName());
+                        applyMethod = false;
+                        requiredDeclarations.add(method.getName());
                     }
                 }
 
@@ -443,6 +446,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
 
         declarations(parseTree.getChild(1));
+        
+        for (String methodName : requiredDeclarations)
+        {
+            if (methods.get(methodName).getDeclaringClass() != this)
+            {
+                throw new InputException(parseTree.getChild(1).getToken(),
+                    "Method is ambiguous because it is declared by multiple incompatible ancestors: " + methodName);
+            }
+        }
         
         // Mark loaded
 

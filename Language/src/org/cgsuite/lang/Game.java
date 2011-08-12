@@ -19,17 +19,22 @@ public class Game extends CgsuiteObject
         return this;
     }
 
-    public InverseGame buildInverse()
+    public Game negate()
     {
         return new InverseGame(this);
     }
 
-    public SumGame buildSum(Game other)
+    public Game add(Game other)
     {
         if (other instanceof SumGame)
-            return ((SumGame) other).buildSum(this);
+            return ((SumGame) other).add(this);
         else
             return new SumGame(this, other);
+    }
+    
+    public Game subtract(Game other)
+    {
+        return new SumGame(this, other.negate());
     }
 
     public CgsuiteCollection getLeftOptions()

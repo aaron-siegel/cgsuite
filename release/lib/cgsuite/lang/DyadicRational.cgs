@@ -1,0 +1,15 @@
+/*
+ * DyadicRational.cgs
+ *
+ * Created by asiegel on Aug 12, 2011
+ */
+
+class DyadicRational extends CanonicalShortGame, Number : java "org.cgsuite.lang.game.CanonicalShortGame"
+
+    override method op+(obj) : java "add";
+    override method op-(obj) : java "subtract";
+    override method op neg() : java "negate";
+
+    override property ToString.get : java "toString";
+    
+end

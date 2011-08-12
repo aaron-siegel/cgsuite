@@ -30,11 +30,10 @@
 package org.cgsuite.lang.game;
 
 
-import org.cgsuite.lang.InputException;
-import java.util.Comparator;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -45,9 +44,11 @@ import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
+import org.cgsuite.lang.InputException;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.output.StyledTextOutput.Symbol;
+
 import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
 import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
@@ -230,29 +231,30 @@ public final class CanonicalShortGame extends Game
     // Constants.
     
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("CanonicalShortGame"); 
+    public final static CgsuiteClass DYADIC_RATIONAL_TYPE = CgsuitePackage.forceLookupClass("DyadicRational");
 
     /**
      * A static reference to the game 0.
      */
-    public final static CanonicalShortGame ZERO = new CanonicalShortGame();
+    public final static CanonicalShortGame ZERO = new CanonicalShortGame(DYADIC_RATIONAL_TYPE);
     /**
      * A static reference to the game *.
      */
-    public final static CanonicalShortGame STAR = new CanonicalShortGame();
+    public final static CanonicalShortGame STAR = new CanonicalShortGame(TYPE);
     /**
      * A static reference to the game &uarr;.
      */
-    public final static CanonicalShortGame UP = new CanonicalShortGame();
+    public final static CanonicalShortGame UP = new CanonicalShortGame(TYPE);
     /**
      * A static reference to the game &uarr;*.
      */
-    public final static CanonicalShortGame UP_STAR = new CanonicalShortGame();
+    public final static CanonicalShortGame UP_STAR = new CanonicalShortGame(TYPE);
 
     public final static CanonicalShortGame
-        ONE = new CanonicalShortGame(),
-        TWO = new CanonicalShortGame(),
-        MINUS_ONE = new CanonicalShortGame(),
-        MINUS_TWO = new CanonicalShortGame();
+        ONE = new CanonicalShortGame(DYADIC_RATIONAL_TYPE),
+        TWO = new CanonicalShortGame(DYADIC_RATIONAL_TYPE),
+        MINUS_ONE = new CanonicalShortGame(DYADIC_RATIONAL_TYPE),
+        MINUS_TWO = new CanonicalShortGame(DYADIC_RATIONAL_TYPE);
 
     static
     {
@@ -267,10 +269,24 @@ public final class CanonicalShortGame extends Game
 
     ////////////////////////////////////////////////////////////////////////
     // Constructors.
-
-    private CanonicalShortGame()
+    
+    private CanonicalShortGame(CgsuiteClass type)
     {
-        super(TYPE);
+        super(type);
+    }
+
+    private CanonicalShortGame(CgsuiteClass type, int id)
+    {
+        super(type);
+        this.id = id;
+    }
+    
+    public CanonicalShortGame(CgsuiteInteger n)
+    {
+        super(DYADIC_RATIONAL_TYPE);
+        if (!n.isSmall())
+            throw new InputException("Overflow error.");
+        this.id = constructInteger(n.intValue());
     }
 
     /**
@@ -278,16 +294,16 @@ public final class CanonicalShortGame extends Game
      *
      * @param   n The integer value of the <code>CanonicalGame</code>.
      */
-    public CanonicalShortGame(int n)
+    public static CanonicalShortGame construct(int n)
     {
-        this();
-        id = constructInteger(n);
+        return createFromId(constructInteger(n));
     }
 
-    public CanonicalShortGame(CgsuiteInteger n)
+    public static CanonicalShortGame construct(CgsuiteInteger n)
     {
-        this();
-        id = constructInteger(n.intValue());
+        if (!n.isSmall())
+            throw new InputException("Overflow error.");
+        return createFromId(constructInteger(n.intValue()));
     }
 
     /**
@@ -297,9 +313,9 @@ public final class CanonicalShortGame extends Game
      *          <code>CanonicalGame</code>.
      * @throws  IllegalArgumentException <code>number</code> is not dyadic.
      */
-    public CanonicalShortGame(RationalNumber number)
+    public static CanonicalShortGame construct(RationalNumber number)
     {
-        this(number, 0, 0);
+        return construct(number, 0, 0);
     }
 
     /**
@@ -323,9 +339,8 @@ public final class CanonicalShortGame extends Game
      * @throws  IllegalArgumentException <code>number</code> is not dyadic.
      * @throws  IllegalArgumentException <code>nimber</code> is negative.
      */
-    public CanonicalShortGame(RationalNumber number, int upMultiple, int nimber)
+    public static CanonicalShortGame construct(RationalNumber number, int upMultiple, int nimber)
     {
-        this();
         if (!number.isDyadic())
         {
             throw new IllegalArgumentException("number must be dyadic.");
@@ -334,7 +349,7 @@ public final class CanonicalShortGame extends Game
         {
             throw new IllegalArgumentException("nimber must be non-negative.");
         }
-        id = constructNus(number, upMultiple, nimber);
+        return createFromId(constructNus(number, upMultiple, nimber));
     }
 
     /**
@@ -346,13 +361,12 @@ public final class CanonicalShortGame extends Game
      * @param   leftOption The left option of this game.
      * @param   rightOption The right option of this game.
      */
-    public CanonicalShortGame(CanonicalShortGame leftOption, CanonicalShortGame rightOption)
+    public static CanonicalShortGame construct(CanonicalShortGame leftOption, CanonicalShortGame rightOption)
     {
-        this();
-        id = constructFromOptions(
+        return createFromId(constructFromOptions(
             new int[] { leftOption.id },
             new int[] { rightOption.id }
-            );
+            ));
     }
 
     /**
@@ -363,9 +377,8 @@ public final class CanonicalShortGame extends Game
      * @param   leftOptions The left options of this game.
      * @param   rightOptions The right options of this game.
      */
-    public CanonicalShortGame(Collection<CanonicalShortGame> leftOptions, Collection<CanonicalShortGame> rightOptions)
+    public static CanonicalShortGame construct(Collection<CanonicalShortGame> leftOptions, Collection<CanonicalShortGame> rightOptions)
     {
-        this();
         int[] leftOptionArray = new int[leftOptions.size()],
               rightOptionArray = new int[rightOptions.size()];
 
@@ -380,7 +393,7 @@ public final class CanonicalShortGame extends Game
             rightOptionArray[index++] = (g == null ? -1 : g.id);
         }
 
-        id = constructFromOptions(leftOptionArray, rightOptionArray);
+        return createFromId(constructFromOptions(leftOptionArray, rightOptionArray));
     }
 
     /**
@@ -391,9 +404,8 @@ public final class CanonicalShortGame extends Game
      * @param   leftOptions The left options of this game.
      * @param   rightOptions The right options of this game.
      */
-    public CanonicalShortGame(CanonicalShortGame[] leftOptions, CanonicalShortGame[] rightOptions)
+    public static CanonicalShortGame construct(CanonicalShortGame[] leftOptions, CanonicalShortGame[] rightOptions)
     {
-        this();
         int[] leftOptionArray = new int[leftOptions.length],
               rightOptionArray = new int[rightOptions.length];
 
@@ -407,7 +419,7 @@ public final class CanonicalShortGame extends Game
             rightOptionArray[i] = (rightOptions[i] == null ? -1 : rightOptions[i].id);
         }
 
-        id = constructFromOptions(leftOptionArray, rightOptionArray);
+        return createFromId(constructFromOptions(leftOptionArray, rightOptionArray));
     }
 
     @Override
@@ -505,12 +517,17 @@ public final class CanonicalShortGame extends Game
     @Override
     public Game simplify()
     {
-        if (isInteger() && !isExtendedRecord(id))
-            return new CgsuiteInteger(getSmallNumeratorPart(id));
-        else if (isNumber())
-            return getNumberPart().simplify();
+        if (isInteger())
+        {
+            if (isExtendedRecord(id))
+                return new CgsuiteInteger(getNumberPart().getNumerator());
+            else
+                return new CgsuiteInteger(getSmallNumeratorPart(id));
+        }
         else
+        {
             return this;
+        }
     }
 
     private static boolean abbreviateInfinitesimals = false, meanZeroMode = false;
@@ -548,7 +565,7 @@ public final class CanonicalShortGame extends Game
             if (!mean.equals(RationalNumber.ZERO))
             {
                 prefix = mean.toOutput();
-                g = g.subtract(new CanonicalShortGame(mean, 0, 0));
+                g = g.subtract(CanonicalShortGame.construct(mean, 0, 0));
             }
         }
 
@@ -582,7 +599,7 @@ public final class CanonicalShortGame extends Game
         )
     {
         CanonicalShortGame g = this;
-        CanonicalShortGame inverse = g.getInverse();
+        CanonicalShortGame inverse = g.negate();
 
         // Check for number-up-star.
         if (g.isNumberUpStar())
@@ -664,7 +681,7 @@ public final class CanonicalShortGame extends Game
             {
                 str = "Tiny";
                 translate = g.getLeftOption(0);
-                subscript = g.getRightOption(0).getRightOption(0).getInverse().add(translate);
+                subscript = g.getRightOption(0).getRightOption(0).negate().add(translate);
             }
             else
             {
@@ -816,7 +833,8 @@ public final class CanonicalShortGame extends Game
         return options;
     }
 
-    public CanonicalShortGame getInverse()
+    @Override
+    public CanonicalShortGame negate()
     {
         return createFromId(getInverse(id));
     }
@@ -1491,6 +1509,20 @@ public final class CanonicalShortGame extends Game
 
         return constructFromOptions(newLeftOptions, newRightOptions);
     }
+    
+    public CgsuiteObject add(CgsuiteObject other)
+    {
+        if (other instanceof CgsuiteInteger)
+            return add(construct((CgsuiteInteger) other));
+        else if (other instanceof CanonicalShortGame)
+            return add((CanonicalShortGame) other);
+        else if (other instanceof RationalNumber && isNumber())
+            return getNumberPart().add((RationalNumber) other);
+        else if (other instanceof Game)
+            return super.add((Game) other);
+        else
+            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
+    }
 
     /**
      * Calculates the sum of this game and <code>h</code> and returns the resulting
@@ -1604,6 +1636,20 @@ public final class CanonicalShortGame extends Game
         result = constructFromOptions(newLeftOptions, newRightOptions);
         storeOpResult(OPERATION_SUM, gId, hId, result);
         return result;
+    }
+    
+    public CgsuiteObject subtract(CgsuiteObject other)
+    {
+        if (other instanceof CgsuiteInteger)
+            return subtract(construct((CgsuiteInteger) other));
+        else if (other instanceof CanonicalShortGame)
+            return subtract((CanonicalShortGame) other);
+        else if (other instanceof RationalNumber && isNumber())
+            return getNumberPart().subtract((RationalNumber) other);
+        else if (other instanceof Game)
+            return super.subtract((Game) other);
+        else
+            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
 
     /**
@@ -1723,7 +1769,7 @@ public final class CanonicalShortGame extends Game
         int redKite = ordinalSum(constructNus(0, 0, 0, nextPow2), constructInteger(-1));
         CanonicalShortGame e = createFromId(add(UP_STAR.id, redKite));
 
-        if (!(difference.leq(e) && (e.getInverse()).leq(difference)))
+        if (!(difference.leq(e) && (e.negate()).leq(difference)))
         {
             throw new InputException("That game is not atomic.");
         }
@@ -2761,7 +2807,7 @@ public final class CanonicalShortGame extends Game
      */
     public CanonicalShortGame tiny()
     {
-        return new CanonicalShortGame(ZERO, new CanonicalShortGame(ZERO, getInverse()));
+        return CanonicalShortGame.construct(ZERO, CanonicalShortGame.construct(ZERO, negate()));
     }
 
     /**
@@ -2775,7 +2821,7 @@ public final class CanonicalShortGame extends Game
      */
     public CanonicalShortGame miny()
     {
-        return new CanonicalShortGame(new CanonicalShortGame(this, ZERO), ZERO);
+        return CanonicalShortGame.construct(CanonicalShortGame.construct(this, ZERO), ZERO);
     }
 
     /**
@@ -2810,11 +2856,11 @@ public final class CanonicalShortGame extends Game
         }
         if (n == 0)
         {
-            return getRightOption(0).getInverse();
+            return getRightOption(0).negate();
         }
         else
         {
-            return new CanonicalShortGame(ZERO, getRightOption(0).subtract(powTo(new RationalNumber(n-1, 1))));
+            return CanonicalShortGame.construct(ZERO, getRightOption(0).subtract(powTo(new RationalNumber(n-1, 1))));
         }
     }
 
@@ -2854,7 +2900,7 @@ public final class CanonicalShortGame extends Game
         }
         else
         {
-            return new CanonicalShortGame(powTo(r.subtract(RationalNumber.ONE)), getRightOption(0));
+            return CanonicalShortGame.construct(powTo(r.subtract(RationalNumber.ONE)), getRightOption(0));
         }
     }
 
@@ -2895,7 +2941,7 @@ public final class CanonicalShortGame extends Game
         {
             throw new IllegalArgumentException("The specified base is not of the form {0|H}.");
         }
-        int id = new CanonicalShortGame(ue.getNumberPart(), 0, 0).id;
+        int id = CanonicalShortGame.construct(ue.getNumberPart(), 0, 0).id;
         if (ue.hasBase())
         {
             id = add(id, base.getRightOption(0).id);
@@ -3974,9 +4020,12 @@ public final class CanonicalShortGame extends Game
 
     private static CanonicalShortGame createFromId(int id)
     {
-        CanonicalShortGame g = new CanonicalShortGame();
-        g.id = id;
-        return g;
+        CgsuiteClass type;
+        if (isNumber(id))
+            type = DYADIC_RATIONAL_TYPE;
+        else
+            type = TYPE;
+        return new CanonicalShortGame(type, id);
     }
 
     // Ensures that there is enough room in the current sector to write out

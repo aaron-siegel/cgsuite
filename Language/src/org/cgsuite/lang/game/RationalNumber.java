@@ -9,7 +9,7 @@ import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.StyledTextOutput;
 
-public class RationalNumber extends Game
+public class RationalNumber extends CgsuiteObject
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Number");
 
@@ -44,6 +44,17 @@ public class RationalNumber extends Game
     {
         this(BigInteger.valueOf(numerator), BigInteger.valueOf(denominator));
     }
+    
+    public RationalNumber(CanonicalShortGame number)
+    {
+        super(TYPE);
+        if (!number.isNumber())
+            throw new IllegalArgumentException("Not a number.");
+        
+        RationalNumber n = number.getNumberPart();
+        numerator = n.numerator;
+        denominator = n.denominator;
+    }
 
     @Override
     protected int compareLike(CgsuiteObject other)
@@ -60,10 +71,12 @@ public class RationalNumber extends Game
     }
 
     @Override
-    public Game simplify()
+    public CgsuiteObject simplify()
     {
         if (isInteger())
             return new CgsuiteInteger(numerator);
+        else if (isDyadic())
+            return CanonicalShortGame.construct(this);
         else
             return this;
     }
@@ -135,11 +148,6 @@ public class RationalNumber extends Game
         return denominator;
     }
 
-    public MultipleGame buildProduct(Game other)
-    {
-        return new MultipleGame(this, other);
-    }
-
     @Override
     public int hashCode()
     {
@@ -179,7 +187,7 @@ public class RationalNumber extends Game
     {
         return new RationalNumber(numerator.negate(), denominator);
     }
-
+    
     public RationalNumber add(RationalNumber r)
     {
         return new RationalNumber(
@@ -187,7 +195,7 @@ public class RationalNumber extends Game
             denominator.multiply(r.denominator)
             );
     }
-
+    
     public RationalNumber subtract(RationalNumber r)
     {
         return new RationalNumber(
@@ -298,7 +306,7 @@ public class RationalNumber extends Game
 
     public CanonicalShortGame canonicalForm()
     {
-        return new CanonicalShortGame(this);
+        return CanonicalShortGame.construct(this);
     }
 
     public boolean leq(RationalNumber other)

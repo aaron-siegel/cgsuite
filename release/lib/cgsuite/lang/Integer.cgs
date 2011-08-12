@@ -1,9 +1,14 @@
-class Integer extends Number : java "org.cgsuite.lang.CgsuiteInteger"
+class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
 
+    override method op+(obj) : java "add";
+    override method op-(obj) : java "subtract";
     override method op neg () : java "negate";
+    
     method NimSum(Integer n) : java "nimSum";
     
+    property Is2Power.get : java "is2Power";
     property IsSmall.get : java "isSmall";
+    property Lb.get : java "lb";
     
     static method Random(Integer obj) : java "random";
     static method SetSeed(Integer seed) : java "setSeed";

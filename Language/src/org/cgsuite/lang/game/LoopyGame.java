@@ -686,7 +686,7 @@ public class LoopyGame extends Game
             {
                 rightOptions[i] = canonicalize(graph.getRightEdgeTarget(vertex, i), cachedCanonicalForms);
             }
-            cachedCanonicalForms[vertex] = new CanonicalShortGame(leftOptions, rightOptions);
+            cachedCanonicalForms[vertex] = CanonicalShortGame.construct(leftOptions, rightOptions);
         }
         return cachedCanonicalForms[vertex];
     }

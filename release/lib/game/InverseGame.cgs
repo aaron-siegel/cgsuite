@@ -6,7 +6,7 @@ class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
         return setof(-g for g in Underlying.Options(player.Opponent));
     end
     
-    property CanonicalForm.get
+    override property CanonicalForm.get
         return -Underlying.CanonicalForm;
     end
     

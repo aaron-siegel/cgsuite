@@ -43,7 +43,7 @@ public class SumGame extends Game
     }
 
     @Override
-    public SumGame buildSum(Game other)
+    public SumGame add(Game other)
     {
         List<CgsuiteObject> newComponents = new ArrayList<CgsuiteObject>(components.size()+1);
         newComponents.addAll(components);
@@ -103,55 +103,25 @@ public class SumGame extends Game
     public Game simplify() throws CgsuiteException
     {
         List<CgsuiteObject> simplified = new ArrayList<CgsuiteObject>();
-        boolean allIntegers = true;
-        boolean allNumbers = true;
         boolean allCanonical = true;
 
         for (CgsuiteObject x : components)
         {
             CgsuiteObject simp = x.simplify();
-            if (simp instanceof CgsuiteInteger)
+            if (!(simp instanceof CgsuiteInteger) && !(simp instanceof CanonicalShortGame))
             {
-            }
-            else if (simp instanceof RationalNumber)
-            {
-                if (!((RationalNumber) simp).isInteger())
-                {
-                    allIntegers = false;
-                    if (!((RationalNumber) simp).isDyadic())
-                        allCanonical = false;
-                }
-            }
-            else
-            {
-                allNumbers = false;
-                if (!(simp instanceof CanonicalShortGame))
-                    allCanonical = false;
+                allCanonical = false;
             }
             simplified.add(simp);
         }
 
-        if (allNumbers)
-        {
-            RationalNumber answer = RationalNumber.ZERO;
-            for (CgsuiteObject obj : simplified)
-            {
-                if (obj instanceof CgsuiteInteger)
-                    answer = answer.add(new RationalNumber((CgsuiteInteger) obj));
-                else
-                    answer = answer.add((RationalNumber) obj);
-            }
-            return answer;
-        }
-        else if (allCanonical)
+        if (allCanonical)
         {
             CanonicalShortGame answer = CanonicalShortGame.ZERO;
             for (CgsuiteObject obj : simplified)
             {
                 if (obj instanceof CgsuiteInteger)
-                    answer = answer.add(new CanonicalShortGame((CgsuiteInteger) obj));
-                else if (obj instanceof RationalNumber)
-                    answer = answer.add(new CanonicalShortGame((RationalNumber) obj));
+                    answer = answer.add(CanonicalShortGame.construct((CgsuiteInteger) obj));
                 else
                     answer = answer.add((CanonicalShortGame) obj);
             }

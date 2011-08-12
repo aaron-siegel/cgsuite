@@ -2,11 +2,11 @@ class Game : java "org.cgsuite.lang.Game"
 
     static var descent := {};
 
-    method op+ (Game obj) : java "buildSum";
+    method op+ (Game obj) : java "add";
     method op- (Game obj)
         return this + (-obj);
     end
-    method op neg () : java "buildInverse";
+    method op neg () : java "negate";
 
     property LeftOptions.get
         return Options(Player.Left);

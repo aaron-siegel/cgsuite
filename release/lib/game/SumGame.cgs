@@ -2,7 +2,7 @@ class SumGame extends Game : java "org.cgsuite.lang.game.SumGame"
 
     method SumGame(List components) : java "SumGame";
 
-    override method op+ (Game obj) : java "buildSum";
+    override method op+ (Game obj) : java "add";
     
     property Components.get : java "getComponents";
     
