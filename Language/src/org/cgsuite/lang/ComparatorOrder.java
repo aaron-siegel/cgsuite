@@ -7,7 +7,6 @@ package org.cgsuite.lang;
 import java.util.HashMap;
 import java.util.Map;
 import org.cgsuite.lang.game.CanonicalShortGame;
-import org.cgsuite.lang.game.Nimber;
 import org.cgsuite.lang.game.RationalNumber;
 
 /**
@@ -29,7 +28,6 @@ public class ComparatorOrder
             CgsuiteString.TYPE,
             CgsuiteInteger.TYPE,
             RationalNumber.TYPE,
-            Nimber.TYPE,
             CanonicalShortGame.TYPE,
             CgsuiteList.TYPE,
             CgsuiteSet.TYPE,

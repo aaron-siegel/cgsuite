@@ -301,11 +301,6 @@ public final class CanonicalShortGame extends Game
     {
         this(number, 0, 0);
     }
-    
-    public CanonicalShortGame(Nimber nimber)
-    {
-        this(RationalNumber.ZERO, 0, nimber.getNimValue());
-    }
 
     /**
      * Constructs a <code>CanonicalGame</code> equal to the sum of a number, a
@@ -514,8 +509,6 @@ public final class CanonicalShortGame extends Game
             return new CgsuiteInteger(getSmallNumeratorPart(id));
         else if (isNumber())
             return getNumberPart().simplify();
-        else if (isNimber())
-            return new Nimber(getNimberPart());
         else
             return this;
     }

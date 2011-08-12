@@ -81,10 +81,6 @@ public class MultipleGame extends Game
         {
             return multiplier.multiply((RationalNumber) simp);
         }
-        else if (simp instanceof Nimber)
-        {
-            return new CanonicalShortGame(multiplier).nortonMultiply(new CanonicalShortGame((Nimber) simp));
-        }
         else if (simp instanceof CanonicalShortGame)
         {
             return new CanonicalShortGame(multiplier).nortonMultiply((CanonicalShortGame) simp);
