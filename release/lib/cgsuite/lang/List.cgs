@@ -11,7 +11,7 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
     mutable method Remove(obj) : java "remove";
     mutable method RemoveAt(Integer index) : java "removeAt(int)";
             method SubList(Integer i1, Integer i2) : java "subList(int,int)";
-    mutable method Sort(Procedure comparator) : java "sort";
+    mutable method Sort(Procedure comparator?) : java "sort";
 
     property Length.get : java "size";
     override property ToString.get : java "toString";

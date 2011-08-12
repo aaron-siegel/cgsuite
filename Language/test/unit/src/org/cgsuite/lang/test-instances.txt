@@ -203,7 +203,8 @@ List.Length                             \ list.Length \ 3 \
 List.Contains                           \ list.Contains("diablo") \ true \
 List.Clear                              \ list.Clear(); \ nil \
 List - check result again               \ list \ [] \
-List.Sort                               \ list := [1,7,2,5,4]; list.Sort((x,y) -> x-y); list \ [1,2,4,5,7] \
+List.Sort (custom comparator)           \ list := [1,7,2,5,4]; list.Sort((x,y) -> y-x); list \ [7,5,4,2,1] \
+List.Sort (default comparator)          \ list.Sort(); list \ [1,2,4,5,7] \
 List.PeriodicTable                      \ list.PeriodicTable(3) \
 1 | 2 | 4
 --+---+--

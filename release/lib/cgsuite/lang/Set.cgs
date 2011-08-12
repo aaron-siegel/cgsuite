@@ -14,19 +14,19 @@ mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
     method Contains(obj) : java "contains";
 
     override property ToString.get : java "toString";
+    
+    property ToSortedList.get
+        list := listof(x for x in this);
+        list.Sort();
+        return list;
+    end
 
     override method Apply(Procedure f) 
-        return setof(f(x) for x  in this);
+        return setof(f(x) for x in this);
     end
     
     override method FilterWith(Procedure f)
-        result := {};
-        for x in this do
-            if f(x) then
-                result.Add(x);
-            end
-        end
-        return result;
+        return setof(x for x in this where f(x));
     end
     
 end

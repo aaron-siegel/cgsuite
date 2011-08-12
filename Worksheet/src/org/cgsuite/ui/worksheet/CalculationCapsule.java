@@ -24,7 +24,6 @@ import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Domain;
 import org.cgsuite.lang.InputException;
-import org.cgsuite.lang.Nil;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 import org.cgsuite.lang.parser.CgsuiteLexer;
@@ -145,7 +144,7 @@ public class CalculationCapsule implements Runnable
         {
             CgsuiteObject retval = domain.script(tree).simplify();
 
-            if (retval == Nil.NIL)
+            if (retval == CgsuiteObject.NIL)
                 return new StyledTextOutput("");
             else
                 return retval.toOutput();

@@ -161,19 +161,26 @@ public class CgsuiteList extends CgsuiteCollection
 
     public void sort(final CgsuiteProcedure comparator)
     {
-        final List<CgsuiteObject> arguments = new ArrayList<CgsuiteObject>(2);
-        arguments.add(null);
-        arguments.add(null);
-        Collections.sort(objects, new Comparator<CgsuiteObject>()
+        if (comparator == null)
         {
-            @Override
-            public int compare(CgsuiteObject x, CgsuiteObject y)
+            Collections.sort(objects);
+        }
+        else
+        {
+            final List<CgsuiteObject> arguments = new ArrayList<CgsuiteObject>(2);
+            arguments.add(null);
+            arguments.add(null);
+            Collections.sort(objects, new Comparator<CgsuiteObject>()
             {
-                arguments.set(0, x);
-                arguments.set(1, y);
-                return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class, false);
-            }
-        });
+                @Override
+                public int compare(CgsuiteObject x, CgsuiteObject y)
+                {
+                    arguments.set(0, x);
+                    arguments.set(1, y);
+                    return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class, false);
+                }
+            });
+        }
     }
     
     public Table periodicTable(int period)

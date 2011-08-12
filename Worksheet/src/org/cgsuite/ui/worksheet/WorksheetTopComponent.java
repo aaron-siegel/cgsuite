@@ -140,8 +140,11 @@ public final class WorksheetTopComponent extends TopComponent
     @Override
     public void componentOpened()
     {
-        started = true;
-        worksheetPanel1.initialize();
+        if (!started)
+        {
+            started = true;
+            worksheetPanel1.initialize();
+        }
     }
 
     @Override
