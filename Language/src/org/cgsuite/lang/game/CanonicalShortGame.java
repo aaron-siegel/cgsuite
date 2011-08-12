@@ -2176,6 +2176,20 @@ public final class CanonicalShortGame extends Game
         }
         return set;
     }
+    
+    public CgsuiteObject multiply(CgsuiteObject other)
+    {
+        if (other instanceof CgsuiteInteger)
+            return nortonMultiply(construct((CgsuiteInteger) other));
+        else if (other instanceof CanonicalShortGame)
+            return nortonMultiply((CanonicalShortGame) other);
+        else if (other instanceof RationalNumber && isNumber())
+            return getNumberPart().multiply((RationalNumber) other);
+        else if (other instanceof Game && isNumber())
+            return new MultipleGame(this, (Game) other);
+        else
+            throw new InputException("Cannot multiply CanonicalShortGame and object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
+    }
 
     /**
      * Calculates the Norton product of this game by the unit <code>u</code>.

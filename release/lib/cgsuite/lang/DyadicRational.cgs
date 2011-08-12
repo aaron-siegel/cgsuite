@@ -8,6 +8,7 @@ class DyadicRational extends CanonicalShortGame, Number : java "org.cgsuite.lang
 
     override method op+(obj) : java "add";
     override method op-(obj) : java "subtract";
+    override method op*(obj) : java "multiply";
     override method op neg() : java "negate";
 
     override property ToString.get : java "toString";
