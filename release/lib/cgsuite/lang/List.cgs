@@ -14,11 +14,22 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
     mutable method Sort(Procedure comparator?) : java "sort";
 
     property Length.get : java "size";
+    property Size.get : java "size";
     override property ToString.get : java "toString";
     
+    method Apply(Procedure f)
+        return listof(f(x) for x in this)
+    end
+    
+    method FilterWith(Procedure f)
+        return listof(x for x in this where f(x));
+    end
+    
     override property RandomElement.get
-        if this.Length > 0 then
-            return this[Integer.Random(this.Length)];
+        if IsEmpty then
+            error("The collection is empty.");
+        else
+            return this[Integer.Random(Length)];
         end
     end
 

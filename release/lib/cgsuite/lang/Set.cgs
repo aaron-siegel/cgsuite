@@ -1,9 +1,6 @@
 mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
 
     property Size.get : java "size";
-    property IsEmpty.get
-        return this.Size == 0;
-    end
 
     mutable method Add(obj) : java "add";
     mutable method AddAll(Collection obj) : java "addAll";
@@ -15,17 +12,11 @@ mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
 
     override property ToString.get : java "toString";
     
-    property ToSortedList.get
-        list := listof(x for x in this);
-        list.Sort();
-        return list;
-    end
-
-    override method Apply(Procedure f) 
+    method Apply(Procedure f) 
         return setof(f(x) for x in this);
     end
     
-    override method FilterWith(Procedure f)
+    method FilterWith(Procedure f)
         return setof(x for x in this where f(x));
     end
     

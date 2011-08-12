@@ -1,21 +1,19 @@
 class Collection : java "org.cgsuite.lang.CgsuiteCollection"
 
-    method Apply(Procedure f)
-        return listof(f(x) for x in this)
+    property IsEmpty.get
+        return this.Size == 0;
     end
     
-    method FilterWith(Procedure f)
-        result := [];
-        for x in this do
-            if f(x) then
-                result.Add(x);
-            end
-        end
-        return result;
+    property ToList.get
+        return listof(x for x in this);
     end
     
+    property ToSet.get
+        return setof(x for x in this);
+    end
+
     property RandomElement.get
-        return listof(x for x in this).RandomElement;
+        return ToList.RandomElement;
     end
     
 end
