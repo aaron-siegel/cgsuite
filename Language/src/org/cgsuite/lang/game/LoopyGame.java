@@ -586,7 +586,7 @@ public class LoopyGame extends Game
                 sortedOptions.add(g);
             }
         }
-        Collections.sort(sortedOptions);
+        Collections.sort(sortedOptions, UNIVERSAL_COMPARATOR);
         return sortedOptions;
     }
 

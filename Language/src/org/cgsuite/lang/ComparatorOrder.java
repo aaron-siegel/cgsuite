@@ -26,9 +26,12 @@ public class ComparatorOrder
             CgsuiteClass.TYPE,
             CgsuiteBoolean.TYPE,
             CgsuiteString.TYPE,
+            CgsuiteInteger.ZERO_TYPE,
             CgsuiteInteger.TYPE,
-            RationalNumber.TYPE,
+            CanonicalShortGame.DYADIC_RATIONAL_TYPE,
+            CanonicalShortGame.NIMBER_TYPE,
             CanonicalShortGame.TYPE,
+            RationalNumber.TYPE,
             CgsuiteList.TYPE,
             CgsuiteSet.TYPE,
             CgsuiteMap.TYPE

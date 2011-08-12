@@ -93,7 +93,7 @@ public class CgsuiteSet extends CgsuiteCollection
     {
         List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(objects.size());
         list.addAll(objects);
-        Collections.sort(list);
+        Collections.sort(list, UNIVERSAL_COMPARATOR);
         return list.iterator();
     }
 

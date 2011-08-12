@@ -204,7 +204,7 @@ public class Grid extends CgsuiteObject implements Serializable
     @Override
     public boolean equals(Object o)
     {
-        return o instanceof Grid && compareTo((Grid) o) == 0;
+        return o instanceof Grid && compareLike((Grid) o) == 0;
     }
     
     /**

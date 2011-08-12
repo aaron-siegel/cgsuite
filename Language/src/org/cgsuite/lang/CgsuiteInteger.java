@@ -15,9 +15,10 @@ import org.cgsuite.lang.output.StyledTextOutput;
  *
  * @author asiegel
  */
-public class CgsuiteInteger extends Game
+public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Integer");
+    public final static CgsuiteClass ZERO_TYPE = CgsuitePackage.forceLookupClass("Zero");
 
     public final static CgsuiteInteger ZERO = new CgsuiteInteger(0);
     public final static CgsuiteInteger ONE = new CgsuiteInteger(1);
@@ -29,7 +30,7 @@ public class CgsuiteInteger extends Game
 
     public CgsuiteInteger(long value)
     {
-        super(TYPE);
+        super((value == 0)? ZERO_TYPE : TYPE);
         
         if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE)
             this.value = (int) value;
@@ -39,7 +40,7 @@ public class CgsuiteInteger extends Game
     
     public CgsuiteInteger(BigInteger bigValue)
     {
-        super(TYPE);
+        super(bigValue.equals(BigInteger.ZERO)? ZERO_TYPE : TYPE);
         
         if (bigValue.bitLength() <= 31)
             this.value = bigValue.intValue();
@@ -185,15 +186,20 @@ public class CgsuiteInteger extends Game
             output.appendMath(bigValue.toString());
         return output;
     }
-
+    
     @Override
-    protected int compareLike(CgsuiteObject obj)
+    public int compareTo(CgsuiteInteger other)
     {
-        CgsuiteInteger other = (CgsuiteInteger) obj;
         if (bigValue == null && other.bigValue == null)
             return value - other.value;
         else
             return bigValue().compareTo(other.bigValue());
+    }
+
+    @Override
+    protected int compareLike(CgsuiteObject obj)
+    {
+        return compareTo((CgsuiteInteger) obj);
     }
 
     @Override

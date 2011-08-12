@@ -4,6 +4,7 @@ import static java.util.Collections.singletonList;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -14,12 +15,21 @@ import org.cgsuite.lang.output.StyledTextOutput;
 // TODO Implement setters
 // TODO Use weak references for crosslinks
 
-public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
+public class CgsuiteObject implements Cloneable
 {
     private final static Logger log = Logger.getLogger(CgsuiteObject.class.getName());
 
     public static final List<CgsuiteObject> EMPTY_LIST = Collections.emptyList();
     public static final Nil NIL = new Nil();
+    
+    public static final Comparator<CgsuiteObject> UNIVERSAL_COMPARATOR = new Comparator<CgsuiteObject>()
+    {
+        @Override
+        public int compare(CgsuiteObject x, CgsuiteObject y)
+        {
+            return x.universalCompareTo(y);
+        }
+    };
     
     protected CgsuiteClass type;
     Namespace objectNamespace;
@@ -53,8 +63,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
         }
     }
     
-    @Override
-    public final int compareTo(CgsuiteObject other)
+    public final int universalCompareTo(CgsuiteObject other)
     {
         if (type == other.type)
             return compareLike(other);
@@ -90,7 +99,7 @@ public class CgsuiteObject implements Cloneable, Comparable<CgsuiteObject>
                 if (y == null)
                     return 1;
 
-                int cmp = x.compareTo(y);
+                int cmp = x.universalCompareTo(y);
                 if (cmp != 0)
                     return cmp;
             }

@@ -6,10 +6,9 @@ import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
-import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.StyledTextOutput;
 
-public class RationalNumber extends CgsuiteObject
+public class RationalNumber extends CgsuiteObject implements Comparable<RationalNumber>
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Number");
 
@@ -55,12 +54,10 @@ public class RationalNumber extends CgsuiteObject
         numerator = n.numerator;
         denominator = n.denominator;
     }
-
+    
     @Override
-    protected int compareLike(CgsuiteObject other)
+    public int compareTo(RationalNumber r)
     {
-        RationalNumber r = (RationalNumber) other;
-        
         if (isInfinite() && r.isInfinite())
         {
             // Only special case: Both are infinite
@@ -68,6 +65,12 @@ public class RationalNumber extends CgsuiteObject
         }
 
         return numerator.multiply(r.denominator).compareTo(denominator.multiply(r.numerator));
+    }
+
+    @Override
+    protected int compareLike(CgsuiteObject other)
+    {
+        return compareTo((RationalNumber) other);
     }
 
     @Override

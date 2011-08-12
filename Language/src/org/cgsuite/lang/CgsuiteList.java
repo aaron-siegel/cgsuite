@@ -163,7 +163,7 @@ public class CgsuiteList extends CgsuiteCollection
     {
         if (comparator == null)
         {
-            Collections.sort(objects);
+            Collections.sort(objects, UNIVERSAL_COMPARATOR);
         }
         else
         {

@@ -37,7 +37,7 @@ public class CgsuiteMap extends CgsuiteObject
         
         List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(size());
         list.addAll(map.keySet());
-        Collections.sort(list);
+        Collections.sort(list, UNIVERSAL_COMPARATOR);
         
         for (Iterator<CgsuiteObject> it = list.iterator(); it.hasNext();)
         {

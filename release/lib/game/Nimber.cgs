@@ -1,0 +1,14 @@
+/*
+ * Nimber.cgs
+ *
+ * Created by asiegel on Aug 12, 2011
+ */
+
+class Nimber extends CanonicalShortGame, ImpartialGame
+
+    override property CanonicalForm.get
+        return this;
+    end
+    override property NimValue.get : java "getNimberPart";
+
+end

@@ -1,0 +1,9 @@
+/*
+ * Zero.cgs
+ *
+ * Created by asiegel on Aug 12, 2011
+ */
+
+class Zero extends Integer, Nimber
+
+end

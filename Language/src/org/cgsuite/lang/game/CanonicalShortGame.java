@@ -232,6 +232,7 @@ public final class CanonicalShortGame extends Game
     
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("CanonicalShortGame"); 
     public final static CgsuiteClass DYADIC_RATIONAL_TYPE = CgsuitePackage.forceLookupClass("DyadicRational");
+    public final static CgsuiteClass NIMBER_TYPE = CgsuitePackage.forceLookupClass("Nimber");
 
     /**
      * A static reference to the game 0.
@@ -240,7 +241,7 @@ public final class CanonicalShortGame extends Game
     /**
      * A static reference to the game *.
      */
-    public final static CanonicalShortGame STAR = new CanonicalShortGame(TYPE);
+    public final static CanonicalShortGame STAR = new CanonicalShortGame(NIMBER_TYPE);
     /**
      * A static reference to the game &uarr;.
      */
@@ -4037,6 +4038,8 @@ public final class CanonicalShortGame extends Game
         CgsuiteClass type;
         if (isNumber(id))
             type = DYADIC_RATIONAL_TYPE;
+        else if (isNimber(id))
+            type = NIMBER_TYPE;
         else
             type = TYPE;
         return new CanonicalShortGame(type, id);
