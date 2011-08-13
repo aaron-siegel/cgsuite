@@ -735,10 +735,83 @@ public final class CanonicalShortGame extends Game
             return 0;
         }
         
-        UptimalExpansion uptimal = uptimalExpansion();
+        UptimalExpansion uptimal = uptimalExpansion(id);
         if (uptimal != null && (uptimal.isUnit() || uptimal.isUnitSum()))
         {
-            output.appendOutput(uptimal.toOutput());
+            if (!uptimal.getNumberPart().equals(RationalNumber.ZERO))
+            {
+                output.appendOutput(uptimal.getNumberPart().toOutput());
+            }
+        
+            if (uptimal.isUnit())
+            {
+                int n = 0;
+                boolean up = false;
+                for (n = 1; n <= uptimal.length(); n++)
+                {
+                    if (uptimal.getCoefficient(n) != 0)
+                    {
+                        up = (uptimal.getCoefficient(n) == 1);
+                        break;
+                    }
+                }
+                if (up)
+                {
+                    output.appendSymbol(Symbol.UP);
+                    output.appendText(Output.Mode.PLAIN_TEXT, ".Pow(");
+                    output.appendText(
+                        EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
+                        String.valueOf(n)
+                        );
+                    output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                }
+                else
+                {
+                    output.appendSymbol(Symbol.DOWN);
+                    output.appendText(Output.Mode.PLAIN_TEXT, ".Pow(");
+                    output.appendText(
+                        EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
+                        String.valueOf(n)
+                        );
+                    output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                }
+            }
+            else if (uptimal.isUnitSum())
+            {
+                int n = uptimal.length();
+                boolean up = (uptimal.getCoefficient(1) > 0);
+                if (up)
+                {
+                    output.appendSymbol(Symbol.UP);
+                    output.appendText(Output.Mode.PLAIN_TEXT, ".PowTo(");
+                    output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
+                    output.appendText(
+                        EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
+                        String.valueOf(n)
+                        );
+                    output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "]");
+                    output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                }
+                else
+                {
+                    output.appendSymbol(Symbol.DOWN);
+                    output.appendText(Output.Mode.PLAIN_TEXT, ".PowTo(");
+                    output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
+                    output.appendText(
+                        EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
+                        String.valueOf(n)
+                        );
+                    output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "]");
+                    output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                }
+            }
+            
+            if (uptimal.hasBase())
+            {
+                output.appendText(Output.Mode.PLAIN_TEXT, "+");
+                output.appendSymbol(Symbol.STAR);
+            }
+            
             return 0;
         }
 

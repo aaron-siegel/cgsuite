@@ -340,7 +340,6 @@ public class UptimalExpansion extends CgsuiteObject
         }
         if (hasBase())
         {
-            output.appendText(Output.Mode.PLAIN_TEXT, "+");
             output.appendSymbol(STAR);
         }
         return output;
