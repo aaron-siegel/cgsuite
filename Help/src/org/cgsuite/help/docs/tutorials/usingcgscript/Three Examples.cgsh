@@ -1,5 +1,4 @@
-In the previous tutorial, we saw how to write simple expression in CGScript.  In this chapter, we'll see how to specify
-rulesets by designing new classes in CGScript.
+We'll begin with three example classes of increasing sophistication: Nim; the Partizan Subtraction Games; and Clobber.
 
 ##TOC##
 

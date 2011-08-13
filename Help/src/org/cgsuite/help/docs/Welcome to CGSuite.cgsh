@@ -1,8 +1,6 @@
 Welcome to Combinatorial Game Suite!
 
-If this is your first time using CGSuite, a good place to start is the ~Getting Started~ tutorial:
-
-<a href=\"tutorials/using-cgsuite/index.html\">Getting Started</a>
+If this is your first time using CGSuite, a good place to start is the [[Getting Started]] tutorial.
 
 If you're familiar with beta versions of CGSuite (such as 0.7), you'll probably want to read through the tutorial too,
 since a lot has changed.  There's also a <a href=\"What's New.html\">list of changes</a> since the prior release.

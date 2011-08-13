@@ -1,12 +1,14 @@
-Welcome to Combinatorial Game Suite! This tutorial describes the 
+Welcome to Combinatorial Game Suite! This tutorial gives an overview of the
 main features of CGSuite and contains numerous examples and exercises.
 
-The most fundamental part of Combinatorial Game Suite is the Worksheet, 
-where you can type commands and perform calculations directly. If 
-you're new to CGSuite, you should start with the <a href=\"Worksheet Basics.html\">
-Worksheet Basics</a> section.
+It's divided into several sections:
+<ol>
+<li>[[Worksheet Basics]] - Fundamentals of using the worksheet.
+<li>[[Using The Explorer]] - Using the explorer to browse and edit game positions.
+<li>[[CGScript]] - Introduction to CGSuite's powerful scripting language.
+<li>[[Impartial Games]] - Description of CGSuite's specialized impartial games support.
+<li>[[Loopy Games]] - Description of specialized loopy games support.
+</ol>
 
-The Explorer provides a graphical editor for positions in various games 
-(such as Amazons and Domineering). It also allows you to browse the 
-game tree and search for good moves. The <a href=\"Using the Explorer.html\">
-Using the Explorer</a> section describes it in more detail.
+A separate tutorial, [[Using CGScript][../usingcgscript/Using CGScript]], provides an
+in-depth look at the CGScript language.

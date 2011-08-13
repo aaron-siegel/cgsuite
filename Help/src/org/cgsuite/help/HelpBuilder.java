@@ -203,6 +203,8 @@ public class HelpBuilder
         markup = replaceAllSectionHeadings(markup);
         markup = markup.replaceAll("##TOC##", makeToc(tocItems));
         markup = markup.replaceAll("\n\n", "\n\n<p>");
+        markup = markup.replaceAll("\\[\\[(.*?)\\]\\[(.*?)\\]\\]", "<a href=\"$2.html\">$1</a>");
+        markup = markup.replaceAll("\\[\\[(.*?)\\]\\]", "<a href=\"$1.html\">$1</a>");
         markup = markup.replaceAll("&renderascaret;", "^");
         markup = markup.replaceAll("&renderasquote;", "\"");
         return markup;

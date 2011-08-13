@@ -16,6 +16,7 @@ and open the template in the editor.
     <tocitem text="Impartial Games" target="tutorials.gettingstarted.Impartial Games"/>
    </tocitem>
    <tocitem text="Using CGScript" target="tutorials.usingcgscript.Using CGScript">
+    <tocitem text="Three Examples" target="tutorials.usingcgscript.Three Examples"/>
    </tocitem>
   </tocitem>
  </tocitem>
