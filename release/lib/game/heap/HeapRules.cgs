@@ -33,6 +33,8 @@ class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
     
     end
     
+    method op[](Integer heapSize) : java "nimValue(int)";
+    
     method NimValue(Integer heapSize) : java "nimValue(int)";
     method NimValues(Integer maxHeapSize) : java "nimValues(int)";
     

@@ -107,13 +107,22 @@ class Clobber extends GridGame
     end
     
     override property Icons.get
-        return
-        [
-            GridIcon.Blank,
-            GridIcon.BlackStone,
-            GridIcon.WhiteStone,
-            GridIcon.GraySquare
-        ];
+        if anti then
+            return
+            [
+                GridIcon.Blank,
+                GridIcon.BlackStone,
+                GridIcon.WhiteStone,
+                GridIcon.GraySquare
+            ];
+        else
+            return
+            [
+                GridIcon.Blank,
+                GridIcon.BlackStone,
+                GridIcon.WhiteStone
+            ];
+        end
     end
 
 end

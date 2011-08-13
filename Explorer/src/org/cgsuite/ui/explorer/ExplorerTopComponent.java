@@ -133,8 +133,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
         detailSplitPane.setDividerLocation(480);
         detailSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-
-        editorScrollPane.setBackground(new java.awt.Color(255, 255, 255));
         detailSplitPane.setLeftComponent(editorScrollPane);
 
         analysisPanel.setBackground(new java.awt.Color(255, 255, 255));
@@ -147,9 +145,10 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
         commandPanel.add(inputPanel);
 
-        commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13));
+        commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
         commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.Thermograph.Plot()", "Selection.AtomicWeight" }));
         commandComboBox.setAlignmentX(0.0F);
+        commandComboBox.setMinimumSize(new java.awt.Dimension(90, 27));
         commandComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 commandComboBoxActionPerformed(evt);
@@ -159,7 +158,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
         analysisPanel.add(commandPanel, java.awt.BorderLayout.PAGE_START);
 
-        analysisScrollPane.setBackground(new java.awt.Color(255, 255, 255));
         analysisScrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
         analysisScrollPane.setViewportView(analysisWorksheetPanel);
 
@@ -168,8 +166,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         detailSplitPane.setRightComponent(analysisPanel);
 
         primarySplitPane.setLeftComponent(detailSplitPane);
-
-        treeScrollPane.setBackground(new java.awt.Color(255, 255, 255));
 
         tree.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {

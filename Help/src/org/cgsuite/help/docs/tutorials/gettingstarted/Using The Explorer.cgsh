@@ -1,0 +1,100 @@
+##TOC##
+
+++ Creating Game Positions ++
+    
+The explorer is a graphical position editor and game tree browser.  You 
+can use the explorer to construct and study positions for any game defined
+in CGSuite, as well as to
+display options and move sequences in a tree.
+
+To start the explorer, simply type a command such as the following into
+the worksheet:
+
+$ex := Explorer(game.grid.Clobber(Grid(3,4)));$
+
+This creates a new Explorer window and populates it with an empty 3-by-4
+Clobber position.  You should see something similar to the following (the actual 
+display may vary depending on your operating system):
+
+<img border=\"0\" src=\"explorer-1-blank.png\" width=\"550\" height=\"450\"/>
+
+The Explorer is subdivided into three components.  In the top-left is the 
+position being edited (an empty Clobber board).  In the 
+bottom-left is a panel that displays information about positions being analyzed.  
+We haven't created any positions yet, so no information is displayed there.  
+The panel to the right is used to display game trees.
+
+To edit the Clobber position, simply click on any of the empty squares on the 
+board.  This will cause a black stone to appear there.  Clicking again on 
+the stone changes it to a white stone, cycling 
+through all available possibilities.  Use this method to construct the
+position shown in the following diagram.
+
+<img border=\"0\" src=\"explorer-2-stones.png\" width=\"550\" height=\"450\" />
+
+Now click the \"Add\" button.  This adds the position to the game tree - you
+can now see two nodes on the tree at the right, one for the original (blank)
+position and the other for the more interesting one that we just added.
+
+++ Displaying Analysis ++
+
+Click on the drop-down box that says \"Select or enter a command to start the
+analysis\" and choose \"Selection.CanonicalForm\".  CGSuite will think for a
+moment, and then display the canonical form in the analysis box, as shown in
+the following diagram.
+
+<img border=\"0\" src=\"explorer-3-canonicalform.png\" width=\"550\" height=\"450\" />
+
+The canonical form is a bit of a mess, so click on the drop-down box again
+and choose \"Selection.AtomicWeight\", to see the atomic weight of this position:
+$3/2$.
+
+Now right-click on the selected node of the game tree (indicated by a gray disc
+with a black circle around it).  Choose \"Expand Sensible Options\".  CGSuite
+will expand the tree to show all ~sensible~ options of the starting position -
+that is, all options that contribute to its canonical form.  You can click on any
+of the nodes to see their corresponding positions, or use the arrow keys to move
+between them.  Observe that as you change the displayed position, the atomic weight
+in the analyzer is automatically updated.
+
+<img border=\"0\" src=\"explorer-4-tree.png\" width=\"550\" height=\"450\" />
+
+To resize the position displayed in the editor, you can click the little +'s and x'es
+encircling the board.  The +'s are used to insert new rows and columns into the
+position, and the x's are used to remove existing ones.
+
+++ Communicating with the Worksheet ++
+
+Occasionally you might want to copy a result from the explorer back into the
+worksheet for further analysis.  CGSuite makes this easy!  Simply tab back over to
+the worksheet, and type
+
+$ex.Selection$
+
+to get the currently selected node.  (We are using the fact that when we first
+created the explorer, at the beginning of this tutorial, we assigned the
+newly-created $Explorer$ object to the variable $ex$.  Explorers are objects too!)
+
+You can also type
+
+$ex.SelectionPath$
+
+to get the full path to the currently selected node.
+
+++ Exercises ++
+<ol>
+<li>Find the sensible lines of play for the Clobber position used in this tutorial.
+Then find the sensible lines of play for each of its sensible options, and observe
+that Clobber is not an easy game!
+<li>Find the best moves from an empty 4x4 Domineering rectangle.  Then find the 
+"sensible lines of play," observing that one move for each player reverses out.
+<li>Calculate the canonical form and atomic weight of the following 3x7 
+Clobber position, discovered by David Wolfe:<br>
+
+$LLLLLLL
+LRLLLLL
+LLLLLLL$
+
+Its canonical form is surprisingly complicated given that Right has just 
+one piece.
+</ol>

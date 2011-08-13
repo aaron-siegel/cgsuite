@@ -41,7 +41,8 @@ public class HelpBuilder
     {
         "",
         "tutorials",
-        "tutorials/using-cgsuite"
+        "tutorials/gettingstarted",
+        "tutorials/usingcgscript"
     };
     
     private final static FileFilter CGSH_FILTER = new FileFilter()

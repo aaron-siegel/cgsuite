@@ -1,0 +1,12 @@
+Welcome to Combinatorial Game Suite! This tutorial describes the 
+main features of CGSuite and contains numerous examples and exercises.
+
+The most fundamental part of Combinatorial Game Suite is the Worksheet, 
+where you can type commands and perform calculations directly. If 
+you're new to CGSuite, you should start with the <a href=\"Worksheet Basics.html\">
+Worksheet Basics</a> section.
+
+The Explorer provides a graphical editor for positions in various games 
+(such as Amazons and Domineering). It also allows you to browse the 
+game tree and search for good moves. The <a href=\"Using the Explorer.html\">
+Using the Explorer</a> section describes it in more detail.

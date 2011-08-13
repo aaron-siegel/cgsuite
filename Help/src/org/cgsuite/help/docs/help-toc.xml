@@ -9,12 +9,13 @@ and open the template in the editor.
   <tocitem text="What's New" target="What's New"/>
 <!--  <tocitem text="Acknowledgements" target="acknowledgements"/>-->
   <tocitem text="Tutorials" target="tutorials.Tutorials">
-   <tocitem text="Getting Started" target="tutorials.using-cgsuite.Getting Started">
-    <tocitem text="Worksheet Basics" target="tutorials.using-cgsuite.Worksheet Basics"/>
-    <tocitem text="Using the Explorer" target="tutorials.using-cgsuite.Using the Explorer"/>
-    <tocitem text="CGScript" target="tutorials.using-cgsuite.CGScript"/>
-    <tocitem text="Authoring CGScript Classes" target="tutorials.using-cgsuite.Authoring CGScript Classes"/>
-    <tocitem text="Advanced Language Features" target="tutorials.using-cgsuite.Advanced Language Features"/>
+   <tocitem text="Getting Started" target="tutorials.gettingstarted.Getting Started">
+    <tocitem text="Worksheet Basics" target="tutorials.gettingstarted.Worksheet Basics"/>
+    <tocitem text="Using The Explorer" target="tutorials.gettingstarted.Using The Explorer"/>
+    <tocitem text="CGScript" target="tutorials.gettingstarted.CGScript"/>
+    <tocitem text="Impartial Games" target="tutorials.gettingstarted.Impartial Games"/>
+   </tocitem>
+   <tocitem text="Using CGScript" target="tutorials.usingcgscript.Using CGScript">
    </tocitem>
   </tocitem>
  </tocitem>
