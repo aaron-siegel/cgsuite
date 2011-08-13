@@ -5,6 +5,7 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
     override method op neg () : java "negate";
     
     method NimSum(Integer n) : java "nimSum";
+    method NimProduct(Integer n) : java "nimProduct";
     
     property Is2Power.get : java "is2Power";
     property IsSmall.get : java "isSmall";
