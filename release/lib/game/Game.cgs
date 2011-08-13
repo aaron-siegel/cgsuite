@@ -118,6 +118,20 @@ class Game : java "org.cgsuite.lang.Game"
     
     end
 
+    method RandomPlay(Player player)
+        
+        result := [];
+        opts := Options(player);
+        while (opts.Size > 0) do
+            opt := opts.RandomElement;
+            result.Add(opt);
+            player := player.Opponent;
+            opts := opt.Options(player);
+        end
+        return result;        
+    
+    end
+    
     property SensibleLeftOptions.get
         return SensibleOptions(Player.Left);
     end

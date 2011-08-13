@@ -77,7 +77,7 @@ class RookRace extends GridGame
             GridIcon.Blank,
             GridIcon.BlackRook,
             GridIcon.WhiteRook,
-            GridIcon.Grayed
+            GridIcon.GraySquare
         ];
     end
 
