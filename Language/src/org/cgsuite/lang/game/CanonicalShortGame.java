@@ -3058,7 +3058,11 @@ public final class CanonicalShortGame extends Game
      */
     public UptimalExpansion uptimalExpansion()
     {
-        return uptimalExpansion(id);
+        UptimalExpansion ue = uptimalExpansion(id);
+        if (ue == null)
+            throw new InputException("That game is not an uptimal.");
+        else
+            return ue;
     }
 
     private static UptimalExpansion uptimalExpansion(int id)

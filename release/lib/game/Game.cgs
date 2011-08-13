@@ -209,5 +209,9 @@ class Game : java "org.cgsuite.lang.Game"
     property Thermograph.get
         return CanonicalForm.Thermograph;
     end
+    
+    property UptimalExpansion.get
+        return CanonicalForm.UptimalExpansion;
+    end
 
 end

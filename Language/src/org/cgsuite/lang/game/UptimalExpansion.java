@@ -30,9 +30,11 @@
 package org.cgsuite.lang.game;
 
 import java.util.EnumSet;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
-
 import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
 import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
@@ -64,8 +66,10 @@ import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
  * @version $Revision: 1.2 $ $Date: 2007/08/16 20:52:52 $
  * @since   0.7.1
  */
-public class UptimalExpansion
+public class UptimalExpansion extends CgsuiteObject
 {
+    public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("UptimalExpansion");
+    
     public final static UptimalExpansion ZERO = new UptimalExpansion(RationalNumber.ZERO, false);
     public final static UptimalExpansion BASE = new UptimalExpansion(RationalNumber.ZERO, true);
 
@@ -111,6 +115,7 @@ public class UptimalExpansion
      */
     public UptimalExpansion(RationalNumber numberPart, boolean includeBase, int ... coefficients)
     {
+        super(TYPE);
         this.numberPart = numberPart;
         this.includeBase = includeBase;
         int length = 0;
@@ -126,7 +131,8 @@ public class UptimalExpansion
         System.arraycopy(coefficients, 0, this.coefficients, 0, length);
     }
 
-    public @Override boolean equals(Object obj)
+    @Override
+    public boolean equals(Object obj)
     {
         if (!(obj instanceof UptimalExpansion))
         {
@@ -137,25 +143,10 @@ public class UptimalExpansion
             java.util.Arrays.equals(((UptimalExpansion) obj).coefficients, coefficients);
     }
 
-    public @Override int hashCode()
+    @Override
+    public int hashCode()
     {
         return numberPart.hashCode() ^ (includeBase ? 0x55555555 : 0) ^ java.util.Arrays.hashCode(coefficients);
-    }
-
-    @Override
-    public String toString()
-    {
-        StringBuilder buf = new StringBuilder(numberPart.toString());
-        buf.append('.');
-        for (int n = 0; n < coefficients.length; n++)
-        {
-            buf.append(coefficients[n]);
-        }
-        if (includeBase)
-        {
-            buf.append('*');
-        }
-        return buf.toString();
     }
 
     /**
@@ -316,6 +307,7 @@ public class UptimalExpansion
         return true;
     }
     
+    @Override
     public Output toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
@@ -325,90 +317,25 @@ public class UptimalExpansion
             output.appendOutput(getNumberPart().toOutput());
         }
         
-        if (isUnit())
+        if (getNumberPart().equals(RationalNumber.ZERO))
         {
-            int n = 0;
-            boolean up = false;
-            for (n = 1; n <= length(); n++)
-            {
-                if (getCoefficient(n) != 0)
-                {
-                    up = (getCoefficient(n) == 1);
-                    break;
-                }
-            }
-            if (up)
-            {
-                output.appendSymbol(UP);
-                output.appendText(Output.Mode.PLAIN_TEXT, ".Pow(");
-                output.appendText(
-                    EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
-                    String.valueOf(n)
-                    );
-                output.appendText(Output.Mode.PLAIN_TEXT, ")");
-            }
-            else
-            {
-                output.appendSymbol(DOWN);
-                output.appendText(Output.Mode.PLAIN_TEXT, ".Pow(");
-                output.appendText(
-                    EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
-                    String.valueOf(n)
-                    );
-                output.appendText(Output.Mode.PLAIN_TEXT, ")");
-            }
+            output.appendMath("0");
         }
-        else if (isUnitSum())
+        output.appendMath(".");
+        for (int n = 1; n <= length(); n++)
         {
-            int n = length();
-            boolean up = (getCoefficient(1) > 0);
-            if (up)
+            int d = getCoefficient(n);
+            // TODO: Redo using CodeDigit ?
+            boolean negative = false;
+            if (d < 0)
             {
-                output.appendSymbol(UP);
-                output.appendText(Output.Mode.PLAIN_TEXT, ".PowTo(");
-                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
-                output.appendText(
-                    EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT),
-                    String.valueOf(n)
-                    );
-                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUPERSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "]");
-                output.appendText(Output.Mode.PLAIN_TEXT, ")");
+                d = -d;
+                negative = true;
             }
-            else
+            output.appendMath(String.valueOf(d < 10 ? (char)(d+48) : (char)(d+55)));
+            if (negative)
             {
-                output.appendSymbol(DOWN);
-                output.appendText(Output.Mode.PLAIN_TEXT, ".PowTo(");
-                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "[");
-                output.appendText(
-                    EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT),
-                    String.valueOf(n)
-                    );
-                output.appendText(EnumSet.of(FACE_MATH, LOCATION_SUBSCRIPT), EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)), "]");
-                output.appendText(Output.Mode.PLAIN_TEXT, ")");
-            }
-        }
-        else
-        {
-            if (getNumberPart().equals(RationalNumber.ZERO))
-            {
-                output.appendMath("0");
-            }
-            output.appendMath(".");
-            for (int n = 1; n <= length(); n++)
-            {
-                int d = getCoefficient(n);
-                // TODO: Redo using CodeDigit ?
-                boolean negative = false;
-                if (d < 0)
-                {
-                    d = -d;
-                    negative = true;
-                }
-                output.appendMath(String.valueOf(d < 10 ? (char)(d+48) : (char)(d+55)));
-                if (negative)
-                {
-                    output.appendSymbol(EnumSet.of(LOCATION_SUPERSCRIPT), DASH);
-                }
+                output.appendSymbol(EnumSet.of(LOCATION_SUPERSCRIPT), DASH);
             }
         }
         if (hasBase())

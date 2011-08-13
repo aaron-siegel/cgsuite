@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteTree;
@@ -270,7 +271,9 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
                 else
                 {
-                    throw new InputException("Java error invoking " + name + ": " + exc.getTargetException().getMessage(), exc.getTargetException());
+                    String msg = "Java error invoking " + name + ": " + exc.getTargetException().getMessage();
+                    log.log(Level.WARNING, msg, exc.getTargetException());
+                    throw new InputException(msg, exc.getTargetException());
                 }
             }
             catch (Throwable exc)

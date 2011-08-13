@@ -1,0 +1,9 @@
+/*
+ * UptimalExpansion.cgs
+ *
+ * Created by asiegel on Aug 13, 2011
+ */
+
+class UptimalExpansion : java "org.cgsuite.lang.game.UptimalExpansion"
+
+end
