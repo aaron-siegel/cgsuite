@@ -117,6 +117,53 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
             return new CgsuiteInteger(bigValue().xor(other.bigValue()));
     }
     
+    public CgsuiteInteger nimProduct(CgsuiteInteger other)
+    {
+        return new CgsuiteInteger(nimProduct(bigValue(), other.bigValue()));
+    }
+    
+    public static BigInteger nimProduct(BigInteger x, BigInteger y)
+    {
+        BigInteger val = BigInteger.ZERO;
+        
+        for (int m = 0; m < x.bitLength(); m++)
+        {
+            if (x.testBit(m))
+            {
+                for (int n = 0; n < y.bitLength(); n++)
+                {
+                    if (y.testBit(n))
+                    {
+                        val = val.xor(pow2NimProduct(m, n));
+                    }
+                }
+            }
+        }
+        
+        return val;
+    }
+    
+    private static BigInteger pow2NimProduct(int xExp, int yExp)
+    {
+        BigInteger val = TWO.pow(xExp ^ yExp);
+        
+        int dup = xExp & yExp;
+        
+        for (int n = 0; n < 32-Integer.numberOfLeadingZeros(dup); n++)
+        {
+            int intersect = (dup & (1 << n));
+            if (intersect != 0)
+            {
+                val = nimProduct(val, THREE.multiply(TWO.pow(intersect)).divide(TWO));
+            }
+        }
+        
+        return val;
+    }
+    
+    private final static BigInteger TWO = BigInteger.valueOf(2);
+    private final static BigInteger THREE = BigInteger.valueOf(3);
+    
     public boolean isSmall()
     {
         return bigValue == null;

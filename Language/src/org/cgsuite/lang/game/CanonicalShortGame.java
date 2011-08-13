@@ -53,7 +53,6 @@ import static org.cgsuite.lang.output.StyledTextOutput.Style.*;
 import static org.cgsuite.lang.output.StyledTextOutput.Symbol.*;
 
 // TODO criticalTemperatures
-// TODO efficient nim multiplication
 // TODO cool by negative temp
 
 /**
@@ -2288,6 +2287,13 @@ public final class CanonicalShortGame extends Game
 
     private static int conwayMultiply(int gId, int hId)
     {
+        if (isNimber(gId) && isNimber(hId))
+        {
+            BigInteger m = BigInteger.valueOf(getNimberPart(gId));
+            BigInteger n = BigInteger.valueOf(getNimberPart(hId));
+            return constructNus(RationalNumber.ZERO, 0, CgsuiteInteger.nimProduct(m, n).intValue());
+        }
+        
         int result = lookupOpResult(OPERATION_CONWAY_MULTIPLY, gId, hId);
         if (result != -1)
         {
