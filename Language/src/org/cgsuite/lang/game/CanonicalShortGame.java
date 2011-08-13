@@ -3115,7 +3115,7 @@ public final class CanonicalShortGame extends Game
      */
     public boolean isUptimal()
     {
-        return uptimalExpansion() != null;
+        return uptimalExpansion(id) != null;
     }
 
     /**

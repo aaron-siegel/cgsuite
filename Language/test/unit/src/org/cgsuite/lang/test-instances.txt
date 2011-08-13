@@ -269,6 +269,7 @@ Diversity                       \ *10.Diversity \ 11 \
 Freeze                          \ {3+*||2|1}.Freeze \ 9/4* \
 // Incentives                   \ TODO \ \
 // Is*                          \ TODO \ \
+IsUptimal                       \ {0||0|vvv}.IsUptimal \ false \
 LeftOptions                     \ {*2,*|-1}.LeftOptions \ {*,*2} \
 LeftStop                        \ {*2,*|-1}.LeftStop \ 0 \
 Mean                            \ {3+*||2|1}.Mean \ 9/4 \
