@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.antlr.runtime.Token;
 
@@ -16,7 +17,6 @@ import org.cgsuite.lang.game.ExplicitGame;
 import org.cgsuite.lang.game.Grid;
 import org.cgsuite.lang.game.LoopyGame;
 import org.cgsuite.lang.game.RationalNumber;
-import org.cgsuite.lang.output.Utilities;
 import org.cgsuite.lang.parser.CgsuiteTree;
 import org.cgsuite.lang.parser.MalformedParseTreeException;
 
@@ -90,21 +90,29 @@ public class Domain
 
     public CgsuiteObject script(CgsuiteTree tree) throws CgsuiteException
     {
-        if (tree.getType() != EOF)
-            throw new MalformedParseTreeException(tree);
-        
-        // Just in case there was a serious error on the previous invocation
-        mode = Mode.NORMAL;
-        
-        CgsuiteObject retval = statementSequence(tree.getChild(0));
-        
-        if (mode != Mode.NORMAL)
+        try
         {
+            if (tree.getType() != EOF)
+                throw new MalformedParseTreeException(tree);
+
+            // Just in case there was a serious error on the previous invocation
             mode = Mode.NORMAL;
-            throw new InputException(controlToken, "Unexpected control statement: " + controlToken.getText());
+
+            CgsuiteObject retval = statementSequence(tree.getChild(0));
+
+            if (mode != Mode.NORMAL)
+            {
+                mode = Mode.NORMAL;
+                throw new InputException(controlToken, "Unexpected control statement: " + controlToken.getText());
+            }
+
+            return retval;
         }
-        
-        return retval;
+        catch (MalformedParseTreeException exc)
+        {
+            log.log(Level.SEVERE, tree.toStringTree(), exc);
+            throw exc;
+        }
     }
     
     public CgsuiteObject procedureInvocation(CgsuiteTree tree) throws CgsuiteException
@@ -1156,90 +1164,110 @@ public class Domain
     {
         if (tree.getToken().getType() != SLASHES)
             throw new MalformedParseTreeException(tree);
-
-        for (int i = 0; i < tree.getChild(0).getChildCount(); i++)
+        
+        if (tree.getChild(0).getType() == SLASHES)
         {
-            switch (tree.getChild(0).getChild(i).getType())
+            curNode.addLeftEdge(loopyNode(tree.getChild(0), nodeMap));
+        }
+        else
+        {
+            if (tree.getChild(0).getType() != EXPRESSION_LIST)
+                throw new MalformedParseTreeException(tree);
+            
+            for (int i = 0; i < tree.getChild(0).getChildCount(); i++)
             {
-                case COLON:
-                case SLASHES:
+                switch (tree.getChild(0).getChild(i).getType())
+                {
+                    case COLON:
+                    case SLASHES:
 
-                    curNode.addLeftEdge(loopyNode(tree.getChild(0).getChild(i), nodeMap));
-                    break;
-
-                case PASS:
-
-                    curNode.addLeftEdge(curNode);
-                    break;
-
-                case IDENTIFIER:
-
-                    String id = tree.getChild(0).getChild(i).getText();
-                    if (nodeMap.containsKey(id))
-                    {
-                        curNode.addLeftEdge(nodeMap.get(id));
+                        curNode.addLeftEdge(loopyNode(tree.getChild(0).getChild(i), nodeMap));
                         break;
-                    }
-                    // Else intentional case fallthrough
 
-                default:
+                    case PASS:
 
-                    CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).simplify();
-                    if (obj instanceof CgsuiteInteger)
-                        curNode.addLeftEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
-                    else if (obj instanceof RationalNumber)
-                        curNode.addLeftEdge(CanonicalShortGame.construct((RationalNumber) obj));
-                    else if (obj instanceof CanonicalShortGame)
-                        curNode.addLeftEdge((CanonicalShortGame) obj);
-                    else if (obj instanceof LoopyGame)
-                        curNode.addLeftEdge((LoopyGame) obj);
-                    else
-                        throw new InputException(tree.getChild(0).getChild(i).getToken(),
-                            "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
-                    break;
+                        curNode.addLeftEdge(curNode);
+                        break;
+
+                    case IDENTIFIER:
+
+                        String id = tree.getChild(0).getChild(i).getText();
+                        if (nodeMap.containsKey(id))
+                        {
+                            curNode.addLeftEdge(nodeMap.get(id));
+                            break;
+                        }
+                        // Else intentional case fallthrough
+
+                    default:
+
+                        CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).simplify();
+                        if (obj instanceof CgsuiteInteger)
+                            curNode.addLeftEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
+                        else if (obj instanceof RationalNumber)
+                            curNode.addLeftEdge(CanonicalShortGame.construct((RationalNumber) obj));
+                        else if (obj instanceof CanonicalShortGame)
+                            curNode.addLeftEdge((CanonicalShortGame) obj);
+                        else if (obj instanceof LoopyGame)
+                            curNode.addLeftEdge((LoopyGame) obj);
+                        else
+                            throw new InputException(tree.getChild(0).getChild(i).getToken(),
+                                "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
+                        break;
+                }
             }
         }
-
-        for (int i = 0; i < tree.getChild(1).getChildCount(); i++)
+        
+        if (tree.getChild(1).getType() == SLASHES)
         {
-            switch (tree.getChild(1).getChild(i).getType())
+            curNode.addRightEdge(loopyNode(tree.getChild(1), nodeMap));
+        }
+        else
+        {
+            if (tree.getChild(1).getType() != EXPRESSION_LIST)
+                throw new MalformedParseTreeException(tree);
+            
+            for (int i = 0; i < tree.getChild(1).getChildCount(); i++)
             {
-                case COLON:
-                case SLASHES:
+                switch (tree.getChild(1).getChild(i).getType())
+                {
+                    case COLON:
+                    case SLASHES:
 
-                    curNode.addRightEdge(loopyNode(tree.getChild(1).getChild(i), nodeMap));
-                    break;
-
-                case PASS:
-
-                    curNode.addRightEdge(curNode);
-                    break;
-
-                case IDENTIFIER:
-
-                    String id = tree.getChild(1).getChild(i).getText();
-                    if (nodeMap.containsKey(id))
-                    {
-                        curNode.addRightEdge(nodeMap.get(id));
+                        curNode.addRightEdge(loopyNode(tree.getChild(1).getChild(i), nodeMap));
                         break;
-                    }
-                    // Else intentional case fallthrough
 
-                default:
+                    case PASS:
 
-                    CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).simplify();
-                    if (obj instanceof CgsuiteInteger)
-                        curNode.addRightEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
-                    else if (obj instanceof RationalNumber)
-                        curNode.addRightEdge(CanonicalShortGame.construct((RationalNumber) obj));
-                    else if (obj instanceof CanonicalShortGame)
-                        curNode.addRightEdge((CanonicalShortGame) obj);
-                    else if (obj instanceof LoopyGame)
-                        curNode.addRightEdge((LoopyGame) obj);
-                    else
-                        throw new InputException(tree.getChild(1).getChild(i).getToken(),
-                            "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
-                    break;
+                        curNode.addRightEdge(curNode);
+                        break;
+
+                    case IDENTIFIER:
+
+                        String id = tree.getChild(1).getChild(i).getText();
+                        if (nodeMap.containsKey(id))
+                        {
+                            curNode.addRightEdge(nodeMap.get(id));
+                            break;
+                        }
+                        // Else intentional case fallthrough
+
+                    default:
+
+                        CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).simplify();
+                        if (obj instanceof CgsuiteInteger)
+                            curNode.addRightEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
+                        else if (obj instanceof RationalNumber)
+                            curNode.addRightEdge(CanonicalShortGame.construct((RationalNumber) obj));
+                        else if (obj instanceof CanonicalShortGame)
+                            curNode.addRightEdge((CanonicalShortGame) obj);
+                        else if (obj instanceof LoopyGame)
+                            curNode.addRightEdge((LoopyGame) obj);
+                        else
+                            throw new InputException(tree.getChild(1).getChild(i).getToken(),
+                                "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
+                        break;
+                }
             }
         }
     }
