@@ -132,6 +132,17 @@ class Game : java "org.cgsuite.lang.Game"
     
     end
     
+    method RandomWinner(Player player)
+    
+        opts := Options(player);
+        if opts == {} then
+            return player.Opponent;
+        end
+        opt := opts.RandomElement;
+        return opt.RandomWinner(player.Opponent);
+    
+    end
+    
     property SensibleLeftOptions.get
         return SensibleOptions(Player.Left);
     end

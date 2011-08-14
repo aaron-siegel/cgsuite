@@ -1,0 +1,29 @@
+/*
+ * ImpartialVariant.cgs
+ *
+ * In the impartial variant of a game, the moves available to each
+ * player are the union of the sets of moves available to either player.
+ * 
+ * Created by MichaelAlbert on Aug 14, 2011
+ */
+
+class ImpartialVariant extends ImpartialGame
+
+    var g;
+    
+    method ImpartialVariant(Game g)
+    end
+    
+    method Options(Player player)
+    
+        opts := g.LeftOptions;
+        opts.AddAll(g.RightOptions);
+        return opts.Apply(o -> ImpartialVariant(o));
+        
+    end
+    
+    override property ToString.get
+        return "ImpartialVariant(" + g.ToString + ")";
+    end
+
+end
