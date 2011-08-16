@@ -108,6 +108,17 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
         else
             return new CgsuiteInteger(bigValue().multiply(other.bigValue()));
     }
+    
+    public CgsuiteInteger div(CgsuiteInteger other)
+    {
+        if (other.equals(ZERO))
+            throw new InputException("Integer divide by zero.");
+        
+        if (bigValue == null && other.bigValue == null)
+            return new CgsuiteInteger((long) value / (long) other.value);
+        else
+            return new CgsuiteInteger(bigValue().divide(other.bigValue()));
+    }
 
     public CgsuiteInteger nimSum(CgsuiteInteger other)
     {

@@ -6,6 +6,7 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
     
     method NimSum(Integer n) : java "nimSum";
     method NimProduct(Integer n) : java "nimProduct";
+    method Div(Integer n) : java "div";
     
     property Is2Power.get : java "is2Power";
     property IsSmall.get : java "isSmall";
@@ -13,5 +14,19 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
     
     static method Random(Integer obj) : java "random";
     static method SetSeed(Integer seed) : java "setSeed";
+    
+    property Isqrt.get
+
+        a := Lb + 1;
+        x := 2^(a.Div(2) + a%2);
+        do
+            y := (x + Div(x)).Div(2);
+            if y >= x then
+                return x;
+            end
+            x := y;
+        end
+
+    end
 
 end
