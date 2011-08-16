@@ -10,5 +10,13 @@ class Nimber extends CanonicalShortGame, ImpartialGame
         return this;
     end
     override property NimValue.get : java "getNimberPart";
+    override property MisereNimValue.get
+        n := NimValue;
+        return
+            if n == 0 then 1
+            elseif n == 1 then 0
+            else n
+            end;
+    end
 
 end

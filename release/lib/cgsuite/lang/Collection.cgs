@@ -4,6 +4,15 @@ class Collection : java "org.cgsuite.lang.CgsuiteCollection"
         return this.Size == 0;
     end
     
+    property Mex.get
+        for n from 0 do
+            if not Contains(n) then
+                break;
+            end
+        end
+        return n;
+    end
+    
     property ToList.get
         return listof(x for x in this);
     end

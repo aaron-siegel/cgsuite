@@ -91,8 +91,6 @@ Procedure - too many args       \ f(3,4,5) \ !!Expecting 2 argument(s); found 3 
 Procedure - optional arg        \ f(3,4,foo => 5) \ !!Invalid optional parameter: foo \
 No-parameter procedure          \ f := () -> 3; f(); \ 3 \
 
-// TODO procedures with method scope
-
 // Do loops
 
 Do loop: for-from-to            \ x := []; for n from 1 to 5 do x.Add(n) end; x \ [1,2,3,4,5] \
@@ -134,6 +132,11 @@ Imports package                 \ test.TestImports().testImportedPackage(); \ 1 
 Imports class                   \ test.TestImports().testImportedClass(); \ 1/2 \
 Imports class - nonimported     \ test.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
 
+// Initializers
+
+Static initializers             \ test.TestStaticInitializers.Y \ 7 \
+Bad var reference in static init\ test.TestBadStaticInitializer \ Not a member variable, property, or method: tricky (in object of type Class) \
+
 // Method calls
 
 Optional parameters - defaults      \ meth := test.TestMethods(); meth.Method1(1, 2) \ [1,2,nil,nil,7,7] \
@@ -156,6 +159,11 @@ Unexpected return in procedure  \ f := x -> (return); f(0) \ !!Unexpected contro
 Unexpected break in method      \ test.TestControlStatements.UnexpectedBreak(); \ !!Unexpected control statement in method: break \
 Unexpected continue in method   \ test.TestControlStatements.UnexpectedContinue(); \ !!Unexpected control statement in method: continue \
 Return from loop                \ test.TestControlStatements.ReturnFromLoop(); \ 101 \
+
+// Procedures in classes
+
+Static procedure                \ test.TestProcedureScope.StaticProcedure() \ 6 \
+// TODO procedures with method scope
 
 // Immutability
 

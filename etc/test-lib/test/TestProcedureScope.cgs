@@ -1,0 +1,17 @@
+/*
+ * TestProcedureScope.cgs
+ *
+ * Created by asiegel on Aug 15, 2011
+ */
+
+class TestProcedureScope
+
+    static var x := r -> r+1;
+    
+    static method StaticProcedure()
+    
+        return TestProcedureScope.x(5);
+    
+    end
+
+end

@@ -1,0 +1,17 @@
+/*
+ * TestStaticInitializers.cgs
+ *
+ * Created by asiegel on Aug 15, 2011
+ */
+
+class TestStaticInitializers
+
+    static var x := 5;
+    static var y := x + 1;
+    static var z := (y := y + 1);
+    
+    static property Y.get
+        return TestStaticInitializers.y;
+    end
+
+end

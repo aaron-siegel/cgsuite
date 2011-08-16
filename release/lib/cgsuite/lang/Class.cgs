@@ -1,15 +1,9 @@
 class Class : java "org.cgsuite.lang.CgsuiteClass"
-
-    var memory := {=>};
     
     property Methods.get : java "allMethods";
     property Variables.get : java "allVars";
 
     property Name.get : java "getName";
-    
-    property Memory.get
-        return this.memory;
-    end
 
     override property ToString.get : java "toString";
 

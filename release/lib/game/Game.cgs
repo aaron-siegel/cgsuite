@@ -1,5 +1,6 @@
 class Game : java "org.cgsuite.lang.Game"
 
+    static var memory := {=>};
     static var descent := {};
 
     method op+ (Game obj) : java "add";
@@ -14,14 +15,14 @@ class Game : java "org.cgsuite.lang.Game"
     property RightOptions.get
         return Options(Player.Right);
     end
-
+    
     property CanonicalForm.get
     
         if Game.descent.Contains(this) then
             error("Unable to compute canonical form: the specified game is loopy.");
         end
 
-        cg := this.Class.Memory[this];
+        cg := this.Class.memory[this];
         
         if nil != cg then
             return cg;
@@ -42,7 +43,7 @@ class Game : java "org.cgsuite.lang.Game"
             
         end
         
-        this.Class.Memory[this] := cg;
+        this.Class.memory[this] := cg;
         return cg;
         
     end

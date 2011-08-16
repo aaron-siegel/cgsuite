@@ -22,7 +22,6 @@ import org.antlr.runtime.Token;
 import org.cgsuite.lang.CgsuiteMethod.Parameter;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
-import org.cgsuite.lang.output.Utilities;
 import org.cgsuite.lang.parser.CgsuiteLexer;
 import org.cgsuite.lang.parser.CgsuiteParser;
 import org.cgsuite.lang.parser.CgsuiteTree;
@@ -444,6 +443,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             throw new InputException("The Java class for " + fo.getNameExt() + " is not a subclass of CgsuiteObject: " + javaClassname);
         }
+        
+        methods.put("static$init", new CgsuiteMethod(this, "static$init", EnumSet.of(Modifier.STATIC), Collections.<Parameter>emptyList(), null, null));
 
         declarations(parseTree.getChild(1));
         
@@ -469,10 +470,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         log.info("Loaded class : " + getQualifiedName());
         
-        // Populate memory var
-        
-        this.objectNamespace.put("memory", new CgsuiteMap());
-
         // Populate statics and invokeMethod static initializers
 
         for (Variable var : varsInOrder)
@@ -482,10 +479,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 CgsuiteObject initialValue = NIL;
 
                 if (var.getInitializer() != null)
-                    initialValue = new Domain(this, null, packageImports, classImports).expression(var.getInitializer());
+                    initialValue = new Domain(this, methods.get("static$init"), packageImports, classImports).expression(var.getInitializer());
                 
                 objectNamespace.put(var.getName(), initialValue);
-
+                
                 if (var.isEnumValue())
                 {
                     initialValue.objectNamespace.put("literal", new CgsuiteString(var.getName()));
