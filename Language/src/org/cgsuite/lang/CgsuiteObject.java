@@ -206,7 +206,7 @@ public class CgsuiteObject implements Cloneable
         {
             if (getter.isStatic())
                 throw new InputException("Cannot reference static property in dynamic context: " + identifier);
-            return getter.invoke(castForMethodCall(getter), CgsuiteObject.EMPTY_LIST, null);
+            return getter.invoke(castForMethodCall(getter), CgsuiteMethod.EMPTY_PARAM_LIST, CgsuiteMethod.EMPTY_PARAM_MAP);
         }
 
         CgsuiteMethod method = type.lookupMethod(identifier);
@@ -272,13 +272,13 @@ public class CgsuiteObject implements Cloneable
     public CgsuiteObject invokeMethod(String methodName)
         throws CgsuiteException
     {
-        return invokeMethod(methodName, CgsuiteObject.EMPTY_LIST, null);
+        return invokeMethod(methodName, CgsuiteMethod.EMPTY_PARAM_LIST, CgsuiteMethod.EMPTY_PARAM_MAP);
     }
 
     public CgsuiteObject invokeMethod(String methodName, CgsuiteObject arg)
         throws CgsuiteException
     {
-        return invokeMethod(methodName, singletonList(arg), null);
+        return invokeMethod(methodName, singletonList(arg), CgsuiteMethod.EMPTY_PARAM_MAP);
     }
 
     public CgsuiteObject invokeMethod(String methodName, CgsuiteObject arg1, CgsuiteObject arg2)
@@ -287,13 +287,13 @@ public class CgsuiteObject implements Cloneable
         List<CgsuiteObject> list = new ArrayList<CgsuiteObject>(2);
         list.add(arg1);
         list.add(arg2);
-        return invokeMethod(methodName, list, null);
+        return invokeMethod(methodName, list, CgsuiteMethod.EMPTY_PARAM_MAP);
     }
 
     public CgsuiteObject invokeMethod(String methodName, List<CgsuiteObject> arguments)
         throws CgsuiteException
     {
-        return invokeMethod(methodName, arguments, null);
+        return invokeMethod(methodName, arguments, CgsuiteMethod.EMPTY_PARAM_MAP);
     }
 
     public CgsuiteObject invokeMethod(String methodName, List<CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)

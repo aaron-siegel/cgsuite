@@ -1,6 +1,7 @@
 package org.cgsuite.lang;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -11,53 +12,65 @@ public final class Namespace
 
     public Namespace()
     {
-        this.objects = new HashMap<String,CgsuiteObject>();
     }
-
+    
     @Override
     public String toString()
     {
-        return "Namespace" + objects.toString();
+        return "Namespace[" + objects.toString() + "]";
     }
     
     public Namespace crosslinkedNamespace()
     {
         Namespace copy = new Namespace();
-        for (Entry<String,CgsuiteObject> e : objects.entrySet())
+        if (objects != null)
         {
-            copy.objects.put(e.getKey(), e.getValue().createCrosslink());
+            copy.objects = new HashMap<String,CgsuiteObject>();
+            for (Entry<String,CgsuiteObject> e : objects.entrySet())
+            {
+                copy.objects.put(e.getKey(), e.getValue().createCrosslink());
+            }
         }
         return copy;
     }
     
     public Set<String> keys()
     {
-        return objects.keySet();
+        return (objects == null)? Collections.<String>emptySet() : objects.keySet();
     }
     
     public Collection<CgsuiteObject> values()
     {
-        return objects.values();
+        return (objects == null)? Collections.<CgsuiteObject>emptySet() : objects.values();
     }
 
     public void clear()
     {
-        objects.clear();
+        objects = null;
     }
 
     public CgsuiteObject get(String str)
     {
+        if (objects == null)
+            return null;
+        
         CgsuiteObject obj = objects.get(str);
         return obj;
     }
 
     public void put(String str, CgsuiteObject object)
     {
+        if (objects == null)
+            objects = new HashMap<String,CgsuiteObject>();
+        
         objects.put(str, object);
     }
     
     public CgsuiteObject remove(String str)
     {
+        if (objects == null)
+            return null;
+        
         return objects.remove(str);
     }
 

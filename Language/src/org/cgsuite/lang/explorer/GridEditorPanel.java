@@ -47,6 +47,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteList;
+import org.cgsuite.lang.CgsuiteMethod;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteString;
 import org.cgsuite.lang.game.Grid;
@@ -873,7 +874,7 @@ public class GridEditorPanel extends EditorPanel
     @Override
     public CgsuiteObject constructObject()
     {
-        return type.lookupConstructor().invoke((CgsuiteObject) null, Collections.<CgsuiteObject>singletonList(this.grid), null);
+        return type.lookupConstructor().invoke(Collections.<CgsuiteObject>singletonList(this.grid), CgsuiteMethod.EMPTY_PARAM_MAP);
     }
     
     /**

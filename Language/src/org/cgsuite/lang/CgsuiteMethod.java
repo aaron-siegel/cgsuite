@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,9 @@ import org.cgsuite.lang.parser.CgsuiteTree;
 public class CgsuiteMethod extends CgsuiteObject implements Callable
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Method");
+    
+    public final static List<CgsuiteObject> EMPTY_PARAM_LIST = Collections.emptyList();
+    public final static Map<String,CgsuiteObject> EMPTY_PARAM_MAP = Collections.emptyMap();
     
     private final static Logger log = Logger.getLogger(CgsuiteMethod.class.getName());
 
@@ -221,7 +225,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             for (int i = arguments.size(); i < parameters.size(); i++)
             {
                 Parameter p = parameters.get(i);
-                if (optionalArguments != null && optionalArguments.containsKey(p.name))
+                if (optionalArguments.containsKey(p.name))
                 {
                     castArguments[i] = cast(optionalArguments.get(p.name), javaParameterTypes[i], true);
                 }
@@ -313,7 +317,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             for (int i = nRequiredParameters; i < parameters.size(); i++)
             {
                 Parameter p = parameters.get(i);
-                if (optionalArguments != null && optionalArguments.containsKey(p.name))
+                if (optionalArguments.containsKey(p.name))
                 {
                     if (arguments.size() > i)
                     {
@@ -337,7 +341,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
             }
             
-            if (optionalArguments != null && nOptionalArgumentsProcessed != optionalArguments.size())
+            if (nOptionalArgumentsProcessed != optionalArguments.size())
             {
                 // There must be an invalid optional argument.  Find it and generate an error.
                 for (String str : optionalArguments.keySet())

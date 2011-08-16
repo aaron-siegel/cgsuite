@@ -177,7 +177,7 @@ public class CgsuiteList extends CgsuiteCollection
                 {
                     arguments.set(0, x);
                     arguments.set(1, y);
-                    return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, null).simplify(), int.class, false);
+                    return (Integer) CgsuiteMethod.cast(comparator.invoke(arguments, CgsuiteMethod.EMPTY_PARAM_MAP).simplify(), int.class, false);
                 }
             });
         }

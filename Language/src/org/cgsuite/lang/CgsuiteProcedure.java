@@ -76,7 +76,7 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
             throw new InputException("Expecting " + parameters.size() + " argument(s); found " + arguments.size());
         }
         
-        if (optionalArguments != null && !optionalArguments.isEmpty())
+        if (!optionalArguments.isEmpty())
         {
             throw new InputException("Invalid optional parameter: " + optionalArguments.keySet().iterator().next());
         }

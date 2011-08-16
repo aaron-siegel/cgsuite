@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteMethod;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuiteProcedure;
 import org.cgsuite.lang.InputException;
@@ -66,7 +67,7 @@ public class CustomHeapRules extends HeapRules
     public Collection<int[]> allOptions(int heapSize)
     {
         List<int[]> options = new ArrayList<int[]>();
-        Object optionsSpec = procedure.invoke(Collections.singletonList(new CgsuiteInteger(heapSize)), null);
+        Object optionsSpec = procedure.invoke(Collections.singletonList(new CgsuiteInteger(heapSize)), CgsuiteMethod.EMPTY_PARAM_MAP);
 
         if (!(optionsSpec instanceof CgsuiteCollection))
         {

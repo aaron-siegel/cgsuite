@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.antlr.runtime.Token;
-
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.ExplicitGame;
 import org.cgsuite.lang.game.Grid;
@@ -537,8 +536,8 @@ public class Domain
                 x = expression(tree.getChild(0));
                 if (tree.getChildCount() == 1)
                 {
-                    list = Collections.emptyList();
-                    argmap = null;
+                    list = CgsuiteMethod.EMPTY_PARAM_LIST;
+                    argmap = CgsuiteMethod.EMPTY_PARAM_MAP;
                 }
                 else
                 {
@@ -1332,7 +1331,7 @@ public class Domain
                         map.put(child.getChild(0).getText(), expression(child.getChild(1)).simplify());
                     }
                 }
-                return map;
+                return (map == null)? CgsuiteMethod.EMPTY_PARAM_MAP : map;
 
             default:
 
@@ -1447,12 +1446,12 @@ public class Domain
         @Override
         public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String, CgsuiteObject> optionalArguments) throws CgsuiteException
         {
-            if (!arguments.isEmpty() || optionalArguments != null)
+            if (!arguments.isEmpty() || !optionalArguments.isEmpty())
                 throw new InputException(type.getQualifiedName() + " is a script, and must be called without arguments.");
             
             statementSequence(type.getScript());
             
-            return Nil.NIL;
+            return CgsuiteObject.NIL;
         }
     }
 
