@@ -5,6 +5,7 @@ enum GridIcon
     // Stones
     
     BlackStone,
+    GrayStone,
     WhiteStone,
     
     // Chess pieces

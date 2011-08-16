@@ -135,7 +135,6 @@ Imports class - nonimported     \ test.TestImports().testNonImportedClass(); \ !
 // Initializers
 
 Static initializers             \ test.TestStaticInitializers.Y \ 7 \
-Bad var reference in static init\ test.TestBadStaticInitializer \ Not a member variable, property, or method: tricky (in object of type Class) \
 
 // Method calls
 
@@ -293,8 +292,8 @@ Heat                            \ *2.Heat(1) \ +-(1,{2|0}) \
 Overheat                        \ (31/64).Overheat(0,0) \ ^.PowTo(5) \
 Cool                            \ {3+*||2|1}.Cool(1/2) \ {5/2|2*} \
 Cool2                           \ {3+*||2|1}.Cool(1) \ 9/4 \
-NortonMultiply                  \ ^.NortonMultiply(^) \ {^^*||0|v4} \
-ConwayMultiply                  \ *14.ConwayMultiply(*19) \ *233 \
+NortonProduct                   \ ^.NortonProduct(^) \ {^^*||0|v4} \
+ConwayProduct                   \ *14.ConwayProduct(*19) \ *233 \
 OrdinalSum                      \ *4.OrdinalSum(*5) \ *9 \
 Pow                             \ ^^.Pow(3) \ ^.Pow(3) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \

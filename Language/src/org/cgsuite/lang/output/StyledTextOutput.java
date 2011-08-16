@@ -781,7 +781,7 @@ public class StyledTextOutput extends AbstractOutput
             if (info.bottom > clipRect.y &&
                 info.top < clipRect.y + clipRect.height)
             {
-                info.layout.draw(g, 0.0f, info.top + info.layout.getAscent());
+                info.layout.draw(g, 0.0f, 1.0f + info.top + info.layout.getAscent());
             }
         }
     }
@@ -825,7 +825,7 @@ public class StyledTextOutput extends AbstractOutput
             y += info.layout.getAscent() + info.layout.getLeading() + 5;
             info.bottom = y;
         }
-        int height = (int) y + 1;
+        int height = (int) y + 2;
         size = new Dimension(width, height);
     }
     

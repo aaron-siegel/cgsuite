@@ -41,7 +41,6 @@ import org.openide.windows.WindowManager;
 
 
 // TODO Check if there are unsaved files before starting a calculation
-// TODO Fix copy/paste of worksheet output
 // TODO Make error output singly selectable
 
 /**

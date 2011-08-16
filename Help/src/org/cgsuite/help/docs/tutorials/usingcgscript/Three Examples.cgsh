@@ -67,7 +67,8 @@ example.
 
 ++ Example: Partizan Subtraction Games ++
 
-The ~Partizan Subtraction Games~ were described in the previous tutorial, <a href=\"CGScript.html\">CGScript</a>.
+The ~Partizan Subtraction Games~ were described in the
+[[Getting Started][../gettingstarted/CGScript.html]] tutorial.
 Open up the file $PartizanSubtraction.cgs$ (in the $examples$ directory) to see CGSuite's implementation of it.
 
 There are three parameters: $leftSet$ and $rightSet$, representing the Left and Right subtraction sets; and $n$, the
@@ -112,6 +113,24 @@ game is understood to be loopy.  Try the following command:
 $examples.PartizanSubtraction({0},{1},10).CanonicalForm$
 
 ++ Example: Clobber ++
+
+Now let's turn to a more complex example: Clobber.  Open up the $Clobber.cgs$ file to see CGSuite's implementation of
+Clobber.  Notice that it extends a special base class, $GridGame$.  The $GridGame$ class provides generalized
+mechanisms for constructing, displaying and editing games played on grids.  All that's left for us to do is to code up
+the rules to Clobber.
+
+First note the line in the constructor:
+
+$    this.GridGame(grid);$
+
+This tells CGSuite to call the constructor for the parent class, $GridGame$.  The $GridGame$ constructor provides
+various conveniences, such as the familiar notation for constructing grids from strings (for example,
+$Clobber("xox|ox.")$).   By calling the parent class constructor, the $Clobber$ class can use these features, too.
+
+The $Options$ method is somewhat more complicated than in the previous examples.  It's not practical to 
+
+Since the positions and rules for
+Clobber are more complicated than for Nim or the Partizan Subtraction Game, it's 
 
 ++ The System Folder ++
 

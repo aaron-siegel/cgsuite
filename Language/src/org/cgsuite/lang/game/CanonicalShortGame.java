@@ -598,6 +598,11 @@ public final class CanonicalShortGame extends Game
         boolean forceParens
         )
     {
+        if (Thread.interrupted())
+        {
+            throw new InputException("Calculation canceled by user.");
+        }
+        
         CanonicalShortGame g = this;
         CanonicalShortGame inverse = g.negate();
 
@@ -2091,6 +2096,11 @@ public final class CanonicalShortGame extends Game
         if (gId == hId)
         {
             return true;
+        }
+        
+        if (Thread.interrupted())
+        {
+            throw new InputException("Calculation canceled by user.");
         }
 
         int[] gSector = data[gId >> SECTOR_BITS], hSector = data[hId >> SECTOR_BITS];
@@ -3907,6 +3917,11 @@ public final class CanonicalShortGame extends Game
 
     private static boolean leqArrays(int id, int[] leftOptionArray, int[] rightOptionArray)
     {
+        if (Thread.interrupted())
+        {
+            throw new InputException("Calculation canceled by user.");
+        }
+        
         // Return false if H <= GL for some left option GL of G
         //              or HR <= G for some right option HR of H.
         // Otherwise return true.

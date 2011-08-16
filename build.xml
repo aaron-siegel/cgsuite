@@ -6,4 +6,16 @@
     <description>Builds the module suite CGSuite.</description>
     <property name="run.args.extra" value="-J-Xmx512m -J-Dorg.cgsuite.devbuild=${basedir}"/>
     <import file="nbproject/build-impl.xml"/>
+    
+    <target name="release" depends="suite.release,-post-release"/>
+    
+    <target name="-post-release">
+        <exec executable="svn" output="${cluster}/svninfo.txt">
+            <arg value="info"/>
+        </exec>
+        <copy file="${cluster}/svninfo.txt" tofile="${cluster}/svn.properties"/>
+        <replaceregexp file="${cluster}/svn.properties" byline="true" match="^(.*): (.*)$" replace="svn.\1=\2"/>
+        <!-- This curious regexp escapes all whitespaces that appear in the key of an SVN property. -->
+        <replaceregexp file="${cluster}/svn.properties" byline="true" flags="g" match=" (?=.*=)" replace="\\\\ "/>
+    </target>
 </project>
