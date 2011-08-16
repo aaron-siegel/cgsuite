@@ -561,7 +561,7 @@ public class Domain
 
             case FALSE:     return CgsuiteBoolean.FALSE;
 
-            case INTEGER:   return RationalNumber.parseRationalNumber(tree.getText()).simplify();
+            case INTEGER:   return CgsuiteInteger.parseInteger(tree.getText());
 
             case INF:       return RationalNumber.POSITIVE_INFINITY;
 

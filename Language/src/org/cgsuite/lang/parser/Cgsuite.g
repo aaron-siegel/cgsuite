@@ -22,7 +22,6 @@ tokens
 	RBRACKET	= ']';
 	LBRACE		= '{';
 	RBRACE		= '}';
-	SQUOTE		= '\'';
 	DQUOTE		= '"';
 	COMMA		= ',';
 	SEMI		= ';';
@@ -539,7 +538,6 @@ primaryExpr
 	| INTEGER
     | INF
 	| STRING
-	| CHAR
     | (IDENTIFIER COLON) => IDENTIFIER COLON^ explicitGame
 	| generalizedId
     | PASS
@@ -702,9 +700,13 @@ IDENTIFIER	: 'v'* NONV (LETTER | DIGIT)*;
 
 STRING		: DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 
-CHAR		: SQUOTE (~(SQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ) SQUOTE;
-
 SLASHES		: SLASH+;
+
+WHITESPACE  : (' ' | '\t' | NEWLINE)+ { $channel = HIDDEN; };
+
+SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
+
+ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
 
 fragment
 DIGIT		: '0'..'9';
@@ -727,7 +729,6 @@ ESCAPE_SEQ	: BACKSLASH
 			  | 'n'
 			  | 'r'
 			  | 't'
-			  | SQUOTE
 			  | DQUOTE
 			  | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
 			  )
@@ -735,9 +736,3 @@ ESCAPE_SEQ	: BACKSLASH
 
 fragment
 NEWLINE     : '\r'? '\n';
-
-WHITESPACE  : (' ' | '\t' | NEWLINE)+ { $channel = HIDDEN; };
-
-SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
-
-ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };

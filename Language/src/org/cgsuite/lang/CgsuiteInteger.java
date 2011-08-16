@@ -219,7 +219,10 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
     
     public static void setSeed(CgsuiteInteger seed) 
     {
-        RANDOM.setSeed(seed.value);
+        if (seed.bigValue == null)
+            RANDOM.setSeed(seed.value);
+        else
+            RANDOM.setSeed(seed.bigValue.hashCode());
     }
 
     public int intValue()
@@ -258,6 +261,14 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
     protected int compareLike(CgsuiteObject obj)
     {
         return compareTo((CgsuiteInteger) obj);
+    }
+    
+    public static CgsuiteInteger parseInteger(String str)
+    {
+        if (str.length() <= 9)
+            return new CgsuiteInteger(Integer.parseInt(str));
+        else
+            return new CgsuiteInteger(new BigInteger(str));
     }
 
     @Override
