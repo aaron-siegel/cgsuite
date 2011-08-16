@@ -419,29 +419,47 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 }
             }
         }
-
+        
         if (javaClassname == null)
-            javaClassname = parents.iterator().next().javaClassname;    // XXX Improve this.
-
-        try
         {
-            this.javaClass = Class.forName(javaClassname).asSubclass(CgsuiteObject.class);
+            // Java class is inherited from parent(s).  Use the *most specific* among all parents.
+            for (CgsuiteClass parent : parents)
+            {
+                if (javaClass == null || javaClass.isAssignableFrom(parent.javaClass))
+                {
+                    javaClassname = parent.javaClassname;
+                    javaClass = parent.javaClass;
+                }
+                else if (!parent.javaClass.isAssignableFrom(javaClass))
+                {
+                    throw new InputException(parseTree.getChild(1).getToken(),
+                        getQualifiedName() + ": Multiple ancestors have incompatible Java classes.  Consider disambiguating by declaring Java class explicitly.");
+                }
+            }
+        }
+        else
+        {
             try
             {
-                this.defaultJavaConstructor = this.javaClass.getConstructor(CgsuiteClass.class);
+                this.javaClass = Class.forName(javaClassname).asSubclass(CgsuiteObject.class);
             }
-            catch (NoSuchMethodException exc)
+            catch (ClassNotFoundException exc)
             {
-                this.defaultJavaConstructor = null;
+                throw new InputException("Could not locate Java class for " + fo.getNameExt() + ": " + javaClassname);
+            }
+            catch (ClassCastException exc)
+            {
+                throw new InputException("The Java class for " + fo.getNameExt() + " is not a subclass of CgsuiteObject: " + javaClassname);
             }
         }
-        catch (ClassNotFoundException exc)
+        
+        try
         {
-            throw new InputException("Could not locate Java class for " + fo.getNameExt() + ": " + javaClassname);
+            this.defaultJavaConstructor = this.javaClass.getConstructor(CgsuiteClass.class);
         }
-        catch (ClassCastException exc)
+        catch (NoSuchMethodException exc)
         {
-            throw new InputException("The Java class for " + fo.getNameExt() + " is not a subclass of CgsuiteObject: " + javaClassname);
+            this.defaultJavaConstructor = null;
         }
         
         methods.put("static$init", new CgsuiteMethod(this, "static$init", EnumSet.of(Modifier.STATIC), Collections.<Parameter>emptyList(), null, null));

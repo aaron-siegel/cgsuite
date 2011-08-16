@@ -4,6 +4,6 @@
  * Created by asiegel on Aug 12, 2011
  */
 
-class Zero extends Integer, Nimber
+class Zero extends Integer, Nimber : java "org.cgsuite.lang.CgsuiteInteger"
 
 end
