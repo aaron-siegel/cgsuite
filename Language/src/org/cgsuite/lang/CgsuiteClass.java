@@ -34,8 +34,6 @@ import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
 
-// TODO Disallow "static constructor"
-
 public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 {
     private static final Logger log = Logger.getLogger(CgsuiteClass.class.getName());
@@ -754,12 +752,14 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             throw exc;
         }
         
-        switch (tree.token.getType())
+        List<Parameter> parameters;
+        
+        switch (tree.getType())
         {
             case METHOD:
 
                 methodName = methodName(tree.getChild(1));
-                List<Parameter> parameters = methodParameters(tree.getChild(2), methodName.equals(name));
+                parameters = methodParameters(tree.getChild(2), methodName.equals(name));
 
                 if (tree.getChild(3).getType() == JAVA)
                     javaMethodName = javaref(tree.getChild(3));
@@ -774,13 +774,25 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 String propertyName = tree.getChild(1).getText();
                 methodName = propertyName + "$" + tree.getChild(2).getText();
-
+                
+                if (tree.getChild(2).getType() == GET)
+                {
+                    parameters = Collections.emptyList();
+                }
+                else
+                {
+                    if (!modifiers.contains(Modifier.MUTABLE))
+                        throw new InputException(tree.getToken(), "Setter must be declared mutable.");
+                    
+                    parameters = methodParameters(tree.getChild(2).getChild(0), false);
+                }
+                
                 if (tree.getChild(3).getType() == JAVA)
                     javaMethodName = javaref(tree.getChild(3));
                 else
                     body = tree.getChild(3);
 
-                declareMethod(tree, methodName, modifiers, Collections.<Parameter>emptyList(), body, javaMethodName);
+                declareMethod(tree, methodName, modifiers, parameters, body, javaMethodName);
 
                 return;
 
@@ -859,6 +871,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             // tree.getToken().getText() is "method" or "property" depending on the declaration type
             throw new InputException(tree.getToken(), "Duplicate " + tree.getToken().getText() + " definition: " + name);
+        }
+        else if (name.equals(this.name) && modifiers.contains(Modifier.STATIC))
+        {
+            throw new InputException(tree.getToken(), "Constructor is marked \"static\".");
         }
         else if (this.methods.containsKey(name) && !modifiers.contains(Modifier.OVERRIDE))
         {

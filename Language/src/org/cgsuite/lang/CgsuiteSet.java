@@ -96,6 +96,20 @@ public class CgsuiteSet extends CgsuiteCollection
         Collections.sort(list, UNIVERSAL_COMPARATOR);
         return list.iterator();
     }
+    
+    public CgsuiteObject randomElement()
+    {
+        int n = CgsuiteInteger.random(new CgsuiteInteger(size())).intValue();
+        CgsuiteObject value = null;
+        Iterator<CgsuiteObject> it = iterator();
+        
+        for (int i = 0; i < n; i++)
+        {
+            value = it.next();
+        }
+        
+        return value;
+    }
 
     @Override
     public void add(CgsuiteObject object)

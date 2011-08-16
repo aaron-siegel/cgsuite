@@ -32,7 +32,7 @@ public class TableOutput extends AbstractOutput
         
         for (int i = 0; i < cells.length; i++)
         {
-            CgsuiteList row = table.getRow(i);
+            CgsuiteList row = table.getRow(i+1);
             cells[i] = new Output[row.size()];
             for (int j = 0; j < row.size(); j++)
             {

@@ -6,9 +6,8 @@
 
 mutable class Table extends Collection : java "org.cgsuite.lang.Table"
 
+    method op[](Integer row) : java "getRow(int)";
     property HorizontalLines.get : java "getHorizontalLines";
-    mutable property HorizontalLines.set : java "setHorizontalLines";
-    
-    mutable method SetHorizontalLines(Boolean value) : java "setHorizontalLines(boolean)";
+    mutable property HorizontalLines.set(Boolean value) : java "setHorizontalLines(boolean)";
 
 end

@@ -100,6 +100,7 @@ public class Table extends CgsuiteCollection
             newRows.add(obj.createCrosslink());
         }
         rows = newRows;
+        format = format.clone();
     }
     
     @Override
@@ -139,7 +140,7 @@ public class Table extends CgsuiteCollection
     
     public CgsuiteList getRow(int row)
     {
-        return (CgsuiteList) rows.get(row);
+        return (CgsuiteList) rows.get(row-1);
     }
     
     public int getNumColumns()

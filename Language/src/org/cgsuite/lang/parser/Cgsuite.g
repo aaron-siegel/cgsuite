@@ -26,9 +26,6 @@ tokens
 	COMMA		= ',';
 	SEMI		= ';';
 	COLON		= ':';
-	AMPERSAND	= '&';
-	TILDE		= '~';
-	BANG		= '!';
 	QUESTION	= '?';
 	CARET       = '^';
 	VEE         = 'v';
@@ -292,13 +289,12 @@ varInitializer
     ;
 
 propertyDeclaration
-	: modifiers PROPERTY^ IDENTIFIER DOT! (GET | SET)
+	: modifiers PROPERTY^ IDENTIFIER DOT! (GET | setterClause)
 	  (javaClause SEMI! | statementSequence END!)
 	;
 
-proptype
-    : GET
-    | SET
+setterClause
+    : SET LPAREN requiredParameter RPAREN -> ^(SET ^(METHOD_PARAMETER_LIST requiredParameter))
     ;
 	
 methodDeclaration
@@ -323,9 +319,17 @@ methodParameterList
 	;
 	
 methodParameter
+    : optionalParameter
+    | requiredParameter
+    ;
+
+optionalParameter
 	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($b $a?) expression?)
     | a=IDENTIFIER QUESTION expression? -> ^(QUESTION $a expression?)
-	| a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^($b $a DOTDOTDOT?)
+    ;
+
+requiredParameter
+	: a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^($b $a DOTDOTDOT?)
 	| IDENTIFIER^ DOTDOTDOT?
 	;
 

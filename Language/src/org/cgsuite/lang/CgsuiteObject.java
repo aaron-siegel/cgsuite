@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
-// TODO Implement setters
 // TODO Use weak references for crosslinks
 
 public class CgsuiteObject implements Cloneable
@@ -244,6 +243,16 @@ public class CgsuiteObject implements Cloneable
 
     public void assign(String identifier, CgsuiteObject value, CgsuiteMethod contextMethod, boolean localAccess)
     {
+        CgsuiteMethod setter = type.lookupMethod(identifier + "$set");
+        
+        if (setter != null)
+        {
+            if (setter.isStatic())
+                throw new InputException("Cannot reference static property in dynamic context: " + identifier);
+            setter.invoke(castForMethodCall(setter), Collections.singletonList(value), CgsuiteMethod.EMPTY_PARAM_MAP);
+            return;
+        }
+        
         Variable var;
         
         if (localAccess)

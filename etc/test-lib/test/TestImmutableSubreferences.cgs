@@ -16,7 +16,7 @@ class TestImmutableSubreferences
     end
     
     method TestImmutableSet()
-        error("not yet implemented");
+        obj.RandomElement[1] := 5;
     end
     
     method TestImmutableMap()
@@ -24,7 +24,7 @@ class TestImmutableSubreferences
     end
     
     method TestImmutableTable()
-        error("not yet implemented");
+        obj[1][1] := 5;
     end
     
     method TestCrosslinkedList()
@@ -33,7 +33,8 @@ class TestImmutableSubreferences
     end
     
     method TestCrosslinkedSet()
-        error("not yet implemented");
+        copy := obj;
+        copy.RandomElement[1] := 5;
     end
     
     method TestCrosslinkedMap()
@@ -42,7 +43,8 @@ class TestImmutableSubreferences
     end
     
     method TestCrosslinkedTable()
-        error("not yet implemented");
+        copy := obj;
+        copy[1][1] := 5;
     end
     
 end

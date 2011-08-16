@@ -197,7 +197,7 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
             return new CgsuiteInteger(bigValue.bitLength()-1);
     }
     
-    public static CgsuiteObject random(CgsuiteInteger max)
+    public static CgsuiteInteger random(CgsuiteInteger max)
     {
         if (max.bigValue == null) {
             return new CgsuiteInteger(1 + RANDOM.nextInt(max.intValue()));
