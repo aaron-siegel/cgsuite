@@ -3,7 +3,6 @@ package org.cgsuite.lang;
 import static org.cgsuite.lang.parser.CgsuiteLexer.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -304,9 +303,6 @@ public class Domain
                 case IDENTIFIER:
                 case THIS:
                 case SUPER:
-                case EXPLICIT_LIST:
-                case EXPLICIT_SET:
-                case EXPLICIT_MAP:
                     constValue = null;
                     break;
 

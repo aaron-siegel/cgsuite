@@ -14,5 +14,23 @@ class TestMethods
         return [param1,param2,param3,param4,param5,param6];
     
     end
+    
+    method MethodWithVararg(param1, param2, param3 ...)
+    
+        return [param1,param2,param3];
+    
+    end
+    
+    method TypedMethodWithVararg(Integer param1, Integer param2, Integer param3 ...)
+    
+        return [param1,param2,param3];
+    
+    end
+    
+    method MethodWithVarargAndOption(param1, param2, param3 ..., param4?, param5? 9)
+    
+        return [param1,param2,param3,param4,param5];
+    
+    end
 
 end

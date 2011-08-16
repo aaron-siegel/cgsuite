@@ -176,8 +176,6 @@ tokens
 
 @members
 {
-    // TODO Varargs
-
     private List<SyntaxError> errors = new ArrayList<SyntaxError>();
 
     @Override
@@ -320,7 +318,6 @@ options { greedy = true; }
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
     ;
 	
-// TODO Require optional last
 methodParameterList
 	: (methodParameter (COMMA methodParameter)*)? -> ^(METHOD_PARAMETER_LIST methodParameter*)
 	;
@@ -328,8 +325,8 @@ methodParameterList
 methodParameter
 	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($b $a?) expression?)
     | a=IDENTIFIER QUESTION expression? -> ^(QUESTION $a expression?)
-	| a=IDENTIFIER b=IDENTIFIER -> ^($b $a)
-	| IDENTIFIER
+	| a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^($b $a DOTDOTDOT?)
+	| IDENTIFIER^ DOTDOTDOT?
 	;
 
 enumDeclaration
@@ -495,7 +492,8 @@ arrayReference
 	: LBRACKET expression (COMMA expression)* RBRACKET
       -> ^(ARRAY_INDEX_LIST[$LBRACKET] expression*)
 	;
-	
+
+// TODO Require optional last
 functionCall
 	: LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
       -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] functionArgument*)

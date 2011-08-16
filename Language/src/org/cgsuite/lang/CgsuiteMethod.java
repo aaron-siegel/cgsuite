@@ -32,6 +32,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     private int nRequiredParameters;
     private CgsuiteTree tree;
     private boolean isConstructor;
+    private boolean hasVarargParameter;
 
     private String javaMethodSpec;
     private String javaMethodName;
@@ -63,8 +64,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         {
             if (p.optional)
                 optionalParameterNames.add(p.name);
+            else if (p.vararg)
+                hasVarargParameter = true;
             else
-                nRequiredParameters++;
+                nRequiredParameters++;  // We specifically DON'T count the vararg parameter here
         }
     }
 
@@ -209,7 +212,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         if (arguments.size() < nRequiredParameters)
             throw new InputException("Expecting at least " + nRequiredParameters + " argument(s) for method call: " + getQualifiedName());
 
-        if (arguments.size() > parameters.size())
+        if (!hasVarargParameter && arguments.size() > parameters.size())
             throw new InputException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
 
         CgsuiteObject retval;
@@ -312,21 +315,32 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 domain.put(parameters.get(i).name, arguments.get(i));
             }
             
+            if (hasVarargParameter)
+            {
+                CgsuiteList varargList = new CgsuiteList(arguments.size()-nRequiredParameters);
+                for (int i = nRequiredParameters; i < arguments.size(); i++)
+                {
+                    varargList.add(arguments.get(i));
+                }
+                domain.put(parameters.get(nRequiredParameters).name, varargList);
+            }
+                    
             int nOptionalArgumentsProcessed = 0;
 
-            for (int i = nRequiredParameters; i < parameters.size(); i++)
+            for (int i = nRequiredParameters + (hasVarargParameter ? 1 : 0); i < parameters.size(); i++)
             {
                 Parameter p = parameters.get(i);
+                assert p.optional;
                 if (optionalArguments.containsKey(p.name))
                 {
-                    if (arguments.size() > i)
+                    if (!hasVarargParameter && arguments.size() > i)
                     {
                         throw new InputException("Duplicate parameter: " + p.name + " (in call to method " + getQualifiedName() + ")");
                     }
                     domain.put(p.name, optionalArguments.get(p.name));
                     nOptionalArgumentsProcessed++;
                 }
-                else if (arguments.size() > i)
+                else if (!hasVarargParameter && arguments.size() > i)
                 {
                     domain.put(p.name, arguments.get(i));
                 }
@@ -525,13 +539,15 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         private CgsuiteClass type;
         private boolean optional;
         private CgsuiteTree defaultValue;
+        private boolean vararg;
 
-        public Parameter(String name, CgsuiteClass type, boolean optional, CgsuiteTree defaultValue)
+        public Parameter(String name, CgsuiteClass type, boolean optional, CgsuiteTree defaultValue, boolean vararg)
         {
             this.name = name;
             this.type = type;
             this.optional = optional;
             this.defaultValue = defaultValue;
+            this.vararg = vararg;
         }
 
         @Override
@@ -558,6 +574,11 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         public CgsuiteClass getType()
         {
             return type;
+        }
+        
+        public boolean isVararg()
+        {
+            return vararg;
         }
     }
 }

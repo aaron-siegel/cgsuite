@@ -920,13 +920,41 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private List<Parameter> methodParameters(CgsuiteTree tree, boolean isConstructor) throws CgsuiteException
     {
+        boolean foundOptional = false;
+        boolean foundVararg = false;
+        
         switch (tree.token.getType())
         {
             case METHOD_PARAMETER_LIST:
 
                 List<Parameter> parameters = new ArrayList<Parameter>(tree.getChildCount());
+                
                 for (int i = 0; i < tree.getChildCount(); i++)
-                    parameters.add(methodParameter(tree.getChild(i), isConstructor));
+                {
+                    Parameter parameter = methodParameter(tree.getChild(i), isConstructor);
+                    
+                    if (parameter.isOptional())
+                    {
+                        foundOptional = true;
+                    }
+                    else if (foundOptional)
+                    {
+                        throw new InputException(tree.getChild(i).getToken(),
+                            "Ordinary parameters must precede optional parameters in method declaration.");
+                    }
+                    
+                    if (parameter.isVararg())
+                    {
+                        foundVararg = true;
+                    }
+                    else if (foundVararg && !parameter.isOptional())
+                    {
+                        throw new InputException(tree.getChild(i).getToken(),
+                            "Vararg parameter must be the last ordinary parameter in method declaration.");
+                    }
+                    
+                    parameters.add(parameter);
+                }
 
                 return parameters;
 
@@ -942,13 +970,21 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         CgsuiteClass parameterType;
         boolean isOptional;
         CgsuiteTree defaultValue;
+        boolean vararg;
 
         switch (tree.token.getType())
         {
             case IDENTIFIER:
 
                 parameterToken = tree.getToken();
-                parameterType = (tree.getChildCount() > 0)? CgsuitePackage.forceLookupClass(tree.getChild(0).getText(), packageImports, classImports) : CgsuiteClass.OBJECT_TYPE;
+                
+                if (tree.getChildCount() > 0 && tree.getChild(0).getType() == IDENTIFIER)
+                    parameterType = CgsuitePackage.forceLookupClass(tree.getChild(0).getText(), packageImports, classImports);
+                else
+                    parameterType = OBJECT_TYPE;
+                
+                vararg = (tree.getChildCount() > 0 && tree.getChild(tree.getChildCount()-1).getType() == DOTDOTDOT);
+                
                 isOptional = false;
                 defaultValue = null;
                 break;
@@ -960,6 +996,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 parameterType = (subt.getChildCount() > 0)? CgsuitePackage.forceLookupClass(subt.getChild(0).getText(), packageImports, classImports) : CgsuiteClass.OBJECT_TYPE;
                 isOptional = true;
                 defaultValue = (tree.getChildCount() > 1)? tree.getChild(1) : null;
+                vararg = false;
                 break;
 
             default:
@@ -973,7 +1010,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             throw new InputException(parameterToken, "Method parameter name shadows member variable: " + parameterName);
         }
         
-        return new Parameter(parameterName, parameterType, isOptional, defaultValue);
+        return new Parameter(parameterName, parameterType, isOptional, defaultValue, vararg);
     }
     
     @Override
