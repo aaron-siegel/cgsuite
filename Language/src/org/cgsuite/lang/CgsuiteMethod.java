@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.antlr.runtime.Token;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteTree;
 
@@ -308,21 +309,25 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             
             Domain domain = new Domain(obj, this, declaringClass.getPackageImports(), declaringClass.getClassImports());
 
-            // TODO Validation
-
             for (int i = 0; i < nRequiredParameters; i++)
             {
-                domain.put(parameters.get(i).name, arguments.get(i));
+                Parameter p = parameters.get(i);
+                CgsuiteObject value = arguments.get(i);
+                validate(value, p.type, p.name);
+                domain.put(p.name, value);
             }
             
             if (hasVarargParameter)
             {
+                Parameter p = parameters.get(nRequiredParameters);
                 CgsuiteList varargList = new CgsuiteList(arguments.size()-nRequiredParameters);
                 for (int i = nRequiredParameters; i < arguments.size(); i++)
                 {
-                    varargList.add(arguments.get(i));
+                    CgsuiteObject value = arguments.get(i);
+                    validate(value, p.type, p.name);
+                    varargList.add(value);
                 }
-                domain.put(parameters.get(nRequiredParameters).name, varargList);
+                domain.put(p.name, varargList);
             }
                     
             int nOptionalArgumentsProcessed = 0;
@@ -331,28 +336,30 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 Parameter p = parameters.get(i);
                 assert p.optional;
+                CgsuiteObject value;
                 if (optionalArguments.containsKey(p.name))
                 {
                     if (!hasVarargParameter && arguments.size() > i)
                     {
                         throw new InputException("Duplicate parameter: " + p.name + " (in call to method " + getQualifiedName() + ")");
                     }
-                    domain.put(p.name, optionalArguments.get(p.name));
+                    value = optionalArguments.get(p.name);
                     nOptionalArgumentsProcessed++;
                 }
                 else if (!hasVarargParameter && arguments.size() > i)
                 {
-                    domain.put(p.name, arguments.get(i));
+                    value = arguments.get(i);
                 }
                 else if (p.defaultValue == null)
                 {
-                    domain.put(p.name, CgsuiteObject.NIL);
+                    value = CgsuiteObject.NIL;
                 }
                 else
                 {
-                    CgsuiteObject defaultValue = domain.expression(p.defaultValue);
-                    domain.put(p.name, defaultValue);
+                    value = domain.expression(p.defaultValue);
                 }
+                validate(value, p.type, p.name);
+                domain.put(p.name, value);
             }
             
             if (nOptionalArgumentsProcessed != optionalArguments.size())
@@ -383,6 +390,14 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
 
         return retval;
+    }
+    
+    private void validate(CgsuiteObject obj, CgsuiteClass expectedClass, String paramName)
+    {
+        if (obj != NIL && !obj.getCgsuiteClass().hasAncestor(expectedClass))
+        {
+            throw new InputException("Invalid arguments in call to " + getQualifiedName() + ": parameter \"" + paramName + "\" must be of class " + expectedClass.getQualifiedName() + ".");
+        }
     }
     
     public static Object cast(CgsuiteObject obj, Class<?> javaClass, boolean crosslink)

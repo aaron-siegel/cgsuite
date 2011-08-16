@@ -1,6 +1,6 @@
 class Konane extends GridGame
 
-    method Konane(Grid grid)
+    method Konane(grid)
         this.GridGame(grid);
     end
 

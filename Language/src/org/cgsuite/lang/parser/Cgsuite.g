@@ -493,7 +493,6 @@ arrayReference
       -> ^(ARRAY_INDEX_LIST[$LBRACKET] expression*)
 	;
 
-// TODO Require optional last
 functionCall
 	: LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
       -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] functionArgument*)

@@ -1291,6 +1291,7 @@ public class Domain
     private List<CgsuiteObject> argumentList(CgsuiteTree tree) throws CgsuiteException
     {
         List<CgsuiteObject> list;
+        boolean foundOptional = false;
 
         switch (tree.getToken().getType())
         {
@@ -1299,8 +1300,19 @@ public class Domain
                 list = new ArrayList<CgsuiteObject>();
                 for (CgsuiteTree child : tree.getChildren())
                 {
-                    if (child.getToken().getType() != BIGRARROW)
+                    if (child.getToken().getType() == BIGRARROW)
+                    {
+                        foundOptional = true;
+                    }
+                    else if (foundOptional)
+                    {
+                        throw new InputException(child.getToken(),
+                            "Ordinary arguments must precede optional arguments in function call.");
+                    }
+                    else
+                    {
                         list.add(expression(child).simplify());
+                    }
                 }
                 return list;
 

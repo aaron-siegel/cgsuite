@@ -77,6 +77,10 @@ Tableof                         \ tableof([n,n^2] for n from 1 to 3) \
 --+--
 3 | 9 \
 
+// Function calls
+
+Optional argument out of order  \ game.grid.Clobber(anti => true, "."); \ !!Ordinary arguments must precede optional arguments in function call. \
+
 // Procedures
 
 Procedure definition            \ f := x -> x+1 \ <Object of type Procedure> \
@@ -138,7 +142,6 @@ Static initializers             \ test.TestStaticInitializers.Y \ 7 \
 
 // Method calls
 
-// TODO Validation
 Optional parameters - defaults      \ meth := test.TestMethods(); meth.Method1(1, 2) \ [1,2,nil,nil,7,7] \
 Too few required parameters         \ meth.Method1(1) \ !!Expecting at least 2 argument(s) for method call: test.TestMethods.Method1 \
 Too many parameters                 \ meth.Method1(1, 2, 3, 4, 5, 6, 7) \ !!Expecting at most 6 argument(s) for method call: test.TestMethods.Method1 \
@@ -147,12 +150,15 @@ Optional parameters - specified 1   \ meth.Method1(1, 2, param5 => 5) \ [1,2,nil
 Optional parameters - specified 2   \ meth.Method1(1, 2, param5 => 5, param6 => 6) \ [1,2,nil,nil,5,6] \
 Optional parameters - invalid       \ meth.Method1(1, 2, noGood => 5) \ !!Not a valid optional parameter: noGood (in call to method test.TestMethods.Method1) \
 Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \ !!Duplicate parameter: param5 (in call to method test.TestMethods.Method1) \
+Validation failure                  \ meth.Method1("znear", "diablo") \ !!Invalid arguments in call to test.TestMethods.Method1: parameter "param2" must be of class cgsuite.lang.Integer. \
+Optional parameters - validation    \ meth.Method1(1, 2, param3 => "znear", param4 => "diablo") \ !!Invalid arguments in call to test.TestMethods.Method1: parameter "param4" must be of class cgsuite.lang.Integer. \
+Default copy validation failure     \ meth.Method1(1, 2, param5 => "znear") \ !!Invalid arguments in call to test.TestMethods.Method1: parameter "param6" must be of class cgsuite.lang.Integer. \
 Vararg - too few parameters         \ meth.MethodWithVararg(1) \ !!Expecting at least 2 argument(s) for method call: test.TestMethods.MethodWithVararg \
 Vararg - required only              \ meth.MethodWithVararg(1, 2) \ [1,2,[]] \
 Vararg - single vararg              \ meth.MethodWithVararg(1, 2, 3) \ [1,2,[3]] \
 Vararg - multi vararg               \ meth.MethodWithVararg(1, 2, 3, 4, 5, 6, 7) \ [1,2,[3,4,5,6,7]] \
 Vararg - typed                      \ meth.TypedMethodWithVararg(1, 2, 3, 4, 5, 6, 7) \ [1,2,[3,4,5,6,7]] \
-Vararg - typed validation failure   \ meth.TypedMethodWithVararg(1, 2, 3, 4, 5, "znear", 7) \ !!Input argument is not of required type: cgsuite.lang.Integer \
+Vararg - typed validation failure   \ meth.TypedMethodWithVararg(1, 2, 3, 4, 5, "znear", 7) \ !!Invalid arguments in call to test.TestMethods.TypedMethodWithVararg: parameter "param3" must be of class cgsuite.lang.Integer. \
 Vararg - with option                \ meth.MethodWithVarargAndOption(1, 2, 3, 4, 5, 6, 7) \ [1,2,[3,4,5,6,7],nil,9] \
 Vararg - with option specified      \ meth.MethodWithVarargAndOption(1, 2, 3, 4, 5, 6, 7, param4 => 8) \ [1,2,[3,4,5,6,7],8,9] \
 
