@@ -422,7 +422,7 @@ isExpr
     ;
 
 relationalExpr
-	: addExpr (relationalToken^ relationalExpr)?
+	: rangeExpr (relationalToken^ relationalExpr)?
 	;
 
 relationalToken
@@ -443,6 +443,10 @@ standardRelationalToken
     | GCONFUSED
 	| COMPARE
 	;
+
+rangeExpr
+    : addExpr (DOTDOT^ addExpr)?
+    ;
 
 addExpr
 	: unaryAddExpr ((PLUS^ | MINUS^) unaryAddExpr | binaryPlusMinus^)*
@@ -535,7 +539,6 @@ primaryExpr
 	| THIS
 	| TRUE
 	| FALSE
-	| (INTEGER DOTDOT) => range
 	| INTEGER
     | INF
 	| STRING
@@ -633,10 +636,6 @@ ofToken
 expressionList
     : (expression (COMMA expression)*)? -> ^(EXPRESSION_LIST expression*)
     ;
-
-range
-	: INTEGER DOTDOT^ INTEGER
-	;
 
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!

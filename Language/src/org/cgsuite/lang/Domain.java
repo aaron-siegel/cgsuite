@@ -407,6 +407,7 @@ public class Domain
             case LCONFUSED:
             case GCONFUSED:
             case COMPARE:
+            case DOTDOT:
             case PLUS:
             case MINUS:
             case AST:
@@ -925,9 +926,10 @@ public class Domain
                 case LCONFUSED: return x.invokeMethod("op <|", y);
                 case GCONFUSED: return x.invokeMethod("op |>", y);
                 case COMPARE:   return x.invokeMethod("op <=>", y);
+                case DOTDOT:    return range(x, y, tree);
                 case PLUS:      return add(x, y);
                 case MINUS:     return subtract(x, y);
-                case AST:       return multiply(x, y, tree);
+                case AST:       return multiply(x, y);
                 case FSLASH:    return x.invokeMethod("op /", y);
                 case PERCENT:   return x.invokeMethod("op %", y);
                 case EXP:       return x.invokeMethod("op ^", y);
@@ -959,6 +961,20 @@ public class Domain
 
         return x.invokeMethod("op []", list);
     }
+    
+    private CgsuiteObject range(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
+    {
+        int m = integer(x, tree, "Start of range");
+        int n = integer(y, tree, "End of range");
+        
+        CgsuiteList list = new CgsuiteList();
+        for (int i = m; i <= n; i++)
+        {
+            list.add(new CgsuiteInteger(i));
+        }
+        
+        return list;
+    }
 
     private CgsuiteObject add(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
     {
@@ -980,7 +996,7 @@ public class Domain
         return x.invokeMethod("op -", y);
     }
 
-    private CgsuiteObject multiply(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
+    private CgsuiteObject multiply(CgsuiteObject x, CgsuiteObject y) throws CgsuiteException
     {
         if (x instanceof CgsuiteInteger && y instanceof CgsuiteInteger)
         {
