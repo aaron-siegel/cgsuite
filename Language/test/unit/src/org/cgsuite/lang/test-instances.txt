@@ -130,35 +130,36 @@ Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] :=
 
 // Classdefs
 
-Class name != filename          \ test.TestBadClassName(); \ !!Classname in file does not match filename: TestBadClassName.cgs \
-Extends qualified class name    \ test.TestExtendsSubclass(); \ ok \
-Imports package                 \ test.TestImports().testImportedPackage(); \ 1 \
-Imports class                   \ test.TestImports().testImportedClass(); \ 1/2 \
-Imports class - nonimported     \ test.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
+Class name != filename          \ test.classdef.TestBadClassName(); \ !!Classname in file does not match filename: TestBadClassName.cgs \
+Extends qualified class name    \ test.classdef.TestExtendsSubclass(); \ ok \
+Imports package                 \ test.classdef.TestImports().testImportedPackage(); \ 1 \
+Imports class                   \ test.classdef.TestImports().testImportedClass(); \ 1/2 \
+Imports class - nonimported     \ test.classdef.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
+Duplicate var                   \ test.classdef.TestDuplicateVar; \ !!Duplicate variable: x \
 
 // Initializers
 
-Static initializers             \ test.TestStaticInitializers.Y \ 7 \
+Static initializers             \ test.classdef.TestStaticInitializers.Y \ 7 \
 
 // Method calls
 
-Optional parameters - defaults      \ meth := test.TestMethods(); meth.Method1(1, 2) \ [1,2,nil,nil,7,7] \
-Too few required parameters         \ meth.Method1(1) \ !!Expecting at least 2 argument(s) for method call: test.TestMethods.Method1 \
-Too many parameters                 \ meth.Method1(1, 2, 3, 4, 5, 6, 7) \ !!Expecting at most 6 argument(s) for method call: test.TestMethods.Method1 \
+Optional parameters - defaults      \ meth := test.classdef.TestMethods(); meth.Method1(1, 2) \ [1,2,nil,nil,7,7] \
+Too few required parameters         \ meth.Method1(1) \ !!Expecting at least 2 argument(s) for method call: test.classdef.TestMethods.Method1 \
+Too many parameters                 \ meth.Method1(1, 2, 3, 4, 5, 6, 7) \ !!Expecting at most 6 argument(s) for method call: test.classdef.TestMethods.Method1 \
 Implicit optional parameters        \ meth.Method1(1, 2, 3, 4, 5) \ [1,2,3,4,5,5] \
 Optional parameters - specified 1   \ meth.Method1(1, 2, param5 => 5) \ [1,2,nil,nil,5,5] \
 Optional parameters - specified 2   \ meth.Method1(1, 2, param5 => 5, param6 => 6) \ [1,2,nil,nil,5,6] \
-Optional parameters - invalid       \ meth.Method1(1, 2, noGood => 5) \ !!Not a valid optional parameter: noGood (in call to method test.TestMethods.Method1) \
-Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \ !!Duplicate parameter: param5 (in call to method test.TestMethods.Method1) \
-Validation failure                  \ meth.Method1("znear", "diablo") \ !!Invalid arguments in call to test.TestMethods.Method1: parameter "param2" must be of class cgsuite.lang.Integer. \
-Optional parameters - validation    \ meth.Method1(1, 2, param3 => "znear", param4 => "diablo") \ !!Invalid arguments in call to test.TestMethods.Method1: parameter "param4" must be of class cgsuite.lang.Integer. \
-Default copy validation failure     \ meth.Method1(1, 2, param5 => "znear") \ !!Invalid arguments in call to test.TestMethods.Method1: parameter "param6" must be of class cgsuite.lang.Integer. \
-Vararg - too few parameters         \ meth.MethodWithVararg(1) \ !!Expecting at least 2 argument(s) for method call: test.TestMethods.MethodWithVararg \
+Optional parameters - invalid       \ meth.Method1(1, 2, noGood => 5) \ !!Not a valid optional parameter: noGood (in call to method test.classdef.TestMethods.Method1) \
+Optional parameters - duplicate     \ meth.Method1(1, 2, 3, 4, 5, param5 => 5) \ !!Duplicate parameter: param5 (in call to method test.classdef.TestMethods.Method1) \
+Validation failure                  \ meth.Method1("znear", "diablo") \ !!Invalid arguments in call to test.classdef.TestMethods.Method1: parameter "param2" must be of class cgsuite.lang.Integer. \
+Optional parameters - validation    \ meth.Method1(1, 2, param3 => "znear", param4 => "diablo") \ !!Invalid arguments in call to test.classdef.TestMethods.Method1: parameter "param4" must be of class cgsuite.lang.Integer. \
+Default copy validation failure     \ meth.Method1(1, 2, param5 => "znear") \ !!Invalid arguments in call to test.classdef.TestMethods.Method1: parameter "param6" must be of class cgsuite.lang.Integer. \
+Vararg - too few parameters         \ meth.MethodWithVararg(1) \ !!Expecting at least 2 argument(s) for method call: test.classdef.TestMethods.MethodWithVararg \
 Vararg - required only              \ meth.MethodWithVararg(1, 2) \ [1,2,[]] \
 Vararg - single vararg              \ meth.MethodWithVararg(1, 2, 3) \ [1,2,[3]] \
 Vararg - multi vararg               \ meth.MethodWithVararg(1, 2, 3, 4, 5, 6, 7) \ [1,2,[3,4,5,6,7]] \
 Vararg - typed                      \ meth.TypedMethodWithVararg(1, 2, 3, 4, 5, 6, 7) \ [1,2,[3,4,5,6,7]] \
-Vararg - typed validation failure   \ meth.TypedMethodWithVararg(1, 2, 3, 4, 5, "znear", 7) \ !!Invalid arguments in call to test.TestMethods.TypedMethodWithVararg: parameter "param3" must be of class cgsuite.lang.Integer. \
+Vararg - typed validation failure   \ meth.TypedMethodWithVararg(1, 2, 3, 4, 5, "znear", 7) \ !!Invalid arguments in call to test.classdef.TestMethods.TypedMethodWithVararg: parameter "param3" must be of class cgsuite.lang.Integer. \
 Vararg - with option                \ meth.MethodWithVarargAndOption(1, 2, 3, 4, 5, 6, 7) \ [1,2,[3,4,5,6,7],nil,9] \
 Vararg - with option specified      \ meth.MethodWithVarargAndOption(1, 2, 3, 4, 5, 6, 7, param4 => 8) \ [1,2,[3,4,5,6,7],8,9] \
 
@@ -170,46 +171,45 @@ Unexpected return               \ return 5; \ !!Unexpected control statement: re
 Unexpected break in procedure   \ f := x -> (break); f(0) \ !!Unexpected control statement in procedure: break \
 Unexpected continue in procedure\ f := x -> (continue); f(0) \ !!Unexpected control statement in procedure: continue \
 Unexpected return in procedure  \ f := x -> (return); f(0) \ !!Unexpected control statement in procedure: return \
-Unexpected break in method      \ test.TestControlStatements.UnexpectedBreak(); \ !!Unexpected control statement in method: break \
-Unexpected continue in method   \ test.TestControlStatements.UnexpectedContinue(); \ !!Unexpected control statement in method: continue \
-Return from loop                \ test.TestControlStatements.ReturnFromLoop(); \ 101 \
+Unexpected break in method      \ test.lang.TestControlStatements.UnexpectedBreak(); \ !!Unexpected control statement in method: break \
+Unexpected continue in method   \ test.lang.TestControlStatements.UnexpectedContinue(); \ !!Unexpected control statement in method: continue \
+Return from loop                \ test.lang.TestControlStatements.ReturnFromLoop(); \ 101 \
 
 // Procedures in classes
 
-Static procedure                \ test.TestProcedureScope.StaticProcedure() \ 6 \
+Static procedure                \ test.lang.TestProcedureScope.StaticProcedure() \ 6 \
 // TODO procedures with method scope
 
 // Immutability
 
-Immutable retrieval                     \ mut := test.TestImmutable(); mut.Retrieve(3); \ 3 \
-Immutable assignment                    \ mut := test.TestImmutable(); mut.AssignBad([5,6,7]); \ !!Cannot change member variable of immutable object: x \
-Immutable member mutation               \ mut := test.TestImmutable(); mut.MutateBad(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-Mutable retrieval                       \ mut := test.TestMutable(); mut.Retrieve(3); \ 3 \
-Mutable assignment                      \ mut := test.TestMutable(); mut.AssignGood([5,6,7]); mut.Retrieve(3); \ 7 \
-Mutable member mutation                 \ mut := test.TestMutable(); mut.MutateExplicit(3, 9); mut.Retrieve(3); \ 9 \
-Immutable method - assignment           \ mut := test.TestMutable(); mut.AssignBad([5,6,7]); \ !!Cannot assign to member variable from inside an immutable method: x \
-Immutable object - call explicit mutable\ mut := test.TestImmutable(); mut.CallMutateExplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: test.TestMutable.MutateExplicit \
-Immutable object - call implicit mutable\ mut := test.TestImmutable(); mut.CallMutateImplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-Immutable declares mutable              \ test.TestBadImmutable; \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
-Immutable inherits mutable              \ test.TestBadImmutableInheritance; \ !!Class is not marked "mutable", but has a mutable parent: test.TestMutable \
-Static mutable                          \ test.TestBadStaticMutable; \ !!Static method cannot be marked "mutable": StaticMutable \
+Immutable retrieval                     \ mut := test.mutability.TestImmutable(); mut.Retrieve(3); \ 3 \
+Immutable assignment                    \ mut := test.mutability.TestImmutable(); mut.AssignBad([5,6,7]); \ !!Cannot change member variable of immutable object: x \
+Immutable member mutation               \ mut := test.mutability.TestImmutable(); mut.MutateBad(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Mutable retrieval                       \ mut := test.mutability.TestMutable(); mut.Retrieve(3); \ 3 \
+Mutable assignment                      \ mut := test.mutability.TestMutable(); mut.AssignGood([5,6,7]); mut.Retrieve(3); \ 7 \
+Mutable member mutation                 \ mut := test.mutability.TestMutable(); mut.MutateExplicit(3, 9); mut.Retrieve(3); \ 9 \
+Immutable method - assignment           \ mut := test.mutability.TestMutable(); mut.AssignBad([5,6,7]); \ !!Cannot assign to member variable from inside an immutable method: x \
+Immutable object - call explicit mutable\ mut := test.mutability.TestImmutable(); mut.CallMutateExplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: test.mutability.TestMutable.MutateExplicit \
+Immutable object - call implicit mutable\ mut := test.mutability.TestImmutable(); mut.CallMutateImplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Immutable declares mutable              \ test.mutability.TestBadImmutable; \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
+Immutable inherits mutable              \ test.mutability.TestBadImmutableInheritance; \ !!Class is not marked "mutable", but has a mutable parent: test.mutability.TestMutable \
+Static mutable                          \ test.mutability.TestBadStaticMutable; \ !!Static method cannot be marked "mutable": StaticMutable \
 
 // Var shadowing
 
 // SEPARATE NAMESPACE FOR LOCAL
 
-Do loop variable shadows member var     \ shadow := test.TestShadowing(); shadow.ShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
-Do loop variable shadows super var      \ shadow := test.TestShadowingSubclass(); shadow.SubShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
-Do loop variable shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowDoLoop(); \ "ok" \
-In loop variable shadows member var     \ shadow := test.TestShadowing(); shadow.ShadowInLoop(); \ !!Loop variable name shadows member variable: x \
-In loop variable shadows super var      \ shadow := test.TestShadowingSubclass(); shadow.SubShadowInLoop(); \ !!Loop variable name shadows member variable: x \
-In loop variable shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowInLoop(); \ "ok" \
-Local variable shadows subclass var     \ shadow := test.TestShadowingSubclass(); shadow.NonShadowLocalSub(); \ 5 \
-Method parameter shadows subclass var   \ shadow := test.TestShadowingSubclass(); shadow.NonShadowParamSub(); \ 5 \
-Duplicate var                           \ test.TestDuplicateVar; \ !!Duplicate variable: x \
-Member var shadows superclass var       \ test.TestBadShadow; \ !!Variable shadows superclass var: x (from class test.TestShadowing) \
-Var assigned by constructor delegate 1  \ shadow := test.TestConstructorDelegate(); shadow.Value \ 5 \
-Var assigned by constructor delegate 2  \ shadow := test.TestConstructorDelegate(); shadow.ThisValue \ 5 \
+Do loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
+Do loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
+Do loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowDoLoop(); \ "ok" \
+In loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowInLoop(); \ !!Loop variable name shadows member variable: x \
+In loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowInLoop(); \ !!Loop variable name shadows member variable: x \
+In loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowInLoop(); \ "ok" \
+Local variable shadows subclass var     \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowLocalSub(); \ 5 \
+Method parameter shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowParamSub(); \ 5 \
+Member var shadows superclass var       \ test.lang.TestBadShadow; \ !!Variable shadows superclass var: x (from class test.lang.TestShadowing) \
+Var assigned by constructor delegate 1  \ shadow := test.lang.TestConstructorDelegate(); shadow.Value \ 5 \
+Var assigned by constructor delegate 2  \ shadow := test.lang.TestConstructorDelegate(); shadow.ThisValue \ 5 \
 
 // cgsuite.lang.List
 
@@ -243,22 +243,22 @@ List - InsertAt large                   \ list.InsertAt(13, 0); list \ [1,2,4,5,
 List - RemoveAt negative                \ list.RemoveAt(-1) \ !!Invalid list index: -1 \
 List - RemoveAt large                   \ list.RemoveAt(22) \ nil \
 List - check result                     \ list \ [1,2,4,5,7,nil,nil,nil,nil,5,nil,nil,0] \
-List - immutable subreferences          \ mut := test.TestImmutableSubreferences([[1]]); mut.TestImmutableList(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+List - immutable subreferences          \ mut := test.mutability.TestImmutableSubreferences([[1]]); mut.TestImmutableList(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 List - crosslinked subreferences        \ mut.TestCrosslinkedList(); \ nil \
 
 // cgsuite.lang.Set
 
-Set - immutable subreferences           \ mut := test.TestImmutableSubreferences({[1]}); mut.TestImmutableSet(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Set - immutable subreferences           \ mut := test.mutability.TestImmutableSubreferences({[1]}); mut.TestImmutableSet(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Set - crosslinked subreferences         \ mut.TestCrosslinkedSet(); \ nil \
 
 // cgsuite.lang.Map
 
-Map - immutable subreferences           \ mut := test.TestImmutableSubreferences({"znear"=>[1,2,3]}); mut.TestImmutableMap(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Map - immutable subreferences           \ mut := test.mutability.TestImmutableSubreferences({"znear"=>[1,2,3]}); mut.TestImmutableMap(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Map - crosslinked subreferences         \ mut.TestCrosslinkedMap(); \ nil \
 
 // cgsuite.lang.Table
 
-Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.mutability.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Table - crosslinked subreferences       \ mut.TestCrosslinkedTable(); \ nil \
 
 // cgsuite.lang.Procedure

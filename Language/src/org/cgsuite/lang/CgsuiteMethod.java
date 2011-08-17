@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.antlr.runtime.Token;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.parser.CgsuiteTree;
 

@@ -4,7 +4,7 @@
  * Created by asiegel on Aug 4, 2011
  */
 
-class TestExtendsSubclass extends test.TestExtends
+class TestExtendsSubclass extends test.classdef.TestExtends
     
     method TestExtendsSubclass()
     
