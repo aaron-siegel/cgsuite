@@ -99,7 +99,7 @@ $override method MyMethod(parameters)$
 This specifies that $MyMethod$ is also declared by one or more ancestors, and we are ~redefining~ it in the subclass.
 If a method has the same name as a method in some ancestor class, then the $override$ keyword must be specified.
 
-++ $this$ and $is$ ++
+++ this and is ++
 
 The keyword $this$ can be used from within a method to refer to ``the current object'' - that is, the object on which
 the method is being invoked.  You can type
