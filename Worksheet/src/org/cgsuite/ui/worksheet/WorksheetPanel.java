@@ -20,6 +20,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -61,11 +63,15 @@ public class WorksheetPanel extends JPanel
     private boolean seekingCommand;
     
     private CommandHistoryBuffer buffer;
+    
+    private Queue<Output[]> outputQueue;
+    private OutputBox calculatingOutputBox;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
     {
         initComponents();
+        outputQueue = new LinkedBlockingQueue<Output[]>();
         strut = (Box.Filler) Box.createHorizontalStrut(0);
         strut.setAlignmentX(LEFT_ALIGNMENT);
         add(strut);
@@ -245,6 +251,8 @@ public class WorksheetPanel extends JPanel
     
     private synchronized void processCommand(String command)
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         CalculationCapsule capsule = new CalculationCapsule(command);
         RequestProcessor.Task task = capsule.createTask();
         task.addTaskListener(this);
@@ -271,11 +279,11 @@ public class WorksheetPanel extends JPanel
         }
         else
         {
-            postOutput(new StyledTextOutput("Calculating ..."));
-            
             this.currentCapsule = capsule;
             this.currentTask = task;
         }
+        
+        drainOutput();
 
         if (finished)
         {
@@ -287,21 +295,65 @@ public class WorksheetPanel extends JPanel
         }
     }
 
-    public void postOutput(Output ... output)
+    public synchronized void postOutput(Output ... output)
     {
-        OutputBox outputBox = null;
-        for (int i = 0; i < output.length; i++)
+        outputQueue.add(output);
+        
+        SwingUtilities.invokeLater(new Runnable()
         {
-            outputBox = new OutputBox();
-            outputBox.setOutput(output[i]);
-            outputBox.setWorksheetWidth(getWidth());
-            outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-            add(outputBox, currentCapsule == null ? getComponentCount() : getComponentCount()-1);
+            @Override
+            public void run()
+            {
+                drainOutput();
+            }
+        });
+    }
+    
+    private synchronized void drainOutput()
+    {
+        assert SwingUtilities.isEventDispatchThread();
+        
+        boolean update = false;
+        
+        while (!outputQueue.isEmpty())
+        {
+            Output[] outputs = outputQueue.remove();
+            for (Output output : outputs)
+            {
+                add(makeOutputBox(output), calculatingOutputBox == null ? getComponentCount() : getComponentCount()-1);
+                update = true;
+            }
+        }
+        
+        if (currentCapsule == null && calculatingOutputBox != null)
+        {
+            remove(calculatingOutputBox);
+            calculatingOutputBox = null;
+            update = true;
+        }
+        else if (currentCapsule != null && calculatingOutputBox == null)
+        {
+            calculatingOutputBox = makeOutputBox(new StyledTextOutput("Calculating ..."));
+            add(calculatingOutputBox);
+            update = true;
+        }
+        
+        if (update)
+        {
             updateComponentSizes();
             scrollToBottomLeft();
             repaint();
             getScrollPane().validate();
         }
+    }
+    
+    private OutputBox makeOutputBox(Output output)
+    {
+        OutputBox outputBox = new OutputBox();
+        outputBox.setOutput(output);
+        outputBox.setWorksheetWidth(getWidth());
+        outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return outputBox;
     }
 
     public void clear()
@@ -326,11 +378,11 @@ public class WorksheetPanel extends JPanel
                 if (currentCapsule.isErrorOutput())
                     getToolkit().beep();
 
-                remove(getComponentCount()-1);
                 currentCapsule = null;
                 currentTask = null;
 
                 postOutput(output);
+                drainOutput();
                 advanceToNext();
             }
         });

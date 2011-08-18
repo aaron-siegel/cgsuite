@@ -15,11 +15,9 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service=OutputTarget.class)
 public class WorksheetOutputTarget implements OutputTarget
 {
-
     @Override
-    public void postOutput(Output output)
+    public void postOutput(final Output output)
     {
         WorksheetTopComponent.getDefault().postOutput(output);
     }
-    
 }
