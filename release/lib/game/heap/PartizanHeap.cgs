@@ -9,7 +9,7 @@ class PartizanHeap extends Game
     var leftRules, rightRules;
     var n;
     
-    method PartizanHeap(leftRules, rightRules, Integer n)
+    override method PartizanHeap(leftRules, rightRules, Integer n)
     
         leftRules := HeapRules.MakeRules(leftRules);
         rightRules := HeapRules.MakeRules(rightRules);

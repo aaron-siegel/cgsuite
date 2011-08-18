@@ -9,7 +9,7 @@ class Heap extends ImpartialGame
     var rules;
     var n;
 
-    method Heap(rules, Integer n)
+    override method Heap(rules, Integer n)
     
         rules := HeapRules.MakeRules(rules);
         n := n;

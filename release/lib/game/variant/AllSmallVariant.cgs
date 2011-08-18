@@ -15,7 +15,7 @@ class AllSmallVariant extends Game
     method AllSmallVariant(Game g)
     end
     
-    method Options(Player player) 
+    override method Options(Player player) 
     
         if g.Options(player.Opponent) == {} then
             return {}

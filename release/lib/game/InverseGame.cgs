@@ -2,7 +2,7 @@ class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
 
     property Underlying.get : java "getG";
 
-    method Options(Player player)
+    override method Options(Player player)
         return setof(-g for g in Underlying.Options(player.Opponent));
     end
     

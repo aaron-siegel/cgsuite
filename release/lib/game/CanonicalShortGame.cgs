@@ -17,7 +17,7 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     method ConwayProduct(CanonicalShortGame h) : java "conwayMultiply";
     method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
 
-    method Options(Player player)
+    override method Options(Player player)
         if player == Player.Left then
             return LeftOptions;
         else

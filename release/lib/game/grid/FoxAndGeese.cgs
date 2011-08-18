@@ -1,6 +1,6 @@
 class FoxAndGeese extends GridGame
 
-    method FoxAndGeese(grid)
+    override method FoxAndGeese(grid)
         this.GridGame(grid);
     end
     

@@ -12,7 +12,7 @@ class Sowing extends Game
         
     end
     
-    method Options(Player player)
+    override method Options(Player player)
 
         options := {};
         direction := player.Sign;

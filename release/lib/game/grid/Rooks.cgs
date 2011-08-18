@@ -15,7 +15,7 @@ class Rooks extends GridGame
         this.GridGame(grid);
     end
 
-    method Options(Player player)
+    override method Options(Player player)
 
         options := {};
 

@@ -40,7 +40,7 @@ class ClearThePond extends StripGame
         end
     end
     
-    method Options(Player player)
+    override method Options(Player player)
      
         options := {};
         

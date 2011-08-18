@@ -14,7 +14,7 @@ class ImpartialVariant extends ImpartialGame
     method ImpartialVariant(Game g)
     end
     
-    method Options(Player player)
+    override method Options(Player player)
     
         opts := g.LeftOptions;
         opts.AddAll(g.RightOptions);

@@ -52,7 +52,7 @@ class Clobber extends GridGame
         
     end
     
-    method Options(Player player)
+    override method Options(Player player)
 
         options := {};
 

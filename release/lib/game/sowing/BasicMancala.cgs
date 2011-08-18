@@ -11,7 +11,7 @@ class BasicMancala extends Game
     method BasicMancala(List l, List r)
     end
     
-    method Options(Player player)
+    override method Options(Player player)
     
         if player == Player.Left then
             us := l; them := r;
