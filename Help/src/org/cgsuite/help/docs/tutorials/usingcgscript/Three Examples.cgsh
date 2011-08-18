@@ -124,23 +124,106 @@ First note the line in the constructor:
 $    this.GridGame(grid);$
 
 This tells CGSuite to call the constructor for the parent class, $GridGame$.  The $GridGame$ constructor provides
-various conveniences, such as the familiar notation for constructing grids from strings (for example,
+various conveniences, such as the familiar notation for constructing grids from strings (as in, for example,
 $Clobber("xox|ox.")$).   By calling the parent class constructor, the $Clobber$ class can use these features, too.
 
-The $Options$ method is somewhat more complicated than in the previous examples.  It's not practical to 
+The $Options$ method is somewhat more complicated than in the previous examples.  The rules to Clobber are
+more sophisticated, so it's not practical to construct the options all at once with a single $setof$ command.  Instead,
+we loop through all squares on the board looking for legal moves.  The first line of code:
 
-Since the positions and rules for
-Clobber are more complicated than for Nim or the Partizan Subtraction Game, it's 
+$    options := {};$
+
+initializes the $options$ variable to the empty set.  Next, we search through the board looking for legal moves,
+adding an element to the set each time we find one.  The next three lines of code are the following:
+
+$    for m from 1 to grid.RowCount do
+        for n from 1 to grid.ColumnCount do
+            if grid[m,n] == player then$
+
+These scan through the $grid$, indexed by the ordered pair $[m,n]$.  The expression $grid[m,n]$ looks up the value of
+the grid at coordinate $[m,n]$.  The expression $grid[m,n] == player$ tests whether the grid coordinate $[m,n]$ is
+occupied by a stone of the player's color.
+
+This last statement requires a bit more discussion.  Internally, CGSuite stores grids as matrices of integers.
+Clobber uses the integers 0, 1 and 2 to represent an empty space, a black stone, and a white stone, respectively.  Now
+the $player$ object isn't an integer - it's actually an object of the special class $Player$, which has two values,
+$Player.Left$ and $Player.Right$.  But CGSuite understands that $Player.Left$ means the same thing as $1$, and
+$Player.Right$ means the same thing as $2$, for the purpose of looking up values in grids.  This is quite convenient, as
+it lets us refer to grid values abstractly in terms of the player.  The only thing we have to remember is that 0 is an
+empty space (which isn't much of a stretch).
+
+Now comes the meat of the class.  The next line:
+
+$                for d in Direction.Orthogonal do$
+
+iterates over all ~orthogonal~ directions (North, East, South, West).  Remember, this line is reached any time we've
+found a stone of our color, so now we have to look in all four directions to see if there's an enemy stone.  That
+check is accomplished by the next line:
+
+$                    if grid[m+d.RowShift,n+d.ColumnShift] == player.Opponent then$
+
+which peeks into the grid location at $[m+d.RowShift,n+d.ColumnShift]$.  Here $RowShift$ and $ColumnShift$ are
+properties of the $Direction$ class which tell how far to look in each direction.  For example, if $d$ has the value
+$Direction.West$, then $d.RowShift$ will be 0, and $d.ColumnShift$ will be -1.  Sometimes this might cause CGSuite to
+step off the board - for example, if $d$ is $Direction.West$, and $n$ is $1$, then $n+d.ColumnShift$ will be $0$, which
+is past the edge of the board.  In this case the grid lookup will return $nil$.  This ensures that the condition
+
+$grid[x,y] == z$
+
+will be true just if $[x,y]$ is within the boundaries of the grid, ~and~ has the value $z$ at that location.
+
+Whew!  If we've made it this far, then $[m,n]$ contains a stone of our color, and there's an enemy stone in direction
+$d$.  So it's a legal move to clobber the enemy stone, and the next four lines construct the resulting option.
+
+$                        copy := grid;
+                        copy[m,n] := 0;
+                        copy[m+d.RowShift,n+d.ColumnShift] := player;
+                        options.Add(Clobber(copy));$
+
+We clear the location $[m,n]$, replace the new location with a stone of our color, and put the result into the
+$options$ set.
+
+That's it for the $Options$ method.  Note that the $Clobber$ class has two other properties:
+
+$override property CharMap.get
+    return ".xo";
+end$
+
+This just tells CGSuite that the grid values 0, 1, 2 are represented by characters ., x, o, respectively, when
+displaying (or parsing) Clobber positions as strings.  Likewise,
+
+$override property Icons.get
+    return
+    [
+        GridIcon.Blank,
+        GridIcon.BlackStone,
+        GridIcon.WhiteStone
+    ];
+end$
+
+indicates that in graphical displays, CGSuite should use a blank tile, a black stone, and a white stone.  Different
+grid games, obviously, use different (customized) combinations of characters and icons.
 
 ++ The System Folder ++
+
+This concludes our tour of examples.  The rest of this tutorial is a detailed discussion of the various language
+features of CGScript.  As we proceed, you'll probably want some additional examples to refer to.  Fortunately, CGSuite
+provides a large library of them.  In the Browser, click on the drop-down box that says "User Folder".  Change this
+to "System Folder".  This is where CGSuite's library classes are stored - everything from the core classes like
+$Integer$, to reference implementations of games like $Amazons$ and $Domineering$.  All of these are accessible from
+the Worksheet; for example, you can type
+
+$game.grid.Amazons("x...|o...")$
+
+to construct a typical 2x4 Amazons position.  You can also open them up in the editor and look at the source code.
+Studying the built-in examples is one of the best ways to become proficient in CGScript.
 
 In some of these files you might see expressions like
 
 $java "atomicWeight"$
 
 These are the connection points where CGScript interfaces with Java, its host language.  You won't ordinarily need to
-use the $java$ keyword at all, unless you want to get involved in low-level CGSuite programming.  And I suspect that if
-you're in that camp, then you'll be able to figure out the semantics of the $java$ connectors on your own...
+use the $java$ keyword at all, unless you want to get involved in low-level CGSuite programming.
 
 ++ Exercises ++
 
