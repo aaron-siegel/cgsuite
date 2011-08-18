@@ -16,8 +16,6 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     method NortonProduct(CanonicalShortGame h) : java "nortonMultiply";
     method ConwayProduct(CanonicalShortGame h) : java "conwayMultiply";
     method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
-    method Pow(Number n) : java "pow";
-    method PowTo(Number n) : java "powTo";
 
     method Options(Player player)
         if player == Player.Left then
@@ -99,8 +97,86 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     
     end
     
+    method Pow(DyadicRational x)
+    
+        if x < 1 then
+            error("Exponent must be >= 1.");
+        end
+        
+        ro := RightOptions.AnyElement;
+        
+        if ro === nil or this != {0|ro} then
+            error("Base must be of the form {0|H}.");
+        end
+        
+        if x is Integer then
+            // This is equal to PowTo(x) - PowTo(x-1) in the case of an integer and is much faster
+            // to calculate.  Perhaps it's the right definition even in the non-integer case.
+            // Still a bit of unresolved theory.
+            return { 0 | ro - PowTo(x-1) };
+        else
+            return PowTo(x) - PowTo(x-1);
+        end
+    
+    end
+    
+    method PowTo(DyadicRational x)
+    
+        // {0|H}.PowTo(x) is always defined recursively by
+        // { PowTo(x^L) | H, PowTo(x^R) }.  However, we
+        // apply some shortcuts using OrdinalSum for a
+        // much more efficient calculation.
+    
+        if x < 0 then
+            error("Exponent must be non-negative.");
+        end
+    
+        ro := RightOptions.AnyElement;
+        
+        if ro === nil or this != {0|ro} then
+            error("Base must be of the form {0|H}.");
+        end
+        
+        if x >= 1 then
+            // As given by [Moews 1996].
+            return OrdinalSum(x-1);
+        else
+            /* This case is interesting and surprising.  It's equal to OrdinalSum(y), where y is the
+               "blowup" of x-1, obtained by removing Left's moves to -1 from the canonical form of x-1.
+               For example, if x == 3/8, then
+               
+               x-1 == -5/8 == {-3/4|-1/2} == { {-1||-1|0} ||| {-1|0} }
+               
+               so Blowup(x-1) == { {.||.|0} ||| {.|0} } == { -2 | -1 } = -3/2.  Sure enough,
+               
+               ^.OrdinalSum(-3/2) == ^.PowTo(3/8) == *.OrdinalSum(3/8) + *
+               
+               agreeing with the other definitions of ^.PowTo(3/8). */
+            
+            return OrdinalSum(CanonicalShortGame.Blowup(x-1));
+        end
+    
+    end
+    
     property Tiny.get
         return { 0 || 0 | -this };
+    end
+    
+    static method Blowup(DyadicRational x)
+    
+        if x == 0 then
+            return 0;
+        end
+        
+        xl := x.LeftOptions.AnyElement;
+        xr := x.RightOptions.AnyElement;
+        
+        if xl == -1 then
+            return { | CanonicalShortGame.Blowup(xr) };
+        else
+            return { CanonicalShortGame.Blowup(xl) | CanonicalShortGame.Blowup(xr) };
+        end
+    
     end
 
 end

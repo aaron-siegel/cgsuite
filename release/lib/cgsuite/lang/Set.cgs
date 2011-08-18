@@ -10,6 +10,7 @@ mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
     
     method Contains(obj) : java "contains";
 
+    override property AnyElement.get : java "anyElement";
     override property RandomElement.get : java "randomElement";
     override property ToString.get : java "toString";
     

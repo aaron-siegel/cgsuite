@@ -2945,14 +2945,8 @@ public final class CanonicalShortGame extends Game
      *          <code>{0|H}</code>.
      * @see     #powTo(int) powTo
      */
-    public CanonicalShortGame pow(RationalNumber r)
+    public CanonicalShortGame pow(int n)
     {
-        // TODO Support non-integer values of r
-        if (!r.isInteger() || !r.isSmall())
-            throw new IllegalArgumentException("non-integers not supported yet");
-
-        int n = r.getNumerator().intValue();
-
         if (getNumLeftOptions() != 1 || !getLeftOption(0).equals(ZERO) ||
             getNumRightOptions() != 1)
         {
@@ -2964,7 +2958,7 @@ public final class CanonicalShortGame extends Game
         }
         else
         {
-            return CanonicalShortGame.construct(ZERO, getRightOption(0).subtract(powTo(new RationalNumber(n-1, 1))));
+            return CanonicalShortGame.construct(ZERO, getRightOption(0).subtract(powTo(n-1)));
         }
     }
 
@@ -2985,14 +2979,8 @@ public final class CanonicalShortGame extends Game
      *          <code>{0|H}</code>.
      * @see     #pow(int) pow
      */
-    public CanonicalShortGame powTo(RationalNumber r)
+    public CanonicalShortGame powTo(int n)
     {
-        // TODO Support non-integer values of r
-        if (!r.isInteger() || !r.isSmall())
-            throw new IllegalArgumentException("non-integers not supported yet");
-
-        int n = r.getNumerator().intValue();
-
         if (getNumLeftOptions() != 1 || !getLeftOption(0).equals(ZERO) ||
             getNumRightOptions() != 1)
         {
@@ -3004,7 +2992,7 @@ public final class CanonicalShortGame extends Game
         }
         else
         {
-            return CanonicalShortGame.construct(powTo(r.subtract(RationalNumber.ONE)), getRightOption(0));
+            return CanonicalShortGame.construct(powTo(n-1), getRightOption(0));
         }
     }
 
@@ -3057,7 +3045,7 @@ public final class CanonicalShortGame extends Game
             {
                 continue;
             }
-            int pow = base.pow(new RationalNumber(n, 1)).id;
+            int pow = base.pow(n).id;
             if (value < 0)
             {
                 pow = getInverse(pow);

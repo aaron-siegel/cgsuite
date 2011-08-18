@@ -20,6 +20,10 @@ class Collection : java "org.cgsuite.lang.CgsuiteCollection"
     property ToSet.get
         return setof(x for x in this);
     end
+    
+    property AnyElement.get
+        return ToList.AnyElement;
+    end
 
     property RandomElement.get
         return ToList.RandomElement;

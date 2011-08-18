@@ -97,6 +97,14 @@ public class CgsuiteSet extends CgsuiteCollection
         return list.iterator();
     }
     
+    public CgsuiteObject anyElement()
+    {
+        if (isEmpty())
+            return null;
+        else
+            return iterator().next();
+    }
+    
     public CgsuiteObject randomElement()
     {
         int n = CgsuiteInteger.random(new CgsuiteInteger(size())).intValue();

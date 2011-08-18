@@ -25,6 +25,10 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
         return listof(x for x in this where f(x));
     end
     
+    override property AnyElement.get
+        return this[1];
+    end
+    
     override property RandomElement.get
         if IsEmpty then
             error("The collection is empty.");
