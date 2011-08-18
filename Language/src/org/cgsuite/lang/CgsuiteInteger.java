@@ -190,7 +190,9 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
     
     public CgsuiteInteger lb()
     {
-        // TODO Check for negative values
+        if (compareTo(ZERO) <= 0)
+            throw new InputException("Integer.Lb is only applicable to positive integers.");
+                    
         if (bigValue == null)
             return new CgsuiteInteger(31-Integer.numberOfLeadingZeros(value));
         else

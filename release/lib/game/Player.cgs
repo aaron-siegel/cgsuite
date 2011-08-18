@@ -1,20 +1,21 @@
 enum Player
 
-    Left    (true),
-    Right   (false);
-
+    Left    ( 1, true),
+    Right   (-1, false);
+    
+    var sign;
     var isLeft;
 
-    method Player(isLeft)
-        isLeft := isLeft;
+    method Player(Integer sign, Boolean isLeft)
     end
 
     property Opponent.get
-        if isLeft then return Player.Right; else return Player.Left; end
+        return
+            if isLeft then Player.Right else Player.Left end;
     end
 
     property Sign.get
-        if isLeft then return 1; else return -1; end
+        return sign;
     end
 
 end

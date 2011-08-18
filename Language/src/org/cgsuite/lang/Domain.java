@@ -149,7 +149,7 @@ public class Domain
         }
     }
 
-    private CgsuiteObject statementSequence(CgsuiteTree tree) throws CgsuiteException
+    public CgsuiteObject statementSequence(CgsuiteTree tree) throws CgsuiteException
     {
         if (Thread.interrupted())
         {

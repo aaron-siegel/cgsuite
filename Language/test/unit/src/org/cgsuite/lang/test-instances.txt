@@ -130,12 +130,13 @@ Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] :=
 
 // Classdefs
 
-Class name != filename          \ test.classdef.TestBadClassName(); \ !!Classname in file does not match filename: TestBadClassName.cgs \
+Class name != filename          \ test.classdef.TestBadClassName; \ !!Classname in file does not match filename: TestBadClassName.cgs \
 Extends qualified class name    \ test.classdef.TestExtendsSubclass(); \ ok \
 Imports package                 \ test.classdef.TestImports().testImportedPackage(); \ 1 \
 Imports class                   \ test.classdef.TestImports().testImportedClass(); \ 1/2 \
 Imports class - nonimported     \ test.classdef.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
 Duplicate var                   \ test.classdef.TestDuplicateVar; \ !!Duplicate variable: x \
+No default Java constructor     \ test.classdef.TestBadConstructor; \ !!Class declares a constructor, but its underlying Java class (org.cgsuite.lang.CgsuiteInteger) does not provide a default constructor. \
 
 // Initializers
 

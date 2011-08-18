@@ -116,7 +116,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         if (javaMethodName.equals(declaringClass.getJavaClass().getSimpleName()))
         {
             if (!isConstructor)
-                throw new IllegalArgumentException("Java constructor specified, but method is not a constructor.");
+                throw new IllegalArgumentException("Java constructor specified, but CGSuite method is not a constructor.");
                 
             try
             {
@@ -130,7 +130,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         else
         {
             if (isConstructor)
-                throw new IllegalArgumentException("Ordinary method specified, but method is a constructor.");
+                throw new IllegalArgumentException("Ordinary Java method specified, but CGSuite method is a constructor.");
             
             try
             {
@@ -297,7 +297,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 // Create the object.
                 try
                 {
-                    // TODO Intelligent error message if there is no constructor
+                    assert declaringClass.getDefaultJavaConstructor() != null;
                     obj = declaringClass.getDefaultJavaConstructor().newInstance(declaringClass);
                 }
                 catch (Throwable exc)

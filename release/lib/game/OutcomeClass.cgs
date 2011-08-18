@@ -11,8 +11,4 @@ enum OutcomeClass
     L,
     R;
 
-    // TODO Allow this constructor to be removed
-    method OutcomeClass()
-    end
-
 end

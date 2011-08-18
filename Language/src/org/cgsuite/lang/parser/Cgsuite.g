@@ -275,10 +275,15 @@ javaClause
     ;
 	
 declaration
-	: varDeclaration
+	: staticDeclaration
+    | varDeclaration
 	| propertyDeclaration
 	| methodDeclaration
 	;
+
+staticDeclaration
+    : STATIC^ statementSequence END!
+    ;
 	
 varDeclaration
     : modifiers VAR^ varInitializer (COMMA! varInitializer)* SEMI!

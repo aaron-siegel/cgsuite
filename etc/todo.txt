@@ -4,7 +4,7 @@
 * Remove extraneous UI components
 * Flesh out unit tests
 * Fix class loader error messages
-* Don't require explicit constructor for enums
 * MacOS installer
 * Options method should be an override
 * Banner message in library cgs files
+* Static lookup is broken

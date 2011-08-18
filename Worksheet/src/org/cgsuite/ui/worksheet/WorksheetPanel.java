@@ -314,24 +314,23 @@ public class WorksheetPanel extends JPanel
     {
         if (currentCapsule == null)
             return;
-
-        Output[] output = currentCapsule.getOutput();
-        assert output != null;
-        
-        if (currentCapsule.isErrorOutput())
-            getToolkit().beep();
-
-        remove(getComponentCount()-1);
-        currentCapsule = null;
-        currentTask = null;
-        
-        postOutput(output);
         
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
             public void run()
             {
+                Output[] output = currentCapsule.getOutput();
+                assert output != null;
+
+                if (currentCapsule.isErrorOutput())
+                    getToolkit().beep();
+
+                remove(getComponentCount()-1);
+                currentCapsule = null;
+                currentTask = null;
+
+                postOutput(output);
                 advanceToNext();
             }
         });
@@ -339,6 +338,8 @@ public class WorksheetPanel extends JPanel
 
     private void advanceToNext()
     {
+        assert SwingUtilities.isEventDispatchThread();;
+        
         if (getComponentCount() > 2)
         {
             add(Box.createVerticalStrut(10));
@@ -353,6 +354,8 @@ public class WorksheetPanel extends JPanel
 
     private void scrollToBottomLeft()
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         Component component = getComponent(getComponentCount()-1);
         Point topLeft = component.getLocation();
         Point bottomLeft = new Point(topLeft.x, topLeft.y + component.getHeight());
@@ -365,6 +368,8 @@ public class WorksheetPanel extends JPanel
 
     public void updateComponentSizes()
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         if (getComponentCount() == 0)
         {
             return;
@@ -466,6 +471,8 @@ public class WorksheetPanel extends JPanel
     @Override
     public void commandActivated(String command)
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         if (this.getComponentCount() == 0)
             return;
         

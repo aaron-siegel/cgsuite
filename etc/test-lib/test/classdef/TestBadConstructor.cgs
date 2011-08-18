@@ -1,0 +1,12 @@
+/*
+ * TestBadConstructor.cgs
+ *
+ * Created by asiegel on Aug 17, 2011
+ */
+
+class TestBadConstructor : java "org.cgsuite.lang.CgsuiteInteger"
+
+    method TestBadConstructor()
+    end
+
+end

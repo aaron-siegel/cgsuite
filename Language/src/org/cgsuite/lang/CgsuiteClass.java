@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.antlr.runtime.ANTLRInputStream;
+import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
@@ -71,6 +72,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private Map<String,CgsuiteMethod> methods;
     private Map<String,Variable> vars;
     private List<Variable> varsInOrder;
+    private CgsuiteTree staticBlock;
 
     private Set<CgsuiteClass> descendants;
 
@@ -248,7 +250,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     public CgsuiteMethod lookupConstructor()
     {
         ensureLoaded();
-        // TODO Enforce class-named vars/methods are constructors
         return methods.get(this.name);
     }
 
@@ -346,6 +347,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         this.vars = new HashMap<String,Variable>();
         this.varsInOrder = new ArrayList<Variable>();
         this.descendants = new HashSet<CgsuiteClass>();
+        this.staticBlock = null;
         
         Set<String> requiredDeclarations = new HashSet<String>();
 
@@ -505,6 +507,11 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     initialValue.objectNamespace.put("ordinal", new CgsuiteInteger(var.getDeclRank()));
                 }
             }
+        }
+        
+        if (staticBlock != null)
+        {
+            new Domain(this, methods.get("static$init"), packageImports, classImports).statementSequence(staticBlock);
         }
     }
     
@@ -682,13 +689,17 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void classDeclarations(CgsuiteTree tree) throws CgsuiteException
     {
-        // Declare vars first.
+        // Declare vars and statics first.
         
         for (int i = 0; i < tree.getChildCount(); i++)
         {
             if (tree.getChild(i).getType() == VAR)
             {
                 declaration(tree.getChild(i));
+            }
+            else if (tree.getChild(i).getType() == STATIC)
+            {
+                declareStatic(tree.getChild(i));
             }
         }
         
@@ -709,27 +720,19 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         assert tree.getChild(2).getType() == ENUM_ELEMENT_LIST : tree.getChild(2).toStringTree();
         for (int i = 0; i < tree.getChild(2).getChildCount(); i++)
         {
-            assert tree.getChild(2).getChild(i).getType() == ENUM_ELEMENT : tree.getChild(2).toStringTree();
-            String literal = tree.getChild(2).getChild(i).getChild(0).getChild(0).getText();
-            declareVar(tree.getChild(2).getChild(i).getChild(0).getChild(0), literal, EnumSet.of(Modifier.STATIC, Modifier.ENUM_VALUE), tree.getChild(2).getChild(i).getChild(0).getChild(1), i+1);
-//            CgsuiteEnumValue value = new CgsuiteEnumValue(this, literal, i);
-//            assign(literal, value);
-//            value.assign("Ordinal", new RationalNumber(i, 1));
+            CgsuiteTree element = tree.getChild(2).getChild(i);
+            assert element.getType() == ENUM_ELEMENT : tree.toStringTree();
+            String literal = element.getChild(0).getChild(0).getText();
+            declareVar(element.getChild(0).getChild(0), literal, EnumSet.of(Modifier.STATIC, Modifier.ENUM_VALUE), element.getChild(0).getChild(1), i+1);
         }
-
-        for (int i = 3; i < tree.getChildCount(); i++)
+        
+        classDeclarations(tree);
+        
+        // Implicit constructor declaration for enum.
+        
+        if (!methods.containsKey(name))
         {
-            switch (tree.getChild(i).getType())
-            {
-                case METHOD:
-                case PROPERTY:
-                case VAR:
-                    declaration(tree.getChild(i));
-                    break;
-
-                default:
-                    throw new MalformedParseTreeException(tree);
-            }
+            methods.put(name, new CgsuiteMethod(this, name, EnumSet.noneOf(Modifier.class), Collections.<Parameter>emptyList(), new CgsuiteTree(new CommonToken(STATEMENT_SEQUENCE)), null));
         }
     }
 
@@ -768,7 +771,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 declareMethod(tree, methodName, modifiers, parameters, body, javaMethodName);
 
-                return;
+                break;
 
             case PROPERTY:
 
@@ -794,7 +797,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
                 declareMethod(tree, methodName, modifiers, parameters, body, javaMethodName);
 
-                return;
+                break;
 
             case VAR:
 
@@ -817,7 +820,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                     }
                 }
 
-                return;
+                break;
 
             default:
 
@@ -876,6 +879,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             throw new InputException(tree.getToken(), "Constructor is marked \"static\".");
         }
+        else if (name.equals(this.name) && javaMethodName == null && this.defaultJavaConstructor == null)
+        {
+            throw new InputException(tree.getToken(), "Class declares a constructor, but its underlying Java class (" + javaClassname + ") does not provide a default constructor.");
+        }
         else if (this.methods.containsKey(name) && !modifiers.contains(Modifier.OVERRIDE))
         {
             throw new InputException(tree.getToken(), "Declaration overrides an ancestor " + tree.getToken().getText() +
@@ -918,6 +925,15 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         log.info("Declaring var: " + this.name + "." + name);
         vars.put(name, var);
         varsInOrder.add(var);
+    }
+    
+    private void declareStatic(CgsuiteTree tree)
+    {
+        if (staticBlock != null)
+        {
+            throw new InputException(tree.getToken(), "Duplicate static block.");
+        }
+        staticBlock = tree.getChild(0);
     }
 
     private String methodName(CgsuiteTree tree) throws CgsuiteException
