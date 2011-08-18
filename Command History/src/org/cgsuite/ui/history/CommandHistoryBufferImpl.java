@@ -9,7 +9,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import javax.swing.DefaultListModel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.AbstractListModel;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.lookup.ServiceProvider;
@@ -19,18 +21,22 @@ import org.openide.util.lookup.ServiceProvider;
  * @author asiegel
  */
 @ServiceProvider(service=CommandHistoryBuffer.class)
-public class CommandHistoryBufferImpl extends DefaultListModel implements CommandHistoryBuffer
+public class CommandHistoryBufferImpl extends AbstractListModel implements CommandHistoryBuffer
 {
+    private final static Logger LOG = Logger.getLogger(CommandHistoryBufferImpl.class.getName());
+    
     private final static int CAPACITY = 10000;
+    private ArrayList<String> history;
     private List<CommandListener> listeners;
     private FileObject historyFile;
     
     public CommandHistoryBufferImpl()
     {
+        history = new ArrayList<String>();
         listeners = new ArrayList<CommandListener>();
     }
     
-    void load()
+    synchronized void load()
     {
         try
         {
@@ -43,7 +49,7 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
             {
                 for (String command : historyFile.asLines())
                 {
-                    addElement(command.replace('\1', '\n'));
+                    history.add(command.replace('\1', '\n'));
                 }
             }
         }
@@ -54,14 +60,13 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
         trim();
     }
     
-    void save()
+    synchronized void save()
     {
         try
         {
             PrintStream stream = new PrintStream(historyFile.getOutputStream());
-            for (Enumeration<?> e = elements(); e.hasMoreElements();)
+            for (String command : history)
             {
-                String command = (String) e.nextElement();
                 String escaped = command.replaceAll("\\\r(\\\n)?|\\\n", "\1");
                 stream.println(escaped);
             }
@@ -73,26 +78,37 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
     }
     
     @Override
-    public void addCommandListener(CommandListener l)
+    public synchronized void addCommandListener(CommandListener l)
     {
         listeners.add(l);
     }
     
     @Override
-    public void removeCommandListener(CommandListener l)
+    public synchronized void removeCommandListener(CommandListener l)
     {
         listeners.remove(l);
     }
     
     @Override
-    public String get(int index)
+    public synchronized int getSize()
     {
-        return (String) getElementAt(index);
+        return history.size();
+    }
+
+    @Override
+    public synchronized String getElementAt(int index)
+    {
+        if (index < 0 || index >= history.size())
+        {
+            LOG.log(Level.SEVERE, "Index out of bounds: " + index + " (size is " + history.size() + ")");
+            return "";
+        }
+        
+        return history.get(index);
     }
     
     void fireCommandActivated(String str)
     {
-        System.out.println(listeners);
         for (CommandListener l : listeners)
         {
             l.commandActivated(str);
@@ -100,21 +116,24 @@ public class CommandHistoryBufferImpl extends DefaultListModel implements Comman
     }
 
     @Override
-    public void addCommand(String command)
+    public synchronized void addCommand(String command)
     {
-        if (isEmpty() || !lastElement().equals(command))
+        if (history.isEmpty() || !history.get(history.size()-1).equals(command))
         {
-            addElement(command);
+            history.add(command);
             trim();
             save();
         }
+        this.fireIntervalAdded(this, history.size()-1, history.size()-1);
     }
     
-    private void trim()
+    private synchronized void trim()
     {
-        if (size() > CAPACITY)
+        int excess = getSize() - CAPACITY;
+        if (excess > 0)
         {
-            this.removeRange(0, size()-CAPACITY);
+            history.subList(0, excess).clear();
+            this.fireIntervalRemoved(this, 0, excess-1);
         }
     }
 }

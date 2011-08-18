@@ -154,7 +154,7 @@ public final class CommandHistoryTopComponent extends TopComponent implements Li
             @Override
             public void run()
             {
-                jList1.scrollRectToVisible(jList1.getCellBounds(buffer.size()-1, buffer.size()));
+                jList1.scrollRectToVisible(jList1.getCellBounds(buffer.getSize()-1, buffer.getSize()));
             }
         });
     }

@@ -197,7 +197,7 @@ public class WorksheetPanel extends JPanel
                     if (commandHistoryPrefix == null)
                     {
                         commandHistoryPrefix = source.getText();
-                        commandHistoryIndex = getBuffer().size();
+                        commandHistoryIndex = getBuffer().getSize();
                     }
                     seekingCommand = true;
                     source.setText(seekCommand(-1));
@@ -226,15 +226,15 @@ public class WorksheetPanel extends JPanel
     private String seekCommand(int direction)
     {
         for (commandHistoryIndex += direction;
-             commandHistoryIndex >= 0 && commandHistoryIndex < getBuffer().size();
+             commandHistoryIndex >= 0 && commandHistoryIndex < getBuffer().getSize();
              commandHistoryIndex--)
         {
-            if (getBuffer().get(commandHistoryIndex).startsWith(commandHistoryPrefix))
+            if (getBuffer().getElementAt(commandHistoryIndex).startsWith(commandHistoryPrefix))
             {
-                return getBuffer().get(commandHistoryIndex);
+                return getBuffer().getElementAt(commandHistoryIndex);
             }
         }
-        commandHistoryIndex = getBuffer().size();
+        commandHistoryIndex = getBuffer().getSize();
         return commandHistoryPrefix;
     }
     

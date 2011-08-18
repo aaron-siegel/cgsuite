@@ -30,6 +30,7 @@ package org.cgsuite.ui.worksheet;
 
 import java.awt.Font;
 import javax.swing.JEditorPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import org.cgsuite.filetype.cgscript.CgscriptEditorKit;
 import org.netbeans.modules.editor.NbEditorDocument;
@@ -44,6 +45,8 @@ public class InputPane extends JEditorPane
     
     public void activate()
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         try
         {
             NbEditorKit kit = new CgscriptEditorKit();
@@ -60,6 +63,8 @@ public class InputPane extends JEditorPane
     
     public void deactivate()
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         String text = getText();
         Font font = getFont();
         setEditorKit(CloneableEditorSupport.getEditorKit("text/plain"));
@@ -71,6 +76,8 @@ public class InputPane extends JEditorPane
 
     public void insert(String str, int pos)
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         try
         {
             getDocument().insertString(pos, str, null);
@@ -82,11 +89,15 @@ public class InputPane extends JEditorPane
 
     public int getCaretLine()
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         return getDocument().getDefaultRootElement().getElementIndex(getCaretPosition());
     }
 
     public int getLineCount()
     {
+        assert SwingUtilities.isEventDispatchThread();
+        
         return getDocument().getDefaultRootElement().getElementCount();
     }
 }

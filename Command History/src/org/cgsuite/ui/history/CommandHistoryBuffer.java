@@ -12,8 +12,8 @@ import javax.swing.ListModel;
  */
 public interface CommandHistoryBuffer extends ListModel
 {
-    public int size();
-    public String get(int index);
+    public int getSize();
+    public String getElementAt(int index);
     public void addCommand(String command);
     public void addCommandListener(CommandListener l);
     public void removeCommandListener(CommandListener l);
