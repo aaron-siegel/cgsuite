@@ -17,7 +17,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Queue;
@@ -52,6 +51,8 @@ import org.openide.windows.WindowManager;
 public class WorksheetPanel extends JPanel
     implements Scrollable, KeyListener, TaskListener, DocumentListener, CommandListener
 {
+    private boolean deferredAdvance;
+    
     private InputPanel activeInputPanel;
     
     private CalculationCapsule currentCapsule;
@@ -87,31 +88,8 @@ public class WorksheetPanel extends JPanel
     private void initComponents() {
 
         setBackground(new java.awt.Color(255, 255, 255));
-        addHierarchyListener(new java.awt.event.HierarchyListener() {
-            public void hierarchyChanged(java.awt.event.HierarchyEvent evt) {
-                formHierarchyChanged(evt);
-            }
-        });
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
     }// </editor-fold>//GEN-END:initComponents
-
-    private void formHierarchyChanged(java.awt.event.HierarchyEvent evt)//GEN-FIRST:event_formHierarchyChanged
-    {//GEN-HEADEREND:event_formHierarchyChanged
-        if ((evt.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0 &&
-            getParent() instanceof JViewport)
-        {
-            updateComponentSizes();
-            getBuffer();
-            getViewport().addComponentListener(new ComponentAdapter()
-            {
-                @Override
-                public void componentResized(ComponentEvent evt)
-                {
-                    updateComponentSizes();
-                }
-            });
-        }
-    }//GEN-LAST:event_formHierarchyChanged
 
     public void initialize()
     {
@@ -120,6 +98,21 @@ public class WorksheetPanel extends JPanel
         new CalculationCapsule("{1|1/2}").runAndWait();
         processCommand("startup();");
         this.requestFocusInWindow();
+        getBuffer();
+        
+        getViewport().addComponentListener(new ComponentAdapter()
+        {
+            @Override
+            public void componentResized(ComponentEvent evt)
+            {
+                if (deferredAdvance && getViewport().getWidth() > 0)
+                {
+                    deferredAdvance = false;
+                    advanceToNext();
+                }
+                updateComponentSizes();
+            }
+        });
     }
     
     private CommandHistoryBuffer getBuffer()
@@ -390,7 +383,13 @@ public class WorksheetPanel extends JPanel
 
     private void advanceToNext()
     {
-        assert SwingUtilities.isEventDispatchThread();;
+        assert SwingUtilities.isEventDispatchThread();
+        
+        if (getViewport().getWidth() <= 0)
+        {
+            deferredAdvance = true;
+            return;
+        }
         
         if (getComponentCount() > 2)
         {
@@ -423,10 +422,13 @@ public class WorksheetPanel extends JPanel
         assert SwingUtilities.isEventDispatchThread();
         
         if (getComponentCount() == 0)
-        {
             return;
-        }
-        int width = Math.max(0, getViewport().getWidth());
+
+        int width = getViewport().getWidth();
+        
+        if (width <= 0)
+            return;
+        
         Dimension dim = new Dimension(width, 0);
         strut.changeShape(dim, dim, dim);
         
@@ -438,9 +440,12 @@ public class WorksheetPanel extends JPanel
                 InputPanel cell = (InputPanel) components[index];
                 InputPane pane = cell.getInputPane();
                 int etaW = width - cell.getPrompt().getWidth();
+                /*
                 pane.setMinimumSize(new Dimension(etaW, pane.getMinimumSize().height));
                 pane.setMaximumSize(new Dimension(etaW, pane.getMaximumSize().height));
                 pane.revalidate();
+                 * 
+                 */
             }
             if (components[index] instanceof OutputBox)
             {
