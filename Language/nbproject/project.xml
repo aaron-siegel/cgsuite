@@ -106,6 +106,7 @@
             </test-dependencies>
             <public-packages>
                 <package>org.cgsuite.lang</package>
+                <package>org.cgsuite.lang.benchmark</package>
                 <package>org.cgsuite.lang.explorer</package>
                 <package>org.cgsuite.lang.game</package>
                 <package>org.cgsuite.lang.output</package>

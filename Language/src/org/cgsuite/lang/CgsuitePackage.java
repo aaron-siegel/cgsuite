@@ -52,10 +52,13 @@ public class CgsuitePackage implements FileChangeListener
 
     static
     {
+        log.info("Initializing CGSuite package hierarchy.");
+        
         for (CgsuitePackage pkg : DEFAULT_PACKAGE_IMPORTS)
         {
             PACKAGE_LOOKUP.put(pkg.getName(), pkg);
         }
+        
         try
         {
             String devbuildPath = System.getProperty("org.cgsuite.devbuild");
@@ -68,6 +71,7 @@ public class CgsuitePackage implements FileChangeListener
             else
             {
                 // Dev build.  Point lib folder to dev tree for easy editing.
+                log.info("Dev build: " + devbuildPath);
                 LIB_FOLDER = new File(new File(devbuildPath, "release"), "lib");
             }
             USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
@@ -136,7 +140,7 @@ public class CgsuitePackage implements FileChangeListener
             {
                 addPackage(fo);
             }
-            else if ("text/x-cgscript".equals(fo.getMIMEType()))
+            else if ("text/x-cgscript".equals(fo.getMIMEType()) || "cgs".equals(fo.getExt()))
             {
                 addClass(fo);
             }

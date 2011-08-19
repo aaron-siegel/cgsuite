@@ -140,7 +140,7 @@ class Game : java "org.cgsuite.lang.Game"
     method RandomWinner(Player player)
     
         opts := Options(player);
-        if opts == {} then
+        if opts.IsEmpty then
             return player.Opponent;
         end
         opt := opts.RandomElement;

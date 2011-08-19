@@ -7,6 +7,7 @@ class Number : java "org.cgsuite.lang.game.RationalNumber"
     method op% (Number obj) : java "mod";
     method op^ (Integer obj) : java "pow";
     method op neg () : java "negate";
+    method op pos () return this; end
 
     method Min(Number obj) : java "min";
     method Max(Number obj) : java "max";

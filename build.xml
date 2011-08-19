@@ -18,4 +18,5 @@
         <!-- This curious regexp escapes all whitespaces that appear in the key of an SVN property. -->
         <replaceregexp file="${cluster}/svn.properties" byline="true" flags="g" match=" (?=.*=)" replace="\\\\ "/>
     </target>
+
 </project>

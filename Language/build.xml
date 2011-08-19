@@ -29,4 +29,12 @@
 	  	    <fileset dir="src/org/cgsuite/lang/parser/" includes="CgsuiteLexer.java,CgsuiteParser.java"/>
 	    </replaceregexp>
     </target>
+
+    <target name="benchmark" depends="compile">
+        <java classname="org.cgsuite.lang.benchmark.Benchmark" classpath="${build.classes.dir}">
+            <classpath refid="cp"/>
+            <jvmarg value="-Dorg.cgsuite.devbuild=${basedir}/.."/>
+            <jvmarg value="-Xmx1g"/>
+        </java>
+    </target>
 </project>

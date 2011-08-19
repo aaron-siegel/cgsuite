@@ -101,7 +101,7 @@ If a method has the same name as a method in some ancestor class, then the $over
 
 ++ this and is ++
 
-The keyword $this$ can be used from within a method to refer to ``the current object'' - that is, the object on which
+The keyword $this$ can be used from within a method to refer to "the current object" - that is, the object on which
 the method is being invoked.  You can type
 
 $this.Class$
