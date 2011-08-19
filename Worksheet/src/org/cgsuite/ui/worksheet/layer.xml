@@ -14,6 +14,7 @@
     <folder name="Menu">
         <folder name="Window">
             <file name="WorksheetAction.shadow">
+                <attr name="position" intvalue="1625"/>
                 <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-worksheet-WorksheetAction.instance"/>
             </file>
         </folder>

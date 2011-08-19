@@ -24,7 +24,7 @@ autostore = false)
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "help", openAtStartup = false)
 @ActionID(category = "Window", id = "org.cgsuite.help.CgsuiteHelpTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window", position = 1750)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_CgsuiteHelpAction",
 preferredID = "CgsuiteHelpTopComponent")
 public final class CgsuiteHelpTopComponent extends TopComponent {

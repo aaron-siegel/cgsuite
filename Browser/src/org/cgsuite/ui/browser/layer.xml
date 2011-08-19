@@ -13,6 +13,7 @@
     <folder name="Menu">
         <folder name="Window">
             <file name="BrowserAction.shadow">
+                <attr name="position" intvalue="1275"/>
                 <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-browser-BrowserAction.instance"/>
             </file>
         </folder>

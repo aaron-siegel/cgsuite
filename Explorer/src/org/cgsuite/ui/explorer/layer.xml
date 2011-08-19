@@ -27,6 +27,7 @@
         </folder>
         <folder name="Window">
             <file name="ExplorerAction.shadow">
+                <attr name="position" intvalue="1675"/>
                 <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-explorer-ExplorerAction.instance"/>
             </file>
         </folder>

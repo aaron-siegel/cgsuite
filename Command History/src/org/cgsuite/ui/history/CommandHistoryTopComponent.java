@@ -26,7 +26,7 @@ autostore = false)
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "navigator", openAtStartup = true)
 @ActionID(category = "Window", id = "org.cgsuite.ui.history.CommandHistoryTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@ActionReference(path = "Menu/Window", position = 1725)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_CommandHistoryAction",
 preferredID = "CommandHistoryTopComponent")
 public final class CommandHistoryTopComponent extends TopComponent implements ListDataListener {
