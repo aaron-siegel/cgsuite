@@ -312,36 +312,52 @@ public class UptimalExpansion extends CgsuiteObject
     {
         StyledTextOutput output = new StyledTextOutput();
         
-        if (!getNumberPart().equals(RationalNumber.ZERO))
+        if (!hasBase() || !getNumberPart().equals(RationalNumber.ZERO))
         {
             output.appendOutput(getNumberPart().toOutput());
         }
         
-        if (getNumberPart().equals(RationalNumber.ZERO))
+        if (hasBase())
+        {
+            output.appendSymbol(STAR);
+        }
+
+        output.appendMath(".");
+        
+        if (length() == 0)
         {
             output.appendMath("0");
         }
-        output.appendMath(".");
+        
         for (int n = 1; n <= length(); n++)
         {
             int d = getCoefficient(n);
-            // TODO: Redo using CodeDigit ?
+
             boolean negative = false;
+            
             if (d < 0)
             {
                 d = -d;
                 negative = true;
             }
-            output.appendMath(String.valueOf(d < 10 ? (char)(d+48) : (char)(d+55)));
+            
+            String str;
+            
+            if (d < 10)
+                str = String.valueOf((char)(d+48));
+            else if (d < 36)
+                str = String.valueOf((char)(d+55));
+            else
+                str = "(" + String.valueOf(d) + ")";
+            
+            output.appendMath(str);
+            
             if (negative)
             {
                 output.appendSymbol(EnumSet.of(LOCATION_SUPERSCRIPT), DASH);
             }
         }
-        if (hasBase())
-        {
-            output.appendSymbol(STAR);
-        }
+        
         return output;
     }
 }
