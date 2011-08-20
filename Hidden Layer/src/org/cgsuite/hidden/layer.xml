@@ -30,6 +30,11 @@
             <file name="org-netbeans-modules-project-ui-OpenProject.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-RecentProjects.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-groups-GroupsMenu.shadow_hidden"/>
+            <file name="org-netbeans-modules-options-OptionsWindowAction.shadow">
+                <!--org.netbeans.modules.options.OptionsWindowAction-->
+                <attr name="originalFile" stringvalue="Actions/Window/org-netbeans-modules-options-OptionsWindowAction.instance"/>
+                <attr intvalue="2575" name="position"/>
+            </file>
         </folder>
         <folder name="GoTo">
             <file name="goto-declaration.shadow_hidden"/>
@@ -59,6 +64,7 @@
             <file name="org-netbeans-modules-editor-completion-CompletionActionsMainMenu$ToolTipShow.instance_hidden"/>
             <file name="org-netbeans-modules-parsing-impl-indexing-ScanForExternalChanges.shadow_hidden"/>
         </folder>
+        <file name="Tools_hidden"/>
         <folder name="View">
             <file name="org-netbeans-core-actions-HTMLViewAction.shadow_hidden"/>
             <file name="org-netbeans-modules-editor-NbCodeFoldingAction.instance_hidden"/>
@@ -72,6 +78,9 @@
             <file name="org-netbeans-modules-project-ui-logical-tab-action.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-physical-tab-action.shadow_hidden"/>
         </folder>
+    </folder>
+    <folder name="OptionsDialog">
+        <file name="General.instance_hidden"/>
     </folder>
     <folder name="Services">
         <folder name="JavaHelp">
