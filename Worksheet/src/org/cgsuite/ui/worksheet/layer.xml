@@ -6,7 +6,7 @@
             <file name="org-cgsuite-ui-worksheet-WorksheetAction.instance">
                 <attr name="component" methodvalue="org.cgsuite.ui.worksheet.WorksheetTopComponent.findInstance"/>
                 <attr name="displayName" bundlevalue="org.cgsuite.ui.worksheet.Bundle#CTL_WorksheetAction"/>
-                <attr name="iconBase" stringvalue="org/cgsuite/ui/worksheet/thermograph.png"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/ui/worksheet/thermograph-16x16.png"/>
                 <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
             </file>
         </folder>

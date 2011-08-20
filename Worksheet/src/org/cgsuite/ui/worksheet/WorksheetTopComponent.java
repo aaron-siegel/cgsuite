@@ -22,7 +22,7 @@ public final class WorksheetTopComponent extends TopComponent
 {
     private static WorksheetTopComponent instance;
     /** path to the icon used by the component and its open action */
-    private static final String ICON_PATH = "org/cgsuite/ui/worksheet/thermograph.png";
+    private static final String ICON_PATH = "org/cgsuite/ui/worksheet/thermograph-16x16.png";
     private static final String PREFERRED_ID = "WorksheetTopComponent";
     
     private boolean started = false;

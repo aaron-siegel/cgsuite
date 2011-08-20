@@ -72,7 +72,7 @@
                 <folder name="Factories">
                     <file name="CgscriptDataLoader.instance">
                         <attr name="dataObjectClass" stringvalue="org.cgsuite.filetype.cgscript.CgscriptDataObject"/>
-                        <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
+                        <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/thermograph-16x16.png"/>
                         <attr name="instanceCreate" methodvalue="org.openide.loaders.DataLoaderPool.factory"/>
                         <attr name="mimeType" stringvalue="text/x-cgscript"/>
                     </file>
@@ -99,14 +99,14 @@
             <file name="ClassTemplate.cgs" url="ClassTemplate.cgs">
                 <attr name="template" boolvalue="true"/>
                 <attr name="displayName" bundlevalue="org.cgsuite.filetype.cgscript.Bundle#Templates/Other/ClassTemplate.cgs"/>
-                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/thermograph-16x16.png"/>
                 <attr name="template" boolvalue="true"/>
                 <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
             </file>
             <file name="ScriptTemplate.cgs" url="ScriptTemplate.cgs">
                 <attr name="template" boolvalue="true"/>
                 <attr name="displayName" bundlevalue="org.cgsuite.filetype.cgscript.Bundle#Templates/Other/ScriptTemplate.cgs"/>
-                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/icon.png"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/thermograph-16x16.png"/>
                 <attr name="template" boolvalue="true"/>
                 <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
             </file>

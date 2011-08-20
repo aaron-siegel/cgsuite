@@ -35,7 +35,7 @@ import org.openide.util.actions.Presenter.Popup;
 
 @ActionID(category = "File",
 id = "org.cgsuite.filetype.cgscript.actions.NewCgsuiteFileAction")
-@ActionRegistration(iconBase = "org/cgsuite/filetype/cgscript/icon.png",
+@ActionRegistration(iconBase = "org/cgsuite/filetype/cgscript/thermograph-16x16.png",
 displayName = "#CTL_NewCgsuiteFileAction")
 @ActionReferences({})
 @Messages("CTL_NewCgsuiteFileAction=New CGScript File")
