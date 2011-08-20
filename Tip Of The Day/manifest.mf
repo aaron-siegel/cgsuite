@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.cgsuite.ui.tips
+OpenIDE-Module-Install: org/cgsuite/ui/tips/Installer.class
+OpenIDE-Module-Layer: org/cgsuite/ui/tips/layer.xml
+OpenIDE-Module-Localizing-Bundle: org/cgsuite/ui/tips/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

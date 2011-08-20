@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Window">
+            <file name="org-cgsuite-ui-tips-TipTCAction.instance"/>
+        </folder>
+    </folder>
+    <folder name="Favorites">
+        <file name="tipsproperties.shadow">
+            <attr name="originalFile" stringvalue="Preferences/tips.properties"/>
+            <attr name="originalFileSystem" stringvalue="SystemFileSystem"/>
+        </file>
+    </folder>
+    <folder name="Menu">
+        <folder name="Help">
+            <file name="TipTCAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-tips-TipTCAction.instance"/>
+            </file>
+        </folder>
+    </folder>
+</filesystem>
+
