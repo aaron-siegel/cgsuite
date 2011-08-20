@@ -14,7 +14,12 @@
     </folder>
     <folder name="Menu">
         <folder name="Help">
+            <file name="SeparatorBeforeTipOfTheDay.instance">
+                <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>                 
+                <attr name="position" intvalue="300"/>
+            </file>
             <file name="TipTCAction.shadow">
+                <attr name="position" intvalue="400"/>
                 <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-tips-TipTCAction.instance"/>
             </file>
         </folder>
