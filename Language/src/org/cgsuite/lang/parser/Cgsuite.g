@@ -707,7 +707,8 @@ STRING		: DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 
 SLASHES		: SLASH+;
 
-WHITESPACE  : (' ' | '\t' | NEWLINE)+ { $channel = HIDDEN; };
+// 00A0 = non-breaking space
+WHITESPACE  : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
 
 SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
 
