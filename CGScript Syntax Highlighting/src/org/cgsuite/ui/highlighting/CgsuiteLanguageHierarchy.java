@@ -28,18 +28,18 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
     {
         HashMap<String, int[]> tokenTypes = new HashMap<String, int[]>();
         
-        tokenTypes.put("keyword", new int[]
+        tokenTypes.put("Keyword", new int[]
         {
             AND, BEGIN, BREAK, BY, CLASS, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
             FALSE, FINALLY, FOR, FOREACH, FROM, GET, IF, IMPORT, IN, IS, JAVA, LISTOF, METHOD, MUTABLE,
             NEG, NIL, NOT, OP, OR, OVERRIDE, PASS, POS, PROPERTY, RETURN,
             SET, SETOF, SUPER, STATIC, TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE
         });
-        tokenTypes.put("identifier", new int[] { IDENTIFIER });
-        tokenTypes.put("number", new int[] { INTEGER, INF });
-        tokenTypes.put("string", new int[] { STRING });
-        tokenTypes.put("comment", new int[] { SL_COMMENT, ML_COMMENT });
-        tokenTypes.put("separator", new int[]
+        tokenTypes.put("Identifier", new int[] { IDENTIFIER });
+        tokenTypes.put("Number", new int[] { INTEGER, INF });
+        tokenTypes.put("String", new int[] { STRING });
+        tokenTypes.put("Comment", new int[] { SL_COMMENT, ML_COMMENT });
+        tokenTypes.put("Separator", new int[]
         {
             WHITESPACE, PLUS, MINUS, PLUSMINUS, AST, FSLASH, DOT, PERCENT, LPAREN, RPAREN,
             LBRACKET, RBRACKET, LBRACE, RBRACE, DQUOTE, COMMA, SEMI, COLON,

@@ -3,10 +3,9 @@
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 <fontscolors>
 
-    <fontcolor name="keyword"           foreColor="blue" default="default"/>
-    <fontcolor name="type"              foreColor="orange" default="default"/>
-    <fontcolor name="number"            foreColor="black" default="default"/>
-    <fontcolor name="string"            foreColor="ffaa5533" default="default"/>
-    <fontcolor name="comment"           foreColor="gray" default="default"/>
+    <fontcolor name="Keyword"           foreColor="blue" default="default"/>
+    <fontcolor name="Number"            foreColor="black" default="default"/>
+    <fontcolor name="String"            foreColor="ffce7b00" default="default"/>
+    <fontcolor name="Comment"           foreColor="ff969696" default="default"/>
 
 </fontscolors>
