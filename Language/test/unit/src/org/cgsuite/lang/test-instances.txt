@@ -14,6 +14,8 @@ Integer exponentiation          \ 3^5 \ 243 \
 Rational number                 \ 4/6 \ 2/3 \
 Rational exponentiation         \ (1/2)^4 \ 1/16 \
 Negative power                  \ 2^(-4) \ 1/16 \
+Integer modulus                 \ 17 % 5 \ 2 \
+Rational modulus                \ (17/6) % (1/3) \ 1/6 \
 Nimber addition                 \ *3+*5 \ *6 \
 Nimber operator                 \ *(3+5) \ *8 \
 Ups                             \ ^^^^^^+vvv*+^19*3+v14 \ ^8*2 \
@@ -70,6 +72,8 @@ Range                           \ 3..7 \ [3,4,5,6,7] \
 Listof                          \ listof(x^2 for x from 1 to 5) \ [1,4,9,16,25] \
 Setof                           \ setof(x^2 for x in [1,3,5,3]) \ {1,9,25} \
 Empty setof                     \ setof(x) \ !!Syntax error: null \
+Sumof                           \ sumof(n for n from 1 to 10) \ 55 \
+Sumof 2                         \ sumof("foo" from 1 to 4) \ "foofoofoofoo" \
 
 Tableof                         \ tableof([n,n^2] for n from 1 to 3) \
 1 | 1
@@ -211,6 +215,39 @@ Member var shadows superclass var       \ test.lang.TestBadShadow; \ !!Variable 
 Var assigned by constructor delegate 1  \ shadow := test.lang.TestConstructorDelegate(); shadow.Value \ 5 \
 Var assigned by constructor delegate 2  \ shadow := test.lang.TestConstructorDelegate(); shadow.ThisValue \ 5 \
 
+// cgsuite.lang.Integer
+
+NimSum                          \ 3.NimSum(5) \ 6 \
+NimProduct                      \ 8.NimProduct(8) \ 13 \
+Div                             \ 17.Div(4) \ 4 \
+Is2Power                        \ [32.Is2Power,48.Is2Power] \ [true,false] \
+IsSmall                         \ [2^31,-2^31,2^31-1,-2^31-1].Apply(x -> x.IsSmall) \ [false,true,true,false] \
+Lb                              \ [15,16,17,31,2^31-1,2^31].Apply(x -> x.Lb) \ [3,4,4,4,30,31] \
+Random                          \ Integer.SetSeed(0); listof(Integer.Random(100) from 1 to 5) \ [61,49,30,48,16] \
+Isqrt                           \
+    for n from 0 to 3000 do
+        isqrt := n.Isqrt;
+        if n < isqrt^2 or n >= (isqrt+1)^2 then
+            error("Isqrt failed at " + n.ToString);
+        end
+    end \ nil \
+
+// cgsuite.lang.Class
+
+Name                            \ Object.Name \ "Object" \
+
+// cgsuite.lang.Collection
+
+IsEmpty                         \ [0,1,3,4].IsEmpty \ false \
+Mex                             \ [0,1,3,4].Mex \ 2 \
+ToList                          \ list := {5,1,3}.ToList; list.Sort(); list \ [1,3,5] \
+ToSet                           \ [5,1,3].ToSet \ {1,3,5} \
+
+// cgsuite.lang.Enum
+
+Ordinal                         \ Player.Left.Ordinal \ 1 \
+Literal                         \ Player.Left.Literal \ "Left" \
+
 // cgsuite.lang.List
 
 List - create                           \ list := ["znear","el","diablo"]; \ ["znear","el","diablo"] \
@@ -234,6 +271,10 @@ List.PeriodicTable                      \ list.PeriodicTable(3) \
 --+---+--
 5 | 7 |    \
 List.ToString                           \ list.ToString \ "[1,2,4,5,7]" \
+List.Apply                              \ [1,3,6].Apply(x -> x^2) \ [1,9,36] \
+List.Filter                             \ [1,3,6].Filter(x -> x%2 == 0) \ [6] \
+List.AnyElement                         \ [1,3,6].AnyElement \ 1 \
+List.RandomElement                      \ Integer.SetSeed(0); [1,3,6].RandomElement \ 1 \
 List - lookup negative                  \ list[-1] \ !!Invalid list index: -1 \
 List - lookup large                     \ list[10] \ nil \
 List - assign negative                  \ list[0] := 5 \ !!Invalid list index: 0 \
@@ -246,28 +287,51 @@ List - check result                     \ list \ [1,2,4,5,7,nil,nil,nil,nil,5,ni
 List - immutable subreferences          \ mut := test.mutability.TestImmutableSubreferences([[1]]); mut.TestImmutableList(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 List - crosslinked subreferences        \ mut.TestCrosslinkedList(); \ nil \
 
-// cgsuite.lang.Set
-
-Set - immutable subreferences           \ mut := test.mutability.TestImmutableSubreferences({[1]}); mut.TestImmutableSet(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-Set - crosslinked subreferences         \ mut.TestCrosslinkedSet(); \ nil \
-
 // cgsuite.lang.Map
 
+Map - create                            \ map := {"foo" => "bar", "znear" => "diablo"}; \ {"foo" => "bar", "znear" => "diablo"} \
+Map - retrieve                          \ map["znear"] \ "diablo" \
+Map - retrieve (not key)                \ map[0] \ nil \
+Map - assign existing                   \ map["foo"] := 17; map \ {"foo" => 17, "znear" => "diablo"} \
+Map - assign new                        \ map["bar"] := 73; map \ {"bar" => 73, "foo" => 17, "znear" => "diablo"} \
+Map.Size                                \ map.Size \ 3 \
+Map.Keys                                \ map.Keys \ {"bar","foo","znear"} \
+Map.Clear                               \ map.Clear(); map \ {=>} \
 Map - immutable subreferences           \ mut := test.mutability.TestImmutableSubreferences({"znear"=>[1,2,3]}); mut.TestImmutableMap(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Map - crosslinked subreferences         \ mut.TestCrosslinkedMap(); \ nil \
 
-// cgsuite.lang.Table
+// cgsuite.lang.Number
 
-Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.mutability.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-Table - crosslinked subreferences       \ mut.TestCrosslinkedTable(); \ nil \
+Number.Min                              \ 22.Min(43/2) \ 43/2 \
+Number.Max                              \ (27/2).Max(13) \ 27/2 \
+Number.Abs                              \ [(-1).Abs,0.Abs,1.Abs] \ [1,0,1] \
+Number.Ceiling                          \ (27/16).Ceiling \ 2 \
+Number.Floor                            \ (27/16).Floor \ 1 \
+Number.IsInfinite                       \ [-inf,0,inf].Apply(x -> x.IsInfinite) \ [true,false,true] \
+Number.IsDyadic                         \ [1,1/2,1/3,1/4,1/5].Apply(x -> x.IsDyadic) \ [true,true,false,true,false] \
+
+// cgsuite.lang.Object
+
+Object.Class                            \ *5.Class \ Nimber \
 
 // cgsuite.lang.Procedure
 
+Procedure.ParameterCount                \ ((x,y) -> x+y).ParameterCount \ 2 \
 Procedure.op*                           \ f := x -> x^2; g := x -> x+1; [(f*g)(5),(g*f)(5)] \ [36,26] \
 Procedure.op^                           \ f := x -> x*2; listof((f^n)(1) for n from 0 to 5) \ [1,2,4,8,16,32] \
 Define 3n+1 procedure                   \ threen := n -> if n%2 == 0 then n/2 else 3*n+1 end \ <Object of type Procedure> \
 Procedure.Iterate                       \ threen.Iterate(10)(27) \ [82,41,124,62,31,94,47,142,71,214] \
 Procedure.IterateUntil                  \ threen.IterateUntil(x -> x == 1)(27).Length \ 111 \
+
+// cgsuite.lang.Set
+
+Set - immutable subreferences           \ mut := test.mutability.TestImmutableSubreferences({[1]}); mut.TestImmutableSet(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Set - crosslinked subreferences         \ mut.TestCrosslinkedSet(); \ nil \
+
+// cgsuite.lang.Table
+
+Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.mutability.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Table - crosslinked subreferences       \ mut.TestCrosslinkedTable(); \ nil \
 
 // Grids and Strips
 // TODO Add more

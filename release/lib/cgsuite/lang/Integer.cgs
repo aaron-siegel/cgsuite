@@ -17,6 +17,10 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
     static method SetSeed(Integer seed) : java "setSeed";
     
     property Isqrt.get
+    
+        if this == 0 then
+            return 0;
+        end
 
         a := Lb + 1;
         x := 2^(a.Div(2) + a%2);

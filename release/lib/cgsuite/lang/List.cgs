@@ -21,7 +21,7 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
         return listof(f(x) for x in this)
     end
     
-    method FilterWith(Procedure f)
+    method Filter(Procedure f)
         return listof(x for x in this where f(x));
     end
     
