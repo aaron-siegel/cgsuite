@@ -15,7 +15,12 @@ file is given by, say,
 $game/grid/Clobber.cgs$
 
 (relative to either the User Folder or the System Folder), then the package will be $game.grid$, so the
-~fully qualified name~ of the class will be $game.grid.Clobber$.
+~qualified name~ of the class will be $game.grid.Clobber$.
+
+Three packages in CGSuite are special: $cgsuite.lang$, $cgsuite.util$, and $game$.  These packages are
+~automatic imports~.  References to their classes don't need to be qualified: you can type simply $Integer$ instead of
+$cgsuite.lang.Integer$.  Classes from any other package, such as $game.grid$, need to be qualified (unless you're using
+import statements - see below).
 
 ++ Declarations ++
 
@@ -40,17 +45,15 @@ a type.  For example, the full declaration might be
 $method MyMethod(obj, Integer n, String str)$
 
 which would define a method with three parameters.  The $obj$ parameter is unrestricted, while the $n$ and $str$
-parameters are required to be an $Integer$ and a $String$, respectively.
+parameters are constrained to be an $Integer$ and a $String$, respectively.
 
-Note that CGScript is ~not~ a typed language.  It's perfectly legal to do something like this:
+Note that CGScript is ~not~ a typed language.  The constraint "$Integer n$" ensures that $n$ will be an $Integer$ when
+it's passed as an argument to the method, but it does not constrain the values that can be assigned later to $n$.  For
+example, the following code is completely legal:
 
-$method MyMethod(obj, Integer n, String str)
+$method MyMethod(Integer n)
     n := "This is not an integer.";
 end$
-
-The only thing the $Integer n$ syntax achieves is to validate that $n$ is an $Integer$
-~at the time it's passed as an input into the method~.  From that point on, there's nothing special about the variable
-$n$ (or any other variable).
 
 A method whose name is identical to the class name is a ~constructor~, which is used to initialize new instances of the
 class.  If some of the constructor parameter names are identical to member variable names, then the corresponding
@@ -146,4 +149,35 @@ A typical example is the $Worksheet.Print$ method, which is a static method of c
 
 ++ Enums ++
 
+Certain classes come equipped with a fixed set of instances.  For example, the $Player$ class has just two instances,
+$Player.Left$ and $Player.Right$; and $OutcomeClass$ has instances $OutcomeClass.P$, $OutcomeClass.N$, etc.
+
+Such classes are known as ~enumerated types~, or enums, and they're treated specially in CGScript.  An enum can be
+declared like so:
+
+$enum OutcomeClass
+
+    P,
+    N,
+    L,
+    R;
+
+end$
+
+This declares an enum with exactly four instances; no others can ever be constructed.  $OutcomeClass$ is a particularly
+simple example; more complex enums have methods and properties of their own (for an example, see the
+$Player$ enum in $cgsuite.game$).
+
 ++ Imports ++
+
+Sometimes you'll need to refer frequently to a class that's not in one of the automatic import packages.  In such cases
+it can become cumbersome to qualify the class name repeatedly.  If you put (say)
+
+$import game.grid.Clobber;$
+
+at the top of your .cgs file, ~before~ the class or enum declaration, then throughout the rest of the file you can
+refer directly to $Clobber$.  You can also type
+
+$import game.grid.*;$
+
+to import ~all~ the classes in the $game.grid$ package.

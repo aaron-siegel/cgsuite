@@ -5,11 +5,6 @@ and study a particular Clobber position.
 ##TOC##
 
 ++ Creating Game Positions ++
-    
-The explorer is a graphical position editor and game tree browser.  You 
-can use the explorer to construct and study positions for any game defined
-in CGSuite, as well as to
-display options and move sequences in a tree.
 
 To start the explorer, simply type a command such as the following into
 the worksheet:

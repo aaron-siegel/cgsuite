@@ -1,7 +1,6 @@
 * Finish documentation
 * Benchmark utility
 * Coordinate games
-* Remove extraneous UI components
 * Flesh out unit tests
 * Fix class loader error messages
 * MacOS installer
