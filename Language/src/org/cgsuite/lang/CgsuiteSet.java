@@ -162,6 +162,24 @@ public class CgsuiteSet extends CgsuiteCollection
     {
         return objects.isEmpty();
     }
+    
+    @Override
+    public int compareLike(CgsuiteObject obj)
+    {
+        CgsuiteSet other = (CgsuiteSet) obj;
+        
+        Iterator<CgsuiteObject> itThis = sortedIterator();
+        Iterator<CgsuiteObject> itOther = other.sortedIterator();
+        
+        while (itThis.hasNext() && itOther.hasNext())
+        {
+            int cmp = itThis.next().universalCompareTo(itOther.next());
+            if (cmp != 0)
+                return cmp;
+        }
+        
+        return (itThis.hasNext() ? 0 : 1) - (itOther.hasNext() ? 0 : 1);
+    }
 
     @Override
     public int hashCode()

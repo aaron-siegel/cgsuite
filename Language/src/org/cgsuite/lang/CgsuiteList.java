@@ -1,6 +1,7 @@
 package org.cgsuite.lang;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,6 +26,12 @@ public class CgsuiteList extends CgsuiteCollection
         super(TYPE);
 
         this.objects = new ArrayList<CgsuiteObject>(capacity);
+    }
+    
+    public CgsuiteList(Collection<? extends CgsuiteObject> initialValues)
+    {
+        this();
+        objects.addAll(initialValues);
     }
 
     @Override
@@ -191,6 +198,21 @@ public class CgsuiteList extends CgsuiteCollection
             table.add(subList(i, Math.min(size(), i+period-1)));
         }
         return table;
+    }
+    
+    @Override
+    public int compareLike(CgsuiteObject obj)
+    {
+        CgsuiteList other = (CgsuiteList) obj;
+        
+        for (int i = 1; i <= Math.min(size(), other.size()); i++)
+        {
+            int cmp = this.get(i).universalCompareTo(other.get(i));
+            if (cmp != 0)
+                return cmp;
+        }
+        
+        return size() - other.size();
     }
 
     @Override

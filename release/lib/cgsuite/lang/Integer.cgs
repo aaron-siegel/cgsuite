@@ -2,6 +2,7 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
 
     override method op+(obj) : java "add";
     override method op-(obj) : java "subtract";
+    override method op*(obj) : java "multiply";
     override method op neg () : java "negate";
     
     method NimSum(Integer n) : java "nimSum";

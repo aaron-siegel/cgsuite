@@ -27,9 +27,13 @@ public class Game extends CgsuiteObject
     public Game add(Game other)
     {
         if (other instanceof SumGame)
-            return ((SumGame) other).add(this);
+        {
+            return ((SumGame) other).add(this, true);
+        }
         else
+        {
             return new SumGame(this, other);
+        }
     }
     
     public Game subtract(Game other)

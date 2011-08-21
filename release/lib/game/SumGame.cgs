@@ -4,6 +4,10 @@ class SumGame extends Game : java "org.cgsuite.lang.game.SumGame"
 
     override method op+ (Game obj) : java "add";
     
+    override method op neg()
+        return sumof(-g for g in Components);
+    end
+    
     property Components.get : java "getComponents";
     
     override property CanonicalForm.get
@@ -14,6 +18,25 @@ class SumGame extends Game : java "org.cgsuite.lang.game.SumGame"
         end;
         return cg;
         
+    end
+    
+    override method Options(Player player)
+    
+        opts := {};
+        components := Components;
+        
+        for n from 1 to components.Length do
+            for g in components[n].Options(player) do
+                
+                copy := components;
+                copy[n] := g;
+                opts.Add(SumGame(copy));
+                
+            end
+        end
+        
+        return opts;
+    
     end
     
     override property ToString.get : java "toString";

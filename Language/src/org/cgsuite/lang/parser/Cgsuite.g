@@ -103,6 +103,7 @@ tokens
 	SET         = 'set';
     SETOF       = 'setof';
     STATIC      = 'static';
+    SUMOF       = 'sumof';
     SUPER       = 'super';
     TABLEOF     = 'tableof';
 	THEN		= 'then';
@@ -635,7 +636,7 @@ of
     ;
 
 ofToken
-    : SETOF | LISTOF | TABLEOF
+    : SETOF | LISTOF | TABLEOF | SUMOF
     ;
 
 expressionList

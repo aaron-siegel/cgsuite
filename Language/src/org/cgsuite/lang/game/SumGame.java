@@ -37,20 +37,32 @@ public class SumGame extends Game
         this(components.getUnderlyingCollection());
     }
 
-    public List<CgsuiteObject> getComponents()
+    public CgsuiteList getComponents()
     {
-        return components;
+        return new CgsuiteList(components);
     }
 
     @Override
     public SumGame add(Game other)
     {
+        return add(other, false);
+    }
+    
+    public SumGame add(Game other, boolean prefixed)
+    {
         List<CgsuiteObject> newComponents = new ArrayList<CgsuiteObject>(components.size()+1);
-        newComponents.addAll(components);
+        
+        if (!prefixed)
+            newComponents.addAll(components);
+        
         if (other instanceof SumGame)
             newComponents.addAll(((SumGame) other).components);
         else
             newComponents.add(other);
+
+        if (prefixed)
+            newComponents.addAll(components);
+
         return new SumGame(newComponents);
     }
 
@@ -69,6 +81,12 @@ public class SumGame extends Game
                 output.appendMath(" + ");
         }
         return output;
+    }
+    
+    @Override
+    public int compareLike(CgsuiteObject obj)
+    {
+        return getComponents().compareLike(((SumGame) obj).getComponents());
     }
     
     @Override

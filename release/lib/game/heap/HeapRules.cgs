@@ -6,6 +6,8 @@
 
 class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
 
+    static var memory := {=>};
+
     static method Parse(String str) : java "parse(java.lang.String)";
     static method Custom(Procedure proc) : java "custom";
     
@@ -15,8 +17,8 @@ class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
             return obj;
         end;
         
-        if HeapRules.Memory[obj] != nil then
-            return HeapRules.Memory[obj];
+        if HeapRules.memory[obj] != nil then
+            return HeapRules.memory[obj];
         end;
         
         if obj is String then
@@ -27,7 +29,7 @@ class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
             error("Invalid heap rules.");
         end;
         
-        HeapRules.Memory[obj] := rules;
+        HeapRules.memory[obj] := rules;
         
         return rules;
     

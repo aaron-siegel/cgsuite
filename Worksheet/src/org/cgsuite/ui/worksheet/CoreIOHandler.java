@@ -1667,7 +1667,7 @@ public class CoreIOHandler
         }
         else if (obj instanceof SumGame)
         {
-            Collection<CgsuiteObject> components = ((SumGame) obj).getComponents();
+            CgsuiteList components = ((SumGame) obj).getComponents();
             boolean gotAny = false;
             for (Iterator<? extends CgsuiteObject> i = components.iterator(); i.hasNext();)
             {

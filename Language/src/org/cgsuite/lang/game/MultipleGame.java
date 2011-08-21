@@ -21,18 +21,25 @@ public class MultipleGame extends Game
 {
     private final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("MultipleGame");
 
-    CanonicalShortGame multiplier;
+    CgsuiteInteger multiplier;
     Game g;
 
-    public MultipleGame(CanonicalShortGame multiplier, Game g)
+    public MultipleGame(CgsuiteInteger multiplier, Game g)
     {
         super(TYPE);
         
-        if (!multiplier.isNumber())
-            throw new IllegalArgumentException("Multiplier is not a number.");
-
         this.multiplier = multiplier;
         this.g = g;
+    }
+    
+    public CgsuiteInteger getMultiplier()
+    {
+        return multiplier;
+    }
+    
+    public Game getMultiplicand()
+    {
+        return g;
     }
     
     @Override
@@ -78,11 +85,23 @@ public class MultipleGame extends Game
 
         if (simp instanceof CgsuiteInteger)
         {
-            return multiplier.nortonMultiply(CanonicalShortGame.construct((CgsuiteInteger) simp));
+            return multiplier.multiply((CgsuiteInteger) simp);
         }
         else if (simp instanceof CanonicalShortGame)
         {
-            return multiplier.nortonMultiply((CanonicalShortGame) simp);
+            return CanonicalShortGame.construct(multiplier).nortonMultiply((CanonicalShortGame) simp);
+        }
+        else if (multiplier.equals(CgsuiteInteger.ZERO))
+        {
+            return CgsuiteInteger.ZERO;
+        }
+        else if (multiplier.equals(CgsuiteInteger.ONE))
+        {
+            return simp;
+        }
+        else if (multiplier.equals(CgsuiteInteger.ONE.negate()))
+        {
+            return simp.negate();
         }
         else
         {

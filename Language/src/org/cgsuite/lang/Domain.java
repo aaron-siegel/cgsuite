@@ -711,6 +711,8 @@ public class Domain
     private CgsuiteObject loop(CgsuiteTree tree) throws CgsuiteException
     {
         CgsuiteCollection target = null;
+        boolean sumTarget = false;
+        CgsuiteObject runningSum = null;
         
         CgsuiteTree forTree = null;
         String forId = null;
@@ -740,6 +742,11 @@ public class Domain
                 case TABLEOF:
                     
                     target = new Table();
+                    break;
+                    
+                case SUMOF:
+                    
+                    sumTarget = true;
                     break;
                 
                 case FOR:
@@ -886,8 +893,22 @@ public class Domain
                 else
                 {
                     assert mode == Mode.NORMAL;
+                    
                     if (target != null)
                         target.add(retval);
+                    
+                    if (sumTarget)
+                    {
+                        try
+                        {
+                            runningSum = (runningSum == null)? retval : add(runningSum, retval);
+                        }
+                        catch (InputException exc)
+                        {
+                            exc.addToken(tree.getToken());
+                            throw exc;
+                        }
+                    }
                 }
             }
             
@@ -899,10 +920,12 @@ public class Domain
             }
         }
 
-        if (target == null)
-            return retval;
-        else
+        if (target != null)
             return target;
+        else if (sumTarget)
+            return runningSum;
+        else
+            return retval;
     }
 
     private CgsuiteObject binopExpression(CgsuiteTree tree) throws CgsuiteException

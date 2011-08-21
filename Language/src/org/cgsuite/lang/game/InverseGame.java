@@ -23,6 +23,13 @@ public class InverseGame extends Game
     {
         return g;
     }
+    
+    @Override
+    protected int compareLike(CgsuiteObject obj)
+    {
+        InverseGame other = (InverseGame) obj;
+        return g.universalCompareTo(other.g);
+    }
 
     @Override
     public Game simplify() throws CgsuiteException

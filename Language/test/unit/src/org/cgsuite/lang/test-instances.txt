@@ -66,6 +66,7 @@ List                            \ [3,5,3,1] \ [3,5,3,1] \
 Set                             \ {3,5,3,1} \ {1,3,5} \
 Heterogeneous set               \ {3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"} \ {nil,true,"bar","foo",3,*2,+-6,[3,5,3,1]} \
 Map                             \ {"foo" => 1, "bar" => *2, 16 => 22} \ {"bar" => *2, "foo" => 1, 16 => 22} \
+Range                           \ 3..7 \ [3,4,5,6,7] \
 Listof                          \ listof(x^2 for x from 1 to 5) \ [1,4,9,16,25] \
 Setof                           \ setof(x^2 for x in [1,3,5,3]) \ {1,9,25} \
 Empty setof                     \ setof(x) \ !!Syntax error: null \
@@ -198,8 +199,6 @@ Static mutable                          \ test.mutability.TestBadStaticMutable; 
 
 // Var shadowing
 
-// SEPARATE NAMESPACE FOR LOCAL
-
 Do loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
 Do loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
 Do loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowDoLoop(); \ "ok" \
@@ -315,18 +314,70 @@ Pow                             \ ^^.Pow(3) \ ^.Pow(3) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
 Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
 
-// ExplicitGame
-
-ExplicitGame construction       \ g := { -100, game.grid.Clobber("xo|ox")|0} \ {-100,Clobber("xo|ox")|0} \
-ExplicitGame options            \ g.LeftOptions \ {-100,Clobber("xo|ox")} \
-ExplicitGame canonical form     \ g.CanonicalForm \ v \
-
 // DayN
 
 Count of day-3 games            \ DayN(3).Size \ 1474 \
 Count of day-3 all-small games  \ DayN(3, allSmall => true).Size \ 67 \
 Count of day-3 reduced games    \ DayN(3, reduced => true).Size \ 61 \
 Count of day-2 antichains       \ DayN(2).Antichains.Size \ 98 \
+
+// ExplicitGame
+
+ExplicitGame construction       \ g := { -100, game.grid.Clobber("xo|ox")|0} \ {-100,Clobber("xo|ox")|0} \
+ExplicitGame options            \ g.LeftOptions \ {-100,Clobber("xo|ox")} \
+ExplicitGame canonical form     \ g.CanonicalForm \ v \
+
+// Game
+
+Default addition                \ test.Nim(6) + test.Nim(5) \ Nim(6) + Nim(5) \
+Default subtraction             \ test.Nim(6) - test.Nim(5) \ Nim(6) + -Nim(5) \
+Default negation                \ -test.Nim(5) \ -Nim(5) \
+Sensible options                \ test.PartizanSubtraction({1,3},{2,3},11).SensibleRightOptions \ {PartizanSubtraction({1,3},{2,3},9)} \
+Sensible lines                  \ test.PartizanSubtraction({1,3},{2,3},3).SensibleLeftLines \ {[PartizanSubtraction({1,3},{2,3},0)],[PartizanSubtraction({1,3},{2,3},2)]} \
+// TODO RandomPlay, RandomWinner
+// TODO CanonicalShortGame surrogates?
+
+// GridGame
+
+GridGame.Grid                   \ game.grid.Amazons("x..|o..").Grid \ "1..|2.." \
+
+// ImpartialGame
+
+ImpartialGame.NimValue          \ game.heap.Heap("0.123", 8).NimValue \ 2 \
+ImpartialGame.MisereNimValue    \ game.heap.Heap("0.123", 8).MisereNimValue \ 1 \
+
+// InverseGame
+
+InverseGame.Underlying          \ (-test.Nim(5)).Underlying \ Nim(5) \
+InverseGame.op neg              \ -(-test.Nim(5)) \ Nim(5) \
+InverseGame.Options             \ (-test.Nim(3)).LeftOptions \ {-Nim(0),-Nim(1),-Nim(2)} \
+InverseGame.CanonicalForm       \ (-test.Nim(5)).CanonicalForm \ *5 \
+
+// MultipleGame
+
+MultipleGame construction       \ g := 3 * test.Nim(2) \ 3 * Nim(2) \
+MultipleGame.Multiplier         \ g.Multiplier \ 3 \
+MultipleGame.Multiplicand       \ g.Multiplicand \ Nim(2) \
+MultipleGame.CanonicalForm      \ g.CanonicalForm \ *2 \
+MultipleGame.Options            \ g.LeftOptions \ {2 * Nim(2) + Nim(0),2 * Nim(2) + Nim(1)} \
+MultipleGame invalid multiplier \ (1/2) * test.Nim(2) \ !!No rules for converting org.cgsuite.lang.Game to org.cgsuite.lang.game.RationalNumber. \
+
+// Player
+
+Player.Opponent 1               \ Player.Left.Opponent \ Right \
+Player.Opponent 2               \ Player.Right.Opponent \ Left \
+
+// SumGame
+
+SumGame construction            \ g := test.Nim(3) + test.Nim(2) \ Nim(3) + Nim(2) \
+SumGame.op +                    \ g + test.Nim(5) \ Nim(3) + Nim(2) + Nim(5) \
+SumGame.op + double-check       \ (g + test.Nim(5)).Components.Size \ 3 \
+SumGame.op + RHS                \ test.Nim(5) + g \ Nim(5) + Nim(3) + Nim(2) \
+SumGame.op + RHS double-check   \ (test.Nim(5) + g).Components.Size \ 3 \
+SumGame.op neg                  \ -(test.Nim(3) + test.Nim(2)) \ -Nim(3) + -Nim(2) \
+SumGame.Options                 \ g.LeftOptions \ {Nim(0) + Nim(2),Nim(1) + Nim(2),Nim(2) + Nim(2),Nim(3) + Nim(0),Nim(3) + Nim(1)} \
+SumGame.CanonicalForm           \ g.CanonicalForm \ * \
+SumGame.Components              \ g.Components \ [Nim(3),Nim(2)] \
 
 // Grid games
 

@@ -6,6 +6,7 @@ import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.InputException;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 public class RationalNumber extends CgsuiteObject implements Comparable<RationalNumber>
@@ -269,6 +270,9 @@ public class RationalNumber extends CgsuiteObject implements Comparable<Rational
 
     public RationalNumber mod(RationalNumber r)
     {
+        if (r.compareTo(ZERO) <= 0)
+            throw new InputException("The modulus is not positive.");
+            
         return new RationalNumber(
             numerator.multiply(r.denominator).mod(r.numerator.multiply(denominator)),
             denominator.multiply(r.denominator)

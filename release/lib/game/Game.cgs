@@ -10,7 +10,7 @@ class Game : java "org.cgsuite.lang.Game"
     method op neg () : java "negate";
     
     method Options(Player player)
-        error("Subclasses of Game must override the options method.");
+        error("Subclasses of Game must override the Options method.");
     end
 
     property LeftOptions.get

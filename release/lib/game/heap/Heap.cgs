@@ -9,10 +9,26 @@ class Heap extends ImpartialGame
     var rules;
     var n;
 
-    override method Heap(rules, Integer n)
+    method Heap(rules, Integer n)
     
         rules := HeapRules.MakeRules(rules);
         n := n;
+    
+    end
+    
+    override method Options(Player player)
+    
+        opts := {};
+        for list in rules.HeapOptions(n) do
+            if list.Length == 0 then
+                opts.Add(0);
+            elseif list.Length == 1 then
+                opts.Add(Heap(rules, list[1]));
+            else
+                opts.Add(SumGame(listof(Heap(rules, k) for k in list)));
+            end
+        end
+        return opts;
     
     end
     

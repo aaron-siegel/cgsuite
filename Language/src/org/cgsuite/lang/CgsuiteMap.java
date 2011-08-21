@@ -14,6 +14,7 @@ import org.cgsuite.lang.output.StyledTextOutput.Symbol;
 public class CgsuiteMap extends CgsuiteObject
 {
     // TODO Mark keys immutable!
+    // TODO Implement compareLike
     
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Map");
     

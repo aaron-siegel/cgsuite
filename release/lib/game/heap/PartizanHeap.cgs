@@ -9,14 +9,14 @@ class PartizanHeap extends Game
     var leftRules, rightRules;
     var n;
     
-    override method PartizanHeap(leftRules, rightRules, Integer n)
+    method PartizanHeap(leftRules, rightRules, Integer n)
     
         leftRules := HeapRules.MakeRules(leftRules);
         rightRules := HeapRules.MakeRules(rightRules);
     
     end
     
-    method Options(Player player)
+    override method Options(Player player)
     
         rules := if player == Player.Left then leftRules else rightRules end;
         

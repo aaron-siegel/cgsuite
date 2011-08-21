@@ -29,7 +29,7 @@ class Clobber extends GridGame
     
     // Constructs the set of options for specified player.
     
-    method Options(Player player)
+    override method Options(Player player)
 
         options := {};
 

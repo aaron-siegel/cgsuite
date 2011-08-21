@@ -8,6 +8,7 @@ package org.cgsuite.lang;
 import java.math.BigInteger;
 import java.util.Random;
 import org.cgsuite.lang.game.CanonicalShortGame;
+import org.cgsuite.lang.game.MultipleGame;
 import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.StyledTextOutput;
 
@@ -99,6 +100,20 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
             return new CgsuiteInteger((long) value - (long) other.value);
         else
             return new CgsuiteInteger(bigValue().subtract(other.bigValue()));
+    }
+    
+    public CgsuiteObject multiply(CgsuiteObject other)
+    {
+        if (other instanceof CgsuiteInteger)
+            return multiply((CgsuiteInteger) other);
+        else if (other instanceof CanonicalShortGame)
+            return CanonicalShortGame.construct(this).nortonMultiply((CanonicalShortGame) other);
+        else if (other instanceof RationalNumber)
+            return new RationalNumber(this).multiply((RationalNumber) other);
+        else if (other instanceof Game)
+            return new MultipleGame(this, (Game) other);
+        else
+            throw new InputException("Cannot multiply Integer by object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
 
     public CgsuiteInteger multiply(CgsuiteInteger other)
