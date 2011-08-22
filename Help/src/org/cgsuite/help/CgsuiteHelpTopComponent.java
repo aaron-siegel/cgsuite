@@ -5,8 +5,11 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
+import java.util.Enumeration;
 import javax.help.HelpSet;
 import javax.help.JHelp;
+import javax.help.JHelpIndexNavigator;
+import javax.help.JHelpNavigator;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -37,6 +40,16 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
         setToolTipText(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "HINT_CgsuiteHelpTopComponent"));
         HelpSet help = Lookup.getDefault().lookup(HelpSet.class);
         helpViewer = new JHelp(help);
+        Enumeration e = helpViewer.getHelpNavigators();
+        while (e.hasMoreElements())
+        {
+            JHelpNavigator navigator = (JHelpNavigator) e.nextElement();
+            if (navigator instanceof JHelpIndexNavigator)
+            {
+                helpViewer.removeHelpNavigator(navigator);
+                break;
+            }
+        }
         add(helpViewer, BorderLayout.CENTER);
     }
     /** This method is called from within the constructor to

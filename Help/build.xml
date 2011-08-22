@@ -6,12 +6,28 @@
     <description>Builds, tests, and runs the project org.cgsuite.help.</description>
     <import file="nbproject/build-impl.xml"/>
     
+    <property name="cgsuite.docs" value="org/cgsuite/help/docs"/>
+    
     <target name="compile" depends="projectized-common.compile,-post-compile"/>
 
     <target name="-post-compile">
+        <!-- Generate HTML from .cgsh files -->
         <java classname="org.cgsuite.help.HelpBuilder" classpath="${build.classes.dir}">
-            <arg value="${src.dir}/org/cgsuite/help/docs/"/>
-            <arg value="${build.classes.dir}/org/cgsuite/help/docs/"/>
+            <arg value="${src.dir}/${cgsuite.docs}/"/>
+            <arg value="${build.classes.dir}/${cgsuite.docs}/"/>
         </java>
+        <!-- Reindex to pick up generated files -->
+        <jhindexer basedir="${build.classes.dir}/${cgsuite.docs}/"
+                   db="${build.classes.dir}/${cgsuite.docs}/JavaHelpSearch">
+            <classpath>
+                <pathelement location="${harness.dir}/antlib/jsearch-2.0_05.jar"/>
+                <pathelement location="${harness.dir}/tasks.jar"/>
+            </classpath>
+            <include name="**/*.html"/>
+            <include name="**/*.htm"/>  <!-- Fix for Issue #160276 -->
+            <exclude name="${javahelp.search}/"/>
+            <exclude name="${javahelp.excludes}"/>
+        </jhindexer>
     </target>
+    
 </project>
