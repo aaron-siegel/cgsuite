@@ -325,19 +325,55 @@ Procedure.IterateUntil                  \ threen.IterateUntil(x -> x == 1)(27).L
 
 // cgsuite.lang.Set
 
+Set - construction                      \ s := {6,1,3} \ {1,3,6} \
+Set.Add                                 \ s.Add(2) \ nil \
+Set.Add (existing)                      \ s.Add(2) \ nil \
+Set.AddAll                              \ s.AddAll([5,1,8,5]) \ nil \
+Set - check result                      \ s \ {1,2,3,5,6,8} \
+Set.Contains                            \ [s.Contains(5), s.Contains(4)] \ [true,false] \
+Set.Remove                              \ s.Remove(5) \ true \
+Set.Remove (not in set)                 \ s.Remove(5) \ false \
+Set.RemoveAll                           \ s.RemoveAll({1,4,8}) \ true \
+Set - check result                      \ s \ {2,3,6} \
+Set.AnyElement                          \ x := s.AnyElement; x == 2 or x == 3 or x == 6 \ true \
+Set.RandomElement                       \ x := s.RandomElement; x == 2 or x == 3 or x == 6 \ true \
+Set.Apply                               \ s.Apply(n -> n^2) \ {4,9,36} \
+Set.FilterWith                          \ s.FilterWith(n -> n%2 == 0) \ {2,6} \
+Set.Clear                               \ s.Clear(); \ nil \
+Set - check result                      \ s \ {} \
 Set - immutable subreferences           \ mut := test.mutability.TestImmutableSubreferences({[1]}); mut.TestImmutableSet(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Set - crosslinked subreferences         \ mut.TestCrosslinkedSet(); \ nil \
 
-// cgsuite.lang.Table
+// cgsuite.lang.String
+
+String - construction                   \ str := "foo" \ "foo" \
+String - append                         \ str + "bar" \ "foobar" \
+String.Length                           \ str.Length \ 3 \
+
+// cgsuite.util.Grid
+
+Grid - construction             \ Grid(2,3) \ "...|..." \
+Grid.ParseGrid                  \ grid := Grid.ParseGrid("xox.|.ox.", ".xo") \ "121.|.21." \
+Grid.RowCount                   \ grid.RowCount \ 2 \
+Grid.ColumnCount                \ grid.ColumnCount \ 4 \
+Grid.op[]                       \ grid[2,3] \ 1 \
+Grid.op[]:=                     \ grid[2,3] := 2; grid \ "121.|.22." \
+Grid.SubGrid                    \ grid.SubGrid(1,2,2,4) \ "21.|22." \
+Grid.Decompose                  \ grid.Decompose(2) \ ["1|.","1.|2."] \
+Grid.LibertyCount               \ grid.LibertyCount(1,2,0) \ 2 \
+Grid.Contains                   \ listof(grid.Contains(n) for n from 0 to 4) \ [true,true,true,false,false] \
+Grid.SymmetryInvariantRepresentation \ grid.SymmetryInvariantRepresentation \ ".121|.22." \
+Grid (invalid char violation)   \ Grid.ParseGrid("xox.|.oxj", ".xo") \ !!The position may only contain the following characters: .xo \
+Grid (equal length violation)   \ Grid.ParseGrid("xox.|.ox", ".xo") \ !!All rows of the position must have equal length. \
+
+// cgsuite.util.Strip
+
+Strip (multirow violation)      \ Strip.ParseStrip("xox|.ox", ".xo") \ !!The position must contain just one row. \
+
+// cgsuite.util.Table
 
 Table - immutable subreferences         \ tab := tableof([1] from 1 to 1); mut := test.mutability.TestImmutableSubreferences(tab); mut.TestImmutableTable(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Table - crosslinked subreferences       \ mut.TestCrosslinkedTable(); \ nil \
-
-// Grids and Strips
-// TODO Add more
-Grid (invalid char violation)   \ Grid.ParseGrid("xox.|.oxj", ".xo") \ !!The position may only contain the following characters: .xo \
-Grid (equal length violation)   \ Grid.ParseGrid("xox.|.ox", ".xo") \ !!All rows of the position must have equal length. \
-Strip (multirow violation)      \ Strip.ParseStrip("xox|.ox", ".xo") \ !!The position must contain just one row. \
 
 // CanonicalShortGame
 
@@ -443,7 +479,7 @@ SumGame.Options                 \ g.LeftOptions \ {Nim(0) + Nim(2),Nim(1) + Nim(
 SumGame.CanonicalForm           \ g.CanonicalForm \ * \
 SumGame.Components              \ g.Components \ [Nim(3),Nim(2)] \
 
-// Grid games
+// game.grid package
 
 Amazons                         \ game.grid.Amazons("x...|o...").CanonicalForm \ +-(3,{4|0,{1|0,*}},{4|+-1,{0,{1/2|0}|v},+-(1,{2|0})}) \
 Clobber                         \ game.grid.Clobber("xox|ox.").CanonicalForm \ {^^*|*,v} \
@@ -453,7 +489,12 @@ Domineering                     \ game.grid.Domineering(Grid(4,4)).CanonicalForm
 Konane                          \ game.grid.Konane(".xo.o.o.|.o......|.x......").CanonicalForm \ {1,1*,{1,1*|0}|0} \
 NoGo                            \ game.grid.NoGo("x..|...|x.x").CanonicalForm \ {3||2|1|||{1|0},{1,{2|1}|{1|0},1.Miny}} \
 
-// Strip games
+// game.sowing package
+
+BasicMancala                    \ game.sowing.BasicMancala([1,8],[2,1]).CanonicalForm \ -1/16 \
+Sowing                          \ game.sowing.Sowing([2,2,2,2,2,2]).CanonicalForm \ +-{1|||1,{1|7/8}|{1|-1*},{*,{1|0,*},{1|v*}|0,{0|-1}}||0|-1} \
+
+// game.strip package
 
 Push                            \ game.strip.Push("xo.xo.xo.xo").CanonicalForm \ -183/32 \
 ToadsAndFrogs                   \ game.strip.ToadsAndFrogs("ttttt..fffff").CanonicalForm \ +-({2|*},{5/2||2|{0||||{0||v.Pow(2)|-1},{0||||0||(1/32).Miny|-2|||-1/2*}|||v.Pow(2)|-1/2||-1*}|||0}) \

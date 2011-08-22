@@ -97,7 +97,6 @@ public class WorksheetPanel extends JPanel
         // once the user starts using it
         new CalculationCapsule("{1|1/2}").runAndWait();
         processCommand("startup();");
-        this.requestFocusInWindow();
         getBuffer();
         
         getViewport().addComponentListener(new ComponentAdapter()
@@ -113,6 +112,32 @@ public class WorksheetPanel extends JPanel
                 updateComponentSizes();
             }
         });
+        
+        // This is a total hack to fight back against the help component stealing focus at startup.
+        Thread focusThread = new Thread("CGSuite Focus Thread")
+        {
+            @Override
+            public synchronized void run()
+            {
+                try
+                {
+                    wait(1500);
+                }
+                catch (InterruptedException exc)
+                {
+                }
+                SwingUtilities.invokeLater(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        updateFocus();
+                    }
+                });
+            }
+        };
+        
+        focusThread.start();
     }
     
     private CommandHistoryBuffer getBuffer()

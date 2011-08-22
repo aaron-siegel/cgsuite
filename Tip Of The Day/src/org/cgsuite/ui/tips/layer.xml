@@ -19,7 +19,7 @@
                 <attr name="position" intvalue="300"/>
             </file>
             <file name="TipTCAction.shadow">
-                <attr name="position" intvalue="400"/>
+                <attr name="position" intvalue="350"/>
                 <attr name="originalFile" stringvalue="Actions/Window/org-cgsuite-ui-tips-TipTCAction.instance"/>
             </file>
         </folder>

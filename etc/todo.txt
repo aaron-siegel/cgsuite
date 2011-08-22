@@ -6,3 +6,4 @@
 * MacOS installer
 * Banner message in library cgs files
 * Static lookup is broken
+* Clean up indexing of Grid class, key/value conventions in Maps, etc

@@ -10,18 +10,24 @@ import javax.swing.SwingUtilities;
 import org.openide.modules.ModuleInstall;
 import org.openide.windows.WindowManager;
 
-public class Installer extends ModuleInstall {
-
+public class Installer extends ModuleInstall
+{
     @Override
     public void restored()
     {
         SwingUtilities.invokeLater(showTips);
     }
 
-    Runnable showTips = new Runnable(){
-        public void run(){
-            WindowManager.getDefault().getMainWindow().addWindowListener(new WindowAdapter() {
-                public void windowOpened(WindowEvent e) {
+    private Runnable showTips = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            WindowManager.getDefault().getMainWindow().addWindowListener(new WindowAdapter()
+            {
+                @Override
+                public void windowOpened(WindowEvent e)
+                {
                     TipTCAction.showDialog(false);
                 }
             });

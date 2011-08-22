@@ -130,14 +130,14 @@ public class CgsuiteSet extends CgsuiteCollection
         objects.addAll(other.getUnderlyingCollection());
     }
 
-    public void remove(CgsuiteObject object)
+    public boolean remove(CgsuiteObject object)
     {
-        objects.remove(object);
+        return objects.remove(object);
     }
 
-    public void removeAll(CgsuiteCollection other)
+    public boolean removeAll(CgsuiteCollection other)
     {
-        objects.removeAll(other.getUnderlyingCollection());
+        return objects.removeAll(other.getUnderlyingCollection());
     }
 
     public void clear()

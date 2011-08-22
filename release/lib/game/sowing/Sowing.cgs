@@ -22,7 +22,7 @@ class Sowing extends Game
                (direction ==  1 and position[k] <= position.Length-k and position[k+position[k]] !== 0) or
                (direction == -1 and position[k] < k and position[k-position[k]] !== 0)) then
 
-                newPosition := position.Copy();
+                newPosition := position;
                 for j from 1 to position[k] do
                     newPosition[k+direction*j] := newPosition[k+direction*j] + 1;
                 end;
