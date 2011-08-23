@@ -131,6 +131,12 @@ public final class WorksheetTopComponent extends TopComponent
     {
         return worksheetPanel1;
     }
+    
+    @Override
+    public boolean canClose()
+    {
+        return false;
+    }
 
     @Override
     public int getPersistenceType()
