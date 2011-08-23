@@ -27,30 +27,28 @@ class Fission extends GridGame
         options := {};
 
         if player == Player.Left then
-            ds := Direction.Vertical
+            dr := 1;
+            dc := 0;
         else
-            ds := Direction.Horizontal
+            dr := 0;
+            dc := 1;
         end
 
-        for m from 1 to grid.RowCount do
-            for n from 1 to grid.ColumnCount do
-                if grid[m,n] == 1 then
-
-                    for d in ds do
-                        if grid[m-  d.RowShift,n-  d.ColumnShift] == 0 and
-                           grid[m+  d.RowShift,n+  d.ColumnShift] == 0 then
+        for r from 1 to grid.RowCount do
+            for c from 1 to grid.ColumnCount do
+                if grid[r,c] == 1 then
+                    if grid[r-dr, c-dc] == 0 and
+                       grid[r+dr, c+dc] == 0 then
                             copy := grid;
-                            copy[m,n] := 0;
-                            copy[m+  d.RowShift,n+  d.ColumnShift] := 1;
-                            copy[m-  d.RowShift,n-  d.ColumnShift] := 1;
+                            copy[r,c] := 0;
+                            copy[r+dr, c+dc] := 1;
+                            copy[r-dr, c-dc] := 1;
                             options.Add(Fission(copy));
-                        end
                     end
-
                 end
             end
         end
-
+        
         return options;
 
     end
