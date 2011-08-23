@@ -473,7 +473,7 @@ public class GridEditorPanel extends EditorPanel
         if (value >= 0 && value < icons.length)
         {
             firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(row+1, col+1), value);
-            grid.putAt(value, row+1, col+1);
+            grid.putAt(row+1, col+1, value);
             repaint(row, col);
         }
     }
@@ -741,9 +741,9 @@ public class GridEditorPanel extends EditorPanel
                             (row != draggingRow || col != draggingCol))
                         {
                             firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(draggingRow+1, draggingCol+1), 0);
-                            grid.putAt(0, draggingRow+1, draggingCol+1);
+                            grid.putAt(draggingRow+1, draggingCol+1, 0);
                             firePropertyChange(EDIT_STATE_PROPERTY, grid.getAt(row+1, col+1), value);
-                            grid.putAt(value, row+1, col+1);
+                            grid.putAt(row+1, col+1, value);
                             repaint(row, col);
                         }
                         setCursor(DEFAULT_CURSOR);

@@ -186,7 +186,7 @@ public class Grid extends CgsuiteObject implements Serializable
                     throw new InputException
                         ("The position may only contain the following characters: " + charMap);
                 }
-                grid.putAt(value, i+1, j+1);
+                grid.putAt(i+1, j+1, value);
             }
         }
         return grid;
@@ -431,7 +431,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int j = 1; j <= numColumns; j++)
             {
-                clone.putAt(getAt(i, j), i, j);
+                clone.putAt(i, j, getAt(i, j));
             }
         }
         return clone;
@@ -500,17 +500,12 @@ public class Grid extends CgsuiteObject implements Serializable
      * @param   column The column of the coordinate.
      * @param   value The value to place at (row, column).
      */
-    public int putAt(int value, int row, int column)
+    public int putAt(int row, int column, int value)
     {
-        return putAt(entries, value, row, column);
+        return putAt(entries, row, column, value);
     }
     
-    public int putAtCol(int value, int col)
-    {
-        return putAt(entries, value, 1, col);
-    }
-    
-    private int putAt(byte[] array, int value, int row, int column)
+    private int putAt(byte[] array, int row, int column, int value)
     {
         // TODO Arg checking
         int index = (row-1) * numColumns + (column-1);
@@ -593,7 +588,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = startCol; col <= endCol; col++)
             {
-                subgrid.putAt(getAt(row, col), row-startRow+1, col-startCol+1);
+                subgrid.putAt(row-startRow+1, col-startCol+1, getAt(row, col));
             }
         }
         return subgrid;
@@ -648,7 +643,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = startCol; col <= endCol; col++)
             {
-                putAt(grid.getAt(row, col), row-startRow+pasteRow, col-startCol+pasteCol);
+                putAt(row-startRow+pasteRow, col-startCol+pasteCol, grid.getAt(row, col));
             }
         }
     }
@@ -865,11 +860,11 @@ public class Grid extends CgsuiteObject implements Serializable
                         oldCol = col + regions[regionIndex].left;
                     if (markers[oldRow * numColumns + oldCol] == regionIndex)
                     {
-                        grid.putAt(getAt(oldRow+1, oldCol+1), row+1, col+1);
+                        grid.putAt(row+1, col+1, getAt(oldRow+1, oldCol+1));
                     }
                     else
                     {
-                        grid.putAt(boundaryValue, row+1, col+1);
+                        grid.putAt(row+1, col+1, boundaryValue);
                     }
                 }
             }
@@ -937,9 +932,9 @@ public class Grid extends CgsuiteObject implements Serializable
             for (int col = 1; col <= numColumns; col++)
             {
                 int value = getAt(row, col);
-                putAt(s1, value, numRows-row+1, col);
-                putAt(s2, value, row, numColumns-col+1);
-                putAt(s3, value, numRows-row+1, numColumns-col+1);
+                putAt(s1, numRows-row+1, col, value);
+                putAt(s2, row, numColumns-col+1, value);
+                putAt(s3, numRows-row+1, numColumns-col+1, value);
             }
         }
         symmetries.add(s1);

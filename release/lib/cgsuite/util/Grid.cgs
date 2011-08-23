@@ -2,7 +2,7 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
 
     method Grid(Integer rows, Integer columns) : java "Grid(int,int)";
     method op[](Integer row, Integer col) : java "getAt(int,int)";
-    mutable method op[]:=(Integer value, Integer row, Integer col) : java "putAt(int,int,int)";
+    mutable method op[]:=(Integer row, Integer col, Integer value) : java "putAt(int,int,int)";
     method SubGrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol) : java "subgrid(int,int,int,int)";
     method Decompose(Integer boundaryValue) : java "decompose(int)";
     method LibertyCount(Integer row, Integer col, Integer libertyValue) : java "libertyCount(int,int,int)";

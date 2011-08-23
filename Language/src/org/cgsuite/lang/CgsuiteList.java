@@ -103,7 +103,7 @@ public class CgsuiteList extends CgsuiteCollection
     @Override
     public void add(CgsuiteObject obj)
     {
-        set(obj, objects.size()+1);
+        set(objects.size()+1, obj);
     }
 
     public CgsuiteObject get(int index)
@@ -116,7 +116,7 @@ public class CgsuiteList extends CgsuiteCollection
             return objects.get(index-1);
     }
 
-    public CgsuiteObject set(CgsuiteObject value, int index)
+    public CgsuiteObject set(int index, CgsuiteObject value)
     {
         if (index <= 0)
             throw new InputException("Invalid list index: " + index);
@@ -156,7 +156,7 @@ public class CgsuiteList extends CgsuiteCollection
         if (index <= 0)
             throw new InputException("Invalid list index: " + index);
         else if (index > objects.size())
-            set(value, index);
+            set(index, value);
         else
             objects.add(index-1, value);
     }

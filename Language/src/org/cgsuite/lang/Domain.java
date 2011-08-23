@@ -254,7 +254,8 @@ public class Domain
                 obj = expression(tree.getChild(0));
                 try
                 {
-                    obj.invokeMethod("op []:=", arrayIndexList(tree.getChild(1), x));
+                    List<CgsuiteObject> indexList = arrayIndexList(tree.getChild(1), x);
+                    obj.invokeMethod("op []:=", indexList);
                 }
                 catch (InputException exc)
                 {
@@ -618,7 +619,7 @@ public class Domain
 
                 CgsuiteMap map = new CgsuiteMap();
                 for (CgsuiteTree child : tree.getChildren())
-                    map.put(expression(child.getChild(1)).simplify().createCrosslink(), expression(child.getChild(0)).simplify().createCrosslink());
+                    map.put(expression(child.getChild(0)).simplify().createCrosslink(), expression(child.getChild(1)).simplify().createCrosslink());
                 return map;
 
             case EXPLICIT_SET:
@@ -966,25 +967,47 @@ public class Domain
         }
     }
 
-    private CgsuiteObject arrayRef(CgsuiteObject x, List<CgsuiteObject> list) throws CgsuiteException
+    private CgsuiteObject arrayRef(CgsuiteObject x, List<CgsuiteObject> indexList) throws CgsuiteException
     {
-        if (x instanceof CgsuiteList && list.size() == 1 && list.get(0) instanceof RationalNumber)
+        if (x instanceof CgsuiteList && indexList.size() == 1 && indexList.get(0) instanceof CgsuiteInteger)
         {
-            RationalNumber number = (RationalNumber) list.get(0);
-            if (number.isInteger() && number.isSmall())
-                return ((CgsuiteList) x).get(number.intValue());
+            int index = ((CgsuiteInteger) indexList.get(0)).intValue();
+            CgsuiteObject value = ((CgsuiteList) x).get(index);
+            return (value == null)? CgsuiteObject.NIL : value;
         }
-        else if (x instanceof Grid && list.size() == 2 && list.get(0) instanceof RationalNumber && list.get(1) instanceof RationalNumber)
+        else if (x instanceof Grid && indexList.size() == 2 && indexList.get(0) instanceof CgsuiteInteger && indexList.get(1) instanceof CgsuiteInteger)
         {
-            RationalNumber row = (RationalNumber) list.get(0);
-            RationalNumber col = (RationalNumber) list.get(1);
-            if (row.isInteger() && col.isInteger())
-                return new RationalNumber(((Grid) x).getAt(row.intValue(), col.intValue()), 1);
+            int row = ((CgsuiteInteger) indexList.get(0)).intValue();
+            int col = ((CgsuiteInteger) indexList.get(1)).intValue();
+            return new CgsuiteInteger(((Grid) x).getAt(row, col));
         }
-
-        return x.invokeMethod("op []", list);
+        else
+        {
+            return x.invokeMethod("op []", indexList);
+        }
     }
-    
+    /*
+    private void arrayAssign(CgsuiteObject x, List<CgsuiteObject> indexList)
+    {
+        if (x instanceof CgsuiteList && indexList.size() == 2 && indexList.get(0) instanceof CgsuiteInteger)
+        {
+            int index = ((CgsuiteInteger) indexList.get(0)).intValue();
+            ((CgsuiteList) x).set(index, indexList.get(1).createCrosslink());
+        }
+        else if (x instanceof Grid && indexList.size() == 3 &&
+                 indexList.get(0) instanceof CgsuiteInteger && indexList.get(1) instanceof CgsuiteInteger && indexList.get(2) instanceof CgsuiteInteger)
+        {
+            int row = ((CgsuiteInteger) indexList.get(0)).intValue();
+            int col = ((CgsuiteInteger) indexList.get(1)).intValue();
+            int value = ((CgsuiteInteger) indexList.get(2)).intValue();
+            ((Grid) x).putAt(row, col, value);
+        }
+        else
+        {
+            x.invokeMethod("op []:=", indexList);
+        }
+    }
+    */
     private CgsuiteObject range(CgsuiteObject x, CgsuiteObject y, CgsuiteTree tree) throws CgsuiteException
     {
         int m = integer(x, tree, "Start of range");
@@ -1306,19 +1329,24 @@ public class Domain
         }
     }
 
-    private List<CgsuiteObject> arrayIndexList(CgsuiteTree tree, CgsuiteObject prepend) throws CgsuiteException
+    private List<CgsuiteObject> arrayIndexList(CgsuiteTree tree, CgsuiteObject value) throws CgsuiteException
     {
         List<CgsuiteObject> list;
 
         switch (tree.getToken().getType())
         {
             case ARRAY_INDEX_LIST:
-
-                list = new ArrayList<CgsuiteObject>();
-                if (prepend != null)
-                    list.add(prepend);
+                
+                list = new ArrayList<CgsuiteObject>(tree.getChildCount() + (value == null ? 0 : 1));
+                
                 for (CgsuiteTree child : tree.getChildren())
+                {
                     list.add(expression(child).simplify());
+                }
+                
+                if (value != null)
+                    list.add(value);
+                
                 return list;
 
             default:

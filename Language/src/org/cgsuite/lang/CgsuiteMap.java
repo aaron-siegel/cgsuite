@@ -105,7 +105,7 @@ public class CgsuiteMap extends CgsuiteObject
         return map.get(key);
     }
 
-    public void put(CgsuiteObject value, CgsuiteObject key)
+    public void put(CgsuiteObject key, CgsuiteObject value)
     {
         map.put(key, value);
     }

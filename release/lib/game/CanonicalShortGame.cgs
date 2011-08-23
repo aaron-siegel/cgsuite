@@ -4,10 +4,7 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     override method op-(obj) : java "subtract";
     override method op neg() : java "negate";
     method op pos() return this; end
-    method op<=(CanonicalShortGame other) : java "leq";
-    override method op==(CanonicalShortGame other)
-        return this <= other and other <= this;
-    end
+    method Leq(CanonicalShortGame other) : java "leq";
     override property CanonicalForm.get
         return this;
     end

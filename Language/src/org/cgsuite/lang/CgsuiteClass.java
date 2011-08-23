@@ -259,7 +259,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         CgsuiteMap map = new CgsuiteMap();
         for (Entry<String,CgsuiteMethod> e : methods.entrySet())
         {
-            map.put(e.getValue(), new CgsuiteString(e.getKey()));
+            map.put(new CgsuiteString(e.getKey()), e.getValue());
         }
         return map;
     }
@@ -270,7 +270,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         CgsuiteMap map = new CgsuiteMap();
         for (Entry<String,Variable> e : vars.entrySet())
         {
-            map.put(e.getValue(), new CgsuiteString(e.getKey()));
+            map.put(new CgsuiteString(e.getKey()), e.getValue());
         }
         return map;
     }

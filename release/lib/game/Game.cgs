@@ -9,6 +9,14 @@ class Game : java "org.cgsuite.lang.Game"
     end
     method op neg () : java "negate";
     
+    method op<=(Game other)
+        return CanonicalForm.Leq(other.CanonicalForm);
+    end
+    
+    override method op==(Game other)
+        return this <= other and other <= this;
+    end
+    
     method Options(Player player)
         error("Subclasses of Game must override the Options method.");
     end
