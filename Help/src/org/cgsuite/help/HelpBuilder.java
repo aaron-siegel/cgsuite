@@ -45,6 +45,15 @@ public class HelpBuilder
         "tutorials/usingcgscript"
     };
     
+    private final static FileFilter HTML_FILTER = new FileFilter()
+    {
+        @Override
+        public boolean accept(File file)
+        {
+            return file.getName().endsWith(".html");
+        }
+    };
+    
     private final static FileFilter CGSH_FILTER = new FileFilter()
     {
         @Override
@@ -97,6 +106,11 @@ public class HelpBuilder
         {
             convert(file, targetDir, relPath);
         }
+        
+        for (File file : srcDir.listFiles(HTML_FILTER))
+        {
+            addHelpInfo(relPath, file);
+        }
     }
     
     private void convert(File file, File targetDir, String relPath) throws Exception
@@ -148,6 +162,12 @@ public class HelpBuilder
         out.println("</body></html>");
         out.close();
         
+        addHelpInfo(relPath, targetFile);
+    }
+    
+    private void addHelpInfo(String relPath, File targetFile)
+    {
+        String title = targetFile.getName().substring(0, targetFile.getName().lastIndexOf('.'));
         if ("".equals(relPath))
         {
             info.add(new HelpInfo(targetFile.getName(), title, title));

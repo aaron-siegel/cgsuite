@@ -7,6 +7,7 @@ and open the template in the editor.
 <toc version="2.0">
  <tocitem text="Combinatorial Game Suite" target="Welcome to CGSuite">
   <tocitem text="What's New" target="What's New"/>
+  <tocitem text="License" target="License"/>
 <!--  <tocitem text="Acknowledgements" target="acknowledgements"/>-->
   <tocitem text="Tutorials" target="tutorials.Tutorials">
    <tocitem text="Getting Started" target="tutorials.gettingstarted.Getting Started">

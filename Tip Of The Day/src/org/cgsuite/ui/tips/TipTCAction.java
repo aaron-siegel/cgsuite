@@ -25,8 +25,8 @@ import org.openide.util.NbPreferences;
  * Action which shows "Tip Of The Day".
  */
 @SuppressWarnings("deprecation")
-public class TipTCAction extends AbstractAction {
-    
+public class TipTCAction extends AbstractAction
+{
     //Here we set the folder in the user directory
     //that we will use to store our tips.properties file.
     private static FileObject prefsFolder = Repository.getDefault().getDefaultFileSystem().getRoot().getFileObject("Preferences");
@@ -38,27 +38,39 @@ public class TipTCAction extends AbstractAction {
         super(NbBundle.getMessage(TipTCAction.class, "CTL_TipTCAction"));
     }
     
-    public void actionPerformed(ActionEvent evt) {
+    @Override
+    public void actionPerformed(ActionEvent evt)
+    {
         showDialog(true);
     }
     
-    public static void showDialog(final boolean force) {
-        try {
+    public static void showDialog(final boolean force)
+    {
+        try
+        {
             final JXTipOfTheDay jXTipOfTheDay1 = new JXTipOfTheDay(loadModel());
             jXTipOfTheDay1.setCurrentTip(getStartingTipLocation());
-            jXTipOfTheDay1.showDialog(null, new JXTipOfTheDay.ShowOnStartupChoice() {
-                public boolean isShowingOnStartup() {
+            jXTipOfTheDay1.showDialog(null, new JXTipOfTheDay.ShowOnStartupChoice()
+            {
+                @Override
+                public boolean isShowingOnStartup()
+                {
                     //Always show when menu item used:
-                    return force || isStartupChoiceOption();
+                    return isStartupChoiceOption();
                 }
-                public void setShowingOnStartup(boolean showOnStartup) {
+                
+                @Override
+                public void setShowingOnStartup(boolean showOnStartup)
+                {
                     //Store whether to show at start up next time:
                     setStartupChoiceOption(showOnStartup);
                     //Store next tip location, sending current and total tips:
                     setNextStartingTipLocation(jXTipOfTheDay1.getCurrentTip(), jXTipOfTheDay1.getModel().getTipCount());
                 }
-            });
-        } catch (Exception ex) {
+            }, force);
+        }
+        catch (Exception ex)
+        {
             Exceptions.printStackTrace(ex);
         }
     }
@@ -133,7 +145,7 @@ public class TipTCAction extends AbstractAction {
     
     //Read the content line by line:
     private static String readTextResource(InputStream is, String encoding) throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String lineSep = System.getProperty("line.separator"); //NOI18N
         BufferedReader br = new BufferedReader(new InputStreamReader(is, encoding));
         try {
