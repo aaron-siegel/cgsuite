@@ -255,12 +255,14 @@ List - lookup                           \ list[3] \ "diablo" \
 list - assign                           \ list[2] := "the" \ "the" \
 List - check result                     \ list \ ["znear","the","diablo"] \
 List.Add                                \ list.Add("foo"); \ nil \
+List.AddAll                             \ list.AddAll(["x","y"]) \ nil \
 List.Remove                             \ list.Remove("the"); \ true \
 List.InsertAt                           \ list.InsertAt(1, "bar"); \ nil \
 List.RemoveAt                           \ list.RemoveAt(2); \ "znear" \
-List - check result                     \ list \ ["bar","diablo","foo"] \
+List - check result                     \ list \ ["bar","diablo","foo","x","y"] \
 List.SubList                            \ list.SubList(2,3) \ ["diablo","foo"] \
-List.Length                             \ list.Length \ 3 \
+List.Length                             \ list.Length \ 5 \
+List.Size                               \ list.Size \ 5 \
 List.Contains                           \ list.Contains("diablo") \ true \
 List.Clear                              \ list.Clear(); \ nil \
 List - check result again               \ list \ [] \

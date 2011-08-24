@@ -105,6 +105,14 @@ public class CgsuiteList extends CgsuiteCollection
     {
         set(objects.size()+1, obj);
     }
+    
+    public void addAll(CgsuiteCollection collection)
+    {
+        for (CgsuiteObject obj : collection)
+        {
+            add(obj);
+        }
+    }
 
     public CgsuiteObject get(int index)
     {

@@ -31,8 +31,7 @@ package org.cgsuite.lang.impartial;
 
 import java.util.Arrays;
 import java.util.BitSet;
-import org.cgsuite.lang.CgsuiteInteger;
-import org.cgsuite.lang.CgsuiteList;
+import org.cgsuite.lang.InputException;
 
 /**
  * A sequence of Grundy values corresponding to a fixed <code>HeapRules</code>.
@@ -135,7 +134,7 @@ public class NimValueSequence
                         
                         if (pending.get(part)) 
                         {
-                            throw new RuntimeException("Grundy sequence on loopy game");
+                            throw new InputException("Those HeapRules specify a loopy game.");
                         }
                         if (recursiveMexSet == null) 
                         {

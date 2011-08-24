@@ -7,6 +7,21 @@
     <property name="run.args.extra" value="-J-Xmx512m -J-Dorg.cgsuite.devbuild=${basedir}"/>
     <import file="nbproject/build-impl.xml"/>
     
+    <target name="branding" depends="-init,-pre-branding" if="run.branding">
+        <mkdir dir="${cluster}"/>
+        <branding cluster="${cluster}" overrides="${suite.build.dir}/branding-tmp" token="${branding.token}"/>
+    </target>
+    
+    <target name="-pre-branding" depends="-init">
+        <mkdir dir="${suite.build.dir}/branding-tmp"/>
+        <copy todir="${suite.build.dir}/branding-tmp">
+            <fileset dir="${basedir}/branding" includes="**"/>
+        </copy>
+        <replace dir="${suite.build.dir}/branding-tmp" replacefilterfile="etc/cgsuite.properties">
+            <include name="**/*.properties"/>
+        </replace>
+    </target>
+    
     <target name="release" depends="suite.release,-post-release"/>
     
     <target name="-post-release">
