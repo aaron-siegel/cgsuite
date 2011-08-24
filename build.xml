@@ -14,12 +14,17 @@
     
     <target name="-pre-branding" depends="-init">
         <mkdir dir="${suite.build.dir}/branding-tmp"/>
+        <!-- Copy non-properties files from branding dir to temp location -->
         <copy todir="${suite.build.dir}/branding-tmp">
-            <fileset dir="${basedir}/branding" includes="**"/>
+            <fileset dir="${basedir}/branding" includes="**" excludes="**/*.properties"/>
         </copy>
-        <replace dir="${suite.build.dir}/branding-tmp" replacefilterfile="etc/cgsuite.properties">
-            <include name="**/*.properties"/>
-        </replace>
+        <!-- Now copy properties files, applying filterset -->
+        <copy todir="${suite.build.dir}/branding-tmp">
+            <fileset dir="${basedir}/branding" includes="**/*.properties"/>
+            <filterset begintoken="${" endtoken="}">
+                <filtersfile file="${basedir}/nbproject/project.properties"/>
+            </filterset>
+        </copy>
     </target>
     
     <target name="release" depends="suite.release,-post-release"/>
