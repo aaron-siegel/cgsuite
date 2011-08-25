@@ -63,9 +63,10 @@
     </target>
 
     <target name="fulldist" depends="build-mac">
+        <delete file="${dist.dir}/cgsuite-${app.version}.dmg"/>
         <mkdir dir="${dist.dir}/macbundle"/>
-        <move file="${dist.dir}/CGSuite.app" todir="${dist.dir}/macbundle" overwrite="true"/>
-        <copy file="${basedir}/etc/Applications" todir="${dist.dir}/macbundle"/>
+        <delete dir="${dist.dir}/macbundle/CGSuite.app"/>
+        <move file="${dist.dir}/CGSuite.app" todir="${dist.dir}/macbundle"/>
         <exec executable="${basedir}/etc/macbundle.sh" dir="${basedir}/etc">
             <arg value="${dist.dir}/cgsuite-${app.version}.dmg"/>
             <arg value="${dist.dir}/macbundle"/>

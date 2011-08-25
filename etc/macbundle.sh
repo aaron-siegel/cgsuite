@@ -1,5 +1,13 @@
 #!/bin/sh
 
+if [ -e $2/Applications ];
+then
+    echo Applications alias already exists.
+else
+    echo Making Applications alias.
+    ./make-alias.sh /Applications $2
+fi
+
 ./create-dmg.sh \
   --volname CGSuite \
   --background dmg-background.png \
