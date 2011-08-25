@@ -27,16 +27,39 @@
         </copy>
     </target>
     
-    <target name="release" depends="suite.release,-post-release"/>
-    
-    <target name="-post-release">
-        <exec executable="svn" output="${cluster}/svninfo.txt">
+    <target name="release" depends="files-init">
+        
+        <mkdir dir="${cluster}"/>
+        
+        <!-- Copy everything except .cgs files -->
+        <copy todir="${cluster}">
+            <fileset dir="${release.dir}">
+                <patternset includes="${release.files}" excludes="**/*.cgs"/>
+            </fileset>
+        </copy>
+        
+        <!-- Now copy the .cgs files, applying properties filterset -->
+        <copy todir="${cluster}">
+            <fileset dir="${release.dir}" includes="**/*.cgs"/>
+            <filterset begintoken="${" endtoken="}">
+                <filtersfile file="${basedir}/nbproject/project.properties"/>
+            </filterset>
+        </copy>
+        
+        <!-- Generate svn info -->
+        <exec executable="svn" output="${cluster}/svninfo.txt" failifexecutionfails="false">
             <arg value="info"/>
         </exec>
-        <copy file="${cluster}/svninfo.txt" tofile="${cluster}/svn.properties"/>
-        <replaceregexp file="${cluster}/svn.properties" byline="true" match="^(.*): (.*)$" replace="svn.\1=\2"/>
-        <!-- This curious regexp escapes all whitespaces that appear in the key of an SVN property. -->
-        <replaceregexp file="${cluster}/svn.properties" byline="true" flags="g" match=" (?=.*=)" replace="\\\\ "/>
+        
+        <!-- Convert svn info to properties file -->
+        <copy file="${cluster}/svninfo.txt" tofile="${cluster}/svn.properties" failonerror="false">
+            <filterchain>
+                <replaceregex byline="true" pattern="^(.*): (.*)$" replace="svn.\1=\2"/>
+                <!-- This curious regex escapes all whitespaces that appear in the key of an SVN property. -->
+                <replaceregex byline="true" flags="g" pattern=" (?=.*=)" replace="\\\\ "/>
+            </filterchain>
+        </copy>
+        
     </target>
 
 </project>
