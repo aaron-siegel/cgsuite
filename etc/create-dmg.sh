@@ -131,8 +131,8 @@ fi
 APPLESCRIPT=$(mktemp -t createdmg)
 cat "$AUX_PATH/template.applescript" | sed -e "s/WINX/$WINX/g" -e "s/WINY/$WINY/g" -e "s/WINW/$WINW/g" -e "s/WINH/$WINH/g" -e "s/BACKGROUND_CLAUSE/$BACKGROUND_CLAUSE/g" -e "s/ICON_SIZE/$ICON_SIZE/g" | perl -pe  "s/POSITION_CLAUSE/$POSITION_CLAUSE/g" >"$APPLESCRIPT"
 
-echo "Running Applescript: ./AdiumApplescriptRunner \"${APPLESCRIPT}\" process_disk_image \"${VOLUME_NAME}\""
-"$AUX_PATH/AdiumApplescriptRunner" "${APPLESCRIPT}" process_disk_image "${VOLUME_NAME}" || true
+echo "Running Applescript: osascript \"${APPLESCRIPT}\" process_disk_image \"${VOLUME_NAME}\""
+"osascript" "${APPLESCRIPT}" process_disk_image "${VOLUME_NAME}" || true
 echo "Done running the applescript..."
 sleep 4
 
