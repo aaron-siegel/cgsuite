@@ -146,7 +146,7 @@ public class HelpBuilder
         
         out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
         out.println("<html><head>");
-        out.println("<link rel=\"stylesheet\" href=\"nbdocs:/org/cgsuite/help/docs/ide.css\" type=\"text/css\">");
+        out.println("<link rel=\"stylesheet\" href=\"nbdocs:/org/cgsuite/help/docs/cgsuite.css\" type=\"text/css\">");
         out.println("<style type=\"text/css\">");
         out.println("code { font-size: 13pt; }");
         out.println("ul { list-style-type: disc; list-style-image: none; list-style-position: outside; }");
