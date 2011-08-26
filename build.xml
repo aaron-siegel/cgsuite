@@ -4,7 +4,6 @@
 <!-- If you delete this file and reopen the project it will be recreated. -->
 <project name="CGSuite" basedir=".">
     <description>Builds the module suite CGSuite.</description>
-    <property name="run.args.extra" value="-J-Xmx512m -J-Dorg.cgsuite.devbuild=${basedir}"/>
     <import file="nbproject/build-impl.xml"/>
     
     <target name="branding" depends="-init,-pre-branding" if="run.branding">
@@ -25,6 +24,13 @@
                 <filtersfile file="${basedir}/nbproject/project.properties"/>
             </filterset>
         </copy>
+    </target>
+    
+    <target name="build-launchers" depends="suite.build-launchers,-post-build-launchers"/>
+    
+    <target name="-post-build-launchers">
+        <!-- Set default heap size to 512m, and enable assertions -->
+        <replace file="${build.launcher.dir}/etc/${app.name}.conf" token="-J-Xmx64m" value="-J-Xmx512m -J-ea"/>
     </target>
     
     <target name="release" depends="files-init">

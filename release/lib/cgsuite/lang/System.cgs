@@ -1,0 +1,11 @@
+/*
+ * System.cgs
+ *
+ * Created by asiegel on Aug 25, 2011
+ */
+
+class System : java "org.cgsuite.lang.output.Utilities"
+
+    static property Memory.get : java "memory";
+
+end

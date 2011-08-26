@@ -472,6 +472,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         {
             return new CgsuiteInteger((Short) javaObj);
         }
+        else if (javaObj instanceof Long)
+        {
+            return new CgsuiteInteger((Long) javaObj);
+        }
         else if (javaObj instanceof Boolean)
         {
             return CgsuiteBoolean.valueOf((Boolean) javaObj);
