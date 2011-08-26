@@ -4,7 +4,7 @@
 * Fix class loader error messages
 * Banner message in library cgs files
 * Static lookup is broken
-* Loose ends: enum assignment; impartial games
+* Loose ends: enum assignment; impartial games; grid lookup returning nil; 40x40 grey square icon
 
 TODO for 1.1:
 

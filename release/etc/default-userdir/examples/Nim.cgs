@@ -10,7 +10,7 @@
 
 class Nim extends ImpartialGame
 
-    var n;
+    var n;      // The heap size.
     
     // Constructs a new Nim position with specified heap size.
     

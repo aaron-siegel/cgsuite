@@ -1,7 +1,9 @@
+This tutorial explores the language features of CGScript.  It assumes you've already read through the
+[[CGScript][../Worksheet Basics/CGScript]] section from the ~Getting Started~ tutorial.
 <ol>
 <li>[[Three Examples]] - Nim; the Partizan Subtraction Game; and Clobber.
-<li>[[Classes and Packages]]
-<li>[[Control Flow and Scope]]
-<li>[[Grids, Strips and Other Tools]]
-<li>[[Advanced Language Features]]
+<li>[[Classes and Packages]] - The structure of CGScript classes.
+<li>[[Control Flow and Scope]] - Conditionals, loops, and variable scope.
+<li>[[Grids, Strips and Other Tools]] - Utilities for streamlining game implementation.
+<li>[[Advanced Language Features]].
 </ol>

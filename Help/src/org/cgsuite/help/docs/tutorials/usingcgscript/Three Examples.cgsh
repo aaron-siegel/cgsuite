@@ -12,8 +12,11 @@ In the Browser window of CGSuite, you'll see a list of files and directories tha
 see the Browser, click "Browser" in the Window menu, and then you should see it.)  Open up the examples folder, and
 double-click $Nim.cgs$.
 
-Now you'll see the code that specifies the $examples.Nim$ class in CGScript.  The first line of code (aside from the
-comments) is
+Now you'll see the code that specifies the $examples.Nim$ class in CGScript.  Throughout the code are various comments,
+which are greyed out in the editor window.  These comments are ignored by CGSuite; everything else is part of the class
+description.
+
+The first line of code (aside from the comments) is
 
 $class Nim extends ImpartialGame$
 
@@ -58,7 +61,7 @@ end$
 
 This simply tells cgsuite how to display a $Nim$ position in the worksheet or the explorer.
 
-To test it out, try typing
+To test it out, click back over to the worksheet and enter
 
 $g := examples.Nim(8)$
 
@@ -76,8 +79,8 @@ heap size.  The first major difference with Nim is in the declaration:
 
 $class PartizanSubtraction extends Game$
 
-Unlike Nim, the Partizan Subtraction game is partizan (go figure).  So instead of extending $ImpartialGame$, it
-extends the more basic class $Game$.  $Game$, in fact, is the ancestor of ~every~ game implementation in CGSuite
+Unlike Nim, the Partizan Subtraction game is partizan.  So instead of extending $ImpartialGame$, it
+extends the more basic class $Game$.  The $Game$ class, in fact, is the ancestor of ~every~ game implementation in CGSuite
 (including $ImpartialGame$ and $Nim$).
 
 You'll notice that the constructor looks much like the $Nim$ constructor; the only difference is that

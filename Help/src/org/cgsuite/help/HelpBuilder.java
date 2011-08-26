@@ -184,28 +184,6 @@ public class HelpBuilder
         return str.replaceAll("\\:|\\,|\\ ", "");
     }
     
-    protected static int indexOf(String str, List<String> list){
-        int size = list.size();
-        for (int i=0; i < size; i++){
-            if (list.get(i).equals(str))
-                return i;
-        }
-        return -1;
-    }
-    
-    protected static boolean inList(String str, List<String> list){
-        for (String s : list){
-            if (s.equals(str))
-                return true;
-        }
-        return false;
-    }
-    
-    private static String markup(String input)
-    {
-        return markup(input, Collections.<String>emptyList());
-    }
-    
     private static String markup(String input, List<String> tocItems)
     {
         String markup = input;
@@ -213,6 +191,7 @@ public class HelpBuilder
         markup = markup.replaceAll("\\\\\\<", "&lt;");
         markup = markup.replaceAll("\\\\\\^", "&renderascaret;");
         markup = markup.replaceAll("\\\\\"", "&renderasquote;");
+        markup = markup.replaceAll("\\\\\\$", "&renderasdollar;");
         markup = markup.replaceAll("\\\\u", "&uarr;");
         markup = markup.replaceAll("\\\\d", "&darr;");
         markup = markup.replaceAll("\\\"", "&quot;");
@@ -221,12 +200,13 @@ public class HelpBuilder
         markup = markup.replaceAll("\\^(.*?)\\^", "<sup>$1</sup>");
         markup = markup.replaceAll("\\~(.*?)\\~", "<em>$1</em>");
         markup = replaceAllSectionHeadings(markup);
-        markup = markup.replaceAll("##TOC##", makeToc(tocItems));
+        markup = markup.replaceAll("(\n)*##TOC##(\n)*", makeToc(tocItems));
         markup = markup.replaceAll("\n\n", "\n\n<p>");
         markup = markup.replaceAll("\\[\\[(.*?)\\]\\[(.*?)\\]\\]", "<a href=\"$2.html\">$1</a>");
         markup = markup.replaceAll("\\[\\[(.*?)\\]\\]", "<a href=\"$1.html\">$1</a>");
         markup = markup.replaceAll("&renderascaret;", "^");
         markup = markup.replaceAll("&renderasquote;", "\"");
+        markup = markup.replaceAll("&renderasdollar;", "\\$");
         return markup;
     }
     
@@ -245,7 +225,6 @@ public class HelpBuilder
         }
         
         str.append("</ul>\n");
-        str.append("<p>");
         
         return str.toString();
     }
