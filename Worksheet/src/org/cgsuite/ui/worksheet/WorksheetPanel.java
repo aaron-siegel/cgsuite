@@ -464,13 +464,13 @@ public class WorksheetPanel extends JPanel
             {
                 InputPanel cell = (InputPanel) components[index];
                 InputPane pane = cell.getInputPane();
-                int etaW = width - cell.getPrompt().getWidth();
-                /*
-                pane.setMinimumSize(new Dimension(etaW, pane.getMinimumSize().height));
-                pane.setMaximumSize(new Dimension(etaW, pane.getMaximumSize().height));
-                pane.revalidate();
-                 * 
-                 */
+                if (pane.isDeactivated())
+                {
+                    int worksheetWidth = width - cell.getPrompt().getWidth();
+                    pane.setMinimumSize(new Dimension(worksheetWidth, pane.getMinimumSize().height));
+                    pane.setMaximumSize(new Dimension(worksheetWidth, pane.getMaximumSize().height));
+                    pane.revalidate();
+                }
             }
             if (components[index] instanceof OutputBox)
             {

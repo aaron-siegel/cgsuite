@@ -39,12 +39,18 @@ import org.openide.text.CloneableEditorSupport;
 
 public class InputPane extends JEditorPane
 {
+    private boolean isActivated;
+    private boolean isDeactivated;
+    
     public InputPane()
     {
     }
     
     public void activate()
     {
+        if (isActivated || isDeactivated)
+            throw new IllegalStateException();
+        
         assert SwingUtilities.isEventDispatchThread();
         
         try
@@ -54,6 +60,7 @@ public class InputPane extends JEditorPane
 
             setEditorKit(kit);
             setDocument(doc);
+            isActivated = true;
         }
         catch (Exception exc)
         {
@@ -63,6 +70,9 @@ public class InputPane extends JEditorPane
     
     public void deactivate()
     {
+        if (!isActivated)
+            throw new IllegalStateException();
+        
         assert SwingUtilities.isEventDispatchThread();
         
         String text = getText();
@@ -72,6 +82,18 @@ public class InputPane extends JEditorPane
         setText(text);
         setFont(font);
         setEditable(false);
+        isActivated = false;
+        isDeactivated = true;
+    }
+    
+    public boolean isActivated()
+    {
+        return isActivated;
+    }
+    
+    public boolean isDeactivated()
+    {
+        return isDeactivated;
     }
 
     public void insert(String str, int pos)
