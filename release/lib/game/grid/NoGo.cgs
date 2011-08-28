@@ -50,7 +50,7 @@ class NoGo extends GridGame
     
     override property CanonicalForm.get
 
-        return NoGo(grid.SymmetryInvariantRepresentation).super.CanonicalForm;
+        return NoGo(grid.SymmetryInvariant(Symmetry.Reflection)).super.CanonicalForm;
         
     end
 

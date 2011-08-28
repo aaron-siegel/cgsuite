@@ -4,6 +4,10 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
     method op[](Integer row, Integer col) : java "getAt(int,int)";
     mutable method op[]:=(Integer row, Integer col, Integer value) : java "putAt(int,int,int)";
     method SubGrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol) : java "subgrid(int,int,int,int)";
+    method Paste(Grid other, Integer startRow, Integer startCol) : java "paste(org.cgsuite.lang.game.Grid,int,int)";
+    method Clear() : java "clear";
+    method Permute(Symmetry symmetry) : java "permute";
+    method SymmetryInvariant(Collection symmetries) : java "symmetryInvariant";
     method Decompose(Integer boundaryValue) : java "decompose(int)";
     method LibertyCount(Integer row, Integer col, Integer libertyValue) : java "libertyCount(int,int,int)";
 
@@ -11,7 +15,6 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
 
     property RowCount.get : java "getNumRows";
     property ColumnCount.get : java "getNumColumns";
-    property SymmetryInvariantRepresentation.get : java "symmetryInvariantRepresentation";
 
     override property ToString.get
         return this.MapString(".123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");

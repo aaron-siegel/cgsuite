@@ -364,12 +364,26 @@ Grid.SubGrid                    \ grid.SubGrid(1,2,2,4) \ "21.|22." \
 Grid.Decompose                  \ grid.Decompose(2) \ ["1|.","1.|2."] \
 Grid.LibertyCount               \ grid.LibertyCount(1,2,0) \ 2 \
 Grid.Contains                   \ listof(grid.Contains(n) for n from 0 to 4) \ [true,true,true,false,false] \
-Grid.SymmetryInvariantRepresentation \ grid.SymmetryInvariantRepresentation \ ".121|.22." \
+Grid.Paste                      \ grid.Paste(Grid(2,2), 2, 2); \ nil \
+Grid - checkback                \ grid \ "121.|...." \
+Grid.Clear                      \ grid.Clear() \ nil \
+Grid - checkback                \ grid \ "....|...." \
+Grid.Permute                    \ grid := Grid.ParseGrid("123|456|789", ".123456789");
+                                  setof(grid.Permute(sym) for sym in Symmetry.Reflection)
+                                \ {"123|456|789","321|654|987","789|456|123","987|654|321"} \
 Grid (invalid char violation)   \ Grid.ParseGrid("xox.|.oxj", ".xo") \ !!The position may only contain the following characters: .xo \
 Grid (equal length violation)   \ Grid.ParseGrid("xox.|.ox", ".xo") \ !!All rows of the position must have equal length. \
 
 // cgsuite.util.Strip
 
+Strip - construction            \ Strip(5) \ "....." \
+Strip.ParseStrip                \ strip := Strip.ParseStrip("xo..x", ".xo") \ "12..1" \
+Strip.op[]                      \ strip[2] \ 2 \
+Strip.op[]:=                    \ strip[3] := 1; strip \ "121.1" \
+Strip.SubStrip                  \ strip.SubStrip(2,4) \ "21." \
+Strip.Paste                     \ strip.Paste(Strip(4), 3) \ nil \
+Strip - checkback               \ strip \ "12..." \
+Strip.LibertyCount              \ strip.LibertyCount(2, 0) \ 1 \
 Strip (multirow violation)      \ Strip.ParseStrip("xox|.ox", ".xo") \ !!The position must contain just one row. \
 
 // cgsuite.util.Table

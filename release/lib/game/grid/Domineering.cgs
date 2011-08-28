@@ -36,7 +36,7 @@ class Domineering extends GridGame
         components := grid.Decompose(1);
         g := 0;
         for component in components do
-            g := g + Domineering(component.SymmetryInvariantRepresentation).super.CanonicalForm;
+            g := g + Domineering(component.SymmetryInvariant(Symmetry.Reflection)).super.CanonicalForm;
         end
         return g;
 

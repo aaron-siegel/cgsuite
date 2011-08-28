@@ -30,13 +30,14 @@
 package org.cgsuite.lang.game;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteCollection;
+import org.cgsuite.lang.CgsuiteEnumValue;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -80,9 +81,6 @@ public class Grid extends CgsuiteObject implements Serializable
     private int numColumns;
     private byte[] entries;
     private BitsPerEntry bitsPerEntry;
-    
-    private transient EnumSet<Symmetry> symtypes;
-    private transient List<byte[]> symmetries;
     
     private Grid(CgsuiteClass type)
     {
@@ -206,66 +204,7 @@ public class Grid extends CgsuiteObject implements Serializable
     {
         return o instanceof Grid && compareLike((Grid) o) == 0;
     }
-    
-    /**
-     * Tests whether two grids are equal modulo flip symmetry.
-     * This method tests for horizontal and
-     * vertical flip symmetries in all four possible orientations, but does
-     * <i>not</i> check for rotational symmetry.
-     *
-     * @param   other The other grid to compare this to.
-     * @return  <code>true</code> if this grid is equal to a flipped copy of
-     *          <code>other</code>
-     * @see     #equals(Object) equals
-     */
-    /*
-    public boolean equalsSymmetryInvariant(Grid other)
-    {
-        if (numRows != other.numRows || numColumns != other.numColumns)
-        {
-            return false;
-        }
-        if (other.symmetries == null)
-        {
-            if (symmetries == null)
-            {
-                buildSymmetries();
-            }
-            boolean b = checkSymmetries(symmetries, other.entries);
-            if (b)
-            {
-                other.symmetries = symmetries;
-            }
-            return b;
-        }
-        else
-        {
-            boolean b = checkSymmetries(other.symmetries, entries);
-            if (b)
-            {
-                symmetries = other.symmetries;
-            }
-            return b;
-        }
-    }
-     * 
-     */
 
-    public Grid symmetryInvariantRepresentation()
-    {
-        if (symmetries == null)
-        {
-            buildSymmetries(null);
-        }
-
-        Grid grid = new Grid(getCgsuiteClass());
-        grid.numRows = numRows;
-        grid.numColumns = numColumns;
-        grid.bitsPerEntry = bitsPerEntry;
-        grid.entries = symmetries.get(0);
-        return grid;
-    }
-    
     /**
      * Computes a hash code for this <code>Grid</code>.
      *
@@ -275,75 +214,9 @@ public class Grid extends CgsuiteObject implements Serializable
     @Override
     public int hashCode()
     {
-        int hc = 1;
-        for (int i = 0; i < entries.length; i++)
-        {
-            hc = 7 * hc + entries[i];
-        }
-        return hc;
+        return Arrays.hashCode(entries);
     }
     
-    /**
-     * Computes a hash code for this <code>Grid</code> that is invariant under
-     * horizontal and vertical flips.
-     * The hash code is independent of the number of bits per
-     * entry.  Note that the hash code is <i>not</i> invariant under rotations
-     * of the grid.
-     *
-     * @return  A flip-symmetry-invariant hash code for this grid.
-     * @see     #hashCode() hashCode
-     */
-    public int hashCodeSymmetryInvariant()
-    {
-        // We compute separate hash codes for each "quadrant" and combine
-        // them in a flip-independent way.  This is slow, but generally the
-        // benefits of a good hash function far outweigh the cost of
-        // calculating it.
-        int hc1 = 0, hc2 = 0, hc3 = 0, hc4 = 0;
-        
-        // First quadrant.
-        for (int row = 0; row < (numRows + 1) / 2; row++)
-        {
-            for (int col = 0; col < (numColumns + 1) / 2; col++)
-            {
-                hc1 = (hc1+3) * hc1 + getAt(row, col);
-            }
-            hc1 = (hc1+3) * hc1 + 2;
-        }
-        
-        // Second quadrant.
-        for (int row = numRows - 1; row >= numRows / 2; row--)
-        {
-            for (int col = 0; col < (numColumns + 1) / 2; col++)
-            {
-                hc2 = (hc2+3) * hc2 + getAt(row, col);
-            }
-            hc2 = (hc2+3) * hc2 + 2;
-        }
-        
-        // Third quadrant.
-        for (int row = numRows - 1; row >= numRows / 2; row--)
-        {
-            for (int col = numColumns - 1; col >= numColumns / 2; col--)
-            {
-                hc3 = (hc3+3) * hc3 + getAt(row, col);
-            }
-            hc3 = (hc3+3) * hc3 + 2;
-        }
-        
-        // Fourth quadrant.
-        for (int row = 0; row < (numRows + 1) / 2; row++)
-        {
-            for (int col = numColumns - 1; col >= numColumns / 2; col--)
-            {
-                hc4 = (hc4+3) * hc4 + getAt(row, col);
-            }
-            hc4 = (hc4+3) * hc4 + 2;
-        }
-        
-        return (hc1 + hc3) * (hc2 + hc4);
-    }
-
     /**
      * Converts this <code>Grid</code> to a <code>String</code> using the
      * specified character map.  This will map grid entries to characters
@@ -411,8 +284,6 @@ public class Grid extends CgsuiteObject implements Serializable
     {
         super.unlink();
         entries = Arrays.copyOf(entries, entries.length);
-        symtypes = null;
-        symmetries = null;
     }
     
     /**
@@ -608,11 +479,13 @@ public class Grid extends CgsuiteObject implements Serializable
      */
     public void paste(Grid grid, int pasteRow, int pasteCol)
     {
-        for (int row = 0; row < grid.getNumRows(); row++)
+        int rowsToPaste = Math.min(grid.getNumRows(), this.numRows - pasteRow + 1);
+        int colsToPaste = Math.min(grid.getNumColumns(), this.numColumns - pasteCol + 1);
+        for (int row = 1; row <= rowsToPaste; row++)
         {
-            for (int col = 0; col < grid.getNumColumns(); col++)
+            for (int col = 1; col <= colsToPaste; col++)
             {
-                putAt(row+pasteRow, col+pasteCol, grid.getAt(row, col));
+                putAt(row+pasteRow-1, col+pasteCol-1, grid.getAt(row, col));
             }
         }
     }
@@ -648,31 +521,98 @@ public class Grid extends CgsuiteObject implements Serializable
         }
     }
     
-    /**
-     * Constructs a new grid by flipping this grid.  If both arguments are
-     * <code>false</code>, the new grid will be identical to this one.  If both
-     * are <code>true</code>, the result will be a 180-degree rotation.
-     *
-     * @param   horizontal <code>true</code> to flip this grid horizontally.
-     * @param   vertical <code>true</code> to flip this grid vertically.
-     * @return  A flipped copy of this grid.
-     * @since   0.6
-     */
-    public Grid flip(boolean horizontal, boolean vertical)
+    private static Map<CgsuiteObject,Symmetry> SYM_CACHE = new HashMap<CgsuiteObject,Symmetry>();
+    
+    public Grid permute(CgsuiteEnumValue symmetry)
     {
-        Grid grid = new Grid(type, numRows, numColumns, bitsPerEntry);
-        for (int row = 0; row < numRows; row++)
+        return permute(convertSym(symmetry));
+    }
+    
+    private static Symmetry convertSym(CgsuiteEnumValue symmetry)
+    {
+        Symmetry javasym = SYM_CACHE.get(symmetry);
+
+        if (javasym != null)
+            return javasym;
+        
+        if (symmetry.getCgsuiteClass() != Symmetry.TYPE)
+            throw new InputException("Not a symmetry.");
+        
+        Symmetry[] values = Symmetry.values();
+        javasym = values[symmetry.getOrdinal()-1];
+        
+        SYM_CACHE.put(symmetry, javasym);
+        return javasym;
+    }
+    
+    public Grid permute(Symmetry symmetry)
+    {
+        Grid grid = new Grid(
+            symmetry.isRotational() ? numColumns : numRows,
+            symmetry.isRotational() ? numRows : numColumns,
+            bitsPerEntry
+            );
+
+        for (int row = 1; row <= numRows; row++)
         {
-            for (int col = 0; col < numColumns; col++)
+            for (int col = 1; col <= numColumns; col++)
             {
+                int value = getAt(row, col);
+                int newRow = symmetry.isVertical()? numRows-row+1 : row;
+                int newCol = symmetry.isHorizontal()? numColumns-col+1 : col;
                 grid.putAt(
-                    vertical ? numRows - 1 - row : row,
-                    horizontal ? numColumns - 1 - col : col,
-                    getAt(row, col)
+                    symmetry.isRotational()? newCol : newRow,
+                    symmetry.isRotational()? newRow : newCol,
+                    value
                     );
             }
         }
+        
         return grid;
+    }
+    
+    private static Map<CgsuiteCollection,EnumSet<Symmetry>> SYM_COLLECTION_CACHE = new HashMap<CgsuiteCollection,EnumSet<Symmetry>>();
+    
+    public Grid symmetryInvariant(CgsuiteCollection symmetries)
+    {
+        return symmetryInvariant(convertSymCollection(symmetries));
+    }
+    
+    private static EnumSet<Symmetry> convertSymCollection(CgsuiteCollection symmetries)
+    {
+        EnumSet<Symmetry> javasym = SYM_COLLECTION_CACHE.get(symmetries);
+        
+        if (javasym != null)
+            return javasym;
+        
+        Symmetry[] values = Symmetry.values();
+        javasym = EnumSet.noneOf(Symmetry.class);
+        for (CgsuiteObject obj : symmetries)
+        {
+            if (obj.getCgsuiteClass() != Symmetry.TYPE)
+                throw new InputException("Not a collection of symmetry types.");
+            
+            int ordinal = ((CgsuiteEnumValue) obj).getOrdinal();
+            javasym.add(values[ordinal-1]);
+        }
+        
+        SYM_COLLECTION_CACHE.put(symmetries, javasym);
+        return javasym;
+    }
+    
+    public Grid symmetryInvariant(EnumSet<Symmetry> symmetries)
+    {
+        Grid result = this;
+        for (Symmetry sym : symmetries)
+        {
+            if (sym != Symmetry.IDENTITY)
+            {
+                Grid next = permute(sym);
+                if (next.compareLike(result) < 0)
+                    result = next;
+            }
+        }
+        return result;
     }
     
     /**
@@ -696,28 +636,6 @@ public class Grid extends CgsuiteObject implements Serializable
             for (int col = 0; col < numColumns; col++)
             {
                 newGrid.putAt(row, col, entryMap[getAt(row, col)]);
-            }
-        }
-        return newGrid;
-    }
-    
-    /**
-     * Constructs a new grid by transposing the row and column of each entry
-     * in this grid.  If this grid has value <code>x</code> at position
-     * (row, column), then the new grid will have value <code>x</code> at
-     * position (column, row).
-     *
-     * @return  A transposed copy of this grid.
-     * @since   0.6
-     */
-    public Grid transpose()
-    {
-        Grid newGrid = new Grid(type, numColumns, numRows, bitsPerEntry);
-        for (int row = 0; row < numRows; row++)
-        {
-            for (int col = 0; col < numColumns; col++)
-            {
-                newGrid.putAt(col, row, getAt(row, col));
             }
         }
         return newGrid;
@@ -907,42 +825,6 @@ public class Grid extends CgsuiteObject implements Serializable
         }
     }
     
-    private static boolean checkSymmetries(byte[][] symmetriesToCheck, byte[] grid)
-    {
-        for (int i = 0; i < symmetriesToCheck.length; i++)
-        {
-            if (BYTE_ARRAY_COMPARATOR.compare(grid, symmetriesToCheck[i]) == 0)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private void buildSymmetries(EnumSet<Symmetry> symtypes)
-    {
-        this.symtypes = symtypes;
-        symmetries = new ArrayList<byte[]>(4);
-        symmetries.add(entries);
-        byte[] s1 = new byte[entries.length];
-        byte[] s2 = new byte[entries.length];
-        byte[] s3 = new byte[entries.length];
-        for (int row = 1; row <= numRows; row++)
-        {
-            for (int col = 1; col <= numColumns; col++)
-            {
-                int value = getAt(row, col);
-                putAt(s1, numRows-row+1, col, value);
-                putAt(s2, row, numColumns-col+1, value);
-                putAt(s3, numRows-row+1, numColumns-col+1, value);
-            }
-        }
-        symmetries.add(s1);
-        symmetries.add(s2);
-        symmetries.add(s3);
-        Collections.sort(symmetries, BYTE_ARRAY_COMPARATOR);
-    }
-
     private final static Comparator<byte[]> BYTE_ARRAY_COMPARATOR = new Comparator<byte[]>()
     {
         @Override

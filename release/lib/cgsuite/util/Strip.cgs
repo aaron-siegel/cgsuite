@@ -16,15 +16,18 @@ mutable class Strip extends Grid
         return super.op[]:=(1, col, value);
     end
     
-    override method LibertyCount(Integer col, Integer libertyValue)
-        return super.LibertyCount(1, col, libertyValue);
-    end
- 
-    
     method SubStrip(Integer startCol, Integer endCol)
         return SubGrid(1, 1, startCol, endCol);
     end
     
+    override method Paste(Strip other, Integer startCol)
+        return super.Paste(other, 1, startCol);
+    end
+    
+    override method LibertyCount(Integer col, Integer libertyValue)
+        return super.LibertyCount(1, col, libertyValue);
+    end
+ 
     static method ParseStrip(String str, String charMap) : java "parseStrip(java.lang.String,java.lang.String)";
 
 end

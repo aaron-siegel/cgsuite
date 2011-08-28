@@ -10,7 +10,7 @@
  * while it.HasNext do
  *      g := game.grid.Clobber(it.Next);
  *      if g.CanonicalForm > 0 then 
- *            result.Add(game.grid.Clobber(g.Grid.SymmetryInvariantRepresentation); 
+ *            result.Add(game.grid.Clobber(g.Grid.SymmetryInvariant(Symmetry.Eightfold)); 
         end
  * end
  *

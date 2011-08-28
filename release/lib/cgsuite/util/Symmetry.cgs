@@ -1,0 +1,25 @@
+/*
+ * Symmetry.cgs
+ *
+ * Created by asiegel on Aug 27, 2011
+ */
+
+enum Symmetry
+
+    Identity,
+    FlipHorizontal,
+    FlipVertical,
+    FlipBoth,
+    RotateClockwise,
+    RotateAnticlockwise,
+    Transpose,
+    AntiTranspose;
+    
+    static var Reflection := { Identity, FlipHorizontal, FlipVertical, FlipBoth };
+    
+    static var Rotational := { Identity, RotateClockwise, RotateAnticlockwise, FlipBoth };
+    
+    static var Eightfold  := { Identity, FlipHorizontal, FlipVertical, FlipBoth,
+                               RotateClockwise, RotateAnticlockwise, Transpose, AntiTranspose };
+
+end
