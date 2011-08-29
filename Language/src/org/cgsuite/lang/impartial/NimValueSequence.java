@@ -106,7 +106,10 @@ public class NimValueSequence
 
         if (nCalcs++ >= 20)
         {
-//            org.cgsuite.Context.getActiveContext().checkKernelState();
+            if (Thread.interrupted())
+            {
+                throw new InputException("Calculation canceled by user.");
+            }
             nCalcs=0;
         }
         mexSet.clear();

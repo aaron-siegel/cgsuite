@@ -20,9 +20,10 @@ public abstract class CgsuiteCollection extends CgsuiteObject implements Iterabl
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Iterator<CgsuiteObject> iterator()
     {
-        return getUnderlyingCollection().iterator();
+        return (Iterator<CgsuiteObject>) getUnderlyingCollection().iterator();
     }
     
     public abstract int size();
@@ -39,5 +40,5 @@ public abstract class CgsuiteCollection extends CgsuiteObject implements Iterabl
         return size() == 0;
     }
 
-    public abstract Collection<CgsuiteObject> getUnderlyingCollection();
+    public abstract Collection<? extends CgsuiteObject> getUnderlyingCollection();
 }

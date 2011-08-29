@@ -6,6 +6,7 @@
 package org.cgsuite.lang;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.antlr.runtime.Token;
@@ -66,6 +67,11 @@ public class CgsuiteProcedure extends CgsuiteObject implements Callable
         hash = 53 * hash + (this.tree != null ? this.tree.hashCode() : 0);
         hash = 53 * hash + (this.domain != null ? this.domain.hashCode() : 0);
         return hash;
+    }
+    
+    public CgsuiteObject invoke(CgsuiteObject ... arguments) throws CgsuiteException
+    {
+        return invoke(Arrays.asList(arguments), CgsuiteMethod.EMPTY_PARAM_MAP);
     }
     
     @Override

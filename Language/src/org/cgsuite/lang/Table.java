@@ -32,6 +32,7 @@ package org.cgsuite.lang;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import org.cgsuite.lang.output.IntensityPlotOutput;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.TableOutput;
 
@@ -49,7 +50,7 @@ public class Table extends CgsuiteCollection
 {
     public final static CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("Table");
     
-    private List<CgsuiteObject> rows;
+    private List<CgsuiteList> rows;
     private int numColumns;
     private int maxCellWidth;
     private EnumSet<Format> format;
@@ -80,7 +81,7 @@ public class Table extends CgsuiteCollection
     {
         super(TYPE);
         
-        rows = new ArrayList<CgsuiteObject>();
+        rows = new ArrayList<CgsuiteList>();
         format = EnumSet.of(Format.GRID_LINES_HORIZONTAL, Format.GRID_LINES_VERTICAL);
     }
     
@@ -94,10 +95,10 @@ public class Table extends CgsuiteCollection
     public void unlink()
     {
         super.unlink();
-        List<CgsuiteObject> newRows = new ArrayList<CgsuiteObject>(rows.size());
-        for (CgsuiteObject obj : rows)
+        List<CgsuiteList> newRows = new ArrayList<CgsuiteList>(rows.size());
+        for (CgsuiteList row : rows)
         {
-            newRows.add(obj.createCrosslink());
+            newRows.add((CgsuiteList) row.createCrosslink());
         }
         rows = newRows;
         format = format.clone();
@@ -123,7 +124,7 @@ public class Table extends CgsuiteCollection
     }
 
     @Override
-    public List<CgsuiteObject> getUnderlyingCollection()
+    public List<? extends CgsuiteObject> getUnderlyingCollection()
     {
         return rows;
     }
@@ -134,13 +135,13 @@ public class Table extends CgsuiteCollection
         if (!(cells instanceof CgsuiteList))
             throw new IllegalArgumentException("Not a list.");
         
-        rows.add(cells);
+        rows.add((CgsuiteList) cells);
         numColumns = Math.max(numColumns, ((CgsuiteList) cells).size());
     }
     
     public CgsuiteList getRow(int row)
     {
-        return (CgsuiteList) rows.get(row-1);
+        return rows.get(row-1);
     }
     
     public int getNumColumns()
@@ -207,6 +208,22 @@ public class Table extends CgsuiteCollection
     public boolean getHorizontalLines()
     {
         return format.contains(Format.GRID_LINES_HORIZONTAL);
+    }
+    
+    public IntensityPlotOutput intensityPlot()
+    {
+        int[][] array = new int[rows.size()][];
+        for (int i = 0; i < rows.size(); i++)
+        {
+            int[] row = new int[rows.get(i).size()];
+            for (int j = 1; j <= rows.get(i).size(); j++)
+            {
+                row[j-1] = ((CgsuiteInteger) rows.get(i).get(j)).intValue();
+            }
+            array[i] = row;
+        }
+        
+        return new IntensityPlotOutput(array);
     }
     
     @Override
