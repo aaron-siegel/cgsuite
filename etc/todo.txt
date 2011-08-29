@@ -5,6 +5,7 @@
 * Banner message in library cgs files
 * Static lookup is broken
 * Loose ends: enum assignment; impartial games; grid lookup returning nil; 40x40 grey square icon
+* Renames: FilterWith -> Filter, TraverseWith -> Traverse, Paste -> PasteGrid/PasteStrip
 
 TODO for 1.1:
 
@@ -12,3 +13,4 @@ TODO for 1.1:
 * Loopy games
 * Coordinate games
 * Java heap space option
+* Grid.Decompose(boundaryValue, directions)

@@ -1,0 +1,9 @@
+/*
+ * IntensityPlot.cgs
+ *
+ * Created by asiegel on Aug 28, 2011
+ */
+
+class IntensityPlot : java "org.cgsuite.lang.output.IntensityPlotOutput"
+
+end
