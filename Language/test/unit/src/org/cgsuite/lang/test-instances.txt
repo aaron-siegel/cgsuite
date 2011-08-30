@@ -121,6 +121,11 @@ In loop: for-in (illegal)       \ setof(n for n in 5) \ !!Not a valid collection
 
 // TODO Iterators
 
+CollectionIterator: matches     \ a := {1,2,3}; it := cgsuite.util.iterators.CollectionIterator(a); b := {}; while it.HasNext do b.Add(it.Next); end; a == b \ true \
+CollectionIterator: reset       \ a := setof(k for k from 1 to 100); it := cgsuite.util.iterators.CollectionIterator(a); for i from 1 to 10 do it.Next; end; it.Reset(); b := {}; while it.HasNext do b.Add(it.Next); end; a == b; \ true \
+CollectionIterator: empty input \ a := []; it := cgsuite.util.iterators.CollectionIterator(a); it.HasNext \ false \
+ChainedIterator: matches        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator([ita,itb]); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,3] \
+
 // Implicit semicolons
 
 Implicit semicolon after if/then    \ if true then end 5 \ 5 \
