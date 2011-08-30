@@ -134,6 +134,19 @@ FilteredIterator: matches       \ a := listof(k for k from 1 to 10); it := cgsui
 FilteredIterator: multiple prop \ a := listof(k for k from 1 to 30); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0, x -> x % 5 == 3); out := []; while it.HasNext do out.Add(it.Next); end; out \ [3,18] \
 FilteredIterator: next without hasNext  \ a := listof(k for k from 1 to 30); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0); for i from 1 to 5 do it.Next; end; out := []; while it.HasNext do out.Add(it.Next); end; out \ [18,21,24,27,30] \
 FilteredIterator: reset         \ a := listof(k for k from 1 to 30); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0); for i from 1 to 5 do it.Next; end; it.Reset(); it.Next \ 3 \
+NestedIterator: matches         \ a := [1,2]; b := [10,20]; it := cgsuite.util.iterators.NestedIterator(a,b); out := []; while it.HasNext do out.Add(it.Next); end; out \ [[1,10],[1,20],[2,10],[2,20]] \
+NestedIterator: mix             \ a := [1,2]; b := [10,20]; it1 := cgsuite.util.iterators.NestedIterator(a,b); it := cgsuite.util.iterators.NestedIterator([1],it1); out := []; while it.HasNext do out.Add(it.Next); end; out \ [[1,[1,10]],[1,[1,20]],[1,[2,10]],[1,[2,20]]] \
+NestedIterator: reset           \ a := [1,2]; b := [1,2,3]; c := [1,2,3,4,5]; it := cgsuite.util.iterators.NestedIterator(a,b,c); for i from 1 to 15 do it.Next; end; it.Reset(); it.Next \ [1,1,1] \
+SequenceIterator: matches       \ it := cgsuite.util.iterators.SequenceIterator(2,[1,2]); out := []; while it.HasNext do out.Add(it.Next); end; out \ [[1,1],[1,2],[2,1],[2,2]] \
+SequenceIterator: matches       \ it := cgsuite.util.iterators.SequenceIterator(10,[0,1]); for i from 1 to 300 do it.Next; end; it.Next \ [0,1,0,0,1,0,1,1,0,0] \
+SequenceIterator: empty         \ it := cgsuite.util.iterators.SequenceIterator(10,[]); it.HasNext  \ false \
+SequenceIterator: empty 0       \ it := cgsuite.util.iterators.SequenceIterator([],0); it.HasNext \ true \
+SequenceIterator: reset         \ it := cgsuite.util.iterators.SequenceIterator(10,[0,1]); for i from 1 to 300 do it.Next; end; it.Reset(); it.Next \ [0,0,0,0,0,0,0,0,0,0] \
+PrimesIterator: because it's there  \ it := cgsuite.util.iterators.PrimesIterator(); out := []; for i from 1 to 10 do out.Add(it.Next); end; out \ [2,3,5,7,11,13,17,19,23,29] \
+PrimesIterator: 1000th prime    \ it := cgsuite.util.iterators.PrimesIterator(); for i from 1 to 999 do it.Next; end; it.Next \ 7919 \
+Stack: As DFS                   \ max := 11; s := cgsuite.util.iterators.Stack(); s.Push(1); out := []; while s.HasNext do val := s.Next; out.Add(val); if (2*val <= max) then s.Push(2*val); end; if (2*val+1 <= max) then s.Push(2*val+1); end; end; out \ [1,3,7,6,2,5,11,10,4,9,8] \
+Queue: As BFS                   \ max := 11; s := cgsuite.util.iterators.Queue(); s.Add(1); out := []; while s.HasNext do val := s.Next; out.Add(val); if (2*val <= max) then s.Add(2*val); end; if (2*val+1 <= max) then s.Add(2*val+1); end; end; out \ [1,2,3,4,5,6,7,8,9,10,11] \
+
 // Implicit semicolons
 
 Implicit semicolon after if/then    \ if true then end 5 \ 5 \
