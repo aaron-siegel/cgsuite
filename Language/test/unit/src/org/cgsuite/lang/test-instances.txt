@@ -125,7 +125,15 @@ CollectionIterator: matches     \ a := {1,2,3}; it := cgsuite.util.iterators.Col
 CollectionIterator: reset       \ a := setof(k for k from 1 to 100); it := cgsuite.util.iterators.CollectionIterator(a); for i from 1 to 10 do it.Next; end; it.Reset(); b := {}; while it.HasNext do b.Add(it.Next); end; a == b; \ true \
 CollectionIterator: empty input \ a := []; it := cgsuite.util.iterators.CollectionIterator(a); it.HasNext \ false \
 ChainedIterator: matches        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator([ita,itb]); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,3] \
-
+ChainedIterator: varargs        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,3] \
+ChainedIterator: dup args       \ a := [1,2]; ita := cgsuite.util.iterators.CollectionIterator(a); it := cgsuite.util.iterators.ChainedIterator(ita,ita); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,1,2] \
+ChainedIterator: mixed args     \ a := [1]; ita := cgsuite.util.iterators.CollectionIterator(a); it := cgsuite.util.iterators.ChainedIterator(ita,[ita,[ita]]); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,1,1] \
+ChainedIterator: empty parts    \ a := [1,2]; b := []; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb,ita); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,2,1,2] \
+ChainedIterator: reset          \ a := listof(k for k from 1 to 100); b := listof(k for k from 1 to 50); ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb); for i from 1 to 50 do it.Next; end; it.Reset(); i := 0; while it.HasNext do it.Next; i := i+1; end; i \ 150 \
+FilteredIterator: matches       \ a := listof(k for k from 1 to 10); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0); out := []; while it.HasNext do out.Add(it.Next); end; out \ [3,6,9] \
+FilteredIterator: multiple prop \ a := listof(k for k from 1 to 30); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0, x -> x % 5 == 3); out := []; while it.HasNext do out.Add(it.Next); end; out \ [3,18] \
+FilteredIterator: next without hasNext  \ a := listof(k for k from 1 to 30); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0); for i from 1 to 5 do it.Next; end; out := []; while it.HasNext do out.Add(it.Next); end; out \ [18,21,24,27,30] \
+FilteredIterator: reset         \ a := listof(k for k from 1 to 30); it := cgsuite.util.iterators.FilteredIterator(cgsuite.util.iterators.CollectionIterator(a), x -> x % 3 == 0); for i from 1 to 5 do it.Next; end; it.Reset(); it.Next \ 3 \
 // Implicit semicolons
 
 Implicit semicolon after if/then    \ if true then end 5 \ 5 \
