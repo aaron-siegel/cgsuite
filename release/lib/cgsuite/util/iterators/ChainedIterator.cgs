@@ -24,7 +24,9 @@ mutable class ChainedIterator extends Iterator
     var iterators;
     var iteratorIndex;
     
-    method ChainedIterator(iterators)
+    method ChainedIterator(its ...)
+        iterators := [];
+        AddRecursively(its);
         iteratorIndex := 1;
     end
     
@@ -55,7 +57,17 @@ mutable class ChainedIterator extends Iterator
             iterators[i].Reset();
         end
         iteratorIndex := 1;
-        return nil;
+    end
+    
+    mutable method AddRecursively(things)
+    
+        if things is Iterator then
+            iterators.Add(things);
+        elseif things is Collection then
+            for thing in things do
+                AddRecursively(thing);
+            end
+        end
     end
 
 end

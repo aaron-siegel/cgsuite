@@ -20,11 +20,11 @@
 mutable class FilteredIterator extends Iterator
 
     var iterator;
-    var filter;
+    var filters;
     var nextCandidate;
     var flag;
     
-    method FilteredIterator(Iterator iterator, Procedure filter)
+    method FilteredIterator(Iterator iterator, filters ...)
         fireIterator();
     end
     
@@ -32,7 +32,7 @@ mutable class FilteredIterator extends Iterator
         if not flag then
             return false;
         end
-        if filter(nextCandidate) then
+        if Filter(nextCandidate) then
             return true;
         end
         fireIterator();
@@ -40,6 +40,9 @@ mutable class FilteredIterator extends Iterator
      end
      
      override mutable property Next.get
+        while not Filter(nextCandidate) do
+            fireIterator();
+        end
         result := nextCandidate;
         fireIterator();
         return result;
@@ -55,6 +58,15 @@ mutable class FilteredIterator extends Iterator
         if flag then
             nextCandidate := iterator.Next;
         end
+     end
+     
+     method Filter(candidate)
+        for filter in filters do
+            if not filter(candidate) then
+                return false;
+            end;
+        end;
+        return true;
      end
      
 end
