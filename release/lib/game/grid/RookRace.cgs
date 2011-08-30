@@ -19,11 +19,11 @@ class RookRace extends GridGame
 
     var shortMoves;
 
-    override method RookRace(grid, shortMoves ? false)
+    method RookRace(grid, shortMoves ? false)
         this.GridGame(grid);
     end
 
-    method Options(Player player)
+    override method Options(Player player)
 
         options := {};
 

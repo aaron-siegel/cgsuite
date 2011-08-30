@@ -54,7 +54,7 @@ class CrossPurposes extends GridGame
     end
     
     override property CharMap.get
-        return ".o#";
+        return ".x#";
     end
     
     override property Icons.get
@@ -62,7 +62,7 @@ class CrossPurposes extends GridGame
         [
             GridIcon.Blank,
             GridIcon.BlackStone,
-            GridIcon.Grayed
+            GridIcon.GraySquare
         ];
     end
 

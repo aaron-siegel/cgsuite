@@ -9,18 +9,43 @@ mutable class NestedIterator extends Iterator
     var iterators;
     var value;
     
-    method NestedIterator(List args)
+    method NestedIterator(arg1, args ...)
     
         iterators := [];
-        for i from 1 to args.Length do
-            if args[i] is Iterator then
-                iterators.Add(args[i]);
-            elseif args[i] is Collection then
-                iterators.Add(CollectionIterator(args[i]));
+        
+        if args.Length > 0 then
+            if arg1 is Iterator then
+                iterators.add(arg1);
+            elseif arg1 is Collection then
+                iterators.Add(CollectionIterator(arg1));
             else
                 error("Arguments to NestedIterator must be iterators or collections");
             end
+            for i from 1 to args.Length do
+                if args[i] is Iterator then
+                    iterators.Add(args[i]);
+                elseif args[i] is Collection then
+                    iterators.Add(CollectionIterator(args[i]));
+                else
+                    error("Arguments to NestedIterator must be iterators or collections");
+                end
+            end
+        elseif arg1 is Collection then
+            for i from 1 to arg1.Length do
+                if arg1[i] is Iterator then
+                    iterators.Add(arg1[i]);
+                elseif arg1[i] is Collection then
+                    iterators.Add(CollectionIterator(arg1[i]));
+                else
+                    error("In single argument form, NestedIterator takes an iterator or collection of collections or iterators");
+                end
+            end
+        elseif arg1 is Iterator then
+                iterators.add(arg1);
+        else
+            error("Arguments to NestedIterator must be iterators or collections");
         end
+            
         
         Reset();
         
