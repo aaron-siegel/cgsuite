@@ -19,6 +19,7 @@ and open the template in the editor.
     <tocitem text="Three Examples" target="tutorials.usingcgscript.Three Examples"/>
     <tocitem text="Classes and Packages" target="tutorials.usingcgscript.Classes and Packages"/>
     <tocitem text="Control Flow and Scope" target="tutorials.usingcgscript.Control Flow and Scope"/>
+    <tocitem text="Grids and Strips" target="tutorials.usingcgscript.Grids and Strips"/>
     <tocitem text="Advanced Language Features" target="tutorials.usingcgscript.Advanced Language Features"/>
    </tocitem>
   </tocitem>

@@ -124,7 +124,8 @@ You can use this to specify
 rules for heap games with arbitrarily complicated logic.  (But be aware that the
 calculations will be slower than using use the built-in codes.)
 
-++ Misère Canonical Forms ++
+<!--
++ + Misère Canonical Forms + +
 
 CGSuite also supports misère
 canonical forms of games, as described in Winning Ways and ONaG,
@@ -192,7 +193,7 @@ $Heap("0.77", 15).MisereCanonicalForm$
 
 gives the canonical form of a Kayles heap of size 15.
 
-++ Misère Quotients ++
++ + Misère Quotients + +
 
 The ~MisereSolver~ plug-in, bundled with CGSuite, can be used to compute 
 misère quotients.  It's turned off by 
@@ -222,3 +223,4 @@ directory (where $misere.jar$ is located) and type
 $java -jar misere.jar$
 
 for help.
+-->

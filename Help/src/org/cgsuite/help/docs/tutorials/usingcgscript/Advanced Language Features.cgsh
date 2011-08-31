@@ -1,9 +1,86 @@
 ##TOC##
 
-++ Optional and Variable Parameters ++
+This section discusses an assortment of additional language features that are
+sometimes useful.
+
+++ Optional Parameters ++
+
+Methods can have optional parameters in addition to their required parameters.  For example, consider the $DayN$ class,
+which computes the games born by day n.  Typing
+
+$DayN(3).Size$
+
+gives the answer $1474$, the number of games born by day 3.  But $DayN$ also accepts the optional parameter $allSmall$,
+which restricts to ~all small~ games born by day n.  It's activated by typing, say
+
+$DayN(3, allSmall => true).Size$
+
+which gives the answer 67.  There's another optional parameter $reduced$, which restricts to ~reduced~ games born by
+day n (games that are equal to their reduced canonical forms).  Typing
+
+$DayN(3, reduced => true).Size$
+
+gives the answer 61.
+
+Optional parameters can be declared in the method signature with the question-mark operator, as follows:
+
+$method DayN(birthday, allSmall ? false, reduced ? false)$
+
+The expression after the question mark is the default, which is used if the optional parameter is not specified.  If
+no default is specified, then the default value is assumed to be $nil$.
+
+Defaults need not be constants; they can be arbitrary expressions or even refer back to prior parameters.  For example,
+
+$method MyMethod(x, y ? x+1)$
+
+means that $x$ is required and $y$ is optional, and if $y$ is omitted then it defaults to $x+1$.
+
+++ Variable Parameters ++
+
+You can also define methods with variable numbers of parameters.  The signature
+
+$method MyMethod(x ...)$
+
+specifies a method with an arbitrary number of parameters.  All of the following are valid method calls:
+
+$MyMethod()
+MyMethod(1)
+MyMethod(1,2,3,4)$
+
+The value of $x$ will always be a list; it will be $[]$, $[1]$, $[1,2,3,4]$ respectively for the above examples.
+
+Likewise, the signature
+
+$method MyMethod(x, y, z ...)$
+
+requires at least two parameters, with no upper limit.  The first two parameters are assigned to $x$ and $y$; the rest
+are collapsed into a list, which is assigned to $z$.
+
+Variable and optional parameters can be used in the same signature.  There can be at most one variable parameter, and it
+must appear as the ~last~ required parameter, but ~before~ any optional parameters.
 
 ++ Mutable Classes ++
 
+Most objects in CGSuite are ~immutable~: once constructed, they can never be changed.  This includes, for example, all
+games, integers, strings, etc.  Some objects are ~mutable~, such as Collections: you can change a set by adding elements
+to it.
+
+You might occasionally need to design your own mutable classes.  Such classes must be declared with the $mutable$
+keyword.  Moreover, any methods that mutate instances of the class must also be declared $mutable$.
+
 ++ Property Setters ++
+
+We discussed property ~getters~ in the [[Classes and Packages]] section.  A property ~setter~ is similar, but is used to
+change the class in some way.  The declaration looks like
+
+$property MyProperty.set(value)$
+
+and the usage syntax is
+
+$obj.MyProperty := value$
+
+It's possible to have a getter and a setter for the same property in the same class.
+
+Property setters can only be defined for mutable classes.
 
 ++ Operator Overrides ++
