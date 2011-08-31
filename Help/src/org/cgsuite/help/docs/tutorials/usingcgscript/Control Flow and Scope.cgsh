@@ -31,7 +31,7 @@ be evaluated.  If none of the conditions is $true$, then the $else$ statement se
 
 Conditionals can be used within expressions; for example
 
-x := if y%2 == 0 then 1 else -1 end
+$x := if y%2 == 0 then 1 else -1 end$
 
 ++ Loops ++
 

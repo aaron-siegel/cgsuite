@@ -68,7 +68,19 @@
         
     </target>
 
-    <target name="fulldist" depends="build-mac">
+    <target name="cgsuite-dist" depends="clean,cgsuite-src-dist,cgsuite-mac-bundle"/>
+    
+    <target name="cgsuite-src-dist" depends="-init">
+        <mkdir dir="${dist.dir}"/>
+        <delete file="${dist.dir}/cgsuite-${app.version}-src.tar.bz2"/>
+        <tar destfile="${dist.dir}/cgsuite-${app.version}-src.tar.bz2"
+             basedir="${basedir}"
+             compression="bzip2"
+             longfile="gnu"
+             excludes="${dist.dir}/**,${build.dir}/**"/>
+    </target>
+    
+    <target name="cgsuite-mac-bundle" depends="build-mac">
         <delete file="${dist.dir}/cgsuite-${app.version}.dmg"/>
         <mkdir dir="${dist.dir}/macbundle"/>
         <delete dir="${dist.dir}/macbundle/CGSuite.app"/>
@@ -77,6 +89,11 @@
             <arg value="${dist.dir}/cgsuite-${app.version}.dmg"/>
             <arg value="${dist.dir}/macbundle"/>
         </exec>
+    </target>
+    
+    <target name="cgsuite-installer-renames" depends="-init">
+        <move file="${dist.dir}/CGSuite-windows.exe" tofile="${dist.dir}/cgsuite-${app.version}.exe"/>
+        <move file="${dist.dir}/CGSuite-linux.sh" tofile="${dist.dir}/cgsuite-${app.version}.sh"/>
     </target>
 
 </project>
