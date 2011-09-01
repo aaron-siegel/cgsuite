@@ -168,6 +168,9 @@ Imports class                   \ test.classdef.TestImports().testImportedClass(
 Imports class - nonimported     \ test.classdef.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
 Duplicate var                   \ test.classdef.TestDuplicateVar; \ !!Duplicate variable: x \
 No default Java constructor     \ test.classdef.TestBadConstructor; \ !!Class declares a constructor, but its underlying Java class (org.cgsuite.lang.CgsuiteInteger) does not provide a default constructor. \
+// TODO Straight reload
+Static var of parent class      \ test.classdef.TestExtendsSubclass.map[5] := 6; test.classdef.TestExtendsSubclass.map \ {5 => 6} \
+Reload - check parent static var\ test.classdef.TestExtendsSubclass.Reload(); test.classdef.TestExtendsSubclass.map \ {=>} \
 
 // Initializers
 

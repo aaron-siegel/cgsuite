@@ -304,6 +304,9 @@ public class Domain
                 case IDENTIFIER:
                 case THIS:
                 case SUPER:
+                case EXPLICIT_LIST:
+                case EXPLICIT_MAP:
+                case EXPLICIT_SET:
                     constValue = null;
                     break;
 

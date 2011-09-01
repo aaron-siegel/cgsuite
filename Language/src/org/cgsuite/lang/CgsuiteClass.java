@@ -298,7 +298,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         }
     }
 
-    private void load()
+    public void load()
     {
         log.info("Loading class: " + getQualifiedName());
 
@@ -486,8 +486,6 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
         this.ancestors.add(this);
         
-        log.info("Loaded class : " + getQualifiedName());
-        
         // Populate statics and invokeMethod static initializers
 
         for (Variable var : varsInOrder)
@@ -497,7 +495,10 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 CgsuiteObject initialValue = NIL;
 
                 if (var.getInitializer() != null)
+                {
+                    log.info("Static init  : " + getQualifiedName() + "." + var.getName());
                     initialValue = new Domain(this, methods.get("static$init"), packageImports, classImports).expression(var.getInitializer());
+                }
                 
                 objectNamespace.put(var.getName(), initialValue);
                 
@@ -513,6 +514,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             new Domain(this, methods.get("static$init"), packageImports, classImports).statementSequence(staticBlock);
         }
+        
+        log.info("Loaded class : " + getQualifiedName());
     }
     
     private void preamble(CgsuiteTree tree) throws CgsuiteException
@@ -922,7 +925,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             }
         }
         Variable var = new Variable(this, name, modifiers, initializer, declRank);
-        log.info("Declaring var: " + this.name + "." + name);
+        log.info("Declaring var: " + getQualifiedName() + "." + name);
         vars.put(name, var);
         varsInOrder.add(var);
     }
@@ -1078,7 +1081,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
     }
 
-    private void markUnloaded()
+    void markUnloaded()
     {
         loaded = false;
         if (descendants != null)
