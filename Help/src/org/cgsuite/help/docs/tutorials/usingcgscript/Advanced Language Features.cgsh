@@ -82,5 +82,3 @@ $obj.MyProperty := value$
 It's possible to have a getter and a setter for the same property in the same class.
 
 Property setters can only be defined for mutable classes.
-
-++ Operator Overrides ++

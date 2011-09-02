@@ -1,0 +1,32 @@
+##TOC##
+
+++ The 3n+1 Problem ++
+
+The 3n+1 problem isn't a combinatorial game at all - it's a problem in a combinatorial number theory.  But it's a nice
+illustration of the functional programming tools available in CGScript.  (And maybe this will inspire someone to design
+a game around it...)
+
+We define a function f(n), for positive integers n, by
+
+f(n) = 3n+1 if n is odd;
+
+f(n) = n/2 if n is even.
+
+Starting with some integer n, we can iterate f by calculating f(n), f(f(n)), f(f(f(n))), etc.  For example, starting
+with n = 1 gives
+
+1, 4, 2, 1, 4, 2, 1, 4, 2, ...
+
+in an infinite cycle.  The 3n+1 problem asks: if we iterate f starting with an arbitrary n, will the sequence eventually
+reach 1?  This famous problem has been open for decades and is still unsolved.
+
+We can study this problem in CGSuite, defining f as a procedure:
+
+$f := n -> (if n%2 == 0 then n/2 else 3*n+1 end);$
+
+To iterate f, we can use the handy syntax f^n:
+
+$(f^3)(27)$
+
+gives f(f(f(27))).
+

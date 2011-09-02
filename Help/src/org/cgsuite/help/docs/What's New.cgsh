@@ -1,0 +1,24 @@
+Version 1.0 introduces many improvements over beta versions of CGSuite.  An exhaustive list would be dull reading, so
+here are the highlights:
+<ul>
+<li>A brand-new scripting language, CGScript, which replaces the command syntax used in version 0.7.  CGScript is
+far more powerful, flexible and robust than 0.7 scripts.  The
+[[Getting Started][tutorials/gettingstarted/Getting Started]] tutorial describes the basic syntax of CGScript, and it's
+essential reading even if you're familiar with previous versions.
+<li>A new user interface, incorporating an improved version of the 0.7 Worksheet as well as a flexible CGScript editor.
+<li>An expanded and growing library of combinatorial game implementations, including many of the games mentioned in
+~Winning Ways~ and elsewhere.  This library is easily extensible in CGScript (replacing the cumbersome plug-in
+architecture from 0.7).
+</ul>
+This is a "dot 0" release, so it comes with several major caveats (worth keeping in mind if you're used to 0.7):
+<ul>
+<li>Since so much has changed, it's likely that there are quirks and software bugs that still need to be fleshed out.
+If you notice any, please report them (asiegel@users.sourceforge.net) so that they can be fixed in future versions.
+<li>A few major features from 0.7 were left out in version 1.0, including support for loopy games and misere games.
+These features will return in 1.1.  In the meantime, you'll need to stick with 0.7 if you really need them.
+<li>CGScript is slow - in some cases 10 to 20 times slower than an equivalent 0.7 plugin.
+~This will improve in later versions~ as I introduce various optimizations to the CGScript processor.  If you really
+need speed, the Java API is still available, and just as fast as it was in 0.7.  But I think you'll find it ~much~
+easier to write CGScript code than Java plug-ins, and I expect the speed gap to narrow considerably over time.
+</ul>
+Enjoy!
