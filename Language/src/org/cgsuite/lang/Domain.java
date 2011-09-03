@@ -56,11 +56,22 @@ public class Domain
         CgsuiteClass type = CgsuitePackage.lookupClass(str, packageImports, classImports);
         
         if (type != null)
+        {
+            type.ensureLoaded();
             return type;
+        }
 
         if (contextObject != null)
         {
             CgsuiteObject obj = contextObject.resolve(str, contextMethod, true);
+            
+            if (obj != null)
+                return obj;
+        }
+        
+        if (contextMethod != null)
+        {
+            CgsuiteObject obj = contextMethod.getDeclaringClass().resolveStatic(str);
             
             if (obj != null)
                 return obj;
@@ -71,6 +82,14 @@ public class Domain
 
     public void put(String str, CgsuiteObject object)
     {
+        CgsuiteClass type = CgsuitePackage.lookupClass(str, packageImports, classImports);
+
+        if (type != null)
+            throw new InputException("Cannot use class name as variable name: " + str);
+
+        // TODO Prohibit other assignments e.g. to method name
+        // TODO Static assignment
+
         if (contextObject != null && contextMethod.getDeclaringClass().lookupVar(str) != null)
         {
             contextObject.assign(str, object, contextMethod, true);
@@ -184,6 +203,8 @@ public class Domain
         
         switch (tree.token.getType())
         {
+            case SEMI:      return CgsuiteObject.NIL;
+            
             case BREAK:     mode = Mode.BREAKING; controlToken = tree.getToken(); return null;
 
             case CONTINUE:  mode = Mode.CONTINUING; controlToken = tree.getToken(); return null;
@@ -507,14 +528,15 @@ public class Domain
                 }
                 else
                 {
-                    x = packageValue.lookupClassInPackage(tree.getChild(1).getText());
-                    if (x == null)
+                    CgsuiteClass cls = packageValue.lookupClassInPackage(tree.getChild(1).getText());
+                    if (cls == null)
                     {
                         throw new InputException(tree.getToken(), "Could not find class: " + packageValue.getName() + "." + tree.getChild(1).getText());
                     }
                     else
                     {
-                        return x;
+                        cls.ensureLoaded();
+                        return cls;
                     }
                 }
 

@@ -2,9 +2,11 @@
 // Basic script processing
 
 Simple echo                     \ 0 \ 0 \
+Semicolon suppress output       \ 0; \ nil \
 Variable assignment             \ g := 0 \ 0 \
 Variable retrieval              \ g \ 0 \
 Multivee/identifier parse check \ vvvvx := vvvvv \ v5 \
+Assign to name of class         \ Integer := 5 \ !!Cannot use class name as variable name: Integer \
 
 // Arithmetic
 
@@ -98,7 +100,7 @@ Multiparameter procedure        \ f := (x,y) -> (x+y)/2; f(3,4) \ 7/2 \
 Procedure - too few args        \ f(3) \ !!Expecting 2 argument(s); found 1 \
 Procedure - too many args       \ f(3,4,5) \ !!Expecting 2 argument(s); found 3 \
 Procedure - optional arg        \ f(3,4,foo => 5) \ !!Invalid optional parameter: foo \
-No-parameter procedure          \ f := () -> 3; f(); \ 3 \
+No-parameter procedure          \ f := () -> 3; f() \ 3 \
 
 // Do loops
 
@@ -122,11 +124,11 @@ In loop: for-in (illegal)       \ setof(n for n in 5) \ !!Not a valid collection
 // TODO Iterators
 
 CollectionIterator: matches     \ a := {1,2,3}; it := cgsuite.util.iterators.CollectionIterator(a); b := {}; while it.HasNext do b.Add(it.Next); end; a == b \ true \
-CollectionIterator: reset       \ a := setof(k for k from 1 to 100); it := cgsuite.util.iterators.CollectionIterator(a); for i from 1 to 10 do it.Next; end; it.Reset(); b := {}; while it.HasNext do b.Add(it.Next); end; a == b; \ true \
+CollectionIterator: reset       \ a := setof(k for k from 1 to 100); it := cgsuite.util.iterators.CollectionIterator(a); for i from 1 to 10 do it.Next; end; it.Reset(); b := {}; while it.HasNext do b.Add(it.Next); end; a == b \ true \
 CollectionIterator: empty input \ a := []; it := cgsuite.util.iterators.CollectionIterator(a); it.HasNext \ false \
-ChainedIterator: matches        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator([ita,itb]); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,3] \
-ChainedIterator: varargs        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,3] \
-ChainedIterator: dup args       \ a := [1,2]; ita := cgsuite.util.iterators.CollectionIterator(a); it := cgsuite.util.iterators.ChainedIterator(ita,ita); out := []; while it.HasNext do out.Add(it.Next) end out; \ [1,2,1,2] \
+ChainedIterator: matches        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator([ita,itb]); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,2,3] \
+ChainedIterator: varargs        \ a := [1,2]; b := [3]; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,2,3] \
+ChainedIterator: dup args       \ a := [1,2]; ita := cgsuite.util.iterators.CollectionIterator(a); it := cgsuite.util.iterators.ChainedIterator(ita,ita); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,2,1,2] \
 ChainedIterator: mixed args     \ a := [1]; ita := cgsuite.util.iterators.CollectionIterator(a); it := cgsuite.util.iterators.ChainedIterator(ita,[ita,[ita]]); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,1,1] \
 ChainedIterator: empty parts    \ a := [1,2]; b := []; ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb,ita); out := []; while it.HasNext do out.Add(it.Next) end out \ [1,2,1,2] \
 ChainedIterator: reset          \ a := listof(k for k from 1 to 100); b := listof(k for k from 1 to 50); ita := cgsuite.util.iterators.CollectionIterator(a); itb := cgsuite.util.iterators.CollectionIterator(b); it := cgsuite.util.iterators.ChainedIterator(ita,itb); for i from 1 to 50 do it.Next; end; it.Reset(); i := 0; while it.HasNext do it.Next; i := i+1; end; i \ 150 \
@@ -162,10 +164,10 @@ Complex copy on write           \ x := [1,2,3]; y := [4,x,5]; x[2] := y; y[2] :=
 // Classdefs
 
 Class name != filename          \ test.classdef.TestBadClassName; \ !!Classname in file does not match filename: TestBadClassName.cgs \
-Extends qualified class name    \ test.classdef.TestExtendsSubclass(); \ ok \
-Imports package                 \ test.classdef.TestImports().testImportedPackage(); \ 1 \
-Imports class                   \ test.classdef.TestImports().testImportedClass(); \ 1/2 \
-Imports class - nonimported     \ test.classdef.TestImports().testNonImportedClass(); \ !!That variable is not defined: ToadsAndFrogs \
+Extends qualified class name    \ test.classdef.TestExtendsSubclass() \ ok \
+Imports package                 \ test.classdef.TestImports().testImportedPackage() \ 1 \
+Imports class                   \ test.classdef.TestImports().testImportedClass() \ 1/2 \
+Imports class - nonimported     \ test.classdef.TestImports().testNonImportedClass() \ !!That variable is not defined: ToadsAndFrogs \
 Duplicate var                   \ test.classdef.TestDuplicateVar; \ !!Duplicate variable: x \
 No default Java constructor     \ test.classdef.TestBadConstructor; \ !!Class declares a constructor, but its underlying Java class (org.cgsuite.lang.CgsuiteInteger) does not provide a default constructor. \
 // TODO Straight reload
@@ -208,7 +210,7 @@ Unexpected continue in procedure\ f := x -> (continue); f(0) \ !!Unexpected cont
 Unexpected return in procedure  \ f := x -> (return); f(0) \ !!Unexpected control statement in procedure: return \
 Unexpected break in method      \ test.lang.TestControlStatements.UnexpectedBreak(); \ !!Unexpected control statement in method: break \
 Unexpected continue in method   \ test.lang.TestControlStatements.UnexpectedContinue(); \ !!Unexpected control statement in method: continue \
-Return from loop                \ test.lang.TestControlStatements.ReturnFromLoop(); \ 101 \
+Return from loop                \ test.lang.TestControlStatements.ReturnFromLoop() \ 101 \
 
 // Procedures in classes
 
@@ -217,29 +219,29 @@ Static procedure                \ test.lang.TestProcedureScope.StaticProcedure()
 
 // Immutability
 
-Immutable retrieval                     \ mut := test.mutability.TestImmutable(); mut.Retrieve(3); \ 3 \
-Immutable assignment                    \ mut := test.mutability.TestImmutable(); mut.AssignBad([5,6,7]); \ !!Cannot change member variable of immutable object: x \
-Immutable member mutation               \ mut := test.mutability.TestImmutable(); mut.MutateBad(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-Mutable retrieval                       \ mut := test.mutability.TestMutable(); mut.Retrieve(3); \ 3 \
-Mutable assignment                      \ mut := test.mutability.TestMutable(); mut.AssignGood([5,6,7]); mut.Retrieve(3); \ 7 \
-Mutable member mutation                 \ mut := test.mutability.TestMutable(); mut.MutateExplicit(3, 9); mut.Retrieve(3); \ 9 \
-Immutable method - assignment           \ mut := test.mutability.TestMutable(); mut.AssignBad([5,6,7]); \ !!Cannot assign to member variable from inside an immutable method: x \
-Immutable object - call explicit mutable\ mut := test.mutability.TestImmutable(); mut.CallMutateExplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: test.mutability.TestMutable.MutateExplicit \
-Immutable object - call implicit mutable\ mut := test.mutability.TestImmutable(); mut.CallMutateImplicit(3, 9); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Immutable retrieval                     \ mut := test.mutability.TestImmutable(); mut.Retrieve(3) \ 3 \
+Immutable assignment                    \ mut := test.mutability.TestImmutable(); mut.AssignBad([5,6,7]) \ !!Cannot change member variable of immutable object: x \
+Immutable member mutation               \ mut := test.mutability.TestImmutable(); mut.MutateBad(3, 9) \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+Mutable retrieval                       \ mut := test.mutability.TestMutable(); mut.Retrieve(3) \ 3 \
+Mutable assignment                      \ mut := test.mutability.TestMutable(); mut.AssignGood([5,6,7]); mut.Retrieve(3) \ 7 \
+Mutable member mutation                 \ mut := test.mutability.TestMutable(); mut.MutateExplicit(3, 9); mut.Retrieve(3) \ 9 \
+Immutable method - assignment           \ mut := test.mutability.TestMutable(); mut.AssignBad([5,6,7]) \ !!Cannot assign to member variable from inside an immutable method: x \
+Immutable object - call explicit mutable\ mut := test.mutability.TestImmutable(); mut.CallMutateExplicit(3, 9) \ !!Cannot call mutable method on member of immutable object: test.mutability.TestMutable.MutateExplicit \
+Immutable object - call implicit mutable\ mut := test.mutability.TestImmutable(); mut.CallMutateImplicit(3, 9) \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
 Immutable declares mutable              \ test.mutability.TestBadImmutable; \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
 Immutable inherits mutable              \ test.mutability.TestBadImmutableInheritance; \ !!Class is not marked "mutable", but has a mutable parent: test.mutability.TestMutable \
 Static mutable                          \ test.mutability.TestBadStaticMutable; \ !!Static method cannot be marked "mutable": StaticMutable \
 
 // Var shadowing
 
-Do loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
-Do loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowDoLoop(); \ !!Loop variable name shadows member variable: x \
-Do loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowDoLoop(); \ "ok" \
-In loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowInLoop(); \ !!Loop variable name shadows member variable: x \
-In loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowInLoop(); \ !!Loop variable name shadows member variable: x \
-In loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowInLoop(); \ "ok" \
-Local variable shadows subclass var     \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowLocalSub(); \ 5 \
-Method parameter shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowParamSub(); \ 5 \
+Do loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowDoLoop() \ !!Loop variable name shadows member variable: x \
+Do loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowDoLoop() \ !!Loop variable name shadows member variable: x \
+Do loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowDoLoop() \ "ok" \
+In loop variable shadows member var     \ shadow := test.lang.TestShadowing(); shadow.ShadowInLoop() \ !!Loop variable name shadows member variable: x \
+In loop variable shadows super var      \ shadow := test.lang.TestShadowingSubclass(); shadow.SubShadowInLoop() \ !!Loop variable name shadows member variable: x \
+In loop variable shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowInLoop() \ "ok" \
+Local variable shadows subclass var     \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowLocalSub() \ 5 \
+Method parameter shadows subclass var   \ shadow := test.lang.TestShadowingSubclass(); shadow.NonShadowParamSub() \ 5 \
 Member var shadows superclass var       \ test.lang.TestBadShadow; \ !!Variable shadows superclass var: x (from class test.lang.TestShadowing) \
 Var assigned by constructor delegate 1  \ shadow := test.lang.TestConstructorDelegate(); shadow.Value \ 5 \
 Var assigned by constructor delegate 2  \ shadow := test.lang.TestConstructorDelegate(); shadow.ThisValue \ 5 \
@@ -279,21 +281,21 @@ Literal                         \ Player.Left.Literal \ "Left" \
 
 // cgsuite.lang.List
 
-List - create                           \ list := ["znear","el","diablo"]; \ ["znear","el","diablo"] \
+List - create                           \ list := ["znear","el","diablo"] \ ["znear","el","diablo"] \
 List - lookup                           \ list[3] \ "diablo" \
 list - assign                           \ list[2] := "the" \ "the" \
 List - check result                     \ list \ ["znear","the","diablo"] \
-List.Add                                \ list.Add("foo"); \ nil \
+List.Add                                \ list.Add("foo") \ nil \
 List.AddAll                             \ list.AddAll(["x","y"]) \ nil \
-List.Remove                             \ list.Remove("the"); \ true \
-List.InsertAt                           \ list.InsertAt(1, "bar"); \ nil \
-List.RemoveAt                           \ list.RemoveAt(2); \ "znear" \
+List.Remove                             \ list.Remove("the") \ true \
+List.InsertAt                           \ list.InsertAt(1, "bar") \ nil \
+List.RemoveAt                           \ list.RemoveAt(2) \ "znear" \
 List - check result                     \ list \ ["bar","diablo","foo","x","y"] \
 List.SubList                            \ list.SubList(2,3) \ ["diablo","foo"] \
 List.Length                             \ list.Length \ 5 \
 List.Size                               \ list.Size \ 5 \
 List.Contains                           \ list.Contains("diablo") \ true \
-List.Clear                              \ list.Clear(); \ nil \
+List.Clear                              \ list.Clear() \ nil \
 List - check result again               \ list \ [] \
 List.Sort (custom comparator)           \ list := [1,7,2,5,4]; list.Sort((x,y) -> y-x); list \ [7,5,4,2,1] \
 List.Sort (default comparator)          \ list.Sort(); list \ [1,2,4,5,7] \
@@ -315,12 +317,12 @@ List - InsertAt large                   \ list.InsertAt(13, 0); list \ [1,2,4,5,
 List - RemoveAt negative                \ list.RemoveAt(-1) \ !!Invalid list index: -1 \
 List - RemoveAt large                   \ list.RemoveAt(22) \ nil \
 List - check result                     \ list \ [1,2,4,5,7,nil,nil,nil,nil,5,nil,nil,0] \
-List - immutable subreferences          \ mut := test.mutability.TestImmutableSubreferences([[1]]); mut.TestImmutableList(); \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
-List - crosslinked subreferences        \ mut.TestCrosslinkedList(); \ nil \
+List - immutable subreferences          \ mut := test.mutability.TestImmutableSubreferences([[1]]); mut.TestImmutableList() \ !!Cannot call mutable method on member of immutable object: cgsuite.lang.List.op []:= \
+List - crosslinked subreferences        \ mut.TestCrosslinkedList() \ nil \
 
 // cgsuite.lang.Map
 
-Map - create                            \ map := {"foo" => "bar", "znear" => "diablo"}; \ {"foo" => "bar", "znear" => "diablo"} \
+Map - create                            \ map := {"foo" => "bar", "znear" => "diablo"} \ {"foo" => "bar", "znear" => "diablo"} \
 Map - retrieve                          \ map["znear"] \ "diablo" \
 Map - retrieve (not key)                \ map[0] \ nil \
 Map - assign existing                   \ map["foo"] := 17; map \ {"foo" => 17, "znear" => "diablo"} \

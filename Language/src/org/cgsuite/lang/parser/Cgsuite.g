@@ -371,8 +371,8 @@ statementSequence
 statementChain
     : (IF | inLoopAntecedent DO | doLoopAntecedent DO | BEGIN) => controlExpression statementChain?
     | (TRY) => tryStatement statementChain?
-    | statement (SEMI! statementChain?)?
-    | SEMI! statementChain?
+    | statement (SEMI statementChain?)?
+    | SEMI statementChain?
     ;
 	
 statement

@@ -117,6 +117,16 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         ensureLoaded();
         
+        CgsuiteObject staticResolution = resolveStatic(identifier);
+        
+        if (staticResolution != null)
+            return staticResolution;
+        
+        return super.resolve(identifier, contextMethod, localAccess);
+    }
+    
+    public CgsuiteObject resolveStatic(String identifier)
+    {
         CgsuiteMethod getter = lookupMethod(identifier + "$get");
 
         if (getter != null && getter.isStatic())
@@ -128,14 +138,14 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             return method;
         
         Variable var = lookupVar(identifier);
-        
+
         if (var != null && var.isStatic())
         {
             CgsuiteObject obj = objectNamespace.get(identifier);
             return (obj == null)? NIL : obj;
         }
 
-        return super.resolve(identifier, contextMethod, localAccess);
+        return null;
     }
 
     public boolean isLoaded()
