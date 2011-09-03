@@ -14,6 +14,8 @@ and open the template in the editor.
     <tocitem text="Using The Explorer" target="tutorials.gettingstarted.Using The Explorer"/>
     <tocitem text="CGScript" target="tutorials.gettingstarted.CGScript"/>
     <tocitem text="Impartial Games" target="tutorials.gettingstarted.Impartial Games"/>
+    <tocitem text="CGSuite In Action" target="tutorials.gettingstarted.CGSuite In Action"/>
+    <tocitem text="List of Classes" target="tutorials.gettingstarted.List of Classes"/>
    </tocitem>
    <tocitem text="Using CGScript" target="tutorials.usingcgscript.Using CGScript">
     <tocitem text="Three Examples" target="tutorials.usingcgscript.Three Examples"/>

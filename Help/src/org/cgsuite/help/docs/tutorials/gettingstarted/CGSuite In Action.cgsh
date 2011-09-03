@@ -1,6 +1,131 @@
+To conclude the tutorial, we'll walk through a case study demonstrating how to use CGSuite to quickly glean information
+about a new combinatorial game.
+
 ##TOC##
 
-++ The 3n+1 Problem ++
+++ Euclid ++
+
+Euclid is a simple game invented by Richard Nowakowski and Neil McKay, based on the Euclidean algorithm.  A
+position is a pair of integers $[p,q]$.  If $p % q == 0$ then the position is terminal; otherwise each player has exactly
+one move:
+<ul>
+<li>Left can move to $[q,p%q]$;
+<li>Right can move to $[q,q-p%q]$.
+</ul>
+Since each player has just one move, the game is pretty trivial in isolation.  But in sums it's more interesting, and in
+general it can be quite difficult to determine which component to play on.  So let's forge ahead and see what we can
+discover.
+
+The game is implemented via the class $examples.Euclid$.  (Details on how to implement new games from scratch are
+covered in the next tutorial, [[Using CGScript][../usingcgscript/Using CGScript]].  For the purpose of this tutorial,
+we assume we already have an implementation that we wish to study.)
+
+Typing
+
+$examples.Euclid(9,6).CanonicalForm$
+
+gives the canonical form for p = 9, q = 6.
+
+Our first impulse, of course, is to compute a bunch of values and see what they look like.  It's easy to visualize such
+values in a grid, and in this particular case, a CGSuite table is the perfect tool.  Let's first create a shortcut so
+that we don't have to keep typing "$examples.Euclid$" all the time:
+
+$euc := examples.Euclid$
+
+Now we can construct our table.
+
+$tableof(listof(euc(p,q).CanonicalForm for q from 1 to 15) for p from 1 to 15)$
+
+This creates a table with 15 rows, indexed by $p$.  Each row has 15 columns, indexed by $q$, and gives the value of
+$euc(p,q)$ at each coordinate.
+
+If we just wanted "natural" positions with $q <= p$ we could type
+
+$tableof(listof(euc(p,q).CanonicalForm for q from 1 to p) for p from 1 to 15)$
+
+instead, but the extra values help to illuminate the structure.
+
+Already, some properties of Euclid jump out at us.  All the positions are all-small (this is obvious from the rules),
+and the positions $[p,p+1]$ seem to have increasingly hot atomic weight.  The columns appear to be periodic with period
+$q$, which gives us "natural" positions with hot atomic weight (namely, those of the form $[2*p+1,p+1]$).
+And there are lots of other interesting patterns on the rows and diagonals.  At this point one might stop and try to
+prove some of these assertions, but let's forge ahead and do the next obvious thing:
+
+$tableof(listof(euc(p,q).AtomicWeight for q from 1 to 15) for p from 1 to 15)$
+
+Now we can see an intriguing form of arithmetic periodicity emerging in the rows.  Let's take a particularly interesting
+row, such as p = 10, and break it down.  First let's compute the first 100 atomic weights along this row:
+
+$row := listof(euc(10,q).AtomicWeight for q from 1 to 100)$
+
+What we really want to do is visualize its periodicity, again in a table:
+
+$row.PeriodicTable(10)$
+
+Looks interesting!  Perhaps we'd like to visualize a few more rows to see what other types of behavior we can observe.
+Let's throw together a function that takes an input $p$ and gives us the periodic table for $p$ (running $q$ up to
+$p^2$ to ensure $p$ periods):
+
+$pRow := p -> listof(euc(p,q).AtomicWeight for q from 1 to p^2).PeriodicTable(p)$
+
+Now $pRow(10)$ gives the previous result, and we can also quickly type $pRow(15)$ or $pRow(31)$ or ...
+
+Next let's ask a different kind of question.  The values of hot atomic weight are interesting - such values tend to be
+rare and can sometimes point us toward hardness results.  One idea is to build a list of all Euclid positions (up to,
+say, $p = q = 200$) with hot atomic weight.  This is easy to do!  We start with ~all~ Euclid positions up to size 200:
+
+$big := listof(listof(euc(p,q) for q from 1 to 200) for p from 1 to 200).Flatten;$
+
+The $Flatten$ directive takes a compound list such as 
+
+$[1,2,[3,4,5],6]$
+
+and flattens it out into a single list:
+
+$[1,2,3,4,5,6]$.
+
+It's necessary in this case because we want $big$ to be a single list, not a list of lists.  Note the semicolon at the
+end, to suppress output!
+
+Now we ~filter~ $big$ to get just the entries with hot atomic weight.
+
+$hot := big.Filter(g -> g.AtomicWeight.Temperature > 0);$
+
+The $Filter$ method takes a $Boolean$-valued procedure, and returns a list of just the entries that evaluate $true$.
+How many are there?
+
+$hot.Size$
+
+A lot.  Let's try printing out the first hundred:
+
+$tableof([g,g.AtomicWeight] for g in hot.SubList(1,100))$
+
+Looks a bit mundane.  We could print out 300 (or more) values instead, looking for something more "interesting", but
+let's instead try asking something more specific.  All the values in our list are simple switches of the form ${x|y}$.
+Are there any more complicated values?  Let's filter again!
+
+$multistop := hot.Filter(g -> g.AtomicWeight.StopCount > 2)$
+
+Aha!  Now we're down to a manageable list.  Let's tabulate them and (why not?) print out the canonical forms too.
+
+$tableof([g,g.AtomicWeight,g.CanonicalForm] for g in multistop)$
+
+Oh, and here's another question we can ask: are there atomic weights with nontrivial infinitesimal parts (something
+other than $0$ or $*$)?
+
+$x := big.Filter(g -> g.AtomicWeight.Temperature == 0 and g.AtomicWeight.StopCount > 2)$
+
+So it seems...
+
+$tableof([g,g.AtomicWeight] for g in x)$
+
+Indeed, we see $6+Tiny(1)$, $7+Tiny(2)$, $8+Tiny(3)$, $9+Tiny(4)$, among other patterns ...
+
+Exercise: Find a position $[p,q]$ whose atomic weight has the form $x + G$, where $x$ is a number and $G$ is an infinitesimal
+~other than~ $0$, $*$, $^$, $Tiny(n)$.  (They exist.)
+
+<!--
++ + The 3n+1 Problem + +
 
 The 3n+1 problem isn't a combinatorial game at all - it's a problem in a combinatorial number theory.  But it's a nice
 illustration of the functional programming tools available in CGScript.  (And maybe this will inspire someone to design
@@ -30,3 +155,5 @@ $(f^3)(27)$
 
 gives f(f(f(27))).
 
+The $Procedure$ class also provides some handy tools for iterations.
+-->

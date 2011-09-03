@@ -7,7 +7,8 @@ It's divided into several sections:
 <li>[[Using The Explorer]] - Using the explorer to browse and edit game positions.
 <li>[[CGScript]] - Introduction to CGSuite's powerful scripting language.
 <li>[[Impartial Games]] - Description of CGSuite's specialized impartial games support.
-<li>[[Loopy Games]] - Description of specialized loopy games support.
+<li>[[CGSuite In Action]] - A case study demonstrating how CGSuite might be used in practice.
+<li>[[List of Classes]] - Summary of classes provided by the CGScript core library.
 </ol>
 
 A separate tutorial, [[Using CGScript][../usingcgscript/Using CGScript]], provides an
