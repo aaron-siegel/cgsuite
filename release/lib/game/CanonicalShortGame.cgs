@@ -55,6 +55,10 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     override property ToString.get : java "toString";
     override property UptimalExpansion.get : java "uptimalExpansion";
     
+    property Chill.get
+        return Heat(-1);
+    end
+    
     property Companion.get
     
         if (this-Mean).IsNimber and (Mean != 0 or Birthday >= 2) then
