@@ -3,9 +3,9 @@ about a new combinatorial game.
 
 ##TOC##
 
-++ Euclid ++
+++ Partizan Euclid ++
 
-Euclid is a simple game invented by Richard Nowakowski and Neil McKay, based on the Euclidean algorithm.  A
+Partizan Euclid is a simple game invented by Richard Nowakowski and Neil McKay, based on the Euclidean algorithm.  A
 position is a pair of integers $[p,q]$.  If $p % q == 0$ then the position is terminal; otherwise each player has exactly
 one move:
 <ul>
@@ -16,21 +16,21 @@ Since each player has just one move, the game is pretty trivial in isolation.  B
 general it can be quite difficult to determine which component to play on.  So let's forge ahead and see what we can
 discover.
 
-The game is implemented via the class $examples.Euclid$.  (Details on how to implement new games from scratch are
+The game is implemented via the class $examples.PartizanEuclid$.  (Details on how to implement new games from scratch are
 covered in the next tutorial, [[Using CGScript][../usingcgscript/Using CGScript]].  For the purpose of this tutorial,
 we assume we already have an implementation that we wish to study.)
 
 Typing
 
-$examples.Euclid(9,6).CanonicalForm$
+$examples.PartizanEuclid(9,6).CanonicalForm$
 
 gives the canonical form for p = 9, q = 6.
 
 Our first impulse, of course, is to compute a bunch of values and see what they look like.  It's easy to visualize such
 values in a grid, and in this particular case, a CGSuite table is the perfect tool.  Let's first create a shortcut so
-that we don't have to keep typing "$examples.Euclid$" all the time:
+that we don't have to keep typing "$examples.PartizanEuclid$" all the time:
 
-$euc := examples.Euclid$
+$euc := examples.PartizanEuclid$
 
 Now we can construct our table.
 
@@ -45,7 +45,7 @@ $tableof(listof(euc(p,q).CanonicalForm for q from 1 to p) for p from 1 to 15)$
 
 instead, but the extra values help to illuminate the structure.
 
-Already, some properties of Euclid jump out at us.  All the positions are all-small (this is obvious from the rules),
+Already, some properties of Partizan Euclid jump out at us.  All the positions are all-small (this is obvious from the rules),
 and the positions $[p,p+1]$ seem to have increasingly hot atomic weight.  The columns appear to be periodic with period
 $q$, which gives us "natural" positions with hot atomic weight (namely, those of the form $[2*p+1,p+1]$).
 And there are lots of other interesting patterns on the rows and diagonals.  At this point one might stop and try to
@@ -71,8 +71,8 @@ $pRow := p -> listof(euc(p,q).AtomicWeight for q from 1 to p^2).PeriodicTable(p)
 Now $pRow(10)$ gives the previous result, and we can also quickly type $pRow(15)$ or $pRow(31)$ or ...
 
 Next let's ask a different kind of question.  The values of hot atomic weight are interesting - such values tend to be
-rare and can sometimes point us toward hardness results.  One idea is to build a list of all Euclid positions (up to,
-say, $p = q = 200$) with hot atomic weight.  This is easy to do!  We start with ~all~ Euclid positions up to size 200:
+rare and can sometimes point us toward hardness results.  One idea is to build a list of all Partizan Euclid positions (up to,
+say, $p = q = 200$) with hot atomic weight.  This is easy to do!  We start with ~all~ Partizan Euclid positions up to size 200:
 
 $big := listof(listof(euc(p,q) for q from 1 to 200) for p from 1 to 200).Flatten;$
 
