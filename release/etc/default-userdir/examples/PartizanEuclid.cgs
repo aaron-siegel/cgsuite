@@ -22,9 +22,9 @@ class PartizanEuclid extends Game
         if p%q == 0 then
             return {};
         elseif player == Player.Left then
-            return { Euclid(q,     p%q) };
+            return { PartizanEuclid(q,     p%q) };
         else
-            return { Euclid(q, q - p%q) };
+            return { PartizanEuclid(q, q - p%q) };
         end
 
     end
