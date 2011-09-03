@@ -1,0 +1,45 @@
+/*
+ * EuclidP2.cgs
+ *
+ * Game is the Euclidean Alg where
+ * Left goes from (a,ap+r) to (r,a)
+ * and Right from (a,ap+r) to (a-r,a)
+ * If r=0 then the position is 0 for both players.
+ * Created by richardnowakowski on Aug 17, 2011
+ */
+
+class Euclid extends Game
+
+    var p;
+    var q;
+
+    method Euclid(Integer p, Integer q)
+    end
+
+    override method Options(Player player)
+
+        if p%q == 0 then
+            return {};
+        elseif player == Player.Left then
+            return { Euclid(q,     p%q) };
+        else
+            return { Euclid(q, q - p%q) };
+        end
+
+    end
+   
+    property P.get
+        return p;
+    end
+    
+    property Q.get
+        return q;
+    end
+
+    override property ToString.get
+
+        return "Euclid(" + p.ToString + "," + q.ToString + ")";
+
+    end
+
+end
