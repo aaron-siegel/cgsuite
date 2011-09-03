@@ -18,6 +18,28 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
     property Size.get : java "size";
     override property ToString.get : java "toString";
     
+    property Flatten.get
+        flat := [];
+        for obj in this do
+            if obj is Collection then
+                flat.AddAll(obj);
+            else
+                flat.Add(obj);
+            end
+        end
+        return flat;
+    end
+    
+    method DirectProduct(List other)
+    
+        prod := [];
+        for x in this do
+            prod.AddAll(listof([x,y] for y in other));
+        end
+        return prod;
+    
+    end
+    
     method Apply(Procedure f)
         return listof(f(x) for x in this)
     end

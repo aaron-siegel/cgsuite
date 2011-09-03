@@ -6,6 +6,8 @@
 
 class TestExtends
 
+    static var map := {=>};
+
     method TestExtends()
     end
 
