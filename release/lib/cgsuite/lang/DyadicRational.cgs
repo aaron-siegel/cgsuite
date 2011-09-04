@@ -1,8 +1,4 @@
-/*
- * DyadicRational.cgs
- *
- * Created by asiegel on Aug 12, 2011
- */
+/*${cgsuite.banner}*/
 
 class DyadicRational extends CanonicalShortGame, Number : java "org.cgsuite.lang.game.CanonicalShortGame"
 

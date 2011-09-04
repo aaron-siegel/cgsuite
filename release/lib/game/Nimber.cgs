@@ -1,8 +1,4 @@
-/*
- * Nimber.cgs
- *
- * Created by asiegel on Aug 12, 2011
- */
+/*${cgsuite.banner}*/
 
 class Nimber extends CanonicalShortGame, ImpartialGame
 

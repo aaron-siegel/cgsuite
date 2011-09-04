@@ -1,8 +1,4 @@
-/*
- * Symmetry.cgs
- *
- * Created by asiegel on Aug 27, 2011
- */
+/*${cgsuite.banner}*/
 
 enum Symmetry
 

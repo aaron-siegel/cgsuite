@@ -1,8 +1,4 @@
-/*
- * TopplingDominoes.cgs
- *
- * Created by asiegel on Jul 13, 2011
- */
+/*${cgsuite.banner}*/
 
 class TopplingDominoes extends StripGame
 

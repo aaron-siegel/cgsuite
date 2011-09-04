@@ -1,8 +1,4 @@
-/*
- * Plot.cgs
- *
- * Created by asiegel on Jul 19, 2011
- */
+/*${cgsuite.banner}*/
 
 class Plot : java "org.cgsuite.lang.output.PlotOutput"
 

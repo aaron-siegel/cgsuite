@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 mutable class Grid : java "org.cgsuite.lang.game.Grid"
 
     method Grid(Integer rows, Integer columns) : java "Grid(int,int)";

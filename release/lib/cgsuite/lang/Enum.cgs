@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Enum : java "org.cgsuite.lang.CgsuiteEnumValue"
 
     var ordinal, literal;

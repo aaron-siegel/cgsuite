@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Push extends StripGame
 
     method Push(grid)

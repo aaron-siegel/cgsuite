@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class ExplicitGame extends Game : java "org.cgsuite.lang.game.ExplicitGame"
 
     override property LeftOptions.get : java "getLeftOptions";

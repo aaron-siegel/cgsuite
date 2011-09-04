@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
 
     override method op+(obj) : java "add";

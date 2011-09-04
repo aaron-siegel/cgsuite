@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class DayN
 
     var allSmall, reduced;

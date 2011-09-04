@@ -1,8 +1,4 @@
-/*
- * Table.cgs
- *
- * Created by asiegel on Jul 12, 2011
- */
+/*${cgsuite.banner}*/
 
 mutable class Table extends Collection : java "org.cgsuite.lang.Table"
 

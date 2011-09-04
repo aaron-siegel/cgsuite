@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class MultipleGame extends Game : java "org.cgsuite.lang.game.MultipleGame"
 
     property Multiplier.get : java "getMultiplier";

@@ -1,8 +1,4 @@
-/*
- * BasicMancala.cgs
- *
- * Created by asiegel on Jul 11, 2011
- */
+/*${cgsuite.banner}*/
 
 class BasicMancala extends Game
 

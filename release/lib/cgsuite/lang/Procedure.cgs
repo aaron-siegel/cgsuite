@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Procedure : java "org.cgsuite.lang.CgsuiteProcedure"
 
     property ParameterCount.get : java "getNumParameters";

@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class FoxAndGeese extends GridGame
 
     override method FoxAndGeese(grid)

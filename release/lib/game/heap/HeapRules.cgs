@@ -1,8 +1,4 @@
-/*
- * HeapRules.cgs
- *
- * Created by asiegel on Jul 20, 2011
- */
+/*${cgsuite.banner}*/
 
 class HeapRules : java "org.cgsuite.lang.impartial.HeapRules"
 

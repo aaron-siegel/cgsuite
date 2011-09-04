@@ -1,8 +1,4 @@
-/*
- * Zero.cgs
- *
- * Created by asiegel on Aug 12, 2011
- */
+/*${cgsuite.banner}*/
 
 class Zero extends Integer, Nimber : java "org.cgsuite.lang.CgsuiteInteger"
 

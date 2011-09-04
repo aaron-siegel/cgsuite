@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Variable : java "org.cgsuite.lang.Variable"
 
 end

@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Domineering extends GridGame
 
     method Domineering(grid)

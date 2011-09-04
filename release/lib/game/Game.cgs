@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Game : java "org.cgsuite.lang.Game"
 
     static var memory := {=>};

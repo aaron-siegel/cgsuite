@@ -1,8 +1,4 @@
-/*
- * ImpartialGame.cgs
- *
- * Created by asiegel on Jul 20, 2011
- */
+/*${cgsuite.banner}*/
 
 class ImpartialGame extends Game
 

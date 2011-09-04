@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Amazons extends GridGame
 
     method Amazons(grid)

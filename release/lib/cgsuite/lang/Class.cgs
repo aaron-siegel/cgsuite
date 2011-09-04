@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Class : java "org.cgsuite.lang.CgsuiteClass"
     
     property Methods.get : java "allMethods";

@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Collection : java "org.cgsuite.lang.CgsuiteCollection"
 
     property IsEmpty.get

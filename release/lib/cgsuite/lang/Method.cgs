@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Method : java "org.cgsuite.lang.CgsuiteMethod"
 
 end

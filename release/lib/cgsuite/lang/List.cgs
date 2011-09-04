@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
 
             method op[]  (key)     : java "get(int)";

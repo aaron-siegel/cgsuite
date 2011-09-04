@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 enum Direction
 
     North       (-1, 0),

@@ -1,8 +1,4 @@
-/*
- * PartizanHeap.cgs
- *
- * Created by asiegel on Jul 21, 2011
- */
+/*${cgsuite.banner}*/
 
 class PartizanHeap extends Game
 

@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
     
     override method op neg() : java "getG";

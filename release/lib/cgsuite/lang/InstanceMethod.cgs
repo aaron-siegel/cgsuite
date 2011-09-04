@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class InstanceMethod : java "org.cgsuite.lang.CgsuiteObject$InstanceMethod"
 
 end

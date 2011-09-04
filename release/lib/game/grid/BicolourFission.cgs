@@ -1,8 +1,4 @@
-/*
- * BicolourFission.cgs
- *
- * Created by MichaelAlbert on Aug 24, 2011
- */
+/*${cgsuite.banner}*/
 
 class BicolourFission extends GridGame
 

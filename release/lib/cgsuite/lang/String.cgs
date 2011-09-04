@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class String : java "org.cgsuite.lang.CgsuiteString"
 
     method op+(String other) : java "append";

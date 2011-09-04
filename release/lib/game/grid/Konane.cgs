@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Konane extends GridGame
 
     method Konane(grid)

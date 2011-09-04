@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 enum Player
 
     Left    ( 1, true),

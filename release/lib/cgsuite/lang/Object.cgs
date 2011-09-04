@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Object : java "org.cgsuite.lang.CgsuiteObject"
 
     property Class.get : java "getCgsuiteClass";

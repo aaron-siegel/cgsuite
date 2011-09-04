@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Explorer : java "org.cgsuite.lang.explorer.Explorer"
 
     method Explorer(Game g?) : java "Explorer";

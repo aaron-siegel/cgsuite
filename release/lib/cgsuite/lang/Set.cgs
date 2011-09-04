@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
 
     property Size.get : java "size";

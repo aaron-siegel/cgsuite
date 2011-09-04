@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class Number : java "org.cgsuite.lang.game.RationalNumber"
 
     method op+ (Number obj) : java "add";

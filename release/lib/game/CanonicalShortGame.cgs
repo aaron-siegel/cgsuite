@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalShortGame"
 
     override method op+(obj) : java "add";

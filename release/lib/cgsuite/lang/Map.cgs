@@ -1,3 +1,5 @@
+/*${cgsuite.banner}*/
+
 mutable class Map : java "org.cgsuite.lang.CgsuiteMap"
 
     method op[]  (key)     : java "get";
