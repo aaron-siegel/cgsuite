@@ -1,0 +1,179 @@
+This section lists many of the frequently-used classes in CGScript, along with signatures for some of their methods and
+properties.  Comprehensive documentation and usage instructions are not available in this release, but are planned for
+a future release.  
+
+##TOC##
+
+++ Core Classes ++
+
+$cgsuite.lang.Number
+    Min(Number x)
+    Max(Number x)
+    Abs
+    Ceiling
+    Floor
+    IsInfinite
+    IsDyadic$
+
+$cgsuite.lang.Integer extends CanonicalShortGame, Number
+    NimSum(Integer n)
+    NimProduct(Integer n)
+    Div(Integer n)
+    Is2Power
+    Lb
+    Isqrt$
+
+$cgsuite.lang.Collection
+    IsEmpty
+    Mex
+    ToList
+    ToSet
+    AnyElement
+    RandomElement$
+
+$cgsuite.lang.List extends Collection
+    Add(Object obj)
+    AddAll(Collection c)
+    Clear()
+    Contains(Object obj)
+    InsertAt(Integer index, Object value)
+    PeriodicTable(Integer period)
+    Remove(Object obj)
+    RemoveAt(Integer index)
+    SubList(Integer from, Integer to)
+    Sort(Procedure comparator?)
+    DirectProduct(List other)
+    Apply(Procedure f)
+    Filter(Procedure f)
+    Length
+    Size
+    Flatten$
+
+$cgsuite.lang.Set extends Collection
+    Add(Object obj)
+    AddAll(Collection c)
+    Remove(Object obj)
+    RemoveAll(Collection c)
+    Clear()
+    Contains(Object obj)
+    Apply(Procedure f)
+    Filter(Procedure f)
+    Size$
+
+$cgsuite.lang.Map
+    Clear()
+    Size
+    Keys$
+
+++ Utility Classes ++
+
+$cgsuite.util.Grid
+    SubGrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol)
+    Paste(Grid other, Integer startRow, Integer startCol)
+    Clear()
+    Permute(Symmetry symmetry)
+    SymmetryInvariant(Collection symmetries)
+    Decompose(Integer boundaryValue)
+    LibertyCount(Integer row, Integer col, Integer libertyValue)
+    Contains(Integer value)
+    RowCount
+    ColumnCount$
+
+$cgsuite.util.Strip
+    SubStrip(Integer startCol, Integer endCol)
+    Paste(Strip other, Integer startCol)
+    LibertyCount(Integer col, Integer libertyValue)$
+
+$cgsuite.ui.Explorer
+    Add(Game g)
+    Selection
+    SelectionPath$
+
+++ Game Classes ++
+
+$game.Game
+    Options(Player player)
+    SensibleOptions(Player player)
+    SensibleLines(Player player)
+    LeftOptions
+    RightOptions
+    CanonicalForm
+    SensibleLeftOptions
+    SensibleRightOptions
+    SensibleLeftLines
+    SensibleRightLines
+    AtomicWeight
+    Birthday
+    Freeze
+    IsAllSmall
+    IsInfinitesimal
+    IsInteger
+    IsNimber
+    IsNumber
+    IsNumberish
+    IsNumberTiny
+    IsNumberUpStar
+    IsUptimal
+    LeftStop
+    Mean
+    Outcome
+    Rcf
+    RightStop
+    Temperature
+    Thermograph
+    UptimalExpansion$
+
+$game.CanonicalShortGame extends Game
+    Heat(CanonicalShortGame t)
+    Overheat(CanonicalShortGame s, CanonicalShortGame t)
+    Cool(Number t)
+    NortonProduct(CanonicalShortGame h)
+    ConwayProduct(CanonicalShortGame h)
+    OrdinalSum(CanonicalShortGame h)
+    Chill
+    Companion
+    Diversity
+    Incentives
+    IsEven
+    IsEvenTempered
+    IsOdd
+    IsOddTempered
+    IsReduced
+    LeftIncentives
+    Miny
+    Pow
+    PowTo
+    RightIncentives
+    StopCount
+    Tiny$
+
+$game.ImpartialGame extends Game
+    NimValue
+    MisereNimValue$
+
+++ Game Implementations ++
+
+The following reference implementations are included with CGSuite.  Only the class names are listed here; for more
+details, consult the relevant $.cgs$ file.
+
+$game.grid.Amazons
+game.grid.Clobber
+game.grid.CrossPurposes
+game.grid.Domineering
+game.grid.Fission
+game.grid.Konane
+game.grid.Lasers
+game.grid.NoGo
+game.grid.RookRace
+game.grid.Rooks$
+
+$game.heap.Heap
+game.heap.PartizanHeap$
+
+$game.sowing.BasicMancala
+game.sowing.Sowing$
+
+$game.strip.ClearThePond
+game.strip.Push
+game.strip.ToadsAndFrogs
+game.strip.TopplingDominoes$

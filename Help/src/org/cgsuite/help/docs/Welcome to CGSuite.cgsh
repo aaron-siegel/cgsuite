@@ -11,4 +11,4 @@ the software.  If you're familiar with beta versions of CGSuite (such as 0.7), y
 tutorial too, since ~a lot~ has changed.  There's also a [[list of changes][What's New]] since the prior release.
 
 Combinatorial Game Suite is (c) \${cgsuite.copyright} Aaron Siegel (asiegel@users.sourceforge.net).  It's open source
-and is licensed for use under the [[GNU Public License][License]], version 2.
+and is licensed for use under the [[GNU General Public License][License]], version 2.
