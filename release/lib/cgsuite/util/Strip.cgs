@@ -16,8 +16,8 @@ mutable class Strip extends Grid
         return SubGrid(1, 1, startCol, endCol);
     end
     
-    override method Paste(Strip other, Integer startCol)
-        return super.Paste(other, 1, startCol);
+    method PasteStrip(Strip other, Integer startCol)
+        return PasteGrid(other, 1, startCol);
     end
     
     override method LibertyCount(Integer col, Integer libertyValue)

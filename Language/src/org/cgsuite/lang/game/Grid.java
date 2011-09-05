@@ -38,6 +38,7 @@ import java.util.Map;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteEnumValue;
+import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteList;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -260,7 +261,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = 1; col <= numColumns; col++)
             {
-                int value = getAt(row, col);
+                int value = getIntAt(row, col);
                 if (value >= 0 && value < charMap.length())
                 {
                     buf.append(charMap.charAt(value));
@@ -302,7 +303,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int j = 1; j <= numColumns; j++)
             {
-                clone.putAt(i, j, getAt(i, j));
+                clone.putAt(i, j, getIntAt(i, j));
             }
         }
         return clone;
@@ -348,6 +349,15 @@ public class Grid extends CgsuiteObject implements Serializable
         return numColumns;
     }
     
+    public CgsuiteObject getAt(int row, int column)
+    {
+        int intValue = getIntAt(row, column);
+        if (intValue == -1)
+            return NIL;
+        else
+            return new CgsuiteInteger(intValue);
+    }
+    
     /**
      * Gets the value at the specified coordinate.
      *
@@ -355,7 +365,7 @@ public class Grid extends CgsuiteObject implements Serializable
      * @param   column The column of the coordinate.
      * @return  The value at (row, column).
      */
-    public int getAt(int row, int column)
+    public int getIntAt(int row, int column)
     {
         if (row < 1 || row > numRows || column < 1 || column > numColumns)
             return -1;
@@ -459,7 +469,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = startCol; col <= endCol; col++)
             {
-                subgrid.putAt(row-startRow+1, col-startCol+1, getAt(row, col));
+                subgrid.putAt(row-startRow+1, col-startCol+1, getIntAt(row, col));
             }
         }
         return subgrid;
@@ -485,7 +495,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = 1; col <= colsToPaste; col++)
             {
-                putAt(row+pasteRow-1, col+pasteCol-1, grid.getAt(row, col));
+                putAt(row+pasteRow-1, col+pasteCol-1, grid.getIntAt(row, col));
             }
         }
     }
@@ -516,7 +526,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = startCol; col <= endCol; col++)
             {
-                putAt(row-startRow+pasteRow, col-startCol+pasteCol, grid.getAt(row, col));
+                putAt(row-startRow+pasteRow, col-startCol+pasteCol, grid.getIntAt(row, col));
             }
         }
     }
@@ -557,7 +567,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = 1; col <= numColumns; col++)
             {
-                int value = getAt(row, col);
+                int value = getIntAt(row, col);
                 int newRow = symmetry.isVertical()? numRows-row+1 : row;
                 int newCol = symmetry.isHorizontal()? numColumns-col+1 : col;
                 grid.putAt(
@@ -635,7 +645,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = 0; col < numColumns; col++)
             {
-                newGrid.putAt(row, col, entryMap[getAt(row, col)]);
+                newGrid.putAt(row, col, entryMap[getIntAt(row, col)]);
             }
         }
         return newGrid;
@@ -653,7 +663,7 @@ public class Grid extends CgsuiteObject implements Serializable
     
     public int libertyCount(int row, int col, int libertyValue)
     {
-        int chainValue = getAt(row, col);
+        int chainValue = getIntAt(row, col);
         if (chainValue == libertyValue || chainValue == -1)
             return -1;
         
@@ -671,12 +681,12 @@ public class Grid extends CgsuiteObject implements Serializable
         
         markers[rowAt * numColumns + colAt] = 0;
         
-        if (getAt(rowAt+1, colAt+1) == libertyValue)
+        if (getIntAt(rowAt+1, colAt+1) == libertyValue)
         {
             // Found a liberty.
             return 1;
         }
-        else if (getAt(rowAt+1, colAt+1) != chainValue)
+        else if (getIntAt(rowAt+1, colAt+1) != chainValue)
         {
             // Blocked.
             return 0;
@@ -732,7 +742,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             for (int col = 0; col < numColumns; col++)
             {
-                if (markers[row * numColumns + col] == -1 && getAt(row+1, col+1) != boundaryValue)
+                if (markers[row * numColumns + col] == -1 && getIntAt(row+1, col+1) != boundaryValue)
                 {
                     // Found a new region.
                     regionAt++;
@@ -778,7 +788,7 @@ public class Grid extends CgsuiteObject implements Serializable
                         oldCol = col + regions[regionIndex].left;
                     if (markers[oldRow * numColumns + oldCol] == regionIndex)
                     {
-                        grid.putAt(row+1, col+1, getAt(oldRow+1, oldCol+1));
+                        grid.putAt(row+1, col+1, getIntAt(oldRow+1, oldCol+1));
                     }
                     else
                     {
@@ -817,7 +827,7 @@ public class Grid extends CgsuiteObject implements Serializable
             {
                 int nextRow = row + dir.rowShift,
                     nextCol = col + dir.columnShift;
-                if (markers[nextRow * numColumns + nextCol] != regionIndex && getAt(nextRow+1, nextCol+1) != boundaryValue)
+                if (markers[nextRow * numColumns + nextCol] != regionIndex && getIntAt(nextRow+1, nextCol+1) != boundaryValue)
                 {
                     markRegion(boundaryValue, directions, regionIndex, nextRow, nextCol);
                 }

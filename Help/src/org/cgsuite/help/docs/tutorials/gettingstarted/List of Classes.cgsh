@@ -69,7 +69,7 @@ $cgsuite.lang.Map
 
 $cgsuite.util.Grid
     SubGrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol)
-    Paste(Grid other, Integer startRow, Integer startCol)
+    PasteGrid(Grid other, Integer startRow, Integer startCol)
     Clear()
     Permute(Symmetry symmetry)
     SymmetryInvariant(Collection symmetries)
@@ -81,7 +81,7 @@ $cgsuite.util.Grid
 
 $cgsuite.util.Strip
     SubStrip(Integer startCol, Integer endCol)
-    Paste(Strip other, Integer startCol)
+    PasteStrip(Strip other, Integer startCol)
     LibertyCount(Integer col, Integer libertyValue)$
 
 $cgsuite.ui.Explorer

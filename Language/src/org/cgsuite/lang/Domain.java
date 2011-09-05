@@ -1004,7 +1004,7 @@ public class Domain
         {
             int row = ((CgsuiteInteger) indexList.get(0)).intValue();
             int col = ((CgsuiteInteger) indexList.get(1)).intValue();
-            return new CgsuiteInteger(((Grid) x).getAt(row, col));
+            return ((Grid) x).getAt(row, col);
         }
         else
         {

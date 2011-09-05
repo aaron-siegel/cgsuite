@@ -20,7 +20,7 @@ mutable class Set extends Collection : java "org.cgsuite.lang.CgsuiteSet"
         return setof(f(x) for x in this);
     end
     
-    method FilterWith(Procedure f)
+    method Filter(Procedure f)
         return setof(x for x in this where f(x));
     end
     

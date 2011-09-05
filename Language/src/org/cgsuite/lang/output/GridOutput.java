@@ -94,7 +94,7 @@ public class GridOutput extends AbstractOutput
 
     protected Icon getIcon(int row, int col)
     {
-        return icons[grid.getAt(row, col)];
+        return icons[grid.getIntAt(row, col)];
     }
 
     @Override
