@@ -1,6 +1,6 @@
 * Benchmark utility
 * Fix class loader error messages
-* Loose ends: enum assignment; impartial games; 40x40 grey square icon; impartial Clobber
+* Loose ends: enum assignment; impartial games; impartial Clobber
 * Renames: TraverseWith -> Traverse
 
 TODO for 1.1:
@@ -10,4 +10,4 @@ TODO for 1.1:
 * Coordinate games
 * Java heap space option
 * Grid.Decompose(boundaryValue, directions)
-* Impartial variant
+* Impartial variant editor/output
