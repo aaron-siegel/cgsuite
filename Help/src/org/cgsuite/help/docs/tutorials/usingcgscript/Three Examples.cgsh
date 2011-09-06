@@ -117,8 +117,8 @@ $examples.PartizanSubtraction({0},{1},10).CanonicalForm$
 
 ++ Example: Clobber ++
 
-Now let's turn to a more complex example: Clobber.  Open up the $Clobber.cgs$ file to see CGSuite's implementation of
-Clobber.  Notice that it extends a special base class, $GridGame$.  The $GridGame$ class provides generalized
+Now let's turn to a more complex example: Clobber.  Open up the $Clobber.cgs$ file to see CGSuite's implementation.
+Notice that it extends a special base class, $GridGame$.  The $GridGame$ class provides generalized
 mechanisms for constructing, displaying and editing games played on grids.  All that's left for us to do is to code up
 the rules to Clobber.
 
@@ -130,40 +130,56 @@ This tells CGSuite to call the constructor for the parent class, $GridGame$.  Th
 various conveniences, such as the familiar notation for constructing grids from strings (as in, for example,
 $Clobber("xox|ox.")$).   By calling the parent class constructor, the $Clobber$ class can use these features, too.
 
-The $Options$ method is somewhat more complicated than in the previous examples.  The rules to Clobber are
+The parent class $GridGame$ declares a member variable, $grid$, of class $Grid$, which stores the actual content of the
+position.  Now a $Grid$ is just a two-dimensional array of integers, so it's up to each game class (i.e., each subclass
+of $GridGame$) to decide what the integer values represent.  Clobber uses the following mapping:
+<ul>
+<li>$0$ - an empty space
+<li>$1$ - a black stone
+<li>$2$ - a white stone
+</ul>
+Grids are accessed via their two-dimensional coordinates; for example,
+
+$grid[2,3]$
+
+refers to the value stored at row 2, column 3.
+
+Now we're ready to tackle the Clobber $Options$ method.  The rules to Clobber are
 more sophisticated, so it's not practical to construct the options all at once with a single $setof$ command.  Instead,
 we loop through all squares on the board looking for legal moves.  The first line of code:
 
 $    options := {};$
 
-initializes the $options$ variable to the empty set.  Next, we search through the board looking for legal moves,
-adding an element to the set each time we find one.  The next three lines of code are the following:
+The next two lines of code:
+
+$    us := player.Ordinal;
+    them := player.Opponent.Ordinal;$
+
+set local variables $us$ and $them$ equal to integers meaning "a stone of our color" and "a stone of the opponent's
+color," respectively.  Here $Player.Ordinal$ gives the <i>ordinal</i> assigned to each player: Left = 1, Right = 2.
+Likewise, $Player.Opponent$ turns Left into Right and vice versa.
+
+Next, we search through the board looking for legal moves,
+adding an element to the set each time we find one.
+The next three lines of code are the following:
 
 $    for m from 1 to grid.RowCount do
         for n from 1 to grid.ColumnCount do
-            if grid[m,n] == player then$
+            if grid[m,n] == us then$
 
 These scan through the $grid$, indexed by the ordered pair $[m,n]$.  The expression $grid[m,n]$ looks up the value of
-the grid at coordinate $[m,n]$.  The expression $grid[m,n] == player$ tests whether the grid coordinate $[m,n]$ is
-occupied by a stone of the player's color.
-
-This last statement requires a bit more discussion.  Internally, CGSuite stores grids as matrices of integers.
-Clobber uses the integers 0, 1 and 2 to represent an empty space, a black stone, and a white stone, respectively.  Now
-the $player$ object isn't an integer - it's actually an object of the special class $Player$, which has two values,
-$Player.Left$ and $Player.Right$.  But CGSuite understands that $Player.Left$ means the same thing as $1$, and
-$Player.Right$ means the same thing as $2$, for the purpose of looking up values in grids.  This is quite convenient, as
-it lets us refer to grid values abstractly in terms of the player.  The only thing we have to remember is that 0 is an
-empty space (which isn't much of a stretch).
+the grid at coordinate $[m,n]$.  The expression $grid[m,n] == us$ tests whether the grid coordinate $[m,n]$ is
+occupied by a stone of our color.
 
 Now comes the meat of the class.  The next line:
 
-$                for d in Direction.Orthogonal do$
+$    for d in Direction.Orthogonal do$
 
 iterates over all ~orthogonal~ directions (North, East, South, West).  Remember, this line is reached any time we've
 found a stone of our color, so now we have to look in all four directions to see if there's an enemy stone.  That
 check is accomplished by the next line:
 
-$                    if grid[m+d.RowShift,n+d.ColumnShift] == player.Opponent then$
+$    if grid[m+d.RowShift,n+d.ColumnShift] == them then$
 
 which peeks into the grid location at $[m+d.RowShift,n+d.ColumnShift]$.  Here $RowShift$ and $ColumnShift$ are
 properties of the $Direction$ class which tell how far to look in each direction.  For example, if $d$ has the value
@@ -178,10 +194,10 @@ will be true just if $[x,y]$ is within the boundaries of the grid, ~and~ has the
 Whew!  If we've made it this far, then $[m,n]$ contains a stone of our color, and there's an enemy stone in direction
 $d$.  So it's a legal move to clobber the enemy stone, and the next four lines construct the resulting option.
 
-$                        copy := grid;
-                        copy[m,n] := 0;
-                        copy[m+d.RowShift,n+d.ColumnShift] := player;
-                        options.Add(Clobber(copy));$
+$    copy := grid;
+    copy[m,n] := 0;
+    copy[m+d.RowShift,n+d.ColumnShift] := us;
+    options.Add(Clobber(copy));$
 
 We clear the location $[m,n]$, replace the new location with a stone of our color, and put the result into the
 $options$ set.
