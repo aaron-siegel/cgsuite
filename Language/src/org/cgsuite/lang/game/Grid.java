@@ -134,6 +134,11 @@ public class Grid extends CgsuiteObject implements Serializable
     
     private void constructGrid(int numRows, int numColumns, BitsPerEntry bitsPerEntry)
     {
+        if (type == STRIP_TYPE && numRows != 1)
+        {
+            throw new InputException("The position must contain just one row.");
+        }
+        
         this.numRows = numRows;
         this.numColumns = numColumns;
         this.bitsPerEntry = bitsPerEntry;
@@ -143,7 +148,7 @@ public class Grid extends CgsuiteObject implements Serializable
         }
         else if (numRows < 0 || numColumns < 0)
         {
-            throw new IllegalArgumentException("numRows or numColumns is negative.");
+            throw new InputException("RowCount and ColumnCount must both be non-negative.");
         }
         else
         {
@@ -558,6 +563,7 @@ public class Grid extends CgsuiteObject implements Serializable
     public Grid permute(Symmetry symmetry)
     {
         Grid grid = new Grid(
+            type,
             symmetry.isRotational() ? numColumns : numRows,
             symmetry.isRotational() ? numRows : numColumns,
             bitsPerEntry
@@ -779,7 +785,7 @@ public class Grid extends CgsuiteObject implements Serializable
         {
             int nRows = regions[regionIndex].bottom - regions[regionIndex].top + 1,
                 nColumns = regions[regionIndex].right - regions[regionIndex].left + 1;
-            Grid grid = new Grid(nRows, nColumns, bitsPerEntry);
+            Grid grid = new Grid(type, nRows, nColumns, bitsPerEntry);
             for (int row = 0; row < nRows; row++)
             {
                 for (int col = 0; col < nColumns; col++)

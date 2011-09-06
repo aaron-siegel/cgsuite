@@ -16,10 +16,6 @@
  *
  * for some single 'actual' option of g.
  *
- * In Lessons In Play an all small version is mentioned (once the pond is
- * monochromatic play ceases). This is supported by using the constructor
- * parameter: allSmall => true
- *
  * Another variation is that if Left succeeds in clearing the pond while 
  * White stones still remain, then she is paid a number of moves equal to the
  * sum of their remaining distances from the end of the pond [other payments
@@ -32,22 +28,18 @@
 
 class ClearThePond extends StripGame
 
-    var AllSmall;
-    var Race;
+    var race;
 
-    method ClearThePond(grid, AllSmall ? false, Race ? false)
+    method ClearThePond(grid, race ? false)
         this.StripGame(grid);
-        if AllSmall and Race then
-            error("At most of the options AllSmall and Race can be true");
-        end
     end
     
     override method Options(Player player)
      
         options := {};
         
-        if (AllSmall or Race) and IsMonochrome() then
-            if AllSmall or HasStone(player) then
+        if race and IsMonochrome() then
+            if HasStone(player) then
                 return options;
             end
             s := 0; stones := 0;
@@ -79,7 +71,7 @@ class ClearThePond extends StripGame
                 if copy[n+step*dir] == 0 then
                     copy[n+step*dir] := player.Ordinal;
                 end
-                options.Add(ClearThePond(copy, AllSmall, Race));
+                options.Add(ClearThePond(copy, race));
             end
         end
         return options;

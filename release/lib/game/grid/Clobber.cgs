@@ -17,8 +17,6 @@
  *   - in antiClobber, stones are moved onto vacant spaces
  *     and leave behind a stone of the opponent's colour
  *     on the original square.
- *   - in impartial Clobber, either player can use either
- *     type of stone
  *   - in enlightened clobber, you may not clobber a stone
  *     if this would leave a monochrome connected component
  *
@@ -28,7 +26,6 @@
  * Optional parameters:
  *   - (directions) the allowed movement directions 
  *   - (anti) a boolean 
- *   - (impartial) a boolean
  *   - (enlightened) a boolean
  * 
  * Examples:
@@ -45,10 +42,9 @@ class Clobber extends GridGame
 
     var directions;
     var anti;
-    var impartial;
     var enlightened;
 
-    method Clobber(grid, directions ? Direction.Orthogonal, anti ? false, impartial ? false, enlightened ? false)
+    method Clobber(grid, directions ? Direction.Orthogonal, anti ? false, enlightened ? false)
     
         this.GridGame(grid);
         
@@ -87,17 +83,13 @@ class Clobber extends GridGame
                                 end
                             end
                             if moveOk then
-                                options.Add(Clobber(copy, directions, anti, impartial, enlightened));
+                                options.Add(Clobber(copy, directions, anti, enlightened));
                             end
                         end
                     end
 
                 end
             end
-        end
-        
-        if impartial then
-            options.AddAll(setof(Clobber(g.Grid, directions, anti, true, enlightened) for g in Clobber(grid, directions, anti, false, enlightened).Options(player.Opponent)));
         end
        
         return options;

@@ -20,7 +20,7 @@
  * To further facilitate the use of this metaphor a non-destructive 
  * 'Contains' method is included.
  *
- * Additionally, TraverseWith operates on the underlying deque and so is
+ * Additionally, Traverse operates on the underlying deque and so is
  * non-destructive.
  *
  * Created by malbert on 10/08/2011
@@ -58,13 +58,13 @@ mutable class Stack extends Iterator
         error("Reset not supported by stack iterators");
     end
     
-    override method TraverseWith(f)
-        valueDeque.TraverseWith(f);
+    override method Traverse(f)
+        valueDeque.Traverse(f);
     end
     
     override property ToString.get
         result := "Stack[ ";
-        valueDeque.TraverseWith(val -> (result := result + val.ToString + " "));
+        valueDeque.Traverse(val -> (result := result + val.ToString + " "));
         result := result + "]";
         return result;
     end

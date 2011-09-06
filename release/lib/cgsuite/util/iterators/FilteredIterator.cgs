@@ -14,7 +14,7 @@
  * C := game.grid.Clobber;
  * clobIt := cgsuite.util.iterators.GridGameIterator(C, 3, 2, [0,1,2]);
  * filtIt := cgsuite.util.iterators.FilteredIterator(clobIt, g -> g.CanonicalForm > 0);
- * filtIt.TraverseWith(Worksheet.Print);
+ * filtIt.Traverse(Worksheet.Print);
  *
  * Created by malbert on 9/08/2011
  */

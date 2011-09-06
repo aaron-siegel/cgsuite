@@ -1,7 +1,6 @@
 * Benchmark utility
 * Fix class loader error messages
-* Loose ends: enum assignment; impartial games; impartial Clobber
-* Renames: TraverseWith -> Traverse
+* Loose ends: enum assignment; impartial games
 
 TODO for 1.1:
 

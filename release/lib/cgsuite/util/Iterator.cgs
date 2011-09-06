@@ -16,7 +16,7 @@
  * Iterators may optionally support a Reset() method that returns the iterator
  * to its initial state. Its undefined behaviour is to do nothing.
  *
- * TraverseWith(f) resets the iterator, then takes one run through 
+ * Traverse(f) resets the iterator, then takes one run through 
  * applying f to each of the results. It then resets the iterator.
  *
  * Note that if you will only use the result if iter.Next in a single place
@@ -58,7 +58,7 @@ class Iterator : java "org.cgsuite.lang.CgsuiteIterator"
         // error("Reset is not supported by iterators of this type");
     end
     
-    method TraverseWith(f)
+    method Traverse(f)
         Reset();
         while HasNext do
             f(Next);
