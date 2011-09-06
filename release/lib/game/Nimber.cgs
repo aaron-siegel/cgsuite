@@ -5,6 +5,9 @@ class Nimber extends CanonicalShortGame, ImpartialGame
     override property CanonicalForm.get
         return this;
     end
+    override property IsImpartial.get
+        return true;
+    end
     override property NimValue.get : java "getNimberPart";
     override property MisereNimValue.get
         n := NimValue;

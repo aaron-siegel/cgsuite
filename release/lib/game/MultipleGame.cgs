@@ -5,6 +5,27 @@ class MultipleGame extends Game : java "org.cgsuite.lang.game.MultipleGame"
     property Multiplier.get : java "getMultiplier";
     property Multiplicand.get : java "getMultiplicand";
     
+    override property IsImpartial.get
+        return Multiplicand.IsImpartial;
+    end
+    
+    override property CanonicalForm.get
+        if Multiplier == 0 then
+            return 0;
+        else
+            return Multiplier.NortonProduct(Multiplicand.CanonicalForm);
+        end
+    end
+    
+    override property NimValue.get
+        m := Multiplicand.NimValue;
+        if Multiplier % 2 == 0 then
+            return 0;
+        else
+            return m;
+        end
+    end
+    
     override method Options(Player player)
         if Multiplier < 0 then
             return ((-Multiplier) * (-Multiplicand)).Options(player);

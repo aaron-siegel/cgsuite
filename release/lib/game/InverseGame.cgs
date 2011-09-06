@@ -10,8 +10,20 @@ class InverseGame extends Game : java "org.cgsuite.lang.game.InverseGame"
         return setof(-g for g in Underlying.Options(player.Opponent));
     end
     
+    override property IsImpartial.get
+        return Underlying.IsImpartial;
+    end
+    
     override property CanonicalForm.get
         return -Underlying.CanonicalForm;
+    end
+    
+    override property NimValue.get
+        return Underlying.NimValue;
+    end
+    
+    override property MisereNimValue.get
+        return Underlying.MisereNimValue;
     end
     
     override property ToString.get

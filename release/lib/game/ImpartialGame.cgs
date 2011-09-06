@@ -2,73 +2,8 @@
 
 class ImpartialGame extends Game
 
-    static var idescent := {};
-    static var misereMem := {=>};
-
-    property NimValue.get
-    
-        if ImpartialGame.idescent.Contains(this) then
-            error("Unable to compute nim value: the specified game is loopy.");
-        end
-        
-        value := this.Class.memory[this];
-        
-        if nil != value then
-            return value;
-        end
-
-        try
-        
-            ImpartialGame.idescent.Add(this);
-            value := setof(g.NimValue for g in LeftOptions).Mex;
-            
-        finally
-        
-            ImpartialGame.idescent.Remove(this);
-            
-        end
-        
-        this.Class.memory[this] := value;
-        return value;
-    
-    end
-    
-    property MisereNimValue.get
-    
-        if ImpartialGame.idescent.Contains(this) then
-            error("Unable to compute nim value: the specified game is loopy.");
-        end
-        
-        value := this.Class.misereMem[this];
-        
-        if nil != value then
-            return value;
-        end
-
-        try
-        
-            ImpartialGame.idescent.Add(this);
-            opts := LeftOptions;
-            
-            if opts.IsEmpty then
-                value := 1;
-            else
-                value := setof(g.MisereNimValue for g in opts).Mex;
-            end
-            
-        finally
-        
-            ImpartialGame.idescent.Remove(this);
-            
-        end
-        
-        this.Class.misereMem[this] := value;
-        return value;
-        
-    end
-
-    override property CanonicalForm.get
-        return *NimValue;
+    override property IsImpartial.get
+        return true;
     end
 
 end

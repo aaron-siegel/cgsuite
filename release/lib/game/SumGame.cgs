@@ -12,14 +12,35 @@ class SumGame extends Game : java "org.cgsuite.lang.game.SumGame"
     
     property Components.get : java "getComponents";
     
+    override property IsImpartial.get
+    
+        for g in Components do
+            if not g.IsImpartial then
+                return false;
+            end
+        end
+        return true;
+    
+    end
+    
     override property CanonicalForm.get
     
         cg := 0;
         for g in Components do
             cg := cg + g.CanonicalForm;
-        end;
+        end
         return cg;
         
+    end
+    
+    override property NimValue.get
+    
+        m := 0;
+        for g in Components do
+            m := m.NimSum(g.NimValue);
+        end
+        return m;
+    
     end
     
     override method Options(Player player)

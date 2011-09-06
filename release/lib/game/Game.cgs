@@ -3,6 +3,7 @@
 class Game : java "org.cgsuite.lang.Game"
 
     static var memory := {=>};
+    static var misereMem := {=>};
     static var descent := {};
 
     method op+ (Game obj) : java "add";
@@ -26,11 +27,20 @@ class Game : java "org.cgsuite.lang.Game"
     property LeftOptions.get
         return Options(Player.Left);
     end
+    
     property RightOptions.get
         return Options(Player.Right);
     end
     
+    property IsImpartial.get
+        return false;
+    end
+    
     property CanonicalForm.get
+        
+        if IsImpartial then
+            return *NimValue;
+        end
     
         if Game.descent.Contains(this) then
             error("Unable to compute canonical form: the specified game is loopy.");
@@ -61,6 +71,77 @@ class Game : java "org.cgsuite.lang.Game"
         return cg;
         
     end
+    
+    property NimValue.get
+    
+        if not IsImpartial then
+            error("Unable to compute nim value: the specified game is partizan.");
+        end
+    
+        if Game.descent.Contains(this) then
+            error("Unable to compute nim value: the specified game is loopy.");
+        end
+        
+        value := this.Class.memory[this];
+        
+        if nil != value then
+            return value;
+        end
+
+        try
+        
+            Game.descent.Add(this);
+            value := setof(g.NimValue for g in LeftOptions).Mex;
+            
+        finally
+        
+            Game.descent.Remove(this);
+            
+        end
+        
+        this.Class.memory[this] := value;
+        return value;
+    
+    end
+    
+    property MisereNimValue.get
+
+        if not IsImpartial then
+            error("Unable to compute nim value: the specified game is partizan.");
+        end
+
+        if Game.descent.Contains(this) then
+            error("Unable to compute nim value: the specified game is loopy.");
+        end
+        
+        value := this.Class.misereMem[this];
+        
+        if nil != value then
+            return value;
+        end
+
+        try
+        
+            Game.descent.Add(this);
+            opts := LeftOptions;
+            
+            if opts.IsEmpty then
+                value := 1;
+            else
+                value := setof(g.MisereNimValue for g in opts).Mex;
+            end
+            
+        finally
+        
+            Game.descent.Remove(this);
+            
+        end
+        
+        this.Class.misereMem[this] := value;
+        return value;
+        
+    end
+
 
     method SensibleOptions(Player player)
 

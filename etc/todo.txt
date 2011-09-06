@@ -1,6 +1,7 @@
 * Benchmark utility
 * Fix class loader error messages
 * Loose ends: enum assignment; impartial games
+* 3*2.Tiny doesn't display correctly
 
 TODO for 1.1:
 
