@@ -35,7 +35,7 @@
  * h.CanonicalForm; (should be double-up-*)
  * k := game.grid.Clobber(".#x#|...o", anti => true);
  * k.CanonicalForm; (should be +/- 3)
- * m := game.grid.Clobber("oooox").CanonicalForm (should be 3)
+ * m := game.grid.Clobber("oooox", enlightened => true).CanonicalForm (should be 3)
  */
 
 class Clobber extends GridGame
