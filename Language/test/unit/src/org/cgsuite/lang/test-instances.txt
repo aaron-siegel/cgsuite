@@ -64,6 +64,10 @@ Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
 Multiplier simplification       \ (*+*)*3 \ 0 \
 Integer exponent simplification \ 2^(*+*) \ 1 \
 
+// Comparison
+
+Heterogeneous compare           \ 3 == nil \ false \
+
 // Collections
 
 List                            \ [3,5,3,1] \ [3,5,3,1] \
@@ -231,6 +235,7 @@ Immutable object - call implicit mutable\ mut := test.mutability.TestImmutable()
 Immutable declares mutable              \ test.mutability.TestBadImmutable; \ !!Declaration is marked "mutable" but enclosing class is not: NoGood \
 Immutable inherits mutable              \ test.mutability.TestBadImmutableInheritance; \ !!Class is not marked "mutable", but has a mutable parent: test.mutability.TestMutable \
 Static mutable                          \ test.mutability.TestBadStaticMutable; \ !!Static method cannot be marked "mutable": StaticMutable \
+Immutable calls superclass constructor  \ mut := test.mutability.TestImmutableSuperConstructor(); mut.Y \ 10 \
 
 // Var shadowing
 
