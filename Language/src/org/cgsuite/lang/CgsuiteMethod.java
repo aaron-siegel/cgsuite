@@ -216,6 +216,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             throw new InputException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
 
         CgsuiteObject retval;
+        boolean constructing = false;
 
         if (tree == null)
         {
@@ -252,6 +253,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             {
                 if (isConstructor)
                 {
+                    constructing = true;
                     javaObj = javaConstructor.newInstance(castArguments);
                 }
                 else
@@ -294,6 +296,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         {
             if (isConstructor && obj == null)
             {
+                constructing = true;
                 // Create the object.
                 try
                 {
@@ -375,11 +378,13 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
             retval = domain.methodInvocation(tree);
             
-            if (isConstructor)
+            if (constructing)
+            {
                 retval = obj;
+            }
         }
         
-        if (isConstructor)
+        if (constructing)
         {
             // If the class is not mutable, then the object is
             // marked immutable once constructed.

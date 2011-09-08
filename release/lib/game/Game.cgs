@@ -16,8 +16,8 @@ class Game : java "org.cgsuite.lang.Game"
         return CanonicalForm.Leq(other.CanonicalForm);
     end
     
-    override method op==(Game other)
-        return this <= other and other <= this;
+    override method op==(other)
+        return other is Game and this <= other and other <= this;
     end
     
     method Options(Player player)

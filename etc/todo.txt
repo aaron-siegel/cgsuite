@@ -1,6 +1,5 @@
 * Benchmark utility
 * Fix class loader error messages
-* 3*2.Tiny doesn't display correctly
 * Optimize 100 * ^.Pow(2)
 * Negative numbers in grids?
 

@@ -707,7 +707,7 @@ public final class CanonicalShortGame extends Game
             // First get a sequence for the subscript.  If that sequence contains any
             // subscripts or superscripts, then we display this as Tiny(G) rather than +_G.
             StyledTextOutput sub = new StyledTextOutput();
-            subscript.toOutput(sub, true, false);
+            subscript.toOutput(sub, true, true);
             EnumSet<StyledTextOutput.Style> styles = sub.allStyles();
             styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS);
             if (styles.isEmpty())
