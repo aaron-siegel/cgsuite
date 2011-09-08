@@ -50,6 +50,17 @@ mutable class List extends Collection : java "org.cgsuite.lang.CgsuiteList"
         return listof(x for x in this where f(x));
     end
     
+    property Shuffle.get
+        result := this;
+        for k from result.Length to 2 by -1 do
+            i := Integer.Random(k);
+            t := result[i];
+            result[i] := result[k];
+            result[k] := t;
+        end
+        return result;
+    end
+    
     override property AnyElement.get
         return this[1];
     end
