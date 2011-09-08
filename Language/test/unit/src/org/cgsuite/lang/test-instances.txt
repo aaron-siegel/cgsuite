@@ -88,6 +88,8 @@ Tableof                         \ tableof([n,n^2] for n from 1 to 3) \
 --+--
 3 | 9 \
 
+Shuffle                         \ a := [1,4,2,6,3]; b := a.Shuffle; a.Sort(); b.Sort(); a == b \ true \
+
 // Function calls
 
 Optional argument out of order  \ game.grid.Clobber(anti => true, "."); \ !!Ordinary arguments must precede optional arguments in function call. \
