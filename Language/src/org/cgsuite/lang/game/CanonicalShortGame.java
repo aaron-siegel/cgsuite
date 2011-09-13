@@ -30,6 +30,8 @@
 package org.cgsuite.lang.game;
 
 
+import java.util.HashMap;
+import java.util.Map;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
@@ -134,7 +136,7 @@ public final class CanonicalShortGame extends Game
      * The option descriptor is broken down bitwise as follows:
      *   Bits 30-31 - Always STD_OPTIONS_RECORD.
      *   Bit  29    - 1 if this is a NUS, 0 otherwise.
-     *   Bit  28    - Reserved.
+     *   Bit  28    - 1 if this is known to be a NON-uptimal, 0 otherwise.
      *   Bits 14-27 - The number of left options (between 0 and 16383).
      *   Bits  0-13 - The number of right options (between 0 and 16383).
      * Thus the descriptor indicates the length of the record.
@@ -163,6 +165,7 @@ public final class CanonicalShortGame extends Game
     //     Num left options
     private final static int
         IS_NUS_MASK = 0x20000000,
+        IS_NON_UPTIMAL_MASK = 0x10000000,
         NUM_LO_MASK = 0x0fffc000,
         NUM_LO_SHIFT = 14,
         NUM_RO_MASK = 0x00003fff;
@@ -541,58 +544,7 @@ public final class CanonicalShortGame extends Game
         return output;
     }
     
-    int toOutput(StyledTextOutput output, boolean forceBrackets, boolean forceParens)
-    {
-        int rVal;
-        StyledTextOutput prefix = null, suffix = null;
-
-        CanonicalShortGame g = this;
-
-        if (abbreviateInfinitesimals)
-        {
-            CanonicalShortGame rcf = g.rcf();
-            if (!g.equals(rcf))
-            {
-                g = rcf;
-                suffix = new StyledTextOutput();
-                suffix.appendMath("ish");
-            }
-        }
-
-        if (meanZeroMode && !g.isNumber())
-        {
-            RationalNumber mean = g.mean();
-            if (!mean.equals(RationalNumber.ZERO))
-            {
-                prefix = mean.toOutput();
-                g = g.subtract(CanonicalShortGame.construct(mean, 0, 0));
-            }
-        }
-
-        boolean complex = (prefix != null || suffix != null);
-
-        if (forceParens && complex)
-        {
-            output.appendMath("(");
-        }
-        if (prefix != null)
-        {
-            output.appendOutput(prefix);
-        }
-        rVal = g.toOutput2(output, forceBrackets || complex, forceParens && !complex);
-        if (suffix != null)
-        {
-            output.appendOutput(suffix);
-        }
-        if (forceParens && complex)
-        {
-            output.appendMath(")");
-        }
-        return rVal;
-    }
-
-    // This should ONLY be called by canonicalGameToOutput.
-    private int toOutput2(
+    int toOutput(
         StyledTextOutput output,
         boolean forceBrackets,
         boolean forceParens
@@ -1118,6 +1070,16 @@ public final class CanonicalShortGame extends Game
     private static boolean isNumberUpStar(int id)
     {
         return (data[id >> SECTOR_BITS][(id+1) & SECTOR_MASK] & IS_NUS_MASK) != 0;
+    }
+    
+    private static boolean isKnownNonUptimal(int id)
+    {
+        return (data[id >> SECTOR_BITS][(id+1) & SECTOR_MASK] & IS_NON_UPTIMAL_MASK) != 0;
+    }
+    
+    private static void setKnownNonUptimal(int id)
+    {
+        data[id >> SECTOR_BITS][(id+1) & SECTOR_MASK] |= IS_NON_UPTIMAL_MASK;
     }
 
     /**
@@ -3124,22 +3086,42 @@ public final class CanonicalShortGame extends Game
 
     private static UptimalExpansion uptimalExpansion(int id)
     {
+        if (isKnownNonUptimal(id))
+        {
+            return null;
+        }
+        
         if (isNumberUpStar(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1)
         {
             return new UptimalExpansion(getNumberPart(id), getNimberPart(id) == 1);
         }
+        
+        if (UPTIMAL_MAP.containsKey(id))
+        {
+            return UPTIMAL_MAP.get(id);
+        }
+        
         UptimalExpansion ue = uptimalExpansion2(id);
-        if (ue != null)
+        if (ue == null)
         {
-            return ue;
+            ue = uptimalExpansion2(getInverse(id));
+            if (ue != null)
+                ue = ue.getInverse();
         }
-        ue = uptimalExpansion2(getInverse(id));
-        if (ue != null)
+        
+        if (ue == null)
         {
-            return ue.getInverse();
+            setKnownNonUptimal(id);
         }
-        return null;
+        else
+        {
+            UPTIMAL_MAP.put(id, ue);
+        }
+        
+        return ue;
     }
+    
+    private static Map<Integer,UptimalExpansion> UPTIMAL_MAP;
 
     private static UptimalExpansion uptimalExpansion2(int id)
     {
@@ -4468,6 +4450,7 @@ public final class CanonicalShortGame extends Game
         opTableG = opTableH = opTableResult = null;
         index = null;
         data = null;
+        UPTIMAL_MAP = new HashMap<Integer,UptimalExpansion>();
         System.gc();
 
         opTableOp = new byte[opTableSize];

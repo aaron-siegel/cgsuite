@@ -357,7 +357,7 @@ public class Grid extends CgsuiteObject implements Serializable
     public CgsuiteObject getAt(int row, int column)
     {
         int intValue = getIntAt(row, column);
-        if (intValue == -1)
+        if (intValue == Integer.MIN_VALUE)
             return NIL;
         else
             return new CgsuiteInteger(intValue);
@@ -373,10 +373,10 @@ public class Grid extends CgsuiteObject implements Serializable
     public int getIntAt(int row, int column)
     {
         if (row < 1 || row > numRows || column < 1 || column > numColumns)
-            return -1;
+            return Integer.MIN_VALUE;
         
         int index = (row-1) * numColumns + (column-1);
-        return (entries[index / bitsPerEntry.perByte] >>> ((index % bitsPerEntry.perByte) * bitsPerEntry.bits)) & bitsPerEntry.mask;
+        return (entries[index / bitsPerEntry.perByte] >>> ((index % bitsPerEntry.perByte) * bitsPerEntry.bits));
     }
     
     /**
