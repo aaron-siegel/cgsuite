@@ -87,50 +87,60 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 javaParameterTypes[i] = parameters.get(i).type.getJavaClass();
             }
         }
-        else try
+        else
         {
             javaMethodName = javaMethodSpec.substring(0, parenpos);
             String[] parameterNames = javaMethodSpec.substring(parenpos+1, javaMethodSpec.length()-1).split(",");
             
             if (javaMethodSpec.charAt(javaMethodSpec.length()-1) != ')')
-                throw new IllegalArgumentException("Ill-formed Java spec.");
+                throw new InputException(tree.getToken(), "Ill-formed Java spec in method declaration: " + getQualifiedName());
             
             if (parameterNames.length != javaParameterTypes.length)
-                throw new IllegalArgumentException("Expecting " + javaParameterTypes.length + " parameters for Java method.");
+                throw new InputException(tree.getToken(), "Expecting " + javaParameterTypes.length + " parameters for Java method: " + getQualifiedName());
             
             for (int i = 0; i < parameterNames.length; i++)
             {
                 if ("int".equals(parameterNames[i]))
+                {
                     javaParameterTypes[i] = int.class;
+                }
                 else if ("boolean".equals(parameterNames[i]))
+                {
                     javaParameterTypes[i] = boolean.class;
-                else
+                }
+                else try
+                {
                     javaParameterTypes[i] = Class.forName(parameterNames[i]);
+                }
+                catch (ClassNotFoundException exc)
+                {
+                    throw new InputException(tree.getToken(), "Unknown Java class (" + parameterNames[i] + ") in method declaration: " + getQualifiedName());
+                }
             }
-        }
-        catch (ClassNotFoundException exc)
-        {
-            throw new IllegalArgumentException("Unknown Java class: " + exc.getMessage(), exc);
         }
 
         if (javaMethodName.equals(declaringClass.getJavaClass().getSimpleName()))
         {
             if (!isConstructor)
-                throw new IllegalArgumentException("Java constructor specified, but CGSuite method is not a constructor.");
-                
+            {
+                throw new InputException(tree.getToken(), "Java constructor specified, but CGSuite method is not a constructor: " + getQualifiedName());
+            }
+
             try
             {
                 javaConstructor = declaringClass.getJavaClass().getConstructor(javaParameterTypes);
             }
             catch (NoSuchMethodException exc)
             {
-                throw new IllegalArgumentException("Java constructor not found: " + exc.getMessage(), exc);
+                throw new InputException(tree.getToken(), "Java constructor not found for method: " + getQualifiedName());
             }
         }
         else
         {
             if (isConstructor)
-                throw new IllegalArgumentException("Ordinary Java method specified, but CGSuite method is a constructor.");
+            {
+                throw new InputException(tree.getToken(), "Ordinary Java method specified, but CGSuite method is a constructor: " + getQualifiedName());
+            }
             
             try
             {
@@ -138,7 +148,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             catch (NoSuchMethodException exc)
             {
-                throw new IllegalArgumentException("Java method not found (in class " + declaringClass.getJavaClass().getName() + "): " + exc.getMessage(), exc);
+                throw new InputException(tree.getToken(), "Java method not found for method: " + getQualifiedName());
             }
         }
     }
