@@ -253,6 +253,24 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
     {
         return (bigValue == null)? BigInteger.valueOf(value) : bigValue;
     }
+    
+    @Override
+    public CgsuiteSet getLeftOptions()
+    {
+        if (compareTo(ZERO) > 0)
+            return CgsuiteSet.singleton(subtract(ONE));
+        else
+            return new CgsuiteSet(0);
+    }
+    
+    @Override
+    public CgsuiteSet getRightOptions()
+    {
+        if (compareTo(ZERO) < 0)
+            return CgsuiteSet.singleton(add(ONE));
+        else
+            return new CgsuiteSet(0);
+    }
 
     @Override
     public StyledTextOutput toOutput()

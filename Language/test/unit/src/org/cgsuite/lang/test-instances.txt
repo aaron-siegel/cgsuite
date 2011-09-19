@@ -63,6 +63,7 @@ Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
 
 Multiplier simplification       \ (*+*)*3 \ 0 \
 Integer exponent simplification \ 2^(*+*) \ 1 \
+Options simplification          \ *.LeftOptions.Contains(0) \ true \
 
 // Comparison
 

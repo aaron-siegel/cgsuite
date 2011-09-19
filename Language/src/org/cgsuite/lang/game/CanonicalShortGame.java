@@ -847,7 +847,7 @@ public final class CanonicalShortGame extends Game
         CgsuiteSet options = new CgsuiteSet();
         for (int i = 0; i < getNumLeftOptions(); i++)
         {
-            options.add(getLeftOption(i));
+            options.add(getLeftOption(i).simplify());
         }
         return options;
     }
@@ -858,7 +858,7 @@ public final class CanonicalShortGame extends Game
         CgsuiteSet options = new CgsuiteSet();
         for (int i = 0; i < getNumRightOptions(); i++)
         {
-            options.add(getRightOption(i));
+            options.add(getRightOption(i).simplify());
         }
         return options;
     }

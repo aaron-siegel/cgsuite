@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.cgsuite.lang.CgsuiteCollection;
+import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
@@ -353,7 +354,7 @@ public class LoopyGame extends Game
                 }
             }
         }
-        else if (o instanceof CanonicalShortGame || o instanceof LoopyGame)
+        else if (o instanceof CanonicalShortGame || o instanceof CgsuiteInteger || o instanceof LoopyGame)
         {
             Game g = (Game) o;
             nodeMap.put(g, nextVertexOrdinal);
