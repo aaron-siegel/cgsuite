@@ -52,7 +52,7 @@ Already, some properties of Partizan Euclid jump out at us.  All the positions a
 and the positions $[p,p+1]$ seem to have increasingly hot atomic weight.  The columns appear to be periodic with period
 $q$, which gives us "natural" positions with hot atomic weight (namely, those of the form $[2*p+1,p+1]$).
 And there are lots of other interesting patterns on the rows and diagonals.  At this point one might stop and try to
-prove some of these assertions, but let's forge ahead and do the next obvious thing:
+prove some of these assertions, but let's forge ahead and do the next obvious thing: print a table of atomic weights.
 
 $tableof(listof(euc(p,q).AtomicWeight for q from 1 to 15) for p from 1 to 15)$
 
@@ -104,7 +104,7 @@ A lot.  Let's try printing out the first hundred:
 $tableof([g,g.AtomicWeight] for g in hot.SubList(1,100))$
 
 Looks a bit mundane.  We could print out 300 (or more) values instead, looking for something more "interesting", but
-let's instead try asking something more specific.  All the values in our list are simple switches of the form ${x|y}$.
+let's instead try asking something more focused.  All the values in our list are simple switches of the form ${x|y}$.
 Are there any more complicated values?  Let's filter again!
 
 $multistop := hot.Filter(g -\> g.AtomicWeight.StopCount \> 2)$

@@ -36,4 +36,15 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
 
     end
 
+    override method Options(Player player)
+        if player == Player.Left then
+            return LeftOptions;
+        else
+            return RightOptions;
+        end
+    end
+    
+    override property LeftOptions.get : java "getLeftOptions";
+    override property RightOptions.get : java "getRightOptions";
+
 end

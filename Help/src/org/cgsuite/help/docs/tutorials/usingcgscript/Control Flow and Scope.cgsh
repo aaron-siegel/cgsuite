@@ -88,7 +88,7 @@ to iterate over all the elements in a collection.  This syntax is used most comm
 game.  It can also be used in combination with $while$ and $where$.
 
 All of these types of loops can be used with $setof$, $listof$ and $tableof$, as described in the
-[[Getting Started][../Getting Started/CGScript]] tutorial.
+[[Getting Started][../gettingstarted/CGScript]] tutorial.
 
 Finally, you can type simply
 

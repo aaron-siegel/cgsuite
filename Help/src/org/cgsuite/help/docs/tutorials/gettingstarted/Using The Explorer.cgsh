@@ -38,7 +38,7 @@ position and the other for the more interesting one that we just added.
 ++ Displaying Analysis ++
 
 Click on the drop-down box that says \"Select or enter a command to start the
-analysis\" and choose \"Selection.CanonicalForm\".  CGSuite will think for a
+analyzer\" and choose \"Selection.CanonicalForm\".  CGSuite will think for a
 moment, and then display the canonical form in the analysis box, as shown in
 the following diagram.
 

@@ -51,7 +51,7 @@ regardless of its value.
 
 The answer, of course, is just the set of all Nim positions with strictly smaller heap size.
 
-And that's everything we need in order to implement Nim!  However the $Nim$ class has one additional element:
+And that's everything we need in order to implement Nim!  However the $Nim$ class has one additional member:
 
 $override property ToString.get
 
@@ -71,7 +71,7 @@ example.
 ++ Example: Partizan Subtraction Games ++
 
 The ~Partizan Subtraction Games~ were described in the
-[[Getting Started][../gettingstarted/CGScript.html]] tutorial.
+[[Getting Started][../gettingstarted/CGScript]] tutorial.
 Open up the file $PartizanSubtraction.cgs$ (in the $examples$ directory) to see CGSuite's implementation of it.
 
 There are three parameters: $leftSet$ and $rightSet$, representing the Left and Right subtraction sets; and $n$, the
@@ -150,7 +150,7 @@ we loop through all squares on the board looking for legal moves.  The first lin
 
 $    options := {};$
 
-The next two lines of code:
+initializes an empty set to hold the options.  The next two lines of code:
 
 $    us := player.Ordinal;
     them := player.Opponent.Ordinal;$

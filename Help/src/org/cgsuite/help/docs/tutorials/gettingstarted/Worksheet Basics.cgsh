@@ -1,27 +1,28 @@
 This section describes the fundamentals of using the worksheet.
 
-If you want to enlarge the Help window, try selecting "Undock Window" from the Help menu, and resize it however you'd
-like.  (This is particularly useful on smaller screens.)
+If you want to enlarge the Help window, try selecting "Undock Window" from the Window menu, and resize it however you'd
+like.  (This is particularly useful on smaller screens.)  If your CGSuite windows ever get stuck in a strange
+configuration, you can always reset them by selecting "Reset Windows" the Window menu.
 
 ##TOC##
 
 ++Entering Games++
 
-You can type games directly into the worksheet. For example, try entering the following:
+You can type game values directly into the worksheet. For example, try entering the following:
 
 $vv*2$
 
-This represents the game double-down + *2. In general, you can enter combinations of ups, downs, and nimbers just as you'd expect.
+This represents the value double-down + *2. In general, you can enter combinations of ups, downs, and nimbers just as you'd expect.
 The symbol $\^$ is used for up, $v$ for down, and $*$ for nimbers. To enter, say, 5 times up, you could type either $\^\^\^\^\^$ or $\^5$.
 
-More complicated games can be entered using braces and slashes.  For example:
+More complicated values can be entered using braces and slashes.  For example:
 
 ${2||1|0,*}$
 
-Expressions containing slashes ~must~ be enclosed in braces.  That is, to enter the game 1|0, you must type ${1|0}$.
+Expressions containing slashes ~must~ be enclosed in braces.  That is, to enter 1|0, you must type ${1|0}$.
 Ambiguous expressions, such as ${1|0|-1}$, will be rejected; you'd need to enter ${1||0|-1}$ or ${1|0||-1}$ instead.
 
-Combinatorial Game Suite recognizes a wide variety of common games and 
+Combinatorial Game Suite recognizes a wide variety of common values and 
 displays them using standard shorthand notation (such as +_2_ for 
 tiny-two). Here's a few to try (make sure to enter each on a separate 
 line):
@@ -171,7 +172,7 @@ A few tricks to help you use the worksheet more effectively:
     properties to determine the canonical form of $\^5$.
     <li>You can construct a 4x4 Domineering position by typing
 
-    $Domineering(Grid(4,4))$
+    $game.grid.Domineering(Grid(4,4))$
 
     Let $h$ be the canonical form of this position. Try comparing $h$ with 
     small positive and negative numbers. Make a conjecture as to whether 

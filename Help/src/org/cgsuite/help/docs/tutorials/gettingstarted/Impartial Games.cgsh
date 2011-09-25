@@ -15,29 +15,30 @@ these objects to calculate canonical forms just as for partizan games, e.g.,
 
 $h.CanonicalForm$
 
-Because heap games are so simple, though, this method is hopelessly inefficient.
-CGSuite provides a far better treatment of heap games through the $HeapRules$
-class.  Type the following:
+However, CGSuite provides an alternative treatment of heap games that is far more
+efficient.  Type the following:
 
 $hr := game.heap.HeapRules.MakeRules("0.07");$
 
-Now $hr$ can be used to calculate large numbers of nim values all at once.
-For example:
+Now $hr$ is a special object of type $HeapRules$, which can be used to calculate
+large numbers of nim values all at once.  For example:
 
 $hr.NimValues(300)$
 
-gives the first $300$ nim values of Dawson's Kayles.  You can also query
+gives the first $300$ nim values of Dawson's Kayles.  You can also evaluate
 individual values by typing simply $hr[24]$ (say).
 
 Periodicity can be tested as follows:
 
-$hr.CheckPeriodicity(300)$
+$hr.CheckPeriod(300)$
 
 This tells CGSuite to attempt to determine if <b>0.07</b> is periodic, computing
 at most 300 values.  It succeeds, and gives the correct answer, period 34.  Now
 we can pretty-print the period by typing
 
 $hr.NimValues(300).PeriodicTable(34)$
+
+(If $CheckPeriod$ fails to determine periodicity, it returns $nil$.)
 
 ++ Take-and-Break Codes ++
 
@@ -52,6 +53,8 @@ for a digit of size 64.  You could also enter this as a hex code by
 
 $&amp;x40;$
 
+(A value of 64 corresponds to splitting a heap into exactly six piles.)
+
 In addition, it's possible to place restrictions on moves in a take-and-break 
 game.  For example, appending ! to a digit means that all the resulting 
 heaps must be unequal.  For example, the game
@@ -65,7 +68,7 @@ interesting.  However, change this to
 $4!.0$
 
 and we now have Grundy's Game: "split a heap into two non-empty heaps of 
-different sizes".  This is perhaps the most-studied heap game of them all.  
+different sizes".  It's unknown whether Grundy's Game is ultimately periodic.  
 Likewise,
 
 $0.4!$
@@ -79,7 +82,7 @@ the final digits of a code.  Here is a list of examples.
               a heap)
           <li>$0.77$ - Kayles (remove one or two tokens from
               a heap, optionally splitting the remainder into two heaps)
-          <li>$4!.$ - Grundy's Game (split any heap into
+          <li>$4!.0$ - Grundy's Game (split any heap into
               two unequal heaps)
           <li>$20.017$ - Either add a token to a non-empty heap;
               or remove a heap of size 2 completely; or remove three tokens
@@ -98,8 +101,8 @@ the final digits of a code.  Here is a list of examples.
               $'r' = 27 = (1 | 2 | 8 | 16)$ and
               $'g' = 16$)
           <li>$0.&amp;127;!&amp;64;$ - Either: remove one
-              token from a heap, splitting the remainder into ~at most
-              six~ pairwise unequal heaps; or remove two tokens from
+              token from a heap, splitting the remainder into ~at most six~
+              pairwise unequal heaps; or remove two tokens from
               a heap, splitting the remainder into ~exactly six~
               heaps (with no restrictions on heap size)
       </ul>
@@ -122,7 +125,7 @@ $f := n -\> listof([k,n-k-2] for k from 0 to n-2)$
 
 You can use this to specify 
 rules for heap games with arbitrarily complicated logic.  (But be aware that the
-calculations will be slower than using use the built-in codes.)
+calculations will be slower than using the built-in codes.)
 
 <!--
 + + Misère Canonical Forms + +

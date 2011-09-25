@@ -6,10 +6,6 @@ This chapter introduces the basic elements of CGScript.  A separate tutorial,
 <a href=\"../usingcgscript/Using CGScript.html\">Using CGScript</a>, describes how to design new classes and
 implement new games in CGScript.
 
-
-This tutorial will introduce you to the basic elements of
-CGScript, and in the next one we'll see how to use it to design new classes.
-
 ##TOC##
 
 ++ Sets ++
@@ -75,22 +71,31 @@ $x[2] := 6$
 Maps are another useful abstraction.  They associate keys to values (both of which can be any object).  The syntax
 for constructing a map looks like this:
 
-${ * => 1, *2 => 4, *3 => 9 }$
+${ "key" => 14, "anotherKey" => 22, "hello" => "world" }$
+
+In this map, the value $14$ is associated to the key $"key"$, etc.
 
 If $x$ is a map, then you can access its values with square brackets.  For example, let
 
-$x := { * => 1, *2 => 4, *3 => 9 };$
+$x := { "key" => 14, "anotherKey" => 22, "hello" => "world" };$
 
-Then we can retrieve the value corresponding to the key $*2$ with
+Then we can retrieve the value corresponding to the key $"key"$ with
 
-$x[*2]$
+$x["key"]$
 
-or reassign the key $*4$ to a new value with
+or reassign the key $"hello"$ to a new value with
 
-$x[*4] := 16$
+$x["hello"] := 100$
 
 Note that square brackets are used to retrieve (or assign) ~list elements~ by index, and also to retrieve (or assign)
 ~map elements~ by key.
+
+The keys of a map don't need to be strings; they can be any object at all, and the same map can use objects of
+different types as keys.  For example
+
+$x[\^\^*4] := 2$
+
+assigns the value $2$ to the key $\^\^*4$.
 
 The special syntax
 
@@ -102,7 +107,7 @@ is used to denote an empty map (this distinguishes it from ${}$, which denotes a
 
 Here's an example that illustrates the use of collections in practice.  Let S_L_ and S_R_ be sets of positive
 integers.  The ~Partizan Subtraction Game~ on (S_L_,S_R_) is played with heaps of tokens.  Left may remove ~k~ tokens
-from a heap, for any ~k~ in S_L_.  Likewise Right may remove $k$ tokens for any $k$ in S_R_.
+from a heap, for any ~k~ in S_L_.  Likewise Right may remove ~k~ tokens for any ~k~ in S_R_.
 
 The CGSuite class $examples.PartizanSubtraction$ can represent ~any~ partizan subtraction game: the subtraction sets are
 simply specified as parameters.  For example,
