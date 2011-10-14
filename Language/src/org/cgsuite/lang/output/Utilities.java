@@ -31,6 +31,11 @@ public class Utilities extends CgsuiteObject
         return Runtime.getRuntime().maxMemory();
     }
     
+    public static String version()
+    {
+        return System.getProperty("app.version");
+    }
+    
     private Utilities()
     {
         super(CgsuiteClass.OBJECT_TYPE);
