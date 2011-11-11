@@ -548,7 +548,6 @@ primaryExpr
 	| INTEGER
     | INF
 	| STRING
-    | (IDENTIFIER COLON) => IDENTIFIER COLON^ explicitGame
 	| generalizedId
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
