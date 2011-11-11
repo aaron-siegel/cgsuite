@@ -12,8 +12,8 @@
  *
  * Example: (print all 3x2 Clobber positions whose value is positive)
  * C := game.grid.Clobber;
- * clobIt := cgsuite.util.iterators.GridGameIterator(C, 3, 2, [0,1,2]);
- * filtIt := cgsuite.util.iterators.FilteredIterator(clobIt, g -> g.CanonicalForm > 0);
+ * clobIt := cgsuite.util.iterator.GridGameIterator(C, 3, 2, [0,1,2]);
+ * filtIt := cgsuite.util.iterator.FilteredIterator(clobIt, g -> g.CanonicalForm > 0);
  * filtIt.Traverse(Worksheet.Print);
  *
  * Created by malbert on 9/08/2011
