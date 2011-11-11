@@ -54,8 +54,6 @@ off                             \ {|pass} \ off \
 over                            \ {0|pass} \ over \
 under                           \ {pass|0} \ under \
 upon                            \ {pass|*} \ {pass|*} \
-upon (node reference notation)  \ a:{a|*} \ {pass|*} \
-Simple ko                       \ a:{1||a|0} \ a:{1||a|0} \
 Hanging pass                    \ pass \ !!Unexpected "pass". \
 Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
 
