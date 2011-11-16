@@ -17,7 +17,7 @@ mutable class NestedIterator extends Iterator
         
         if args.Length > 0 then
             if arg1 is Iterator then
-                iterators.add(arg1);
+                iterators.Add(arg1);
             elseif arg1 is Collection then
                 iterators.Add(CollectionIterator(arg1));
             else
@@ -43,7 +43,7 @@ mutable class NestedIterator extends Iterator
                 end
             end
         elseif arg1 is Iterator then
-                iterators.add(arg1);
+                iterators.Add(arg1);
         else
             error("Arguments to NestedIterator must be iterators or collections");
         end
