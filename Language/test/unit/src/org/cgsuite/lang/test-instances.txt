@@ -144,6 +144,8 @@ FilteredIterator: reset         \ a := listof(k for k from 1 to 30); it := cgsui
 NestedIterator: matches         \ a := [1,2]; b := [10,20]; it := cgsuite.util.iterator.NestedIterator(a,b); out := []; while it.HasNext do out.Add(it.Next); end; out \ [[1,10],[1,20],[2,10],[2,20]] \
 NestedIterator: mix             \ a := [1,2]; b := [10,20]; it1 := cgsuite.util.iterator.NestedIterator(a,b); it := cgsuite.util.iterator.NestedIterator([1],it1); out := []; while it.HasNext do out.Add(it.Next); end; out \ [[1,[1,10]],[1,[1,20]],[1,[2,10]],[1,[2,20]]] \
 NestedIterator: reset           \ a := [1,2]; b := [1,2,3]; c := [1,2,3,4,5]; it := cgsuite.util.iterator.NestedIterator(a,b,c); for i from 1 to 15 do it.Next; end; it.Reset(); it.Next \ [1,1,1] \
+NestedIterator: iterator arg    \ a := [1,2]; ita := cgsuite.util.iterator.CollectionIterator(a); it := cgsuite.util.iterator.NestedIterator(ita); out := []; while it.HasNext do out.Add(it.Next); end out \ [[1],[2]] \
+NestedIterator: iterator args   \ a := [1,2]; ita := cgsuite.util.iterator.CollectionIterator(a); it := cgsuite.util.iterator.NestedIterator(ita,ita); out := []; while it.HasNext do out.Add(it.Next); end out \ [[1,1],[1,2],[2,1],[2,2]] \
 SequenceIterator: matches       \ it := cgsuite.util.iterator.SequenceIterator(2,[1,2]); out := []; while it.HasNext do out.Add(it.Next); end; out \ [[1,1],[1,2],[2,1],[2,2]] \
 SequenceIterator: matches       \ it := cgsuite.util.iterator.SequenceIterator(10,[0,1]); for i from 1 to 300 do it.Next; end; it.Next \ [0,1,0,0,1,0,1,1,0,0] \
 SequenceIterator: empty         \ it := cgsuite.util.iterator.SequenceIterator(10,[]); it.HasNext  \ false \
