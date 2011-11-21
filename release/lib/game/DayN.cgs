@@ -24,7 +24,7 @@ class DayN
             for lo in prevac do
                 for ro in prevac do
                     if reduced then
-                        elements.Add({lo|ro}.Rcf);
+                        elements.Add({lo|ro}.ReducedCanonicalForm);
                     else
                         elements.Add({lo|ro});
                     end

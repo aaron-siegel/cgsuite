@@ -47,7 +47,7 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     override property LeftOptions.get : java "getLeftOptions";
     override property LeftStop.get : java "leftStop";
     override property Mean.get : java "mean";
-    override property Rcf.get : java "rcf";
+    override property ReducedCanonicalForm.get : java "rcf";
              property RightIncentives.get : java "rightIncentives";
     override property RightOptions.get : java "getRightOptions";
     override property RightStop.get : java "rightStop";
@@ -80,7 +80,7 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
     end
     
     property IsReduced.get
-        return this == Rcf;
+        return this == ReducedCanonicalForm;
     end
     
     property Miny.get

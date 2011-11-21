@@ -315,8 +315,8 @@ class Game : java "org.cgsuite.lang.Game"
         return CanonicalForm.Outcome;
     end
     
-    property Rcf.get
-        return CanonicalForm.Rcf;
+    property ReducedCanonicalForm.get
+        return CanonicalForm.ReducedCanonicalForm;
     end
     
     property RightStop.get

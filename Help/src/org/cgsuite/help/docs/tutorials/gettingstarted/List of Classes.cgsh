@@ -117,7 +117,7 @@ $game.Game
     LeftStop
     Mean
     Outcome
-    Rcf
+    ReducedCanonicalForm
     RightStop
     Temperature
     Thermograph

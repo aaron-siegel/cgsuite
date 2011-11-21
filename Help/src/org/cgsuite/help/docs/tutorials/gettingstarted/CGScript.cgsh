@@ -265,6 +265,6 @@ for its class.
 <ol>
 <li>Consider the partizan subtraction game we studied above, ${1,3}$ vs. ${2,3}$.  Print the first 10 canonical forms just as we
 did in the $tableof$ section above, and note that they rapidly become a mess.  Now print the first 30 ~reduced~ canonical
-forms.  (You can do this by using the $Rcf$ property in place of $CanonicalForm$.)  Make a conjecture about the RCFs of
+forms.  (You can do this by using the $ReducedCanonicalForm$ property in place of $CanonicalForm$.)  Make a conjecture about the RCFs of
 arbitrary positions.
 </ol>

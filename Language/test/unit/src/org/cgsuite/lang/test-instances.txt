@@ -451,7 +451,7 @@ LeftOptions                     \ {*2,*|-1}.LeftOptions \ {*,*2} \
 LeftStop                        \ {*2,*|-1}.LeftStop \ 0 \
 Mean                            \ {3+*||2|1}.Mean \ 9/4 \
 Miny                            \ 3+2.Miny \ 3+2.Miny \
-Rcf                             \ {3+*||2|1}.Rcf \ {3||2|1} \
+ReducedCanonicalForm            \ {3+*||2|1}.ReducedCanonicalForm \ {3||2|1} \
 RightOptions                    \ {*2,*|-1}.RightOptions \ {-1} \
 RightStop                       \ {*2,*|-1}.RightStop \ -1 \
 StopCount                       \ *10.StopCount \ 39366 \
