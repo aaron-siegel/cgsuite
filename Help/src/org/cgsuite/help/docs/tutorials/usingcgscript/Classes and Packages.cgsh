@@ -170,8 +170,8 @@ $Player$ enum in $cgsuite.game$).
 
 ++ Imports ++
 
-Sometimes you'll need to refer frequently to a class that's not in one of the automatic import packages.  In such cases
-it can become cumbersome to qualify the class name repeatedly.  If you put (say)
+Sometimes you'll need to refer to a class that's not in one of the automatic import packages.  In such cases you'll need
+to use an $import$ statement to make that class visible inside your $.cgs$ file.  If you put (say)
 
 $import game.grid.Clobber;$
 
@@ -181,3 +181,6 @@ refer directly to $Clobber$.  You can also type
 $import game.grid.*;$
 
 to import ~all~ the classes in the $game.grid$ package.
+
+This is the only way to access external classes from within a class file - you can't type $game.grid.Clobber$ directly
+as you can from the worksheet.

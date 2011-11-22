@@ -503,9 +503,18 @@ public class Domain
 
             case DOT:
 
-                CgsuitePackage packageValue = findPackage(tree.getChild(0));
+                CgsuitePackage packageValue = null;
+                if (contextMethod == null)
+                {
+                    // If there's no context method (i.e., worksheet scope) we allow classes to be looked up
+                    // by qualifying them with the package name.
+                    packageValue = findPackage(tree.getChild(0));
+                }
                 if (packageValue == null)
                 {
+                    // No package was found - either because we have method scope, or because the lookup was
+                    // not successful.
+                    
                     x = expression(tree.getChild(0));
                     x = x.simplify();
                     id = tree.getChild(1).getText();
