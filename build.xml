@@ -69,6 +69,12 @@
         </copy>
         
     </target>
+    
+    <!-- Distribution sequence
+         1. Run cgsuite-dist target
+         2. Right click CGSuite, choose Package As / Installers
+         3. Run cgsuite-installer-renames target
+    -->
 
     <target name="cgsuite-dist" depends="clean,cgsuite-src-dist,cgsuite-mac-bundle"/>
     
