@@ -29,6 +29,8 @@
     <target name="build-launchers" depends="suite.build-launchers,-post-build-launchers"/>
     
     <target name="-post-build-launchers">
+        <!-- Replace app.exe with custom app.exe with customized icons -->
+        <copy file="${basedir}/etc/app.exe" tofile="${build.launcher.dir}/bin/CGSuite.exe" overwrite="true"/>
         <!-- Set default heap size to 512m, and enable assertions -->
         <replace file="${build.launcher.dir}/etc/${app.name}.conf" token="-J-Xmx64m" value="-J-Xmx512m -J-ea"/>
     </target>
