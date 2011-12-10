@@ -131,7 +131,9 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
         // apply some shortcuts using OrdinalSum for a
         // much more efficient calculation.
     
-        if x < 0 then
+        if x == 0 then
+            return 0;
+        elseif x < 0 then
             error("Exponent must be non-negative.");
         end
     

@@ -469,6 +469,14 @@ Pow                             \ ^^.Pow(3) \ ^.Pow(3) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
 Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
 
+// Various Pow cases
+
+PowTo(0)                        \ ^.PowTo(0) \ 0 \
+Pow(1)                          \ ^.Pow(1) \ ^ \
+PowTo(1/128)                    \ ^.PowTo(1/128) \ {0|*,{0|*,{0|*,{0|*,{0|*,{0|*,{0|*,^}}}}}}} \
+Pow(3/2)                        \ ^.Pow(3/2) \ {0||0,v*|0,*|||{0,v*|0,*},{0||0,v*|0,*|||0,v*|0,*}} \
+PowTo generalized               \ {0|2.Tiny}.PowTo(3) \ {0|2.Tiny||2.Tiny|||2.Tiny} \
+
 // DayN
 
 Count of day-3 games            \ DayN(3).Size \ 1474 \
