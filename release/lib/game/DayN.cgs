@@ -2,32 +2,37 @@
 
 class DayN
 
-    var allSmall, reduced;
+    var allSmall, reduced, plumtrees;
     var elements;
     
     var upcov, lowcov;
 
-    method DayN(birthday, allSmall ? false, reduced ? false)
+    method DayN(birthday, allSmall ? false, reduced ? false, plumtrees ? false)
 
         upcov := {=>};
         lowcov := {=>};
 
+        elements := {};
         if birthday == 0 then
-            elements := {0};
+            prevac := {{}};
         else
-            elements := {0};
-            prev := DayN(birthday-1, allSmall, reduced);
+            prev := DayN(birthday-1, allSmall, reduced, plumtrees);
             prevac := prev.Antichains;
-            if allSmall then
-                prevac.Remove({});  // Remove empty set as a possibility
-            end
-            for lo in prevac do
-                for ro in prevac do
-                    if reduced then
-                        elements.Add({lo|ro}.ReducedCanonicalForm);
-                    else
-                        elements.Add({lo|ro});
-                    end
+        end
+        if allSmall then
+            prevac.Remove({});  // Remove empty set as a possibility
+            elements.Add(0);    // Explicitly add 0
+        end
+        for lo in prevac do
+            for ro in prevac do
+                if reduced then
+                    elements.Add({lo|ro}.ReducedCanonicalForm);
+                else
+                    elements.Add({lo|ro});
+                end
+                if plumtrees then
+                    elements.Add({lo,pass|ro});
+                    elements.Add({lo|ro,pass});
                 end
             end
         end

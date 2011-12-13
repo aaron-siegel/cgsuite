@@ -5,6 +5,7 @@ class StopperSidedGame extends Game : java "org.cgsuite.lang.game.StopperSidedGa
     override method op+(StopperSidedGame h) : java "add";
     override method op-(StopperSidedGame h) : java "subtract";
     override method op neg() : java "negate";
+    method Leq(StopperSidedGame h) : java "leq";
     method op pos() return this; end
     
     override property CanonicalForm.get
