@@ -5,6 +5,7 @@
 package org.cgsuite.lang.game;
 
 import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.Output;
@@ -21,6 +22,16 @@ public class StopperSidedGame extends Game
     private CanonicalStopperGame onside;
     private CanonicalStopperGame offside;
     
+    public StopperSidedGame(CgsuiteInteger n)
+    {
+        this(new CanonicalShortGame(n));
+    }
+    
+    public StopperSidedGame(CanonicalShortGame g)
+    {
+        this(new CanonicalStopperGame(g));
+    }
+    
     public StopperSidedGame(CanonicalStopperGame g)
     {
         this(g, g);
@@ -36,6 +47,48 @@ public class StopperSidedGame extends Game
     public StopperSidedGame add(StopperSidedGame h)
     {
         return new StopperSidedGame(onside.upsum(h.onside), offside.downsum(h.offside));
+    }
+    
+    public StopperSidedGame subtract(StopperSidedGame h)
+    {
+        return add(h.negate());
+    }
+    
+    @Override
+    public StopperSidedGame negate()
+    {
+        return new StopperSidedGame(offside.negate(), onside.negate());
+    }
+    
+    public boolean leq(StopperSidedGame h)
+    {
+        return onside.leq(h.onside) && offside.leq(h.offside);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final StopperSidedGame other = (StopperSidedGame) obj;
+        if (this.onside != other.onside && (this.onside == null || !this.onside.equals(other.onside))) {
+            return false;
+        }
+        if (this.offside != other.offside && (this.offside == null || !this.offside.equals(other.offside))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 43 * hash + (this.onside != null ? this.onside.hashCode() : 0);
+        hash = 43 * hash + (this.offside != null ? this.offside.hashCode() : 0);
+        return hash;
     }
     
     public CanonicalStopperGame getOnside()

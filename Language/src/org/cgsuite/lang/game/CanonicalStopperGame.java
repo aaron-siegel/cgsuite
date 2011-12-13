@@ -152,6 +152,11 @@ public final class CanonicalStopperGame extends LoopyGame
         return super.subtract(h);
     }
     
+    public boolean leq(CanonicalStopperGame h)
+    {
+        return super.leq(h);
+    }
+    
     @Override
     public CanonicalStopperGame negate()
     {

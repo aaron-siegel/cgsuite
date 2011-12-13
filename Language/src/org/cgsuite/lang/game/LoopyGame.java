@@ -592,8 +592,6 @@ public class LoopyGame extends Game
         CanonicalShortGame tinyN = isNumberTiny();
         CanonicalShortGame minyN = negate().isNumberTiny();
         
-        System.out.println("FOO: " + tinyN + " / " + minyN);
-        
         if (tinyN != null || minyN != null)
         {
             boolean tiny = (tinyN != null);

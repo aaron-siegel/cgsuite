@@ -1293,17 +1293,15 @@ public class Domain
                     default:
 
                         CgsuiteObject obj = expression(tree.getChild(0).getChild(i)).simplify();
-                        if (obj instanceof CgsuiteInteger)
-                            curNode.addLeftEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
-                        else if (obj instanceof RationalNumber)
-                            curNode.addLeftEdge(CanonicalShortGame.construct((RationalNumber) obj));
-                        else if (obj instanceof CanonicalShortGame)
-                            curNode.addLeftEdge((CanonicalShortGame) obj);
-                        else if (obj instanceof LoopyGame)
-                            curNode.addLeftEdge((LoopyGame) obj);
+                        if (obj instanceof CgsuiteCollection)
+                        {
+                            for (CgsuiteObject x : (CgsuiteCollection) obj)
+                                addLeftEdge(tree.getChild(0).getChild(i), curNode, x);
+                        }
                         else
-                            throw new InputException(tree.getChild(0).getChild(i).getToken(),
-                                "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
+                        {
+                            addLeftEdge(tree.getChild(0).getChild(i), curNode, obj);
+                        }
                         break;
                 }
             }
@@ -1346,21 +1344,49 @@ public class Domain
                     default:
 
                         CgsuiteObject obj = expression(tree.getChild(1).getChild(i)).simplify();
-                        if (obj instanceof CgsuiteInteger)
-                            curNode.addRightEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
-                        else if (obj instanceof RationalNumber)
-                            curNode.addRightEdge(CanonicalShortGame.construct((RationalNumber) obj));
-                        else if (obj instanceof CanonicalShortGame)
-                            curNode.addRightEdge((CanonicalShortGame) obj);
-                        else if (obj instanceof LoopyGame)
-                            curNode.addRightEdge((LoopyGame) obj);
+                        if (obj instanceof CgsuiteCollection)
+                        {
+                            for (CgsuiteObject x : (CgsuiteCollection) obj)
+                                addRightEdge(tree.getChild(1).getChild(i), curNode, x);
+                        }
                         else
-                            throw new InputException(tree.getChild(1).getChild(i).getToken(),
-                                "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
+                        {
+                            addRightEdge(tree.getChild(1).getChild(i), curNode, obj);
+                        }
                         break;
                 }
             }
         }
+    }
+    
+    private void addLeftEdge(CgsuiteTree tree, LoopyGame.Node node, CgsuiteObject obj)
+    {
+        if (obj instanceof CgsuiteInteger)
+            node.addLeftEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
+        else if (obj instanceof RationalNumber)
+            node.addLeftEdge(CanonicalShortGame.construct((RationalNumber) obj));
+        else if (obj instanceof CanonicalShortGame)
+            node.addLeftEdge((CanonicalShortGame) obj);
+        else if (obj instanceof LoopyGame)
+            node.addLeftEdge((LoopyGame) obj);
+        else
+            throw new InputException(tree.getToken(),
+                "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
+    }
+    
+    private void addRightEdge(CgsuiteTree tree, LoopyGame.Node node, CgsuiteObject obj)
+    {
+        if (obj instanceof CgsuiteInteger)
+            node.addRightEdge(CanonicalShortGame.construct((CgsuiteInteger) obj));
+        else if (obj instanceof RationalNumber)
+            node.addRightEdge(CanonicalShortGame.construct((RationalNumber) obj));
+        else if (obj instanceof CanonicalShortGame)
+            node.addRightEdge((CanonicalShortGame) obj);
+        else if (obj instanceof LoopyGame)
+            node.addRightEdge((LoopyGame) obj);
+        else
+            throw new InputException(tree.getToken(),
+                "Object of type " + obj.getCgsuiteClass().getQualifiedName() + " not permitted in a loopy game constructor.");
     }
 
     private List<CgsuiteObject> arrayIndexList(CgsuiteTree tree, CgsuiteObject value) throws CgsuiteException
