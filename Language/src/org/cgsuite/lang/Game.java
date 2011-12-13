@@ -3,6 +3,7 @@ package org.cgsuite.lang;
 import org.cgsuite.lang.explorer.DefaultEditorPanel;
 import org.cgsuite.lang.explorer.EditorPanel;
 import org.cgsuite.lang.game.InverseGame;
+import org.cgsuite.lang.game.MultipleGame;
 import org.cgsuite.lang.game.SumGame;
 
 

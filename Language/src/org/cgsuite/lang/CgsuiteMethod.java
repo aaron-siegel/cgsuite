@@ -39,8 +39,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     private Method javaMethod;
     private Constructor javaConstructor;
     private Class<?>[] javaParameterTypes;
+    
+    private CgsuiteMethod superMethod;
 
-    public CgsuiteMethod(CgsuiteClass declaringClass, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
+    public CgsuiteMethod(CgsuiteClass declaringClass, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec, CgsuiteMethod superMethod)
         throws CgsuiteException
     {
         super(TYPE);
@@ -53,6 +55,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         this.tree = tree;
         this.javaMethodSpec = javaMethodSpec;
         this.isConstructor = name.equals(declaringClass.getName());
+        this.superMethod = superMethod;
         
         if (isConstructor)
         {
@@ -211,6 +214,45 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     {
         ensureLoaded();
         
+        if (arguments.size() < nRequiredParameters)
+            throw new InputException("Expecting at least " + nRequiredParameters + " argument(s) for method call: " + getQualifiedName());
+
+        if (!hasVarargParameter && arguments.size() > parameters.size())
+            throw new InputException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
+        
+        // Try to validate the arguments.
+        
+        boolean valid = true;
+
+        for (int i = 0; valid && i < nRequiredParameters; i++)
+        {
+            Parameter p = parameters.get(i);
+            CgsuiteObject value = arguments.get(i);
+            valid &= validate(value, p.type, p.name);
+        }
+
+        if (valid && hasVarargParameter)
+        {
+            Parameter p = parameters.get(nRequiredParameters);
+            for (int i = nRequiredParameters; valid && i < arguments.size(); i++)
+            {
+                CgsuiteObject value = arguments.get(i);
+                valid &= validate(value, p.type, p.name);
+            }
+        }
+        
+        if (!valid)
+        {
+            if (superMethod == null)
+            {
+                throw new InputException("Invalid arguments in call to " + getQualifiedName() + ".");
+            }
+            else
+            {
+                return superMethod.invoke(obj, arguments, optionalArguments);
+            }
+        }
+
         if (isMutableMethod() && obj != null)
         {
             if (!obj.isMutable())
@@ -218,12 +260,6 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
             obj.unlinkIfNecessary();
         }
-
-        if (arguments.size() < nRequiredParameters)
-            throw new InputException("Expecting at least " + nRequiredParameters + " argument(s) for method call: " + getQualifiedName());
-
-        if (!hasVarargParameter && arguments.size() > parameters.size())
-            throw new InputException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
 
         CgsuiteObject retval;
         boolean constructing = false;
@@ -268,7 +304,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 }
                 else
                 {
-                    javaObj = javaMethod.invoke(obj, castArguments);
+                    Object castObj = (obj == null)? null : cast(obj, getDeclaringClass().getJavaClass(), false);
+                    javaObj = javaMethod.invoke(castObj, castArguments);
                 }
             }
             catch (IllegalArgumentException exc)
@@ -323,23 +360,17 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
 
             for (int i = 0; i < nRequiredParameters; i++)
             {
-                Parameter p = parameters.get(i);
-                CgsuiteObject value = arguments.get(i);
-                validate(value, p.type, p.name);
-                domain.put(p.name, value);
+                domain.put(parameters.get(i).name, arguments.get(i));
             }
             
             if (hasVarargParameter)
             {
-                Parameter p = parameters.get(nRequiredParameters);
                 CgsuiteList varargList = new CgsuiteList(arguments.size()-nRequiredParameters);
                 for (int i = nRequiredParameters; i < arguments.size(); i++)
                 {
-                    CgsuiteObject value = arguments.get(i);
-                    validate(value, p.type, p.name);
-                    varargList.add(value);
+                    varargList.add(arguments.get(i));
                 }
-                domain.put(p.name, varargList);
+                domain.put(parameters.get(nRequiredParameters).name, varargList);
             }
                     
             int nOptionalArgumentsProcessed = 0;
@@ -370,7 +401,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                 {
                     value = domain.expression(p.defaultValue);
                 }
-                validate(value, p.type, p.name);
+                if (!validate(value, p.type, p.name))
+                {
+                    throw new InputException("Invalid arguments in call to " + getQualifiedName() + ": parameter \"" + p.name + "\" must be of class " + p.type.getQualifiedName() + ".");
+                }
                 domain.put(p.name, value);
             }
             
@@ -406,12 +440,13 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         return retval;
     }
     
-    private void validate(CgsuiteObject obj, CgsuiteClass expectedClass, String paramName)
+    private boolean validate(CgsuiteObject obj, CgsuiteClass expectedClass, String paramName)
     {
-        if (obj != NIL && !obj.getCgsuiteClass().hasAncestor(expectedClass))
+        return obj == NIL || obj.getCgsuiteClass().hasAncestor(expectedClass);
+        /*if (obj != NIL && !obj.getCgsuiteClass().hasAncestor(expectedClass))
         {
             throw new InputException("Invalid arguments in call to " + getQualifiedName() + ": parameter \"" + paramName + "\" must be of class " + expectedClass.getQualifiedName() + ".");
-        }
+        }*/
     }
     
     public static Object cast(CgsuiteObject obj, Class<?> javaClass, boolean crosslink)

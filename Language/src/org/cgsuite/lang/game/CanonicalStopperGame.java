@@ -32,11 +32,9 @@ package org.cgsuite.lang.game;
 import java.math.BigInteger;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
-import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
-import org.cgsuite.lang.InputException;
 
 
 /**
@@ -100,6 +98,11 @@ public final class CanonicalStopperGame extends LoopyGame
         super(TYPE);
     }
     
+    public CanonicalStopperGame(CgsuiteInteger n)
+    {
+        this(new CanonicalShortGame(n));
+    }
+    
     /**
      * Constructs a new <code>CanonicalStopperGame</code> that is equivalent
      * to the specified <code>CanonicalGame</code>.
@@ -139,6 +142,16 @@ public final class CanonicalStopperGame extends LoopyGame
         return rightOptions;
     }
     
+    public LoopyGame add(CanonicalStopperGame h)
+    {
+        return super.add(h);
+    }
+    
+    public LoopyGame subtract(CanonicalStopperGame h)
+    {
+        return super.subtract(h);
+    }
+    
     @Override
     public CanonicalStopperGame negate()
     {
@@ -159,38 +172,6 @@ public final class CanonicalStopperGame extends LoopyGame
         {
             return this;
         }
-    }
-    
-    public CgsuiteObject add(CgsuiteObject other)
-    {
-        if (graph.isCycleFree(startVertex))
-            return canonicalize(startVertex).add(other);
-        else if (other instanceof CanonicalShortGame)
-            return add((CanonicalShortGame) other);
-        else if (other instanceof CgsuiteInteger)
-            return add(new CanonicalShortGame((CgsuiteInteger) other));
-        else if (other instanceof LoopyGame)
-            return add((LoopyGame) other);
-        else if (other instanceof Game)
-            return super.add((Game) other);
-        else
-            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
-    }
-    
-    public CgsuiteObject subtract(CgsuiteObject other)
-    {
-        if (graph.isCycleFree(startVertex))
-            return canonicalize(startVertex).subtract(other);
-        else if (other instanceof CanonicalShortGame)
-            return subtract((CanonicalShortGame) other);
-        else if (other instanceof CgsuiteInteger)
-            return subtract(new CanonicalShortGame((CgsuiteInteger) other));
-        else if (other instanceof LoopyGame)
-            return add(((LoopyGame) other).negate());
-        else if (other instanceof Game)
-            return super.subtract((Game) other);
-        else
-            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
     
     public RationalNumber leftStop()

@@ -67,7 +67,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private CgsuiteTree script;
 
     private EnumSet<Modifier> classModifiers;
-    private Set<CgsuiteClass> parents;
+    private List<CgsuiteClass> parents;
     private Set<CgsuiteClass> ancestors;
     private Map<String,CgsuiteMethod> methods;
     private Map<String,Variable> vars;
@@ -351,7 +351,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             this.packageImports.add(enclosingPackage);
         this.classImports = new HashMap<String,CgsuiteClass>();
 
-        this.parents = new HashSet<CgsuiteClass>();
+        this.parents = new ArrayList<CgsuiteClass>();
         this.ancestors = new HashSet<CgsuiteClass>();
         this.methods = new HashMap<String,CgsuiteMethod>();
         this.vars = new HashMap<String,Variable>();
@@ -472,7 +472,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             this.defaultJavaConstructor = null;
         }
         
-        methods.put("static$init", new CgsuiteMethod(this, "static$init", EnumSet.of(Modifier.STATIC), Collections.<Parameter>emptyList(), null, null));
+        methods.put("static$init", new CgsuiteMethod(this, "static$init", EnumSet.of(Modifier.STATIC), Collections.<Parameter>emptyList(), null, null, null));
 
         declarations(parseTree.getChild(1));
         
@@ -745,7 +745,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         if (!methods.containsKey(name))
         {
-            methods.put(name, new CgsuiteMethod(this, name, EnumSet.noneOf(Modifier.class), Collections.<Parameter>emptyList(), new CgsuiteTree(new CommonToken(STATEMENT_SEQUENCE)), null));
+            methods.put(name, new CgsuiteMethod(this, name, EnumSet.noneOf(Modifier.class), Collections.<Parameter>emptyList(), new CgsuiteTree(new CommonToken(STATEMENT_SEQUENCE)), null, null));
         }
     }
 
@@ -917,7 +917,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 
         // It's a legit method declaration.
         
-        this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName));
+        this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName, this.methods.get(name)));
     }
 
     private void declareVar(CgsuiteTree tree, String name, EnumSet<Modifier> modifiers, CgsuiteTree initializer, int declRank)

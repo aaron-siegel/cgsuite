@@ -2,10 +2,10 @@
 
 class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.game.CanonicalStopperGame"
 
-    override method op+(obj) : java "add";
-    override method op-(obj) : java "subtract";
+    override method op+(CanonicalStopperGame h) : java "add";
+    override method op-(CanonicalStopperGame h) : java "subtract";
     override method op neg() : java "negate";
-    method Leq(CanonicalStopperGame other) : java "leq(org.cgsuite.lang.game.LoopyGame)";
+    method Leq(CanonicalStopperGame h) : java "leq(org.cgsuite.lang.game.LoopyGame)";
     
     property Degree.get
         return Upsum(-this);

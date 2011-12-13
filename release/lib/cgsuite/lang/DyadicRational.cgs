@@ -2,8 +2,8 @@
 
 class DyadicRational extends CanonicalShortGame, Number : java "org.cgsuite.lang.game.CanonicalShortGame"
 
-    override method op+(obj) : java "add";
-    override method op-(obj) : java "subtract";
+    override method op+(CanonicalShortGame h) : java "add";
+    override method op-(CanonicalShortGame h) : java "subtract";
     override method op neg() : java "negate";
     override method op pos() return this; end
 

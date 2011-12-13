@@ -33,6 +33,11 @@ public class StopperSidedGame extends Game
         this.offside = offside;
     }
     
+    public StopperSidedGame add(StopperSidedGame h)
+    {
+        return new StopperSidedGame(onside.upsum(h.onside), offside.downsum(h.offside));
+    }
+    
     public CanonicalStopperGame getOnside()
     {
         return onside;

@@ -57,20 +57,6 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
         else
             return new CgsuiteInteger(bigValue.negate());
     }
-    
-    public CgsuiteObject add(CgsuiteObject other)
-    {
-        if (other instanceof CgsuiteInteger)
-            return add((CgsuiteInteger) other);
-        else if (other instanceof CanonicalShortGame)
-            return CanonicalShortGame.construct(this).add((CanonicalShortGame) other);
-        else if (other instanceof RationalNumber)
-            return new RationalNumber(this).add((RationalNumber) other);
-        else if (other instanceof Game)
-            return super.add((Game) other);
-        else
-            throw new InputException("Cannot add Integer to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
-    }
 
     public CgsuiteInteger add(CgsuiteInteger other)
     {
@@ -78,20 +64,6 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
             return new CgsuiteInteger((long) value + (long) other.value);
         else
             return new CgsuiteInteger(bigValue().add(other.bigValue()));
-    }
-    
-    public CgsuiteObject subtract(CgsuiteObject other)
-    {
-        if (other instanceof CgsuiteInteger)
-            return subtract((CgsuiteInteger) other);
-        else if (other instanceof CanonicalShortGame)
-            return CanonicalShortGame.construct(this).subtract((CanonicalShortGame) other);
-        else if (other instanceof RationalNumber)
-            return new RationalNumber(this).subtract((RationalNumber) other);
-        else if (other instanceof Game)
-            return super.subtract((Game) other);
-        else
-            throw new InputException("Cannot add Integer to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
 
     public CgsuiteInteger subtract(CgsuiteInteger other)
@@ -102,18 +74,14 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
             return new CgsuiteInteger(bigValue().subtract(other.bigValue()));
     }
     
-    public CgsuiteObject multiply(CgsuiteObject other)
+    public Game multiply(Game g)
     {
-        if (other instanceof CgsuiteInteger)
-            return multiply((CgsuiteInteger) other);
-        else if (other instanceof CanonicalShortGame)
-            return CanonicalShortGame.construct(this).nortonMultiply((CanonicalShortGame) other);
-        else if (other instanceof RationalNumber)
-            return new RationalNumber(this).multiply((RationalNumber) other);
-        else if (other instanceof Game)
-            return new MultipleGame(this, (Game) other);
+        if (g instanceof CgsuiteInteger)
+            return multiply((CgsuiteInteger) g);
+        else if (g instanceof CanonicalShortGame)
+            return CanonicalShortGame.construct(this).nortonMultiply((CanonicalShortGame) g);
         else
-            throw new InputException("Cannot multiply Integer by object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
+            return new MultipleGame(this, g);
     }
 
     public CgsuiteInteger multiply(CgsuiteInteger other)

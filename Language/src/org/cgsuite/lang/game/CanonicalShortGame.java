@@ -1550,22 +1550,6 @@ public final class CanonicalShortGame extends Game
         return constructFromOptions(newLeftOptions, newRightOptions);
     }
     
-    public CgsuiteObject add(CgsuiteObject other)
-    {
-        if (other instanceof CgsuiteInteger)
-            return add(construct((CgsuiteInteger) other));
-        else if (other instanceof CanonicalShortGame)
-            return add((CanonicalShortGame) other);
-        else if (other instanceof RationalNumber && isNumber())
-            return getNumberPart().add((RationalNumber) other);
-        else if (other instanceof CanonicalStopperGame)
-            return ((CanonicalStopperGame) other).add(this);
-        else if (other instanceof Game)
-            return super.add((Game) other);
-        else
-            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
-    }
-
     /**
      * Calculates the sum of this game and <code>h</code> and returns the resulting
      * <code>CanonicalGame</code>.
@@ -1680,22 +1664,6 @@ public final class CanonicalShortGame extends Game
         return result;
     }
     
-    public CgsuiteObject subtract(CgsuiteObject other)
-    {
-        if (other instanceof CgsuiteInteger)
-            return subtract(construct((CgsuiteInteger) other));
-        else if (other instanceof CanonicalShortGame)
-            return subtract((CanonicalShortGame) other);
-        else if (other instanceof RationalNumber && isNumber())
-            return getNumberPart().subtract((RationalNumber) other);
-        else if (other instanceof CanonicalStopperGame)
-            return ((CanonicalStopperGame) other).subtract(this);
-        else if (other instanceof Game)
-            return super.subtract((Game) other);
-        else
-            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
-    }
-
     /**
      * Calculates the difference of this game and <code>h</code> and returns the
      * resulting <code>CanonicalGame</code>.

@@ -335,6 +335,7 @@ public class CgsuiteObject implements Cloneable
         }
     }
 
+    // TODO This should be obsolete.
     private CgsuiteObject castForMethodCall(CgsuiteMethod method)
     {
         if (method.getJavaMethod() == null)
