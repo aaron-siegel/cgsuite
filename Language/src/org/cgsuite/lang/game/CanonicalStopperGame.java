@@ -35,6 +35,7 @@ import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
+import org.cgsuite.lang.InputException;
 
 
 /**
@@ -155,6 +156,16 @@ public final class CanonicalStopperGame extends LoopyGame
     public boolean leq(CanonicalStopperGame h)
     {
         return super.leq(h);
+    }
+    
+    public Game asOnside(CanonicalStopperGame offside)
+    {
+        if (this.equals(offside))
+            return this;
+        else if (offside.leq(this))
+            return new StopperSidedGame(this, offside);
+        else
+            throw new InputException("offside must be <= onside.");
     }
     
     @Override

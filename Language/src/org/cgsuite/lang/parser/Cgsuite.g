@@ -29,6 +29,7 @@ tokens
 	QUESTION	= '?';
 	CARET       = '^';
 	VEE         = 'v';
+    AMPERSAND   = '&';
 	EQUALS		= '==';
 	NEQ			= '!=';
 	LT			= '<';
@@ -314,7 +315,7 @@ modifiers
 
 opCode
 options { greedy = true; }
-    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | NEG | POS
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND | NEG | POS
     | standardRelationalToken
     | LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
@@ -464,9 +465,9 @@ binaryPlusMinus
 	
 unaryAddExpr
     : plusMinus
-    | MINUS multiplyExpr -> ^(UNARY_MINUS[$MINUS] multiplyExpr)
-    | PLUS multiplyExpr -> ^(UNARY_PLUS[$PLUS] multiplyExpr)
-    | multiplyExpr
+    | MINUS sidleExpr -> ^(UNARY_MINUS[$MINUS] sidleExpr)
+    | PLUS sidleExpr -> ^(UNARY_PLUS[$PLUS] sidleExpr)
+    | sidleExpr
     ;
 
 plusMinus
@@ -476,7 +477,15 @@ options
     memoize = true;
 }
     : PLUSMINUS LPAREN expression (COMMA expression)* RPAREN -> ^(PLUSMINUS expression*)
-    | PLUSMINUS^ multiplyExpr
+    | PLUSMINUS^ sidleExpr
+    ;
+
+sidleExpr
+    : ordinalSumExpr (AMPERSAND^ ordinalSumExpr)?
+    ;
+
+ordinalSumExpr
+    : multiplyExpr (COLON^ multiplyExpr)*
     ;
 
 multiplyExpr
@@ -485,12 +494,6 @@ multiplyExpr
 
 expExpr
 	: postfixExpr (CARET^ postfixExpr { $CARET.setType(EXP); })?
-	;
-	
-unaryExpr
-	: MINUS unaryExpr -> ^(UNARY_MINUS unaryExpr)
-    | PLUS unaryExpr -> ^(UNARY_PLUS unaryExpr)
-    | postfixExpr
 	;
 	
 postfixExpr

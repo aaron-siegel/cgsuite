@@ -6,6 +6,7 @@ class CanonicalShortGame extends CanonicalStopperGame : java "org.cgsuite.lang.g
     override method op-(CanonicalShortGame h) : java "subtract";
     override method op neg() : java "negate";
     override method Leq(CanonicalShortGame h) : java "leq";
+    override method op:(CanonicalShortGame h) : java "ordinalSum";
     method Heat(CanonicalShortGame t) : java "heat";
     method Overheat(CanonicalShortGame s, CanonicalShortGame t) : java "overheat";
     method Cool(Number t) : java "cool";

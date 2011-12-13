@@ -439,6 +439,8 @@ public class Domain
             case FSLASH:
             case PERCENT:
             case EXP:
+            case COLON:
+            case AMPERSAND:
 
                 return binopExpression(tree);
 
@@ -669,12 +671,12 @@ public class Domain
                 for (CgsuiteTree child : tree.getChildren())
                     array.add(expression(child).simplify().createCrosslink());
                 return array;
-
+/*
             case COLON:
 
                 node = loopyNode(tree, new HashMap<String,LoopyGame.Node>());
                 return new LoopyGame(node);
-
+*/
             case ERROR:
 
                 String msg = expression(tree.getChild(0)).toString();
@@ -991,6 +993,8 @@ public class Domain
                 case FSLASH:    return x.invokeMethod("op /", y);
                 case PERCENT:   return x.invokeMethod("op %", y);
                 case EXP:       return x.invokeMethod("op ^", y);
+                case COLON:     return x.invokeMethod("op :", y);
+                case AMPERSAND: return x.invokeMethod("op &", y);
                 default:        throw new MalformedParseTreeException(tree);
             }
         }
