@@ -1,0 +1,43 @@
+/*${cgsuite.banner}*/
+
+class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.game.CanonicalStopperGame"
+
+    override method op+(obj) : java "add";
+    override method op-(obj) : java "subtract";
+    override method op neg() : java "negate";
+    method Leq(CanonicalStopperGame other) : java "leq(org.cgsuite.lang.game.LoopyGame)";
+    
+    property Degree.get
+        return Upsum(-this);
+    end
+
+    method Downsum(CanonicalStopperGame h)
+        return (this + h).Offside;
+    end
+
+    property Miny.get
+        return { this | 0 || 0 };
+    end
+    
+    override property Offside.get
+        return this;
+    end
+    
+    override property Onside.get
+        return this;
+    end
+    
+    property Tiny.get
+        return { 0 || 0 | -this };
+    end
+    
+    method Upsum(CanonicalStopperGame h)
+        return (this + h).Onside;
+    end
+    
+    property Variety.get
+        // TODO filter by stable degree
+        return Downsum((-this).Upsum(Degree));
+    end
+    
+end

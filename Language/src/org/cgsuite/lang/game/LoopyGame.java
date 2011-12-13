@@ -29,21 +29,27 @@
 
 package org.cgsuite.lang.game;
 
+import static org.cgsuite.lang.game.CanonicalShortGame.STAR;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
+import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
+import org.openide.filesystems.FileSystem.Environment;
 
 
 /**
@@ -109,7 +115,7 @@ public class LoopyGame extends Game
     
     private static boolean DEBUG = false;
     
-    Digraph graph;
+    Bigraph graph;
     int startVertex;
     
     ////////////////////////////////////////////////////////////////////////
@@ -128,7 +134,7 @@ public class LoopyGame extends Game
      *          between <code>0</code> and
      *          <code>graph.getNumVertices()-1</code>.
      */
-    public LoopyGame(Digraph graph, int startVertex)
+    public LoopyGame(Bigraph graph, int startVertex)
     {
         this();
         if (startVertex < 0 || startVertex >= graph.getNumVertices())
@@ -157,9 +163,14 @@ public class LoopyGame extends Game
         startVertex = node.startVertex;
     }
 
-    LoopyGame()
+    LoopyGame(CgsuiteClass type)
     {
-        super(CgsuitePackage.forceLookupClass("LoopyGame"));
+        super(type);
+    }
+    
+    private LoopyGame()
+    {
+        this(CgsuiteClass.OBJECT_TYPE);
     }
     
     private static void expandMarkers(int size)
@@ -213,13 +224,13 @@ public class LoopyGame extends Game
         }
     }
     
-    static Digraph initialize(Node startNode)
+    static Bigraph initialize(Node startNode)
     {
         return initialize(startNode, false);
     }
     
     // missingMovesAreSenteThreats option is currently not publicly accessible.
-    private static Digraph initialize(Node startNode, boolean missingMovesAreSenteThreats)
+    private static Bigraph initialize(Node startNode, boolean missingMovesAreSenteThreats)
     {
         List<Object> nodes = new ArrayList<Object>();
         Map<Object,Integer> nodeMap = new HashMap<Object,Integer>();
@@ -318,7 +329,7 @@ public class LoopyGame extends Game
                 }
             }
         }
-        graphInfo.graph = new Digraph(pg.leftEdges, pg.rightEdges);
+        graphInfo.graph = new Bigraph(pg.leftEdges, pg.rightEdges);
         return graphInfo.graph;
     }
 
@@ -399,6 +410,112 @@ public class LoopyGame extends Game
         toOutput(output, true);
         return output;
     }
+    
+    private enum UponType
+    {
+        UPON,
+        UPONTH,
+        UPOVER,
+        UPOVERTH;
+    }
+    
+    private class UponForm
+    {
+
+        public UponForm(UponType type, RationalNumber number)
+        {
+            this.type = type;
+            this.number = number;
+        }
+        
+        UponType type;
+        RationalNumber number;
+    }
+    
+    private CanonicalShortGame isNumberTiny()
+    {
+        if (!isStopper())
+            return null;
+        
+        if (getLeftOptions().size() != 1 || getRightOptions().size() != 1)
+            return null;
+        
+        LoopyGame gl = (LoopyGame) getLeftOptions().anyElement();
+        if (!gl.isLoopfree())
+            return null;
+        
+        CanonicalShortGame number = gl.loopfreeRepresentation();
+        if (!number.isNumber())
+            return null;
+        
+        LoopyGame gr = (LoopyGame) getRightOptions().iterator().next();
+        
+        if (gr.getLeftOptions().size() != 1 || gr.getRightOptions().size() != 1)
+            return null;
+        
+        LoopyGame grl = (LoopyGame) gr.getLeftOptions().anyElement();
+        
+        if (!grl.isLoopfree())
+            return null;
+        
+        if (!grl.loopfreeRepresentation().equals(number))
+            return null;
+        
+        LoopyGame grr = (LoopyGame) gr.getRightOptions().anyElement();
+        
+        if (!grr.subtract(number).leq(CanonicalStopperGame.UNDER))
+            return null;
+        
+        return number;
+    }
+    
+    private UponForm uponForm(boolean checkUponth)
+    {
+        if (!isStopper())
+        {
+            return null;
+        }
+        
+        if (!(this instanceof CanonicalStopperGame))
+        {
+            return ((LoopyGame) canonicalizeStopper()).uponForm(checkUponth);
+        }
+        
+        if (getLeftOptions().size() != 1 || getRightOptions().size() != 1)
+        {
+            return null;
+        }
+        
+        LoopyGame gl = (LoopyGame) getLeftOptions().iterator().next();
+        LoopyGame gr = (LoopyGame) getRightOptions().iterator().next();
+        
+        CanonicalShortGame glc = null, grc = null;
+        
+        if (gl.isLoopfree())
+            glc = gl.loopfreeRepresentation();
+        if (gr.isLoopfree())
+            grc = gr.loopfreeRepresentation();
+        
+        if (equals(gl) && grc != null && grc.add(STAR).isNumber())
+        {
+            return new UponForm(UponType.UPON, grc.getNumberPart());
+        }
+        
+        if (checkUponth)
+        {
+            if (glc != null && glc.isNumber())
+            {
+                RationalNumber number = glc.getNumberPart();
+                UponForm uf = gr.negate().add(STAR).uponForm(false);
+                if (uf != null && uf.type == UponType.UPON && uf.number.negate().equals(number))
+                {
+                    return new UponForm(UponType.UPONTH, number);
+                }
+            }
+        }
+        
+        return null;
+    }
 
     int toOutput(StyledTextOutput output, boolean forceBrackets)
     {
@@ -470,6 +587,122 @@ public class LoopyGame extends Game
                 output.appendMath("under");
                 return 0;
             }
+        }
+        
+        CanonicalShortGame tinyN = isNumberTiny();
+        CanonicalShortGame minyN = negate().isNumberTiny();
+        
+        System.out.println("FOO: " + tinyN + " / " + minyN);
+        
+        if (tinyN != null || minyN != null)
+        {
+            boolean tiny = (tinyN != null);
+            
+            String str;
+            CanonicalShortGame translate;
+            LoopyGame subscript;
+            
+            if (tiny)
+            {
+                str = "Tiny";
+                translate = tinyN;
+                subscript = ((LoopyGame) ((LoopyGame) getRightOptions().anyElement()).getRightOptions().anyElement()).subtract(translate).negate();
+            }
+            else
+            {
+                str = "Miny";
+                translate = minyN.negate();
+                subscript = ((LoopyGame) ((LoopyGame) getLeftOptions().anyElement()).getLeftOptions().anyElement()).subtract(translate);
+            }
+            
+            // First get a sequence for the subscript.  If that sequence contains any
+            // subscripts or superscripts, then we suppress.
+            StyledTextOutput sub = subscript.toOutput();
+            
+            EnumSet<StyledTextOutput.Style> styles = sub.allStyles();
+            styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS);
+            if (styles.isEmpty())
+            {
+                if (!translate.equals(CanonicalShortGame.ZERO))
+                {
+                    output.appendOutput(translate.getNumberPart().toOutput());
+                    output.appendText(Output.Mode.PLAIN_TEXT, "+");
+                }
+                output.appendSymbol(
+                    EnumSet.noneOf(StyledTextOutput.Style.class),
+                    EnumSet.complementOf(EnumSet.of(Output.Mode.PLAIN_TEXT)),
+                    tiny ? StyledTextOutput.Symbol.TINY : StyledTextOutput.Symbol.MINY
+                    );
+                output.appendOutput(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT), sub);
+                output.appendText(Output.Mode.PLAIN_TEXT, "." + str);
+                return 0;
+            }
+        }
+            
+        UponForm uf = null;
+        boolean ufStar = false;
+        int ufSign = 1;
+
+        uf = uponForm(true);
+        if (uf == null)
+        {
+            ufSign = -1;
+            uf = negate().uponForm(true);
+        }
+        if (uf == null)
+        {
+            ufStar = true;
+            uf = negate().add(STAR).uponForm(true);
+        }
+        if (uf == null)
+        {
+            ufSign = 1;
+            uf = add(STAR).uponForm(true);
+        }
+
+        if (uf != null)
+        {
+            if (ufSign < 0)
+                uf.number = uf.number.negate();
+
+            if (!uf.number.equals(RationalNumber.ZERO))
+                output.appendOutput(uf.number.toOutput());
+
+            if (ufSign > 0)
+                output.appendSymbol(StyledTextOutput.Symbol.UP);
+            else
+                output.appendSymbol(StyledTextOutput.Symbol.DOWN);
+
+            EnumSet<StyledTextOutput.Style> exponentStyle =
+                EnumSet.of(StyledTextOutput.Style.FACE_MATH,
+                    ufSign > 0 ? StyledTextOutput.Style.LOCATION_SUPERSCRIPT : StyledTextOutput.Style.LOCATION_SUBSCRIPT);
+
+            switch (uf.type)
+            {
+                case UPON:
+                    output.appendText(exponentStyle, "[on]");
+                    break;
+
+                case UPONTH:
+                    output.appendText(exponentStyle, "on");
+                    break;
+
+                case UPOVER:
+                    output.appendText(exponentStyle, "[over]");
+                    break;
+
+                case UPOVERTH:
+                    output.appendText(exponentStyle, "over");
+                    break;
+
+                default:
+                    assert false;
+            }
+
+            if (ufStar)
+                output.appendSymbol(StyledTextOutput.Symbol.STAR);
+
+            return 0;
         }
 
         nodeStack.put(g, null);
@@ -619,7 +852,8 @@ public class LoopyGame extends Game
         return rightOptions;
     }
     
-    public LoopyGame getInverse()
+    @Override
+    public LoopyGame negate()
     {
         LoopyGame inverse = new LoopyGame();
         inverse.graph = graph.getInverse();
@@ -629,7 +863,7 @@ public class LoopyGame extends Game
     
     public LoopyGame solve()
     {
-        Digraph onside  = simplifyGraph(graph, new boolean[graph.getNumVertices()], ONSIDE, startVertex),
+        Bigraph onside  = simplifyGraph(graph, new boolean[graph.getNumVertices()], ONSIDE, startVertex),
                 offside = simplifyGraph(graph, new boolean[graph.getNumVertices()], OFFSIDE, startVertex);
         
         if (onside.isAlternatingCycleFree(0) && offside.isAlternatingCycleFree(0) &&
@@ -648,7 +882,7 @@ public class LoopyGame extends Game
     
     public LoopyGame solve(boolean onside)
     {
-        Digraph side = simplifyGraph(graph, new boolean[graph.getNumVertices()], onside ? ONSIDE : OFFSIDE, startVertex);
+        Bigraph side = simplifyGraph(graph, new boolean[graph.getNumVertices()], onside ? ONSIDE : OFFSIDE, startVertex);
         
         LoopyGame solution = (side.isAlternatingCycleFree(0) ? new CanonicalStopperGame() : new LoopyGame());
         solution.graph = side;
@@ -692,29 +926,12 @@ public class LoopyGame extends Game
         return cachedCanonicalForms[vertex];
     }
     
-    /**
-     * Simplifies this game, if possible.
-     * <ul>
-     * <li>If this game is loopfree (that is,
-     * if <code>graph.</code>{@link org.cgsuite.util.Digraph#isCycleFree(int) isCycleFree}
-     * returns <code>true</code>), then return the same
-     * value as {@link #loopfreeRepresentation() loopfreeRepresentation}.
-     * <li>Otherwise, if this game is a stopper (that is, if
-     * {@link #isStopper() isStopper} returns <code>true</code>), then
-     * return the same value as
-     * {@link #canonicalizeStopper() canonicalizeStopper}.
-     * <li>Otherwise, simply return <code>this</code>.
-     * </ul>
-     * 
-     * @return  A simplified representation of this game, if possible;
-     *          otherwise <code>this</code>.
-     */
     @Override
     public Game simplify()
     {
         if (graph.isCycleFree(startVertex))
         {
-            return canonicalize(startVertex);
+            return canonicalize(startVertex).simplify();
         }
         else if (isStopper())
         {
@@ -722,7 +939,12 @@ public class LoopyGame extends Game
         }
         else
         {
-            return this;
+            CanonicalStopperGame onside = onside();
+            CanonicalStopperGame offside = offside();
+            if (onside.equals(offside))
+                return onside;
+            else
+                return new StopperSidedGame(onside(), offside());
         }
     }
     
@@ -746,6 +968,11 @@ public class LoopyGame extends Game
         return sum;
     }
     
+    public LoopyGame add(CanonicalShortGame h)
+    {
+        return add(new CanonicalStopperGame(h));
+    }
+    
     /**
      * Calculates the difference of this game and <code>h</code>.
      * <p>
@@ -757,9 +984,14 @@ public class LoopyGame extends Game
      */
     public LoopyGame subtract(LoopyGame h)
     {
-        return add(h.getInverse());
+        return add(h.negate());
     }
-     
+    
+    public LoopyGame subtract(CanonicalShortGame h)
+    {
+        return subtract(new CanonicalStopperGame(h));
+    }
+    
     /**
      * Compares this game with another <code>LoopyGame</code>.
      *
@@ -853,7 +1085,7 @@ public class LoopyGame extends Game
     }
      */
     
-    public Digraph getGraph()
+    public Bigraph getGraph()
     {
         return graph;
     }
@@ -1665,7 +1897,7 @@ public class LoopyGame extends Game
             //Context.getActiveContext().getLogger().finer("Fusing an ACF graph.");
             fuse(pg, pg.reverse(), STOPPER, 0);
             //Context.getActiveContext().getLogger().finer("Finished fusing ACF graph.");
-            g.graph = new Digraph(pg.leftEdges, pg.rightEdges, 0);
+            g.graph = new Bigraph(pg.leftEdges, pg.rightEdges, 0);
             g.startVertex = 0;
             return g;
         }
@@ -1675,7 +1907,7 @@ public class LoopyGame extends Game
         
         // There are some vertices in the graph not equivalent to stoppers.  But there is still hope.
         
-        Digraph simplerGraph = simplifyGraph
+        Bigraph simplerGraph = simplifyGraph
             (node.graphInfo.simplifiedGraphs[side], node.graphInfo.canonical, side, node.startVertex);
         //Context.getActiveContext().getLogger().finer(
         //    simplerGraph.isAlternatingCycleFree(0) ?
@@ -1688,7 +1920,7 @@ public class LoopyGame extends Game
         return g;
     }
     
-    private static Digraph simplifyGraph(Digraph graph, boolean[] canonical, int side, int specificVertex)
+    private static Bigraph simplifyGraph(Bigraph graph, boolean[] canonical, int side, int specificVertex)
     {
         //if (side != STOPPER) Context.getActiveContext().getLogger().finer("Entered simplifyGraph: " + side + "," + specificVertex);
 
@@ -1819,7 +2051,7 @@ public class LoopyGame extends Game
 //                    ("Basic / Unraveling / 2nd Basic / 2nd Elim Times: " +
 //                     basicTm + " / " + unravelTm + " / " + secondBasicTm + " / " + secondElimTm + " ms.");
             }
-            return new Digraph(newGraph.leftEdges, newGraph.rightEdges);
+            return new Bigraph(newGraph.leftEdges, newGraph.rightEdges);
         }
         else
         {
@@ -1827,7 +2059,7 @@ public class LoopyGame extends Game
             //if (side != STOPPER) Context.getActiveContext().getLogger().finer("Applying fusion.");
             fuse(newGraph, reverse, side, specificVertex);
             //if (side != STOPPER) Context.getActiveContext().getLogger().finer("Finished applying fusion.");
-            return new Digraph(newGraph.leftEdges, newGraph.rightEdges, specificVertex);
+            return new Bigraph(newGraph.leftEdges, newGraph.rightEdges, specificVertex);
         }
     }
     
@@ -1848,7 +2080,7 @@ public class LoopyGame extends Game
         Arrays.fill(markers, 0, pg.getNumVertices() * pg.getNumVertices(), (byte) 0);
     }
     
-    static Digraph canonicalizeStopperGraph(Digraph graph, int startVertex)
+    static Bigraph canonicalizeStopperGraph(Bigraph graph, int startVertex)
     {
         Pregraph newGraph = new Pregraph(graph.pack(startVertex));
         // Note: In F&G, reversing the graph accounts for 15% of total
@@ -1870,7 +2102,7 @@ public class LoopyGame extends Game
         
         fuse(newGraph, reverse, STOPPER, 0);
         
-        return new Digraph(newGraph.leftEdges, newGraph.rightEdges, 0);
+        return new Bigraph(newGraph.leftEdges, newGraph.rightEdges, 0);
     }
     
     private static void updateReachable(Pregraph pg, int startVertex)
@@ -2361,7 +2593,7 @@ public class LoopyGame extends Game
             fuseMap[i] = i;
         }
         
-        Digraph graphForACTesting = null;
+        Bigraph graphForACTesting = null;
         
         if (side != STOPPER)
         {
@@ -2369,7 +2601,7 @@ public class LoopyGame extends Game
             // below which there are no alternating cycles.  This will
             // have to do until I understand fusion better.
             
-            graphForACTesting = new Digraph(pg.leftEdges, pg.rightEdges);
+            graphForACTesting = new Bigraph(pg.leftEdges, pg.rightEdges);
         }
         
         markAllStrongWins(pg, reverse, pg, reverse);
@@ -2579,9 +2811,9 @@ public class LoopyGame extends Game
         static class GraphInfo
         {
             boolean valid;
-            Digraph graph;
+            Bigraph graph;
             boolean[] canonical;
-            Digraph[] simplifiedGraphs = new Digraph[4];
+            Bigraph[] simplifiedGraphs = new Bigraph[4];
             GraphInfo() { valid = true; }
         }
         
@@ -2922,7 +3154,7 @@ public class LoopyGame extends Game
             rightEdges = new int[numVertices][];
         }
         
-        Pregraph(Digraph g)
+        Pregraph(Bigraph g)
         {
             leftEdges = g.cloneAllLeftEdges();
             rightEdges = g.cloneAllRightEdges();

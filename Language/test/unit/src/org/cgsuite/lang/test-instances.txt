@@ -51,11 +51,16 @@ PowTo*                          \ {0,^*|0} \ ^.PowTo(2)+* \
 
 on                              \ {pass|} \ on \
 off                             \ {|pass} \ off \
+dud                             \ {pass|pass} \ dud \
 over                            \ {0|pass} \ over \
 under                           \ {pass|0} \ under \
-upon                            \ {pass|*} \ {pass|*} \
+//upon                            \ {pass|*} \ {pass|*} \
 Hanging pass                    \ pass \ !!Unexpected "pass". \
 Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
+loopy plus number               \ {0|pass}+5 \ 5+over \
+loopy plus canonical            \ {0|pass}+^ \ over \
+number plus loopy               \ 5+{0|pass} \ 5+over \
+loopy minus number              \ {0|pass}-5 \ -5+over \
 
 // Simplification
 

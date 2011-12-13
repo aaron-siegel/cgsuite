@@ -1,15 +1,11 @@
 /*${cgsuite.banner}*/
 
-class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalShortGame"
+class CanonicalShortGame extends CanonicalStopperGame : java "org.cgsuite.lang.game.CanonicalShortGame"
 
     override method op+(obj) : java "add";
     override method op-(obj) : java "subtract";
     override method op neg() : java "negate";
-    method op pos() return this; end
-    method Leq(CanonicalShortGame other) : java "leq";
-    override property CanonicalForm.get
-        return this;
-    end
+    override method Leq(CanonicalShortGame other) : java "leq";
     method Heat(CanonicalShortGame t) : java "heat";
     method Overheat(CanonicalShortGame s, CanonicalShortGame t) : java "overheat";
     method Cool(Number t) : java "cool";
@@ -79,12 +75,12 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
         
     end
     
-    property IsReduced.get
-        return this == ReducedCanonicalForm;
+    override property Degree.get
+        return 0;
     end
     
-    property Miny.get
-        return { this | 0 || 0 };
+    property IsReduced.get
+        return this == ReducedCanonicalForm;
     end
     
     override property Outcome.get
@@ -162,10 +158,6 @@ class CanonicalShortGame extends Game : java "org.cgsuite.lang.game.CanonicalSho
             return OrdinalSum(CanonicalShortGame.Blowup(x-1));
         end
     
-    end
-    
-    property Tiny.get
-        return { 0 || 0 | -this };
     end
     
     static method Blowup(DyadicRational x)

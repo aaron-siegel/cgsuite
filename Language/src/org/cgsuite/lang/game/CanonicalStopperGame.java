@@ -30,7 +30,13 @@
 package org.cgsuite.lang.game;
 
 import java.math.BigInteger;
+import org.cgsuite.lang.CgsuiteClass;
+import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteObject;
+import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
+import org.cgsuite.lang.Game;
+import org.cgsuite.lang.InputException;
 
 
 /**
@@ -52,6 +58,8 @@ import org.cgsuite.lang.CgsuiteSet;
  */
 public final class CanonicalStopperGame extends LoopyGame
 {
+    public static final CgsuiteClass TYPE = CgsuitePackage.forceLookupClass("CanonicalStopperGame");
+    
     /**
      * A static reference to the game <code>ON = {ON|}</code>.
      */
@@ -72,23 +80,24 @@ public final class CanonicalStopperGame extends LoopyGame
     static
     {
         ON = new CanonicalStopperGame();
-        ON.graph = new Digraph(
+        ON.graph = new Bigraph(
             new int[][] { new int[] { 0 } },
             new int[][] { new int[0] }
             );
         ON.startVertex = 0;
-        OFF = ON.getInverse();
+        OFF = ON.negate();
         OVER = new CanonicalStopperGame();
-        OVER.graph = new Digraph(
+        OVER.graph = new Bigraph(
             new int[][] { new int[] { 1 }, new int[0] },
             new int[][] { new int[] { 0 }, new int[0] }
             );
         OVER.startVertex = 0;
-        UNDER = OVER.getInverse();
+        UNDER = OVER.negate();
     }
     
     CanonicalStopperGame()
     {
+        super(TYPE);
     }
     
     /**
@@ -97,6 +106,7 @@ public final class CanonicalStopperGame extends LoopyGame
      */
     public CanonicalStopperGame(CanonicalShortGame g)
     {
+        this();
         graph = initialize(new LoopyGame.Node(g));
         startVertex = 0;
     }
@@ -130,7 +140,7 @@ public final class CanonicalStopperGame extends LoopyGame
     }
     
     @Override
-    public CanonicalStopperGame getInverse()
+    public CanonicalStopperGame negate()
     {
         CanonicalStopperGame inverse = new CanonicalStopperGame();
         inverse.graph = graph.getInverse();
@@ -139,9 +149,48 @@ public final class CanonicalStopperGame extends LoopyGame
     }
 
     @Override
-    public CanonicalStopperGame simplify()
+    public Game simplify()
     {
-        return this;
+        if (graph.isCycleFree(startVertex))
+        {
+            return canonicalize(startVertex).simplify();
+        }
+        else
+        {
+            return this;
+        }
+    }
+    
+    public CgsuiteObject add(CgsuiteObject other)
+    {
+        if (graph.isCycleFree(startVertex))
+            return canonicalize(startVertex).add(other);
+        else if (other instanceof CanonicalShortGame)
+            return add((CanonicalShortGame) other);
+        else if (other instanceof CgsuiteInteger)
+            return add(new CanonicalShortGame((CgsuiteInteger) other));
+        else if (other instanceof LoopyGame)
+            return add((LoopyGame) other);
+        else if (other instanceof Game)
+            return super.add((Game) other);
+        else
+            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
+    }
+    
+    public CgsuiteObject subtract(CgsuiteObject other)
+    {
+        if (graph.isCycleFree(startVertex))
+            return canonicalize(startVertex).subtract(other);
+        else if (other instanceof CanonicalShortGame)
+            return subtract((CanonicalShortGame) other);
+        else if (other instanceof CgsuiteInteger)
+            return subtract(new CanonicalShortGame((CgsuiteInteger) other));
+        else if (other instanceof LoopyGame)
+            return add(((LoopyGame) other).negate());
+        else if (other instanceof Game)
+            return super.subtract((Game) other);
+        else
+            throw new InputException("Cannot add CanonicalShortGame to object of type " + other.getCgsuiteClass().getQualifiedName() + ".");
     }
     
     public RationalNumber leftStop()
@@ -300,7 +349,7 @@ public final class CanonicalStopperGame extends LoopyGame
         }
         else
         {
-            return upsum(getInverse());
+            return upsum(negate());
         }
     }
 }

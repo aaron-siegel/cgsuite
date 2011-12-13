@@ -67,43 +67,101 @@ public class ExplicitGame extends Game
     {
         CgsuiteSet simplifiedLeftOptions = new CgsuiteSet();
         CgsuiteSet simplifiedRightOptions = new CgsuiteSet();
-        List<CanonicalShortGame> canonicalLeftOptions = new ArrayList<CanonicalShortGame>();
-        List<CanonicalShortGame> canonicalRightOptions = new ArrayList<CanonicalShortGame>();
 
+        boolean allStoppers = true;
         boolean allCanonical = true;
+        
         for (CgsuiteObject x : leftOptions)
         {
             CgsuiteObject simp = x.simplify();
             simplifiedLeftOptions.add(simp);
-
-            if (simp instanceof CgsuiteInteger)
-                canonicalLeftOptions.add(CanonicalShortGame.construct((CgsuiteInteger) simp));
-            else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
-                canonicalLeftOptions.add(CanonicalShortGame.construct((RationalNumber) simp));
-            else if (simp instanceof CanonicalShortGame)
-                canonicalLeftOptions.add((CanonicalShortGame) simp);
-            else
+            
+            if (!simp.getCgsuiteClass().hasAncestor(CanonicalShortGame.TYPE))
+            {
                 allCanonical = false;
+                if (!simp.getCgsuiteClass().hasAncestor(CanonicalStopperGame.TYPE))
+                {
+                    allStoppers = false;
+                }
+            }
         }
+
         for (CgsuiteObject x : rightOptions)
         {
             CgsuiteObject simp = x.simplify();
             simplifiedRightOptions.add(simp);
-
-            if (simp instanceof CgsuiteInteger)
-                canonicalRightOptions.add(CanonicalShortGame.construct((CgsuiteInteger) simp));
-            else if (simp instanceof RationalNumber && ((RationalNumber) simp).isDyadic())
-                canonicalRightOptions.add(CanonicalShortGame.construct((RationalNumber) simp));
-            else if (simp instanceof CanonicalShortGame)
-                canonicalRightOptions.add((CanonicalShortGame) simp);
-            else
+            
+            if (!simp.getCgsuiteClass().hasAncestor(CanonicalShortGame.TYPE))
+            {
                 allCanonical = false;
+                if (!simp.getCgsuiteClass().hasAncestor(CanonicalStopperGame.TYPE))
+                {
+                    allStoppers = false;
+                }
+            }
         }
-
+        
         if (allCanonical)
+        {
+            List<CanonicalShortGame> canonicalLeftOptions = new ArrayList<CanonicalShortGame>();
+            List<CanonicalShortGame> canonicalRightOptions = new ArrayList<CanonicalShortGame>();
+            
+            for (CgsuiteObject simp : simplifiedLeftOptions)
+            {
+                if (simp instanceof CgsuiteInteger)
+                    canonicalLeftOptions.add(CanonicalShortGame.construct((CgsuiteInteger) simp));
+                else if (simp instanceof CanonicalShortGame)
+                    canonicalLeftOptions.add((CanonicalShortGame) simp);
+                else
+                    assert false;
+            }
+            
+            for (CgsuiteObject simp : simplifiedRightOptions)
+            {
+                if (simp instanceof CgsuiteInteger)
+                    canonicalRightOptions.add(CanonicalShortGame.construct((CgsuiteInteger) simp));
+                else if (simp instanceof CanonicalShortGame)
+                    canonicalRightOptions.add((CanonicalShortGame) simp);
+                else
+                    assert false;
+            }
+            
             return CanonicalShortGame.construct(canonicalLeftOptions, canonicalRightOptions).simplify();
+        }
+        else if (allStoppers)
+        {
+            LoopyGame.Node node = new LoopyGame.Node();
+            
+            for (CgsuiteObject simp : simplifiedLeftOptions)
+            {
+                if (simp instanceof CgsuiteInteger)
+                    node.addLeftEdge(CanonicalShortGame.construct((CgsuiteInteger) simp));
+                else if (simp instanceof CanonicalShortGame)
+                    node.addLeftEdge((CanonicalShortGame) simp);
+                else if (simp instanceof CanonicalStopperGame)
+                    node.addLeftEdge((CanonicalStopperGame) simp);
+                else
+                    assert false;
+            }
+            
+            for (CgsuiteObject simp : simplifiedRightOptions)
+            {
+                if (simp instanceof CgsuiteInteger)
+                    node.addRightEdge(CanonicalShortGame.construct((CgsuiteInteger) simp));
+                else if (simp instanceof CanonicalShortGame)
+                    node.addRightEdge((CanonicalShortGame) simp);
+                else if (simp instanceof CanonicalStopperGame)
+                    node.addRightEdge((CanonicalStopperGame) simp);
+                else
+                    assert false;
+            }
+            
+            return new LoopyGame(node).simplify();
+        }
         else
+        {
             return new ExplicitGame(simplifiedLeftOptions, simplifiedRightOptions);
+        }
     }
 
     @Override

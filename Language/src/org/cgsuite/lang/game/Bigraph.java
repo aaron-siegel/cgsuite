@@ -38,7 +38,7 @@ import java.util.Arrays;
  * @version $Revision: 1.6 $ $Date: 2005/11/10 00:14:40 $
  * @since   0.6
  */
-public class Digraph
+public class Bigraph
 {
     private static final int
         FLAG_CYCLE_FREE = 0x0001,
@@ -83,7 +83,7 @@ public class Digraph
      *          or <code>rightEdges[i][j]</code> is not between
      *          <code>0</code> and <code>leftEdges.length-1</code>.
      */
-    public Digraph(int[][] leftEdges, int[][] rightEdges)
+    public Bigraph(int[][] leftEdges, int[][] rightEdges)
     {
         numVertices = leftEdges.length;
         if (rightEdges.length != numVertices)
@@ -159,7 +159,7 @@ public class Digraph
      *          <code>-1</code> and <code>leftEdges.length-1</code>.
      * @see     #pack(int) pack
      */
-    public Digraph(int[][] leftEdges, int[][] rightEdges, int masterVertex)
+    public Bigraph(int[][] leftEdges, int[][] rightEdges, int masterVertex)
     {
         if (leftEdges.length != rightEdges.length)
         {
@@ -174,7 +174,7 @@ public class Digraph
         reachableFrom = -1;
     }
     
-    private Digraph(int numVertices)
+    private Bigraph(int numVertices)
     {
         this.numVertices = numVertices;
         leftEdges = new int[numVertices][];
@@ -183,7 +183,7 @@ public class Digraph
         reachableFrom = -1;
     }
     
-    private Digraph()
+    private Bigraph()
     {
         reachableFrom = -1;
     }
@@ -193,10 +193,10 @@ public class Digraph
         return pack(leftEdges, rightEdges, masterVertex);
     }
     
-    public Digraph packGraph(int masterVertex)
+    public Bigraph packGraph(int masterVertex)
     {
         int[][][] edges = pack(masterVertex);
-        Digraph newGraph = new Digraph();
+        Bigraph newGraph = new Bigraph();
         newGraph.numVertices = edges[0].length;
         newGraph.leftEdges = edges[0];
         newGraph.rightEdges = edges[1];
@@ -208,11 +208,11 @@ public class Digraph
     @Override
     public boolean equals(Object obj)
     {
-        if (!(obj instanceof Digraph))
+        if (!(obj instanceof Bigraph))
         {
             return false;
         }
-        Digraph other = (Digraph) obj;
+        Bigraph other = (Bigraph) obj;
         if (numVertices != other.numVertices)
         {
             return false;
@@ -425,9 +425,9 @@ public class Digraph
      *
      * @return The inverse of this graph.
      */
-    public Digraph getInverse()
+    public Bigraph getInverse()
     {
-        Digraph inverse = new Digraph();
+        Bigraph inverse = new Bigraph();
         // The following is safe since the structure is immutable.
         inverse.numVertices = numVertices;
         inverse.leftEdges = rightEdges;
@@ -454,10 +454,10 @@ public class Digraph
      * @param   h The <code>Digraph</code> to add to this one.
      * @return  The direct sum of this graph and <code>h</code>.
      */
-    public Digraph directSum(Digraph h)
+    public Bigraph directSum(Bigraph h)
     {
         int numH = h.numVertices;
-        Digraph sumGraph = new Digraph(numVertices * numH);
+        Bigraph sumGraph = new Bigraph(numVertices * numH);
 
         for (int i = 0; i < numVertices; i++)
         {
@@ -721,7 +721,7 @@ public class Digraph
         }
     }
     
-    public boolean isIsomorphicTo(int vertex, Digraph h, int hVertex)
+    public boolean isIsomorphicTo(int vertex, Bigraph h, int hVertex)
     {
         // Check for equal #s of reachables!!!
         if (   countReachableVertices(vertex) != h.countReachableVertices(hVertex)
@@ -762,7 +762,7 @@ public class Digraph
     
     private boolean findIsomorphism(
         int vertexAt,
-        Digraph h,
+        Bigraph h,
         int hVertexAt,
         int[] mapping,
         int[] revMapping,
@@ -910,9 +910,9 @@ public class Digraph
         return false;
     }
     
-    public Digraph starOperator(Digraph h)
+    public Bigraph starOperator(Bigraph h)
     {
-        Digraph starGraph = new Digraph(numVertices + h.numVertices);
+        Bigraph starGraph = new Bigraph(numVertices + h.numVertices);
         // Copy all the moves from H
         for (int vertex = 0; vertex < h.numVertices; vertex++)
         {
@@ -1415,8 +1415,8 @@ public class Digraph
             System.out.println(r.nextInt());
         }
         System.exit(0);
-        Digraph g = new Digraph(4);
-        Digraph h = new Digraph(3);
+        Bigraph g = new Bigraph(4);
+        Bigraph h = new Bigraph(3);
         
         g.leftEdges = new int[][] { { 2, 1 }, { }, { 1 }, { } };
         g.rightEdges = new int[][] { { 3 }, { }, { 1 }, { 3 } };

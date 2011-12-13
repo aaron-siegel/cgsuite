@@ -1558,6 +1558,8 @@ public final class CanonicalShortGame extends Game
             return add((CanonicalShortGame) other);
         else if (other instanceof RationalNumber && isNumber())
             return getNumberPart().add((RationalNumber) other);
+        else if (other instanceof CanonicalStopperGame)
+            return ((CanonicalStopperGame) other).add(this);
         else if (other instanceof Game)
             return super.add((Game) other);
         else
@@ -1686,6 +1688,8 @@ public final class CanonicalShortGame extends Game
             return subtract((CanonicalShortGame) other);
         else if (other instanceof RationalNumber && isNumber())
             return getNumberPart().subtract((RationalNumber) other);
+        else if (other instanceof CanonicalStopperGame)
+            return ((CanonicalStopperGame) other).subtract(this);
         else if (other instanceof Game)
             return super.subtract((Game) other);
         else
