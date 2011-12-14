@@ -12,7 +12,7 @@ class CanonicalShortGame extends CanonicalStopperGame : java "org.cgsuite.lang.g
     method Cool(Number t) : java "cool";
     method NortonProduct(CanonicalShortGame h) : java "nortonMultiply";
     method ConwayProduct(CanonicalShortGame h) : java "conwayMultiply";
-    method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
+    override method OrdinalSum(CanonicalShortGame h) : java "ordinalSum";
 
     override method Options(Player player)
         if player == Player.Left then

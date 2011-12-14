@@ -496,6 +496,46 @@ public class Bigraph
         return sumGraph;
     }
     
+    public Bigraph ordinalSum(Bigraph h, int junctionVertex)
+    {
+        int numH = h.numVertices;
+        Bigraph sumGraph = new Bigraph(numVertices + numH);
+        
+        for (int i = 0; i < numVertices; i++)
+        {
+            sumGraph.leftEdges[i] = Arrays.copyOf(leftEdges[i], leftEdges[i].length);
+            sumGraph.rightEdges[i] = Arrays.copyOf(rightEdges[i], rightEdges[i].length);
+        }
+        
+        int jlenL = leftEdges[junctionVertex].length;
+        int jlenR = rightEdges[junctionVertex].length;
+        
+        for (int i = 0; i < numH; i++)
+        {
+            sumGraph.leftEdges[numVertices+i] = new int[jlenL + h.leftEdges[i].length];
+            for (int k = 0; k < jlenL; k++)
+            {
+                sumGraph.leftEdges[numVertices+i][k] = leftEdges[junctionVertex][k];
+            }
+            for (int k = 0; k < h.leftEdges[i].length; k++)
+            {
+                sumGraph.leftEdges[numVertices+i][jlenL+k] = h.leftEdges[i][k] + numVertices;
+            }
+            
+            sumGraph.rightEdges[numVertices+i] = new int[jlenR + h.rightEdges[i].length];
+            for (int k = 0; k < jlenR; k++)
+            {
+                sumGraph.rightEdges[numVertices+i][k] = rightEdges[junctionVertex][k];
+            }
+            for (int k = 0; k < h.rightEdges[i].length; k++)
+            {
+                sumGraph.rightEdges[numVertices+i][jlenR+k] = h.rightEdges[i][k] + numVertices;
+            }
+        }
+        
+        return sumGraph;
+    }
+    
     private final static int
         MINISIG_BASE = -962764907,
         LEFT_ONE_CYCLE = -742481099,

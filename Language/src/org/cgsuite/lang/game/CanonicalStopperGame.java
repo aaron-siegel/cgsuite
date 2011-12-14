@@ -158,6 +158,11 @@ public final class CanonicalStopperGame extends LoopyGame
         return super.leq(h);
     }
     
+    public Game ordinalSum(CanonicalStopperGame h)
+    {
+        return super.ordinalSum(h).simplify();
+    }
+    
     public Game asOnside(CanonicalStopperGame offside)
     {
         if (this.equals(offside))

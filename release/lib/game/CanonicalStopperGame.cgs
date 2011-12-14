@@ -29,6 +29,8 @@ class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.gam
         return this;
     end
     
+    method OrdinalSum(CanonicalStopperGame h) : java "ordinalSum";
+    
     property Tiny.get
         return { 0 || 0 | -this };
     end

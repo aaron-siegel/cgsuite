@@ -990,6 +990,14 @@ public class LoopyGame extends Game
         return subtract(new CanonicalStopperGame(h));
     }
     
+    public LoopyGame ordinalSum(LoopyGame h)
+    {
+        LoopyGame ordinalSum = new LoopyGame();
+        ordinalSum.graph = graph.ordinalSum(h.graph, startVertex);
+        ordinalSum.startVertex = graph.getNumVertices() + h.startVertex;
+        return ordinalSum;
+    }
+    
     /**
      * Compares this game with another <code>LoopyGame</code>.
      *
