@@ -604,13 +604,13 @@ public class LoopyGame extends Game
             {
                 str = "Tiny";
                 translate = tinyN;
-                subscript = ((LoopyGame) ((LoopyGame) getRightOptions().anyElement()).getRightOptions().anyElement()).subtract(translate).negate();
+                subscript = ((LoopyGame) ((LoopyGame) getRightOptions().anyElement()).getRightOptions().anyElement()).subtract(translate).canonicalizeStopper().negate();
             }
             else
             {
                 str = "Miny";
                 translate = minyN.negate();
-                subscript = ((LoopyGame) ((LoopyGame) getLeftOptions().anyElement()).getLeftOptions().anyElement()).subtract(translate);
+                subscript = ((LoopyGame) ((LoopyGame) getLeftOptions().anyElement()).getLeftOptions().anyElement()).subtract(translate).canonicalizeStopper();
             }
             
             // First get a sequence for the subscript.  If that sequence contains any
