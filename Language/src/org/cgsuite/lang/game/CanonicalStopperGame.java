@@ -32,6 +32,7 @@ package org.cgsuite.lang.game;
 import java.math.BigInteger;
 import org.cgsuite.lang.CgsuiteClass;
 import org.cgsuite.lang.CgsuiteInteger;
+import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
@@ -195,9 +196,9 @@ public final class CanonicalStopperGame extends LoopyGame
         }
     }
     
-    public RationalNumber leftStop()
+    public CgsuiteObject leftStop()
     {
-        return leftStop(startVertex);
+        return stopConvert(leftStop(startVertex));
     }
     
     private RationalNumber leftStop(int vertex)
@@ -225,9 +226,9 @@ public final class CanonicalStopperGame extends LoopyGame
         }
     }
     
-    public RationalNumber rightStop()
+    public CgsuiteObject rightStop()
     {
-        return rightStop(startVertex);
+        return stopConvert(rightStop(startVertex));
     }
     
     private RationalNumber rightStop(int vertex)
@@ -253,6 +254,16 @@ public final class CanonicalStopperGame extends LoopyGame
             }
             return stop;
         }
+    }
+    
+    private CgsuiteObject stopConvert(RationalNumber x)
+    {
+        if (x.equals(RationalNumber.POSITIVE_INFINITY))
+            return ON;
+        else if (x.equals(RationalNumber.NEGATIVE_INFINITY))
+            return OFF;
+        else
+            return x;
     }
     
     public CanonicalStopperGame solve()
