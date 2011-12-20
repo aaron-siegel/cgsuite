@@ -13,15 +13,22 @@ import org.cgsuite.lang.output.StyledTextOutput;
 
 public class ExplicitGame extends Game
 {
+    private boolean literal;
     private CgsuiteSet leftOptions;
     private CgsuiteSet rightOptions;
-
+    
     public ExplicitGame(CgsuiteSet leftOptions, CgsuiteSet rightOptions)
+    {
+        this(leftOptions, rightOptions, false);
+    }
+    
+    public ExplicitGame(CgsuiteSet leftOptions, CgsuiteSet rightOptions, boolean literal)
     {
         super(CgsuitePackage.forceLookupClass("ExplicitGame"));
 
         this.leftOptions = leftOptions;
         this.rightOptions = rightOptions;
+        this.literal = literal;
     }
 
     @Override
@@ -35,11 +42,13 @@ public class ExplicitGame extends Game
     {
         return rightOptions;
     }
-
+    
     @Override
     public StyledTextOutput toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
+        if (literal)
+            output.appendMath("'");
         output.appendMath("{");
         for (Iterator<CgsuiteObject> it = getLeftOptions().sortedIterator(); it.hasNext();)
         {
@@ -59,6 +68,8 @@ public class ExplicitGame extends Game
             }
         }
         output.appendMath("}");
+        if (literal)
+            output.appendMath("'");
         return output;
     }
 
@@ -101,7 +112,7 @@ public class ExplicitGame extends Game
             }
         }
         
-        if (allCanonical)
+        if (!literal && allCanonical)
         {
             List<CanonicalShortGame> canonicalLeftOptions = new ArrayList<CanonicalShortGame>();
             List<CanonicalShortGame> canonicalRightOptions = new ArrayList<CanonicalShortGame>();
@@ -128,7 +139,7 @@ public class ExplicitGame extends Game
             
             return CanonicalShortGame.construct(canonicalLeftOptions, canonicalRightOptions).simplify();
         }
-        else if (allStoppers)
+        else if (!literal && allStoppers)
         {
             LoopyGame.Node node = new LoopyGame.Node();
             
@@ -160,7 +171,7 @@ public class ExplicitGame extends Game
         }
         else
         {
-            return new ExplicitGame(simplifiedLeftOptions, simplifiedRightOptions);
+            return new ExplicitGame(simplifiedLeftOptions, simplifiedRightOptions, literal);
         }
     }
 

@@ -72,6 +72,10 @@ class Game : java "org.cgsuite.lang.Game"
         
     end
     
+    property ExplicitForm.get
+        return '{ LeftOptions | RightOptions }';
+    end
+    
     property NimValue.get
     
         if not IsImpartial then

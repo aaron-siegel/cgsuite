@@ -23,6 +23,7 @@ tokens
 	LBRACE		= '{';
 	RBRACE		= '}';
 	DQUOTE		= '"';
+    SQUOTE      = '\'';
 	COMMA		= ',';
 	SEMI		= ';';
 	COLON		= ':';
@@ -130,6 +131,7 @@ tokens
 	FUNCTION_CALL_ARGUMENT_LIST;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
+    NODE_LABEL;
     PREAMBLE;
     PROCEDURE_PARAMETER_LIST;
 	STATEMENT_SEQUENCE;
@@ -551,13 +553,13 @@ primaryExpr
 	| INTEGER
     | INF
 	| STRING
-	| generalizedId
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! statementSequence RPAREN!
 	| LPAREN! statementSequence RPAREN!
-    | (LBRACE expressionList SLASHES) => explicitGame
+    | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
 	| (LBRACE expression? BIGRARROW) => explicitMap
+	| generalizedId
 	| explicitSet
 	| explicitList
     | of
@@ -565,7 +567,13 @@ primaryExpr
 	;
 
 explicitGame
-    : LBRACE! slashExpression RBRACE!
+    : IDENTIFIER explicitGameBraces -> ^(NODE_LABEL IDENTIFIER explicitGameBraces)
+    | explicitGameBraces
+    ;
+
+explicitGameBraces
+    : SQUOTE^ LBRACE! slashExpression RBRACE! SQUOTE!
+    | LBRACE! slashExpression RBRACE!
     ;
 
 slashExpression

@@ -636,6 +636,19 @@ public class Domain
                 return x;
 
             case STATEMENT_SEQUENCE:    return statementSequence(tree);
+                
+            case SQUOTE:
+                
+                // TODO Integrate w/ loopy
+                assert tree.getChild(0).getType() == SLASHES;
+                lo = gameOptions(tree.getChild(0).getChild(0));
+                ro = gameOptions(tree.getChild(0).getChild(1));
+                return new ExplicitGame(lo, ro, true);
+                
+            case NODE_LABEL:
+                
+                node = loopyNode(tree, new HashMap<String,LoopyGame.Node>());
+                return new LoopyGame(node);
 
             case SLASHES:
 
@@ -1231,7 +1244,7 @@ public class Domain
 
         switch (tree.getToken().getType())
         {
-            case COLON:
+            case NODE_LABEL:
 
                 String nodeName = tree.getChild(0).getText();
                 if (nodeMap.containsKey(nodeName))
