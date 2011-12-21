@@ -14,6 +14,10 @@ class Integer extends DyadicRational : java "org.cgsuite.lang.CgsuiteInteger"
     property Is2Power.get : java "is2Power";
     property IsSmall.get : java "isSmall";
     property Lb.get : java "lb";
+        
+    override property IsInteger.get
+        return true;
+    end
     
     static method Random(Integer obj) : java "random";
     static method SetSeed(Integer seed) : java "setSeed";

@@ -6,6 +6,14 @@ class DyadicRational extends CanonicalShortGame, Number : java "org.cgsuite.lang
     override method op-(CanonicalShortGame h) : java "subtract";
     override method op neg() : java "negate";
     override method op pos() return this; end
+    
+    override property IsInteger.get
+        return Denominator == 1;
+    end
+    
+    override property IsNumber.get
+        return true;
+    end
 
     override property ToString.get : java "toString";
     

@@ -288,7 +288,7 @@ public final class CanonicalShortGame extends Game
     {
         super(DYADIC_RATIONAL_TYPE);
         if (!n.isSmall())
-            throw new InputException("Overflow error.");
+            throw new InputException("Overflow.");
         this.id = constructInteger(n.intValue());
     }
 
@@ -1210,6 +1210,38 @@ public final class CanonicalShortGame extends Game
         {
             // Standard record.
             return new RationalNumber(getSmallNumeratorPart(id), 1 << getDenExpPart(id));
+        }
+    }
+    
+    public CgsuiteInteger getNumeratorPart()
+    {
+        if (isNumberUpStar(id))
+        {
+            if (isExtendedRecord(id))
+            {
+                return new CgsuiteInteger(getNumberPart(id).getNumerator());
+            }
+            else
+            {
+                return new CgsuiteInteger(getSmallNumeratorPart(id));
+            }
+        }
+        else
+        {
+            throw new UnsupportedOperationException();
+        }
+    }
+    
+    public CgsuiteInteger getDenominatorPart()
+    {
+        int denExp = getDenExpPart(id);
+        if (denExp <= 62)
+        {
+            return new CgsuiteInteger(1 << denExp);
+        }
+        else
+        {
+            return new CgsuiteInteger(BigInteger.ONE.shiftLeft(denExp));
         }
     }
 

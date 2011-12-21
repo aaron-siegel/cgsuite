@@ -308,6 +308,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
                     javaObj = javaMethod.invoke(castObj, castArguments);
                 }
             }
+            catch (InputException exc)
+            {
+                throw exc;
+            }
             catch (IllegalArgumentException exc)
             {
                 throw new InputException("Type mismatch during a call to " + getQualifiedName() + ".", exc);
@@ -334,7 +338,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             }
             catch (Throwable exc)
             {
-                throw new InputException("Java exception thrown during a call to " + name + ".", exc);
+                throw new InputException("Java exception thrown during a call to " + name + ": " + exc.getMessage(), exc);
             }
             
             retval = castReturn(javaObj);
@@ -493,6 +497,21 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
             throw new InputException(
                 "No rules for converting " + obj.getClass().getName() + " to " + javaClass.getName() + "."
                 );
+        }
+        catch (InvocationTargetException exc)
+        {
+            if (exc.getCause() instanceof InputException)
+            {
+                InputException ie = (InputException) exc.getCause();
+                throw ie;
+            }
+            else
+            {
+                throw new InputException(
+                    "Cannot convert to " + javaClass.getName() + ": " + obj.toString(),
+                    exc
+                    );
+            }
         }
         catch (Exception exc)
         {

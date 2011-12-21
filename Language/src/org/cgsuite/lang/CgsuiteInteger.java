@@ -9,7 +9,6 @@ import java.math.BigInteger;
 import java.util.Random;
 import org.cgsuite.lang.game.CanonicalShortGame;
 import org.cgsuite.lang.game.MultipleGame;
-import org.cgsuite.lang.game.RationalNumber;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 /**
@@ -101,6 +100,14 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
             return new CgsuiteInteger((long) value / (long) other.value);
         else
             return new CgsuiteInteger(bigValue().divide(other.bigValue()));
+    }
+    
+    public CgsuiteInteger abs()
+    {
+        if (bigValue == null)
+            return new CgsuiteInteger(Math.abs((long) value));
+        else
+            return new CgsuiteInteger(bigValue.abs());
     }
 
     public CgsuiteInteger nimSum(CgsuiteInteger other)

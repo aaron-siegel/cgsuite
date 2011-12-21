@@ -27,6 +27,11 @@ public class RationalNumber extends CgsuiteObject implements Comparable<Rational
     {
         this(integer.bigValue(), BigInteger.ONE);
     }
+    
+    public RationalNumber(CgsuiteInteger numerator, CgsuiteInteger denominator)
+    {
+        this(numerator.bigValue(), denominator.bigValue());
+    }
 
     public RationalNumber(BigInteger numerator, BigInteger denominator)
     {

@@ -16,9 +16,20 @@ class Number : java "org.cgsuite.lang.game.RationalNumber"
 
     property Abs.get : java "abs";
     property Ceiling.get : java "ceiling";
+    property Denominator.get : java "getDenominator";
     property Floor.get : java "floor";
     property IsInfinite.get : java "isInfinite";
     property IsDyadic.get : java "isDyadic";
+    
+    property IsInteger.get
+        return Denominator == 1;
+    end
+    
+    property IsNumber.get
+        return true;
+    end
+    
+    property Numerator.get : java "getNumerator";
 
     override property ToString.get : java "toString";
 

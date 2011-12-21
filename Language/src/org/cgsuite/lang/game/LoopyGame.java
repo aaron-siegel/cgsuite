@@ -49,7 +49,6 @@ import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
-import org.openide.filesystems.FileSystem.Environment;
 
 
 /**
