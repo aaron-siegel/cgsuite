@@ -46,6 +46,10 @@ class CanonicalShortGame extends CanonicalStopperGame : java "org.cgsuite.lang.g
     override property ToString.get : java "toString";
     override property UptimalExpansion.get : java "uptimalExpansion";
     
+    override property IsPlumtree.get
+        return true;
+    end
+    
     property Chill.get
         return Heat(-1);
     end

@@ -6,6 +6,13 @@ class ExplicitGame extends Game : java "org.cgsuite.lang.game.ExplicitGame"
     override property RightOptions.get : java "getRightOptions";
     override property ToString.get : java "toString";
     
+    override method op:(Game other)
+    
+        return { LeftOptions,  setof(this:h for h in other.LeftOptions )
+               | RightOptions, setof(this:h for h in other.RightOptions) };
+    
+    end
+    
     override method Options(Player player)
     
         if player == Player.Left then

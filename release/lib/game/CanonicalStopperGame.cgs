@@ -6,7 +6,7 @@ class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.gam
     override method op-(CanonicalStopperGame h) : java "subtract";
     override method op neg() : java "negate";
     override method Leq(CanonicalStopperGame h) : java "leq";
-    method op:(CanonicalStopperGame h) : java "ordinalSum";
+    override method op:(CanonicalStopperGame h) : java "ordinalSum";
     method op&(CanonicalStopperGame h) : java "asOnside";
     
     property Degree.get
@@ -17,6 +17,17 @@ class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.gam
         return (this + h).Offside;
     end
     
+    method DownsumVariety(CanonicalStopperGame degree)
+        if not degree.IsIdempotent then
+            error("degree must be an idempotent.");
+        end
+        return Downsum((-this).Upsum(degree));
+    end
+    
+    property IsIdempotent.get
+        return this + this == this;
+    end
+    
     override property IsInteger.get
         return false;
     end
@@ -25,6 +36,8 @@ class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.gam
         return false;
     end
     
+    property IsPlumtree.get : java "isPlumtree";
+    
     property IsPseudonumber.get
         if IsNumber then
             return true;
@@ -32,10 +45,23 @@ class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.gam
         x := LeftStop;
         return this == {x|pass} or this == {pass|x};
     end
-    
+        
     override property LeftOptions.get : java "getLeftOptions";
     
     override property LeftStop.get : java "leftStop";
+    
+    method LoopfreeExpansion(Integer n)
+        
+        if n == 0 then
+            return 0;
+        elseif n < 0 then
+            error("Expecting a positive integer.");
+        else
+            return { setof(g.LoopfreeExpansion(n-1) for g in LeftOptions)
+                   | setof(g.LoopfreeExpansion(n-1) for g in RightOptions) };
+        end
+        
+    end
 
     property Miny.get
         return { this | 0 || 0 };
@@ -71,9 +97,22 @@ class CanonicalStopperGame extends StopperSidedGame : java "org.cgsuite.lang.gam
         return (this + h).Onside;
     end
     
+    method UpsumVariety(CanonicalStopperGame degree)
+        if not degree.IsIdempotent then
+            error("degree must be an idempotent.");
+        end
+        return Upsum((-this).Downsum(-degree));
+    end
+    
     property Variety.get
-        // TODO filter by stable degree
-        return Downsum((-this).Upsum(Degree));
+        degree := Degree;
+        V1 := UpsumVariety(degree);
+        V2 := DownsumVariety(degree);
+        if V1 == V2 then
+            return V1;
+        else
+            error("Congratulations!  You've found a counterexample to the Stability Conjecture.  Please report this finding to asiegel@users.sourceforge.net.");
+        end
     end
     
     method Pow(CanonicalStopperGame x)

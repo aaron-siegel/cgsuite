@@ -11,6 +11,7 @@ class Game : java "org.cgsuite.lang.Game"
         return this + (-obj);
     end
     method op neg () : java "negate";
+    method op: (Game obj) : java "ordinalSum";
     
     method op<=(Game other)
         return CanonicalForm.Leq(other.CanonicalForm);

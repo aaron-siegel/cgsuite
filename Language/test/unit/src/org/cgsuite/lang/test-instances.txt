@@ -289,6 +289,13 @@ Mex                             \ [0,1,3,4].Mex \ 2 \
 ToList                          \ list := {5,1,3}.ToList; list.Sort(); list \ [1,3,5] \
 ToSet                           \ [5,1,3].ToSet \ {1,3,5} \
 
+// cgsuite.lang.DyadicRational
+
+DyadicRational.Numerator (S)    \ (3/16).Numerator \ 3 \
+DyadicRational.Denominator (S)  \ (3/16).Denominator \ 16 \
+DyadicRational.Numerator (L)    \ (3^22/2^72).Numerator \ 31381059609 \
+DyadicRational.Denominator (L)  \ (3^22/2^72).Denominator \ 4722366482869645213696 \
+
 // cgsuite.lang.Enum
 
 Ordinal                         \ Player.Left.Ordinal \ 1 \
@@ -357,6 +364,8 @@ Number.Ceiling                          \ (27/16).Ceiling \ 2 \
 Number.Floor                            \ (27/16).Floor \ 1 \
 Number.IsInfinite                       \ [-inf,0,inf].Apply(x -> x.IsInfinite) \ [true,false,true] \
 Number.IsDyadic                         \ [1,1/2,1/3,1/4,1/5].Apply(x -> x.IsDyadic) \ [true,true,false,true,false] \
+Number.Numerator                        \ (17/3^22).Numerator \ 17 \
+Number.Denominator                      \ (17/3^22).Denominator \ 31381059609 \
 
 // cgsuite.lang.Object
 
