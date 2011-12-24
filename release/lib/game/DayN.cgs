@@ -2,12 +2,12 @@
 
 class DayN
 
-    var allSmall, reduced, plumtrees;
+    var allSmall, reduced, optionClosed, plumtrees;
     var elements;
     
     var upcov, lowcov;
 
-    method DayN(birthday, allSmall ? false, reduced ? false, plumtrees ? false)
+    method DayN(birthday, allSmall ? false, reduced ? false, optionClosed ? false, plumtrees ? false)
 
         upcov := {=>};
         lowcov := {=>};
@@ -16,15 +16,23 @@ class DayN
         if birthday == 0 then
             prevac := {{}};
         else
-            prev := DayN(birthday-1, allSmall, reduced, plumtrees);
+            prev := DayN(birthday-1, allSmall, reduced, optionClosed, plumtrees);
             prevac := prev.Antichains;
         end
         if allSmall then
             prevac.Remove({});  // Remove empty set as a possibility
             elements.Add(0);    // Explicitly add 0
         end
-        for lo in prevac do
-            for ro in prevac do
+        if optionClosed then
+            leftac  := setof(DayN.OptionClosure(x, Player.Left ) for x in prevac);
+            rightac := setof(DayN.OptionClosure(x, Player.Right) for x in prevac);
+        else
+            leftac := prevac;
+            rightac := prevac;
+        end
+
+        for lo in leftac do
+            for ro in rightac do
                 if reduced then
                     elements.Add({lo|ro}.ReducedCanonicalForm);
                 else
@@ -54,7 +62,7 @@ class DayN
     property Antichains.get
 
         antichains := {{}};
-
+        
         for g in Elements do
 
             newAntichains := {};
@@ -133,6 +141,25 @@ class DayN
         end
 
         return ji;
+
+    end
+    
+    static method OptionClosure(Set x, Player player)
+    
+        y := {};
+        
+        while not x.IsEmpty do
+        
+            g := x.AnyElement;
+            x.Remove(g);
+            if not y.Contains(g) then
+                y.Add(g);
+                x.AddAll(g.Options(player));
+            end
+        
+        end
+        
+        return y;
 
     end
 
