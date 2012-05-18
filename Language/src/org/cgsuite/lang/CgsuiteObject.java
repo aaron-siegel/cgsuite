@@ -199,16 +199,16 @@ public class CgsuiteObject implements Cloneable
 
     public CgsuiteObject resolve(String identifier, CgsuiteMethod contextMethod, boolean localAccess) throws CgsuiteException
     {
-        CgsuiteMethod getter = type.lookupMethod(identifier + "$get");
+        CgsuiteMethodGroup getter = type.lookupMethod(identifier + "$get");
 
         if (getter != null)
         {
             if (getter.isStatic())
                 throw new InputException("Cannot reference static property in dynamic context: " + identifier);
-            return getter.invoke(castForMethodCall(getter), CgsuiteMethod.EMPTY_PARAM_LIST, CgsuiteMethod.EMPTY_PARAM_MAP);
+            return getter.invoke(this, CgsuiteMethod.EMPTY_PARAM_LIST, CgsuiteMethod.EMPTY_PARAM_MAP);
         }
 
-        CgsuiteMethod method = type.lookupMethod(identifier);
+        CgsuiteMethodGroup method = type.lookupMethod(identifier);
 
         if (method != null)
         {
@@ -243,13 +243,13 @@ public class CgsuiteObject implements Cloneable
 
     public void assign(String identifier, CgsuiteObject value, CgsuiteMethod contextMethod, boolean localAccess)
     {
-        CgsuiteMethod setter = type.lookupMethod(identifier + "$set");
+        CgsuiteMethodGroup setter = type.lookupMethod(identifier + "$set");
         
         if (setter != null)
         {
             if (setter.isStatic())
                 throw new InputException("Cannot reference static property in dynamic context: " + identifier);
-            setter.invoke(castForMethodCall(setter), Collections.singletonList(value), CgsuiteMethod.EMPTY_PARAM_MAP);
+            setter.invoke(this, Collections.singletonList(value), CgsuiteMethod.EMPTY_PARAM_MAP);
             return;
         }
         
@@ -316,25 +316,23 @@ public class CgsuiteObject implements Cloneable
 
     public class InstanceMethod extends CgsuiteObject implements Callable
     {
-        private CgsuiteMethod method;
-        private CgsuiteObject thisCast;
+        private CgsuiteMethodGroup methodGroup;
 
-        InstanceMethod(CgsuiteMethod method) throws CgsuiteException
+        InstanceMethod(CgsuiteMethodGroup methodGroup) throws CgsuiteException
         {
             super(CgsuitePackage.forceLookupClass("InstanceMethod"));
 
-            this.method = method;
-            this.thisCast = castForMethodCall(method);
+            this.methodGroup = methodGroup;
         }
 
         @Override
         public CgsuiteObject invoke(List<? extends CgsuiteObject> arguments, Map<String,CgsuiteObject> optionalArguments)
             throws CgsuiteException
         {
-            return method.invoke(thisCast, arguments, optionalArguments);
+            return methodGroup.invoke(CgsuiteObject.this, arguments, optionalArguments);
         }
     }
-
+/*
     // TODO This should be obsolete.
     private CgsuiteObject castForMethodCall(CgsuiteMethod method)
     {
@@ -347,7 +345,7 @@ public class CgsuiteObject implements Cloneable
             return (CgsuiteObject) CgsuiteMethod.cast(this, method.getJavaMethod().getDeclaringClass(), false);
         }
     }
-
+*/
     @Override
     public int hashCode()
     {

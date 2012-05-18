@@ -39,10 +39,8 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
     private Method javaMethod;
     private Constructor javaConstructor;
     private Class<?>[] javaParameterTypes;
-    
-    private CgsuiteMethod superMethod;
 
-    public CgsuiteMethod(CgsuiteClass declaringClass, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec, CgsuiteMethod superMethod)
+    public CgsuiteMethod(CgsuiteClass declaringClass, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree tree, String javaMethodSpec)
         throws CgsuiteException
     {
         super(TYPE);
@@ -55,7 +53,6 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         this.tree = tree;
         this.javaMethodSpec = javaMethodSpec;
         this.isConstructor = name.equals(declaringClass.getName());
-        this.superMethod = superMethod;
         
         if (isConstructor)
         {
@@ -215,10 +212,10 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         ensureLoaded();
         
         if (arguments.size() < nRequiredParameters)
-            throw new InputException("Expecting at least " + nRequiredParameters + " argument(s) for method call: " + getQualifiedName());
+            throw new ArgumentValidationException("Expecting at least " + nRequiredParameters + " argument(s) for method call: " + getQualifiedName());
 
         if (!hasVarargParameter && arguments.size() > parameters.size())
-            throw new InputException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
+            throw new ArgumentValidationException("Expecting at most " + parameters.size() + " argument(s) for method call: " + getQualifiedName());
         
         // Try to validate the arguments.
         
@@ -243,14 +240,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         
         if (!valid)
         {
-            if (superMethod == null)
-            {
-                throw new InputException("Invalid arguments in call to " + getQualifiedName() + ".");
-            }
-            else
-            {
-                return superMethod.invoke(obj, arguments, optionalArguments);
-            }
+            throw new ArgumentValidationException("Invalid arguments in call to " + getQualifiedName() + ".");
         }
 
         if (isMutableMethod() && obj != null)
@@ -494,6 +484,7 @@ public class CgsuiteMethod extends CgsuiteObject implements Callable
         }
         catch (NoSuchMethodException exc)
         {
+            exc.printStackTrace();
             throw new InputException(
                 "No rules for converting " + obj.getClass().getName() + " to " + javaClass.getName() + "."
                 );

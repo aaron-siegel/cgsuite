@@ -31,7 +31,7 @@ public class CgsuiteIterator extends CgsuiteObject implements Iterable<CgsuiteOb
         @Override
         public boolean hasNext()
         {
-            return Domain.bool(invokeMethod("HasNext$get"), type.lookupMethod("HasNext$get").getTree());
+            return Domain.bool(invokeMethod("HasNext$get"), type.lookupMethod("HasNext$get").firstMethod().getTree());
         }
 
         @Override

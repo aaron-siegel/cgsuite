@@ -4,10 +4,11 @@ class DayN
 
     var allSmall, reduced, optionClosed, plumtrees;
     var elements;
+    var prev;
     
     var upcov, lowcov;
 
-    method DayN(birthday, allSmall ? false, reduced ? false, optionClosed ? false, plumtrees ? false)
+    method DayN(birthday, allSmall ? false, reduced ? false, optionClosed ? false, plumtrees ? false, simple ? false)
 
         upcov := {=>};
         lowcov := {=>};
@@ -16,8 +17,13 @@ class DayN
         if birthday == 0 then
             prevac := {{}};
         else
-            prev := DayN(birthday-1, allSmall, reduced, optionClosed, plumtrees);
-            prevac := prev.Antichains;
+            prev := DayN(birthday-1, allSmall, reduced, optionClosed, plumtrees, simple);
+            if simple then
+                prevac := setof({g} for g in prev.Elements);
+                prevac.Add({});
+            else
+                prevac := prev.Antichains;
+            end
         end
         if allSmall then
             prevac.Remove({});  // Remove empty set as a possibility

@@ -3,6 +3,7 @@
 mutable class Table extends Collection : java "org.cgsuite.lang.Table"
 
     method op[](Integer row) : java "getRow(int)";
+    method Add(List row) : java "add(org.cgsuite.lang.CgsuiteObject)";
     method IntensityPlot() : java "intensityPlot";
     property HorizontalLines.get : java "getHorizontalLines";
     mutable property HorizontalLines.set(Boolean value) : java "setHorizontalLines(boolean)";

@@ -944,8 +944,10 @@ public class Domain
                 {
                     assert mode == Mode.NORMAL;
                     
+                    // Add to the "of" collection (if appropriate).
+                    
                     if (target != null)
-                        target.add(retval);
+                        target.add(retval.simplify());
                     
                     if (sumTarget)
                     {
@@ -1499,7 +1501,7 @@ public class Domain
             if (type.getScript() != null)
                 return new Script(type);
             
-            CgsuiteMethod ctor = type.lookupConstructor();
+            CgsuiteMethodGroup ctor = type.lookupConstructor();
             if (ctor == null)
                 throw new InputException(tree.token, "No constructor available: " + type.getQualifiedName());
             else

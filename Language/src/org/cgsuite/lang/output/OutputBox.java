@@ -68,6 +68,7 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     private final static int CHARACTERS_AT_A_TIME = Integer.MAX_VALUE;
     
     private Action copyAction;
+    private Action quickSaveAction;
     
     private Output output;
     private int worksheetWidth;
@@ -78,6 +79,7 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     private JPopupMenu displayMorePopupMenu;
     private JPopupMenu mainPopupMenu;
     private JMenuItem copyMenuItem;
+    private JMenuItem quickSaveMenuItem;
     private boolean highlighted;
     
     private static Stroke dashStroke = new BasicStroke(
@@ -135,11 +137,22 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
             }
         };
         
+        quickSaveAction = new AbstractAction("Save")
+        {
+            @Override
+            public void actionPerformed(ActionEvent evt)
+            {
+                quickSave();
+            }
+        };
+        
         getActionMap().put(DefaultEditorKit.copyAction, copyAction);
         copyMenuItem = new JMenuItem(copyAction);
+        quickSaveMenuItem = new JMenuItem(quickSaveAction);
         
         mainPopupMenu = new JPopupMenu();
         mainPopupMenu.add(copyMenuItem);
+        mainPopupMenu.add(quickSaveMenuItem);
 
         setBackground(Color.white);
         worksheetWidth = 0;
@@ -266,7 +279,8 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         {
             BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
             output.paint((Graphics2D) image.getGraphics(), worksheetWidth);
-            ImageIO.write(image, "png", new File("image.png"));
+            File file = new File("/Users/asiegel/CGSuite/image.png");
+            ImageIO.write(image, "png", file);
         }
         catch (IOException exc)
         {

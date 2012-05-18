@@ -111,6 +111,7 @@
                 <package>org.cgsuite.lang.game</package>
                 <package>org.cgsuite.lang.output</package>
                 <package>org.cgsuite.lang.parser</package>
+                <package>org.cgsuite.lang.surreal</package>
             </public-packages>
         </data>
     </configuration>

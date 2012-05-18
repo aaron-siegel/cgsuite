@@ -505,6 +505,17 @@ public class Grid extends CgsuiteObject implements Serializable
         }
     }
     
+    public void fill(int startRow, int endRow, int startCol, int endCol, int value)
+    {
+        for (int row = startRow; row <= endRow; row++)
+        {
+            for (int col = startCol; col <= endCol; col++)
+            {
+                putAt(row, col, value);
+            }
+        }
+    }
+    
     /**
      * Copies the specified values from the specified grid into this grid.
      * If the specified grid has value <code>x</code> at location

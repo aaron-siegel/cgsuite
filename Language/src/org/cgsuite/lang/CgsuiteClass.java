@@ -69,7 +69,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     private EnumSet<Modifier> classModifiers;
     private List<CgsuiteClass> parents;
     private Set<CgsuiteClass> ancestors;
-    private Map<String,CgsuiteMethod> methods;
+    private Map<String,CgsuiteMethodGroup> ancestorMethods;
+    private Map<String,CgsuiteMethodGroup> methods;
     private Map<String,Variable> vars;
     private List<Variable> varsInOrder;
     private CgsuiteTree staticBlock;
@@ -127,12 +128,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     
     public CgsuiteObject resolveStatic(String identifier)
     {
-        CgsuiteMethod getter = lookupMethod(identifier + "$get");
+        CgsuiteMethodGroup getter = lookupMethod(identifier + "$get");
 
         if (getter != null && getter.isStatic())
             return getter.invoke(CgsuiteMethod.EMPTY_PARAM_LIST, CgsuiteMethod.EMPTY_PARAM_MAP);
 
-        CgsuiteMethod method = lookupMethod(identifier);
+        CgsuiteMethodGroup method = lookupMethod(identifier);
 
         if (method != null && method.isStatic())
             return method;
@@ -232,7 +233,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         return classImports;
     }
 
-    public CgsuiteMethod lookupMethod(String name)
+    public CgsuiteMethodGroup lookupMethod(String name)
     {
         ensureLoaded();
         return methods.get(name);
@@ -257,7 +258,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         objectNamespace.put(name, object.createCrosslink());
     }
 
-    public CgsuiteMethod lookupConstructor()
+    public CgsuiteMethodGroup lookupConstructor()
     {
         ensureLoaded();
         return methods.get(this.name);
@@ -267,7 +268,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
     {
         ensureLoaded();
         CgsuiteMap map = new CgsuiteMap();
-        for (Entry<String,CgsuiteMethod> e : methods.entrySet())
+        for (Entry<String,CgsuiteMethodGroup> e : methods.entrySet())
         {
             map.put(new CgsuiteString(e.getKey()), e.getValue());
         }
@@ -353,14 +354,13 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
         this.parents = new ArrayList<CgsuiteClass>();
         this.ancestors = new HashSet<CgsuiteClass>();
-        this.methods = new HashMap<String,CgsuiteMethod>();
+        this.ancestorMethods = new HashMap<String,CgsuiteMethodGroup>();
+        this.methods = new HashMap<String,CgsuiteMethodGroup>();
         this.vars = new HashMap<String,Variable>();
         this.varsInOrder = new ArrayList<Variable>();
         this.descendants = new HashSet<CgsuiteClass>();
         this.staticBlock = null;
         
-        Set<String> requiredDeclarations = new HashSet<String>();
-
         if (parseTree.getChild(0).getType() == PREAMBLE)
         {
             preamble(parseTree.getChild(0));
@@ -378,47 +378,21 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             parent.ensureLoaded();
             this.ancestors.addAll(parent.ancestors);
-            for (Entry<String,CgsuiteMethod> e : parent.methods.entrySet())
+            for (Entry<String,CgsuiteMethodGroup> e : parent.methods.entrySet())
             {
                 String nameInParent = e.getKey();
-                if (nameInParent.startsWith("super$"))
+                if (nameInParent.startsWith("super$") || nameInParent.startsWith("static$"))
                     continue;
                 
-                CgsuiteMethod method = e.getValue();
+                CgsuiteMethodGroup methodInParent = e.getValue();
                 
-                boolean applyMethod;
+                if (!ancestorMethods.containsKey(nameInParent))
+                    ancestorMethods.put(nameInParent, new CgsuiteMethodGroup(nameInParent));
+                if (!ancestorMethods.containsKey("super$" + nameInParent))
+                    ancestorMethods.put("super$" + nameInParent, new CgsuiteMethodGroup(nameInParent));
                 
-                CgsuiteMethod otherMethod = methods.get(method.getName());
-                
-                if (otherMethod == null)
-                {
-                    applyMethod = true;
-                }
-                else
-                {
-                    // This method is declared by multiple ancestors.  Use
-                    // the *most specific* implementation.
-                    
-                    if (otherMethod.getDeclaringClass().hasAncestor(method.getDeclaringClass()))
-                    {
-                        applyMethod = false;
-                    }
-                    else if (method.getDeclaringClass().hasAncestor(otherMethod.getDeclaringClass()))
-                    {
-                        applyMethod = true;
-                    }
-                    else
-                    {
-                        applyMethod = false;
-                        requiredDeclarations.add(method.getName());
-                    }
-                }
-
-                if (applyMethod)
-                {
-                    methods.put(method.getName(), method);
-                    methods.put("super$" + method.getName(), method);
-                }
+                ancestorMethods.get(nameInParent).addAllMethods(methodInParent);
+                ancestorMethods.get("super$" + nameInParent).addAllMethods(methodInParent);
             }
             for (Variable var : parent.vars.values())
             {
@@ -472,19 +446,19 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
             this.defaultJavaConstructor = null;
         }
         
-        methods.put("static$init", new CgsuiteMethod(this, "static$init", EnumSet.of(Modifier.STATIC), Collections.<Parameter>emptyList(), null, null, null));
+        methods.put("static$init", new CgsuiteMethodGroup("static$init"));
+        methods.get("static$init").addMethod(new CgsuiteMethod(this, "static$init", EnumSet.of(Modifier.STATIC), Collections.<Parameter>emptyList(), null, null));
 
         declarations(parseTree.getChild(1));
         
-        for (String methodName : requiredDeclarations)
+        for (Entry<String,CgsuiteMethodGroup> e : ancestorMethods.entrySet())
         {
-            if (methods.get(methodName).getDeclaringClass() != this)
-            {
-                throw new InputException(parseTree.getChild(1).getToken(),
-                    "Method is ambiguous because it is declared by multiple incompatible ancestors: " + methodName);
-            }
+            if (methods.containsKey(e.getKey()))
+                methods.get(e.getKey()).addAllMethods(e.getValue());
+            else
+                methods.put(e.getKey(), e.getValue());
         }
-        
+    
         // Mark loaded
 
         this.loaded = true;
@@ -507,7 +481,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 if (var.getInitializer() != null)
                 {
                     log.info("Static init  : " + getQualifiedName() + "." + var.getName());
-                    initialValue = new Domain(this, methods.get("static$init"), packageImports, classImports).expression(var.getInitializer());
+                    initialValue = new Domain(this, methods.get("static$init").firstMethod(), packageImports, classImports).expression(var.getInitializer());
                 }
                 
                 objectNamespace.put(var.getName(), initialValue);
@@ -522,7 +496,7 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         if (staticBlock != null)
         {
-            new Domain(this, methods.get("static$init"), packageImports, classImports).statementSequence(staticBlock);
+            new Domain(this, methods.get("static$init").firstMethod(), packageImports, classImports).statementSequence(staticBlock);
         }
         
         log.info("Loaded class : " + getQualifiedName());
@@ -745,7 +719,8 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         
         if (!methods.containsKey(name))
         {
-            methods.put(name, new CgsuiteMethod(this, name, EnumSet.noneOf(Modifier.class), Collections.<Parameter>emptyList(), new CgsuiteTree(new CommonToken(STATEMENT_SEQUENCE)), null, null));
+            methods.put(name, new CgsuiteMethodGroup(name));
+            methods.get(name).addMethod(new CgsuiteMethod(this, name, EnumSet.noneOf(Modifier.class), Collections.<Parameter>emptyList(), new CgsuiteTree(new CommonToken(STATEMENT_SEQUENCE)), null));
         }
     }
 
@@ -882,13 +857,16 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
 
     private void declareMethod(CgsuiteTree tree, String name, EnumSet<Modifier> modifiers, List<Parameter> parameters, CgsuiteTree body, String javaMethodName)
     {
+        /*
         if (this.methods.containsKey(name) &&
             this.methods.get(name).getDeclaringClass() == this)
         {
             // tree.getToken().getText() is "method" or "property" depending on the declaration type
             throw new InputException(tree.getToken(), "Duplicate " + tree.getToken().getText() + " definition: " + name);
         }
-        else if (name.equals(this.name) && modifiers.contains(Modifier.STATIC))
+        else
+         */
+        if (name.equals(this.name) && modifiers.contains(Modifier.STATIC))
         {
             throw new InputException(tree.getToken(), "Constructor is marked \"static\".");
         }
@@ -896,12 +874,12 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
         {
             throw new InputException(tree.getToken(), "Class declares a constructor, but its underlying Java class (" + javaClassname + ") does not provide a default constructor.");
         }
-        else if (this.methods.containsKey(name) && !modifiers.contains(Modifier.OVERRIDE))
+        else if (this.ancestorMethods.containsKey(name) && !modifiers.contains(Modifier.OVERRIDE))
         {
             throw new InputException(tree.getToken(), "Declaration overrides an ancestor " + tree.getToken().getText() +
                 " but is not marked \"override\": " + name);
         }
-        else if (!this.methods.containsKey(name) && modifiers.contains(Modifier.OVERRIDE))
+        else if (!this.ancestorMethods.containsKey(name) && modifiers.contains(Modifier.OVERRIDE))
         {
             throw new InputException(tree.getToken(), "Declaration is marked \"override\" but does not override an ancestor " +
                 tree.getToken().getText() + ": " + name);
@@ -917,7 +895,11 @@ public class CgsuiteClass extends CgsuiteObject implements FileChangeListener
                 
         // It's a legit method declaration.
         
-        this.methods.put(name, new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName, this.methods.get(name)));
+        if (!this.methods.containsKey(name))
+        {
+            this.methods.put(name, new CgsuiteMethodGroup(name));
+        }
+        this.methods.get(name).addMethod(new CgsuiteMethod(this, name, modifiers, parameters, body, javaMethodName));
     }
 
     private void declareVar(CgsuiteTree tree, String name, EnumSet<Modifier> modifiers, CgsuiteTree initializer, int declRank)

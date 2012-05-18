@@ -60,6 +60,7 @@ under                           \ {pass|0} \ under \
 Hanging pass                    \ pass \ !!Unexpected "pass". \
 Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
 loopy plus number               \ {0|pass}+5 \ 5+over \
+loopy plus number (under)       \ {pass|0}+5 \ 5+under \
 loopy plus canonical            \ {0|pass}+^ \ over \
 number plus loopy               \ 5+{0|pass} \ 5+over \
 loopy minus number              \ {0|pass}-5 \ -5+over \
@@ -113,6 +114,15 @@ Procedure - too few args        \ f(3) \ !!Expecting 2 argument(s); found 1 \
 Procedure - too many args       \ f(3,4,5) \ !!Expecting 2 argument(s); found 3 \
 Procedure - optional arg        \ f(3,4,foo => 5) \ !!Invalid optional parameter: foo \
 No-parameter procedure          \ f := () -> 3; f() \ 3 \
+Simplification inside listof    \ B := n -> {0,setof(B(a)+B(n-a) for a from 1 to n-1)|*}; listof(B(a) for a from 2 to 2) \ [{^^|*}] \
+Scoping/simpl inside listof     \ tableof(listof(B(a)-B(a-1) <=> B(b)-B(b-1) for b from 2 to 5) for a from 2 to 5) \
+0  | 1  | 1 | 1
+---+----+---+--
+-1 | 0  | * | 1
+---+----+---+--
+-1 | *  | 0 | *
+---+----+---+--
+-1 | -1 | * | 0 \
 
 // Do loops
 
@@ -490,7 +500,7 @@ Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
 PowTo(0)                        \ ^.PowTo(0) \ 0 \
 Pow(1)                          \ ^.Pow(1) \ ^ \
 PowTo(1/128)                    \ ^.PowTo(1/128) \ {0|*,{0|*,{0|*,{0|*,{0|*,{0|*,{0|*,^}}}}}}} \
-Pow(3/2)                        \ ^.Pow(3/2) \ {0||0,v*|0,*|||{0,v*|0,*},{0||0,v*|0,*|||0,v*|0,*}} \
+Pow(3/2)                        \ ^.Pow(3/2) \ {0||0,v*|0,*} \
 PowTo generalized               \ {0|2.Tiny}.PowTo(3) \ {0|2.Tiny||2.Tiny|||2.Tiny} \
 
 // DayN

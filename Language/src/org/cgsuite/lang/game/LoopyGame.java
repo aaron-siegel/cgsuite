@@ -573,6 +573,7 @@ public class LoopyGame extends Game
                 if (!glc.isZero())
                 {
                     glc.toOutput(output, false, false);
+                    output.appendMath("+");
                 }
                 output.appendMath("over");
                 return 0;
@@ -582,6 +583,7 @@ public class LoopyGame extends Game
                 if (!grc.isZero())
                 {
                     grc.toOutput(output, false, false);
+                    output.appendMath("+");
                 }
                 output.appendMath("under");
                 return 0;

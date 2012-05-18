@@ -7,6 +7,7 @@ mutable class Grid : java "org.cgsuite.lang.game.Grid"
     mutable method op[]:=(Integer row, Integer col, Integer value) : java "putAt(int,int,int)";
     method SubGrid(Integer startRow, Integer endRow, Integer startCol, Integer endCol) : java "subgrid(int,int,int,int)";
     method PasteGrid(Grid other, Integer startRow, Integer startCol) : java "paste(org.cgsuite.lang.game.Grid,int,int)";
+    mutable method Fill(Integer startRow, Integer endRow, Integer startCol, Integer endCol, Integer value) : java "fill(int,int,int,int,int)";
     method Clear() : java "clear";
     method Permute(Symmetry symmetry) : java "permute";
     method SymmetryInvariant(Collection symmetries) : java "symmetryInvariant";

@@ -50,6 +50,20 @@ class CanonicalShortGame extends CanonicalStopperGame : java "org.cgsuite.lang.g
         return true;
     end
     
+    property Adjoint.get
+    
+        alo := setof(g.Adjoint for g in LeftOptions);
+        aro := setof(g.Adjoint for g in RightOptions);
+        if alo.IsEmpty then
+            alo := {0};
+        end
+        if aro.IsEmpty then
+            aro := {0};
+        end
+        return {aro|alo};
+    
+    end
+    
     property Chill.get
         return Heat(-1);
     end
