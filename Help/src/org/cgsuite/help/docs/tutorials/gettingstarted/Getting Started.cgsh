@@ -11,5 +11,10 @@ It's divided into several sections:
 <li>[[List of Classes]] - Summary of classes provided by the CGScript core library.
 </ol>
 
-A separate tutorial, [[Using CGScript][../usingcgscript/Using CGScript]], provides an
-in-depth look at the CGScript language.
+Once you've worked through ~Getting Started~, two further tutorials explore some additional topics:
+<ul>
+<li>[[Advanced Features][../advancedfeatures/Advanced Features]] - Further topics on using CGSuite, such as working
+with loopy games.
+<li>[[Using CGScript][../usingcgscript/Using CGScript]] - An in-depth look at the CGScript language, with a focus
+on creating new game classes.
+</ul>

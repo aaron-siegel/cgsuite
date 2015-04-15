@@ -17,6 +17,9 @@ and open the template in the editor.
     <tocitem text="CGSuite In Action" target="tutorials.gettingstarted.CGSuite In Action"/>
     <tocitem text="List of Classes" target="tutorials.gettingstarted.List of Classes"/>
    </tocitem>
+   <tocitem text="Advanced Features" target="tutorials.advancedfeatures.Advanced Features">
+     <tocitem text="Loopy Games" target="tutorials.advancedfeatures.Loopy Games"/>
+   </tocitem>
    <tocitem text="Using CGScript" target="tutorials.usingcgscript.Using CGScript">
     <tocitem text="Three Examples" target="tutorials.usingcgscript.Three Examples"/>
     <tocitem text="Classes and Packages" target="tutorials.usingcgscript.Classes and Packages"/>

@@ -47,6 +47,7 @@ import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
 import org.cgsuite.lang.CgsuiteSet;
 import org.cgsuite.lang.Game;
+import org.cgsuite.lang.InputException;
 import org.cgsuite.lang.output.Output;
 import org.cgsuite.lang.output.StyledTextOutput;
 
@@ -573,7 +574,6 @@ public class LoopyGame extends Game
                 if (!glc.isZero())
                 {
                     glc.toOutput(output, false, false);
-                    output.appendMath("+");
                 }
                 output.appendMath("over");
                 return 0;
@@ -583,7 +583,6 @@ public class LoopyGame extends Game
                 if (!grc.isZero())
                 {
                     grc.toOutput(output, false, false);
-                    output.appendMath("+");
                 }
                 output.appendMath("under");
                 return 0;
@@ -766,7 +765,7 @@ public class LoopyGame extends Game
 
         if (name != null)
         {
-            output.appendMath(name + ":");
+            output.appendMath(name);
             forceBrackets = true;
         }
         if (leftOptions.isEmpty() || rightOptions.isEmpty())
@@ -938,12 +937,16 @@ public class LoopyGame extends Game
         }
         else
         {
-            CanonicalStopperGame onside = onside();
-            CanonicalStopperGame offside = offside();
-            if (onside.equals(offside))
-                return onside;
-            else
-                return new StopperSidedGame(onside(), offside());
+            try {
+                CanonicalStopperGame onside = onside();
+                CanonicalStopperGame offside = offside();
+                if (onside.equals(offside))
+                    return onside;
+                else
+                    return new StopperSidedGame(onside(), offside());
+            } catch (NotStopperException exc) {
+                throw new InputException("That game is not stopper-sided.");
+            }
         }
     }
     

@@ -56,20 +56,27 @@ off                             \ {|pass} \ off \
 dud                             \ {pass|pass} \ dud \
 over                            \ {0|pass} \ over \
 under                           \ {pass|0} \ under \
-//upon                            \ {pass|*} \ {pass|*} \
+upon                            \ [{pass|*},{pass,0|0},{*|pass},{0|0,pass}] \ [^[on],^[on]*,v[on],v[on]*] \
+uponth                          \ [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}] \ [^on,^on*,von,von*] \
 Hanging pass                    \ pass \ !!Unexpected "pass". \
 Hanging pass 2                  \ {1|0+pass} \ !!Unexpected "pass". \
-loopy plus number               \ {0|pass}+5 \ 5+over \
-loopy plus number (under)       \ {pass|0}+5 \ 5+under \
+loopy plus number               \ {0|pass}+5 \ 5over \
+loopy plus number (under)       \ {pass|0}+5 \ 5under \
+loopy plus number (upon)        \ listof(5+x for x in [{pass|*},{pass,0|0},{*|pass},{0|0,pass}]) \ [5^[on],5^[on]*,5v[on],5v[on]*] \
+loopy plus number (uponth)      \ listof(5+x for x in [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}]) \ [5^on,5^on*,5von,5von*] \
 loopy plus canonical            \ {0|pass}+^ \ over \
-number plus loopy               \ 5+{0|pass} \ 5+over \
-loopy minus number              \ {0|pass}-5 \ -5+over \
+number plus loopy               \ 5+{0|pass} \ 5over \
+loopy minus number              \ {0|pass}-5 \ -5over \
+loopy game with reference       \ x{0||||0|||x|*||*} \ a{0||||0|||a|*||*} \
+not stopper-sided               \ a{0,{1|1,{*,{1+*|1+*,a}|*}}|0} \ !!That game is not stopper-sided. \
 
 // Simplification
 
 Multiplier simplification       \ (*+*)*3 \ 0 \
 Integer exponent simplification \ 2^(*+*) \ 1 \
 Options simplification          \ *.LeftOptions.Contains(0) \ true \
+Loopy game simplification (1)   \ +-{pass|} \ {on|off} \
+Loopy game simplification (2)   \ uponth := {0||0|0,pass}; +-{0|uponth} \ {0|^on||von|0} \
 
 // Comparison
 

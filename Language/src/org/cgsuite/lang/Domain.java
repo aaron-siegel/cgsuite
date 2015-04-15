@@ -448,12 +448,12 @@ public class Domain
 
                 lo = new CgsuiteSet();
                 for (CgsuiteTree child : tree.getChildren())
-                    lo.add(expression(child));
+                    lo.add(expression(child).simplify());
                 ro = new CgsuiteSet();
                 try
                 {
                     for (CgsuiteObject obj : lo)
-                        ro.add(obj.invokeMethod("op neg"));
+                        ro.add(obj.invokeMethod("op neg").simplify());
                 }
                 catch (InputException exc)
                 {
@@ -684,12 +684,7 @@ public class Domain
                 for (CgsuiteTree child : tree.getChildren())
                     array.add(expression(child).simplify().createCrosslink());
                 return array;
-/*
-            case COLON:
 
-                node = loopyNode(tree, new HashMap<String,LoopyGame.Node>());
-                return new LoopyGame(node);
-*/
             case ERROR:
 
                 String msg = expression(tree.getChild(0)).toString();

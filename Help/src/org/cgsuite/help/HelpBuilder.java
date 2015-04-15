@@ -41,6 +41,7 @@ public class HelpBuilder
     {
         "",
         "tutorials",
+        "tutorials/advancedfeatures",
         "tutorials/gettingstarted",
         "tutorials/usingcgscript"
     };

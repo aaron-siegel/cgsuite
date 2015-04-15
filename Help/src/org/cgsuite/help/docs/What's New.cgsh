@@ -1,3 +1,13 @@
+++Version 1.1++
+<ul>
+<li>Resurrected and improved support for loopy games! This feature was present in CGSuite 0.7, but conspicuously absent in
+version 1.0. It's now returned to CGSuite, in much improved form. There's a new tutorial on working with
+[[Loopy Games][../advancedfeatures/Loopy Games]].
+<li>Lots of little bugfixes.
+</ul>
+
+++Version 1.0++
+
 Version 1.0 introduces many improvements over beta versions of CGSuite.  An exhaustive list would be dull reading, so
 here are the highlights:
 <ul>
@@ -14,8 +24,6 @@ This is a "dot 0" release, so it comes with several major caveats (worth keeping
 <ul>
 <li>Since so much has changed, it's likely that there are quirks and software bugs that still need to be fleshed out.
 If you notice any, please report them (asiegel@users.sourceforge.net) so that they can be fixed in future versions.
-<li>A few major features from 0.7 were left out in version 1.0, including support for loopy games and misere games.
-These features will return in 1.1.  In the meantime, you'll need to stick with 0.7 if you really need them.
 <li>CGScript is slow - in some cases 10 to 20 times slower than an equivalent 0.7 plugin.
 ~This will improve in later versions~ as I introduce various optimizations to the CGScript processor.  If you really
 need speed, the Java API is still available, and just as fast as it was in 0.7.  But I think you'll find it ~much~
