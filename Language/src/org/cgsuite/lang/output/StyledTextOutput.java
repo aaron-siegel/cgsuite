@@ -79,13 +79,17 @@ public class StyledTextOutput extends AbstractOutput
 {
     private static Map<FontKey,Font> fontCache;
     private static Map<FontKey,AffineTransform> transformCache;
-    private final static Font SANS_SERIF_FONT, MONOSPACED_FONT, SYMBOL_FONT;
+    private static Font SANS_SERIF_FONT, MONOSPACED_FONT, SYMBOL_FONT;
     
     static
     {
         fontCache = new HashMap<FontKey,Font>();
         transformCache = new HashMap<FontKey,AffineTransform>();
-        SANS_SERIF_FONT = new Font("SansSerif", Font.PLAIN, 20);
+        try {
+            SANS_SERIF_FONT = new Font("Arial", Font.PLAIN, 20);
+        } catch (Exception exc) {
+            SANS_SERIF_FONT = new Font("SansSerif", Font.PLAIN, 20);
+        }
         MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 16);
         
         try
