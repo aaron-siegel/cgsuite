@@ -33,7 +33,9 @@ public class Utilities extends CgsuiteObject
     
     public static String version()
     {
-        return System.getProperty("app.version");
+        String productVersion = System.getProperty("netbeans.productversion");
+        assert productVersion.startsWith("CGSuite ");
+        return productVersion.substring("CGSuite ".length());
     }
     
     private Utilities()

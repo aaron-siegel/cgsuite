@@ -617,3 +617,26 @@ TopplingDominoes                \ game.strip.TopplingDominoes("xoxeoxeeo").Canon
 \ ^^ > * \ true \
 \ 0 <| ^* \ true \
 \ g := {2||1|0} \ {2||1|0} \
+
+// "Loopy Games" tutorial
+
+\ on := {pass|} \ on \
+\ over := {0|pass} \ over \
+\ upon := {pass|*} \ ^[on] \
+\ uponth := {0|-upon+*} \ ^on \
+\ upover := {0|*,pass} \ {0|*,pass} \
+\ tiny := on.Tiny \ on.Tiny \
+\ ace := {0|on.Tiny} \ {0|on.Tiny} \
+\ g := upon.Upsum(uponth) \ {0|^on*} \
+\ u := +-g \ {0|^on*||von*|0} \
+\ u.Degree \ ^on \
+\ u.Variety \ {0|^on||von|0} \
+\ over-over \ over & under \
+\ upon-upon \ ^on & von \
+\ on-on \ dud \
+\ g := over & v \ over & v \
+\ g + 1 + * \ 1over & 1v* \
+\ g.Offside \ v \
+\ g := a{0||||0|||a|*||*} \ a{0||||0|||a|*||*} \
+\ g.Degree \ {0|a{0|0,{0|||a|0||0}}} \
+\ bach := a{0,{1|1,{*,{1+*|1+*,a}|*}}|0} \ !!That game is not stopper-sided. \

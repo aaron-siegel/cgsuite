@@ -1,15 +1,14 @@
 package org.cgsuite.lang.game;
 
-import org.cgsuite.lang.Game;
-import org.cgsuite.lang.CgsuiteException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.cgsuite.lang.CgsuiteException;
 import org.cgsuite.lang.CgsuiteInteger;
 import org.cgsuite.lang.CgsuiteList;
-
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.Game;
 import org.cgsuite.lang.output.StyledTextOutput;
 
 public class SumGame extends Game
