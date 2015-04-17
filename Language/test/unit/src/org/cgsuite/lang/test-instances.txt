@@ -122,7 +122,8 @@ Procedure - too many args       \ f(3,4,5) \ !!Expecting 2 argument(s); found 3 
 Procedure - optional arg        \ f(3,4,foo => 5) \ !!Invalid optional parameter: foo \
 No-parameter procedure          \ f := () -> 3; f() \ 3 \
 Simplification inside listof    \ B := n -> {0,setof(B(a)+B(n-a) for a from 1 to n-1)|*}; listof(B(a) for a from 2 to 2) \ [{^^|*}] \
-Scoping/simpl inside listof     \ tableof(listof(B(a)-B(a-1) <=> B(b)-B(b-1) for b from 2 to 5) for a from 2 to 5) \
+Scoping/simpl inside listof (1) \ listof(B(a)-B(a-1) <=> B(b)-B(b-1) for b from 2 to 5) \ [0,1,1,1] \
+Scoping/simpl inside listof (2) \ tableof(listof(B(a)-B(a-1) <=> B(b)-B(b-1) for b from 2 to 5) for a from 2 to 5) \
 0  | 1  | 1 | 1
 ---+----+---+--
 -1 | 0  | * | 1
