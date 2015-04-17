@@ -20,6 +20,7 @@ import org.openide.filesystems.Repository;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
+import org.openide.windows.WindowManager;
 
 /**
  * Action which shows "Tip Of The Day".
@@ -50,7 +51,7 @@ public class TipTCAction extends AbstractAction
         {
             final JXTipOfTheDay jXTipOfTheDay1 = new JXTipOfTheDay(loadModel());
             jXTipOfTheDay1.setCurrentTip(getStartingTipLocation());
-            jXTipOfTheDay1.showDialog(null, new JXTipOfTheDay.ShowOnStartupChoice()
+            jXTipOfTheDay1.showDialog(WindowManager.getDefault().getMainWindow(), new JXTipOfTheDay.ShowOnStartupChoice()
             {
                 @Override
                 public boolean isShowingOnStartup()

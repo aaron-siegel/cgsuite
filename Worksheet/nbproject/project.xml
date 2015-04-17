@@ -31,12 +31,6 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.cgsuite.ui.highlighting</code-name-base>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
                     <code-name-base>org.cgsuite.ui.history</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>

@@ -4,6 +4,7 @@
     <folder name="Editors">
         <folder name="text">
             <folder name="x-cgscript">
+                <file name="org-cgsuite-filetype-cgscript-CgscriptEditorKit.instance"/>
                 <file name="org-cgsuite-ui-highlighting-CgsuiteEditorParserFactory.instance"/>
                 <file name="org-cgsuite-ui-highlighting-CgsuiteErrorHighlightingTaskFactory.instance"/>
                 <file name="org-cgsuite-ui-highlighting-CgsuiteIndentTaskFactory.instance"/>
