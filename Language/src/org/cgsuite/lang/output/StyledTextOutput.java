@@ -90,7 +90,14 @@ public class StyledTextOutput extends AbstractOutput
         } catch (Exception exc) {
             SANS_SERIF_FONT = new Font("SansSerif", Font.PLAIN, 20);
         }
-        MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 16);
+        try {
+            MONOSPACED_FONT = new Font("Courier New", Font.PLAIN, 16);
+        } catch (Exception exc) {
+            MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 16);
+        }
+        for (String fontName : java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
+            System.out.println(fontName);
+        }
         
         try
         {

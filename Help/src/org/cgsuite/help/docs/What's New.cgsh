@@ -3,6 +3,8 @@
 <li>Resurrected and improved support for loopy games! This feature was present in CGSuite 0.7, but conspicuously absent in
 version 1.0. It's now returned to CGSuite, in much improved form. There's a new tutorial on working with
 [[Loopy Games][../advancedfeatures/Loopy Games]].
+<li>Upgraded to use NetBeans 7.4 as the GUI platform. This resolves tons of issues that were causing incompatibility
+with newer versions of the Java JDK. CGSuite now uses JDK7 by default and is compatible all recent versions of Java.
 <li>Lots of little bugfixes.
 </ul>
 
