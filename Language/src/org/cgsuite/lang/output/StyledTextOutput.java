@@ -95,10 +95,11 @@ public class StyledTextOutput extends AbstractOutput
         } catch (Exception exc) {
             MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 16);
         }
+        /*
         for (String fontName : java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
             System.out.println(fontName);
         }
-        
+        */
         try
         {
             SYMBOL_FONT = Font.createFont(
