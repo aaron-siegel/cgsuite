@@ -94,7 +94,7 @@ public class CgsuiteMethodGroup extends CgsuiteObject implements Callable
             }
         }
         
-        throw new ArgumentValidationException("No match for method " + name);   // TODO Improve message
+        throw new InputException("No match for method " + name);   // TODO Improve message
     }
     
     public CgsuiteObject invoke(CgsuiteObject obj, List<? extends CgsuiteObject> arguments, Map<String, CgsuiteObject> optionalArguments) throws CgsuiteException
