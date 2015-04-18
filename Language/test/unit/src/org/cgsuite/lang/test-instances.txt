@@ -51,8 +51,8 @@ PowTo*                          \ {0,^*|0} \ ^.PowTo(2)+* \
 
 // Loopy game specification
 
-on                              \ {pass|} \ on \
-off                             \ {|pass} \ off \
+on                              \ on := {pass|} \ on \
+off                             \ off := {|pass} \ off \
 dud                             \ {pass|pass} \ dud \
 over                            \ {0|pass} \ over \
 under                           \ {pass|0} \ under \
@@ -67,6 +67,7 @@ loopy plus number (uponth)      \ listof(5+x for x in [{0||0|0,pass},{0,*||*|pas
 loopy plus canonical            \ {0|pass}+^ \ over \
 number plus loopy               \ 5+{0|pass} \ 5over \
 loopy minus number              \ {0|pass}-5 \ -5over \
+explicit stopper sided          \ {0|pass} & v \ over & v \
 loopy game with reference       \ x{0||||0|||x|*||*} \ a{0||||0|||a|*||*} \
 not stopper-sided               \ a{0,{1|1,{*,{1+*|1+*,a}|*}}|0} \ !!That game is not stopper-sided. \
 
@@ -499,9 +500,22 @@ Cool2                           \ {3+*||2|1}.Cool(1) \ 9/4 \
 NortonProduct                   \ ^.NortonProduct(^) \ {^^*||0|v4} \
 ConwayProduct                   \ *14.ConwayProduct(*19) \ *233 \
 OrdinalSum                      \ *4.OrdinalSum(*5) \ *9 \
+OrdinalSum (colon)              \ *4 : *5 \ *9 \
 Pow                             \ ^^.Pow(3) \ ^.Pow(3) \
 PowTo                           \ ^^.PowTo(3) \ {^^|^*||^*} \
 Options                         \ {*2,*|-1}.Options(Player.Left) \ {*,*2} \
+
+// CanonicalStopperGame
+
+OrdinalSum                      \ 1.OrdinalSum(off) \ over \
+OrdinalSum (colon)              \ 1 : off \ over \
+Degree                          \ {*|pass}.Degree \ ^on \
+Downsum                         \ on.Downsum(off) \ off \
+Upsum                           \ on.Upsum(off) \ on \
+IsIdempotent                    \ [on.IsIdempotent,{*|pass}.IsIdempotent] \ [true,false] \
+Miny                            \ on.Tiny \ on.Tiny \
+Tiny                            \ on.Miny \ on.Miny \
+// TODO More
 
 // Various Pow cases
 
@@ -558,6 +572,8 @@ MultipleGame.Multiplicand       \ g.Multiplicand \ Nim(2) \
 MultipleGame.CanonicalForm      \ g.CanonicalForm \ *2 \
 MultipleGame.Options            \ g.LeftOptions \ {2 * Nim(2) + Nim(0),2 * Nim(2) + Nim(1)} \
 MultipleGame invalid multiplier \ (1/2) * test.Nim(2) \ !!No rules for converting org.cgsuite.lang.Game to org.cgsuite.lang.game.RationalNumber. \
+Canonical multiple simplify     \ 10 * ^ \ ^10 \
+Stopper multiple simplify       \ 3 * {pass|*} \ {0||0|^[on]} \
 
 // Player
 
@@ -617,10 +633,12 @@ TopplingDominoes                \ game.strip.TopplingDominoes("xoxeoxeeo").Canon
 \ ^^ > * \ true \
 \ 0 <| ^* \ true \
 \ g := {2||1|0} \ {2||1|0} \
+\ *4:*5 \ *9 \
 
 // "Loopy Games" tutorial
 
 \ on := {pass|} \ on \
+\ off := {|pass} \ off \
 \ over := {0|pass} \ over \
 \ upon := {pass|*} \ ^[on] \
 \ uponth := {0|-upon+*} \ ^on \
@@ -631,9 +649,10 @@ TopplingDominoes                \ game.strip.TopplingDominoes("xoxeoxeeo").Canon
 \ u := +-g \ {0|^on*||von*|0} \
 \ u.Degree \ ^on \
 \ u.Variety \ {0|^on||von|0} \
+\ 1:off \ over \
 \ over-over \ over & under \
 \ upon-upon \ ^on & von \
-\ on-on \ dud \
+\ on+off \ dud \
 \ g := over & v \ over & v \
 \ g + 1 + * \ 1over & 1v* \
 \ g.Offside \ v \

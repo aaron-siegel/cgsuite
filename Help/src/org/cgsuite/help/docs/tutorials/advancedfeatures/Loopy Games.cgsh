@@ -9,19 +9,14 @@ includes an excellent introduction.
 Stoppers with simple pass moves ("plumtrees") can be entered into the Worksheet using the convenient keyword $pass$.
 Here are some familiar examples:
 
-$on := {pass|}$
-
-$over := {0|pass}$
-
-$upon := {pass|*}$
-
-$uponth := {0|-upon+*}$
-
-$upover := {0|*,pass}$
-
-$tiny := on.Tiny$
-
-$ace := {0|on.Tiny}$
+$on := {pass|}
+off := {|pass}
+over := {0|pass}
+upon := {pass|*}
+uponth := {0|-upon+*}
+upover := {0|*,pass}
+tiny := on.Tiny
+ace := {0|on.Tiny}$
 
 Try entering each of these games, and note that CGSuite is pretty good at expressing them in convenient shorthand
 notation.
@@ -30,23 +25,22 @@ notation.
 
 Basic operations on loopy games are all there, just as you'd expect:
 
-$g := upon.Upsum(uponth)$
+$g := upon.Upsum(uponth)
+u := +-g
+u.Degree
+u.Variety$
 
-$u := +-g$
+Ordinal sum works too:
 
-$u.Degree$
-
-$u.Variety$
+$1:off$
 
 ++Sidling++
 
 For games that are not stoppers, CGSuite will sidle automatically.
 
-$over - over$
-
-$upon - upon$
-
-$on - on$
+$over - over
+upon - upon
+on + off$
 
 (Note the shorthand recognition of $dud = on & off$.)
 
@@ -56,9 +50,8 @@ $g := over & v$
 
 And manipulated in all the usual ways, just as you'd expect:
 
-$g + 1 + *$
-
-$g.Offside$
+$g + 1 + *
+g.Offside$
 
 ++Long Cycles++
 

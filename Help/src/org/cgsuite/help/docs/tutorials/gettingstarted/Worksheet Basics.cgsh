@@ -54,6 +54,10 @@ $*2
 Here $3*2$ is equal to 6, ~not~ three-star-two.  For the latter, you'll need to type
 $3 + *2$.  Similarly, $3\^2$ is equal to 9 (exponentiation), not three-double-up.
 
+$:$ is used for ordinal sum:
+
+$*4:*5$
+
 There are nine ~comparison operators~:
 
 $&nbsp;==&nbsp; &lt;=&nbsp; &gt;=&nbsp; &lt;&nbsp; &gt;&nbsp; !=&nbsp; &lt;|&nbsp; |&gt;&nbsp; &lt;&gt; $

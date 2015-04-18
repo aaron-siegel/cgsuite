@@ -32,6 +32,25 @@ public class MultipleGame extends Game
         this.g = g;
     }
     
+    @Override
+    public MultipleGame negate()
+    {
+        return new MultipleGame(multiplier.negate(), g);
+    }
+    
+    @Override
+    public Game add(Game other)
+    {
+        if (other instanceof MultipleGame && ((MultipleGame) other).g.equals(g))
+        {
+            return new MultipleGame(multiplier.add(((MultipleGame) other).multiplier), g);
+        }
+        else
+        {
+            return super.add(other);
+        }
+    }
+    
     public CgsuiteInteger getMultiplier()
     {
         return multiplier;
@@ -78,9 +97,42 @@ public class MultipleGame extends Game
         return hash;
     }
 
+    public Game expandAndSimplify()
+    {
+        if (multiplier.intValue() < 0)
+            return negate().expandAndSimplify();
+        
+        Game sum = g;
+        Game result = CanonicalShortGame.ZERO;
+        
+        // We use a "binary addition" algorithm.
+        for (int power2 = 0; multiplier.intValue() >> power2 != 0; power2++)
+        {
+            if (power2 > 0)
+            {
+                sum = (Game) sum.invokeMethod("op +", sum).simplify();
+            }
+            if ((multiplier.intValue() & (1 << power2)) != 0)
+            {
+                result = (Game) result.invokeMethod("op +", sum).simplify();
+            }
+        }
+        
+        return result;
+    }
+    
     @Override
     public Game simplify() throws CgsuiteException
     {
-        return multiplier.multiply(g.simplify());
+        Game simp = multiplier.multiply(g.simplify());
+        if (simp instanceof MultipleGame)
+        {
+            Game simpG = ((MultipleGame) simp).g;
+            if (simpG instanceof CanonicalStopperGame || simpG instanceof StopperSidedGame)
+            {
+                return ((MultipleGame) simp).expandAndSimplify();
+            }
+        }
+        return simp;
     }
 }
