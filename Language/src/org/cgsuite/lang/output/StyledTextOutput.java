@@ -90,11 +90,9 @@ public class StyledTextOutput extends AbstractOutput
         } catch (Exception exc) {
             SANS_SERIF_FONT = new Font("SansSerif", Font.PLAIN, 20);
         }
-        try {
-            MONOSPACED_FONT = new Font("Courier New", Font.PLAIN, 16);
-        } catch (Exception exc) {
-            MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 16);
-        }
+
+        MONOSPACED_FONT = new Font("Monospaced", Font.PLAIN, 12);
+
         /*
         for (String fontName : java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
             System.out.println(fontName);
@@ -1394,7 +1392,7 @@ public class StyledTextOutput extends AbstractOutput
         {
             affineTransform.scale(1.4, 1.4);
         }
-        else if (symbol == null && !styles.contains(Style.FACE_MATH) && !styles.contains(Style.SIZE_LARGE))
+        else if (symbol == null && !styles.contains(Style.FACE_MATH) && !styles.contains(Style.FACE_MONOSPACED) && !styles.contains(Style.SIZE_LARGE))
         {
             affineTransform.scale(0.75, 0.75);
         }
