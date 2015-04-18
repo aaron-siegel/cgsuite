@@ -2,4 +2,14 @@
 
 class Method : java "org.cgsuite.lang.CgsuiteMethod"
 
+    property Name.get : java "getName";
+    property QualifiedName.get : java "getQualifiedName";
+    property DeclaringClass.get : java "getDeclaringClass";
+
+    override property ToString.get
+        
+        return "<Method " + QualifiedName + ">";
+        
+    end
+
 end

@@ -313,6 +313,17 @@ public class CgsuiteObject implements Cloneable
             throw new InputException("No method \"" + methodName + "\" for class " + (type == null ? null : type.getName()) + ".");
         return method.invoke(arguments, optionalArguments);
     }
+    
+    private static CgsuiteClass INSTANCE_METHOD_TYPE = null;
+    
+    public static CgsuiteClass instanceMethodType()
+    {
+        if (INSTANCE_METHOD_TYPE == null)
+        {
+            INSTANCE_METHOD_TYPE = CgsuitePackage.forceLookupClass("InstanceMethod");
+        }
+        return INSTANCE_METHOD_TYPE;
+    }
 
     public class InstanceMethod extends CgsuiteObject implements Callable
     {
@@ -320,9 +331,19 @@ public class CgsuiteObject implements Cloneable
 
         InstanceMethod(CgsuiteMethodGroup methodGroup) throws CgsuiteException
         {
-            super(CgsuitePackage.forceLookupClass("InstanceMethod"));
+            super(instanceMethodType());
 
             this.methodGroup = methodGroup;
+        }
+        
+        public CgsuiteMethodGroup getMethodGroup()
+        {
+            return methodGroup;
+        }
+        
+        public CgsuiteObject getObject()
+        {
+            return CgsuiteObject.this;
         }
 
         @Override

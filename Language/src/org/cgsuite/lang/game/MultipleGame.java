@@ -81,31 +81,6 @@ public class MultipleGame extends Game
     @Override
     public Game simplify() throws CgsuiteException
     {
-        Game simp = g.simplify();
-
-        if (simp instanceof CgsuiteInteger)
-        {
-            return multiplier.multiply((CgsuiteInteger) simp);
-        }
-        else if (simp instanceof CanonicalShortGame)
-        {
-            return CanonicalShortGame.construct(multiplier).nortonMultiply((CanonicalShortGame) simp);
-        }
-        else if (multiplier.equals(CgsuiteInteger.ZERO))
-        {
-            return CgsuiteInteger.ZERO;
-        }
-        else if (multiplier.equals(CgsuiteInteger.ONE))
-        {
-            return simp;
-        }
-        else if (multiplier.equals(CgsuiteInteger.ONE.negate()))
-        {
-            return simp.negate();
-        }
-        else
-        {
-            return new MultipleGame(multiplier, simp);
-        }
+        return multiplier.multiply(g.simplify());
     }
 }

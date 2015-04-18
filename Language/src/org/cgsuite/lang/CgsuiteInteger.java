@@ -22,6 +22,7 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
 
     public final static CgsuiteInteger ZERO = new CgsuiteInteger(0);
     public final static CgsuiteInteger ONE = new CgsuiteInteger(1);
+    public final static CgsuiteInteger NEGATIVE_ONE = new CgsuiteInteger(-1);
     
     private final static Random RANDOM = new Random();
 
@@ -75,6 +76,13 @@ public class CgsuiteInteger extends Game implements Comparable<CgsuiteInteger>
     
     public Game multiply(Game g)
     {
+        if (this.equals(ZERO))
+            return ZERO;
+        else if (this.equals(ONE))
+            return g;
+        else if (this.equals(NEGATIVE_ONE))
+            return g.negate();
+        
         if (g instanceof CgsuiteInteger)
             return multiply((CgsuiteInteger) g);
         else if (g instanceof CanonicalShortGame)

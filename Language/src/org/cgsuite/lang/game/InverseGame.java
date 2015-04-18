@@ -34,15 +34,7 @@ public class InverseGame extends Game
     @Override
     public Game simplify() throws CgsuiteException
     {
-        CgsuiteObject gSimp = g.simplify();
-        if (gSimp instanceof CgsuiteInteger)
-            return ((CgsuiteInteger) gSimp).negate();
-        else if (gSimp instanceof CanonicalShortGame)
-            return ((CanonicalShortGame) gSimp).negate();
-        else if (gSimp instanceof Game)
-            return new InverseGame((Game) gSimp);
-        else
-            return this;
+        return g.simplify().negate();
     }
 
     @Override

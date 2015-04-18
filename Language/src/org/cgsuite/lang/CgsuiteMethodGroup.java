@@ -21,6 +21,7 @@ public class CgsuiteMethodGroup extends CgsuiteObject implements Callable
     
     public CgsuiteMethodGroup(String name)
     {
+        super(TYPE);
         this.name = name;
         this.methods = new ArrayList<CgsuiteMethod>();
     }
@@ -28,6 +29,16 @@ public class CgsuiteMethodGroup extends CgsuiteObject implements Callable
     public boolean isStatic()
     {
         return firstMethod().isStatic();
+    }
+    
+    public int getMethodCount()
+    {
+        return methods.size();
+    }
+    
+    public List<CgsuiteMethod> getMethods()
+    {
+        return methods;
     }
     
     public CgsuiteMethod firstMethod()
@@ -99,7 +110,7 @@ public class CgsuiteMethodGroup extends CgsuiteObject implements Callable
             }
         }
         
-        throw new ArgumentValidationException("No match for method " + name);   // TODO Improve message
+        throw new InputException("No match for method " + name);   // TODO Improve message
     }
     
 }
