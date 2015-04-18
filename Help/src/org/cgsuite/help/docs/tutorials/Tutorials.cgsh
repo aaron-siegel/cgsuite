@@ -1,5 +1,7 @@
 The following tutorials are available:
 <ul>
 <li><a href=\"gettingstarted/Getting Started.html\">Getting Started</a> - Beginner's guide to CGSuite.
+<li><a href=\"advancedfeatures/Advanced Features.html\">Advanced Features</a> - Guide to additional CGSuite features,
+such as loopy games.
 <li><a href=\"usingcgscript/Using CGScript.html\">Using CGScript</a> - Guide to implementing new games in CGScript.
 </ul>

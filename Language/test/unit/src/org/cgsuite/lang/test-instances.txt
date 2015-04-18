@@ -48,6 +48,8 @@ Pow                             \ {0|v*} \ ^.Pow(2) \
 Pow*                            \ {0,*|v} \ ^.Pow(2)+* \
 PowTo                           \ {^|*} \ ^.PowTo(2) \
 PowTo*                          \ {0,^*|0} \ ^.PowTo(2)+* \
+Explicit game                   \ '{*|*}' \ '{*|*}' \
+Explicit game ordinal sum       \ '{*|*}':1 \ ^ \
 
 // Loopy game specification
 

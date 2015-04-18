@@ -4,6 +4,8 @@
 version 1.0. It's now returned to CGSuite, in much improved form. There's a new tutorial on working with
 [[Loopy Games][tutorials/advancedfeatures/Loopy Games]].
 <li>Introduced the colon operator for ordinal sum (example: $*4 : *5$ will now return $*9$). This works for loopy games too!
+<li>Explicit games: enclose a braces-and-slashes expression in single quotes to suppress conversion to canonical form
+(example: $'{*|*}'$). This is useful in conjunction with ordinal sum (example: $('{*|*}':1).CanonicalForm$).
 <li>Upgraded to use NetBeans 7.4 as the GUI platform. This resolves tons of issues that were causing incompatibility
 with newer versions of the Java JDK. CGSuite now uses JDK7 by default and is compatible all recent versions of Java.
 <li>Lots of little bugfixes.
