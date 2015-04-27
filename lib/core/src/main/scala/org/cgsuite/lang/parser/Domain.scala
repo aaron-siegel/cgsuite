@@ -7,6 +7,7 @@ import scala.collection.JavaConversions._
 import org.cgsuite.exception.InputException
 import scala.collection.mutable
 import org.antlr.runtime.Token
+import org.cgsuite.lang.{CallSite, InstanceMethod, CgsuiteClass, StandardObject}
 
 class Domain {
 
@@ -175,6 +176,7 @@ class Domain {
         val args = params.map(expression)
         val optArgs = optParams.map { child => (child.getChild(0).getText, expression(child.getChild(1))) }.toMap
         x match {
+          case site: CallSite => site.call(args, optArgs)
           case f: Function1[Any, Any] => f(args(0))
         }
 
@@ -218,7 +220,7 @@ class Domain {
   }
 
   def lookup(id: String): Option[Any] = {
-    namespace.get(id)
+    org.cgsuite.lang.Package.lookupClass(id).map { _.classObject }.orElse(namespace.get(id))
   }
 
   def leq(a: Any, b: Any): Boolean = (a, b) match {
@@ -322,12 +324,33 @@ class Domain {
 
   def resolve(x: Any, id: String): Any = {
 
+    /*
     // Shortcut resolver
     MethodRegistry.lookup(id, x) match {
       case Some(y) => y
       case None => sys.error("TODO: dynamic resolve")
     }
+    */
 
+    x match {
+      case so: StandardObject => so.lookup(id).getOrElse {
+        sys.error("not found")
+      }
+      case _ =>
+        val method = cgsuiteClassOf(x).lookupMethod(id).getOrElse {
+          sys.error("not found")
+        }
+        InstanceMethod(x, method)
+    }
+
+  }
+
+  def cgsuiteClassOf(x: Any): CgsuiteClass = {
+    x match {
+      case so: StandardObject => so.cls
+      case _: Integer => CgsuiteClass.Integer
+      case _: Player => CgsuiteClass.Player
+    }
   }
 
   def assignTo(tree: CgsuiteTree, x: Any): Any = {

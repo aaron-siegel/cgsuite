@@ -1,0 +1,12 @@
+/*${cgsuite.banner}*/
+
+system enum Player
+
+  external Left,
+  external Right;
+
+  external def Sign := if this === Left then 1 else -1 end;
+
+  external def Opponent := if this === Left then Right else Left end;
+
+end

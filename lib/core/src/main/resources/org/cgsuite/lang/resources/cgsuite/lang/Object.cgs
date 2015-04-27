@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Object
+
+  external def Class;
+
+end

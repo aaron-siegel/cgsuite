@@ -1,9 +1,13 @@
 package org.cgsuite.lang.parser
 
+import org.cgsuite.lang.CgsuiteClass
+
 
 object Repl {
 
   def main(args: Array[String]) {
+
+    CgsuiteClass.Object
 
     val domain = new Domain()
 

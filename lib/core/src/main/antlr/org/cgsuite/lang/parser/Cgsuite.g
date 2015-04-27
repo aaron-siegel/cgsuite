@@ -78,6 +78,7 @@ tokens
     ENUM        = 'enum';
     ERROR       = 'error';
 	EXTENDS		= 'extends';
+	EXTERNAL    = 'external';
 	FALSE		= 'false';
     FINALLY     = 'finally';
 	FOR			= 'for';
@@ -108,13 +109,13 @@ tokens
     STATIC      = 'static';
     SUMOF       = 'sumof';
     SUPER       = 'super';
+    SYSTEM      = 'system';
     TABLEOF     = 'tableof';
 	THEN		= 'then';
 	THIS        = 'this';
 	TO			= 'to';
 	TRUE		= 'true';
     TRY         = 'try';
-    VAL         = 'val';
 	VAR         = 'var';
 	WHERE		= 'where';
 	WHILE		= 'while';
@@ -122,6 +123,7 @@ tokens
 	ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
 	ASN_ANTECEDENT;
+	DECLARATIONS;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
     EXP;
@@ -261,11 +263,15 @@ importClause
     ;
 
 classDeclaration
-	: classModifiers CLASS^ IDENTIFIER extendsClause? javaClause? declaration* END!
+	: classModifiers CLASS^ IDENTIFIER extendsClause? (LPAREN! methodParameterList RPAREN!)? declarations END!
 	;
 
 classModifiers
-    : MUTABLE* -> ^(MODIFIERS MUTABLE*)
+    : classModifier* -> ^(MODIFIERS classModifier*)
+    ;
+
+classModifier
+    : MUTABLE | SYSTEM
     ;
 	
 extendsClause
@@ -279,12 +285,16 @@ qualifiedId
 javaClause
     : COLON! JAVA^ STRING
     ;
-	
+
+declarations
+	: declaration* -> ^(DECLARATIONS declaration*)
+	;
+
 declaration
 	: staticDeclaration
-    | varDeclaration
-	| propertyDeclaration
-	| methodDeclaration
+//    | varDeclaration
+//    | propertyDeclaration
+//    | methodDeclaration
 	| defDeclaration
 	;
 
@@ -315,19 +325,17 @@ methodDeclaration
 	;
 
 defDeclaration
-    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
-    | modifiers defOrVal IDENTIFIER defInitializer -> ^(defOrVal modifiers METHOD_PARAMETER_LIST IDENTIFIER defInitializer)
+    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer?
+    | modifiers DEF IDENTIFIER defInitializer -> ^(DEF modifiers IDENTIFIER METHOD_PARAMETER_LIST defInitializer?)
     ;
 
-defOrVal: DEF | VAL;
-
 defInitializer
-    : ASSIGN! expression
+    : (ASSIGN! expression)? SEMI!
     | statementSequence END!
     ;
 
 modifiers
-	: (OVERRIDE | MUTABLE | STATIC)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC*)
+	: (OVERRIDE | MUTABLE | STATIC | EXTERNAL)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC* EXTERNAL*)
 	;
 
 opCode
@@ -349,12 +357,12 @@ methodParameter
 
 optionalParameter
 	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($b $a?) expression?)
-    | a=IDENTIFIER QUESTION expression? -> ^(QUESTION $a expression?)
+    | a=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($a IDENTIFIER["Object"]) expression?)
     ;
 
 requiredParameter
 	: a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^($b $a DOTDOTDOT?)
-	| IDENTIFIER^ DOTDOTDOT?
+	| a=IDENTIFIER DOTDOTDOT? -> ^($a IDENTIFIER["Object"] DOTDOTDOT?)
 	;
 
 enumDeclaration
@@ -362,7 +370,7 @@ scope
 {
     String name;
 }
-    : modifiers ENUM^ IDENTIFIER {$enumDeclaration::name = $IDENTIFIER.text;} enumElementList declaration* END!
+    : classModifiers ENUM^ IDENTIFIER {$enumDeclaration::name = $IDENTIFIER.text;} enumElementList declarations END!
     ;
 
 enumElementList
@@ -370,10 +378,14 @@ enumElementList
     ;
 
 enumElement
+    : modifiers IDENTIFIER^
+    ;
+/*
+enumElement
     : IDENTIFIER (functionCall)?
       -> ^(ENUM_ELEMENT[$IDENTIFIER] ^(ASSIGN IDENTIFIER ^(FUNCTION_CALL[$IDENTIFIER] IDENTIFIER[$IDENTIFIER, $enumDeclaration::name] functionCall?)))
     ;
-
+*/
 script
     : block EOF^
     ;

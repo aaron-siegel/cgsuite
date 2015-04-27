@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Integer extends Game
+
+  external def Div(Integer other);
+
+end

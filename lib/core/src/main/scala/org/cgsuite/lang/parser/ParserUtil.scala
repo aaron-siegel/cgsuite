@@ -1,21 +1,45 @@
 package org.cgsuite.lang.parser
 
-import org.antlr.runtime.{CommonTokenStream, ANTLRStringStream}
+import org.antlr.runtime.{ANTLRInputStream, CharStream, CommonTokenStream, ANTLRStringStream}
+import java.io.InputStream
 
 
 object ParserUtil {
 
   def parseExpression(str: String) = stringToParser(str).expression.getTree.asInstanceOf[CgsuiteTree]
   def parseStatement(str: String) = stringToParser(str).statement.getTree.asInstanceOf[CgsuiteTree]
+  def parseCU(in: InputStream) = parse(in) { _.compilationUnit }
 
-  def stringToParser(str: String) = {
+  def stringToParser(str: String) = charStreamToParser(new ANTLRStringStream(str))
+  def inputStreamToParser(in: InputStream) = charStreamToParser(new ANTLRInputStream(in))
 
-    val input = new ANTLRStringStream(str)
+  def charStreamToParser(input: CharStream) = {
+
     val lexer = new CgsuiteLexer(input)
     val tokens = new CommonTokenStream(lexer)
     val parser = new CgsuiteParser(tokens)
     parser.setTreeAdaptor(new CgsuiteTreeAdaptor())
     parser
+
+  }
+
+  private def parse(in: InputStream)(fn: CgsuiteParser => { def getTree(): Object }) = {
+
+    val stream = new ANTLRInputStream(in)
+    val lexer = new CgsuiteLexer(stream)
+    val tokens = new CommonTokenStream(lexer)
+    val parser = new CgsuiteParser(tokens)
+    parser.setTreeAdaptor(new CgsuiteTreeAdaptor())
+
+    val tree = fn(parser).getTree.asInstanceOf[CgsuiteTree]
+
+    if (!lexer.getErrors.isEmpty) {
+      sys.error(lexer.getErrors.toString)
+    } else if (!parser.getErrors.isEmpty) {
+      sys.error(parser.getErrors.toString)
+    } else {
+      tree
+    }
 
   }
 

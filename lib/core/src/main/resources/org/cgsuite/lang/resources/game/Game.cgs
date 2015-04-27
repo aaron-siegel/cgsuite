@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+system class Game
+
+  def Options()
+    error("Subclasses of Game must override the Options method.")
+  end
+
+end
