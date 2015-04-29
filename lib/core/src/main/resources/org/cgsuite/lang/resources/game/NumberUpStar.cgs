@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+system class NumberUpStar extends CanonicalShortGame
+end

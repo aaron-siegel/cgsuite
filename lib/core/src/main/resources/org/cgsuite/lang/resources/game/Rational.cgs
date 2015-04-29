@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+system class Rational extends Game
+end

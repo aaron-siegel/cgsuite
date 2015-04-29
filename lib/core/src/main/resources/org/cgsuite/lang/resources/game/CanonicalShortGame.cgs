@@ -1,0 +1,16 @@
+/*${cgsuite.banner}*/
+
+system class CanonicalShortGame extends Game
+
+  external def Birthday;
+  external def Cool(DyadicRational temperature);
+  external def IsInfinitesimal;
+  external def IsNimber;
+  external def IsNumber;
+  external def IsNumberish;
+  external def IsNumberTiny;
+  external def Mean;
+  override external def Options(Player player);
+  external def Temperature;
+
+end

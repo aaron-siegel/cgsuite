@@ -2,7 +2,7 @@
 
 system class Game
 
-  def Options()
+  def Options(Player player)
     error("Subclasses of Game must override the Options method.")
   end
 

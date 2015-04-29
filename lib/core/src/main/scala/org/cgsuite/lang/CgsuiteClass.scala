@@ -1,18 +1,39 @@
 package org.cgsuite.lang
 
-import scala.collection.mutable
-import scala.collection.JavaConversions._
-import org.cgsuite.lang.parser.{CgsuiteTree, ParserUtil}
-import org.cgsuite.lang.parser.CgsuiteLexer._
 import java.net.URL
+import org.cgsuite.core._
+import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.lang.parser.{CgsuiteTree, ParserUtil}
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 object CgsuiteClass {
 
   val Object = Package.lang.lookupClass("Object").get
   val Class = Package.lang.lookupClass("Class").get
   val Integer = Package.game.lookupClass("Integer").get
+  val DyadicRational = Package.game.lookupClass("DyadicRational").get
+  val Rational = Package.game.lookupClass("Rational").get
+  val CanonicalShortGame = Package.game.lookupClass("CanonicalShortGame").get
   val Player = Package.game.lookupClass("Player").get
+  val Zero = Package.game.lookupClass("Zero").get
+  val Nimber = Package.game.lookupClass("Nimber").get
+  val NumberUpStar = Package.game.lookupClass("NumberUpStar").get
   Object.ensureLoaded()
+
+  def of(x: Any): CgsuiteClass = {
+    x match {
+      case so: StandardObject => so.cls
+      case _: org.cgsuite.core.Zero => Zero
+      case _: Integer => Integer
+      case _: DyadicRationalNumber => DyadicRational
+      case _: RationalNumber => Rational
+      case _: Nimber => Nimber
+      case _: NumberUpStar => NumberUpStar
+      case _: CanonicalShortGame => CanonicalShortGame
+      case _: Player => Player
+    }
+  }
 
 }
 
@@ -26,6 +47,7 @@ class CgsuiteClass(
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
+  val qualifiedName = pkg.qualifiedName + "." + name
 
   private val methods = mutable.Map[String, CgsuiteClass#Method]()
   private var constructor: Option[UserMethod] = None
@@ -44,20 +66,23 @@ class CgsuiteClass(
 
     def name: String
     def parameters: Seq[MethodParameter]
+    def autoinvoke: Boolean
     def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any
 
     def declaringClass = CgsuiteClass.this
 
   }
 
-  class UserMethod(
-    val name: String,
-    val parameters: Seq[MethodParameter],
+  case class UserMethod(
+    name: String,
+    parameters: Seq[MethodParameter],
+    autoinvoke: Boolean,
     tree: CgsuiteTree
   ) extends Method {
 
     def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any = {
-      sys.error("TODO")
+      val allArgs = prepareArgs(args, namedArgs)
+      new Domain(allArgs, Some(obj), Some(this)).statementSequence(tree)
     }
 
     def prepareArgs(args: Seq[Any], namedArgs: Map[String, Any]): Map[String, Any] = {
@@ -74,9 +99,10 @@ class CgsuiteClass(
 
   }
 
-  class SystemMethod(
-    val name: String,
-    val parameters: Seq[MethodParameter],
+  case class SystemMethod(
+    name: String,
+    parameters: Seq[MethodParameter],
+    autoinvoke: Boolean,
     javaMethod: java.lang.reflect.Method
   ) extends Method {
 
@@ -84,6 +110,13 @@ class CgsuiteClass(
       // TODO Validation!
       javaMethod.invoke(obj.asInstanceOf[AnyRef], args.asInstanceOf[Seq[AnyRef]] : _*)
     }
+
+  }
+
+  case class ExplicitMethod0(name: String, autoinvoke: Boolean)(fn: Any => Any) extends Method {
+
+    def parameters = Seq.empty
+    def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any = fn(obj)
 
   }
 
@@ -153,16 +186,20 @@ class CgsuiteClass(
     val isMutable = modifiersTree.getChildren.exists { _.getType == MUTABLE }
     val isSystem = modifiersTree.getChildren.exists { _.getType == SYSTEM }
 
-    supers = extendsTree match {
-      case Some(etree) => etree.getChildren.map { parseQualifiedClass }.toSeq
-      case None if CgsuiteClass.Object.loaded => Seq(CgsuiteClass.Object)
-      case None => Seq.empty  // Hack to bootstrap Object
-    }
-    supers.foreach { _.ensureLoaded() }
-    supers.foreach { scls => methods ++= scls.methods }
+    if (CgsuiteClass.Object.loaded) { // Hack to bootstrap Object
+      supers = extendsTree match {
+        case Some(etree) => etree.getChildren.map { parseQualifiedClass }.toSeq
+        case None => Seq(CgsuiteClass.Object)
+      }
+      supers.foreach { _.ensureLoaded() }
+      supers.foreach { scls => methods ++= scls.methods }
 
-    val defs = declarationsTree.getChildren.filter { _.getType == DEF }
-    defs foreach { declareMethod }
+      val defs = declarationsTree.getChildren.filter { _.getType == DEF }
+      defs foreach { declareMethod }
+    } else {
+      // We're loading Object right now!
+      declareMethodsForObject()
+    }
 
     classObjectRef = new StandardObject(CgsuiteClass.Class, Map("Name" -> name))
     methods.foreach { case (methodName, method) => classObjectRef.putIntoNamespace(methodName, method) }
@@ -193,12 +230,11 @@ class CgsuiteClass(
 
     val modifiersTree = tree.getChild(0)
     val nameTree = tree.getChild(1)
-    val paramsTree = tree.getChild(2)
-    val bodyTree = tree.getChild(3)
+    val paramsTree = tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST }
+    val bodyTree = tree.getChildren.last
 
     assert(modifiersTree.getType == MODIFIERS)
     assert(nameTree.getType == IDENTIFIER)
-    assert(paramsTree.getType == METHOD_PARAMETER_LIST)
 
     val isExternal = modifiersTree.getChildren.exists { _.getType == EXTERNAL }
     val isStatic = modifiersTree.getChildren.exists { _.getType == STATIC }
@@ -209,7 +245,10 @@ class CgsuiteClass(
       sys.error(s"duplicate method: $name")
     }
 
-    val parameters = parseParameterList(paramsTree)
+    val (autoinvoke, parameters) = paramsTree match {
+      case Some(t) => (false, parseParameterList(t))
+      case None => (true, Seq.empty)
+    }
 
     val newMethod = {
       if (isExternal) {
@@ -218,10 +257,10 @@ class CgsuiteClass(
         println(s"Declaring external method: $name => $externalName")
         val externalMethod = javaClass.getMethod(externalName, externalParameterTypes : _*)
         println(s"Here it is: $externalMethod")
-        new SystemMethod(name, parameters, externalMethod)
+        new SystemMethod(name, parameters, autoinvoke, externalMethod)
       } else {
         println(s"Declaring user method: $name")
-        new UserMethod(name, parameters, bodyTree)
+        new UserMethod(name, parameters, autoinvoke, bodyTree)
       }
     }
 
@@ -273,6 +312,12 @@ class CgsuiteClass(
     }
 
   }
+
+  private def declareMethodsForObject() {
+    methods.put("Class", ExplicitMethod0("Class", autoinvoke = true) { CgsuiteClass.of(_).classObject })
+  }
+
+  override def toString = s"<class $qualifiedName>"
 
 }
 

@@ -5,6 +5,7 @@ import org.specs2.mutable._
 import org.specs2.runner._
 import org.cgsuite.core._
 import org.cgsuite.core.Values._
+import org.cgsuite.lang.Domain
 
 @RunWith(classOf[JUnitRunner])
 class CgsuiteParserTest extends Specification {

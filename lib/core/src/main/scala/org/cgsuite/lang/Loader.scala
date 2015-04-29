@@ -8,9 +8,15 @@ object Loader {
   val systemClasses: Map[String, Option[Class[_]]] = Map(
     "cgsuite.lang.Object" -> None,
     "cgsuite.lang.Class" -> None,
+    "game.CanonicalShortGame" -> Some(classOf[CanonicalShortGame]),
+    "game.DyadicRational" -> Some(classOf[DyadicRationalNumber]),
+    "game.Rational" -> Some(classOf[RationalNumber]),
     "game.Game" -> Some(classOf[Game]),
     "game.Integer" -> Some(classOf[Integer]),
-    "game.Player" -> Some(classOf[Player])
+    "game.Nimber" -> Some(classOf[Nimber]),
+    "game.NumberUpStar" -> Some(classOf[NumberUpStar]),
+    "game.Player" -> Some(classOf[Player]),
+    "game.Zero" -> Some(Zero.getClass)
   )
 
   def declareSystemResources() {

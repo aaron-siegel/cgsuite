@@ -326,7 +326,7 @@ methodDeclaration
 
 defDeclaration
     : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer?
-    | modifiers DEF IDENTIFIER defInitializer -> ^(DEF modifiers IDENTIFIER METHOD_PARAMETER_LIST defInitializer?)
+    | modifiers DEF IDENTIFIER defInitializer -> ^(DEF modifiers IDENTIFIER defInitializer?)
     ;
 
 defInitializer

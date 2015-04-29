@@ -1,17 +1,14 @@
 package org.cgsuite.lang.parser
 
 import org.antlr.runtime.{ANTLRInputStream, CharStream, CommonTokenStream, ANTLRStringStream}
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 
 
 object ParserUtil {
 
-  def parseExpression(str: String) = stringToParser(str).expression.getTree.asInstanceOf[CgsuiteTree]
-  def parseStatement(str: String) = stringToParser(str).statement.getTree.asInstanceOf[CgsuiteTree]
+  def parseExpression(str: String) = parse(new ByteArrayInputStream(str.getBytes)) { _.expression }
+  def parseStatement(str: String) = parse(new ByteArrayInputStream(str.getBytes)) { _.statement }
   def parseCU(in: InputStream) = parse(in) { _.compilationUnit }
-
-  def stringToParser(str: String) = charStreamToParser(new ANTLRStringStream(str))
-  def inputStreamToParser(in: InputStream) = charStreamToParser(new ANTLRInputStream(in))
 
   def charStreamToParser(input: CharStream) = {
 

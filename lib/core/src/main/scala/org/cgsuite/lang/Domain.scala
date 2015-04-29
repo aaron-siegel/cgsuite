@@ -1,15 +1,19 @@
-package org.cgsuite.lang.parser
+package org.cgsuite.lang
 
-import org.cgsuite.core._
-import org.cgsuite.core.Values._
-import org.cgsuite.lang.parser.CgsuiteLexer._
-import scala.collection.JavaConversions._
-import org.cgsuite.exception.InputException
-import scala.collection.mutable
 import org.antlr.runtime.Token
-import org.cgsuite.lang.{CallSite, InstanceMethod, CgsuiteClass, StandardObject}
+import org.cgsuite.core.Values._
+import org.cgsuite.core._
+import org.cgsuite.exception.InputException
+import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.lang.parser.{MalformedParseTreeException, CgsuiteTree}
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
-class Domain {
+class Domain(
+  args: Map[String, Any] = Map.empty,
+  contextObject: Option[Any] = None,
+  contextMethod: Option[CgsuiteClass#Method] = None
+  ) {
 
   val namespace = mutable.Map[String, Any]()
 
@@ -36,6 +40,8 @@ class Domain {
 
     tree.getType match {
 
+      case STATEMENT_SEQUENCE => statementSequence(tree)
+
       // Constants
 
       case TRUE => true
@@ -59,16 +65,7 @@ class Domain {
         case (x: Game) => -x
       }
 
-      case PLUS => binop(tree) {
-        case (x: Game, _: Zero) => x
-        case (_: Zero, y: Game) => y
-        case (x: Integer, y: Integer) => x + y
-        case (x: RationalNumber, y: RationalNumber) => x + y
-        case (x: NumberUpStar, y: NumberUpStar) => x + y
-        case (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
-        case (x: Game, y: Game) => x + y
-        case (x: String, y) => x + y.toString
-      }
+      case PLUS => binop(tree) { plus }
 
       case MINUS => binop(tree) {
         case (x: Game, _: Zero) => x
@@ -167,6 +164,12 @@ class Domain {
 
       case ELSE => statementSequence(tree.getChild(0))
 
+      case DO => doLoop(tree)
+
+      case ERROR =>
+        val msg = toStringOutput(statementSequence(tree.getChild(0)))
+        throw InputException(msg, token = Some(tree.token))
+
       // Resolvers
 
       case DOT => resolve(expression(tree.getChild(0)), tree.getChild(1).getText)
@@ -177,7 +180,7 @@ class Domain {
         val optArgs = optParams.map { child => (child.getChild(0).getText, expression(child.getChild(1))) }.toMap
         x match {
           case site: CallSite => site.call(args, optArgs)
-          case f: Function1[Any, Any] => f(args(0))
+          case _ => throw InputException("That is not a method or procedure.", token = Some(tree.getToken))
         }
 
       // Assignment
@@ -203,6 +206,81 @@ class Domain {
     }
   }
 
+  def iterator(tree: CgsuiteTree): Iterator[_] = {
+    expression(tree) match {
+      case (x: Iterable[_]) => x.iterator
+      case _ => sys.error("not a collection")
+    }
+  }
+
+  def plus(a: Any, b: Any): Any = (a, b) match {
+    case (x: Game, _: Zero) => x
+    case (_: Zero, y: Game) => y
+    case (x: Integer, y: Integer) => x + y
+    case (x: RationalNumber, y: RationalNumber) => x + y
+    case (x: NumberUpStar, y: NumberUpStar) => x + y
+    case (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
+    case (x: Game, y: Game) => x + y
+    case (x: String, y) => x + y.toString
+  }
+
+  def doLoop(tree: CgsuiteTree): Any = {
+
+    val forTree = tree.getChildren.find { _.getType == FOR }
+    val fromTree = tree.getChildren.find { _.getType == FROM }
+    val toTree = tree.getChildren.find { _.getType == TO }
+    val byTree = tree.getChildren.find { _.getType == BY }
+    val whileTree = tree.getChildren.find { _.getType == WHILE }
+    val whereTree = tree.getChildren.find { _.getType == WHERE }
+    val inTree = tree.getChildren.find { _.getType == IN }
+    val bodyTree = tree.getChildren.last
+
+    val forVar = forTree map { _.getChild(0).getText }
+    var counter: Any = fromTree match {
+      case Some(t) => expression(t.getChild(0))
+      case None => forVar match {
+        case Some(id) => lookup(id) match {
+          case Some(v) => v
+          case None =>
+            if (inTree.isEmpty)
+              throw InputException("Undefined variable in for loop with no \"from\" clause: " + forVar, token = Some(tree.token))
+            else one
+        }
+        case None => one
+      }
+    }
+    val toVal = toTree map { t => expression(t.getChild(0)) }
+    val byVal = byTree map { t => expression(t.getChild(0)) } getOrElse { one }
+    val it = inTree map { t => iterator(t.getChild(0)) }
+
+    var continue = true
+    do {
+
+      it match {
+        case Some(i) => {
+          if (i.hasNext)
+            forVar foreach { id => put(id, i.next()) }
+          else
+            continue = false
+        }
+        case None =>
+          forVar foreach { id => put(id, counter) }
+          continue = toVal forall { v => leq(counter, v) }
+      }
+
+      if (continue) {
+        continue = whileTree.forall { t => boolean(t) }
+      }
+
+      if (continue && whereTree.forall { t => boolean(t) }) {
+        statementSequence(bodyTree)
+        counter = plus(counter, byVal)
+      }
+
+    } while (continue)
+
+  }
+
   def lookup(token: Token): Any = {
 
     val opt = try {
@@ -220,7 +298,9 @@ class Domain {
   }
 
   def lookup(id: String): Option[Any] = {
-    org.cgsuite.lang.Package.lookupClass(id).map { _.classObject }.orElse(namespace.get(id))
+    Package.lookupClass(id).map { _.classObject }
+      .orElse(args.get(id))
+      .orElse(namespace.get(id))
   }
 
   def leq(a: Any, b: Any): Boolean = (a, b) match {
@@ -337,20 +417,15 @@ class Domain {
         sys.error("not found")
       }
       case _ =>
-        val method = cgsuiteClassOf(x).lookupMethod(id).getOrElse {
+        val method = CgsuiteClass.of(x).lookupMethod(id).getOrElse {
           sys.error("not found")
         }
-        InstanceMethod(x, method)
+        if (method.autoinvoke)
+          method.call(x, Seq.empty, Map.empty)
+        else
+          InstanceMethod(x, method)
     }
 
-  }
-
-  def cgsuiteClassOf(x: Any): CgsuiteClass = {
-    x match {
-      case so: StandardObject => so.cls
-      case _: Integer => CgsuiteClass.Integer
-      case _: Player => CgsuiteClass.Player
-    }
   }
 
   def assignTo(tree: CgsuiteTree, x: Any): Any = {
@@ -377,5 +452,7 @@ class Domain {
     namespace.put(id, x)
     x
   }
+
+  def toStringOutput(x: Any) = x.toString
 
 }
