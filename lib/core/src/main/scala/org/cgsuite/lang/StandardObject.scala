@@ -13,6 +13,7 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Map[String, Any]) {
 
   def lookupInstanceMethod(id: String): Option[Any] = {
     cls.lookupMethod(id).map { method =>
+      if (method.isStatic) sys.error("foo")
       if (method.autoinvoke)
         method.call(this, Seq.empty, Map.empty)
       else

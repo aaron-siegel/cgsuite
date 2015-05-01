@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class GridGame(Grid grid)
+
+
+
+end

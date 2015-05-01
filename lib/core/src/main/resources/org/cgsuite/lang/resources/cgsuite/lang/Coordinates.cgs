@@ -1,0 +1,18 @@
+/*${cgsuite.banner}*/
+
+system class Coordinates
+
+  static var North     := (-1,  0);
+  static var Northeast := (-1,  1);
+  static var East      := ( 0,  1);
+  static var Southeast := ( 1,  1);
+  static var South     := ( 1,  0);
+  static var Southwest := ( 1, -1);
+  static var West      := ( 0, -1);
+  static var Northwest := (-1, -1);
+
+  static var Orthogonal := [North, East, South, West];
+  static var Diagonal := [Northeast, Southeast, Southwest, Northwest];
+  static var Compass := [North, Northeast, East, Southeast, South, Southwest, West, Northwest];
+
+end

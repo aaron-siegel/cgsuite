@@ -8,6 +8,7 @@ import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.{MalformedParseTreeException, CgsuiteTree}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import org.cgsuite.util.{Grid, Coordinates}
 
 class Domain(
   args: Map[String, Any] = Map.empty,
@@ -75,6 +76,7 @@ class Domain(
         case (x: NumberUpStar, y: NumberUpStar) => x - y
         case (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
         case (x: Game, y: Game) => x - y
+        case (x: Coordinates, y: Coordinates) => x - y
       }
 
       case PLUSMINUS => unop(tree) {
@@ -87,6 +89,8 @@ class Domain(
         case (x: Integer, y: Integer) => x * y
         case (x: RationalNumber, y: RationalNumber) => x * y
         case (x: Integer, y: Game) => x * y
+        case (x: Coordinates, y: Integer) => x * y
+        case (x: Integer, y: Coordinates) => y * x
       }
 
       case FSLASH => binop(tree) {
@@ -141,6 +145,7 @@ class Domain(
 
       // Explicit collection construction
 
+      case COORDINATES => Coordinates(integer(tree.getChild(0)), integer(tree.getChild(1)))
       case EXPLICIT_LIST => tree.getChildren.map(expression).toSeq
       case EXPLICIT_SET => tree.getChildren.map(expression).toSet
       case EXPLICIT_MAP => tree.getChildren.map { child =>
@@ -164,7 +169,7 @@ class Domain(
 
       case ELSE => statementSequence(tree.getChild(0))
 
-      case DO => doLoop(tree)
+      case DO | YIELD => doLoop(tree)
 
       case ERROR =>
         val msg = toStringOutput(statementSequence(tree.getChild(0)))
@@ -172,7 +177,13 @@ class Domain(
 
       // Resolvers
 
-      case DOT => resolve(expression(tree.getChild(0)), tree.getChild(1).getText)
+      case DOT =>
+        val obj = expression(tree.getChild(0))
+        val id = tree.getChild(1).getText
+        resolve(obj, id) getOrElse {
+          throw InputException(s"Member not found: $id (in object of type ${CgsuiteClass.of(obj)})")
+        }
+
       case FUNCTION_CALL =>
         val x = expression(tree.getChild(0))
         val (optParams, params) = tree.getChild(1).getChildren.partition { _.getType == BIGRARROW }
@@ -181,6 +192,14 @@ class Domain(
         x match {
           case site: CallSite => site.call(args, optArgs)
           case _ => throw InputException("That is not a method or procedure.", token = Some(tree.getToken))
+        }
+
+      case ARRAY_REFERENCE =>
+        val x = expression(tree.getChild(0))
+        assert(tree.getChild(1).getType == ARRAY_INDEX_LIST)
+        val indices = tree.getChild(1).getChildren map { expression }
+        x match {
+          case grid: Grid => grid.get(indices(0).asInstanceOf[Coordinates])
         }
 
       // Assignment
@@ -206,6 +225,13 @@ class Domain(
     }
   }
 
+  def integer(tree: CgsuiteTree): Integer = {
+    expression(tree) match {
+      case (x: Integer) => x
+      case _ => sys.error("not an int")
+    }
+  }
+
   def iterator(tree: CgsuiteTree): Iterator[_] = {
     expression(tree) match {
       case (x: Iterable[_]) => x.iterator
@@ -221,11 +247,13 @@ class Domain(
     case (x: NumberUpStar, y: NumberUpStar) => x + y
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
     case (x: Game, y: Game) => x + y
+    case (x: Coordinates, y: Coordinates) => x + y
     case (x: String, y) => x + y.toString
   }
 
   def doLoop(tree: CgsuiteTree): Any = {
 
+    val isYield = tree.getType == YIELD
     val forTree = tree.getChildren.find { _.getType == FOR }
     val fromTree = tree.getChildren.find { _.getType == FROM }
     val toTree = tree.getChildren.find { _.getType == TO }
@@ -252,6 +280,10 @@ class Domain(
     val toVal = toTree map { t => expression(t.getChild(0)) }
     val byVal = byTree map { t => expression(t.getChild(0)) } getOrElse { one }
     val it = inTree map { t => iterator(t.getChild(0)) }
+    var result: mutable.MutableList[Any] = null
+    if (isYield) {
+      result = mutable.MutableList[Any]()
+    }
 
     var continue = true
     do {
@@ -269,15 +301,27 @@ class Domain(
       }
 
       if (continue) {
-        continue = whileTree.forall { t => boolean(t) }
+        continue = whileTree.forall { t => boolean(t.getChild(0)) }
       }
 
-      if (continue && whereTree.forall { t => boolean(t) }) {
-        statementSequence(bodyTree)
+      if (continue && whereTree.forall { t => boolean(t.getChild(0)) }) {
+        val r = statementSequence(bodyTree)
+        if (isYield) {
+          r match {
+            case i: Iterable[_] => result ++= i
+            case x => result += x
+          }
+        }
         counter = plus(counter, byVal)
       }
 
     } while (continue)
+
+    if (isYield) {
+      result.toSeq
+    } else {
+      Nil
+    }
 
   }
 
@@ -301,6 +345,7 @@ class Domain(
     Package.lookupClass(id).map { _.classObject }
       .orElse(args.get(id))
       .orElse(namespace.get(id))
+      .orElse(contextObject flatMap { resolve(_, id) })
   }
 
   def leq(a: Any, b: Any): Boolean = (a, b) match {
@@ -402,7 +447,7 @@ class Domain(
 
   }
 
-  def resolve(x: Any, id: String): Any = {
+  def resolve(x: Any, id: String): Option[Any] = {
 
     /*
     // Shortcut resolver
@@ -413,17 +458,14 @@ class Domain(
     */
 
     x match {
-      case so: StandardObject => so.lookup(id).getOrElse {
-        sys.error("not found")
-      }
+      case so: StandardObject => so.lookup(id)
       case _ =>
-        val method = CgsuiteClass.of(x).lookupMethod(id).getOrElse {
-          sys.error("not found")
+        CgsuiteClass.of(x).lookupMethod(id).map { method =>
+          if (method.autoinvoke)
+            method.call(x, Seq.empty, Map.empty)
+          else
+            InstanceMethod(x, method)
         }
-        if (method.autoinvoke)
-          method.call(x, Seq.empty, Map.empty)
-        else
-          InstanceMethod(x, method)
     }
 
   }

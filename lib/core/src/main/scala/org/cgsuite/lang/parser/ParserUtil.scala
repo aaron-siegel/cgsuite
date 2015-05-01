@@ -1,6 +1,6 @@
 package org.cgsuite.lang.parser
 
-import org.antlr.runtime.{ANTLRInputStream, CharStream, CommonTokenStream, ANTLRStringStream}
+import org.antlr.runtime.{ANTLRInputStream, CharStream, CommonTokenStream}
 import java.io.{ByteArrayInputStream, InputStream}
 
 
@@ -28,7 +28,7 @@ object ParserUtil {
     val parser = new CgsuiteParser(tokens)
     parser.setTreeAdaptor(new CgsuiteTreeAdaptor())
 
-    val tree = fn(parser).getTree.asInstanceOf[CgsuiteTree]
+    val tree = fn(parser).getTree().asInstanceOf[CgsuiteTree]
 
     if (!lexer.getErrors.isEmpty) {
       sys.error(lexer.getErrors.toString)

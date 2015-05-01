@@ -1,0 +1,19 @@
+/*${cgsuite.banner}*/
+
+class Clobber(Grid grid) extends Game
+
+  override def Options(Player player)
+
+    us := player.Ordinal;
+    them := player.Opponent.Ordinal;
+
+    for c in grid.FindAll(us) yield
+      for d in Coordinates.Orthogonal
+      where grid[c+d] == them yield
+        grid.Updated(c, 0).Updated(c+d, us)
+      end
+    end
+
+  end
+
+end

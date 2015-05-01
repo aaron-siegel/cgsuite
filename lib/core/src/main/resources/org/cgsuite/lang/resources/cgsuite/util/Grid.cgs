@@ -1,0 +1,12 @@
+/*${cgsuite.banner}*/
+
+system class Grid
+
+  external static def Parse(String str, String charMap);
+
+  external def FindAll(Integer value);
+  external def IsInBounds(Coordinates coord);
+  external def ToString(String charMap);
+  external def Updated(Coordinates coord, Integer newValue);
+
+end

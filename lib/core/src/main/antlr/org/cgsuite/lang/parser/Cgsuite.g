@@ -119,10 +119,12 @@ tokens
 	VAR         = 'var';
 	WHERE		= 'where';
 	WHILE		= 'while';
+	YIELD       = 'yield';
 	
 	ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
 	ASN_ANTECEDENT;
+	COORDINATES;
 	DECLARATIONS;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
@@ -263,7 +265,9 @@ importClause
     ;
 
 classDeclaration
-	: classModifiers CLASS^ IDENTIFIER extendsClause? (LPAREN! methodParameterList RPAREN!)? declarations END!
+    : (classModifiers CLASS IDENTIFIER LPAREN methodParameterList RPAREN) =>
+	  classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END!
+	| classModifiers CLASS^ IDENTIFIER extendsClause? declarations END!
 	;
 
 classModifiers
@@ -291,11 +295,9 @@ declarations
 	;
 
 declaration
-	: staticDeclaration
-//    | varDeclaration
-//    | propertyDeclaration
-//    | methodDeclaration
-	| defDeclaration
+	: (modifiers DEF) => defDeclaration
+	| (modifiers VAR) => varDeclaration
+	| staticDeclaration
 	;
 
 staticDeclaration
@@ -325,8 +327,8 @@ methodDeclaration
 	;
 
 defDeclaration
-    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer?
-    | modifiers DEF IDENTIFIER defInitializer -> ^(DEF modifiers IDENTIFIER defInitializer?)
+    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
+    | modifiers DEF^ IDENTIFIER defInitializer
     ;
 
 defInitializer
@@ -399,7 +401,7 @@ statementSequence
 	;
 
 statementChain
-    : (IF | inLoopAntecedent DO | doLoopAntecedent DO | BEGIN) => controlExpression statementChain?
+    : (IF | inLoopAntecedent (DO | YIELD) | doLoopAntecedent (DO | YIELD) | BEGIN) => controlExpression statementChain?
     | (TRY) => tryStatement statementChain?
     | statement (SEMI statementChain?)?
     | SEMI statementChain?
@@ -583,6 +585,7 @@ primaryExpr
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! statementSequence RPAREN!
+    | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES expression*)
 	| LPAREN! statementSequence RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
 	| (LBRACE expression? BIGRARROW) => explicitMap
@@ -682,8 +685,8 @@ expressionList
 
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
-	| doLoopAntecedent DO^ statementSequence END!
-	| inLoopAntecedent DO^ statementSequence END!
+	| doLoopAntecedent (DO^ | YIELD^) statementSequence END!
+	| inLoopAntecedent (DO^ | YIELD^) statementSequence END!
     | BEGIN! statementSequence END!
 	;
 

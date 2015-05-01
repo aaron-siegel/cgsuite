@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class String
+
+  external def Length;
+
+end
