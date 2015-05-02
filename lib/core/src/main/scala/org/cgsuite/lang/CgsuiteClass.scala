@@ -12,21 +12,21 @@ import org.cgsuite.exception.InputException
 
 object CgsuiteClass {
 
-  val Object = Package.lang.lookupClass("Object").get
-  val Class = Package.lang.lookupClass("Class").get
-  val Coordinates = Package.lang.lookupClass("Coordinates").get
-  val String = Package.lang.lookupClass("String").get
+  val Object = CgsuitePackage.lang.lookupClass("Object").get
+  val Class = CgsuitePackage.lang.lookupClass("Class").get
+  val Coordinates = CgsuitePackage.lang.lookupClass("Coordinates").get
+  val String = CgsuitePackage.lang.lookupClass("String").get
 
-  val Grid = Package.util.lookupClass("Grid").get
+  val Grid = CgsuitePackage.util.lookupClass("Grid").get
 
-  val Integer = Package.game.lookupClass("Integer").get
-  val DyadicRational = Package.game.lookupClass("DyadicRational").get
-  val Rational = Package.game.lookupClass("Rational").get
-  val CanonicalShortGame = Package.game.lookupClass("CanonicalShortGame").get
-  val Player = Package.game.lookupClass("Player").get
-  val Zero = Package.game.lookupClass("Zero").get
-  val Nimber = Package.game.lookupClass("Nimber").get
-  val NumberUpStar = Package.game.lookupClass("NumberUpStar").get
+  val Integer = CgsuitePackage.game.lookupClass("Integer").get
+  val DyadicRational = CgsuitePackage.game.lookupClass("DyadicRational").get
+  val Rational = CgsuitePackage.game.lookupClass("Rational").get
+  val CanonicalShortGame = CgsuitePackage.game.lookupClass("CanonicalShortGame").get
+  val Player = CgsuitePackage.game.lookupClass("Player").get
+  val Zero = CgsuitePackage.game.lookupClass("Zero").get
+  val Nimber = CgsuitePackage.game.lookupClass("Nimber").get
+  val NumberUpStar = CgsuitePackage.game.lookupClass("NumberUpStar").get
   Object.ensureLoaded()
 
   def of(x: Any): CgsuiteClass = {
@@ -57,7 +57,7 @@ object CgsuiteClass {
 }
 
 class CgsuiteClass(
-  val pkg: Package,
+  val pkg: CgsuitePackage,
   val name: String,
   val systemClass: Option[Class[_]] = None
   ) {
@@ -290,7 +290,7 @@ class CgsuiteClass(
   }
 
   private def parseQualifiedClass(tree: CgsuiteTree): CgsuiteClass = {
-    Package.lookupClass(flattenQualifiedClass(tree)) getOrElse {
+    CgsuitePackage.lookupClass(flattenQualifiedClass(tree)) getOrElse {
       sys.error("not found")
     }
   }
@@ -378,13 +378,13 @@ class CgsuiteClass(
       paramTree.getType match {
         case IDENTIFIER =>
           val name = paramTree.getText
-          val ttype = Package.lookupClass(paramTree.getChild(0).getText).getOrElse {
+          val ttype = CgsuitePackage.lookupClass(paramTree.getChild(0).getText).getOrElse {
             sys.error("unknown symbol")
           }
           MethodParameter(name, ttype, None)
         case QUESTION =>
           val name = paramTree.getChild(0).getText
-          val ttype = Package.lookupClass(paramTree.getChild(0).getChild(0).getText).getOrElse {
+          val ttype = CgsuitePackage.lookupClass(paramTree.getChild(0).getChild(0).getText).getOrElse {
             sys.error("unknown symbol")
           }
           val defaultValue = paramTree.getChild(1)

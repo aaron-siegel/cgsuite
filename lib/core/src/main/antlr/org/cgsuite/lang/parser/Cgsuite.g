@@ -135,6 +135,7 @@ tokens
 	EXPRESSION_LIST;
 	FUNCTION_CALL;
 	FUNCTION_CALL_ARGUMENT_LIST;
+	LOOP_SPEC;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
     NODE_LABEL;
@@ -344,7 +345,7 @@ opCode
 options { greedy = true; }
     : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND | NEG | POS
     | standardRelationalToken
-    | LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
+    | (LBRACKET RBRACKET ASSIGN) => LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
     ;
 	
@@ -401,7 +402,7 @@ statementSequence
 	;
 
 statementChain
-    : (IF | inLoopAntecedent (DO | YIELD) | doLoopAntecedent (DO | YIELD) | BEGIN) => controlExpression statementChain?
+    : (IF | loopAntecedent | BEGIN) => controlExpression statementChain?
     | (TRY) => tryStatement statementChain?
     | statement (SEMI statementChain?)?
     | SEMI statementChain?
@@ -537,8 +538,7 @@ postfixExpr
 	  ;
 
 arrayReference
-	: LBRACKET expression (COMMA expression)* RBRACKET
-      -> ^(ARRAY_INDEX_LIST[$LBRACKET] expression*)
+	: LBRACKET! expression RBRACKET!
 	;
 
 functionCall
@@ -584,7 +584,7 @@ primaryExpr
 	| STRING
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
-    | ERROR^ LPAREN! statementSequence RPAREN!
+    | ERROR^ LPAREN! expression RPAREN!
     | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES expression*)
 	| LPAREN! statementSequence RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
@@ -666,12 +666,12 @@ explicitList
 	;
 
 of
-    : ofToken LPAREN expression ( inLoopAntecedent RPAREN -> ^(DO[$ofToken.tree.getToken()] ofToken inLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                                | doLoopAntecedent RPAREN
+    : ofToken LPAREN expression ( (forClause IN) => forInLoopAntecedent RPAREN -> ^(DO[$ofToken.tree.getToken()] ofToken forInLoopAntecedent ^(STATEMENT_SEQUENCE expression))
+                                | forFromLoopAntecedent RPAREN
                                     // TODO These errors aren't being generated quite right
-                                    { if ($doLoopAntecedent.tree == null)
+                                    { if ($forFromLoopAntecedent.tree == null)
                                         throw new RecognitionException(input);
-                                    } -> ^(DO[$ofToken.tree.getToken()] ofToken doLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
+                                    } -> ^(DO[$ofToken.tree.getToken()] ofToken forFromLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
                                 )
     ;
 
@@ -685,27 +685,43 @@ expressionList
 
 controlExpression
 	: IF^ expression THEN! statementSequence elseifClause? END!
-	| doLoopAntecedent (DO^ | YIELD^) statementSequence END!
-	| inLoopAntecedent (DO^ | YIELD^) statementSequence END!
+	| loopAntecedent (forLoopAntecedent)* (DO^ | YIELD^) statementSequence END!
     | BEGIN! statementSequence END!
 	;
 
-doLoopAntecedent
-    : forClause? fromClause? toClause? byClause? whileClause? whereClause?
+loopAntecedent
+    : forLoopAntecedent
+    | whileLoopAntecedent
     ;
 
-inLoopAntecedent
+forLoopAntecedent
+    : (forClause FROM) => forFromLoopAntecedent
+    | forInLoopAntecedent
+    ;
+
+forFromLoopAntecedent
+    : forClause fromClause toClause? byClause? whileClause? whereClause?
+      -> ^(LOOP_SPEC forClause fromClause toClause? byClause? whileClause? whereClause?)
+    ;
+
+forInLoopAntecedent
     : forClause inClause whileClause? whereClause?
+      -> ^(LOOP_SPEC forClause inClause whileClause? whereClause?)
+    ;
+
+whileLoopAntecedent
+    : whileClause whereClause?
+      -> ^(LOOP_SPEC whileClause whereClause?)
     ;
 
 forClause
-	: FOR^ IDENTIFIER
-	;
-	
+    : FOR^ expression
+    ;
+
 fromClause
-	: FROM^ expression
-	;
-	
+    : FROM^ expression
+    ;
+
 toClause
     : TO^ expression
     ;
@@ -728,7 +744,7 @@ inClause
 
 elseifClause
 	: ELSEIF^ expression THEN! statementSequence elseifClause?
-	| ELSE^ statementSequence
+	| ELSE! statementSequence
 	;
 
 generalizedId

@@ -3,9 +3,9 @@ package org.cgsuite.lang
 import scala.collection.mutable
 import java.net.URL
 
-object Package {
+object CgsuitePackage {
 
-  val root = new Package(None, "$root")
+  val root = new CgsuitePackage(None, "$root")
 
   val cgsuite = root.declareSubpackage("cgsuite")
   val lang = cgsuite.declareSubpackage("lang")
@@ -28,9 +28,9 @@ object Package {
 
 }
 
-class Package(parent: Option[Package], name: String) {
+class CgsuitePackage(parent: Option[CgsuitePackage], name: String) {
 
-  private val subpackages = mutable.Map[String, Package]()
+  private val subpackages = mutable.Map[String, CgsuitePackage]()
   private val classes = mutable.Map[String, CgsuiteClass]()
 
   val path: Seq[String] = parent match {
@@ -40,11 +40,11 @@ class Package(parent: Option[Package], name: String) {
 
   val qualifiedName = path mkString "."
 
-  def declareSubpackage(name: String): Package = {
-    subpackages.getOrElseUpdate(name, new Package(Some(this), name))
+  def declareSubpackage(name: String): CgsuitePackage = {
+    subpackages.getOrElseUpdate(name, new CgsuitePackage(Some(this), name))
   }
 
-  def lookup(path: Seq[String]): Option[Package] = {
+  def lookup(path: Seq[String]): Option[CgsuitePackage] = {
     if (path.isEmpty) {
       Some(this)
     } else {

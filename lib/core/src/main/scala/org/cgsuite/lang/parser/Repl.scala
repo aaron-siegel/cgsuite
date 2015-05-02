@@ -1,6 +1,6 @@
 package org.cgsuite.lang.parser
 
-import org.cgsuite.lang.{Domain, CgsuiteClass}
+import org.cgsuite.lang.{Node, Domain, CgsuiteClass}
 
 
 object Repl {
@@ -15,7 +15,9 @@ object Repl {
       try {
         val str = Console.in.readLine()
         val tree = ParserUtil.parseStatement(str)
+        val node = Node(tree)
         println(tree.toStringTree)
+        println(node)
         println(domain.expression(tree))
       } catch {
         case exc: Throwable => exc.printStackTrace()

@@ -41,7 +41,7 @@ object Loader {
     val path = name.replace('.', '/')
     val url = getClass.getResource(s"resources/$path.cgs")
     val components = name.split("\\.").toSeq
-    val pkg = Package.root.lookup(components.dropRight(1)).getOrElse {
+    val pkg = CgsuitePackage.root.lookup(components.dropRight(1)).getOrElse {
       sys.error("Cannot find package: " + components.dropRight(1))
     }
     pkg.declareClass(components.last, url, scalaClass)
