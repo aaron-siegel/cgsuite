@@ -12,21 +12,22 @@ import org.cgsuite.exception.InputException
 
 object CgsuiteClass {
 
-  val Object = CgsuitePackage.lang.lookupClass("Object").get
-  val Class = CgsuitePackage.lang.lookupClass("Class").get
-  val Coordinates = CgsuitePackage.lang.lookupClass("Coordinates").get
-  val String = CgsuitePackage.lang.lookupClass("String").get
+  val Object = CgsuitePackage.lookupClassByName("Object").get
+  val Class = CgsuitePackage.lookupClassByName("Class").get
+  val Coordinates = CgsuitePackage.lookupClassByName("Coordinates").get
+  val String = CgsuitePackage.lookupClassByName("String").get
 
-  val Grid = CgsuitePackage.util.lookupClass("Grid").get
+  val Grid = CgsuitePackage.lookupClassByName("Grid").get
 
-  val Integer = CgsuitePackage.game.lookupClass("Integer").get
-  val DyadicRational = CgsuitePackage.game.lookupClass("DyadicRational").get
-  val Rational = CgsuitePackage.game.lookupClass("Rational").get
-  val CanonicalShortGame = CgsuitePackage.game.lookupClass("CanonicalShortGame").get
-  val Player = CgsuitePackage.game.lookupClass("Player").get
-  val Zero = CgsuitePackage.game.lookupClass("Zero").get
-  val Nimber = CgsuitePackage.game.lookupClass("Nimber").get
-  val NumberUpStar = CgsuitePackage.game.lookupClass("NumberUpStar").get
+  val Integer = CgsuitePackage.lookupClassByName("Integer").get
+  val DyadicRational = CgsuitePackage.lookupClassByName("DyadicRational").get
+  val Rational = CgsuitePackage.lookupClassByName("Rational").get
+  val CanonicalShortGame = CgsuitePackage.lookupClassByName("CanonicalShortGame").get
+  val Player = CgsuitePackage.lookupClassByName("Player").get
+  val Zero = CgsuitePackage.lookupClassByName("Zero").get
+  val Nimber = CgsuitePackage.lookupClassByName("Nimber").get
+  val NumberUpStar = CgsuitePackage.lookupClassByName("NumberUpStar").get
+
   Object.ensureLoaded()
 
   def of(x: Any): CgsuiteClass = {
@@ -58,7 +59,7 @@ object CgsuiteClass {
 
 class CgsuiteClass(
   val pkg: CgsuitePackage,
-  val name: String,
+  val id: Symbol,
   val systemClass: Option[Class[_]] = None
   ) {
 
@@ -67,9 +68,9 @@ class CgsuiteClass(
     case None => classOf[StandardObject]
   }
   val companionObject = Try { Class.forName(javaClass + "$").getField("MODULE$").get(null) }.toOption
-  val qualifiedName = pkg.qualifiedName + "." + name
+  val qualifiedName = Symbol(pkg.qualifiedName + "." + id.name)
 
-  private val methods = mutable.Map[String, CgsuiteClass#Method]()
+  private val methods = mutable.Map[Symbol, CgsuiteClass#Method]()
   private var constructorRef: Option[ConstructorMethod] = None
   private var loaded = false
   private var loading = false
@@ -90,23 +91,23 @@ class CgsuiteClass(
 
   trait Method {
 
-    def name: String
+    def id: Symbol
     def parameters: Seq[MethodParameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any
+    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any
 
     val declaringClass = CgsuiteClass.this
-    val qualifiedName = declaringClass.qualifiedName + "." + name
-    val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
+    val qualifiedId = Symbol(declaringClass.qualifiedName + "." + id.name)
+    val signature = s"${qualifiedId.name}(${parameters.map { _.signature }.mkString(", ")})"
 
-    def prepareArgs(args: Seq[Any], namedArgs: Map[String, Any]): Map[String, Any] = {
+    def prepareArgs(args: Seq[Any], namedArgs: Map[Symbol, Any]): Map[Symbol, Any] = {
       if (args.length > parameters.length) {
         sys.error("too many args")
       } else {
         val argsWithNames = args.zip(parameters).map { case (x, param) =>
           // TODO Typecheck
-          (param.name, x)
+          (param.id, x)
         }
         argsWithNames.toMap ++ namedArgs
       }
@@ -115,14 +116,14 @@ class CgsuiteClass(
   }
 
   case class UserMethod(
-    name: String,
+    id: Symbol,
     parameters: Seq[MethodParameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     tree: CgsuiteTree
   ) extends Method {
 
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any = {
+    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       val allArgs = prepareArgs(args, namedArgs)
       val target = if (isStatic) classObjectRef else obj
       new Domain(allArgs, Some(target), Some(this)).statementSequence(tree)
@@ -131,15 +132,16 @@ class CgsuiteClass(
   }
 
   case class SystemMethod(
-    name: String,
+    id: Symbol,
     parameters: Seq[MethodParameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     javaMethod: java.lang.reflect.Method
   ) extends Method {
 
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any = {
+    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       // TODO Validation!
+      // TODO Named args should work here too
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
       assert(
         target == null || CgsuiteClass.of(target).ancestors.contains(declaringClass),
@@ -156,13 +158,13 @@ class CgsuiteClass(
   }
 
   case class ConstructorMethod(
-    name: String,
+    id: Symbol,
     parameters: Seq[MethodParameter]
   ) extends Method {
 
     def autoinvoke = false
     def isStatic = false
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any = {
+    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       // TODO Superconstructor
       // TODO Parse var initializers
       val allArgs = prepareArgs(args, namedArgs)
@@ -173,17 +175,17 @@ class CgsuiteClass(
 
   }
 
-  case class ExplicitMethod0(name: String, autoinvoke: Boolean, isStatic: Boolean)(fn: Any => Any) extends Method {
+  case class ExplicitMethod0(id: Symbol, autoinvoke: Boolean, isStatic: Boolean)(fn: Any => Any) extends Method {
 
     def parameters = Seq.empty
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[String, Any]): Any = {
+    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       fn(if (isStatic) classObject else obj)
     }
 
   }
 
   def setURL(url: URL) {
-    println(s"Declaring class: $name at $url")
+    println(s"Declaring class: ${id.name} at $url")
     this.url = Some(url)
     this.loaded = false
     this.loading = false
@@ -191,7 +193,7 @@ class CgsuiteClass(
     constructorRef = None
   }
 
-  def lookupMethod(id: String): Option[CgsuiteClass#Method] = {
+  def lookupMethod(id: Symbol): Option[CgsuiteClass#Method] = {
     ensureLoaded()
     methods.get(id)
   }
@@ -212,7 +214,7 @@ class CgsuiteClass(
     }
     loading = true
 
-    println(s"Loading class: $name at $url")
+    println(s"Loading class: ${id.name} at $url")
 
     val in = url.openStream()
     val tree = try {
@@ -262,7 +264,7 @@ class CgsuiteClass(
       defs foreach { declareMethod }
 
       constructorRef = constructorParamsTree map { t =>
-        ConstructorMethod(name, parseParameterList(t))
+        ConstructorMethod(id, parseParameterList(t))
       }
     } else {
       // We're loading Object right now!
@@ -271,8 +273,8 @@ class CgsuiteClass(
       declareMethodsForObject()
     }
 
-    classObjectRef = new ClassObject(this, Map("Name" -> name))
-    methods.foreach { case (methodName, method) => classObjectRef.putIntoNamespace(methodName, method) }
+    classObjectRef = new ClassObject(this, Map(Symbol("Name") -> id.name))
+    methods.foreach { case (methodId, method) => classObjectRef.putIntoNamespace(methodId, method) }
 
     // Var declarations & statements
     val initializerDomain = new Domain(classObjectRef.objArgs, Some(classObjectRef), None)
@@ -290,15 +292,8 @@ class CgsuiteClass(
   }
 
   private def parseQualifiedClass(tree: CgsuiteTree): CgsuiteClass = {
-    CgsuitePackage.lookupClass(flattenQualifiedClass(tree)) getOrElse {
+    CgsuitePackage.lookupClass(Symbol(tree.getText)) getOrElse {
       sys.error("not found")
-    }
-  }
-
-  private def flattenQualifiedClass(tree: CgsuiteTree): Seq[String] = {
-    tree.getType match {
-      case IDENTIFIER => Seq(tree.getText)
-      case DOT => tree.getChildren.map { flattenQualifiedClass }.toSeq.flatten
     }
   }
 
@@ -318,8 +313,9 @@ class CgsuiteClass(
     val isStatic = modifiersTree.getChildren.exists { _.getType == STATIC }
     val isOverride = modifiersTree.getChildren.exists { _.getType == OVERRIDE }
     val name = nameTree.getText
+    val id = Symbol(name)
 
-    if (methods.get(name).exists { _.declaringClass == this }) {
+    if (methods.get(id).exists { _.declaringClass == this }) {
       sys.error(s"duplicate method: $name")
     }
 
@@ -335,14 +331,14 @@ class CgsuiteClass(
         println(s"Declaring external method: $name => $externalName")
         val externalMethod = javaClass.getMethod(externalName, externalParameterTypes : _*)
         println(s"Here it is: $externalMethod")
-        new SystemMethod(name, parameters, autoinvoke, isStatic, externalMethod)
+        new SystemMethod(id, parameters, autoinvoke, isStatic, externalMethod)
       } else {
         println(s"Declaring user method: $name")
-        new UserMethod(name, parameters, autoinvoke, isStatic, bodyTree)
+        new UserMethod(id, parameters, autoinvoke, isStatic, bodyTree)
       }
     }
 
-    methods.put(name, newMethod)
+    methods.put(id, newMethod)
     newMethod
 
   }
@@ -355,9 +351,9 @@ class CgsuiteClass(
         val modifiersTree = tree.getChild(0)
         assert(modifiersTree.getChildren.exists { _.getType == STATIC })
         tree.getChild(1).getType match {
-          case IDENTIFIER => classObjectRef.putIntoNamespace(tree.getChild(0).getText, Nil)
+          case IDENTIFIER => classObjectRef.putIntoNamespace(Symbol(tree.getChild(0).getText), Nil)
           case ASSIGN =>
-            val id = tree.getChild(1).getChild(0).getText
+            val id = Symbol(tree.getChild(1).getChild(0).getText)
             val value = domain.expression(tree.getChild(1).getChild(1))
             classObjectRef.putIntoNamespace(id, value)
         }
@@ -378,17 +374,17 @@ class CgsuiteClass(
       paramTree.getType match {
         case IDENTIFIER =>
           val name = paramTree.getText
-          val ttype = CgsuitePackage.lookupClass(paramTree.getChild(0).getText).getOrElse {
+          val ttype = CgsuitePackage.lookupClassByName(paramTree.getChild(0).getText).getOrElse {
             sys.error("unknown symbol")
           }
-          MethodParameter(name, ttype, None)
+          MethodParameter(Symbol(name), ttype, None)
         case QUESTION =>
           val name = paramTree.getChild(0).getText
-          val ttype = CgsuitePackage.lookupClass(paramTree.getChild(0).getChild(0).getText).getOrElse {
+          val ttype = CgsuitePackage.lookupClassByName(paramTree.getChild(0).getChild(0).getText).getOrElse {
             sys.error("unknown symbol")
           }
           val defaultValue = paramTree.getChild(1)
-          MethodParameter(name, ttype, Some(defaultValue))
+          MethodParameter(Symbol(name), ttype, Some(defaultValue))
       }
     }
 
@@ -407,7 +403,7 @@ class CgsuiteClass(
           case "Right" => org.cgsuite.core.Right
         }
       }
-      classObjectRef.putIntoNamespace(name, obj)
+      classObjectRef.putIntoNamespace(Symbol(name), obj)
     } else {
       sys.error("TODO")
     }
@@ -415,13 +411,15 @@ class CgsuiteClass(
   }
 
   private def declareMethodsForObject() {
-    methods.put("Class", ExplicitMethod0("Class", autoinvoke = true, isStatic = false) { CgsuiteClass.of(_).classObject })
+    methods.put(Symbol("Class"), ExplicitMethod0(Symbol("Class"), autoinvoke = true, isStatic = false) {
+      CgsuiteClass.of(_).classObject }
+    )
   }
 
-  override def toString = s"<class $qualifiedName>"
+  override def toString = s"<class ${qualifiedName.name}>"
 
 }
 
-case class MethodParameter(name: String, paramType: CgsuiteClass, defaultValue: Option[CgsuiteTree]) {
-  val signature = paramType.qualifiedName + " " + name + (if (defaultValue.isDefined) "?" else "")
+case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[CgsuiteTree]) {
+  val signature = paramType.qualifiedName.name + " " + id.name + (if (defaultValue.isDefined) "?" else "")
 }

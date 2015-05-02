@@ -11,12 +11,12 @@ import scala.collection.mutable
 import org.cgsuite.util.{Grid, Coordinates}
 
 class Domain(
-  args: Map[String, Any] = Map.empty,
+  args: Map[Symbol, Any] = Map.empty,
   contextObject: Option[Any] = None,
   contextMethod: Option[CgsuiteClass#Method] = None
   ) {
 
-  val namespace = mutable.Map[String, Any]()
+  val namespace = mutable.Map[Symbol, Any]()
 
   def statementSequence(tree: CgsuiteTree): Any = statementSequence(StatementSequenceNode(tree))
 
@@ -38,7 +38,7 @@ class Domain(
       case BinOpNode(tree, op, operand1, operand2) => op(expression(operand1), expression(operand2))
       case MultiOpNode(tree, op, operands) => op(operands.map(expression))
       case MapPairNode(tree, from, to) => expression(from) -> expression(to)
-      case IdentifierNode(tree) => lookup(tree.getToken)    // TODO Use symbol
+      case IdentifierNode(tree, id) => lookup(id, tree.getToken)    // TODO Use symbol
       case GameSpecNode(tree, lo, ro, forceExplicit) => gameSpec(lo.flatMap(gameExpression), ro.flatMap(gameExpression), forceExplicit)
       case IfNode(tree, condition, ifNode, elseNode) =>
         if (boolean(condition))
@@ -47,20 +47,20 @@ class Domain(
           elseNode.map(statementSequence).getOrElse(Nil)
       case node: LoopNode => loop(node)
       case ErrorNode(tree, msg) => throw InputException(toStringOutput(expression(msg)))
-      case DotNode(tree, obj, id) =>
+      case DotNode(tree, obj, IdentifierNode(_, id)) =>
         val x = expression(obj)
-        resolve(x, id.symbol) getOrElse {
-          throw InputException(s"Member not found: ${id.symbol.name} (in object of type ${CgsuiteClass.of(x)})")
+        resolve(x, id) getOrElse {
+          throw InputException(s"Member not found: ${id.name} (in object of type ${CgsuiteClass.of(x)})")
         }
       case node@FunctionCallNode(tree) =>
         val callSite = expression(node.callSite)
         val args = node.args.map(expression)
-        val optArgs = node.optArgs.map { case (name, value) => (name.symbol.name, expression(value)) }
+        val optArgs = node.optArgs.map { case (IdentifierNode(_, id), value) => (id, expression(value)) }
         callSite match {
           case site: CallSite => site.call(args, optArgs)
           case _ => throw InputException("That is not a method or procedure.", token = Some(tree.token))
         }
-      case AssignToNode(tree, id, value) => assignTo(id.symbol, expression(value), tree.token)
+      case AssignToNode(tree, IdentifierNode(_, id), value) => assignTo(id, expression(value), tree.token)
 
     }
 
@@ -82,7 +82,7 @@ class Domain(
 
   def loop(node: LoopNode): Any = {
 
-    val forId = node.forId.map { _.symbol }
+    val forId = node.forId.map { _.id }
     var counter = node.from.map(expression).getOrElse(null)
     val toVal = node.to.map(expression)
     val byVal = node.by.map(expression).getOrElse(one)
@@ -136,27 +136,27 @@ class Domain(
 
   }
 
-  def lookup(token: Token): Any = {
+  def lookup(id: Symbol, refToken: Token): Any = {
 
     val opt = try {
-      lookup(token.getText)
+      lookup(id)
     } catch {
       case exc: InputException =>
-        exc.addToken(token)
+        exc.addToken(refToken)
         throw exc
     }
     opt match {
       case Some(x) => x
-      case None => throw InputException("That variable is not defined: " + token.getText, token = Option(token))
+      case None => throw InputException("That variable is not defined: " + id.name, token = Option(refToken))
     }
 
   }
 
-  def lookup(id: String): Option[Any] = {
+  def lookup(id: Symbol): Option[Any] = {
     CgsuitePackage.lookupClass(id).map { _.classObject }
       .orElse(args.get(id))
       .orElse(namespace.get(id))
-      .orElse(contextObject flatMap { resolve(_, Symbol(id)) })
+      .orElse(contextObject flatMap { resolve(_, id) })
   }
 
   def gameExpression(node: Node) = {
@@ -194,9 +194,9 @@ class Domain(
     */
 
     x match {
-      case so: StandardObject => so.lookup(id.name)
+      case so: StandardObject => so.lookup(id)
       case _ =>
-        CgsuiteClass.of(x).lookupMethod(id.name).map { method =>
+        CgsuiteClass.of(x).lookupMethod(id).map { method =>
           if (method.autoinvoke)
             method.call(x, Seq.empty, Map.empty)
           else
@@ -219,7 +219,7 @@ class Domain(
   }
 
   def put(id: Symbol, x: Any): Any = {
-    namespace.put(id.name, x)
+    namespace.put(id, x)
     x
   }
 

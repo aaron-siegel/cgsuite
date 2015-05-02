@@ -5,6 +5,8 @@ import java.net.URL
 
 object CgsuitePackage {
 
+  private val classDictionary = mutable.Map[Symbol, CgsuiteClass]()
+
   val root = new CgsuitePackage(None, "$root")
 
   val cgsuite = root.declareSubpackage("cgsuite")
@@ -13,25 +15,20 @@ object CgsuitePackage {
 
   val game = root.declareSubpackage("game")
   val grid = game.declareSubpackage("grid")
+
   Loader.declareSystemResources()
 
-  def lookupClass(name: String): Option[CgsuiteClass] = {
-    lang.lookupClass(name).orElse(game.lookupClass(name)).orElse(util.lookupClass(name))
-  }
+  def lookupClass(id: Symbol): Option[CgsuiteClass] = classDictionary.get(id)
 
-  def lookupClass(path: Seq[String]): Option[CgsuiteClass] = {
-    if (path.length == 1)
-      lookupClass(path.head)
-    else
-      root.lookup(path.dropRight(1)).flatMap { _.lookupClass(path.last) }
-  }
+  // Less efficient!
+  def lookupClassByName(name: String): Option[CgsuiteClass] = classDictionary.get(Symbol(name))
 
 }
 
 class CgsuitePackage(parent: Option[CgsuitePackage], name: String) {
 
   private val subpackages = mutable.Map[String, CgsuitePackage]()
-  private val classes = mutable.Map[String, CgsuiteClass]()
+  private val classes = mutable.Map[Symbol, CgsuiteClass]()
 
   val path: Seq[String] = parent match {
     case None => Seq.empty
@@ -44,19 +41,24 @@ class CgsuitePackage(parent: Option[CgsuitePackage], name: String) {
     subpackages.getOrElseUpdate(name, new CgsuitePackage(Some(this), name))
   }
 
-  def lookup(path: Seq[String]): Option[CgsuitePackage] = {
+  def lookupSubpackage(path: Seq[String]): Option[CgsuitePackage] = {
     if (path.isEmpty) {
       Some(this)
     } else {
-      subpackages.get(path.head).flatMap { _.lookup(path.tail) }
+      subpackages.get(path.head) flatMap { _.lookupSubpackage(path.tail) }
     }
   }
 
-  def lookupClass(name: String): Option[CgsuiteClass] = classes.get(name)
+  def lookupClass(id: Symbol): Option[CgsuiteClass] = classes.get(id)
 
-  def declareClass(name: String, url: URL, scalaClass: Option[Class[_]]): CgsuiteClass = {
-    val cls = classes.getOrElseUpdate(name, new CgsuiteClass(this, name, scalaClass))
+  def declareClass(id: Symbol, url: URL, scalaClass: Option[Class[_]]): CgsuiteClass = {
+    val cls = classes.getOrElseUpdate(id, new CgsuiteClass(this, id, scalaClass))
     cls.setURL(url)
+    CgsuitePackage.classDictionary.put(cls.qualifiedName, cls)
+    if (this == CgsuitePackage.lang || this == CgsuitePackage.util || this == CgsuitePackage.game) {
+      // TODO We should have a way to manage conflicts here.
+      CgsuitePackage.classDictionary.put(id, cls)
+    }
     cls
   }
 

@@ -3,15 +3,15 @@ package org.cgsuite.lang
 import scala.collection.mutable
 
 
-class StandardObject(val cls: CgsuiteClass, val objArgs: Map[String, Any]) {
+class StandardObject(val cls: CgsuiteClass, val objArgs: Map[Symbol, Any]) {
 
-  private var namespace: mutable.Map[String, Any] = _
+  private var namespace: mutable.Map[Symbol, Any] = _
 
-  def lookup(id: String): Option[Any] = {
+  def lookup(id: Symbol): Option[Any] = {
     objArgs.get(id).orElse(lookupInstanceMethod(id)).orElse(lookupInNamespace(id))
   }
 
-  def lookupInstanceMethod(id: String): Option[Any] = {
+  def lookupInstanceMethod(id: Symbol): Option[Any] = {
     cls.lookupMethod(id).map { method =>
       if (method.isStatic) sys.error("foo")
       if (method.autoinvoke)
@@ -21,14 +21,14 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Map[String, Any]) {
     }
   }
 
-  def putIntoNamespace(id: String, obj: Any) {
+  def putIntoNamespace(id: Symbol, obj: Any) {
     if (namespace == null) {
-      namespace = mutable.Map[String, Any]()
+      namespace = mutable.Map[Symbol, Any]()
     }
     namespace.put(id, obj)
   }
 
-  def lookupInNamespace(id: String): Option[Any] = {
+  def lookupInNamespace(id: Symbol): Option[Any] = {
     if (namespace == null) None else namespace.get(id)
   }
 

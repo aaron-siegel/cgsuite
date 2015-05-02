@@ -153,9 +153,11 @@ trait Node {
 
 case class ConstantNode(tree: CgsuiteTree, constantValue: Any) extends Node
 
-case class IdentifierNode(tree: CgsuiteTree) extends Node {
-  val symbol = Symbol(tree.getText)
+object IdentifierNode {
+  def apply(tree: CgsuiteTree): IdentifierNode = IdentifierNode(tree, Symbol(tree.getText))
 }
+
+case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends Node
 
 object UnOpNode {
   def apply(tree: CgsuiteTree, op: UnOp): UnOpNode = UnOpNode(tree, op, Node(tree.getChild(0)))
@@ -225,10 +227,10 @@ case class LoopNode(
 
 case class ErrorNode(tree: CgsuiteTree, msg: Node) extends Node
 
-case class DotNode(tree: CgsuiteTree, obj: Node, id: IdentifierNode) extends Node {
+case class DotNode(tree: CgsuiteTree, obj: Node, idNode: IdentifierNode) extends Node {
   val asQualifiedClassName: Option[String] = obj match {
-    case node: DotNode => node.asQualifiedClassName.map { _ + "." + id.symbol.name }
-    case node: IdentifierNode => Some(node.symbol.name + "." + id.symbol.name)
+    case IdentifierNode(_, antecedentId) => Some(antecedentId.name + "." + idNode.id.name)
+    case node: DotNode => node.asQualifiedClassName.map { _ + "." + idNode.id.name }
     case _ => None
   }
 }
