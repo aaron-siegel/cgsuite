@@ -18,7 +18,7 @@ object Repl {
         val node = Node(tree)
         println(tree.toStringTree)
         println(node)
-        println(domain.expression(tree))
+        println(domain.expression(node))
       } catch {
         case exc: Throwable => exc.printStackTrace()
       }

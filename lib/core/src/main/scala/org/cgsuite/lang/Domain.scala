@@ -18,15 +18,9 @@ class Domain(
 
   val namespace = mutable.Map[Symbol, Any]()
 
-  def statementSequence(tree: CgsuiteTree): Any = statementSequence(StatementSequenceNode(tree))
-
   def statementSequence(node: StatementSequenceNode): Any = {
-
     node.statements.foldLeft[Any](Nil) { (retval, n) => expression(n) }
-
   }
-
-  def expression(tree: CgsuiteTree): Any = expression(Node(tree))
 
   def expression(node: Node): Any = {
 
@@ -60,7 +54,8 @@ class Domain(
           case site: CallSite => site.call(args, optArgs)
           case _ => throw InputException("That is not a method or procedure.", token = Some(tree.token))
         }
-      case AssignToNode(tree, IdentifierNode(_, id), value) => assignTo(id, expression(value), tree.token)
+      case AssignToNode(tree, IdentifierNode(_, id), value, isVarDeclaration) =>
+        assignTo(id, expression(value), isVarDeclaration, tree.token)
 
     }
 
@@ -206,7 +201,7 @@ class Domain(
 
   }
 
-  def assignTo(id: Symbol, x: Any, refToken: Token): Any = {
+  def assignTo(id: Symbol, x: Any, isVarDeclaration: Boolean, refToken: Token): Any = {
 
     try {
       put(id, x)

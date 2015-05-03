@@ -93,7 +93,7 @@ object Node {
 
       // Assignment
 
-      case ASSIGN => AssignToNode(tree, IdentifierNode(tree.getChild(0)), Node(tree.getChild(1)))
+      case ASSIGN => AssignToNode(tree, IdentifierNode(tree.getChild(0)), Node(tree.getChild(1)), isVarDeclaration = false)
 
       // Suppressor
 
@@ -228,9 +228,9 @@ case class LoopNode(
 case class ErrorNode(tree: CgsuiteTree, msg: Node) extends Node
 
 case class DotNode(tree: CgsuiteTree, obj: Node, idNode: IdentifierNode) extends Node {
-  val asQualifiedClassName: Option[String] = obj match {
-    case IdentifierNode(_, antecedentId) => Some(antecedentId.name + "." + idNode.id.name)
-    case node: DotNode => node.asQualifiedClassName.map { _ + "." + idNode.id.name }
+  val asQualifiedClassName: Option[Symbol] = obj match {
+    case IdentifierNode(_, antecedentId) => Some(Symbol(antecedentId.name + "." + idNode.id.name))
+    case node: DotNode => node.asQualifiedClassName.map { next => Symbol(next.name + "." + idNode.id.name) }
     case _ => None
   }
 }
@@ -248,10 +248,174 @@ case class FunctionCallNode(tree: CgsuiteTree) extends Node {
   }
 }
 
-case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: Node) extends Node
+case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: Node, isVarDeclaration: Boolean) extends Node
 
 object StatementSequenceNode {
   def apply(tree: CgsuiteTree): StatementSequenceNode = StatementSequenceNode(tree, tree.getChildren.map { Node(_) })
 }
 
-case class StatementSequenceNode(tree: CgsuiteTree, statements: Seq[Node]) extends Node
+case class StatementSequenceNode(tree: CgsuiteTree, statements: Seq[Node]) extends Node {
+  assert(tree.getType == STATEMENT_SEQUENCE)
+}
+
+object ClassDeclarationNode {
+  def apply(tree: CgsuiteTree): ClassDeclarationNode = {
+    val isEnum = tree.getType == ENUM
+    val modifiers = ModifierNodes(tree.getChild(0))
+    val id = IdentifierNode(tree.getChild(1))
+    val extendsClause = tree.getChildren.find { _.getType == EXTENDS } match {
+      case Some(t) => t.getChildren.map { Node(_) }
+      case None => Seq.empty
+    }
+    val constructorParams = tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) }
+    val declarations = tree.getChildren.find { _.getType == DECLARATIONS }.get.getChildren.flatMap { DeclarationNode(_) }
+    val methodDeclarations = declarations collect {
+      case x: MethodDeclarationNode => x
+    }
+    val staticInitializers = declarations collect {
+      case x: InitializerNode if x.isStatic => x
+    }
+    val ordinaryInitializers = declarations collect {
+      case x: InitializerNode if !x.isStatic => x
+    }
+    val enumElements = tree.getChildren.find { _.getType == ENUM_ELEMENT_LIST } map { t =>
+      t.getChildren.map { u => EnumElementNode(u, IdentifierNode(u.getChild(1)), ModifierNodes(u.getChild(0))) }
+    }
+    ClassDeclarationNode(
+      tree,
+      id,
+      isEnum,
+      modifiers,
+      extendsClause,
+      constructorParams,
+      methodDeclarations,
+      staticInitializers,
+      ordinaryInitializers,
+      enumElements
+    )
+  }
+}
+
+case class ClassDeclarationNode(
+  tree: CgsuiteTree,
+  id: IdentifierNode,
+  isEnum: Boolean,
+  modifiers: Seq[ModifierNode],
+  extendsClause: Seq[Node],
+  constructorParams: Option[ParametersNode],
+  methodDeclarations: Seq[MethodDeclarationNode],
+  staticInitializers: Seq[InitializerNode],
+  ordinaryInitializers: Seq[InitializerNode],
+  enumElements: Option[Seq[EnumElementNode]]
+) extends Node {
+
+  def isMutable = modifiers.exists { _.modifier == Modifier.Mutable }
+  def isSystem = modifiers.exists { _.modifier == Modifier.System }
+
+}
+
+object ParametersNode {
+  def apply(tree: CgsuiteTree): ParametersNode = {
+    assert(tree.getType == METHOD_PARAMETER_LIST)
+    val parameters = tree.getChildren.map { t =>
+      assert(t.getType == METHOD_PARAMETER)
+      ParameterNode(
+        t,
+        IdentifierNode(t.getChild(0)),
+        IdentifierNode(t.getChild(1)),
+        t.getChildren.find { _.getType == QUESTION } map { u => Node(u.getChild(0)) },
+        t.getChildren.exists { _.getType == DOTDOTDOT }
+      )
+    }
+    ParametersNode(tree, parameters)
+  }
+}
+
+case class ParametersNode(tree: CgsuiteTree, parameters: Seq[ParameterNode])
+
+case class ParameterNode(
+  tree: CgsuiteTree,
+  id: IdentifierNode,
+  classId: IdentifierNode,
+  defaultValue: Option[Node],
+  isExpandable: Boolean
+)
+
+object DeclarationNode {
+
+  def apply(tree: CgsuiteTree): Iterable[Node] = {
+
+    tree.getType match {
+
+      case DEF =>
+        Iterable(MethodDeclarationNode(
+          tree,
+          IdentifierNode(tree.getChild(1)),
+          ModifierNodes(tree.getChild(0)),
+          tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) },
+          tree.getChildren.find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
+        ))
+
+      case STATIC => Iterable(InitializerNode(tree, Node(tree.getChild(0)), isStatic = true))
+
+      case VAR =>
+        val modifiers = tree.getChild(0).getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
+        tree.getChildren.tail map { t =>
+          val assignToNode = t.getType match {
+            case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
+            case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), Node(t.getChild(1)), isVarDeclaration = true)
+          }
+          InitializerNode(tree, assignToNode, isStatic = modifiers.exists { _.modifier == Modifier.Static })
+        }
+
+      case _ => Iterable(InitializerNode(tree, Node(tree), isStatic = false))
+
+    }
+
+  }
+
+}
+
+case class MethodDeclarationNode(
+  tree: CgsuiteTree,
+  idNode: IdentifierNode,
+  modifiers: Seq[ModifierNode],
+  parameters: Option[ParametersNode],
+  body: Option[StatementSequenceNode]
+) extends Node {
+
+  val isExternal = modifiers.exists { _.modifier == Modifier.External }
+  val isOverride = modifiers.exists { _.modifier == Modifier.Override }
+  val isStatic = modifiers.exists { _.modifier == Modifier.Static }
+
+}
+
+case class VarDeclarationNode(tree: CgsuiteTree, modifiers: Seq[ModifierNode], id: IdentifierNode) extends Node {
+  val isStatic = modifiers.exists { _.modifier == Modifier.Static }
+}
+
+case class InitializerNode(tree: CgsuiteTree, body: Node, isStatic: Boolean) extends Node
+
+object ModifierNodes {
+  def apply(tree: CgsuiteTree): Seq[ModifierNode] = {
+    assert(tree.getType == MODIFIERS)
+    tree.getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
+  }
+
+}
+
+case class EnumElementNode(tree: CgsuiteTree, id: IdentifierNode, modifiers: Seq[ModifierNode])
+
+case class ModifierNode(tree: CgsuiteTree, modifier: Modifier.Value) extends Node
+
+object Modifier extends Enumeration {
+  type Modifier = Value
+  val External, Mutable, Override, Static, System = Value
+  def fromString(str: String) = str match {
+    case "external" => External
+    case "mutable" => Mutable
+    case "override" => Override
+    case "static" => Static
+    case "system" => System
+  }
+}

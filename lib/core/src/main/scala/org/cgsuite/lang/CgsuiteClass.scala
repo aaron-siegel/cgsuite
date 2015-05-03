@@ -78,6 +78,7 @@ class CgsuiteClass(
   private var supers: Seq[CgsuiteClass] = _
   private var ancestors: Set[CgsuiteClass] = _
   private var classObjectRef: StandardObject = _
+  private var initializers: Seq[Node] = _
 
   def classObject = {
     ensureLoaded()
@@ -120,13 +121,13 @@ class CgsuiteClass(
     parameters: Seq[MethodParameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
-    tree: CgsuiteTree
+    body: StatementSequenceNode
   ) extends Method {
 
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       val allArgs = prepareArgs(args, namedArgs)
       val target = if (isStatic) classObjectRef else obj
-      new Domain(allArgs, Some(target), Some(this)).statementSequence(tree)
+      new Domain(allArgs, Some(target), Some(this)).statementSequence(body)
     }
 
   }
@@ -227,43 +228,32 @@ class CgsuiteClass(
 
     assert(tree.getType == EOF)
 
-    declareClass(tree.getChild(1))
+    val node = ClassDeclarationNode(tree.getChild(1))
+    println(node)
+    declareClass(node)
 
   }
 
-  private def declareClass(tree: CgsuiteTree) {
-
-    assert(tree.getType == CLASS || tree.getType == ENUM, tree.toStringTree)
-
-    val modifiersTree = tree.getChild(0)
-    val nameTree = tree.getChild(1)
-    val extendsTree = tree.getChildren.find { _.getType == EXTENDS }
-    val constructorParamsTree = tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST }
-    val declarationsTree = tree.getChildren.find { _.getType == DECLARATIONS }.getOrElse {
-      sys.error("no declarations")
-    }
-    val enumElementListTree = tree.getChildren.find { _.getType == ENUM_ELEMENT_LIST }
-
-    assert(modifiersTree.getType == MODIFIERS)
-    assert(nameTree.getType == IDENTIFIER)
-
-    val isMutable = modifiersTree.getChildren.exists { _.getType == MUTABLE }
-    val isSystem = modifiersTree.getChildren.exists { _.getType == SYSTEM }
+  private def declareClass(node: ClassDeclarationNode) {
 
     if (CgsuiteClass.Object.loaded) { // Hack to bootstrap Object
-      supers = extendsTree match {
-        case Some(etree) => etree.getChildren.map { parseQualifiedClass }.toSeq
-        case None => Seq(CgsuiteClass.Object)
+      supers = {
+        if (node.extendsClause.isEmpty)
+          Seq(CgsuiteClass.Object)
+        else
+          node.extendsClause.map {
+            case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse { sys.error("not found") }
+            case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse { sys.error("not found") }
+          }
       }
       supers.foreach { _.ensureLoaded() }
       supers.foreach { scls => methods ++= scls.methods }
       ancestors = (supers.flatMap { _.ancestors } :+ this).toSet
 
       // Method declarations
-      val defs = declarationsTree.getChildren.filter { _.getType == DEF }
-      defs foreach { declareMethod }
+      node.methodDeclarations.foreach(declareMethod)
 
-      constructorRef = constructorParamsTree map { t =>
+      constructorRef = node.constructorParams.map { t =>
         ConstructorMethod(id, parseParameterList(t))
       }
     } else {
@@ -276,134 +266,79 @@ class CgsuiteClass(
     classObjectRef = new ClassObject(this, Map(Symbol("Name") -> id.name))
     methods.foreach { case (methodId, method) => classObjectRef.putIntoNamespace(methodId, method) }
 
-    // Var declarations & statements
-    val initializerDomain = new Domain(classObjectRef.objArgs, Some(classObjectRef), None)
-    val staticDeclarations = declarationsTree.getChildren.filter { t =>
-      t.getType == STATIC || (t.getType == VAR && t.getChild(0).getChildren.exists { _.getType == STATIC })
-    }
-
-    enumElementListTree foreach { _.getChildren foreach { declareEnumElement } }
+    node.enumElements foreach { _.foreach(declareEnumElement)}
 
     loading = false
     loaded = true
 
-    staticDeclarations foreach { staticDeclaration(initializerDomain, _) }
+    // Static declarations
+
+    val initializerDomain = new Domain(classObjectRef.objArgs, Some(classObjectRef), None)
+    node.staticInitializers.foreach { node => initializerDomain.expression(node.body) }
+
+    // Instance initializers
+
+    this.initializers = node.ordinaryInitializers
 
   }
 
-  private def parseQualifiedClass(tree: CgsuiteTree): CgsuiteClass = {
-    CgsuitePackage.lookupClass(Symbol(tree.getText)) getOrElse {
-      sys.error("not found")
-    }
-  }
+  private def declareMethod(node: MethodDeclarationNode): Method = {
 
-  private def declareMethod(tree: CgsuiteTree): Method = {
+    val name = node.idNode.id.name
 
-    assert(tree.getType == DEF)
-
-    val modifiersTree = tree.getChild(0)
-    val nameTree = tree.getChild(1)
-    val paramsTree = tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST }
-    val bodyTree = tree.getChildren.last
-
-    assert(modifiersTree.getType == MODIFIERS)
-    assert(nameTree.getType == IDENTIFIER)
-
-    val isExternal = modifiersTree.getChildren.exists { _.getType == EXTERNAL }
-    val isStatic = modifiersTree.getChildren.exists { _.getType == STATIC }
-    val isOverride = modifiersTree.getChildren.exists { _.getType == OVERRIDE }
-    val name = nameTree.getText
-    val id = Symbol(name)
-
-    if (methods.get(id).exists { _.declaringClass == this }) {
+    if (methods.get(node.idNode.id).exists { _.declaringClass == this }) {
       sys.error(s"duplicate method: $name")
     }
 
-    val (autoinvoke, parameters) = paramsTree match {
-      case Some(t) => (false, parseParameterList(t))
+    val (autoinvoke, parameters) = node.parameters match {
+      case Some(n) => (false, parseParameterList(n))
       case None => (true, Seq.empty)
     }
 
     val newMethod = {
-      if (isExternal) {
+      if (node.isExternal) {
         val externalName = name.updated(0, name(0).toLower)
         val externalParameterTypes = parameters map { _.paramType.javaClass }
         println(s"Declaring external method: $name => $externalName")
         val externalMethod = javaClass.getMethod(externalName, externalParameterTypes : _*)
         println(s"Here it is: $externalMethod")
-        new SystemMethod(id, parameters, autoinvoke, isStatic, externalMethod)
+        new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
       } else {
         println(s"Declaring user method: $name")
-        new UserMethod(id, parameters, autoinvoke, isStatic, bodyTree)
+        val body = node.body getOrElse { sys.error("no body") }
+        new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, body)
       }
     }
 
-    methods.put(id, newMethod)
+    methods.put(node.idNode.id, newMethod)
     newMethod
 
   }
 
-  private def staticDeclaration(domain: Domain, tree: CgsuiteTree) {
+  private def parseParameterList(node: ParametersNode): Seq[MethodParameter] = {
 
-    tree.getType match {
-
-      case VAR =>
-        val modifiersTree = tree.getChild(0)
-        assert(modifiersTree.getChildren.exists { _.getType == STATIC })
-        tree.getChild(1).getType match {
-          case IDENTIFIER => classObjectRef.putIntoNamespace(Symbol(tree.getChild(0).getText), Nil)
-          case ASSIGN =>
-            val id = Symbol(tree.getChild(1).getChild(0).getText)
-            val value = domain.expression(tree.getChild(1).getChild(1))
-            classObjectRef.putIntoNamespace(id, value)
-        }
-
-      case STATIC => domain.statementSequence(tree.getChild(0))
-
-      case _ => assert(false)
-
-    }
-
-  }
-
-  private def parseParameterList(tree: CgsuiteTree): Seq[MethodParameter] = {
-
-    assert(tree.getType == METHOD_PARAMETER_LIST)
-
-    tree.getChildren map { paramTree =>
-      paramTree.getType match {
-        case IDENTIFIER =>
-          val name = paramTree.getText
-          val ttype = CgsuitePackage.lookupClassByName(paramTree.getChild(0).getText).getOrElse {
-            sys.error("unknown symbol")
-          }
-          MethodParameter(Symbol(name), ttype, None)
-        case QUESTION =>
-          val name = paramTree.getChild(0).getText
-          val ttype = CgsuitePackage.lookupClassByName(paramTree.getChild(0).getChild(0).getText).getOrElse {
-            sys.error("unknown symbol")
-          }
-          val defaultValue = paramTree.getChild(1)
-          MethodParameter(Symbol(name), ttype, Some(defaultValue))
+    node.parameters.map { n =>
+      val ttype = CgsuitePackage.lookupClass(n.classId.id) getOrElse {
+        sys.error("unknown symbol")
       }
+      MethodParameter(n.id.id, ttype, n.defaultValue)
     }
 
   }
 
-  private def declareEnumElement(tree: CgsuiteTree): Any = {
+  private def declareEnumElement(node: EnumElementNode): Any = {
 
-    val name = tree.getText
-    val isExternal = tree.getChild(0).getChildren.exists { _.getType == EXTERNAL }
+    val isExternal = node.modifiers.exists { _.modifier == Modifier.External }
 
     // TODO This is a total hack
     if (isExternal) {
       val obj = {
-        name match {
+        node.id.id.name match {
           case "Left" => org.cgsuite.core.Left
           case "Right" => org.cgsuite.core.Right
         }
       }
-      classObjectRef.putIntoNamespace(Symbol(name), obj)
+      classObjectRef.putIntoNamespace(node.id.id, obj)
     } else {
       sys.error("TODO")
     }
@@ -420,6 +355,6 @@ class CgsuiteClass(
 
 }
 
-case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[CgsuiteTree]) {
+case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[Node]) {
   val signature = paramType.qualifiedName.name + " " + id.name + (if (defaultValue.isDefined) "?" else "")
 }

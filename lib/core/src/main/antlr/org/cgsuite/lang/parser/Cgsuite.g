@@ -136,6 +136,7 @@ tokens
 	FUNCTION_CALL;
 	FUNCTION_CALL_ARGUMENT_LIST;
 	LOOP_SPEC;
+	METHOD_PARAMETER;
 	METHOD_PARAMETER_LIST;
 	MODIFIERS;
     NODE_LABEL;
@@ -324,7 +325,6 @@ setterClause
 	
 methodDeclaration
 	: modifiers METHOD^ generalizedId LPAREN! methodParameterList RPAREN!
-	  (javaClause SEMI! | statementSequence END!)
 	;
 
 defDeclaration
@@ -359,13 +359,13 @@ methodParameter
     ;
 
 optionalParameter
-	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($b $a?) expression?)
-    | a=IDENTIFIER QUESTION expression? -> ^(QUESTION ^($a IDENTIFIER["Object"]) expression?)
+	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $b $a? ^(QUESTION expression?))
+    | a=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] ^(QUESTION expression?))
     ;
 
 requiredParameter
-	: a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^($b $a DOTDOTDOT?)
-	| a=IDENTIFIER DOTDOTDOT? -> ^($a IDENTIFIER["Object"] DOTDOTDOT?)
+	: a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $b $a DOTDOTDOT?)
+	| a=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] DOTDOTDOT?)
 	;
 
 enumDeclaration
@@ -381,7 +381,7 @@ enumElementList
     ;
 
 enumElement
-    : modifiers IDENTIFIER^
+    : modifiers IDENTIFIER -> ^(ENUM_ELEMENT modifiers IDENTIFIER)
     ;
 /*
 enumElement
