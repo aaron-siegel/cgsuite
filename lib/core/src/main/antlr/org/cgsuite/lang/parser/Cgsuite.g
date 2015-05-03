@@ -293,14 +293,17 @@ javaClause
     ;
 
 declarations
-	: declaration* -> ^(DECLARATIONS declaration*)
+	: declarationChain? -> ^(DECLARATIONS declarationChain?)
 	;
 
-declaration
-	: (modifiers DEF) => defDeclaration
-	| (modifiers VAR) => varDeclaration
-	| staticDeclaration
-	;
+declarationChain
+	: (modifiers DEF) => defDeclaration declarationChain?
+	| (modifiers VAR) => varDeclaration declarationChain?
+	| staticDeclaration declarationChain?
+    | (IF | loopAntecedent | BEGIN) => controlExpression declarationChain?
+    | (TRY) => tryStatement declarationChain?
+    | statement SEMI! declarationChain?
+    ;
 
 staticDeclaration
     : STATIC^ statementSequence END!
@@ -333,7 +336,7 @@ defDeclaration
     ;
 
 defInitializer
-    : (ASSIGN! expression)? SEMI!
+    : ((ASSIGN expression)? SEMI) => (ASSIGN! expression)? SEMI!
     | statementSequence END!
     ;
 
@@ -586,7 +589,7 @@ primaryExpr
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! expression RPAREN!
     | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES expression*)
-	| LPAREN! statementSequence RPAREN!
+	| LPAREN! expression RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
 	| (LBRACE expression? BIGRARROW) => explicitMap
 	| generalizedId

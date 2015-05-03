@@ -5,7 +5,7 @@ import org.specs2.mutable._
 import org.specs2.runner._
 import org.cgsuite.core._
 import org.cgsuite.core.Values._
-import org.cgsuite.lang.{Node, Domain}
+import org.cgsuite.lang.{Namespace, Node, Domain}
 
 @RunWith(classOf[JUnitRunner])
 class CgsuiteParserTest extends Specification {
@@ -42,7 +42,9 @@ class CgsuiteParserTest extends Specification {
   def testExpr(str: String, expected: Any) = {
 
     val tree = ParserUtil.parseExpression(str)
-    new Domain().expression(Node(tree)) must_== expected
+    val namespace = Namespace.checkout(None, Map.empty)
+    new Domain(namespace).expression(Node(tree)) must_== expected
+    Namespace.checkin(namespace)
 
   }
 

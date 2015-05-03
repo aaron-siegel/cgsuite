@@ -2,6 +2,8 @@
 
 system class Game
 
+  external def CanonicalForm;
+
   def Options(Player player)
     error("Subclasses of Game must override the Options method.")
   end

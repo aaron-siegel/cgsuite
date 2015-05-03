@@ -4,7 +4,7 @@ import java.net.URL
 import org.cgsuite.core._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.{CgsuiteTree, ParserUtil}
-import org.cgsuite.util.{Coordinates, Grid}
+import org.cgsuite.util.{TranspositionTable, Coordinates, Grid}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.util.Try
@@ -19,6 +19,7 @@ object CgsuiteClass {
 
   val Grid = CgsuitePackage.lookupClassByName("Grid").get
 
+  val Game = CgsuitePackage.lookupClassByName("Game").get
   val Integer = CgsuitePackage.lookupClassByName("Integer").get
   val DyadicRational = CgsuitePackage.lookupClassByName("DyadicRational").get
   val Rational = CgsuitePackage.lookupClassByName("Rational").get
@@ -46,6 +47,8 @@ object CgsuiteClass {
       case _: Grid => Grid
     }
   }
+
+  def is(x: Any, cls: CgsuiteClass) = of(x).ancestors.contains(cls)
 
   // Various conversions from Java types to CGScript types.
   def internalize(obj: AnyRef) = {
@@ -76,9 +79,12 @@ class CgsuiteClass(
   private var loading = false
   private var url: Option[URL] = None
   private var supers: Seq[CgsuiteClass] = _
-  private var ancestors: Set[CgsuiteClass] = _
+  private var ancestorsRef: Set[CgsuiteClass] = _
   private var classObjectRef: StandardObject = _
-  private var initializers: Seq[Node] = _
+  private var initializersRef: Seq[InitializerNode] = _
+  var isMutable: Boolean = false
+
+  val transpositionTable = new TranspositionTable()
 
   def classObject = {
     ensureLoaded()
@@ -88,6 +94,16 @@ class CgsuiteClass(
   def constructor = {
     ensureLoaded()
     constructorRef
+  }
+
+  def ancestors = {
+    ensureLoaded()
+    ancestorsRef
+  }
+
+  def initializers = {
+    ensureLoaded()
+    initializersRef
   }
 
   trait Method {
@@ -110,7 +126,10 @@ class CgsuiteClass(
           // TODO Typecheck
           (param.id, x)
         }
-        argsWithNames.toMap ++ namedArgs
+        val providedArgs = argsWithNames.toMap ++ namedArgs
+        parameters.map { param =>
+          param.id -> providedArgs.get(param.id).getOrElse(param.defaultValue.get)
+        }.toMap
       }
     }
 
@@ -127,7 +146,12 @@ class CgsuiteClass(
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       val allArgs = prepareArgs(args, namedArgs)
       val target = if (isStatic) classObjectRef else obj
-      new Domain(allArgs, Some(target), Some(this)).statementSequence(body)
+      val namespace = Namespace.checkout(None, allArgs)
+      try {
+        new Domain(Namespace.checkout(None, allArgs), Some(target), Some(this)).statementSequence(body)
+      } finally {
+        Namespace.checkin(namespace)
+      }
     }
 
   }
@@ -169,8 +193,12 @@ class CgsuiteClass(
       // TODO Superconstructor
       // TODO Parse var initializers
       val allArgs = prepareArgs(args, namedArgs)
-      val newObj = new StandardObject(CgsuiteClass.this, allArgs)
-      //new Domain(allArgs, Some(newObj), Some(this)).statementSequence(tree)
+      val newObj = {
+        if (ancestors.contains(CgsuiteClass.Game))
+          new GameObject(CgsuiteClass.this, allArgs)
+        else
+          new StandardObject(CgsuiteClass.this, allArgs)
+      }
       newObj
     }
 
@@ -191,6 +219,7 @@ class CgsuiteClass(
     this.loaded = false
     this.loading = false
     methods.clear()
+    transpositionTable.clear()
     constructorRef = None
   }
 
@@ -236,6 +265,8 @@ class CgsuiteClass(
 
   private def declareClass(node: ClassDeclarationNode) {
 
+    isMutable = node.modifiers.exists { _.modifier == Modifier.Mutable }
+
     if (CgsuiteClass.Object.loaded) { // Hack to bootstrap Object
       supers = {
         if (node.extendsClause.isEmpty)
@@ -248,7 +279,7 @@ class CgsuiteClass(
       }
       supers.foreach { _.ensureLoaded() }
       supers.foreach { scls => methods ++= scls.methods }
-      ancestors = (supers.flatMap { _.ancestors } :+ this).toSet
+      ancestorsRef = (supers.flatMap { _.ancestorsRef } :+ this).toSet
 
       // Method declarations
       node.methodDeclarations.foreach(declareMethod)
@@ -259,12 +290,12 @@ class CgsuiteClass(
     } else {
       // We're loading Object right now!
       supers = Seq.empty
-      ancestors = Set(this)
+      ancestorsRef = Set(this)
       declareMethodsForObject()
     }
 
     classObjectRef = new ClassObject(this, Map(Symbol("Name") -> id.name))
-    methods.foreach { case (methodId, method) => classObjectRef.putIntoNamespace(methodId, method) }
+    methods.foreach { case (methodId, method) => classObjectRef.namespace.put(methodId, method, declare = true) }
 
     node.enumElements foreach { _.foreach(declareEnumElement)}
 
@@ -273,12 +304,12 @@ class CgsuiteClass(
 
     // Static declarations
 
-    val initializerDomain = new Domain(classObjectRef.objArgs, Some(classObjectRef), None)
+    val initializerDomain = new Domain(classObjectRef.namespace, Some(classObjectRef), None)
     node.staticInitializers.foreach { node => initializerDomain.expression(node.body) }
 
     // Instance initializers
 
-    this.initializers = node.ordinaryInitializers
+    this.initializersRef = node.ordinaryInitializers
 
   }
 
@@ -338,7 +369,7 @@ class CgsuiteClass(
           case "Right" => org.cgsuite.core.Right
         }
       }
-      classObjectRef.putIntoNamespace(node.id.id, obj)
+      classObjectRef.namespace.put(node.id.id, obj, declare = true)
     } else {
       sys.error("TODO")
     }

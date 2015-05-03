@@ -1,17 +1,21 @@
 /*${cgsuite.banner}*/
 
-class Clobber(Grid grid) extends Game
+class Clobber(grid, directions? Coordinates.Orthogonal) extends Game
+
+  if grid is Grid then
+  elseif grid is String then
+    grid := Grid.Parse(grid, ".xo")
+  end
 
   override def Options(Player player)
 
     us := player.Ordinal;
     them := player.Opponent.Ordinal;
 
-    for c in grid.FindAll(us) yield
-      for d in Coordinates.Orthogonal
-      where grid[c+d] == them yield
-        grid.Updated(c, 0).Updated(c+d, us)
-      end
+    for c in grid.FindAll(us)
+    for d in Coordinates.Orthogonal where grid[c+d] == them
+    yield
+      Clobber(grid.Updated(c, 0).Updated(c+d, us))
     end
 
   end

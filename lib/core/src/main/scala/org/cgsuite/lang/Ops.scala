@@ -102,6 +102,10 @@ object Ops {
   val And: BinOp = { case (x: Boolean, y: Boolean) => x && y }
   val Or: BinOp = { case (x: Boolean, y: Boolean) => x || y }
 
+  val Is: BinOp = { case (x: Any, y: ClassObject) =>
+    CgsuiteClass.of(x).ancestors.contains(y.forClass)
+  }
+
   val MakeNimber: UnOp = {
     case x: SmallInteger => Nimber(x.intValue)
   }

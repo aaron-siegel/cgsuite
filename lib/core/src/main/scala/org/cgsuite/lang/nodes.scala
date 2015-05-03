@@ -43,6 +43,8 @@ object Node {
       case AND => BinOpNode(tree, And)
       case OR => BinOpNode(tree, Or)
 
+      case IS => BinOpNode(tree, Is)
+
       // Relations
 
       case EQUALS => BinOpNode(tree, Equals)
@@ -80,7 +82,7 @@ object Node {
         tree,
         Node(tree.getChild(0)),
         StatementSequenceNode(tree.getChild(1)),
-        Option(tree.getChild(2)).map { StatementSequenceNode(_) }
+        Option(tree.getChild(2)).map { Node(_) }
       )
       case ERROR => ErrorNode(tree, Node(tree.getChild(0)))
       case DO | YIELD => LoopNode(tree)
@@ -181,7 +183,7 @@ case class MapPairNode(tree: CgsuiteTree, from: Node, to: Node) extends Node
 
 case class GameSpecNode(tree: CgsuiteTree, lo: Seq[Node], ro: Seq[Node], forceExplicit: Boolean) extends Node
 
-case class IfNode(tree: CgsuiteTree, condition: Node, ifNode: StatementSequenceNode, elseNode: Option[StatementSequenceNode]) extends Node
+case class IfNode(tree: CgsuiteTree, condition: Node, ifNode: StatementSequenceNode, elseNode: Option[Node]) extends Node
 
 object LoopNode {
 
@@ -255,7 +257,7 @@ object StatementSequenceNode {
 }
 
 case class StatementSequenceNode(tree: CgsuiteTree, statements: Seq[Node]) extends Node {
-  assert(tree.getType == STATEMENT_SEQUENCE)
+  assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
 }
 
 object ClassDeclarationNode {

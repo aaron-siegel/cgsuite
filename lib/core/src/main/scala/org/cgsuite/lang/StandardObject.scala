@@ -1,14 +1,42 @@
 package org.cgsuite.lang
 
-import scala.collection.mutable
-
+import org.cgsuite.core.{Player, Game}
 
 class StandardObject(val cls: CgsuiteClass, val objArgs: Map[Symbol, Any]) {
 
-  private var namespace: mutable.Map[Symbol, Any] = _
+  val namespace: Namespace = new Namespace()
+  namespace.initialize(None, objArgs)
+  init()
+
+  val cachedHashCode: Option[Int] = {
+    if (cls.isMutable) {
+      None
+    } else {
+      Some(cls.hashCode() ^ namespace.fullMap.hashCode())
+    }
+  }
+
+  override def equals(other: Any) = other match {
+    case obj: StandardObject => cls == obj.cls && namespace.fullMap == obj.namespace.fullMap
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    cachedHashCode match {
+      case Some(hc) => hc
+      case None => cls.hashCode() ^ (objArgs ++ namespace.additions).hashCode()
+    }
+  }
+
+  def init() {
+    val domain = new Domain(namespace, Some(this), None)
+    cls.ancestors.foreach { ancestor =>
+      ancestor.initializers.foreach { node => domain.expression(node.body) }
+    }
+  }
 
   def lookup(id: Symbol): Option[Any] = {
-    objArgs.get(id).orElse(lookupInstanceMethod(id)).orElse(lookupInNamespace(id))
+    lookupInstanceMethod(id) orElse namespace.lookup(id)
   }
 
   def lookupInstanceMethod(id: Symbol): Option[Any] = {
@@ -21,15 +49,15 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Map[Symbol, Any]) {
     }
   }
 
-  def putIntoNamespace(id: Symbol, obj: Any) {
-    if (namespace == null) {
-      namespace = mutable.Map[Symbol, Any]()
-    }
-    namespace.put(id, obj)
+}
+
+class GameObject(cls: CgsuiteClass, objArgs: Map[Symbol, Any]) extends StandardObject(cls, objArgs) with Game {
+
+  def options(player: Player) = {
+    val method = lookupInstanceMethod(Symbol("Options")).get.asInstanceOf[InstanceMethod]
+    method.call(Seq(player), Map.empty).asInstanceOf[Seq[Game]]   // TODO Validation?
   }
 
-  def lookupInNamespace(id: Symbol): Option[Any] = {
-    if (namespace == null) None else namespace.get(id)
-  }
+  override def canonicalForm: Game = canonicalForm(cls.transpositionTable)
 
 }

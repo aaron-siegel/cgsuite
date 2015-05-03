@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.util.TranspositionTable
+
 trait Game {
 
   def unary_+ : Game = this
@@ -16,6 +18,22 @@ trait Game {
   def nCopies(n: Integer): Game = MultipleGame(n, this)
   
   def options(player: Player): Iterable[Game]
+
+  def canonicalForm: Game = canonicalForm(new TranspositionTable())
+
+  def canonicalForm(tt: TranspositionTable): Game = shortCanonicalForm(tt)
+
+  def shortCanonicalForm(tt: TranspositionTable): CanonicalShortGame = {
+    tt.get(this) match {
+      case Some(x) => x.asInstanceOf[CanonicalShortGame]
+      case _ =>
+        val lo = options(Left ) map { _.shortCanonicalForm(tt) }
+        val ro = options(Right) map { _.shortCanonicalForm(tt) }
+        val canonicalForm = CanonicalShortGame(lo, ro)
+        tt.put(this, canonicalForm)
+        canonicalForm
+    }
+  }
   /*
   def leftOptions: Iterable[Game] = options(Left)
   

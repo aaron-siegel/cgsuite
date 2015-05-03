@@ -1,6 +1,6 @@
 package org.cgsuite.lang.parser
 
-import org.cgsuite.lang.{Node, Domain, CgsuiteClass}
+import org.cgsuite.lang.{Namespace, Node, Domain, CgsuiteClass}
 
 
 object Repl {
@@ -9,7 +9,7 @@ object Repl {
 
     CgsuiteClass.Object.ensureLoaded()
 
-    val domain = new Domain()
+    val domain = new Domain(Namespace.checkout(None, Map.empty))
 
     while (true) {
       try {
@@ -18,7 +18,11 @@ object Repl {
         val node = Node(tree)
         println(tree.toStringTree)
         println(node)
-        println(domain.expression(node))
+        val startTime = System.nanoTime()
+        val result = domain.expression(node)
+        val duration = System.nanoTime() - startTime
+        println(s"Completed in ${duration/1000000}.${(duration/100000)%10} ms")
+        println(result)
       } catch {
         case exc: Throwable => exc.printStackTrace()
       }

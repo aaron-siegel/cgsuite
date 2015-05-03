@@ -4,19 +4,13 @@ import org.antlr.runtime.Token
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.InputException
-import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang.parser.{MalformedParseTreeException, CgsuiteTree}
-import scala.collection.JavaConversions._
 import scala.collection.mutable
-import org.cgsuite.util.{Grid, Coordinates}
 
 class Domain(
-  args: Map[Symbol, Any] = Map.empty,
+  namespace: Namespace,
   contextObject: Option[Any] = None,
   contextMethod: Option[CgsuiteClass#Method] = None
   ) {
-
-  val namespace = mutable.Map[Symbol, Any]()
 
   def statementSequence(node: StatementSequenceNode): Any = {
     node.statements.foldLeft[Any](Nil) { (retval, n) => expression(n) }
@@ -38,7 +32,7 @@ class Domain(
         if (boolean(condition))
           statementSequence(ifNode)
         else
-          elseNode.map(statementSequence).getOrElse(Nil)
+          elseNode.map(expression).getOrElse(Nil)
       case node: LoopNode => loop(node)
       case ErrorNode(tree, msg) => throw InputException(toStringOutput(expression(msg)))
       case DotNode(tree, obj, IdentifierNode(_, id)) =>
@@ -55,7 +49,7 @@ class Domain(
           case _ => throw InputException("That is not a method or procedure.", token = Some(tree.token))
         }
       case AssignToNode(tree, IdentifierNode(_, id), value, isVarDeclaration) =>
-        assignTo(id, expression(value), isVarDeclaration, tree.token)
+        assignTo(id, expression(value), isVarDeclaration || contextObject.isEmpty, tree.token)
 
     }
 
@@ -69,9 +63,10 @@ class Domain(
   }
 
   def iterator(node: Node): Iterator[_] = {
-    expression(node) match {
+    val result = expression(node)
+    result match {
       case (x: Iterable[_]) => x.iterator
-      case _ => sys.error("not a collection")
+      case _ => sys.error(s"not a collection: $result")
     }
   }
 
@@ -96,12 +91,12 @@ class Domain(
       iterator match {
         case Some(it) => {
           if (it.hasNext)
-            put(forId.get, it.next())
+            namespace.put(forId.get, it.next(), declare = true)
           else
             continue = false
         }
         case None =>
-          forId.foreach { put(_, counter) }
+          forId.foreach { namespace.put(_, counter, declare = true) }
           continue = toVal.forall { Ops.Leq(counter, _) }
       }
 
@@ -149,9 +144,8 @@ class Domain(
 
   def lookup(id: Symbol): Option[Any] = {
     CgsuitePackage.lookupClass(id).map { _.classObject }
-      .orElse(args.get(id))
-      .orElse(namespace.get(id))
-      .orElse(contextObject flatMap { resolve(_, id) })
+      .orElse(namespace.lookup(id))
+      .orElse(contextObject flatMap { resolve(_, id) })   // TODO Use contextMethod
   }
 
   def gameExpression(node: Node) = {
@@ -204,18 +198,15 @@ class Domain(
   def assignTo(id: Symbol, x: Any, isVarDeclaration: Boolean, refToken: Token): Any = {
 
     try {
-      put(id, x)
+      // TODO Check for duplicate declaration
+      namespace.put(id, x, declare = isVarDeclaration)
+      x
     } catch {
       case exc: InputException =>
         exc.addToken(refToken)
         throw exc
     }
 
-  }
-
-  def put(id: Symbol, x: Any): Any = {
-    namespace.put(id, x)
-    x
   }
 
   def toStringOutput(x: Any) = x.toString

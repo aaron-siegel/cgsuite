@@ -6,6 +6,8 @@ import org.cgsuite.exception.InputException
 class ClassObject(val forClass: CgsuiteClass, objArgs: Map[Symbol, Any])
   extends StandardObject(CgsuiteClass.Class, objArgs) with CallSite {
 
+  override def init() { }
+
   override def lookupInstanceMethod(id: Symbol): Option[Any] = {
     forClass.lookupMethod(id).map { method =>
       if (method.autoinvoke)
