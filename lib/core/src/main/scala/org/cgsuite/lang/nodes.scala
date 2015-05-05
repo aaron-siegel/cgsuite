@@ -32,7 +32,7 @@ object Node {
       case UNARY_MINUS => UnOpNode(tree, Neg)
       case PLUSMINUS => UnOpNode(tree, PlusMinus)
 
-      case PLUS => BinOpNode(tree, Plus)
+      case PLUS => NewBinOpNode(tree, NewPlus)
       case MINUS => BinOpNode(tree, Minus)
       case AST => BinOpNode(tree, Times)
       case FSLASH => BinOpNode(tree, Div)
@@ -91,7 +91,7 @@ object Node {
 
       case DOT => DotNode(tree, Node(tree.getChild(0)), IdentifierNode(tree.getChild(1)))
       case FUNCTION_CALL => FunctionCallNode(tree)
-      case ARRAY_REFERENCE => BinOpNode(tree, ArrayReference)
+      case ARRAY_REFERENCE => BinOpNode(tree, ArrayReference, Node(tree.getChild(0)), Node(tree.getChild(1).getChild(0)))
 
       // Assignment
 
@@ -172,6 +172,12 @@ object BinOpNode {
 }
 
 case class BinOpNode(tree: CgsuiteTree, op: BinOp, operand1: Node, operand2: Node) extends Node
+
+object NewBinOpNode {
+  def apply(tree: CgsuiteTree, op: NewBinOp): NewBinOpNode = NewBinOpNode(tree, op, Node(tree.getChild(0)), Node(tree.getChild(1)))
+}
+
+case class NewBinOpNode(tree: CgsuiteTree, op: NewBinOp, operand1: Node, operand2: Node) extends Node
 
 object MultiOpNode {
   def apply(tree: CgsuiteTree, op: MultiOp): MultiOpNode = MultiOpNode(tree, op, tree.getChildren.map { Node(_) })

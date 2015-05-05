@@ -6,9 +6,9 @@ import java.io.{ByteArrayInputStream, InputStream}
 
 object ParserUtil {
 
-  def parseExpression(str: String) = parse(new ByteArrayInputStream(str.getBytes)) { _.expression }
-  def parseStatement(str: String) = parse(new ByteArrayInputStream(str.getBytes)) { _.statement }
-  def parseCU(in: InputStream) = parse(in) { _.compilationUnit }
+  def parseExpression(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.expression }
+  def parseStatement(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.statement }
+  def parseCU(in: InputStream, source: String) = parse(in, source) { _.compilationUnit }
 
   def charStreamToParser(input: CharStream) = {
 
@@ -20,9 +20,9 @@ object ParserUtil {
 
   }
 
-  private def parse(in: InputStream)(fn: CgsuiteParser => { def getTree(): Object }) = {
+  private def parse(in: InputStream, source: String)(fn: CgsuiteParser => { def getTree(): Object }) = {
 
-    val stream = new ANTLRInputStream(in)
+    val stream = new SourcedAntlrInputStream(in, source)
     val lexer = new CgsuiteLexer(stream)
     val tokens = new CommonTokenStream(lexer)
     val parser = new CgsuiteParser(tokens)

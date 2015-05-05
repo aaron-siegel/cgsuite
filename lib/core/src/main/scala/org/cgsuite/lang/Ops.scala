@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import org.cgsuite.core._
 import org.cgsuite.util.{Grid, Coordinates}
 import org.cgsuite.core.Values._
+import scala.collection.mutable
 
 object Ops {
 
@@ -33,6 +34,18 @@ object Ops {
     case (x: Game, y: Game) => x + y
     case (x: Coordinates, y: Coordinates) => x + y
     case (x: String, y) => x + y.toString
+  }
+
+  val NewPlus: NewBinOp = NewBinOp("+") {
+    case (_: Game, _: Zero) => (x: Game, _: Zero) => x
+    case (_: Zero, _: Game) => (_: Zero, y: Game) => y
+    case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x + y
+    case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x + y
+    case (_: NumberUpStar, _: NumberUpStar) => (x: NumberUpStar, y: NumberUpStar) => x + y
+    case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
+    case (_: Game, _: Game) => (x: Game, y: Game) => x + y
+    case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
+    case (_: String, _) => (x: String, y: Any) => x + y.toString
   }
 
   val Minus: BinOp = {
@@ -118,7 +131,7 @@ object Ops {
   }
 
   val MakeCoordinates: BinOp = {
-    case (x: Integer, y: Integer) => Coordinates(x, y)
+    case (x: Integer, y: Integer) => Coordinates(x.intValue, y.intValue)
   }
 
   val MakeList: MultiOp = { _.toSeq }
@@ -127,6 +140,23 @@ object Ops {
 
   val ArrayReference: BinOp = {
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
+  }
+
+}
+
+object NewBinOp {
+
+  def apply(name: String)(resolver: (Any, Any) => (_, _) => Any) = new NewBinOp(name)(resolver)
+
+}
+
+class NewBinOp(name: String)(resolver: (Any, Any) => (_, _) => Any) {
+
+  val classLookupCache = mutable.Map[(Class[_], Class[_]), (Any, Any) => Any]()
+
+  def apply(x: Any, y: Any): Any = {
+    val fn = classLookupCache.getOrElseUpdate((x.getClass, y.getClass), resolver(x, y).asInstanceOf[(Any, Any) => Any])
+    fn(x, y)
   }
 
 }

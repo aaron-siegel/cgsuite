@@ -1,6 +1,6 @@
 package org.cgsuite.util
 
-import org.cgsuite.core.{SmallInteger, Integer}
+import org.cgsuite.core.Integer
 
 object Coordinates {
 
@@ -17,15 +17,13 @@ object Coordinates {
   val Diagonal = Seq(Northeast, Southeast, Southwest, Northwest)
   val Compass = Orthogonal ++ Diagonal
 
-  def apply(row: Int, col: Int): Coordinates = Coordinates(SmallInteger(row), SmallInteger(col))
-
 }
 
-case class Coordinates(row: Integer, col: Integer) {
+case class Coordinates(row: Int, col: Int) {
 
   def +(other: Coordinates) = Coordinates(row + other.row, col + other.col)
   def -(other: Coordinates) = Coordinates(row - other.row, col - other.col)
-  def *(other: Integer) = Coordinates(row * other, col * other)
+  def *(other: Integer) = Coordinates(row * other.intValue, col * other.intValue)
 
   override def toString = s"($row,$col)"
 

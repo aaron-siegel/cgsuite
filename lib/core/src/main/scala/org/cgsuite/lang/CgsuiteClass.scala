@@ -4,7 +4,7 @@ import java.net.URL
 import org.cgsuite.core._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.{CgsuiteTree, ParserUtil}
-import org.cgsuite.util.{TranspositionTable, Coordinates, Grid}
+import org.cgsuite.util.{Profiler, TranspositionTable, Coordinates, Grid}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.util.Try
@@ -31,9 +31,18 @@ object CgsuiteClass {
 
   Object.ensureLoaded()
 
+  private val classLookupCache = mutable.Map[Class[_], CgsuiteClass]()
+
   def of(x: Any): CgsuiteClass = {
-    x match {
+    val result = x match {
       case so: StandardObject => so.cls
+      case _ => classLookupCache.getOrElseUpdate(x.getClass, ofNew(x))
+    }
+    result
+  }
+
+  private def ofNew(x: Any): CgsuiteClass = {
+    x match {
       case _: org.cgsuite.core.Zero => Zero
       case _: Integer => Integer
       case _: DyadicRationalNumber => DyadicRational
@@ -115,21 +124,24 @@ class CgsuiteClass(
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any
 
     val declaringClass = CgsuiteClass.this
-    val qualifiedId = Symbol(declaringClass.qualifiedName + "." + id.name)
+    val qualifiedId = Symbol(declaringClass.qualifiedName.name + "." + id.name)
     val signature = s"${qualifiedId.name}(${parameters.map { _.signature }.mkString(", ")})"
 
     def prepareArgs(args: Seq[Any], namedArgs: Map[Symbol, Any]): Map[Symbol, Any] = {
       if (args.length > parameters.length) {
         sys.error("too many args")
       } else {
+        Profiler.start('PreparingArgs)
         val argsWithNames = args.zip(parameters).map { case (x, param) =>
           // TODO Typecheck
           (param.id, x)
         }
         val providedArgs = argsWithNames.toMap ++ namedArgs
-        parameters.map { param =>
+        val result = parameters.map { param =>
           param.id -> providedArgs.get(param.id).getOrElse(param.defaultValue.get)
         }.toMap
+        Profiler.stop('PreparingArgs)
+        result
       }
     }
 
@@ -145,12 +157,14 @@ class CgsuiteClass(
 
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       val allArgs = prepareArgs(args, namedArgs)
+      Profiler.start('InvokeUserMethod, qualifiedId.name)
       val target = if (isStatic) classObjectRef else obj
       val namespace = Namespace.checkout(None, allArgs)
       try {
         new Domain(Namespace.checkout(None, allArgs), Some(target), Some(this)).statementSequence(body)
       } finally {
         Namespace.checkin(namespace)
+        Profiler.stop('InvokeUserMethod, qualifiedId.name)
       }
     }
 
@@ -173,10 +187,13 @@ class CgsuiteClass(
         (CgsuiteClass.of(target), declaringClass)
       )
       try {
+        Profiler.start('Reflect, javaMethod.toString)
         CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Seq[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException =>
           throw new InputException(s"Invalid parameters for method $qualifiedName.")
+      } finally {
+        Profiler.stop('Reflect, javaMethod.toString)
       }
     }
 
@@ -248,7 +265,7 @@ class CgsuiteClass(
 
     val in = url.openStream()
     val tree = try {
-      ParserUtil.parseCU(in)
+      ParserUtil.parseCU(in, url.toString)
     } finally {
       in.close()
     }

@@ -1,6 +1,7 @@
 package org.cgsuite.lang.parser
 
 import org.cgsuite.lang.{Namespace, Node, Domain, CgsuiteClass}
+import org.cgsuite.util.Profiler
 
 
 object Repl {
@@ -18,10 +19,16 @@ object Repl {
         val node = Node(tree)
         println(tree.toStringTree)
         println(node)
-        val startTime = System.nanoTime()
+        val start = System.nanoTime()
+        Profiler.clear()
+        Profiler.setEnabled(enabled = true)
+        Profiler.setWhitelist('PrepareLoop,'Loop)
+        Profiler.start('Total)
         val result = domain.expression(node)
-        val duration = System.nanoTime() - startTime
-        println(s"Completed in ${duration/1000000}.${(duration/100000)%10} ms")
+        Profiler.stop('Total)
+        Profiler.print()
+        Profiler.setEnabled(enabled = false)
+        println(s"${(System.nanoTime()-start)/1000000} ms")
         println(result)
       } catch {
         case exc: Throwable => exc.printStackTrace()

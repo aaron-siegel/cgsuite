@@ -33,4 +33,11 @@ public class CgsuiteTree extends CommonTree
     {
         return (CgsuiteTree) super.getChild(n);
     }
+
+    public String location()
+    {
+        if (token.getInputStream() == null)
+            throw new RuntimeException(toStringTree());
+        return token.getInputStream().getSourceName() + ":" + token.getLine() + ":" + token.getCharPositionInLine();
+    }
 }

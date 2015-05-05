@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-class Clobber(grid, directions? Coordinates.Orthogonal) extends Game
+class Clobber(grid) extends Game
 
   if grid is Grid then
   elseif grid is String then

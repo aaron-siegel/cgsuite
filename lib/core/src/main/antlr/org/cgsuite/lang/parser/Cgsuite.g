@@ -541,7 +541,7 @@ postfixExpr
 	  ;
 
 arrayReference
-	: LBRACKET! expression RBRACKET!
+	: LBRACKET expression RBRACKET -> ^(ARRAY_INDEX_LIST[$LBRACKET] expression)
 	;
 
 functionCall
@@ -704,17 +704,17 @@ forLoopAntecedent
 
 forFromLoopAntecedent
     : forClause fromClause toClause? byClause? whileClause? whereClause?
-      -> ^(LOOP_SPEC forClause fromClause toClause? byClause? whileClause? whereClause?)
+      -> ^(LOOP_SPEC[$forClause.tree.getToken()] forClause fromClause toClause? byClause? whileClause? whereClause?)
     ;
 
 forInLoopAntecedent
     : forClause inClause whileClause? whereClause?
-      -> ^(LOOP_SPEC forClause inClause whileClause? whereClause?)
+      -> ^(LOOP_SPEC[$forClause.tree.getToken()] forClause inClause whileClause? whereClause?)
     ;
 
 whileLoopAntecedent
     : whileClause whereClause?
-      -> ^(LOOP_SPEC whileClause whereClause?)
+      -> ^(LOOP_SPEC[$whileClause.tree.getToken()] whileClause whereClause?)
     ;
 
 forClause

@@ -5,6 +5,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.InputException
 import scala.collection.mutable
+import org.cgsuite.util.Profiler
 
 class Domain(
   namespace: Namespace,
@@ -23,7 +24,20 @@ class Domain(
       case node@StatementSequenceNode(_, _) => statementSequence(node)
       case ConstantNode(_, const) => const
       case UnOpNode(tree, op, operand) => op(expression(operand))
-      case BinOpNode(tree, op, operand1, operand2) => op(expression(operand1), expression(operand2))
+      case BinOpNode(tree, op, operand1, operand2) =>
+        val lhs = expression(operand1)
+        val rhs = expression(operand2)
+        Profiler.start('BinOp, tree.toString)
+        val result = op(lhs, rhs)
+        Profiler.stop('BinOp, tree.toString)
+        result
+      case NewBinOpNode(tree, op, operand1, operand2) =>
+        val lhs = expression(operand1)
+        val rhs = expression(operand2)
+        Profiler.start('NewBinOp, tree.toString)
+        val result = op(lhs, rhs)
+        Profiler.stop('NewBinOp, tree.toString)
+        result
       case MultiOpNode(tree, op, operands) => op(operands.map(expression))
       case MapPairNode(tree, from, to) => expression(from) -> expression(to)
       case IdentifierNode(tree, id) => lookup(id, tree.getToken)    // TODO Use symbol
@@ -72,11 +86,18 @@ class Domain(
 
   def loop(node: LoopNode): Any = {
 
+    Profiler.start('PrepareLoop, node.tree.location())
+
     val forId = node.forId.map { _.id }
     var counter = node.from.map(expression).getOrElse(null)
     val toVal = node.to.map(expression)
     val byVal = node.by.map(expression).getOrElse(one)
     val iterator = node.in.map(this.iterator)
+
+    Profiler.stop('PrepareLoop, node.tree.location())
+
+    Profiler.start('Loop, node.tree.location())
+
     val result = {
       if (node.isYield) {
         mutable.MutableList[Any]()
@@ -113,10 +134,12 @@ class Domain(
           }
         }
         if (counter != null)
-          counter = Ops.Plus(counter, byVal)
+          counter = Ops.NewPlus(counter, byVal)
       }
 
     } while (continue)
+
+    Profiler.stop('Loop, node.tree.location())
 
     if (node.isYield) {
       result.toSeq
