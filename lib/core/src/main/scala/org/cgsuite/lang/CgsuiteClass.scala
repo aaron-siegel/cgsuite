@@ -31,7 +31,7 @@ object CgsuiteClass {
 
   Object.ensureLoaded()
 
-  private val classLookupCache = mutable.Map[Class[_], CgsuiteClass]()
+  private val classLookupCache = mutable.AnyRefMap[Class[_], CgsuiteClass]()
 
   def of(x: Any): CgsuiteClass = {
     val result = x match {
@@ -65,6 +65,11 @@ object CgsuiteClass {
       case x: java.lang.Integer => SmallInteger(x.intValue)
       case _ => obj
     }
+  }
+
+  def clearAll() {
+    CgsuitePackage.classDictionary.values foreach { _.unload() }
+    Object.ensureLoaded()
   }
 
 }
@@ -131,7 +136,7 @@ class CgsuiteClass(
       if (args.length > parameters.length) {
         sys.error("too many args")
       } else {
-        Profiler.start('PreparingArgs)
+        Profiler.start('PrepareArgs)
         val argsWithNames = args.zip(parameters).map { case (x, param) =>
           // TODO Typecheck
           (param.id, x)
@@ -140,7 +145,7 @@ class CgsuiteClass(
         val result = parameters.map { param =>
           param.id -> providedArgs.get(param.id).getOrElse(param.defaultValue.get)
         }.toMap
-        Profiler.stop('PreparingArgs)
+        Profiler.stop('PrepareArgs)
         result
       }
     }
@@ -155,16 +160,18 @@ class CgsuiteClass(
     body: StatementSequenceNode
   ) extends Method {
 
+    private val invokeUserMethod = Symbol(s"InvokeUserMethod [${qualifiedId.name}]")
+
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       val allArgs = prepareArgs(args, namedArgs)
-      Profiler.start('InvokeUserMethod, qualifiedId.name)
+      Profiler.start(invokeUserMethod)
       val target = if (isStatic) classObjectRef else obj
       val namespace = Namespace.checkout(None, allArgs)
       try {
-        new Domain(Namespace.checkout(None, allArgs), Some(target), Some(this)).statementSequence(body)
+        body.evaluate(new Domain(Namespace.checkout(None, allArgs), Some(target), Some(this)))
       } finally {
         Namespace.checkin(namespace)
-        Profiler.stop('InvokeUserMethod, qualifiedId.name)
+        Profiler.stop(invokeUserMethod)
       }
     }
 
@@ -178,6 +185,8 @@ class CgsuiteClass(
     javaMethod: java.lang.reflect.Method
   ) extends Method {
 
+    private val reflect = Symbol(s"Reflect [${javaMethod.toString}]")
+
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       // TODO Validation!
       // TODO Named args should work here too
@@ -187,13 +196,13 @@ class CgsuiteClass(
         (CgsuiteClass.of(target), declaringClass)
       )
       try {
-        Profiler.start('Reflect, javaMethod.toString)
+        Profiler.start(reflect)
         CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Seq[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException =>
           throw new InputException(s"Invalid parameters for method $qualifiedName.")
       } finally {
-        Profiler.stop('Reflect, javaMethod.toString)
+        Profiler.stop(reflect)
       }
     }
 
@@ -204,19 +213,23 @@ class CgsuiteClass(
     parameters: Seq[MethodParameter]
   ) extends Method {
 
+    private val invokeConstructor = Symbol(s"InvokeConstructor [${qualifiedId.name}]")
+
     def autoinvoke = false
     def isStatic = false
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
       // TODO Superconstructor
       // TODO Parse var initializers
       val allArgs = prepareArgs(args, namedArgs)
-      val newObj = {
+      Profiler.start(invokeConstructor)
+      try {
         if (ancestors.contains(CgsuiteClass.Game))
           new GameObject(CgsuiteClass.this, allArgs)
         else
           new StandardObject(CgsuiteClass.this, allArgs)
+      } finally {
+        Profiler.stop(invokeConstructor)
       }
-      newObj
     }
 
   }
@@ -233,6 +246,10 @@ class CgsuiteClass(
   def setURL(url: URL) {
     println(s"Declaring class: ${id.name} at $url")
     this.url = Some(url)
+    unload()
+  }
+
+  def unload() {
     this.loaded = false
     this.loading = false
     methods.clear()
@@ -322,7 +339,7 @@ class CgsuiteClass(
     // Static declarations
 
     val initializerDomain = new Domain(classObjectRef.namespace, Some(classObjectRef), None)
-    node.staticInitializers.foreach { node => initializerDomain.expression(node.body) }
+    node.staticInitializers.foreach { node => node.body.evaluate(initializerDomain) }
 
     // Instance initializers
 

@@ -52,5 +52,5 @@ class CanonicalShortGameTest extends Specification {
     }
 
   }
-  
+
 }

@@ -89,7 +89,7 @@ object Ops {
 
   val Neq: BinOp = {
     case (x: CanonicalStopperSidedGame, y: CanonicalStopperSidedGame) => x != y
-    case (x: Game, y: Game) => !Leq(x, y) && !Leq(y, x)
+    case (x: Game, y: Game) => !Leq(x, y) || !Leq(y, x)
     case (x, y) => x != y
   }
 

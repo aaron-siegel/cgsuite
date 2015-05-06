@@ -5,7 +5,7 @@ import java.net.URL
 
 object CgsuitePackage {
 
-  private val classDictionary = mutable.Map[Symbol, CgsuiteClass]()
+  private[lang] val classDictionary = mutable.Map[Symbol, CgsuiteClass]()
 
   val root = new CgsuitePackage(None, "$root")
 

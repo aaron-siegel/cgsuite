@@ -43,7 +43,7 @@ class CgsuiteParserTest extends Specification {
 
     val tree = ParserUtil.parseExpression(str)
     val namespace = Namespace.checkout(None, Map.empty)
-    new Domain(namespace).expression(Node(tree)) must_== expected
+    Node(tree).evaluate(new Domain(namespace)) must_== expected
     Namespace.checkin(namespace)
 
   }

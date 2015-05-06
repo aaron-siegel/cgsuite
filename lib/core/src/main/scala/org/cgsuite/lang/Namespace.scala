@@ -29,7 +29,7 @@ class Namespace {
 
   var parent: Option[Namespace] = _
   var args: Map[Symbol, Any] = _
-  var additions: mutable.Map[Symbol, Any] = _
+  var additions: mutable.AnyRefMap[Symbol, Any] = _
 
   def initialize(parent: Option[Namespace], args: Map[Symbol, Any]) {
     this.parent = parent
@@ -75,7 +75,7 @@ class Namespace {
 
   def putInScope(symbol: Symbol, x: Any) {
     if (additions == null)
-      additions = mutable.Map()
+      additions = mutable.AnyRefMap()
     additions.put(symbol, x)
   }
 

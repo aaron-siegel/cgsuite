@@ -18,8 +18,8 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.tools.version>2.10</scala.tools.version>
-    <scala.version>2.10.2</scala.version>
+    <scala.tools.version>2.11</scala.tools.version>
+    <scala.version>2.11.6</scala.version>
   </properties>
 
   <dependencies>
@@ -39,13 +39,13 @@
     <dependency>
       <groupId>org.specs2</groupId>
       <artifactId>specs2_${scala.tools.version}</artifactId>
-      <version>1.13</version>
+      <version>2.4.17</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.tools.version}</artifactId>
-      <version>2.0.M6-SNAP8</version>
+      <version>2.2.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -80,7 +80,6 @@
             <configuration>
               <recompileMode>incremental</recompileMode>
               <args>
-                <arg>-make:transitive</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>
