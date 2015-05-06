@@ -35,7 +35,7 @@ object Node {
       case UNARY_MINUS => UnOpNode(tree, Neg)
       case PLUSMINUS => UnOpNode(tree, PlusMinus)
 
-      case PLUS => NewBinOpNode(tree, NewPlus)
+      case PLUS => BinOpNode(tree, NewPlus)
       case MINUS => BinOpNode(tree, Minus)
       case AST => BinOpNode(tree, Times)
       case FSLASH => BinOpNode(tree, Div)
@@ -177,11 +177,9 @@ trait Node {
     evaluate(domain) match {
       case g: Game => Iterable(g)
       case sublist: Iterable[_] =>
-        sublist map { x =>
-          x match {
-            case g: Game => g
-            case _ => sys.error("must be a list of games")
-          }
+        sublist map {
+          case g: Game => g
+          case _ => sys.error("must be a list of games")
         }
       case _ => sys.error("must be a list of games")
     }
@@ -214,14 +212,6 @@ object BinOpNode {
 }
 
 case class BinOpNode(tree: CgsuiteTree, op: BinOp, operand1: Node, operand2: Node) extends Node {
-  override def evaluate(domain: Domain) = op(operand1.evaluate(domain), operand2.evaluate(domain))
-}
-
-object NewBinOpNode {
-  def apply(tree: CgsuiteTree, op: NewBinOp): NewBinOpNode = NewBinOpNode(tree, op, Node(tree.getChild(0)), Node(tree.getChild(1)))
-}
-
-case class NewBinOpNode(tree: CgsuiteTree, op: NewBinOp, operand1: Node, operand2: Node) extends Node {
   override def evaluate(domain: Domain) = op(operand1.evaluate(domain), operand2.evaluate(domain))
 }
 
@@ -340,7 +330,7 @@ case class LoopNode(
         case None =>
           if (forId.nonEmpty)
             domain.namespace.put(forId.get, counter, declare = true)
-          continue = toVal.isEmpty || Ops.Leq(counter, toVal.get)
+          continue = toVal.isEmpty || Ops.leq(counter, toVal.get)
       }
 
       if (continue) {
