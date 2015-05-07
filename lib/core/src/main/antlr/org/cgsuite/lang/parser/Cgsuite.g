@@ -298,8 +298,8 @@ declarations
 
 declarationChain
 	: (modifiers DEF) => defDeclaration declarationChain?
-	| (modifiers VAR) => varDeclaration declarationChain?
-	| staticDeclaration declarationChain?
+	| (modifiers VAR) => varDeclaration SEMI! declarationChain?
+	| (STATIC) => staticDeclaration declarationChain?
     | (IF | loopAntecedent | BEGIN) => controlExpression declarationChain?
     | (TRY) => tryStatement declarationChain?
     | statement SEMI! declarationChain?
@@ -310,7 +310,7 @@ staticDeclaration
     ;
 	
 varDeclaration
-    : modifiers VAR^ varInitializer (COMMA! varInitializer)* SEMI!
+    : modifiers VAR^ varInitializer (COMMA! varInitializer)*
     ;
 
 varInitializer
@@ -417,6 +417,7 @@ statement
 	| RETURN^ expression?
     | CLEAR
     | tryStatement
+    | varDeclaration
     | expression
     ;
 

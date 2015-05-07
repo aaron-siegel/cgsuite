@@ -1,21 +1,23 @@
-package org.cgsuite.util
+package org.cgsuite.lang
 
 import org.cgsuite.core.CanonicalShortGameOps
 import org.cgsuite.lang.parser.ParserUtil
-import org.cgsuite.lang.{Namespace, Domain, CgsuiteClass, Node}
+
 import scala.collection.mutable
 
 object Profiler {
 
   def main(args: Array[String]) {
+    CgsuiteClass.Object.ensureLoaded()
+    val statement = """Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm"""
     // Warm-up
-    evalForProfiler("""Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm""", profile = false)
+    evalForProfiler(statement, profile = false)
     CanonicalShortGameOps.reinit()
     CgsuiteClass.clearAll()
-    val withoutProfiling = evalForProfiler("""Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm""", profile = false)
+    val withoutProfiling = evalForProfiler(statement, profile = false)
     CanonicalShortGameOps.reinit()
     CgsuiteClass.clearAll()
-    val withProfiling = evalForProfiler("""Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm""", profile = true)
+    val withProfiling = evalForProfiler(statement, profile = true)
     Profiler.print(withProfiling - withoutProfiling)
     printf("Without Profiling: %10.1f ms\n", withoutProfiling/1000000.0)
     printf("With Profiling   : %10.1f ms\n", withProfiling/1000000.0)
@@ -23,9 +25,10 @@ object Profiler {
 
   def evalForProfiler(str: String, profile: Boolean): Long = {
     println(s"Evaluating with profile = $profile: $str")
-    val domain = new Domain(Namespace.checkout(None, Map.empty))
+    val domain = new Domain(null, None)
     val tree = ParserUtil.parseStatement(str)
-    val node = Node(tree)
+    val node = EvalNode(tree)
+    node.elaborate(Scope(Set.empty))
     //println(tree.toStringTree)
     //println(node)
     Profiler.clear()

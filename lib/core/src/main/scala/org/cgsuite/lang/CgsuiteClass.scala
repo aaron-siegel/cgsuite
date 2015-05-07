@@ -1,14 +1,15 @@
 package org.cgsuite.lang
 
 import java.net.URL
+
 import org.cgsuite.core._
+import org.cgsuite.exception.InputException
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang.parser.{CgsuiteTree, ParserUtil}
-import org.cgsuite.util.{Profiler, TranspositionTable, Coordinates, Grid}
-import scala.collection.JavaConversions._
+import org.cgsuite.lang.parser.ParserUtil
+import org.cgsuite.util.{Coordinates, Grid, TranspositionTable}
+
 import scala.collection.mutable
 import scala.util.Try
-import org.cgsuite.exception.InputException
 
 object CgsuiteClass {
 
@@ -87,38 +88,50 @@ class CgsuiteClass(
   val companionObject = Try { Class.forName(javaClass + "$").getField("MODULE$").get(null) }.toOption
   val qualifiedName = Symbol(pkg.qualifiedName + "." + id.name)
 
-  private val methods = mutable.Map[Symbol, CgsuiteClass#Method]()
-  private var constructorRef: Option[ConstructorMethod] = None
-  private var loaded = false
+  class ClassInfo(
+    val modifiers: Set[Modifier.Value],
+    val supers: Seq[CgsuiteClass],
+    val methods: Map[Symbol, CgsuiteClass#Method],
+    val constructor: Option[CgsuiteClass#ConstructorMethod],
+    val initializers: Seq[InitializerNode]
+    ) {
+    val properAncestors: Seq[CgsuiteClass] = supers.flatMap { _.classInfo.ancestors }.distinct
+    val ancestors = properAncestors :+ CgsuiteClass.this
+    val isMutable = modifiers.contains(Modifier.Mutable)
+    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.toSet
+    val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }.toSet
+    val localClassVars = initializers.collect {
+      case InitializerNode(_, AssignToNode(_, assignId, _, true), false) => assignId.id
+    }.toSet
+    val allClassVars: Set[Symbol] = inheritedClassVars ++ constructorParamVars ++ localClassVars
+  }
+
+  private var url: URL = _
+  private var classInfoRef: ClassInfo = _
   private var loading = false
-  private var url: Option[URL] = None
-  private var supers: Seq[CgsuiteClass] = _
-  private var ancestorsRef: Set[CgsuiteClass] = _
-  private var classObjectRef: StandardObject = _
-  private var initializersRef: Seq[InitializerNode] = _
-  var isMutable: Boolean = false
+  private var classObjectRef: ClassObject = _
 
   val transpositionTable = new TranspositionTable()
+
+  def isLoaded = classInfoRef != null
+
+  def classInfo = {
+    ensureLoaded()
+    classInfoRef
+  }
 
   def classObject = {
     ensureLoaded()
     classObjectRef
   }
 
-  def constructor = {
-    ensureLoaded()
-    constructorRef
-  }
+  def isMutable = classInfo.isMutable
 
-  def ancestors = {
-    ensureLoaded()
-    ancestorsRef
-  }
+  def constructor = classInfo.constructor
 
-  def initializers = {
-    ensureLoaded()
-    initializersRef
-  }
+  def ancestors = classInfo.ancestors
+
+  def initializers = classInfo.initializers
 
   trait Method {
 
@@ -132,6 +145,8 @@ class CgsuiteClass(
     val qualifiedId = Symbol(declaringClass.qualifiedName.name + "." + id.name)
     val signature = s"${qualifiedId.name}(${parameters.map { _.signature }.mkString(", ")})"
 
+    def elaborate() {}
+
     def prepareArgs(args: Seq[Any], namedArgs: Map[Symbol, Any]): Map[Symbol, Any] = {
       if (args.length > parameters.length) {
         sys.error("too many args")
@@ -143,7 +158,7 @@ class CgsuiteClass(
         }
         val providedArgs = argsWithNames.toMap ++ namedArgs
         val result = parameters.map { param =>
-          param.id -> providedArgs.get(param.id).getOrElse(param.defaultValue.get)
+          param.id -> providedArgs.getOrElse(param.id, param.defaultValue.get)
         }.toMap
         Profiler.stop('PrepareArgs)
         result
@@ -161,16 +176,32 @@ class CgsuiteClass(
   ) extends Method {
 
     private val invokeUserMethod = Symbol(s"InvokeUserMethod [${qualifiedId.name}]")
+    private var localVariableCount: Int = 0
+
+    override def elaborate() {
+      val scope = new Scope(classInfo.allClassVars, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
+      parameters foreach { param => scope.insertId(param.id) }
+      parameters foreach { param => param.methodScopeIndex = scope.varMap(param.id) }
+      body.elaborate(scope)
+      localVariableCount = scope.varMap.size
+    }
 
     def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
-      val allArgs = prepareArgs(args, namedArgs)
+      //val allArgs = prepareArgs(args, namedArgs)
       Profiler.start(invokeUserMethod)
-      val target = if (isStatic) classObjectRef else obj
-      val namespace = Namespace.checkout(None, allArgs)
+      val target = if (isStatic) classObject else obj
       try {
-        body.evaluate(new Domain(Namespace.checkout(None, allArgs), Some(target), Some(this)))
+        // Construct a new domain with local scope for this method.
+        val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
+        val domain = new Domain(array, Some(target))
+        // TODO more intelligent populating of arguments, validation etc
+        var i = 0
+        while (i < parameters.length) {
+          domain.localScope(parameters(i).methodScopeIndex) = args(i)
+          i += 1
+        }
+        body.evaluate(domain)
       } finally {
-        Namespace.checkin(namespace)
         Profiler.stop(invokeUserMethod)
       }
     }
@@ -245,29 +276,27 @@ class CgsuiteClass(
 
   def setURL(url: URL) {
     println(s"Declaring class: ${id.name} at $url")
-    this.url = Some(url)
+    this.url = url
     unload()
   }
 
   def unload() {
-    this.loaded = false
+    this.classInfoRef = null
     this.loading = false
-    methods.clear()
-    transpositionTable.clear()
-    constructorRef = None
+    this.transpositionTable.clear()
   }
 
   def lookupMethod(id: Symbol): Option[CgsuiteClass#Method] = {
     ensureLoaded()
-    methods.get(id)
+    classInfo.methods.get(id)
   }
 
   def ensureLoaded() {
-    if (!loaded) {
-      url match {
-        case Some(u) => load(u)
-        case None => sys.error("URL not set")
+    if (classInfoRef == null) {
+      if (url == null) {
+        sys.error("URL not set")
       }
+      load(url)
     }
   }
 
@@ -299,61 +328,63 @@ class CgsuiteClass(
 
   private def declareClass(node: ClassDeclarationNode) {
 
-    isMutable = node.modifiers.exists { _.modifier == Modifier.Mutable }
+    val modifiers = node.modifiers.map { _.modifier }.toSet
 
-    if (CgsuiteClass.Object.loaded) { // Hack to bootstrap Object
-      supers = {
-        if (node.extendsClause.isEmpty)
-          Seq(CgsuiteClass.Object)
-        else
-          node.extendsClause.map {
-            case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse { sys.error("not found") }
-            case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse { sys.error("not found") }
-          }
+    val (supers, methods, constructor) = {
+
+      if (CgsuiteClass.Object.isLoaded) { // Hack to bootstrap Object
+
+        val supers = {
+          if (node.extendsClause.isEmpty)
+            Seq(CgsuiteClass.Object)
+          else
+            node.extendsClause.map {
+              case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse { sys.error("not found") }
+              case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse { sys.error("not found") }
+            }
+        }
+        supers.foreach { _.ensureLoaded() }
+        // TODO Check for unresolved superclass method conflicts
+        // TODO Check for duplicate local method names
+        val superMethods = supers.flatMap { _.classInfo.methods }
+        val localMethods = node.methodDeclarations.map { parseMethod }
+        val constructor = node.constructorParams.map { t => ConstructorMethod(id, parseParameterList(t)) }
+
+        (supers, (superMethods ++ localMethods).toMap, constructor)
+
+      } else {
+
+        // We're loading Object right now!
+        (Seq.empty, methodsForObject(), None)
+
       }
-      supers.foreach { _.ensureLoaded() }
-      supers.foreach { scls => methods ++= scls.methods }
-      ancestorsRef = (supers.flatMap { _.ancestorsRef } :+ this).toSet
 
-      // Method declarations
-      node.methodDeclarations.foreach(declareMethod)
-
-      constructorRef = node.constructorParams.map { t =>
-        ConstructorMethod(id, parseParameterList(t))
-      }
-    } else {
-      // We're loading Object right now!
-      supers = Seq.empty
-      ancestorsRef = Set(this)
-      declareMethodsForObject()
     }
 
-    classObjectRef = new ClassObject(this, Map(Symbol("Name") -> id.name))
-    methods.foreach { case (methodId, method) => classObjectRef.namespace.put(methodId, method, declare = true) }
-
-    node.enumElements foreach { _.foreach(declareEnumElement)}
-
+    classInfoRef = new ClassInfo(modifiers, supers, methods, constructor, node.ordinaryInitializers)
     loading = false
-    loaded = true
+
+    // Create the class object
+    classObjectRef = new ClassObject(CgsuiteClass.this, Map(Symbol("Name") -> id.name))
+
+    // Populate namespace
+    methods.foreach { case (methodId, method) => classObject.namespace.put(methodId, method, declare = true) }
+    node.enumElements foreach { _.foreach(declareEnumElement) }
+
+    // Elaborate methods
+    methods.foreach { case (_, method) => method.elaborate() }
 
     // Static declarations
-
-    val initializerDomain = new Domain(classObjectRef.namespace, Some(classObjectRef), None)
+    val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node => node.body.evaluate(initializerDomain) }
 
-    // Instance initializers
-
-    this.initializersRef = node.ordinaryInitializers
+    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(classInfo.allClassVars)) }
 
   }
 
-  private def declareMethod(node: MethodDeclarationNode): Method = {
+  private def parseMethod(node: MethodDeclarationNode): (Symbol, Method) = {
 
     val name = node.idNode.id.name
-
-    if (methods.get(node.idNode.id).exists { _.declaringClass == this }) {
-      sys.error(s"duplicate method: $name")
-    }
 
     val (autoinvoke, parameters) = node.parameters match {
       case Some(n) => (false, parseParameterList(n))
@@ -375,8 +406,7 @@ class CgsuiteClass(
       }
     }
 
-    methods.put(node.idNode.id, newMethod)
-    newMethod
+    node.idNode.id -> newMethod
 
   }
 
@@ -403,17 +433,17 @@ class CgsuiteClass(
           case "Right" => org.cgsuite.core.Right
         }
       }
-      classObjectRef.namespace.put(node.id.id, obj, declare = true)
+      classObject.namespace.put(node.id.id, obj, declare = true)
     } else {
       sys.error("TODO")
     }
 
   }
 
-  private def declareMethodsForObject() {
-    methods.put(Symbol("Class"), ExplicitMethod0(Symbol("Class"), autoinvoke = true, isStatic = false) {
-      CgsuiteClass.of(_).classObject }
-    )
+  private def methodsForObject(): Map[Symbol, CgsuiteClass#Method] = {
+    Map(Symbol("Class") -> ExplicitMethod0(Symbol("Class"), autoinvoke = true, isStatic = false) {
+      CgsuiteClass.of(_).classObject
+    })
   }
 
   override def toString = s"<class ${qualifiedName.name}>"
@@ -422,4 +452,5 @@ class CgsuiteClass(
 
 case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[Node]) {
   val signature = paramType.qualifiedName.name + " " + id.name + (if (defaultValue.isDefined) "?" else "")
+  var methodScopeIndex = -1
 }

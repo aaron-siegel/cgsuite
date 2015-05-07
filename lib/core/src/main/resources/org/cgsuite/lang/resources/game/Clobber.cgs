@@ -9,8 +9,8 @@ class Clobber(grid) extends Game
 
   override def Options(Player player)
 
-    us := player.Ordinal;
-    them := player.Opponent.Ordinal;
+    var us := player.Ordinal;
+    var them := player.Opponent.Ordinal;
 
     for c in grid.FindAll(us)
     for d in Coordinates.Orthogonal where grid[c+d] == them

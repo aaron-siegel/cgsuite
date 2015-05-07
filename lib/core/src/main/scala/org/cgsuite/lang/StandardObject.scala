@@ -29,7 +29,7 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Map[Symbol, Any]) {
   }
 
   def init() {
-    val domain = new Domain(namespace, Some(this), None)
+    val domain = new Domain(null, Some(this))
     cls.ancestors.foreach { ancestor =>
       ancestor.initializers.foreach { node => node.body.evaluate(domain) }
     }

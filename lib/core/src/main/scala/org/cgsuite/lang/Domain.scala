@@ -5,12 +5,10 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.InputException
 import scala.collection.mutable
-import org.cgsuite.util.Profiler
 
 class Domain(
-  val namespace: Namespace,
-  val contextObject: Option[Any] = None,
-  val contextMethod: Option[CgsuiteClass#Method] = None
+  val localScope: Array[Any],
+  val contextObject: Option[Any] = None
   ) {
 
   def lookup(id: Symbol, refToken: Token): Any = {
@@ -29,15 +27,10 @@ class Domain(
 
   }
 
-  def lookup(id: Symbol): Option[Any] = {
-    CgsuitePackage.lookupClass(id).map { _.classObject }
-      .orElse(namespace.lookup(id))
-      .orElse(contextObject flatMap { resolve(_, id) })   // TODO Use contextMethod
-  }
+  def lookup(id: Symbol): Option[Any] = contextObject map { resolve(_, id) }
 
-  def resolve(x: Any, id: Symbol): Option[Any] = {
-
-    x match {
+  def resolve(x: Any, id: Symbol) = {
+    val optResult = x match {
       case so: StandardObject => so.lookup(id)
       case _ =>
         CgsuiteClass.of(x).lookupMethod(id).map { method =>
@@ -47,23 +40,9 @@ class Domain(
             InstanceMethod(x, method)
         }
     }
-
-  }
-
-  def assignTo(id: Symbol, x: Any, isVarDeclaration: Boolean, refToken: Token): Any = {
-
-    try {
-      // TODO Check for duplicate declaration
-      namespace.put(id, x, declare = isVarDeclaration)
-      x
-    } catch {
-      case exc: InputException =>
-        exc.addToken(refToken)
-        throw exc
+    optResult getOrElse {
+      throw InputException(s"Member not found: ${id.name} (in object of type ${CgsuiteClass.of(x)})")
     }
-
   }
-
-  def toStringOutput(x: Any) = x.toString
 
 }
