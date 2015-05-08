@@ -1,0 +1,27 @@
+/*${cgsuite.banner}*/
+
+class Amazons(grid) extends Game
+
+  if grid is Grid then
+  elseif grid is String then
+    grid := Grid.Parse(grid, ".lrx")
+  end
+
+  override def Options(Player player)
+
+    var us := player.Ordinal;
+    var moveTo;
+    var fireTo;
+
+    for ourAmazon in grid.FindAll(us)
+    for moveDir in Coordinates.Compass
+    for k from 1 while grid[moveTo := ourAmazon+moveDir*k] == 0
+    for arrowDir in Coordinates.Compass
+    for l from 1 while (grid[fireTo := moveTo+arrowDir*l] == 0 or fireTo == ourAmazon)
+    yield
+      Amazons(grid.Updated({ourAmazon => 0, moveTo => us, fireTo => 3}))
+    end
+
+  end
+
+end

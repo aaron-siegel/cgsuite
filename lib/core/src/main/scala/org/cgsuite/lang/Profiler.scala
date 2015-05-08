@@ -9,7 +9,7 @@ object Profiler {
 
   def main(args: Array[String]) {
     CgsuiteClass.Object.ensureLoaded()
-    val statement = """Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm"""
+    val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm"""
     // Warm-up
     evalForProfiler(statement, profile = false)
     CanonicalShortGameOps.reinit()
@@ -28,7 +28,7 @@ object Profiler {
     val domain = new Domain(null, None)
     val tree = ParserUtil.parseStatement(str)
     val node = EvalNode(tree)
-    node.elaborate(Scope(Set.empty))
+    node.elaborate(Scope(None, Set.empty))
     //println(tree.toStringTree)
     //println(node)
     Profiler.clear()

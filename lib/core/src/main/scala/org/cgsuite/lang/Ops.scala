@@ -123,10 +123,6 @@ object Ops {
     case (x: Integer, y: Integer) => Coordinates(x.intValue, y.intValue)
   }
 
-  val MakeList: MultiOp = { _.toSeq }
-  val MakeSet: MultiOp = { _.toSet }
-  val MakeMap: MultiOp = { _.asInstanceOf[Iterable[(_, _)]].toMap }
-
   val ArrayReference = BinOp("[]") {
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
   }

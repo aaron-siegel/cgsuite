@@ -19,7 +19,7 @@ object Repl {
         val str = Console.in.readLine()
         val tree = ParserUtil.parseStatement(str)
         val node = EvalNode(tree)
-        node.elaborate(Scope(Set.empty))
+        node.elaborate(Scope(None, Set.empty))
         println(tree.toStringTree)
         println(node)
         val start = System.nanoTime()

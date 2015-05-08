@@ -69,10 +69,9 @@ object EvalNode {
       // Collection constructors
 
       case COORDINATES => BinOpNode(tree, MakeCoordinates)
-      case EXPLICIT_LIST => MultiOpNode(tree, MakeList)
-      case EXPLICIT_SET => MultiOpNode(tree, MakeSet)
-      case EXPLICIT_MAP => MultiOpNode(tree, MakeMap)
-      case BIGRARROW => MapPairNode(tree, EvalNode(tree.getChild(0)), EvalNode(tree.getChild(1)))
+      case EXPLICIT_LIST => ListNode(tree)
+      case EXPLICIT_SET => SetNode(tree)
+      case EXPLICIT_MAP => MapNode(tree)
 
       // Game construction
 
@@ -99,12 +98,10 @@ object EvalNode {
       // Assignment
 
       case ASSIGN => AssignToNode(tree, IdentifierNode(tree.getChild(0)), EvalNode(tree.getChild(1)), isVarDeclaration = false)
-      case VAR => AssignToNode(
-        tree,
-        IdentifierNode(tree.getChild(1).getChild(0)),
-        if (tree.getChild(1).getChildCount == 1) ConstantNode(tree.getChild(1).getChild(0), Nil) else EvalNode(tree.getChild(1).getChild(1)),
-        isVarDeclaration = true
-      )
+      case VAR =>
+        val (modifiers, nodes) = VarNode(tree)
+        assert(modifiers.isEmpty && nodes.size == 1)
+        nodes.head
 
       // Suppressor
 
@@ -203,10 +200,13 @@ trait EvalNode extends Node {
 }
 
 private[lang] object Scope {
-  def apply(classVars: Set[Symbol]) = new Scope(classVars, mutable.AnyRefMap(), mutable.Stack())
+  def apply(pkg: Option[CgsuitePackage], classVars: Set[Symbol]) = {
+    new Scope(pkg, classVars, mutable.AnyRefMap(), mutable.Stack())
+  }
 }
 
 private[lang] class Scope(
+  val pkg: Option[CgsuitePackage],    // None = "external" (Worksheet/REPL) scope
   val classVars: Set[Symbol],
   val varMap: mutable.AnyRefMap[Symbol, Int],
   val scopeStack: mutable.Stack[mutable.HashSet[Symbol]]
@@ -241,20 +241,20 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
   override val children = Seq.empty
 
   override def elaborate(scope: Scope) {
-    CgsuitePackage.lookupClass(id) match {
+    // Try looking up as a Class in local package scope
+    scope.pkg.flatMap { _.lookupClass(id) } match {
       case Some(cls) => classResolution = cls.classObject
       case None =>
-        if (scope.scopeStack.exists { _.contains(id) }) {
-          // It's in local scope
-          methodScopeIndex = scope.varMap(id)
-        } else {
-          CgsuitePackage.lookupClass(id) match {
-            case Some(cls) => classResolution = cls.classObject
-            case None =>
-              if (!scope.classVars.contains(id)) {
-                throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.getToken))
-              }
-          }
+        // Try looking up as a Class in default package scope
+        CgsuitePackage.lookupClass(id) match {
+          case Some(cls) => classResolution = cls.classObject
+          case None =>
+            // Try looking up in local (method) scope
+            if (scope.scopeStack.exists { _.contains(id) }) {
+              methodScopeIndex = scope.varMap(id)
+            } else if (!scope.classVars.contains(id)) {
+              throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.getToken))
+            }
         }
     }
   }
@@ -297,6 +297,73 @@ case class BinOpNode(tree: CgsuiteTree, op: BinOp, operand1: EvalNode, operand2:
   override def evaluate(domain: Domain) = op(operand1.evaluate(domain), operand2.evaluate(domain))
 }
 
+object ListNode {
+  def apply(tree: CgsuiteTree): ListNode = {
+    assert(tree.getType == EXPLICIT_LIST)
+    ListNode(tree, tree.getChildren.map { EvalNode(_) }.toIndexedSeq)
+  }
+}
+
+case class ListNode(tree: CgsuiteTree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+  override val children = elements
+  override def evaluate(domain: Domain): IndexedSeq[_] = {
+    elements.size match {
+      // This is to avoid closures and get optimal performance on small collections.
+      case 0 => IndexedSeq.empty
+      case 1 => IndexedSeq(elements(0).evaluate(domain))
+      case 2 => IndexedSeq(elements(0).evaluate(domain), elements(1).evaluate(domain))
+      case 3 => IndexedSeq(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
+      case 4 => IndexedSeq(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
+      case _ => elements.map { _.evaluate(domain) }
+    }
+  }
+}
+
+object SetNode {
+  def apply(tree: CgsuiteTree): SetNode = {
+    assert(tree.getType == EXPLICIT_SET)
+    SetNode(tree, tree.getChildren.map { EvalNode(_) }.toIndexedSeq)
+  }
+}
+
+case class SetNode(tree: CgsuiteTree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+  override val children = elements
+  override def evaluate(domain: Domain): Set[_] = {
+    elements.size match {
+      // This is to avoid closures and get optimal performance on small collections.
+      case 0 => Set.empty
+      case 1 => Set(elements(0).evaluate(domain))
+      case 2 => Set(elements(0).evaluate(domain), elements(1).evaluate(domain))
+      case 3 => Set(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
+      case 4 => Set(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
+      case _ => elements.map { _.evaluate(domain) }.toSet
+    }
+  }
+}
+
+object MapNode {
+  def apply(tree: CgsuiteTree): MapNode = {
+    assert(tree.getType == EXPLICIT_MAP)
+    val mapPairNodes = tree.getChildren.map { t => MapPairNode(t, EvalNode(t.getChild(0)), EvalNode(t.getChild(1))) }
+    MapNode(tree, mapPairNodes.toIndexedSeq)
+  }
+}
+
+case class MapNode(tree: CgsuiteTree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
+  override val children = elements
+  override def evaluate(domain: Domain): Map[_, _] = {
+    elements.size match {
+      // This is to avoid closures and get optimal performance on small collections.
+      case 0 => Map.empty
+      case 1 => Map(elements(0).evaluate(domain))
+      case 2 => Map(elements(0).evaluate(domain), elements(1).evaluate(domain))
+      case 3 => Map(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
+      case 4 => Map(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
+      case _ => elements.map { _.evaluate(domain) }.toMap
+    }
+  }
+}
+
 object MultiOpNode {
   def apply(tree: CgsuiteTree, op: MultiOp): MultiOpNode = MultiOpNode(tree, op, tree.getChildren.map { EvalNode(_) })
 }
@@ -308,7 +375,7 @@ case class MultiOpNode(tree: CgsuiteTree, op: MultiOp, operands: Seq[EvalNode]) 
 
 case class MapPairNode(tree: CgsuiteTree, from: EvalNode, to: EvalNode) extends EvalNode {
   override val children = Seq(from, to)
-  override def evaluate(domain: Domain) = from.evaluate(domain) -> to.evaluate(domain)
+  override def evaluate(domain: Domain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
 }
 
 case class GameSpecNode(tree: CgsuiteTree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
@@ -483,16 +550,24 @@ case class DotNode(tree: CgsuiteTree, obj: EvalNode, idNode: IdentifierNode) ext
     case node: DotNode => node.asQualifiedClassName.map { next => Symbol(next.name + "." + idNode.id.name) }
     case _ => None
   }
+  var classResolution: ClassObject = _
   override def elaborate(scope: Scope) {
-    obj.elaborate(scope)    // Deliberately bypass idNode
+    asQualifiedClassName flatMap CgsuitePackage.lookupClass match {
+      case Some(cls) => classResolution = cls.classObject
+      case None => obj.elaborate(scope)     // Deliberately bypass idNode
+    }
   }
-  override def evaluate(domain: Domain) = {
-    val x = obj.evaluate(domain)
-    val y = idNode.resolver.resolve(x)
-    if (y == null)
-      throw InputException(s"Not a member variable: ${idNode.id.name}", token = Some(tree.token))
-    else
-      y
+  override def evaluate(domain: Domain): Any = {
+    if (classResolution != null)
+      classResolution
+    else {
+      val x = obj.evaluate(domain)
+      val y = idNode.resolver.resolve(x)
+      if (y == null)
+        throw InputException(s"Not a member variable: ${idNode.id.name}", token = Some(tree.token))
+      else
+        y
+    }
   }
 }
 
@@ -541,7 +616,7 @@ case class FunctionCallNode(
       case _ => throw InputException("That is not a method or procedure: " + obj, token = Some(tree.token))
     }
 
-    val res = resolutions.getOrElseUpdate(callSite.ordinal, FunctionCallResolution(callSite.parameters, argNames))
+    val res = resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
     val args = new Array[Any](res.parameterToArgsMapping.length)
     var i = 0
     while (i < res.parameterToArgsMapping.length) {
@@ -555,10 +630,17 @@ case class FunctionCallNode(
 
   }
 
+  private def makeNewResolution(callSite: CallSite) = {
+    if (argNames.length > callSite.parameters.length)
+      throw InputException(s"Too many arguments for `$callSite`: ${argNames.length}")
+    FunctionCallResolution(callSite.parameters, argNames)
+  }
+
 }
 
 object FunctionCallResolution {
   def apply(params: Seq[MethodParameter], argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
+
     val parameterToArgsMapping = new Array[Int](params.length)
     java.util.Arrays.fill(parameterToArgsMapping, -1)
     argNames.zipWithIndex.foreach {
@@ -594,6 +676,7 @@ case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, i
       else
         throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(tree.token))
     }
+    newValue
   }
 }
 
@@ -698,6 +781,20 @@ case class ParameterNode(
   override val children = Seq(id, classId) ++ defaultValue
 }
 
+object VarNode {
+  def apply(tree: CgsuiteTree): (Seq[ModifierNode], Seq[AssignToNode]) = {
+    assert(tree.getType == VAR || tree.getType == ENUM_ELEMENT)
+    val modifiers = tree.getChild(0).getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
+    val nodes = tree.getChildren.tail.map { t =>
+      t.getType match {
+        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
+        case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
+      }
+    }
+    (modifiers, nodes)
+  }
+}
+
 object DeclarationNode {
 
   def apply(tree: CgsuiteTree): Iterable[Node] = {
@@ -716,15 +813,11 @@ object DeclarationNode {
       case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true))
 
       case VAR | ENUM_ELEMENT =>
-        val modifiers = tree.getChild(0).getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
-        tree.getChildren.tail map { t =>
-          val assignToNode = t.getType match {
-            case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
-            case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
-          }
+        val (modifiers, nodes) = VarNode(tree)
+        nodes.map { node =>
           InitializerNode(
             tree,
-            assignToNode,
+            node,
             isStatic = tree.getType == ENUM_ELEMENT || modifiers.exists { _.modifier == Modifier.Static }
           )
         }

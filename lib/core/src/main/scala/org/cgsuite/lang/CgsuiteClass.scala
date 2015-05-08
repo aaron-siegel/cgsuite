@@ -23,6 +23,7 @@ object CgsuiteClass {
   val Object = CgsuitePackage.lookupClassByName("Object").get
   val Class = CgsuitePackage.lookupClassByName("Class").get
   val Coordinates = CgsuitePackage.lookupClassByName("Coordinates").get
+  val Map = CgsuitePackage.lookupClassByName("Map").get
   val String = CgsuitePackage.lookupClassByName("String").get
 
   val Grid = CgsuitePackage.lookupClassByName("Grid").get
@@ -62,6 +63,7 @@ object CgsuiteClass {
       case _: Coordinates => Coordinates
       case _: String => String
       case _: Grid => Grid
+      case _: Map[_, _] => Map
     }
   }
 
@@ -176,7 +178,7 @@ class CgsuiteClass(
     private var localVariableCount: Int = 0
 
     override def elaborate() {
-      val scope = new Scope(classInfo.classVarOrdinals.keySet, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
+      val scope = new Scope(Some(pkg), classInfo.classVarOrdinals.keySet, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
       parameters foreach { param => scope.insertId(param.id) }
       parameters foreach { param => param.methodScopeIndex = scope.varMap(param.id) }
       body.elaborate(scope)
@@ -379,7 +381,7 @@ class CgsuiteClass(
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node => node.body.evaluate(initializerDomain) }
 
-    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(classInfo.classVarOrdinals.keySet)) }
+    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.classVarOrdinals.keySet)) }
 
     // Big temporary hack to populate Left and Right
     if (qualifiedName.name == "game.Player") {

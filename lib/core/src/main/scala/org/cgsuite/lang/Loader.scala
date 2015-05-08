@@ -10,6 +10,7 @@ object Loader {
 
     "cgsuite.lang.Class" -> None,
     "cgsuite.lang.Coordinates" -> Some(classOf[Coordinates]),
+    "cgsuite.lang.Map" -> Some(classOf[Map[_, _]]),
     "cgsuite.lang.Object" -> None,
     "cgsuite.lang.String" -> Some(classOf[String]),
 
@@ -25,7 +26,8 @@ object Loader {
     "game.Rational" -> Some(classOf[RationalNumber]),
     "game.Zero" -> Some(Zero.getClass),
 
-    "game.Clobber" -> None
+    "game.grid.Amazons" -> None,
+    "game.grid.Clobber" -> None
   )
 
   def declareSystemResources() {

@@ -15,7 +15,7 @@ class Clobber(grid) extends Game
     for c in grid.FindAll(us)
     for d in Coordinates.Orthogonal where grid[c+d] == them
     yield
-      Clobber(grid.Updated(c, 0).Updated(c+d, us))
+      Clobber(grid.Updated({c => 0, c+d => us}))
     end
 
   end

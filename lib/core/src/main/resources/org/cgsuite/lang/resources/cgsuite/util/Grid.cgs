@@ -7,6 +7,6 @@ system class Grid
   external def FindAll(Integer value);
   external def IsInBounds(Coordinates coord);
   external def ToString(String charMap);
-  external def Updated(Coordinates coord, Integer newValue);
+  external def Updated(Map newValues);
 
 end
