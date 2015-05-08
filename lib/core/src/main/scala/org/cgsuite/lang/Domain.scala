@@ -1,16 +1,13 @@
 package org.cgsuite.lang
 
 import org.antlr.runtime.Token
-import org.cgsuite.core.Values._
-import org.cgsuite.core._
 import org.cgsuite.exception.InputException
-import scala.collection.mutable
 
 class Domain(
   val localScope: Array[Any],
   val contextObject: Option[Any] = None
   ) {
-
+           /*
   def lookup(id: Symbol, refToken: Token): Any = {
 
     val opt = try {
@@ -44,5 +41,5 @@ class Domain(
       throw InputException(s"Member not found: ${id.name} (in object of type ${CgsuiteClass.of(x)})")
     }
   }
-
+             */
 }

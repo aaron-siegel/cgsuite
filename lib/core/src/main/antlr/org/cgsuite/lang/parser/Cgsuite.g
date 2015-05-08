@@ -380,7 +380,7 @@ scope
     ;
 
 enumElementList
-    : (enumElement (COMMA enumElement)*) SEMI -> ^(ENUM_ELEMENT_LIST enumElement*)
+    : (enumElement (COMMA enumElement)*) SEMI -> ^(DECLARATIONS enumElement*)
     ;
 
 enumElement

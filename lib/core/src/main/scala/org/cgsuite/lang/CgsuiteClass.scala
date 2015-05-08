@@ -13,6 +13,13 @@ import scala.util.Try
 
 object CgsuiteClass {
 
+  private var nextClassOrdinal = 0
+  private[lang] def newClassOrdinal = {
+    val ord = nextClassOrdinal
+    nextClassOrdinal += 1
+    ord
+  }
+
   val Object = CgsuitePackage.lookupClassByName("Object").get
   val Class = CgsuitePackage.lookupClassByName("Class").get
   val Coordinates = CgsuitePackage.lookupClassByName("Coordinates").get
@@ -81,6 +88,7 @@ class CgsuiteClass(
   val systemClass: Option[Class[_]] = None
   ) {
 
+  val classOrdinal = CgsuiteClass.newClassOrdinal
   val javaClass = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
@@ -92,18 +100,24 @@ class CgsuiteClass(
     val modifiers: Set[Modifier.Value],
     val supers: Seq[CgsuiteClass],
     val methods: Map[Symbol, CgsuiteClass#Method],
-    val constructor: Option[CgsuiteClass#ConstructorMethod],
-    val initializers: Seq[InitializerNode]
+    val constructor: Option[CgsuiteClass#Constructor],
+    val initializers: Seq[InitializerNode],
+    val staticInitializers: Seq[InitializerNode]
     ) {
     val properAncestors: Seq[CgsuiteClass] = supers.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgsuiteClass.this
     val isMutable = modifiers.contains(Modifier.Mutable)
-    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.toSet
-    val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }.toSet
+    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }
+    val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
     val localClassVars = initializers.collect {
       case InitializerNode(_, AssignToNode(_, assignId, _, true), false) => assignId.id
-    }.toSet
-    val allClassVars: Set[Symbol] = inheritedClassVars ++ constructorParamVars ++ localClassVars
+    }
+    val allClassVars: Seq[Symbol] = (constructorParamVars ++ inheritedClassVars ++ localClassVars).distinct
+    val classVarOrdinals: Map[Symbol, Int] = allClassVars.zipWithIndex.toMap
+    val staticVars = staticInitializers.collect {
+      case InitializerNode(_, AssignToNode(_, assignId, _, true), true) => assignId.id
+    }
+    val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
   }
 
   private var url: URL = _
@@ -139,31 +153,14 @@ class CgsuiteClass(
     def parameters: Seq[MethodParameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any
+    def call(obj: Any, args: Array[Any]): Any
 
     val declaringClass = CgsuiteClass.this
     val qualifiedId = Symbol(declaringClass.qualifiedName.name + "." + id.name)
     val signature = s"${qualifiedId.name}(${parameters.map { _.signature }.mkString(", ")})"
+    val ordinal = CallSite.newCallSiteOrdinal
 
     def elaborate() {}
-
-    def prepareArgs(args: Seq[Any], namedArgs: Map[Symbol, Any]): Map[Symbol, Any] = {
-      if (args.length > parameters.length) {
-        sys.error("too many args")
-      } else {
-        Profiler.start('PrepareArgs)
-        val argsWithNames = args.zip(parameters).map { case (x, param) =>
-          // TODO Typecheck
-          (param.id, x)
-        }
-        val providedArgs = argsWithNames.toMap ++ namedArgs
-        val result = parameters.map { param =>
-          param.id -> providedArgs.getOrElse(param.id, param.defaultValue.get)
-        }.toMap
-        Profiler.stop('PrepareArgs)
-        result
-      }
-    }
 
   }
 
@@ -179,15 +176,14 @@ class CgsuiteClass(
     private var localVariableCount: Int = 0
 
     override def elaborate() {
-      val scope = new Scope(classInfo.allClassVars, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
+      val scope = new Scope(classInfo.classVarOrdinals.keySet, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
       parameters foreach { param => scope.insertId(param.id) }
       parameters foreach { param => param.methodScopeIndex = scope.varMap(param.id) }
       body.elaborate(scope)
       localVariableCount = scope.varMap.size
     }
 
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
-      //val allArgs = prepareArgs(args, namedArgs)
+    def call(obj: Any, args: Array[Any]): Any = {
       Profiler.start(invokeUserMethod)
       val target = if (isStatic) classObject else obj
       try {
@@ -218,7 +214,7 @@ class CgsuiteClass(
 
     private val reflect = Symbol(s"Reflect [${javaMethod.toString}]")
 
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
+    def call(obj: Any, args: Array[Any]): Any = {
       // TODO Validation!
       // TODO Named args should work here too
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
@@ -228,7 +224,7 @@ class CgsuiteClass(
       )
       try {
         Profiler.start(reflect)
-        CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Seq[AnyRef]] : _*))
+        CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException =>
           throw new InputException(s"Invalid parameters for method $qualifiedName.")
@@ -239,36 +235,38 @@ class CgsuiteClass(
 
   }
 
-  case class ConstructorMethod(
+  case class Constructor(
     id: Symbol,
     parameters: Seq[MethodParameter]
-  ) extends Method {
+  ) extends Method with CallSite {
 
     private val invokeConstructor = Symbol(s"InvokeConstructor [${qualifiedId.name}]")
 
     def autoinvoke = false
     def isStatic = false
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
+
+    def call(args: Array[Any]): Any = {
       // TODO Superconstructor
       // TODO Parse var initializers
-      val allArgs = prepareArgs(args, namedArgs)
       Profiler.start(invokeConstructor)
       try {
         if (ancestors.contains(CgsuiteClass.Game))
-          new GameObject(CgsuiteClass.this, allArgs)
+          new GameObject(CgsuiteClass.this, args)
         else
-          new StandardObject(CgsuiteClass.this, allArgs)
+          new StandardObject(CgsuiteClass.this, args)
       } finally {
         Profiler.stop(invokeConstructor)
       }
     }
+
+    def call(obj: Any, args: Array[Any]): Any = call(args)
 
   }
 
   case class ExplicitMethod0(id: Symbol, autoinvoke: Boolean, isStatic: Boolean)(fn: Any => Any) extends Method {
 
     def parameters = Seq.empty
-    def call(obj: Any, args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
+    def call(obj: Any, args: Array[Any]): Any = {
       fn(if (isStatic) classObject else obj)
     }
 
@@ -348,7 +346,7 @@ class CgsuiteClass(
         // TODO Check for duplicate local method names
         val superMethods = supers.flatMap { _.classInfo.methods }
         val localMethods = node.methodDeclarations.map { parseMethod }
-        val constructor = node.constructorParams.map { t => ConstructorMethod(id, parseParameterList(t)) }
+        val constructor = node.constructorParams.map { t => Constructor(id, parseParameterList(t)) }
 
         (supers, (superMethods ++ localMethods).toMap, constructor)
 
@@ -361,24 +359,33 @@ class CgsuiteClass(
 
     }
 
-    classInfoRef = new ClassInfo(modifiers, supers, methods, constructor, node.ordinaryInitializers)
+    classInfoRef = new ClassInfo(
+      modifiers,
+      supers,
+      methods,
+      constructor,
+      node.ordinaryInitializers,
+      node.staticInitializers
+    )
     loading = false
 
     // Create the class object
-    classObjectRef = new ClassObject(CgsuiteClass.this, Map(Symbol("Name") -> id.name))
-
-    // Populate namespace
-    methods.foreach { case (methodId, method) => classObject.namespace.put(methodId, method, declare = true) }
-    node.enumElements foreach { _.foreach(declareEnumElement) }
+    classObjectRef = new ClassObject(CgsuiteClass.this)
 
     // Elaborate methods
     methods.foreach { case (_, method) => method.elaborate() }
 
-    // Static declarations
+    // Static declarations - create a domain whose context is the class object
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node => node.body.evaluate(initializerDomain) }
 
-    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(classInfo.allClassVars)) }
+    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(classInfo.classVarOrdinals.keySet)) }
+
+    // Big temporary hack to populate Left and Right
+    if (qualifiedName.name == "game.Player") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
+    }
 
   }
 
@@ -421,25 +428,6 @@ class CgsuiteClass(
 
   }
 
-  private def declareEnumElement(node: EnumElementNode): Any = {
-
-    val isExternal = node.modifiers.exists { _.modifier == Modifier.External }
-
-    // TODO This is a total hack
-    if (isExternal) {
-      val obj = {
-        node.id.id.name match {
-          case "Left" => org.cgsuite.core.Left
-          case "Right" => org.cgsuite.core.Right
-        }
-      }
-      classObject.namespace.put(node.id.id, obj, declare = true)
-    } else {
-      sys.error("TODO")
-    }
-
-  }
-
   private def methodsForObject(): Map[Symbol, CgsuiteClass#Method] = {
     Map(Symbol("Class") -> ExplicitMethod0(Symbol("Class"), autoinvoke = true, isStatic = false) {
       CgsuiteClass.of(_).classObject
@@ -450,7 +438,7 @@ class CgsuiteClass(
 
 }
 
-case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[Node]) {
+case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[EvalNode]) {
   val signature = paramType.qualifiedName.name + " " + id.name + (if (defaultValue.isDefined) "?" else "")
   var methodScopeIndex = -1
 }

@@ -1,7 +1,18 @@
 package org.cgsuite.lang
 
+object CallSite {
+  private var nextCallSiteOrdinal = 0
+  def newCallSiteOrdinal = {
+    val next = nextCallSiteOrdinal
+    nextCallSiteOrdinal += 1
+    next
+  }
+}
+
 trait CallSite {
 
-  def call(args: Seq[Any], namedArgs: Map[Symbol, Any]): Any
+  def parameters: Seq[MethodParameter]
+  def call(args: Array[Any]): Any
+  def ordinal: Int
 
 }

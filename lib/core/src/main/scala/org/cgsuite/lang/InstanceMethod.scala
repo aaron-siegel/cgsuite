@@ -1,9 +1,11 @@
 package org.cgsuite.lang
 
-case class InstanceMethod(obj: Any, clsMethod: CgsuiteClass#Method) extends CallSite {
+case class InstanceMethod(obj: Any, method: CgsuiteClass#Method) extends CallSite {
 
-  def call(args: Seq[Any], namedArgs: Map[Symbol, Any]): Any = {
-    clsMethod.call(obj, args, namedArgs)
+  def parameters = method.parameters
+  def ordinal = method.ordinal
+  def call(args: Array[Any]): Any = {
+    method.call(obj, args)
   }
 
 }

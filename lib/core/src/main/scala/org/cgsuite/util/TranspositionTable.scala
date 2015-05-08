@@ -4,15 +4,15 @@ import scala.collection.mutable
 
 class TranspositionTable {
 
-  val map = mutable.Map[Any, Any]()
+  val map = mutable.AnyRefMap[AnyRef, Any]()
 
-  def put(k: Any, v: Any) {
+  def put(k: AnyRef, v: Any) {
     map.put(k, v)
   }
 
-  def get(k: Any) = map.get(k)
+  def get(k: AnyRef) = map.get(k)
 
-  def contains(k: Any) = map.contains(k)
+  def contains(k: AnyRef) = map.contains(k)
 
   def clear() = map.clear()
 

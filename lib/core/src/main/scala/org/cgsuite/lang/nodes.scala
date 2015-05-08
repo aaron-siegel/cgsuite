@@ -233,6 +233,8 @@ object IdentifierNode {
 
 case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
 
+  // Cache the resolver here
+  val resolver = Resolver.forId(id)
   var classResolution: ClassObject = _
   var methodScopeIndex: Int = -1
 
@@ -249,9 +251,7 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
           CgsuitePackage.lookupClass(id) match {
             case Some(cls) => classResolution = cls.classObject
             case None =>
-              if (scope.classVars.contains(id)) {
-                // TODO: Object scope
-              } else {
+              if (!scope.classVars.contains(id)) {
                 throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.getToken))
               }
           }
@@ -266,8 +266,14 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
       result
     } else if (classResolution != null) {
       classResolution
+    } else if (domain.contextObject.isDefined) {
+      val y = resolver.resolve(domain.contextObject.get)
+      if (y == null)
+        throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
+      else
+        y
     } else {
-      domain.lookup(id, tree.token)
+      throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
     }
   }
 
@@ -466,7 +472,7 @@ case class LoopNode(
 case class ErrorNode(tree: CgsuiteTree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
   override def evaluate(domain: Domain) = {
-    throw InputException(msg.evaluate(domain).toString())
+    throw InputException(msg.evaluate(domain).toString)
   }
 }
 
@@ -482,50 +488,90 @@ case class DotNode(tree: CgsuiteTree, obj: EvalNode, idNode: IdentifierNode) ext
   }
   override def evaluate(domain: Domain) = {
     val x = obj.evaluate(domain)
-    domain.resolve(x, idNode.id)
+    val y = idNode.resolver.resolve(x)
+    if (y == null)
+      throw InputException(s"Not a member variable: ${idNode.id.name}", token = Some(tree.token))
+    else
+      y
   }
 }
 
-case class FunctionCallNode(tree: CgsuiteTree) extends EvalNode {
+object FunctionCallNode {
+  def apply(tree: CgsuiteTree): FunctionCallNode = {
+    val callSite = EvalNode(tree.getChild(0))
+    val argsWithNames = tree.getChild(1).getChildren.map { t =>
+      t.getType match {
+        case BIGRARROW => (EvalNode(t.getChild(1)), Some(IdentifierNode(t.getChild(0))))
+        case _ => (EvalNode(t), None)
+      }
+    }
+    val (args, argNames) = argsWithNames.unzip
+    FunctionCallNode(tree, callSite, args.toIndexedSeq, argNames.toIndexedSeq)
+  }
+}
+
+case class FunctionCallNode(
+  tree: CgsuiteTree,
+  callSite: EvalNode,
+  args: IndexedSeq[EvalNode],
+  argNames: IndexedSeq[Option[IdentifierNode]]
+  ) extends EvalNode {
+
+  var resolutions: mutable.LongMap[FunctionCallResolution] = mutable.LongMap()
+
+  // Some profiler keys
   val prepareCallSite = Symbol(s"PrepareCallSite [${tree.location()}]")
   val prepareCallArgs = Symbol(s"PrepareCallArgs [${tree.location()}]")
   val functionCall = Symbol(s"FunctionCall [${tree.location()}]")
-  val callSite = EvalNode(tree.getChild(0))
-  val args: IndexedSeq[EvalNode] = tree.getChild(1).getChildren.filterNot { _.getType == BIGRARROW }.map { EvalNode(_) }.toIndexedSeq
-  val optArgs: Map[IdentifierNode, EvalNode] = {
-    tree
-      .getChild(1)
-      .getChildren
-      .filter { _.getType == BIGRARROW }
-      .map { t => (IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1))) }
-      .toMap
-  }
-  override val children = (callSite +: args) ++ optArgs.map { case (id, node) => Seq(id, node) }.flatten
+
+  override val children = (callSite +: args) ++ argNames.flatten
+
   override def evaluate(domain: Domain) = {
-    Profiler.start(prepareCallSite)
-    val callSite = this.callSite.evaluate(domain)
-    Profiler.stop(prepareCallSite)
-    Profiler.start(prepareCallArgs)
-    val args = {
-      val argsArray = new Array[Any](this.args.length)
-      var i = 0
-      while (i < argsArray.length) {
-        argsArray(i) = this.args(i).evaluate(domain)
-        i += 1
+
+    val obj = this.callSite.evaluate(domain)
+    val callSite: CallSite = obj match {
+      case im: InstanceMethod => im
+      case co: ClassObject => co.forClass.constructor match {
+        case Some(ctor) => ctor
+        case None => throw InputException(
+          s"The class ${co.forClass.id.name} cannot be directly instantiated.",
+          token = Some(tree.token)
+        )
       }
-      argsArray.toSeq
+      case _ => throw InputException("That is not a method or procedure: " + obj, token = Some(tree.token))
     }
-    val optArgs = this.optArgs.map { case (IdentifierNode(_, id), value) => (id, value.evaluate(domain)) }
-    Profiler.stop(prepareCallArgs)
-    Profiler.start(functionCall)
-    val result = callSite match {
-      case site: CallSite => site.call(args, optArgs)
-      case _ => throw InputException("That is not a method or procedure.", token = Some(tree.token))
+
+    val res = resolutions.getOrElseUpdate(callSite.ordinal, FunctionCallResolution(callSite.parameters, argNames))
+    val args = new Array[Any](res.parameterToArgsMapping.length)
+    var i = 0
+    while (i < res.parameterToArgsMapping.length) {
+      if (res.parameterToArgsMapping(i) >= 0)
+        args(i) = this.args(res.parameterToArgsMapping(i)).evaluate(domain)
+      else
+        args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
+      i += 1
     }
-    Profiler.stop(functionCall)
-    result
+    callSite.call(args)
+
+  }
+
+}
+
+object FunctionCallResolution {
+  def apply(params: Seq[MethodParameter], argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
+    val parameterToArgsMapping = new Array[Int](params.length)
+    java.util.Arrays.fill(parameterToArgsMapping, -1)
+    argNames.zipWithIndex.foreach {
+      case (None, index) => parameterToArgsMapping(index) = index
+      case (Some(idNode), index) =>
+        val namedIndex = params.indexWhere { _.id == idNode.id }
+        parameterToArgsMapping(namedIndex) = index
+    }
+    FunctionCallResolution(parameterToArgsMapping)
   }
 }
+
+case class FunctionCallResolution(parameterToArgsMapping: Array[Int])
 
 case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, isVarDeclaration: Boolean) extends EvalNode {
   override val children = Seq(id, expr)
@@ -541,9 +587,12 @@ case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, i
       domain.localScope(id.methodScopeIndex) = newValue
     } else if (id.classResolution != null) {
       throw InputException(s"Cannot assign to class name as variable: ${id.id.name}", token = Some(tree.token))
-    } else if (domain.contextObject.isDefined && domain.contextObject.get.isInstanceOf[StandardObject]) {
-      val obj = domain.contextObject.get.asInstanceOf[StandardObject]
-      obj.namespace.put(id.id, newValue, declare = false)
+    } else if (domain.contextObject.isDefined) {
+      val res = id.resolver.findResolution(domain.contextObject.get)
+      if (res.classScopeIndex >= 0)
+        domain.contextObject.get.asInstanceOf[StandardObject].vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
+      else
+        throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(tree.token))
     }
   }
 }
@@ -575,7 +624,7 @@ object ClassDeclarationNode {
       case None => Seq.empty
     }
     val constructorParams = tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) }
-    val declarations = tree.getChildren.find { _.getType == DECLARATIONS }.get.getChildren.flatMap { DeclarationNode(_) }
+    val declarations = tree.getChildren.filter { _.getType == DECLARATIONS }.flatMap { _.getChildren.flatMap { DeclarationNode(_) } }
     val methodDeclarations = declarations collect {
       case x: MethodDeclarationNode => x
     }
@@ -584,9 +633,6 @@ object ClassDeclarationNode {
     }
     val ordinaryInitializers = declarations collect {
       case x: InitializerNode if !x.isStatic => x
-    }
-    val enumElements = tree.getChildren.find { _.getType == ENUM_ELEMENT_LIST } map { t =>
-      t.getChildren.map { u => EnumElementNode(u, IdentifierNode(u.getChild(1)), ModifierNodes(u.getChild(0))) }
     }
     ClassDeclarationNode(
       tree,
@@ -597,8 +643,7 @@ object ClassDeclarationNode {
       constructorParams,
       methodDeclarations,
       staticInitializers,
-      ordinaryInitializers,
-      enumElements
+      ordinaryInitializers
     )
   }
 }
@@ -612,12 +657,11 @@ case class ClassDeclarationNode(
   constructorParams: Option[ParametersNode],
   methodDeclarations: Seq[MethodDeclarationNode],
   staticInitializers: Seq[InitializerNode],
-  ordinaryInitializers: Seq[InitializerNode],
-  enumElements: Option[Seq[EnumElementNode]]
+  ordinaryInitializers: Seq[InitializerNode]
 ) extends Node {
 
   val children = (id +: modifiers) ++ extendsClause ++ constructorParams.toSeq ++
-    methodDeclarations ++ staticInitializers ++ ordinaryInitializers ++ enumElements.toSeq.flatten
+    methodDeclarations ++ staticInitializers ++ ordinaryInitializers
   def isMutable = modifiers.exists { _.modifier == Modifier.Mutable }
   def isSystem = modifiers.exists { _.modifier == Modifier.System }
 
@@ -648,7 +692,7 @@ case class ParameterNode(
   tree: CgsuiteTree,
   id: IdentifierNode,
   classId: IdentifierNode,
-  defaultValue: Option[Node],
+  defaultValue: Option[EvalNode],
   isExpandable: Boolean
 ) extends Node {
   override val children = Seq(id, classId) ++ defaultValue
@@ -671,14 +715,18 @@ object DeclarationNode {
 
       case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true))
 
-      case VAR =>
+      case VAR | ENUM_ELEMENT =>
         val modifiers = tree.getChild(0).getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
         tree.getChildren.tail map { t =>
           val assignToNode = t.getType match {
             case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
             case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
           }
-          InitializerNode(tree, assignToNode, isStatic = modifiers.exists { _.modifier == Modifier.Static })
+          InitializerNode(
+            tree,
+            assignToNode,
+            isStatic = tree.getType == ENUM_ELEMENT || modifiers.exists { _.modifier == Modifier.Static }
+          )
         }
 
       case _ => Iterable(InitializerNode(tree, EvalNode(tree), isStatic = false))
@@ -702,11 +750,6 @@ case class MethodDeclarationNode(
   val isOverride = modifiers.exists { _.modifier == Modifier.Override }
   val isStatic = modifiers.exists { _.modifier == Modifier.Static }
 
-}
-
-case class VarDeclarationNode(tree: CgsuiteTree, modifiers: Seq[ModifierNode], id: IdentifierNode) extends Node {
-  val children = modifiers :+ id
-  val isStatic = modifiers.exists { _.modifier == Modifier.Static }
 }
 
 case class InitializerNode(tree: CgsuiteTree, body: EvalNode, isStatic: Boolean) extends Node {
