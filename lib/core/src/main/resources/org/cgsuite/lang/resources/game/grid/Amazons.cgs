@@ -1,11 +1,6 @@
 /*${cgsuite.banner}*/
 
-class Amazons(grid) extends Game
-
-  if grid is Grid then
-  elseif grid is String then
-    grid := Grid.Parse(grid, ".lrx")
-  end
+class Amazons(grid) extends GridGame
 
   override def Options(Player player)
 
@@ -23,5 +18,7 @@ class Amazons(grid) extends Game
     end
 
   end
+
+  override def CharMap := ".lrx";
 
 end

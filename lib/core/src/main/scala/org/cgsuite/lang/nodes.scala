@@ -25,6 +25,10 @@ object EvalNode {
       case STRING => ConstantNode(tree, tree.getText.drop(1).dropRight(1))
       case NIL => ConstantNode(tree, Nil)
 
+      // This
+
+      case THIS => ThisNode(tree)
+
       // Identifier
 
       case IDENTIFIER => IdentifierNode(tree)
@@ -225,6 +229,11 @@ private[lang] class Scope(
 case class ConstantNode(tree: CgsuiteTree, constantValue: Any) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = constantValue
+}
+
+case class ThisNode(tree: CgsuiteTree) extends EvalNode {
+  override val children = Seq.empty
+  override def evaluate(domain: Domain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
 }
 
 object IdentifierNode {

@@ -19,6 +19,7 @@ object Loader {
     "game.CanonicalShortGame" -> Some(classOf[CanonicalShortGame]),
     "game.DyadicRational" -> Some(classOf[DyadicRationalNumber]),
     "game.Game" -> Some(classOf[Game]),
+    "game.GridGame" -> None,
     "game.Integer" -> Some(classOf[Integer]),
     "game.Nimber" -> Some(classOf[Nimber]),
     "game.NumberUpStar" -> Some(classOf[NumberUpStar]),

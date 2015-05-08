@@ -109,7 +109,7 @@ class CgsuiteClass(
     val properAncestors: Seq[CgsuiteClass] = supers.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgsuiteClass.this
     val isMutable = modifiers.contains(Modifier.Mutable)
-    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }
+    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
     val localClassVars = initializers.collect {
       case InitializerNode(_, AssignToNode(_, assignId, _, true), false) => assignId.id
@@ -120,6 +120,7 @@ class CgsuiteClass(
       case InitializerNode(_, AssignToNode(_, assignId, _, true), true) => assignId.id
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
+    val allSymbolsInScope: Set[Symbol] = classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet
   }
 
   private var url: URL = _
@@ -178,7 +179,7 @@ class CgsuiteClass(
     private var localVariableCount: Int = 0
 
     override def elaborate() {
-      val scope = new Scope(Some(pkg), classInfo.classVarOrdinals.keySet, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
+      val scope = new Scope(Some(pkg), classInfo.allSymbolsInScope, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
       parameters foreach { param => scope.insertId(param.id) }
       parameters foreach { param => param.methodScopeIndex = scope.varMap(param.id) }
       body.elaborate(scope)
@@ -339,7 +340,9 @@ class CgsuiteClass(
             Seq(CgsuiteClass.Object)
           else
             node.extendsClause.map {
-              case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse { sys.error("not found") }
+              case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse {
+                throw InputException(s"Unknown superclass: `${superId.name}`", tree)
+              }
               case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse { sys.error("not found") }
             }
         }
@@ -381,7 +384,7 @@ class CgsuiteClass(
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node => node.body.evaluate(initializerDomain) }
 
-    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.classVarOrdinals.keySet)) }
+    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.allSymbolsInScope)) }
 
     // Big temporary hack to populate Left and Right
     if (qualifiedName.name == "game.Player") {

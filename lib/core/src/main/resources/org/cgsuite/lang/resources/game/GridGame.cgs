@@ -1,7 +1,12 @@
 /*${cgsuite.banner}*/
 
-system class GridGame(Grid grid)
+class GridGame(grid) extends Game
 
+  if grid is Grid then
+  elseif grid is String then
+    grid := Grid.Parse(grid, CharMap)
+  end
 
+  def CharMap := error("Subclasses of GridGame must override CharMap.");
 
 end

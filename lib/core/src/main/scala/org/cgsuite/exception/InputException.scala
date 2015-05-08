@@ -1,8 +1,15 @@
 package org.cgsuite.exception
 
-import collection.mutable
 import org.antlr.runtime.Token
+import org.cgsuite.lang.parser.CgsuiteTree
 
+import scala.collection.mutable
+
+object InputException {
+  def apply(msg: String, tree: CgsuiteTree): InputException = {
+    InputException(msg, token = Some(tree.token))
+  }
+}
 
 case class InputException(msg: String, e: Throwable = null, token: Option[Token] = None) extends Exception(msg, e) {
 

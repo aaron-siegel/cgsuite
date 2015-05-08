@@ -1,11 +1,6 @@
 /*${cgsuite.banner}*/
 
-class Clobber(grid) extends Game
-
-  if grid is Grid then
-  elseif grid is String then
-    grid := Grid.Parse(grid, ".xo")
-  end
+class Clobber(grid) extends GridGame
 
   override def Options(Player player)
 
@@ -19,5 +14,7 @@ class Clobber(grid) extends Game
     end
 
   end
+
+  override def CharMap := ".xo";
 
 end
