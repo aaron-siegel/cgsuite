@@ -6,6 +6,11 @@
 
 package org.cgsuite.core
 
+import java.util
+
+import org.cgsuite.core.Values._
+import org.cgsuite.output.StyledTextOutput
+
 object RationalNumber {
   
   def apply(numerator: Integer, denominator: Integer): RationalNumber = {
@@ -83,8 +88,8 @@ trait RationalNumber extends Game with Ordered[RationalNumber] {
   }
 
   def isDyadic = denominator.isTwoPower
-  def isInteger = (denominator == Values.one)
-  def isInfinite = (denominator == Values.zero)
+  def isInteger = denominator == Values.one
+  def isInfinite = denominator == Values.zero
 
   def abs: RationalNumber = RationalNumber(numerator.abs, denominator)
   def floor: Integer = {
@@ -103,7 +108,33 @@ trait RationalNumber extends Game with Ordered[RationalNumber] {
   def step(n: Int): RationalNumber = step(SmallInteger(n))
   def step(n: Integer): RationalNumber = RationalNumber(numerator + n, denominator)
 
-  override def toString: String = numerator.toString + "/" + denominator.toString
+  def toOutput: StyledTextOutput = {
+
+    val output = new StyledTextOutput()
+
+    if (isInfinite) {
+      if (numerator < zero)
+        output.appendMath("-")
+      output.appendSymbol(StyledTextOutput.Symbol.INFINITY)
+    } else if (isInteger) {
+      output.appendMath(numerator.toString)
+    } else {
+      if (numerator < zero)
+        output.appendMath("-")
+      output.appendText(
+        util.EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_NUMERATOR),
+        numerator.abs.toString
+      )
+      output.appendMath("/")
+      output.appendText(
+        util.EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_DENOMINATOR),
+        denominator.toString
+      )
+    }
+
+    output
+
+  }
   
 }
 

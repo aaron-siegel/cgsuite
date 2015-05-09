@@ -8,10 +8,13 @@ object Loader {
 
   val systemClasses: Map[String, Option[Class[_]]] = Map(
 
-    "cgsuite.lang.Class" -> None,
+    "cgsuite.lang.Boolean" -> Some(classOf[Boolean]),
+    "cgsuite.lang.Class" -> Some(classOf[ClassObject]),
     "cgsuite.lang.Coordinates" -> Some(classOf[Coordinates]),
+    "cgsuite.lang.List" -> Some(classOf[Seq[_]]),
     "cgsuite.lang.Map" -> Some(classOf[Map[_, _]]),
     "cgsuite.lang.Object" -> None,
+    "cgsuite.lang.Set" -> Some(classOf[Set[_]]),
     "cgsuite.lang.String" -> Some(classOf[String]),
 
     "cgsuite.util.Grid" -> Some(classOf[Grid]),
@@ -29,6 +32,7 @@ object Loader {
 
     "game.grid.Amazons" -> None,
     "game.grid.Clobber" -> None
+
   )
 
   def declareSystemResources() {

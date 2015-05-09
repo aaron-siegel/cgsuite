@@ -48,6 +48,8 @@ trait DyadicRationalNumber extends NumberUpStar with RationalNumber {
     denominator * other.denominator
   )
 
+  override def isInteger = denominator == Values.one
+
   def min(other: DyadicRationalNumber) = if (this < other) this else other
   def max(other: DyadicRationalNumber) = if (this > other) this else other
   def mean(other: DyadicRationalNumber) = ((this + other) / Values.two).asInstanceOf[DyadicRationalNumber]
@@ -59,6 +61,8 @@ trait DyadicRationalNumber extends NumberUpStar with RationalNumber {
 
   override def step(n: Int): DyadicRationalNumber = step(SmallInteger(n))
   override def step(n: Integer): DyadicRationalNumber = DyadicRationalNumber(numerator + n, denominator)
+
+  override def toOutput = super[RationalNumber].toOutput
 
 }
 

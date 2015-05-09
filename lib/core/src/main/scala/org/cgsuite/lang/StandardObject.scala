@@ -51,7 +51,7 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
 class GameObject(cls: CgsuiteClass, objArgs: Array[Any]) extends StandardObject(cls, objArgs) with Game {
 
   def options(player: Player) = {
-    val method = lookupInstanceMethod(Symbol("Options")).get.asInstanceOf[InstanceMethod]
+    val method = lookupInstanceMethod('Options).get.asInstanceOf[InstanceMethod]
     method.call(Array(player)).asInstanceOf[Seq[Game]]   // TODO Validation?
   }
 

@@ -1,5 +1,8 @@
 package org.cgsuite.core
 
+import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.output.StyledTextOutput.Symbol._
+
 object NumberUpStar {
 
   def apply(number: DyadicRationalNumber, upMultiple: Int, nimber: Int): NumberUpStar = {
@@ -41,26 +44,39 @@ trait NumberUpStar extends CanonicalShortGame {
   override def leftStop = numberPart
   override def rightStop = numberPart
 
-  override def toString = {
-    val s1 = numberPart match {
-      case _: Zero => ""
-      case _ => numberPart.toString
+  override protected def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
+
+    if (forceParens && !isNumber && !isNimber && !(numberPart == Values.zero && nimberPart == 0)) {
+      // Not a number, nimber, or up multiple.  Force parens to clarify.
+      output.appendMath("(")
     }
-    val s2 = upMultiplePart match {
-      case 0 => ""
-      case 1 => "^"
-      case 2 => "^^"
-      case x if x > 0 => "^" + x
-      case -1 => "v"
-      case -2 => "vv"
-      case x if x < 0 => "v" + -x
+    if (numberPart != Values.zero || (nimberPart == 0 && upMultiplePart == 0)) {
+      output.appendOutput(numberPart.toOutput)
     }
-    val s3 = nimberPart match {
-      case 0 => ""
-      case 1 => "*"
-      case x => "*" + x
+    if (upMultiplePart != 0) {
+      val upSymbol = upMultiplePart match {
+        case 2 => DOUBLE_UP
+        case -2 => DOUBLE_DOWN
+        case x if x > 0 => UP
+        case _ => DOWN
+      }
+      output.appendSymbol(upSymbol)
+      if (upMultiplePart.abs > 2) {
+        output.appendMath(upMultiplePart.abs.toString)
+      }
     }
-    s1 + s2 + s3
+    if (nimberPart != 0) {
+      output.appendSymbol(STAR)
+      if (nimberPart > 1) {
+        output.appendMath(nimberPart.toString)
+      }
+    }
+    if (forceParens && !isNumber && !isNimber && !(numberPart == Values.zero && nimberPart == 0)) {
+      // Not a number, nimber, or up multiple.  Force parens to clarify.
+      output.appendMath(")")
+    }
+    0
+
   }
 
 }

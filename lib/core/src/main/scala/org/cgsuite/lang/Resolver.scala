@@ -21,6 +21,7 @@ case class Resolver(id: Symbol) {
 
     // No way to avoid this lookup
     val cls = CgsuiteClass.of(x)
+    var res: Resolution = null
     if (cls == CgsuiteClass.Class) {
       // Special handling for class objects
       val co = x.asInstanceOf[ClassObject]
@@ -76,7 +77,19 @@ case class Resolution(cls: CgsuiteClass, id: Symbol, static: Boolean = false) {
       cls.classInfo.classVarOrdinals.getOrElse(id, -1)
     }
   }
-  val method = cls.lookupMethod(id)
+  val method = {
+    if (static) {
+      // This is a little more complicated since we also need to look up common
+      // static methods, i.e., methods of class Class.
+      CgsuiteClass.Class.lookupMethod(id) match {
+        case Some(x) => Some(x)
+        case None => cls.lookupMethod(id)
+      }
+    } else {
+      // In the instance case we can just do a straight lookup.
+      cls.lookupMethod(id)
+    }
+  }
   assert(classScopeIndex == -1 || method.isEmpty)
 
 }

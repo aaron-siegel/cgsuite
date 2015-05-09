@@ -9,6 +9,7 @@ import org.cgsuite.lang.parser.CgsuiteTree
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 object EvalNode {
 
@@ -459,6 +460,13 @@ case class LoopNode(
   private val loop = Symbol(s"Loop [${tree.location()}]")
   private val loopBody = Symbol(s"LoopBody [${tree.location()}]")
 
+  private val pushDownYield: Option[LoopNode] = (isYield, body) match {
+    case (true, loopBody: LoopNode) =>
+      assert(loopBody.isYield)
+      Some(loopBody)
+    case _ => None
+  }
+
   override def elaborate(scope: Scope) {
     forId match {
       case Some(idNode) =>
@@ -472,42 +480,41 @@ case class LoopNode(
     }
   }
 
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: Domain): Any = {
+
+    val yieldResult = if (isYield) ArrayBuffer[Any]() else null
+    evaluate(domain, yieldResult)
+    if (isYield) yieldResult else Nil
+
+  }
+
+  def evaluate(domain: Domain, yieldResult: ArrayBuffer[Any]): Unit = {
 
     Profiler.start(prepareLoop)
 
-    val forIndex = this.forId.map { _.methodScopeIndex }.getOrElse(-1)
-    var counter = from.map { _.evaluate(domain) }.orNull
-    val toVal = to.map { _.evaluate(domain) }
-    val byVal = by.map { _.evaluate(domain) }.getOrElse(one)
-    val iterator = in.map { _.evaluateAsIterator(domain) }
+    val forIndex = if (forId.isDefined) forId.get.methodScopeIndex else -1
+    var counter = if (from.isDefined) from.get.evaluate(domain) else null
+    val toVal = if (to.isDefined) to.get.evaluate(domain) else null
+    val byVal = if (by.isDefined) by.get.evaluate(domain) else one
+    val iterator = if (in.isDefined) in.get.evaluateAsIterator(domain) else null
 
     Profiler.stop(prepareLoop)
 
     Profiler.start(loop)
 
-    val result = {
-      if (isYield) {
-        mutable.MutableList[Any]()
-      } else {
-        null
-      }
-    }
-
     var continue = true
 
     while (continue) {
 
-      iterator match {
-        case Some(it) =>
-          if (it.hasNext)
-            domain.localScope(forIndex) = it.next()
-          else
-            continue = false
-        case None =>
-          if (forIndex >= 0)
-            domain.localScope(forIndex) = counter
-          continue = toVal.isEmpty || Ops.leq(counter, toVal.get)
+      if (iterator == null) {
+        if (forIndex >= 0)
+          domain.localScope(forIndex) = counter
+        continue = toVal == null || Ops.leq(counter, toVal)
+      } else {
+        if (iterator.hasNext)
+          domain.localScope(forIndex) = iterator.next()
+        else
+          continue = false
       }
 
       if (continue) {
@@ -518,14 +525,18 @@ case class LoopNode(
         val whereCond = where.isEmpty || where.get.evaluateAsBoolean(domain)
         if (whereCond) {
           Profiler.start(loopBody)
-          val r = body.evaluate(domain)
-          Profiler.stop(loopBody)
-          if (isYield) {
-            r match {
-              case it: Iterable[_] => result ++= it
-              case x => result += x
+          if (pushDownYield.isEmpty) {
+            val r = body.evaluate(domain)
+            if (isYield) {
+              r match {
+                case it: Iterable[_] => yieldResult ++= it
+                case x => yieldResult += x
+              }
             }
+          } else {
+            pushDownYield.get.evaluate(domain, yieldResult)
           }
+          Profiler.stop(loopBody)
           if (counter != null)
             counter = Ops.NewPlus(counter, byVal)
         }
@@ -534,12 +545,6 @@ case class LoopNode(
     }
 
     Profiler.stop(loop)
-
-    if (isYield) {
-      result.toSeq
-    } else {
-      Nil
-    }
 
   }
 
@@ -573,7 +578,10 @@ case class DotNode(tree: CgsuiteTree, obj: EvalNode, idNode: IdentifierNode) ext
       val x = obj.evaluate(domain)
       val y = idNode.resolver.resolve(x)
       if (y == null)
-        throw InputException(s"Not a member variable: ${idNode.id.name}", token = Some(tree.token))
+        throw InputException(
+          s"Not a member variable: ${idNode.id.name} (in object of type ${CgsuiteClass.of(x).qualifiedName.name})",
+          token = Some(tree.token)
+        )
       else
         y
     }
@@ -702,7 +710,12 @@ case class StatementSequenceNode(tree: CgsuiteTree, statements: Seq[EvalNode]) e
     scope.scopeStack.pop()
   }
   override def evaluate(domain: Domain) = {
-    statements.foldLeft[Any](Nil) { (retval, n) => n.evaluate(domain) }
+    var result: Any = Nil
+    val iterator = statements.iterator
+    while (iterator.hasNext) {
+      result = iterator.next().evaluate(domain)
+    }
+    result
   }
 }
 

@@ -1,9 +1,9 @@
 package org.cgsuite.lang
 
-import org.cgsuite.exception.InputException
-
 class ClassObject(val forClass: CgsuiteClass)
   extends StandardObject(CgsuiteClass.Class, Array.empty) {
+
+  def name() = forClass.id.name
 
   override def init(): Unit = {
     vars = new Array[Any](forClass.classInfo.staticVars.size)

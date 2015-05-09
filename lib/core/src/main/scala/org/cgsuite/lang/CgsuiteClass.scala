@@ -9,7 +9,6 @@ import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.util.{Coordinates, Grid, TranspositionTable}
 
 import scala.collection.mutable
-import scala.util.Try
 
 object CgsuiteClass {
 
@@ -22,8 +21,11 @@ object CgsuiteClass {
 
   val Object = CgsuitePackage.lookupClassByName("Object").get
   val Class = CgsuitePackage.lookupClassByName("Class").get
+  val Boolean = CgsuitePackage.lookupClassByName("Boolean").get
   val Coordinates = CgsuitePackage.lookupClassByName("Coordinates").get
+  val List = CgsuitePackage.lookupClassByName("List").get
   val Map = CgsuitePackage.lookupClassByName("Map").get
+  val Set = CgsuitePackage.lookupClassByName("Set").get
   val String = CgsuitePackage.lookupClassByName("String").get
 
   val Grid = CgsuitePackage.lookupClassByName("Grid").get
@@ -52,7 +54,7 @@ object CgsuiteClass {
 
   private def ofNew(x: Any): CgsuiteClass = {
     x match {
-      case _: org.cgsuite.core.Zero => Zero
+      case _: Zero => Zero
       case _: Integer => Integer
       case _: DyadicRationalNumber => DyadicRational
       case _: RationalNumber => Rational
@@ -60,10 +62,13 @@ object CgsuiteClass {
       case _: NumberUpStar => NumberUpStar
       case _: CanonicalShortGame => CanonicalShortGame
       case _: Player => Player
+      case _: Boolean => Boolean
       case _: Coordinates => Coordinates
       case _: String => String
       case _: Grid => Grid
       case _: Map[_, _] => Map
+      case _: Seq[_] => List
+      case _: Set[_] => Set
     }
   }
 
@@ -95,7 +100,6 @@ class CgsuiteClass(
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
-  val companionObject = Try { Class.forName(javaClass + "$").getField("MODULE$").get(null) }.toOption
   val qualifiedName = Symbol(pkg.qualifiedName + "." + id.name)
 
   class ClassInfo(
