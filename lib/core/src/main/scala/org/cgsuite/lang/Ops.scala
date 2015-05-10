@@ -124,6 +124,7 @@ object Ops {
   }
 
   val ArrayReference = BinOp("[]") {
+    case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
   }
 

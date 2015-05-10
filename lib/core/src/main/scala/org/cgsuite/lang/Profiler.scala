@@ -9,7 +9,7 @@ object Profiler {
 
   def main(args: Array[String]) {
     CgsuiteClass.Object.ensureLoaded()
-    val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm"""
+    val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
     // Warm-up
     evalForProfiler(statement, profile = false)
     CanonicalShortGameOps.reinit()
@@ -35,10 +35,14 @@ object Profiler {
     Profiler.setEnabled(enabled = profile)
     val start = System.nanoTime()
     Profiler.start('Main)
-    node.evaluate(domain)
+    val result = node.evaluate(domain).asInstanceOf[org.cgsuite.core.Integer].intValue
     Profiler.stop('Main)
     val totalDuration = System.nanoTime() - start
     Profiler.setEnabled(enabled = false)
+    assert(
+      result == 20101,
+      s"Performance is great. Correctness is better. ($result != 20101)"
+    )
     totalDuration
   }
 

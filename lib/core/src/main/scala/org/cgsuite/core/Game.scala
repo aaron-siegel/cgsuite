@@ -24,6 +24,15 @@ trait Game {
   def canonicalForm(tt: TranspositionTable): Game = shortCanonicalForm(tt)
 
   def shortCanonicalForm(tt: TranspositionTable): CanonicalShortGame = {
+    var result: CanonicalShortGame = Values.zero
+    val it = decomposition.iterator
+    while (it.hasNext) {
+      result += it.next().shortCanonicalFormR(tt)
+    }
+    result
+  }
+
+  def shortCanonicalFormR(tt: TranspositionTable): CanonicalShortGame = {
     tt.get(this) match {
       case Some(x) => x.asInstanceOf[CanonicalShortGame]
       case _ =>
@@ -34,9 +43,11 @@ trait Game {
         canonicalForm
     }
   }
-  /*
+
+  def decomposition: Seq[Game] = Seq(this)
+
   def leftOptions: Iterable[Game] = options(Left)
   
   def rightOptions: Iterable[Game] = options(Right)
-  */
+
 }

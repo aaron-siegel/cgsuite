@@ -110,6 +110,7 @@ class CgsuiteClass(
     val initializers: Seq[InitializerNode],
     val staticInitializers: Seq[InitializerNode]
     ) {
+
     val properAncestors: Seq[CgsuiteClass] = supers.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgsuiteClass.this
     val isMutable = modifiers.contains(Modifier.Mutable)
@@ -125,6 +126,11 @@ class CgsuiteClass(
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
     val allSymbolsInScope: Set[Symbol] = classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet
+
+    // For efficiency, we cache lookups for some methods that get called in hardcoded locations
+    lazy val optionsMethod = lookupMethod('Options)
+    lazy val decompositionMethod = lookupMethod('Decomposition)
+
   }
 
   private var url: URL = _
@@ -167,7 +173,13 @@ class CgsuiteClass(
     val signature = s"${qualifiedId.name}(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
 
-    def elaborate() {}
+    def elaborate(): Unit = {
+      println(s"Elaborating ${qualifiedId.name}")
+      val scope = new Scope(Some(pkg), classInfo.allSymbolsInScope, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
+      parameters foreach { param =>
+        param.defaultValue foreach { _.elaborate(scope) }
+      }
+    }
 
   }
 
@@ -182,10 +194,13 @@ class CgsuiteClass(
     private val invokeUserMethod = Symbol(s"InvokeUserMethod [${qualifiedId.name}]")
     private var localVariableCount: Int = 0
 
-    override def elaborate() {
+    override def elaborate(): Unit = {
       val scope = new Scope(Some(pkg), classInfo.allSymbolsInScope, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
-      parameters foreach { param => scope.insertId(param.id) }
-      parameters foreach { param => param.methodScopeIndex = scope.varMap(param.id) }
+      parameters foreach { param =>
+        scope.insertId(param.id)
+        param.methodScopeIndex = scope.varMap(param.id)
+        param.defaultValue foreach { _.elaborate(scope) }
+      }
       body.elaborate(scope)
       localVariableCount = scope.varMap.size
     }
@@ -382,7 +397,8 @@ class CgsuiteClass(
     classObjectRef = new ClassObject(CgsuiteClass.this)
 
     // Elaborate methods
-    methods.foreach { case (_, method) => method.elaborate() }
+    constructor foreach { _.elaborate() }
+    methods foreach { case (_, method) => method.elaborate() }
 
     // Static declarations - create a domain whose context is the class object
     val initializerDomain = new Domain(null, Some(classObject))
@@ -416,7 +432,7 @@ class CgsuiteClass(
         println(s"Here it is: $externalMethod")
         new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
       } else {
-        println(s"Declaring user method: $name")
+        println(s"[${qualifiedName.name}] Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
         new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, body)
       }

@@ -2,7 +2,7 @@
 
 class Amazons(grid) extends GridGame
 
-  override def Options(Player player)
+  override def Options(Player player) begin
 
     var us := player.Ordinal;
     var moveTo;

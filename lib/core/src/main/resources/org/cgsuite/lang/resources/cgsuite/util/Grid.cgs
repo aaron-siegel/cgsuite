@@ -4,8 +4,10 @@ system class Grid
 
   external static def Parse(String str, String charMap);
 
+  external def Decomposition(Integer boundaryValue, List directions ? Coordinates.Orthogonal);
   external def FindAll(Integer value);
   external def IsInBounds(Coordinates coord);
+  external def Subgrid(Coordinates northwest, Coordinates southeast);
   external def ToString(String charMap);
   external def Updated(Map newValues);
 

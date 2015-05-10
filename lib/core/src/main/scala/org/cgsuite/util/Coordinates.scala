@@ -24,6 +24,7 @@ case class Coordinates(row: Int, col: Int) {
   def +(other: Coordinates) = Coordinates(row + other.row, col + other.col)
   def -(other: Coordinates) = Coordinates(row - other.row, col - other.col)
   def *(other: Integer) = Coordinates(row * other.intValue, col * other.intValue)
+  def isUnit = row >= -1 && row <= 1 && col >= -1 && col <= 1
 
   override def toString = s"($row,$col)"
 

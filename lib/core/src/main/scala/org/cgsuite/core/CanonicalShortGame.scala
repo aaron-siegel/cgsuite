@@ -114,6 +114,8 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
 
+  def stopCount: Integer = Integer(ops.stopCount(gameId))
+
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
   def thermograph: Thermograph = ops.thermograph(gameId)

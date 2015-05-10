@@ -2,6 +2,8 @@
 
 system class CanonicalShortGame extends Game
 
+  override external def Options(Player player);
+
   external def Birthday;
   external def Cool(DyadicRational temperature);
   external def IsInfinitesimal;
@@ -10,7 +12,7 @@ system class CanonicalShortGame extends Game
   external def IsNumberish;
   external def IsNumberTiny;
   external def Mean;
-  override external def Options(Player player);
+  external def StopCount;
   external def Temperature;
 
 end

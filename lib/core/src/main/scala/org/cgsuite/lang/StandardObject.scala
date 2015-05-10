@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.core.{Player, Game}
+import org.cgsuite.core.{Game, Player}
 
 class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
 
@@ -51,10 +51,13 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
 class GameObject(cls: CgsuiteClass, objArgs: Array[Any]) extends StandardObject(cls, objArgs) with Game {
 
   def options(player: Player) = {
-    val method = lookupInstanceMethod('Options).get.asInstanceOf[InstanceMethod]
-    method.call(Array(player)).asInstanceOf[Seq[Game]]   // TODO Validation?
+    cls.classInfo.optionsMethod.get.call(this, Array(player)).asInstanceOf[Seq[Game]]
   }
 
   override def canonicalForm: Game = canonicalForm(cls.transpositionTable)
+
+  override def decomposition: Seq[Game] = {
+    cls.classInfo.decompositionMethod.get.call(this, Array.empty).asInstanceOf[Seq[Game]]
+  }
 
 }

@@ -25,6 +25,7 @@ object SmallInteger {
 trait SmallInteger extends Integer {
   
   def intValue: Int
+  override def byteValue: Byte = intValue.toByte
   def longValue: Long = intValue.toLong
   def bigIntValue = BigInt(intValue)
   

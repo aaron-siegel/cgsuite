@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+system class SumGame(Game g, Game h) extends Game
+end

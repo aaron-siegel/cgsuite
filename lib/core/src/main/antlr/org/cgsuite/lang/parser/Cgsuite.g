@@ -336,9 +336,9 @@ defDeclaration
     ;
 
 defInitializer
-    : (SEMI) => SEMI!
+    : SEMI!
     | ASSIGN expression SEMI -> ^(STATEMENT_SEQUENCE expression)
-    | statementSequence END!
+    | BEGIN! statementSequence END!
     ;
 
 modifiers
