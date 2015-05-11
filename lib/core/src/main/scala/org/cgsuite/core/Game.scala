@@ -44,10 +44,10 @@ trait Game {
     }
   }
 
-  def decomposition: Seq[Game] = Seq(this)
-
   def leftOptions: Iterable[Game] = options(Left)
   
   def rightOptions: Iterable[Game] = options(Right)
+
+  def decomposition: Seq[Game] = Seq(this)
 
 }

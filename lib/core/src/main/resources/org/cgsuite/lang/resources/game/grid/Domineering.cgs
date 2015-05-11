@@ -1,0 +1,27 @@
+/*${cgsuite.banner}*/
+
+class Domineering(grid) extends GridGame
+
+  override def Options(Player player) begin
+
+    var directions := if player == Player.Left then [(1,0)] else [(0,1)] end;
+
+    for m from 1 to grid.RowCount
+    for n from 1 to grid.ColCount
+    for d in directions
+    where grid[(m,n)] == 0 and grid[(m,n)+d] == 0
+    yield
+      Domineering(grid.Updated({(m,n) => 1, (m,n)+d => 1}))
+    end
+
+  end
+
+  override def Decomposition begin
+    for component in grid.Decomposition(1) yield
+      Domineering(component.SymmetryInvariant(Symmetry.Flip))
+    end
+  end
+
+  override def CharMap := ".x";
+
+end

@@ -6,7 +6,7 @@ import org.cgsuite.core._
 import org.cgsuite.exception.InputException
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
-import org.cgsuite.util.{Coordinates, Grid, TranspositionTable}
+import org.cgsuite.util.{Symmetry, Coordinates, Grid, TranspositionTable}
 
 import scala.collection.mutable
 
@@ -29,6 +29,7 @@ object CgsuiteClass {
   val String = CgsuitePackage.lookupClassByName("String").get
 
   val Grid = CgsuitePackage.lookupClassByName("Grid").get
+  val Symmetry = CgsuitePackage.lookupClassByName("Symmetry").get
 
   val Game = CgsuitePackage.lookupClassByName("Game").get
   val Integer = CgsuitePackage.lookupClassByName("Integer").get
@@ -69,6 +70,7 @@ object CgsuiteClass {
       case _: Map[_, _] => Map
       case _: Seq[_] => List
       case _: Set[_] => Set
+      case _: Symmetry => Symmetry
     }
   }
 
@@ -117,12 +119,12 @@ class CgsuiteClass(
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
     val localClassVars = initializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, true), false) => assignId.id
+      case InitializerNode(_, AssignToNode(_, assignId, _, true), false, _) => assignId.id
     }
     val allClassVars: Seq[Symbol] = (constructorParamVars ++ inheritedClassVars ++ localClassVars).distinct
     val classVarOrdinals: Map[Symbol, Int] = allClassVars.zipWithIndex.toMap
     val staticVars = staticInitializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, true), true) => assignId.id
+      case InitializerNode(_, AssignToNode(_, assignId, _, true), true, _) => assignId.id
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
     val allSymbolsInScope: Set[Symbol] = classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet
@@ -400,17 +402,28 @@ class CgsuiteClass(
     constructor foreach { _.elaborate() }
     methods foreach { case (_, method) => method.elaborate() }
 
-    // Static declarations - create a domain whose context is the class object
-    val initializerDomain = new Domain(null, Some(classObject))
-    node.staticInitializers.foreach { node => node.body.evaluate(initializerDomain) }
-
-    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.allSymbolsInScope)) }
-
     // Big temporary hack to populate Left and Right
     if (qualifiedName.name == "game.Player") {
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
     }
+    if (qualifiedName.name == "cgsuite.util.Symmetry") {
+      import Symmetry._
+      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
+        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
+        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
+        classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
+      }
+    }
+
+    // Static declarations - create a domain whose context is the class object
+    val initializerDomain = new Domain(null, Some(classObject))
+    node.staticInitializers.foreach { node =>
+      if (!node.isExternal)
+        node.body.evaluate(initializerDomain)
+    }
+
+    node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.allSymbolsInScope)) }
 
   }
 

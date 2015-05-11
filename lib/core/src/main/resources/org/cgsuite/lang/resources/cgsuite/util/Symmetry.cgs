@@ -1,0 +1,19 @@
+/*${cgsuite.banner}*/
+
+system enum Symmetry
+
+  external Identity,
+  external Inversion,
+  external HorizontalFlip,
+  external VerticalFlip,
+  external Transpose,
+  external AntiTranspose,
+  external ClockwiseRotation,
+  external AnticlockwiseRotation;
+
+  static var Flip := [Identity, Inversion, HorizontalFlip, VerticalFlip];
+  static var Rotational := [Identity, Inversion, ClockwiseRotation, AnticlockwiseRotation];
+  static var EightWay := [Identity, Inversion, HorizontalFlip, VerticalFlip, ClockwiseRotation, AnticlockwiseRotation,
+    Transpose, AntiTranspose];
+
+end

@@ -832,7 +832,7 @@ object DeclarationNode {
           tree.getChildren.find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
-      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true))
+      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true, isExternal = false))
 
       case VAR | ENUM_ELEMENT =>
         val (modifiers, nodes) = VarNode(tree)
@@ -840,11 +840,12 @@ object DeclarationNode {
           InitializerNode(
             tree,
             node,
-            isStatic = tree.getType == ENUM_ELEMENT || modifiers.exists { _.modifier == Modifier.Static }
+            isStatic = tree.getType == ENUM_ELEMENT || modifiers.exists { _.modifier == Modifier.Static },
+            isExternal = modifiers.exists { _.modifier == Modifier.External }
           )
         }
 
-      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isStatic = false))
+      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isStatic = false, isExternal = false))
 
     }
 
@@ -867,7 +868,7 @@ case class MethodDeclarationNode(
 
 }
 
-case class InitializerNode(tree: CgsuiteTree, body: EvalNode, isStatic: Boolean) extends Node {
+case class InitializerNode(tree: CgsuiteTree, body: EvalNode, isStatic: Boolean, isExternal: Boolean) extends Node {
   val children = Seq(body)
 }
 

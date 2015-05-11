@@ -18,12 +18,12 @@ class Clobber(grid, directions ? Coordinates.Orthogonal, anti ? false) extends G
 
   end
 
-  override def CharMap := ".xo";
-
   override def Decomposition begin
     for component in grid.Decomposition(0, directions) yield
       Clobber(component, directions, anti)
     end
   end
+
+  override def CharMap := ".xo";
 
 end

@@ -1,8 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.core._
-import org.cgsuite.lang.parser.ParserUtil
-import org.cgsuite.util.{Coordinates, Grid}
+import org.cgsuite.util.{Coordinates, Grid, Symmetry}
 
 object Loader {
 
@@ -18,6 +17,7 @@ object Loader {
     "cgsuite.lang.String" -> Some(classOf[String]),
 
     "cgsuite.util.Grid" -> Some(classOf[Grid]),
+    "cgsuite.util.Symmetry" -> Some(classOf[Symmetry]),
 
     "game.CanonicalShortGame" -> Some(classOf[CanonicalShortGame]),
     "game.DyadicRational" -> Some(classOf[DyadicRationalNumber]),
@@ -31,7 +31,8 @@ object Loader {
     "game.Zero" -> Some(Zero.getClass),
 
     "game.grid.Amazons" -> None,
-    "game.grid.Clobber" -> None
+    "game.grid.Clobber" -> None,
+    "game.grid.Domineering" -> None
 
   )
 

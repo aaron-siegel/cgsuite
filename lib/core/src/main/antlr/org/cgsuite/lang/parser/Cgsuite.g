@@ -671,13 +671,8 @@ explicitList
 	;
 
 of
-    : ofToken LPAREN expression ( (forClause IN) => forInLoopAntecedent RPAREN -> ^(DO[$ofToken.tree.getToken()] ofToken forInLoopAntecedent ^(STATEMENT_SEQUENCE expression))
-                                | forFromLoopAntecedent RPAREN
-                                    // TODO These errors aren't being generated quite right
-                                    { if ($forFromLoopAntecedent.tree == null)
-                                        throw new RecognitionException(input);
-                                    } -> ^(DO[$ofToken.tree.getToken()] ofToken forFromLoopAntecedent? ^(STATEMENT_SEQUENCE expression))
-                                )
+    : ofToken LPAREN expression forLoopAntecedent+ RPAREN
+      -> ^(ofToken forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
     ;
 
 ofToken

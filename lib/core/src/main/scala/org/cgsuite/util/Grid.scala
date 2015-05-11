@@ -38,7 +38,7 @@ object Grid {
 
 }
 
-class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte]) {
+class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] {
 
   def get(row: Int, col: Int): Byte = values((row-1)*colCount+(col-1))
 
@@ -112,27 +112,7 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
     subgrid
   }
 
-  def decomposition(boundaryValue: Integer, directions: Seq[Coordinates]): Seq[Grid] = {
-    var orthogonal = true
-    var diagonal = true
-    val it = directions.iterator
-    while (it.hasNext && diagonal) {
-      val coord = it.next()
-      if (!coord.isUnit) {
-        diagonal = false
-        orthogonal = false
-      } else if (coord.col != 0 && coord.row != 0) {
-        orthogonal = false
-      }
-    }
-    if (diagonal) {
-      decomposition(boundaryValue, !orthogonal)
-    } else {
-      Seq(this)
-    }
-  }
-
-  def decomposition(boundaryValue: Integer, allowDiagonal: Boolean = false): Seq[Grid] = {
+  def decomposition(boundaryValue: Integer, directions: Seq[Coordinates] = Coordinates.Orthogonal): Seq[Grid] = {
     val bv = boundaryValue.intValue.toByte
     if (Grid.regionMarkers.length < values.length)
       Grid.regionMarkers = new Array[Int](values.length)
@@ -148,7 +128,7 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
         info.maxRow = i / colCount + 1
         info.minCol = i % colCount + 1
         info.maxCol = i % colCount + 1
-        markRegion(bv, i, info, allowDiagonal)
+        markRegion(bv, i, info, directions)
         nextRegion += 1
       }
       i += 1
@@ -172,28 +152,67 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
     }
   }
 
-  def markRegion(bv: Byte, i: Int, info: RegionInfo, allowDiagonal: Boolean): Unit = {
+  private def markRegion(bv: Byte, i: Int, info: RegionInfo, directions: Seq[Coordinates]): Unit = {
     if (Grid.regionMarkers(i) == -1 && values(i) != bv) {
       Grid.regionMarkers(i) = info.region
       info.minRow = info.minRow.min(i / colCount + 1)
       info.maxRow = info.maxRow.max(i / colCount + 1)
       info.minCol = info.minCol.min(i % colCount + 1)
       info.maxCol = info.maxCol.max(i % colCount + 1)
-      if (i % colCount != 0) markRegion(bv, i - 1, info, allowDiagonal)
-      if ((i + 1) % colCount != 0) markRegion(bv, i + 1, info, allowDiagonal)
-      if (i - colCount >= 0) markRegion(bv, i - colCount, info, allowDiagonal)
-      if (i + colCount < values.length) markRegion(bv, i + colCount, info, allowDiagonal)
-      if (allowDiagonal) {
-        if (i % colCount != 0) {
-          if (i - colCount >= 0) markRegion(bv, i - colCount - 1, info, allowDiagonal)
-          if (i + colCount < values.length) markRegion(bv, i + colCount - 1, info, allowDiagonal)
+      val it = directions.iterator
+      while (it.hasNext) {
+        val direction = it.next()
+        if ((i % colCount) + direction.col >= 0 && (i % colCount) + direction.col < colCount) {
+          val newI = i + (direction.row * colCount) + direction.col
+          if (newI >= 0 && newI < values.length) {
+            markRegion(bv, newI, info, directions)
+          }
         }
-        if ((i + 1) % colCount != 0) {
-          if (i - colCount >= 0) markRegion(bv, i - colCount + 1, info, allowDiagonal)
-          if (i + colCount < values.length) markRegion(bv, i + colCount + 1, info, allowDiagonal)
+        // In order to correctly handle the case where directions is not closed under inversion
+        // symmetry, we also try moving in the direction -D for each D in directions. This is
+        // inefficient in the very common case where directions is closed under inversion
+        // symmetry, but I'm not sure how to fix this without making it even less efficient.
+        // (Idea: Introduce the concept of a DirectionSpace or some such with cached info such
+        // as symmetric closure. Maybe in a later version.)
+        if ((i % colCount) - direction.col >= 0 && (i % colCount) - direction.col < colCount) {
+          val newI = i - (direction.row * colCount) - direction.col
+          if (newI >= 0 && newI < values.length) {
+            markRegion(bv, newI, info, directions)
+          }
         }
       }
     }
+  }
+
+  def permute(symmetry: Symmetry): Grid = {
+    val newRowCount = if (symmetry.isTranspose) colCount else rowCount
+    val newColCount = if (symmetry.isTranspose) rowCount else colCount
+    val newGrid = Grid(newRowCount, newColCount)
+    var i = 0
+    while (i < values.length) {
+      val row = i / colCount
+      val col = i % colCount
+      val flippedRow = if (symmetry.isHorizontalFlip) rowCount-row-1 else row
+      val flippedCol = if (symmetry.isVerticalFlip) colCount-col-1 else col
+      val newRow = if (symmetry.isTranspose) flippedCol else flippedRow
+      val newCol = if (symmetry.isTranspose) flippedRow else flippedCol
+      newGrid.values(newRow * newColCount + newCol) = values(i)
+      i += 1
+    }
+    newGrid
+  }
+
+  def symmetryInvariant(symmetries: Seq[Symmetry]): Grid = {
+    // TODO We can be cleverer when rowCount != colCount
+    var min = this
+    symmetries foreach { symmetry =>
+      if (symmetry != Symmetry.Identity) {
+        val newGrid = min.permute(symmetry)
+        if (newGrid < min)
+          min = newGrid
+      }
+    }
+    min
   }
 
   override def hashCode(): Int = java.util.Arrays.hashCode(values)
@@ -210,6 +229,22 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
   def toString(charMap: String) = {
     val grouped = values map { charMap(_) } grouped colCount map { SeqCharSequence(_) }
     grouped mkString "|"
+  }
+
+  def compare(that: Grid): Int = {
+    if (rowCount != that.rowCount)
+      rowCount - that.rowCount
+    else if (colCount != that.colCount)
+      colCount - that.colCount
+    else {
+      var i = 0
+      var cmp = 0
+      while (cmp == 0 && i < values.length) {
+        cmp = values(i) - that.values(i)
+        i += 1
+      }
+      cmp
+    }
   }
 
 }
