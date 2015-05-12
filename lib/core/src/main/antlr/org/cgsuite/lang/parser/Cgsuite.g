@@ -4,7 +4,7 @@ options
 {
     language = Java;
     output = AST;
-    ASTLabelType = CgsuiteTree;
+    ASTLabelType = CommonTree;
 }
 
 tokens
@@ -48,16 +48,6 @@ tokens
 	REFNEQ		= '!==';
 	
 	ASSIGN		= ':=';
-    /*
-	ASN_PLUS	= '+=';
-	ASN_MINUS	= '-=';
-	ASN_TIMES	= '*=';
-	ASN_DIV		= '/=';
-	ASN_MOD		= '%=';
-	ASN_AND		= '&=';
-	ASN_OR		= '|=';
-	ASN_EXP		= '^=';
-    */
     BAD_ASSIGN  = '=';
 	
 	DOTDOT		= '..';
@@ -394,13 +384,9 @@ enumElement
     ;
 */
 script
-    : block EOF^
+    : statementSequence EOF^
     ;
 
-block
-    : statementSequence
-    ;
-	
 statementSequence
 	: statementChain? -> ^(STATEMENT_SEQUENCE statementChain?)
 	;
@@ -535,8 +521,8 @@ expExpr
 	
 postfixExpr
 	: (upstarExpr -> upstarExpr)
-	  ( DOT SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT $postfixExpr $id)
-      | DOT id=generalizedId  -> ^(DOT $postfixExpr $id)
+	  (// DOT SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT $postfixExpr $id)|
+        DOT id=generalizedId  -> ^(DOT $postfixExpr $id)
 	  | x=arrayReference-> ^(ARRAY_REFERENCE[$x.tree.getToken()] $postfixExpr arrayReference)
 	  | y=functionCall	-> ^(FUNCTION_CALL[$y.tree.getToken()] $postfixExpr functionCall)
 	  )*
@@ -614,14 +600,14 @@ explicitGameBraces
 slashExpression
     @init
     {
-        CommonTree newTree = null;
+        Tree newTree = null;
     }
     : (expressionList SLASHES) => lo=expressionList SLASHES ro=slashExpression
     {
         if ($ro.tree.token.getType() != SLASHES ||
             $ro.tree.token.getText().length() < $SLASHES.getText().length())
         {
-            newTree = (CgsuiteTree) adaptor.create($SLASHES);
+            newTree = (CommonTree) adaptor.create($SLASHES);
             adaptor.addChild(newTree, $lo.tree);
             adaptor.addChild(newTree, $ro.tree);
         }
@@ -639,11 +625,11 @@ slashExpression
                 {
                     break;
                 }
-                t = (CgsuiteTree) adaptor.getChild(t, 0);
+                t = (CommonTree) adaptor.getChild(t, 0);
             }
-            CommonTree tLeft  = (CgsuiteTree) adaptor.getChild(t, 0);
-            CommonTree tRight = (CgsuiteTree) adaptor.getChild(t, 1);
-            CommonTree tRightNew = (CgsuiteTree) adaptor.create($SLASHES);
+            CommonTree tLeft  = (CommonTree) adaptor.getChild(t, 0);
+            CommonTree tRight = (CommonTree) adaptor.getChild(t, 1);
+            CommonTree tRightNew = (CommonTree) adaptor.create($SLASHES);
             adaptor.addChild(tRightNew, $lo.tree);
             adaptor.addChild(tRightNew, tLeft);
             adaptor.setChild(t, 0, tRightNew);

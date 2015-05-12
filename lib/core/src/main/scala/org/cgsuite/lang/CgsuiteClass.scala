@@ -346,6 +346,8 @@ class CgsuiteClass(
     println(node)
     declareClass(node)
 
+    println(s"Done loading class: ${id.name}")
+
   }
 
   private def declareClass(node: ClassDeclarationNode) {

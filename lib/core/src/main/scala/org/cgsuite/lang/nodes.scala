@@ -1,19 +1,42 @@
 package org.cgsuite.lang
 
+import org.antlr.runtime.tree.{CommonTree, Tree}
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.InputException
+import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang.parser.CgsuiteTree
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+object Node {
+
+  implicit def treeToRichTree(tree: Tree): RichTree = new RichTree(tree)
+
+  class RichTree(tree: Tree) {
+    lazy val token = tree.asInstanceOf[CommonTree].token
+    lazy val children: Seq[Tree] = {
+      val jChildren = tree.asInstanceOf[CommonTree].getChildren
+      if (jChildren == null)  // Really dumb ANTLR semantics
+        Seq.empty
+      else
+        jChildren.toSeq map { _.asInstanceOf[Tree] }
+    }
+    def location = {
+      if (token.getInputStream == null)
+        throw new RuntimeException(tree.toStringTree)
+      token.getInputStream.getSourceName + ":" + token.getLine + ":" + token.getCharPositionInLine
+    }
+  }
+
+}
+
 object EvalNode {
 
-  def apply(tree: CgsuiteTree): EvalNode = {
+  def apply(tree: Tree): EvalNode = {
 
     tree.getType match {
 
@@ -92,7 +115,7 @@ object EvalNode {
         Option(tree.getChild(2)).map { EvalNode(_) }
       )
       case ERROR => ErrorNode(tree, EvalNode(tree.getChild(0)))
-      case DO | YIELD => LoopNode(tree)
+      case DO | YIELD | LISTOF | SETOF => LoopNode(tree)
 
       // Resolvers
 
@@ -120,14 +143,14 @@ object EvalNode {
 
   }
 
-  private def gameOptions(tree: CgsuiteTree): Seq[EvalNode] = {
+  private def gameOptions(tree: Tree): Seq[EvalNode] = {
     tree.getType match {
       case SLASHES => Seq(EvalNode(tree))
-      case EXPRESSION_LIST => tree.getChildren.map { EvalNode(_) }
+      case EXPRESSION_LIST => tree.children.map { EvalNode(_) }
     }
   }
 
-  private def nimber(tree: CgsuiteTree): EvalNode = {
+  private def nimber(tree: Tree): EvalNode = {
     if (tree.getChildCount == 0) {
       ConstantNode(tree, star)
     } else {
@@ -135,7 +158,7 @@ object EvalNode {
     }
   }
 
-  private def upMultiple(tree: CgsuiteTree): EvalNode = {
+  private def upMultiple(tree: Tree): EvalNode = {
     val (upMultipleTree, nimberTree) = tree.getChildCount match {
       case 0 => (None, None)
       case 1 => tree.getChild(0).getType match {
@@ -158,9 +181,9 @@ object EvalNode {
 
 trait Node {
 
-  def tree: CgsuiteTree
-  def token = tree.getToken
-  def ttype = token.getType
+  def tree: Tree
+  def token = tree.asInstanceOf[CommonTree].token
+  def ttype = tree.getType
 
   def children: Iterable[Node]
 
@@ -227,21 +250,21 @@ private[lang] class Scope(
   }
 }
 
-case class ConstantNode(tree: CgsuiteTree, constantValue: Any) extends EvalNode {
+case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = constantValue
 }
 
-case class ThisNode(tree: CgsuiteTree) extends EvalNode {
+case class ThisNode(tree: Tree) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
 }
 
 object IdentifierNode {
-  def apply(tree: CgsuiteTree): IdentifierNode = IdentifierNode(tree, Symbol(tree.getText))
+  def apply(tree: Tree): IdentifierNode = IdentifierNode(tree, Symbol(tree.getText))
 }
 
-case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
+case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   // Cache the resolver here
   val resolver = Resolver.forId(id)
@@ -264,7 +287,7 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
               methodScopeIndex = scope.varMap(id)
             } else if (scope.pkg.isDefined && !scope.classVars.contains(id)) {
               // Unless we're at Worksheet scope, it's illegal to refer to an undefined variable.
-              throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.getToken))
+              throw InputException(s"Undefined variable: ${id.name}", token = Some(token))
             }
         }
     }
@@ -279,12 +302,12 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
       classResolution
     } else if (domain.isOuterDomain) {
       domain getDynamicVar id getOrElse {
-        throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
+        throw InputException(s"Undefined variable: ${id.name}", token = Some(token))
       }
     } else {
       val y = resolver.resolve(domain.contextObject.get)
       if (y == null)
-        throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
+        throw InputException(s"Undefined variable: ${id.name}", token = Some(token))
       else
         y
     }
@@ -293,31 +316,31 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
 }
 
 object UnOpNode {
-  def apply(tree: CgsuiteTree, op: UnOp): UnOpNode = UnOpNode(tree, op, EvalNode(tree.getChild(0)))
+  def apply(tree: Tree, op: UnOp): UnOpNode = UnOpNode(tree, op, EvalNode(tree.getChild(0)))
 }
 
-case class UnOpNode(tree: CgsuiteTree, op: UnOp, operand: EvalNode) extends EvalNode {
+case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override val children = Seq(operand)
   override def evaluate(domain: Domain) = op(operand.evaluate(domain))
 }
 
 object BinOpNode {
-  def apply(tree: CgsuiteTree, op: BinOp): BinOpNode = BinOpNode(tree, op, EvalNode(tree.getChild(0)), EvalNode(tree.getChild(1)))
+  def apply(tree: Tree, op: BinOp): BinOpNode = BinOpNode(tree, op, EvalNode(tree.getChild(0)), EvalNode(tree.getChild(1)))
 }
 
-case class BinOpNode(tree: CgsuiteTree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
+case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
   override val children = Seq(operand1, operand2)
   override def evaluate(domain: Domain) = op(operand1.evaluate(domain), operand2.evaluate(domain))
 }
 
 object ListNode {
-  def apply(tree: CgsuiteTree): ListNode = {
+  def apply(tree: Tree): ListNode = {
     assert(tree.getType == EXPLICIT_LIST)
-    ListNode(tree, tree.getChildren.map { EvalNode(_) }.toIndexedSeq)
+    ListNode(tree, tree.children.map { EvalNode(_) }.toIndexedSeq)
   }
 }
 
-case class ListNode(tree: CgsuiteTree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
   override def evaluate(domain: Domain): IndexedSeq[_] = {
     elements.size match {
@@ -333,13 +356,13 @@ case class ListNode(tree: CgsuiteTree, elements: IndexedSeq[EvalNode]) extends E
 }
 
 object SetNode {
-  def apply(tree: CgsuiteTree): SetNode = {
+  def apply(tree: Tree): SetNode = {
     assert(tree.getType == EXPLICIT_SET)
-    SetNode(tree, tree.getChildren.map { EvalNode(_) }.toIndexedSeq)
+    SetNode(tree, tree.children.map { EvalNode(_) }.toIndexedSeq)
   }
 }
 
-case class SetNode(tree: CgsuiteTree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
   override def evaluate(domain: Domain): Set[_] = {
     elements.size match {
@@ -355,14 +378,14 @@ case class SetNode(tree: CgsuiteTree, elements: IndexedSeq[EvalNode]) extends Ev
 }
 
 object MapNode {
-  def apply(tree: CgsuiteTree): MapNode = {
+  def apply(tree: Tree): MapNode = {
     assert(tree.getType == EXPLICIT_MAP)
-    val mapPairNodes = tree.getChildren.map { t => MapPairNode(t, EvalNode(t.getChild(0)), EvalNode(t.getChild(1))) }
+    val mapPairNodes = tree.children.map { t => MapPairNode(t, EvalNode(t.getChild(0)), EvalNode(t.getChild(1))) }
     MapNode(tree, mapPairNodes.toIndexedSeq)
   }
 }
 
-case class MapNode(tree: CgsuiteTree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
+case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
   override val children = elements
   override def evaluate(domain: Domain): Map[_, _] = {
     elements.size match {
@@ -378,20 +401,20 @@ case class MapNode(tree: CgsuiteTree, elements: IndexedSeq[MapPairNode]) extends
 }
 
 object MultiOpNode {
-  def apply(tree: CgsuiteTree, op: MultiOp): MultiOpNode = MultiOpNode(tree, op, tree.getChildren.map { EvalNode(_) })
+  def apply(tree: Tree, op: MultiOp): MultiOpNode = MultiOpNode(tree, op, tree.children.map { EvalNode(_) })
 }
 
-case class MultiOpNode(tree: CgsuiteTree, op: MultiOp, operands: Seq[EvalNode]) extends EvalNode {
+case class MultiOpNode(tree: Tree, op: MultiOp, operands: Seq[EvalNode]) extends EvalNode {
   override val children = operands
   override def evaluate(domain: Domain) = op(operands.map { _.evaluate(domain) })
 }
 
-case class MapPairNode(tree: CgsuiteTree, from: EvalNode, to: EvalNode) extends EvalNode {
+case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
   override val children = Seq(from, to)
   override def evaluate(domain: Domain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
 }
 
-case class GameSpecNode(tree: CgsuiteTree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
+case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
   override val children = lo ++ ro
   override def evaluate(domain: Domain) = {
     val gl = lo.flatMap { _.evaluateAsGame(domain) }
@@ -404,7 +427,7 @@ case class GameSpecNode(tree: CgsuiteTree, lo: Seq[EvalNode], ro: Seq[EvalNode],
   }
 }
 
-case class IfNode(tree: CgsuiteTree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
+case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
   override val children = Seq(condition, ifNode) ++ elseNode
   override def evaluate(domain: Domain) = {
     if (condition.evaluateAsBoolean(domain))
@@ -416,24 +439,30 @@ case class IfNode(tree: CgsuiteTree, condition: EvalNode, ifNode: StatementSeque
 
 object LoopNode {
 
-  def apply(tree: CgsuiteTree): LoopNode = {
+  def apply(tree: Tree): LoopNode = {
 
-    val isYield = tree.getType == YIELD
-    val body = EvalNode(tree.getChildren.last)
-    val loopSpecs = tree.getChildren.dropRight(1)
+    val loopType = tree.getType match {
+      case DO => Do
+      case YIELD | LISTOF => YieldList
+      case SETOF => YieldSet
+      case TABLEOF => YieldTable
+      case SUMOF => YieldSum
+    }
+    val body = EvalNode(tree.children.last)
+    val loopSpecs = tree.children.dropRight(1)
     assert(loopSpecs.forall { _.getType == LOOP_SPEC })
 
-    def makeLoopNode(loopSpecTree: CgsuiteTree, nextNode: EvalNode): LoopNode = {
+    def makeLoopNode(loopSpecTree: Tree, nextNode: EvalNode): LoopNode = {
       LoopNode(
         loopSpecTree,
-        isYield,
-        loopSpecTree.getChildren.find { _.getType == FOR   }.map { t => IdentifierNode(t.getChild(0)) },
-        loopSpecTree.getChildren.find { _.getType == IN    }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.getChildren.find { _.getType == FROM  }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.getChildren.find { _.getType == TO    }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.getChildren.find { _.getType == BY    }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.getChildren.find { _.getType == WHILE }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.getChildren.find { _.getType == WHERE }.map { t => EvalNode(t.getChild(0)) },
+        loopType,
+        loopSpecTree.children.find { _.getType == FOR   }.map { t => IdentifierNode(t.getChild(0)) },
+        loopSpecTree.children.find { _.getType == IN    }.map { t => EvalNode(t.getChild(0)) },
+        loopSpecTree.children.find { _.getType == FROM  }.map { t => EvalNode(t.getChild(0)) },
+        loopSpecTree.children.find { _.getType == TO    }.map { t => EvalNode(t.getChild(0)) },
+        loopSpecTree.children.find { _.getType == BY    }.map { t => EvalNode(t.getChild(0)) },
+        loopSpecTree.children.find { _.getType == WHILE }.map { t => EvalNode(t.getChild(0)) },
+        loopSpecTree.children.find { _.getType == WHERE }.map { t => EvalNode(t.getChild(0)) },
         nextNode
       )
     }
@@ -442,27 +471,38 @@ object LoopNode {
 
   }
 
+  sealed trait LoopType
+  case object Do extends LoopType
+  case object YieldList extends LoopType
+  case object YieldSet extends LoopType
+  case object YieldTable extends LoopType
+  case object YieldSum extends LoopType
+
 }
 
 case class LoopNode(
-  tree   : CgsuiteTree,
-  isYield: Boolean,
-  forId  : Option[IdentifierNode],
-  in     : Option[EvalNode],
-  from   : Option[EvalNode],
-  to     : Option[EvalNode],
-  by     : Option[EvalNode],
-  `while`: Option[EvalNode],
-  where  : Option[EvalNode],
-  body   : EvalNode
+  tree    : Tree,
+  loopType: LoopNode.LoopType,
+  forId   : Option[IdentifierNode],
+  in      : Option[EvalNode],
+  from    : Option[EvalNode],
+  to      : Option[EvalNode],
+  by      : Option[EvalNode],
+  `while` : Option[EvalNode],
+  where   : Option[EvalNode],
+  body    : EvalNode
 ) extends EvalNode {
 
   override val children = forId.toSeq ++ in ++ from ++ to ++ by ++ `while` ++ where :+ body
 
-  private val prepareLoop = Symbol(s"PrepareLoop [${tree.location()}]")
-  private val loop = Symbol(s"Loop [${tree.location()}]")
-  private val loopBody = Symbol(s"LoopBody [${tree.location()}]")
+  private val prepareLoop = Symbol(s"PrepareLoop [${tree.location}]")
+  private val loop = Symbol(s"Loop [${tree.location}]")
+  private val loopBody = Symbol(s"LoopBody [${tree.location}]")
 
+  private val isYield: Boolean = loopType match {
+    case LoopNode.Do | LoopNode.YieldSum => false
+    case LoopNode.YieldList | LoopNode.YieldSet | LoopNode.YieldTable => true
+  }
   private val pushDownYield: Option[LoopNode] = (isYield, body) match {
     case (true, loopBody: LoopNode) =>
       assert(loopBody.isYield)
@@ -487,7 +527,12 @@ case class LoopNode(
 
     val yieldResult = if (isYield) ArrayBuffer[Any]() else null
     evaluate(domain, yieldResult)
-    if (isYield) yieldResult else Nil
+    loopType match {
+      case LoopNode.Do => Nil
+      case LoopNode.YieldList => yieldResult
+      case LoopNode.YieldSet => yieldResult.toSet   // TODO(?) This could be made more efficient
+      case _ => sys.error("not implemented yet")
+    }
 
   }
 
@@ -553,14 +598,14 @@ case class LoopNode(
 
 }
 
-case class ErrorNode(tree: CgsuiteTree, msg: EvalNode) extends EvalNode {
+case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
   override def evaluate(domain: Domain) = {
     throw InputException(msg.evaluate(domain).toString)
   }
 }
 
-case class DotNode(tree: CgsuiteTree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
+case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
   override val children = Seq(obj, idNode)
   val asQualifiedClassName: Option[Symbol] = obj match {
     case IdentifierNode(_, antecedentId) => Some(Symbol(antecedentId.name + "." + idNode.id.name))
@@ -583,7 +628,7 @@ case class DotNode(tree: CgsuiteTree, obj: EvalNode, idNode: IdentifierNode) ext
       if (y == null)
         throw InputException(
           s"Not a member variable: ${idNode.id.name} (in object of type ${CgsuiteClass.of(x).qualifiedName.name})",
-          token = Some(tree.token)
+          token = Some(token)
         )
       else
         y
@@ -592,9 +637,9 @@ case class DotNode(tree: CgsuiteTree, obj: EvalNode, idNode: IdentifierNode) ext
 }
 
 object FunctionCallNode {
-  def apply(tree: CgsuiteTree): FunctionCallNode = {
+  def apply(tree: Tree): FunctionCallNode = {
     val callSite = EvalNode(tree.getChild(0))
-    val argsWithNames = tree.getChild(1).getChildren.map { t =>
+    val argsWithNames = tree.getChild(1).children.map { t =>
       t.getType match {
         case BIGRARROW => (EvalNode(t.getChild(1)), Some(IdentifierNode(t.getChild(0))))
         case _ => (EvalNode(t), None)
@@ -606,7 +651,7 @@ object FunctionCallNode {
 }
 
 case class FunctionCallNode(
-  tree: CgsuiteTree,
+  tree: Tree,
   callSite: EvalNode,
   args: IndexedSeq[EvalNode],
   argNames: IndexedSeq[Option[IdentifierNode]]
@@ -615,9 +660,9 @@ case class FunctionCallNode(
   var resolutions: mutable.LongMap[FunctionCallResolution] = mutable.LongMap()
 
   // Some profiler keys
-  val prepareCallSite = Symbol(s"PrepareCallSite [${tree.location()}]")
-  val prepareCallArgs = Symbol(s"PrepareCallArgs [${tree.location()}]")
-  val functionCall = Symbol(s"FunctionCall [${tree.location()}]")
+  val prepareCallSite = Symbol(s"PrepareCallSite [${tree.location}]")
+  val prepareCallArgs = Symbol(s"PrepareCallArgs [${tree.location}]")
+  val functionCall = Symbol(s"FunctionCall [${tree.location}]")
 
   override val children = (callSite +: args) ++ argNames.flatten
 
@@ -635,10 +680,10 @@ case class FunctionCallNode(
         case Some(ctor) => ctor
         case None => throw InputException(
           s"The class ${co.forClass.id.name} cannot be directly instantiated.",
-          token = Some(tree.token)
+          token = Some(token)
         )
       }
-      case _ => throw InputException("That is not a method or procedure: " + obj, token = Some(tree.token))
+      case _ => throw InputException("That is not a method or procedure: " + obj, token = Some(token))
     }
 
     val res = resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
@@ -680,7 +725,7 @@ object FunctionCallResolution {
 
 case class FunctionCallResolution(parameterToArgsMapping: Array[Int])
 
-case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, isVarDeclaration: Boolean) extends EvalNode {
+case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDeclaration: Boolean) extends EvalNode {
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   override val children = Seq(id, expr)
@@ -695,7 +740,7 @@ case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, i
     if (id.methodScopeIndex >= 0) {
       domain.localScope(id.methodScopeIndex) = newValue
     } else if (id.classResolution != null) {
-      throw InputException(s"Cannot assign to class name as variable: ${id.id.name}", token = Some(tree.token))
+      throw InputException(s"Cannot assign to class name as variable: ${id.id.name}", token = Some(token))
     } else if (domain.isOuterDomain) {
       domain.putDynamicVar(id.id, newValue)
     } else {
@@ -703,17 +748,17 @@ case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, i
       if (res.classScopeIndex >= 0)
         domain.contextObject.get.asInstanceOf[StandardObject].vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
       else
-        throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(tree.token))
+        throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(token))
     }
     newValue
   }
 }
 
 object StatementSequenceNode {
-  def apply(tree: CgsuiteTree): StatementSequenceNode = StatementSequenceNode(tree, tree.getChildren.map { EvalNode(_) })
+  def apply(tree: Tree): StatementSequenceNode = StatementSequenceNode(tree, tree.children.map { EvalNode(_) })
 }
 
-case class StatementSequenceNode(tree: CgsuiteTree, statements: Seq[EvalNode]) extends EvalNode {
+case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends EvalNode {
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
   override def elaborate(scope: Scope) = {
@@ -732,16 +777,16 @@ case class StatementSequenceNode(tree: CgsuiteTree, statements: Seq[EvalNode]) e
 }
 
 object ClassDeclarationNode {
-  def apply(tree: CgsuiteTree): ClassDeclarationNode = {
+  def apply(tree: Tree): ClassDeclarationNode = {
     val isEnum = tree.getType == ENUM
     val modifiers = ModifierNodes(tree.getChild(0))
     val id = IdentifierNode(tree.getChild(1))
-    val extendsClause = tree.getChildren.find { _.getType == EXTENDS } match {
-      case Some(t) => t.getChildren.map { EvalNode(_) }
+    val extendsClause = tree.children.find { _.getType == EXTENDS } match {
+      case Some(t) => t.children.map { EvalNode(_) }
       case None => Seq.empty
     }
-    val constructorParams = tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) }
-    val declarations = tree.getChildren.filter { _.getType == DECLARATIONS }.flatMap { _.getChildren.flatMap { DeclarationNode(_) } }
+    val constructorParams = tree.children.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) }
+    val declarations = tree.children.filter { _.getType == DECLARATIONS }.flatMap { _.children.flatMap { DeclarationNode(_) } }
     val methodDeclarations = declarations collect {
       case x: MethodDeclarationNode => x
     }
@@ -766,7 +811,7 @@ object ClassDeclarationNode {
 }
 
 case class ClassDeclarationNode(
-  tree: CgsuiteTree,
+  tree: Tree,
   id: IdentifierNode,
   isEnum: Boolean,
   modifiers: Seq[ModifierNode],
@@ -785,28 +830,28 @@ case class ClassDeclarationNode(
 }
 
 object ParametersNode {
-  def apply(tree: CgsuiteTree): ParametersNode = {
+  def apply(tree: Tree): ParametersNode = {
     assert(tree.getType == METHOD_PARAMETER_LIST)
-    val parameters = tree.getChildren.map { t =>
+    val parameters = tree.children.map { t =>
       assert(t.getType == METHOD_PARAMETER)
       ParameterNode(
         t,
         IdentifierNode(t.getChild(0)),
         IdentifierNode(t.getChild(1)),
-        t.getChildren.find { _.getType == QUESTION } map { u => EvalNode(u.getChild(0)) },
-        t.getChildren.exists { _.getType == DOTDOTDOT }
+        t.children.find { _.getType == QUESTION } map { u => EvalNode(u.getChild(0)) },
+        t.children.exists { _.getType == DOTDOTDOT }
       )
     }
     ParametersNode(tree, parameters)
   }
 }
 
-case class ParametersNode(tree: CgsuiteTree, parameters: Seq[ParameterNode]) extends Node {
+case class ParametersNode(tree: Tree, parameters: Seq[ParameterNode]) extends Node {
   override val children = parameters
 }
 
 case class ParameterNode(
-  tree: CgsuiteTree,
+  tree: Tree,
   id: IdentifierNode,
   classId: IdentifierNode,
   defaultValue: Option[EvalNode],
@@ -816,10 +861,10 @@ case class ParameterNode(
 }
 
 object VarNode {
-  def apply(tree: CgsuiteTree): (Seq[ModifierNode], Seq[AssignToNode]) = {
+  def apply(tree: Tree): (Seq[ModifierNode], Seq[AssignToNode]) = {
     assert(tree.getType == VAR || tree.getType == ENUM_ELEMENT)
-    val modifiers = tree.getChild(0).getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
-    val nodes = tree.getChildren.tail.map { t =>
+    val modifiers = tree.getChild(0).children.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
+    val nodes = tree.children.tail.map { t =>
       t.getType match {
         case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
         case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
@@ -831,7 +876,7 @@ object VarNode {
 
 object DeclarationNode {
 
-  def apply(tree: CgsuiteTree): Iterable[Node] = {
+  def apply(tree: Tree): Iterable[Node] = {
 
     tree.getType match {
 
@@ -840,8 +885,8 @@ object DeclarationNode {
           tree,
           IdentifierNode(tree.getChild(1)),
           ModifierNodes(tree.getChild(0)),
-          tree.getChildren.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) },
-          tree.getChildren.find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
+          tree.children.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) },
+          tree.children.find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
       case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true, isExternal = false))
@@ -866,7 +911,7 @@ object DeclarationNode {
 }
 
 case class MethodDeclarationNode(
-  tree: CgsuiteTree,
+  tree: Tree,
   idNode: IdentifierNode,
   modifiers: Seq[ModifierNode],
   parameters: Option[ParametersNode],
@@ -880,22 +925,22 @@ case class MethodDeclarationNode(
 
 }
 
-case class InitializerNode(tree: CgsuiteTree, body: EvalNode, isStatic: Boolean, isExternal: Boolean) extends Node {
+case class InitializerNode(tree: Tree, body: EvalNode, isStatic: Boolean, isExternal: Boolean) extends Node {
   val children = Seq(body)
 }
 
 object ModifierNodes {
-  def apply(tree: CgsuiteTree): Seq[ModifierNode] = {
+  def apply(tree: Tree): Seq[ModifierNode] = {
     assert(tree.getType == MODIFIERS)
-    tree.getChildren.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
+    tree.children.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
   }
 }
 
-case class EnumElementNode(tree: CgsuiteTree, id: IdentifierNode, modifiers: Seq[ModifierNode]) extends Node {
+case class EnumElementNode(tree: Tree, id: IdentifierNode, modifiers: Seq[ModifierNode]) extends Node {
   val children = id +: modifiers
 }
 
-case class ModifierNode(tree: CgsuiteTree, modifier: Modifier.Value) extends Node {
+case class ModifierNode(tree: Tree, modifier: Modifier.Value) extends Node {
   val children = Seq.empty
 }
 

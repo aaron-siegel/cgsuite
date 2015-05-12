@@ -8,12 +8,6 @@ import org.antlr.runtime.tree.CommonTreeAdaptor;
 public class CgsuiteTreeAdaptor extends CommonTreeAdaptor
 {
     @Override
-    public CgsuiteTree create(Token token)
-    {
-        return new CgsuiteTree(token);
-    }
-
-    @Override
     public CgsuiteErrorNode errorNode(TokenStream input, Token start, Token end, RecognitionException re)
     {
         return new CgsuiteErrorNode(input, start, end, re);

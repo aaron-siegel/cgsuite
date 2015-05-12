@@ -51,12 +51,12 @@
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr</artifactId>
-      <version>3.3</version>
+      <version>3.5.2</version>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>gunit</artifactId>
-      <version>3.3</version>
+      <version>3.5.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -105,7 +105,7 @@
       <plugin>
         <groupId>org.antlr</groupId>
         <artifactId>antlr3-maven-plugin</artifactId>
-        <version>3.3</version>
+        <version>3.5.2</version>
         <executions>
           <execution>
             <id>antlr</id>

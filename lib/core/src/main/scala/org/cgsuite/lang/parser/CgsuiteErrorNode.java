@@ -8,12 +8,13 @@ package org.cgsuite.lang.parser;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenStream;
+import org.antlr.runtime.tree.CommonTree;
 
 /**
  *
  * @author asiegel
  */
-public class CgsuiteErrorNode extends CgsuiteTree
+public class CgsuiteErrorNode extends CommonTree
 {
     private TokenStream input;
     private Token start;
