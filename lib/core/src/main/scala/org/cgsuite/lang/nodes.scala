@@ -262,7 +262,8 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
             // Try looking up in local (method) scope
             if (scope.scopeStack.exists { _.contains(id) }) {
               methodScopeIndex = scope.varMap(id)
-            } else if (!scope.classVars.contains(id)) {
+            } else if (scope.pkg.isDefined && !scope.classVars.contains(id)) {
+              // Unless we're at Worksheet scope, it's illegal to refer to an undefined variable.
               throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.getToken))
             }
         }
@@ -276,14 +277,16 @@ case class IdentifierNode(tree: CgsuiteTree, id: Symbol) extends EvalNode {
       result
     } else if (classResolution != null) {
       classResolution
-    } else if (domain.contextObject.isDefined) {
+    } else if (domain.isOuterDomain) {
+      domain getDynamicVar id getOrElse {
+        throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
+      }
+    } else {
       val y = resolver.resolve(domain.contextObject.get)
       if (y == null)
         throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
       else
         y
-    } else {
-      throw InputException(s"Undefined variable: ${id.name}", token = Some(tree.token))
     }
   }
 
@@ -618,6 +621,11 @@ case class FunctionCallNode(
 
   override val children = (callSite +: args) ++ argNames.flatten
 
+  override def elaborate(scope: Scope): Unit = {
+    callSite elaborate scope
+    args foreach { _ elaborate scope }
+  }
+
   override def evaluate(domain: Domain) = {
 
     val obj = this.callSite.evaluate(domain)
@@ -673,6 +681,8 @@ object FunctionCallResolution {
 case class FunctionCallResolution(parameterToArgsMapping: Array[Int])
 
 case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, isVarDeclaration: Boolean) extends EvalNode {
+  // TODO Catch illegal assignment to temporary loop variable (during elaboration)
+  // TODO Catch illegal assignment to immutable object member (during elaboration)
   override val children = Seq(id, expr)
   override def elaborate(scope: Scope) {
     if (isVarDeclaration) {
@@ -686,7 +696,9 @@ case class AssignToNode(tree: CgsuiteTree, id: IdentifierNode, expr: EvalNode, i
       domain.localScope(id.methodScopeIndex) = newValue
     } else if (id.classResolution != null) {
       throw InputException(s"Cannot assign to class name as variable: ${id.id.name}", token = Some(tree.token))
-    } else if (domain.contextObject.isDefined) {
+    } else if (domain.isOuterDomain) {
+      domain.putDynamicVar(id.id, newValue)
+    } else {
       val res = id.resolver.findResolution(domain.contextObject.get)
       if (res.classScopeIndex >= 0)
         domain.contextObject.get.asInstanceOf[StandardObject].vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]

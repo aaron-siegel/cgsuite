@@ -10,8 +10,7 @@ object Repl {
   def main(args: Array[String]) {
 
     CgsuiteClass.Object.ensureLoaded()
-
-    val domain = new Domain(null, None)
+    val replVarMap = mutable.AnyRefMap[Symbol, Any]()
 
     while (true) {
       print("> ")
@@ -21,9 +20,11 @@ object Repl {
         try {
           val tree = ParserUtil.parseStatement(str)
           val node = EvalNode(tree)
-          node.elaborate(Scope(None, Set.empty))
+          val scope = Scope(None, Set.empty)
+          node.elaborate(scope)
           println(tree.toStringTree)
           println(node)
+          val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(replVarMap))
           val result = node.evaluate(domain)
           println(result)
         } catch {

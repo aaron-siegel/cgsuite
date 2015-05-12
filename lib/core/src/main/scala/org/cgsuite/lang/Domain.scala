@@ -1,45 +1,23 @@
 package org.cgsuite.lang
 
-import org.antlr.runtime.Token
-import org.cgsuite.exception.InputException
+import scala.collection.mutable
 
 class Domain(
   val localScope: Array[Any],
-  val contextObject: Option[Any] = None
+  val contextObject: Option[Any] = None,
+  val dynamicVarMap: Option[mutable.AnyRefMap[Symbol, Any]] = None
   ) {
-           /*
-  def lookup(id: Symbol, refToken: Token): Any = {
 
-    val opt = try {
-      lookup(id)
-    } catch {
-      case exc: InputException =>
-        exc.addToken(refToken)
-        throw exc
-    }
-    opt match {
-      case Some(x) => x
-      case None => throw InputException("That variable is not defined: " + id.name, token = Option(refToken))
-    }
+  def isOuterDomain = contextObject.isEmpty
 
+  def putDynamicVar(id: Symbol, value: Any): Unit = {
+    assert(dynamicVarMap.isDefined)
+    dynamicVarMap.get.put(id, value)
   }
 
-  def lookup(id: Symbol): Option[Any] = contextObject map { resolve(_, id) }
-
-  def resolve(x: Any, id: Symbol) = {
-    val optResult = x match {
-      case so: StandardObject => so.lookup(id)
-      case _ =>
-        CgsuiteClass.of(x).lookupMethod(id).map { method =>
-          if (method.autoinvoke)
-            method.call(x, Seq.empty, Map.empty)
-          else
-            InstanceMethod(x, method)
-        }
-    }
-    optResult getOrElse {
-      throw InputException(s"Member not found: ${id.name} (in object of type ${CgsuiteClass.of(x)})")
-    }
+  def getDynamicVar(id: Symbol): Option[Any] = {
+    assert(dynamicVarMap.isDefined)
+    dynamicVarMap.get.get(id)
   }
-             */
+
 }

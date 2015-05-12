@@ -7,6 +7,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.Values._
 import org.cgsuite.lang.{Namespace, Node, Domain}
 
+         /*
 @RunWith(classOf[JUnitRunner])
 class CgsuiteParserTest extends Specification {
 
@@ -49,3 +50,4 @@ class CgsuiteParserTest extends Specification {
   }
 
 }
+        */
