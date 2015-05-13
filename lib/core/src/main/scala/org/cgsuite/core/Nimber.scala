@@ -28,7 +28,7 @@ trait Nimber extends NumberUpStar {
   def -(other: Nimber) = Nimber(nimValue ^ other.nimValue)
   override def unary_- = this
 
-  override def options(player: Player) = {
+  override def options(player: Player): Iterable[Nimber] = {
     (0 until nimValue) map { Nimber(_) }
   }
 

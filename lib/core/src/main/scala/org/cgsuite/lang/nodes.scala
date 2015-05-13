@@ -117,6 +117,10 @@ object EvalNode {
       case ERROR => ErrorNode(tree, EvalNode(tree.getChild(0)))
       case DO | YIELD | LISTOF | SETOF => LoopNode(tree)
 
+      // Procedures
+
+      case RARROW => ProcedureNode(tree)
+
       // Resolvers
 
       case DOT => DotNode(tree, EvalNode(tree.getChild(0)), IdentifierNode(tree.getChild(1)))
@@ -598,6 +602,37 @@ case class LoopNode(
 
 }
 
+object ProcedureNode {
+  def apply(tree: Tree): ProcedureNode = {
+    // TODO Parse arguments properly (types & defaults) - requires some refactoring
+    val parameters = tree.getChild(0).children map { paramTree =>
+      assert(paramTree.getType == METHOD_PARAMETER)
+      val id = Symbol(paramTree.getChild(0).getText)
+      MethodParameter(id, CgsuiteClass.Object, None)
+    }
+    ProcedureNode(tree, parameters, EvalNode(tree.getChild(1)))
+  }
+}
+
+case class ProcedureNode(tree: Tree, parameters: Seq[MethodParameter], body: EvalNode) extends EvalNode {
+  override val children = (parameters flatMap { _.defaultValue }) :+ body
+  override def elaborate(scope: Scope) = {
+    val newScope = Scope(scope.pkg, scope.classVars)
+    newScope.scopeStack.push(mutable.HashSet())
+    parameters foreach { param =>
+      newScope.insertId(param.id)
+      param.methodScopeIndex = newScope.varMap(param.id)
+      param.defaultValue foreach { _.elaborate(newScope) }
+    }
+    body.elaborate(newScope)
+    newScope.scopeStack.pop()
+    localVariableCount = newScope.varMap.size
+  }
+  override def evaluate(domain: Domain) = Procedure(this, domain)
+  val ordinal = CallSite.newCallSiteOrdinal
+  var localVariableCount: Int = 0
+}
+
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
   override def evaluate(domain: Domain) = {
@@ -676,6 +711,7 @@ case class FunctionCallNode(
     val obj = this.callSite.evaluate(domain)
     val callSite: CallSite = obj match {
       case im: InstanceMethod => im
+      case proc: Procedure => proc
       case co: ClassObject => co.forClass.constructor match {
         case Some(ctor) => ctor
         case None => throw InputException(

@@ -131,7 +131,6 @@ tokens
 	MODIFIERS;
     NODE_LABEL;
     PREAMBLE;
-    PROCEDURE_PARAMETER_LIST;
 	STATEMENT_SEQUENCE;
     UNARY_AST;
 	UNARY_MINUS;
@@ -425,13 +424,13 @@ assignmentToken
 	;
 	
 functionExpression
-	: procedureParameterList RARROW^ functionExpression
+	: procedureAntecedent RARROW^ functionExpression
     | orExpression
 	;
 
-procedureParameterList
-    : IDENTIFIER -> ^(PROCEDURE_PARAMETER_LIST IDENTIFIER)
-    | LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN -> ^(PROCEDURE_PARAMETER_LIST IDENTIFIER*)
+procedureAntecedent
+    : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
+    | LPAREN! methodParameterList RPAREN!
     ;
 	
 orExpression

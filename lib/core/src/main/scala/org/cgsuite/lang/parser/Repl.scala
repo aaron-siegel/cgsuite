@@ -20,15 +20,15 @@ object Repl {
       if (str.trim.nonEmpty) {
         val start = JSystem.nanoTime
         try {
-          val tree = ParserUtil.parseStatement(str)
-          val node = EvalNode(tree)
+          val tree = ParserUtil.parseScript(str)
+          val node = EvalNode(tree.getChild(0))
           val scope = Scope(None, Set.empty)
           node.elaborate(scope)
           println(tree.toStringTree)
           println(node)
           val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(replVarMap))
           val result = node.evaluate(domain)
-          println(result)
+          println(OutputBuilder.toOutput(result))
         } catch {
           case exc: Throwable => exc.printStackTrace()
         }

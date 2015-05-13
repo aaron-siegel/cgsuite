@@ -1,6 +1,9 @@
 package org.cgsuite.util
 
+import java.util
+
 import org.cgsuite.core.Integer
+import org.cgsuite.output.{StyledTextOutput, OutputTarget}
 
 object Coordinates {
 
@@ -19,13 +22,13 @@ object Coordinates {
 
 }
 
-case class Coordinates(row: Int, col: Int) {
+case class Coordinates(row: Int, col: Int) extends OutputTarget {
 
   def +(other: Coordinates) = Coordinates(row + other.row, col + other.col)
   def -(other: Coordinates) = Coordinates(row - other.row, col - other.col)
   def *(other: Integer) = Coordinates(row * other.intValue, col * other.intValue)
   def isUnit = row >= -1 && row <= 1 && col >= -1 && col <= 1
 
-  override def toString = s"($row,$col)"
+  override def toOutput = new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), s"($row,$col)")
 
 }

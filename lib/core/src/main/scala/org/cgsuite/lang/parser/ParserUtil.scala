@@ -10,6 +10,7 @@ object ParserUtil {
 
   def parseExpression(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.expression }
   def parseStatement(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.statement }
+  def parseScript(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.script }
   def parseCU(in: InputStream, source: String) = parse(in, source) { _.compilationUnit }
 
   def charStreamToParser(input: CharStream) = {

@@ -9,7 +9,7 @@ package org.cgsuite.core
 import java.util
 
 import org.cgsuite.core.Values._
-import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 object RationalNumber {
   
@@ -39,7 +39,7 @@ object RationalNumber {
   
 }
 
-trait RationalNumber extends Game with Ordered[RationalNumber] {
+trait RationalNumber extends Game with Ordered[RationalNumber] with OutputTarget {
   
   def numerator: Integer
   def denominator: Integer

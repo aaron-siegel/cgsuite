@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.output.OutputTarget
+
 object Zero {
   
   def apply(): Zero = ZeroImpl
@@ -24,9 +26,7 @@ trait Zero extends SmallInteger with Nimber {
 
   override def unary_- = this
   
-  override def options(player: Player) = Iterable.empty
-
-  override def toString = "0"
+  override def options(player: Player): Iterable[Nothing] = Iterable.empty
   
 }
 

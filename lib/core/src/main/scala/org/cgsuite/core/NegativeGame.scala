@@ -1,6 +1,5 @@
 package org.cgsuite.core
 
-
 case class NegativeGame(g: Game) extends Game {
 
   override def unary_- = g

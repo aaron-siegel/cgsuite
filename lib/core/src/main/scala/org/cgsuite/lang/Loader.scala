@@ -13,6 +13,7 @@ object Loader {
     "cgsuite.lang.List" -> Some(classOf[Seq[_]]),
     "cgsuite.lang.Map" -> Some(classOf[Map[_, _]]),
     "cgsuite.lang.Object" -> Some(classOf[AnyRef]),
+    "cgsuite.lang.Procedure" -> Some(classOf[Procedure]),
     "cgsuite.lang.Set" -> Some(classOf[Set[_]]),
     "cgsuite.lang.String" -> Some(classOf[String]),
     "cgsuite.lang.System" -> Some(classOf[System]),

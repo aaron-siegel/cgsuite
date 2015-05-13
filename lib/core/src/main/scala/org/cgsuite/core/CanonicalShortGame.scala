@@ -12,7 +12,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core.{CanonicalShortGameOps => ops}
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput.Symbol._
-import org.cgsuite.output.{Output, StyledTextOutput}
+import org.cgsuite.output.{OutputTarget, Output, StyledTextOutput}
 
 object CanonicalShortGame {
   
@@ -41,7 +41,7 @@ object CanonicalShortGame {
 
 }
 
-trait CanonicalShortGame extends CanonicalStopperGame {
+trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
 
   def gameId: Int
 
@@ -119,8 +119,6 @@ trait CanonicalShortGame extends CanonicalStopperGame {
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
   def thermograph: Thermograph = ops.thermograph(gameId)
-
-  override def toString = toOutput.toString
 
   def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
