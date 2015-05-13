@@ -215,15 +215,12 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
     min
   }
 
-  override def hashCode(): Int = java.util.Arrays.hashCode(values)
+  override def hashCode(): Int = util.Arrays.hashCode(values)
 
-  override def equals(that: Any): Boolean = {
-    if (!that.isInstanceOf[Grid])
-      false
-    else {
-      val other = that.asInstanceOf[Grid]
-      rowCount == other.rowCount && colCount == other.colCount && java.util.Arrays.equals(values, other.values)
-    }
+  override def equals(that: Any): Boolean = that match {
+    case other: Grid =>
+      rowCount == other.rowCount && util.Arrays.equals(values, other.values)
+    case _ => false
   }
 
   def toString(charMap: String) = {

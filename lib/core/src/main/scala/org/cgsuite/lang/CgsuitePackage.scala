@@ -15,6 +15,7 @@ object CgsuitePackage {
 
   val game = root.declareSubpackage("game")
   val grid = game.declareSubpackage("grid")
+  val strip = game.declareSubpackage("strip")
 
   Loader.declareSystemResources()
 

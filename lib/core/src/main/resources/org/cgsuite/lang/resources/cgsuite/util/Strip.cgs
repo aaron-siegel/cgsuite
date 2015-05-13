@@ -1,0 +1,13 @@
+/*${cgsuite.banner}*/
+
+system class Strip
+
+  external static def Parse(String str, String charMap);
+
+  external def Length;
+  external def FindAll(Integer value);
+  external def Substrip(Integer first, Integer last);
+  external def ToString(String charMap);
+  external def Updated(Map newValues);
+
+end

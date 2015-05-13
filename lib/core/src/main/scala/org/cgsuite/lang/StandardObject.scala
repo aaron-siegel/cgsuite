@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import java.lang.{System => JSystem}
+
 import org.cgsuite.core.{Game, Player}
 
 class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
@@ -9,7 +11,7 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
 
   def init() {
     vars = new Array[Any](cls.classInfo.allClassVars.size)
-    System.arraycopy(objArgs, 0, vars, 0, objArgs.length)
+    JSystem.arraycopy(objArgs, 0, vars, 0, objArgs.length)
     val domain = new Domain(null, Some(this))
     cls.ancestors.foreach { ancestor =>
       ancestor.initializers.foreach { node => node.body.evaluate(domain) }
@@ -25,7 +27,9 @@ class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
   }
 
   override def equals(other: Any) = other match {
-    case obj: StandardObject => cls == obj.cls && java.util.Arrays.equals(vars.asInstanceOf[Array[AnyRef]], obj.vars.asInstanceOf[Array[AnyRef]])
+    case obj: StandardObject =>
+      (this eq obj) ||
+        cls == obj.cls && java.util.Arrays.equals(vars.asInstanceOf[Array[AnyRef]], obj.vars.asInstanceOf[Array[AnyRef]])
     case _ => false
   }
 

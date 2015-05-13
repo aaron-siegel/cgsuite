@@ -1,0 +1,22 @@
+/*${cgsuite.banner}*/
+
+class ToadsAndFrogs(strip, allowedMoves ? [1,2]) extends StripGame
+
+  override def Options(Player player) begin
+
+    var us := player.Ordinal;
+    var them := player.Opponent.Ordinal;
+
+    for n in strip.FindAll(us)
+    for k in allowedMoves
+    where strip[n+k*player.Sign] == 0
+      and (k != 2 or strip[n+player.Sign] == them)
+    yield
+      ToadsAndFrogs(strip.Updated({n => 0, n+k*player.Sign => us}), allowedMoves)
+    end
+
+  end
+
+  override def CharMap := ".tf";
+
+end

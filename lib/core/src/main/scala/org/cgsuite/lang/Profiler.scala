@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import java.lang.{System => JSystem}
+
 import org.cgsuite.core.CanonicalShortGameOps
 import org.cgsuite.lang.parser.ParserUtil
 
@@ -33,11 +35,11 @@ object Profiler {
     node.elaborate(Scope(None, Set.empty))
     Profiler.clear()
     Profiler.setEnabled(enabled = profile)
-    val start = System.nanoTime()
+    val start = JSystem.nanoTime()
     Profiler.start('Main)
     val result = node.evaluate(domain).asInstanceOf[org.cgsuite.core.Integer].intValue
     Profiler.stop('Main)
-    val totalDuration = System.nanoTime() - start
+    val totalDuration = JSystem.nanoTime() - start
     Profiler.setEnabled(enabled = false)
     assert(
       result == 20101,
@@ -88,7 +90,7 @@ object Profiler {
 
   def start(key: Symbol) {
     if (enabled && (whitelist.isEmpty || whitelist.contains(key))) {
-      val now = System.nanoTime
+      val now = JSystem.nanoTime
       if (stack.nonEmpty) {
         stack.top._2.timing += now - lastEvent
       }
@@ -99,7 +101,7 @@ object Profiler {
 
   def stop(key: Symbol) {
     if (enabled && (whitelist.isEmpty || whitelist.contains(key))) {
-      val now = System.nanoTime
+      val now = JSystem.nanoTime
       val (key2, totals) = stack.pop()
       assert(key == key2)
       totals.count += 1L

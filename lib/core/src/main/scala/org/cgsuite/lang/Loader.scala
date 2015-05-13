@@ -1,7 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.core._
-import org.cgsuite.util.{Coordinates, Grid, Symmetry}
+import org.cgsuite.util.{Strip, Coordinates, Grid, Symmetry}
 
 object Loader {
 
@@ -12,11 +12,13 @@ object Loader {
     "cgsuite.lang.Coordinates" -> Some(classOf[Coordinates]),
     "cgsuite.lang.List" -> Some(classOf[Seq[_]]),
     "cgsuite.lang.Map" -> Some(classOf[Map[_, _]]),
-    "cgsuite.lang.Object" -> None,
+    "cgsuite.lang.Object" -> Some(classOf[AnyRef]),
     "cgsuite.lang.Set" -> Some(classOf[Set[_]]),
     "cgsuite.lang.String" -> Some(classOf[String]),
+    "cgsuite.lang.System" -> Some(classOf[System]),
 
     "cgsuite.util.Grid" -> Some(classOf[Grid]),
+    "cgsuite.util.Strip" -> Some(classOf[Strip]),
     "cgsuite.util.Symmetry" -> Some(classOf[Symmetry]),
 
     "game.CanonicalShortGame" -> Some(classOf[CanonicalShortGame]),
@@ -28,11 +30,14 @@ object Loader {
     "game.NumberUpStar" -> Some(classOf[NumberUpStar]),
     "game.Player" -> Some(classOf[Player]),
     "game.Rational" -> Some(classOf[RationalNumber]),
+    "game.StripGame" -> None,
     "game.Zero" -> Some(Zero.getClass),
 
     "game.grid.Amazons" -> None,
     "game.grid.Clobber" -> None,
-    "game.grid.Domineering" -> None
+    "game.grid.Domineering" -> None,
+
+    "game.strip.ToadsAndFrogs" -> None
 
   )
 

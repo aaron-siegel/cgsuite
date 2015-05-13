@@ -6,7 +6,7 @@ import org.cgsuite.core._
 import org.cgsuite.exception.InputException
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
-import org.cgsuite.util.{Symmetry, Coordinates, Grid, TranspositionTable}
+import org.cgsuite.util._
 
 import scala.collection.mutable
 
@@ -29,6 +29,7 @@ object CgsuiteClass {
   val String = CgsuitePackage.lookupClassByName("String").get
 
   val Grid = CgsuitePackage.lookupClassByName("Grid").get
+  val Strip = CgsuitePackage.lookupClassByName("Strip").get
   val Symmetry = CgsuitePackage.lookupClassByName("Symmetry").get
 
   val Game = CgsuitePackage.lookupClassByName("Game").get
@@ -67,6 +68,7 @@ object CgsuiteClass {
       case _: Coordinates => Coordinates
       case _: String => String
       case _: Grid => Grid
+      case _: Strip => Strip
       case _: Map[_, _] => Map
       case _: Seq[_] => List
       case _: Set[_] => Set
@@ -80,6 +82,7 @@ object CgsuiteClass {
   def internalize(obj: AnyRef) = {
     obj match {
       case x: java.lang.Integer => SmallInteger(x.intValue)
+      case null => Nil
       case _ => obj
     }
   }

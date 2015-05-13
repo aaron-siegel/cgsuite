@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class System
+
+  external static def Print(obj);
+
+end

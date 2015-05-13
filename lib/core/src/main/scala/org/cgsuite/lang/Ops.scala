@@ -1,7 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.core._
-import org.cgsuite.util.{Grid, Coordinates}
+import org.cgsuite.util.{Strip, Grid, Coordinates}
 import org.cgsuite.core.Values._
 import scala.collection.mutable
 
@@ -126,6 +126,7 @@ object Ops {
   val ArrayReference = BinOp("[]") {
     case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
+    case (strip: Strip, index: Integer) => strip.get(index)
   }
 
 }

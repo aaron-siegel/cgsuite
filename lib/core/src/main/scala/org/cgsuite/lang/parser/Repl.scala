@@ -1,5 +1,7 @@
 package org.cgsuite.lang.parser
 
+import java.lang.{System => JSystem}
+
 import org.cgsuite.lang._
 
 import scala.collection.mutable
@@ -14,9 +16,9 @@ object Repl {
 
     while (true) {
       print("> ")
-      val str = Console.in.readLine()
+      val str = Console.in.readLine
       if (str.trim.nonEmpty) {
-        val start = System.nanoTime()
+        val start = JSystem.nanoTime
         try {
           val tree = ParserUtil.parseStatement(str)
           val node = EvalNode(tree)
@@ -30,7 +32,7 @@ object Repl {
         } catch {
           case exc: Throwable => exc.printStackTrace()
         }
-        val totalDuration = System.nanoTime() - start
+        val totalDuration = JSystem.nanoTime - start
         println(s"${totalDuration / 1000000} ms")
       }
     }
