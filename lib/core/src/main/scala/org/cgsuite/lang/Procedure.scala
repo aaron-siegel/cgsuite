@@ -1,6 +1,8 @@
 package org.cgsuite.lang
 
-case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite {
+import org.cgsuite.output.{OutputTarget, StyledTextOutput}
+
+case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with OutputTarget {
 
   // TODO This fails to form a closure over Domain (we need a Stack of Domains to fix that)
 
@@ -15,5 +17,7 @@ case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite {
     }
     node.body.evaluate(newDomain)
   }
+
+  def toOutput: StyledTextOutput = new StyledTextOutput(node.toNodeString)
 
 }

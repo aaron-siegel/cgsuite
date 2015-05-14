@@ -197,6 +197,7 @@ trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
   def evaluate(domain: Domain): Any
+  def toNodeString: String
 
   def evaluateAsBoolean(domain: Domain): Boolean = {
     evaluate(domain) match {
@@ -257,11 +258,18 @@ private[lang] class Scope(
 case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = constantValue
+  def toNodeString = {
+    if (constantValue == Nil)
+      "nil"
+    else
+      constantValue.toString
+  }
 }
 
 case class ThisNode(tree: Tree) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
+  def toNodeString = "this"
 }
 
 object IdentifierNode {
@@ -317,6 +325,8 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     }
   }
 
+  def toNodeString = id.name
+
 }
 
 object UnOpNode {
@@ -326,6 +336,7 @@ object UnOpNode {
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override val children = Seq(operand)
   override def evaluate(domain: Domain) = op(operand.evaluate(domain))
+  def toNodeString = op.name + operand.toNodeString
 }
 
 object BinOpNode {
@@ -335,6 +346,7 @@ object BinOpNode {
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
   override val children = Seq(operand1, operand2)
   override def evaluate(domain: Domain) = op(operand1.evaluate(domain), operand2.evaluate(domain))
+  def toNodeString = s"(${operand1.toNodeString} ${op.name} ${operand2.toNodeString})"
 }
 
 object ListNode {
@@ -356,6 +368,12 @@ case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode
       case 4 => IndexedSeq(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
       case _ => elements.map { _.evaluate(domain) }
     }
+  }
+  def toNodeString = {
+    if (elements.isEmpty)
+      "nil"
+    else
+      "[" + (elements map {  _.toNodeString } mkString ",") + "]"
   }
 }
 
@@ -379,6 +397,7 @@ case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode 
       case _ => elements.map { _.evaluate(domain) }.toSet
     }
   }
+  def toNodeString = "{" + (elements map { _.toNodeString } mkString ", ") + "}"
 }
 
 object MapNode {
@@ -402,20 +421,18 @@ case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNo
       case _ => elements.map { _.evaluate(domain) }.toMap
     }
   }
-}
-
-object MultiOpNode {
-  def apply(tree: Tree, op: MultiOp): MultiOpNode = MultiOpNode(tree, op, tree.children.map { EvalNode(_) })
-}
-
-case class MultiOpNode(tree: Tree, op: MultiOp, operands: Seq[EvalNode]) extends EvalNode {
-  override val children = operands
-  override def evaluate(domain: Domain) = op(operands.map { _.evaluate(domain) })
+  def toNodeString = {
+    if (elements.isEmpty)
+      "{=>}"
+    else
+      "{" + (elements map { _.toNodeString } mkString ",") + "}"
+  }
 }
 
 case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
   override val children = Seq(from, to)
   override def evaluate(domain: Domain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
+  def toNodeString = s"${from.toNodeString} => ${to.toNodeString}"
 }
 
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
@@ -429,6 +446,11 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
       ExplicitGame(gl, gr)
     }
   }
+  def toNodeString = {
+    val loStr = lo map { _.toNodeString } mkString ","
+    val roStr = ro map { _.toNodeString } mkString ","
+    s"{$loStr | $roStr}"
+  }
 }
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
@@ -439,6 +461,8 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     else
       elseNode.map { _.evaluate(domain) }.getOrElse(Nil)
   }
+  def toNodeString = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
+    (elseNode map { " " + _.toNodeString } getOrElse "") + " end"
 }
 
 object LoopNode {
@@ -540,6 +564,27 @@ case class LoopNode(
 
   }
 
+  def toNodeString = {
+    val loopTypeStr = loopType match {
+      case LoopNode.Do => "do"
+      case LoopNode.YieldList => "yield"
+      case LoopNode.YieldSet => "setof"
+      case LoopNode.YieldTable => "tableof"
+      case LoopNode.YieldSum => "sumof"
+    }
+    val antecedent = Seq(
+      forId map { "for " + _.id.name },
+      in map { "in " + _.toNodeString },
+      from map { "from " + _.toNodeString },
+      to map { "to " + _.toNodeString },
+      by map { "by " + _.toNodeString },
+      `while` map { "while " + _.toNodeString },
+      where map { "where " + _.toNodeString },
+      Some(loopTypeStr)
+      ).flatten.mkString(" ")
+    antecedent + " " + body.toNodeString + " end"
+  }
+
   def evaluate(domain: Domain, yieldResult: ArrayBuffer[Any]): Unit = {
 
     Profiler.start(prepareLoop)
@@ -631,6 +676,15 @@ case class ProcedureNode(tree: Tree, parameters: Seq[MethodParameter], body: Eva
   override def evaluate(domain: Domain) = Procedure(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
   var localVariableCount: Int = 0
+  def toNodeString = {
+    val paramStr = {
+      if (parameters.length == 1)
+        parameters.head.id.name
+      else
+        "(" + (parameters map { _.id.name } mkString ", ") + ")"
+    }
+    paramStr + " -> " + body.toNodeString
+  }
 }
 
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
@@ -638,6 +692,7 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override def evaluate(domain: Domain) = {
     throw InputException(msg.evaluate(domain).toString)
   }
+  def toNodeString = s"error(${msg.toNodeString})"
 }
 
 case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
@@ -667,6 +722,13 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
         )
       else
         y
+    }
+  }
+  def toNodeString = {
+    obj match {
+      case _: ConstantNode | _: IdentifierNode | _: DotNode | _: ListNode | _: SetNode | _: FunctionCallNode |
+        _: GameSpecNode | _: MapNode | _: ThisNode => s"${obj.toNodeString}.${idNode.toNodeString}"
+      case _ => s"(${obj.toNodeString}).${idNode.toNodeString})"
     }
   }
 }
@@ -742,6 +804,15 @@ case class FunctionCallNode(
     FunctionCallResolution(callSite.parameters, argNames)
   }
 
+  def toNodeString = {
+    val argStr = args map { _.toNodeString } mkString ", "
+    callSite match {
+      case _: ConstantNode | _: IdentifierNode | _: DotNode | _: ListNode | _: SetNode | _: FunctionCallNode |
+           _: GameSpecNode | _: MapNode | _: ThisNode => s"${callSite.toNodeString}($argStr)"
+      case _ => s"(${callSite.toNodeString})($argStr)"
+    }
+  }
+
 }
 
 object FunctionCallResolution {
@@ -788,6 +859,10 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDec
     }
     newValue
   }
+  def toNodeString = {
+    val varStr = if (isVarDeclaration) "var " else ""
+    varStr + id.toNodeString + " := " + expr.toNodeString
+  }
 }
 
 object StatementSequenceNode {
@@ -809,6 +884,9 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends 
       result = iterator.next().evaluate(domain)
     }
     result
+  }
+  def toNodeString = {
+    "begin " + (statements map { _.toNodeString } mkString "; ") + " end"
   }
 }
 

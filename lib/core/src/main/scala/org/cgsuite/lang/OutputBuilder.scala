@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import java.util
+
 import org.cgsuite.output.{StyledTextOutput, Output, OutputTarget}
 
 
@@ -9,8 +11,15 @@ object OutputBuilder {
 
   def toOutput(x: Any): Output = x match {
     case ot: OutputTarget => ot.toOutput
+    case nil: Seq[_] if nil.isEmpty => new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), "nil")
     case list: Seq[_] => list mkOutput ("[", ",", "]")
     case set: Set[_] => set mkOutput ("{", ",", "}")
+    case map: Map[_,_] if map.isEmpty =>
+      val sto = new StyledTextOutput()
+      sto.appendMath("{")
+      sto.appendSymbol(StyledTextOutput.Symbol.BIG_RIGHT_ARROW)
+      sto.appendMath("}")
+      sto
     case map: Map[_,_] => map mkOutput ("{", ", ", "}")
     case (key, value) =>
       val sto = new StyledTextOutput()
