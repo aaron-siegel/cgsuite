@@ -30,9 +30,9 @@ trait SmallInteger extends Integer {
   def bigIntValue = BigInt(intValue)
   
   override def options(player: Player): Iterable[SmallInteger] = (player, intValue.signum) match {
-    case (Left, 1) => Iterable(SmallInteger(intValue-1))
-    case (Right, -1) => Iterable(SmallInteger(intValue+1))
-    case _ => Iterable.empty
+    case (Left, 1) => Set(SmallInteger(intValue-1))
+    case (Right, -1) => Set(SmallInteger(intValue+1))
+    case _ => Set.empty
   }
   
   override def compare(other: Integer) = other match {

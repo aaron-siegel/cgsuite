@@ -29,12 +29,7 @@ trait Nimber extends NumberUpStar {
   override def unary_- = this
 
   override def options(player: Player): Iterable[Nimber] = {
-    (0 until nimValue) map { Nimber(_) }
-  }
-
-  override def toString = nimValue match {
-    case 1 => "*"
-    case _ => "*" + nimValue
+    (0 until nimValue) map { Nimber(_) } toSet
   }
   
 }

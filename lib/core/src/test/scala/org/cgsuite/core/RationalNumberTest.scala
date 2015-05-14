@@ -55,11 +55,11 @@ class RationalNumberTest extends Specification {
     
     "give correct options" in {
       
-      RationalNumber(1, 2).options(Left) must_== Iterable(Integer(0))
-      RationalNumber(1, 2).options(Right) must_== Iterable(Integer(1))
-      RationalNumber(-75, 256).options(Left) must_== Iterable(RationalNumber(-19, 64))
-      RationalNumber(-75, 256).options(Right) must_== Iterable(RationalNumber(-37, 128))
-      RationalNumber(1, 7).options(Left) must throwA[Throwable]   // TODO Better exception
+      DyadicRationalNumber(1, 2).options(Left) must_== Iterable(Integer(0))
+      DyadicRationalNumber(1, 2).options(Right) must_== Iterable(Integer(1))
+      DyadicRationalNumber(-75, 256).options(Left) must_== Iterable(RationalNumber(-19, 64))
+      DyadicRationalNumber(-75, 256).options(Right) must_== Iterable(RationalNumber(-37, 128))
+      DyadicRationalNumber(1, 7).options(Left) must throwA[Throwable]   // TODO Better exception
       
     }
     

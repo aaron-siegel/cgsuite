@@ -39,16 +39,14 @@ object RationalNumber {
   
 }
 
-trait RationalNumber extends Game with Ordered[RationalNumber] with OutputTarget {
+trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
   
   def numerator: Integer
   def denominator: Integer
   
-  override def options(player: Player): Iterable[Game] = sys.error("cannot get options for non-dyadic rational")
-
   def compare(other: RationalNumber): Int = (numerator * other.denominator).compare(denominator * other.numerator)
   
-  override def unary_- : RationalNumber = RationalNumber(numerator, -denominator)
+  def unary_- : RationalNumber = RationalNumber(numerator, -denominator)
 
   def +(other: RationalNumber): RationalNumber = RationalNumber(
     numerator * other.denominator + denominator * other.numerator,

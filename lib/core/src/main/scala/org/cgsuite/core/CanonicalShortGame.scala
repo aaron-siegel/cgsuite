@@ -39,6 +39,44 @@ object CanonicalShortGame {
     (1 to n) map { _ => "|" } mkString ""
   }
 
+  object DeterministicOrdering extends Ordering[CanonicalShortGame] {
+
+    def compare(g: CanonicalShortGame, h: CanonicalShortGame): Int = {
+      (g, h) match {
+        case (a: DyadicRationalNumber, b: DyadicRationalNumber) => a compare b
+        case (_: DyadicRationalNumber, _) => -1
+        case (_, _: DyadicRationalNumber) => 1
+        case (a: Nimber, b: Nimber) => a.nimValue - b.nimValue
+        case (_: Nimber, _) => -1
+        case (_, _: Nimber) => 1
+        case (_, _) =>
+          val cmp = compareLists(g.sortedOptions(Left), h.sortedOptions(Left))
+          if (cmp != 0)
+            cmp
+          else
+            compareLists(g.sortedOptions(Right), h.sortedOptions(Right))
+      }
+    }
+
+    def compareLists(a: Iterable[CanonicalShortGame], b: Iterable[CanonicalShortGame]): Int = {
+      var cmp = 0
+      val aIt = a.iterator
+      val bIt = b.iterator
+      while (cmp == 0 && (aIt.hasNext || bIt.hasNext)) {
+        if (aIt.hasNext) {
+          if (bIt.hasNext) {
+            cmp = compare(aIt.next(), bIt.next())
+          } else {
+            cmp = 1
+          }
+        } else {
+          cmp = -1
+        }
+      }
+      cmp
+    }
+
+  }
 }
 
 trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
@@ -65,15 +103,15 @@ trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
     player match {
       case Left => (0 until ops.getNumLeftOptions(gameId)) map { n =>
         CanonicalShortGame(ops.getLeftOption(gameId, n))
-      }
+      } toSet
       case Right => (0 until ops.getNumRightOptions(gameId)) map { n =>
         CanonicalShortGame(ops.getRightOption(gameId, n))
-      }
+      } toSet
     }
   }
 
   def sortedOptions(player: Player): Seq[CanonicalShortGame] = {
-    options(player).toSeq
+    options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
   def birthday: Integer = SmallInteger(ops.birthday(gameId))

@@ -11,6 +11,10 @@ object DyadicRationalNumber {
   def apply(numerator: Integer, denominator: Integer): DyadicRationalNumber = {
     RationalNumber(numerator, denominator).asInstanceOf[DyadicRationalNumber]
   }
+
+  def apply(numerator: Int, denominator: Int): DyadicRationalNumber = {
+    apply(SmallInteger(numerator), SmallInteger(denominator))
+  }
   
   val minSmall = apply(SmallInteger.minSmall, Values.one)
   val maxSmall = apply(SmallInteger.maxSmall, Values.one)
@@ -23,7 +27,7 @@ trait DyadicRationalNumber extends NumberUpStar with RationalNumber {
   def upMultiplePart = 0
   def nimberPart = 0
 
-  override def options(player: Player): Iterable[DyadicRationalNumber] = Seq(step(-player.sign))
+  override def options(player: Player): Iterable[DyadicRationalNumber] = Set(step(-player.sign))
 
   // We need to do this to resolve ambiguities in inheriting compare
   def <=(other: DyadicRationalNumber) = super[RationalNumber].<=(other)

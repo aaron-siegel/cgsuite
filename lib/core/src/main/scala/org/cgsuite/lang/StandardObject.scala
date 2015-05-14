@@ -4,7 +4,7 @@ import java.lang.{System => JSystem}
 
 import org.cgsuite.core.{Game, Player}
 
-class StandardObject(val cls: CgsuiteClass, val objArgs: Array[Any]) {
+class StandardObject(val cls: CgsuiteClass, objArgs: Array[Any]) {
 
   private[lang] var vars: Array[Any] = _
   init()
