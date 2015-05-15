@@ -17,6 +17,30 @@ class ToadsAndFrogs(strip, allowedMoves ? [1,2]) extends StripGame
 
   end
 
+  /* This is a neat little theorem, but the effort involved in checking the
+   * criterion outweighs the actual benefit (as the number of positions
+   * to which it can actually be applied is small).
+   * It also works only for "standard" ToadsAndFrogs and not for its variants.
+
+  override def CanonicalForm begin
+
+    // Check the Death Leap Principle (Erickson's criterion).
+
+    var deathLeap := true;
+    for n from 1 to strip.Length-1 where
+      strip[n] == 1 and strip[n+1] == 0 or
+      strip[n] == 0 and strip[n+1] == 2 or
+      strip[n] == 1 and strip[n+1] == 2 and strip[n+2] == 0 and strip[n+3] == 0 or
+      strip[n] == 0 and strip[n+1] == 0 and strip[n+2] == 1 and strip[n+3] == 2 do
+      deathLeap := false;
+    end
+
+    if deathLeap then 0 else super.CanonicalForm end
+
+  end
+
+  */
+
   override def CharMap := ".tf";
 
 end

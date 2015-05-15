@@ -1,0 +1,54 @@
+/*${cgsuite.banner}*/
+
+enum Icon
+
+  Blank,
+
+  // Stones
+
+  BlackStone,
+  GrayStone,
+  WhiteStone,
+
+  // Chess pieces
+
+  BlackBishop,
+  BlackKing,
+  BlackKnight,
+  BlackPawn,
+  BlackQueen,
+  BlackRook,
+  WhiteBishop,
+  WhiteKing,
+  WhiteKnight,
+  WhitePawn,
+  WhiteQueen,
+  WhiteRook,
+
+  // Dominoes
+
+  BlackDomino,
+  GrayDomino,
+  WhiteDomino,
+
+  // Squares
+
+  BlackSquare,
+  BlueSquare,
+  GraySquare,
+  GreenSquare,
+  RedSquare,
+
+  // Toads and Frogs
+
+  Frog,
+  Toad,
+
+  // Arrows
+
+  DownArrow,
+  LeftArrow,
+  RightArrow,
+  UpArrow;
+
+end

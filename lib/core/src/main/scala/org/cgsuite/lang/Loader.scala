@@ -37,6 +37,7 @@ object Loader {
     "game.grid.Amazons" -> None,
     "game.grid.Clobber" -> None,
     "game.grid.Domineering" -> None,
+    "game.grid.Fission" -> None,
 
     "game.strip.ToadsAndFrogs" -> None
 

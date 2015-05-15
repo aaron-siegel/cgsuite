@@ -1,0 +1,19 @@
+/*${cgsuite.banner}*/
+
+class Fission(grid) extends GridGame
+
+  override def Options(Player player) begin
+
+    var direction := if player == Player.Left then (1,0) else (0,1) end;
+
+    for c in grid.FindAll(1)
+    where grid[c-direction] == 0 and grid[c+direction] == 0
+    yield
+      Fission(grid.Updated({c => 0, c-direction => 1, c+direction => 1}))
+    end
+
+  end
+
+  override def CharMap := ".x#";
+
+end

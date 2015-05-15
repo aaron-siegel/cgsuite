@@ -133,8 +133,9 @@ class CgsuiteClass(
     val allSymbolsInScope: Set[Symbol] = classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val optionsMethod = lookupMethod('Options)
-    lazy val decompositionMethod = lookupMethod('Decomposition)
+    lazy val optionsMethod = lookupMethod('Options) getOrElse { throw InputException("Method not found: Options") }
+    lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw InputException("Method not found: Decomposition") }
+    lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw InputException("Method not found: CanonicalForm") }
 
   }
 
@@ -378,8 +379,15 @@ class CgsuiteClass(
         val superMethods = supers.flatMap { _.classInfo.methods }
         val localMethods = node.methodDeclarations.map { parseMethod }
         val constructor = node.constructorParams.map { t => Constructor(id, parseParameterList(t)) }
+        val renamedSuperMethods = {
+          for {
+            (id, method) <- superMethods
+          } yield {
+            (Symbol("super$" + id.name), method)
+          }
+        }
 
-        (supers, (superMethods ++ localMethods).toMap, constructor)
+        (supers, (superMethods ++ renamedSuperMethods ++ localMethods).toMap, constructor)
 
       } else {
 

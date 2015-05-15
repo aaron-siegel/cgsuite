@@ -634,9 +634,9 @@ case class LoopNode(
             pushDownYield.get.evaluate(domain, yieldResult)
           }
           Profiler.stop(loopBody)
-          if (counter != null)
-            counter = Ops.NewPlus(counter, byVal)
         }
+        if (counter != null)
+          counter = Ops.NewPlus(counter, byVal)
       }
 
     }
