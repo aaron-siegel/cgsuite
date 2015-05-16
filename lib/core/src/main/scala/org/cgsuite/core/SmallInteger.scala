@@ -74,6 +74,8 @@ trait SmallInteger extends Integer {
     case _ => super.gcd(other)
   }
 
+  override def isEven = intValue % 2 == 0
+
   override def isSmallInteger = true
   
   override def sign = SmallInteger(intValue.signum)

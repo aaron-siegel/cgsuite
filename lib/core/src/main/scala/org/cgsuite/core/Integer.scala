@@ -41,7 +41,7 @@ object Integer {
 trait Integer extends DyadicRationalNumber {
   
   def bigIntValue: BigInt
-  def intValue = bigIntValue.intValue()
+  override def intValue = bigIntValue.intValue()
   def byteValue = bigIntValue.byteValue()
   
   override def options(player: Player): Iterable[Integer] = {
@@ -69,6 +69,7 @@ trait Integer extends DyadicRationalNumber {
   def min(other: Integer) = if (this < other) this else other
   def max(other: Integer) = if (this > other) this else other
 
+  def isEven = bigIntValue.testBit(0)
   override def isInteger = true
   def isSmallInteger = (bigIntValue >= Integer.minInt && bigIntValue <= Integer.maxInt)
   override def abs: Integer = Integer(bigIntValue.abs)

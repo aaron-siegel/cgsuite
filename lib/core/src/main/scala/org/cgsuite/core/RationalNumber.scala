@@ -73,6 +73,8 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
     denominator * other.denominator
   )
 
+  def intValue: Int = floor.intValue
+
   def min(other: RationalNumber) = if (this < other) this else other
   def max(other: RationalNumber) = if (this > other) this else other
   def mean(other: RationalNumber) = (this + other) / Values.two
@@ -84,6 +86,8 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
       RationalNumber(denominator.pow(-other), numerator.pow(-other))
     }
   }
+
+  def reciprocal = RationalNumber(denominator, numerator)
 
   def isDyadic = denominator.isTwoPower
   def isInteger = denominator == Values.one
