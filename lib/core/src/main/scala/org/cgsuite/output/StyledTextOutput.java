@@ -465,6 +465,11 @@ public class StyledTextOutput extends AbstractOutput
         topBlock.subBlocks.add(block);
         measurer = null;
     }
+
+    public void append(Output output)
+    {
+        appendOutput(output);
+    }
     
     /**
      * Appends <code>text</code> to the end of this output with the specified

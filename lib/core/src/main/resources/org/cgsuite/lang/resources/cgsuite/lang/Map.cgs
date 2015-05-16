@@ -1,4 +1,16 @@
 /*${cgsuite.banner}*/
 
 system class Map
+
+  external def Entries;
+
+  override def ToOutput begin
+    var entries := Entries;
+    if entries.IsEmpty then
+      "{=>}".ToOutput
+    else
+      "{" + Entries.Sorted.MkOutput(",".ToOutput) + "}"
+    end
+  end
+
 end

@@ -9,4 +9,9 @@ class GridGame(grid) extends Game
 
   def CharMap := error("Subclasses of GridGame must override CharMap.");
 
+  def Icons := error("Subclasses of GridGame must override Icons.");
+
+  override def ToOutput :=
+    cgsuite.util.output.GridOutput(grid, Icons, this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
+
 end

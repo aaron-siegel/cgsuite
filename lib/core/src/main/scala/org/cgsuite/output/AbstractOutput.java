@@ -20,4 +20,9 @@ public abstract class AbstractOutput implements Output
         write(new PrintWriter(sw), Mode.PLAIN_TEXT);
         return sw.toString();
     }
+
+    public Output toOutput()
+    {
+        return this;
+    }
 }

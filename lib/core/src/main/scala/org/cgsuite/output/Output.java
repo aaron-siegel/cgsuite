@@ -50,7 +50,7 @@ import java.io.PrintWriter;
  * @author  Aaron Siegel
  * @version $Revision: 1.8 $ $Date: 2007/02/16 20:10:13 $
  */
-public interface Output
+public interface Output extends OutputTarget
 {
     /**
      * Writes this output in text format.

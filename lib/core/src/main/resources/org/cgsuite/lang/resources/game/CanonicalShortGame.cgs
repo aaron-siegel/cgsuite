@@ -15,4 +15,6 @@ system class CanonicalShortGame extends Game
   external def StopCount;
   external def Temperature;
 
+  override external def ToOutput;
+
 end

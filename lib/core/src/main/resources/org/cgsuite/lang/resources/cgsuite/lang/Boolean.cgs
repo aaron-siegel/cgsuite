@@ -1,4 +1,7 @@
 /*${cgsuite.banner}*/
 
 system class Boolean
+
+  override def ToOutput := (if this then "true" else "false" end).ToOutput;
+
 end

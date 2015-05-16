@@ -4,4 +4,6 @@ system class Class
 
   external def Name;
 
+  override def ToOutput := "<<".ToOutput + Name + ">>";
+
 end

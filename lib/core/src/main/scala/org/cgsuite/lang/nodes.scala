@@ -46,7 +46,7 @@ object EvalNode {
       case FALSE => ConstantNode(tree, false)
       case INTEGER => ConstantNode(tree, Integer.parseInteger(tree.getText))
       case INF => ConstantNode(tree, positiveInfinity)
-      case STRING => ConstantNode(tree, tree.getText.drop(1).dropRight(1))
+      case STRING => ConstantNode(tree, tree.getText.drop(1).dropRight(1).replaceAll("\\\\\"", "\""))
       case NIL => ConstantNode(tree, Nil)
 
       // This
@@ -702,16 +702,16 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     case node: DotNode => node.asQualifiedClassName.map { next => Symbol(next.name + "." + idNode.id.name) }
     case _ => None
   }
-  var classResolution: ClassObject = _
+  var classResolution: CgsuiteClass = _
   override def elaborate(scope: Scope) {
     asQualifiedClassName flatMap CgsuitePackage.lookupClass match {
-      case Some(cls) => classResolution = cls.classObject
+      case Some(cls) => classResolution = cls
       case None => obj.elaborate(scope)     // Deliberately bypass idNode
     }
   }
   override def evaluate(domain: Domain): Any = {
     if (classResolution != null)
-      classResolution
+      classResolution.classObject
     else {
       val x = obj.evaluate(domain)
       val y = idNode.resolver.resolve(x)

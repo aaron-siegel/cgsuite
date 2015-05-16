@@ -4,4 +4,6 @@ system class String
 
   external def Length;
 
+  def ToOutput := cgsuite.util.output.TextOutput(this);
+
 end

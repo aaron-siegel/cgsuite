@@ -3,6 +3,7 @@ package org.cgsuite.lang.parser
 import java.lang.{System => JSystem}
 
 import org.cgsuite.lang._
+import org.cgsuite.output.Output
 
 import scala.collection.mutable
 
@@ -28,7 +29,9 @@ object Repl {
           println(node)
           val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(replVarMap))
           val result = node.evaluate(domain)
-          println(OutputBuilder.toOutput(result))
+          val output = CgsuiteClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
+          assert(output.isInstanceOf[Output])
+          println(output)
         } catch {
           case exc: Throwable => exc.printStackTrace()
         }

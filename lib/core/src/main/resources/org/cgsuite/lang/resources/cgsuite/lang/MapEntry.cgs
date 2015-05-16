@@ -1,0 +1,10 @@
+/*${cgsuite.banner}*/
+
+system class MapEntry
+
+  external def Key;
+  external def Value;
+
+  override def ToOutput := Key.ToOutput + " => " + Value.ToOutput;
+
+end

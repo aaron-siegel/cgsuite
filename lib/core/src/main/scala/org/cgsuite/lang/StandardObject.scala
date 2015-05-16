@@ -3,9 +3,10 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import org.cgsuite.core._
+import org.cgsuite.output.{Output, OutputTarget}
 import org.cgsuite.util.TranspositionTable
 
-class StandardObject(val cls: CgsuiteClass, objArgs: Array[Any]) {
+class StandardObject(val cls: CgsuiteClass, objArgs: Array[Any]) extends OutputTarget {
 
   private[lang] var vars: Array[Any] = _
   init()
@@ -41,6 +42,10 @@ class StandardObject(val cls: CgsuiteClass, objArgs: Array[Any]) {
     }
   }
 
+  def toOutput: Output = {
+    cls.classInfo.toOutputMethod.call(this, Array.empty).asInstanceOf[Output]
+  }
+
   def lookupInstanceMethod(id: Symbol): Option[Any] = {
     cls.lookupMethod(id).map { method =>
       if (method.isStatic) sys.error("foo")
@@ -63,6 +68,8 @@ object GameObject {
   }
 
 }
+
+class EnumObject(cls: CgsuiteClass, val literal: String) extends StandardObject(cls, Array.empty)
 
 class GameObject(cls: CgsuiteClass, objArgs: Array[Any]) extends StandardObject(cls, objArgs) with Game {
 

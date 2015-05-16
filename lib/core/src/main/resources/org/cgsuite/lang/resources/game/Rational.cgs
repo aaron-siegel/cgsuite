@@ -1,4 +1,7 @@
 /*${cgsuite.banner}*/
 
 system class Rational
+
+  override external def ToOutput;
+
 end

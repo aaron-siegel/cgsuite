@@ -1,4 +1,33 @@
 /*${cgsuite.banner}*/
 
 system class List
+
+  external def IsEmpty;
+  external def Length;
+  external def Sorted;
+
+  def MkOutput(Output sep) begin
+
+    var first := true;
+    var output := cgsuite.util.output.TextOutput();
+    for x in this do
+      if first then
+        first := false;
+      else
+        output.Append(sep);
+      end
+      output.Append(x.ToOutput);
+    end
+    output
+
+  end
+
+  override def ToOutput begin
+    if IsEmpty then
+      "nil"
+    else
+      "[" + MkOutput(",".ToOutput) + "]";
+    end
+  end
+
 end

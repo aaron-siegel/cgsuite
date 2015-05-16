@@ -4,4 +4,6 @@ system class Object
 
   external def Class;
 
+  def ToOutput := cgsuite.util.output.TextOutput("<Object of Class " + this.Class.Name + ">");
+
 end

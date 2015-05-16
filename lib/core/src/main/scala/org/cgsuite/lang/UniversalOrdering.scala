@@ -19,6 +19,12 @@ object UniversalOrdering extends Ordering[Any] {
           i += 1
         }
         cmp
+      case (a: (_,_), b: (_,_)) =>
+        val cmp = compare(a._1, b._1)
+        if (cmp == 0)
+          compare(a._2, b._2)
+        else
+          cmp
       case (_, _) => x.hashCode - y.hashCode  // TODO this can be improved
     }
   }

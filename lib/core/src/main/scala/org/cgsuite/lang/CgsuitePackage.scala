@@ -12,12 +12,11 @@ object CgsuitePackage {
   val cgsuite = root.declareSubpackage("cgsuite")
   val lang = cgsuite.declareSubpackage("lang")
   val util = cgsuite.declareSubpackage("util")
+  val output = util.declareSubpackage("output")
 
   val game = root.declareSubpackage("game")
   val grid = game.declareSubpackage("grid")
   val strip = game.declareSubpackage("strip")
-
-  Loader.declareSystemResources()
 
   def lookupClass(id: Symbol): Option[CgsuiteClass] = classDictionary.get(id)
 

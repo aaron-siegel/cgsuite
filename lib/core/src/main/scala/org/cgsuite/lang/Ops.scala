@@ -1,6 +1,9 @@
 package org.cgsuite.lang
 
+import java.util
+
 import org.cgsuite.core._
+import org.cgsuite.output.{StyledTextOutput, Output}
 import org.cgsuite.util.{Strip, Grid, Coordinates}
 import org.cgsuite.core.Values._
 import scala.collection.mutable
@@ -31,7 +34,18 @@ object Ops {
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
-    case (_: String, _) => (x: String, y: Any) => x + y.toString
+    case (_: String, _: String) => (x: String, y: String) => x + y
+    case (_: Output, _: String) => (x: Output, y: String) => outputSum(x, toOutput(y))
+    case (_: String, _: Output) => (x: String, y: Output) => outputSum(toOutput(x), y)
+    case (_: Output, _: Output) => (x: Output, y: Output) => outputSum(x, y)
+  }
+
+  def toOutput(str: String) = new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), str)
+  def outputSum(o1: Output, o2: Output) = {
+    val result = new StyledTextOutput()
+    result.appendOutput(o1)
+    result.appendOutput(o2)
+    result
   }
 
   val Minus = CachingBinOp("-") {

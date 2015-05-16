@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+system class EnumValue
+
+  external def Literal;
+
+  def ToOutput := Literal.ToOutput;
+
+end

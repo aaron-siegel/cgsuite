@@ -5,6 +5,8 @@ import java.awt.{Color, Dimension, Graphics2D}
 import java.io.PrintWriter
 import javax.swing.{Icon, ImageIcon}
 
+import org.cgsuite.exception.InputException
+import org.cgsuite.lang.{EnumObject, StandardObject}
 import org.cgsuite.util.Grid
 
 import scala.collection.mutable
@@ -34,25 +36,29 @@ object GridOutput {
     )
   }
 
-  private val icons = mutable.Map[String, Option[Icon]]()
+  private val icons = mutable.Map[String, Icon]()
 
   def lookupIcon(name: String) = {
-    if (!icons.contains(name)) {
-      val url = {
+    icons.getOrElseUpdate(name, {
+      val url =
         Option(classOf[GridOutput].getResource("resources/" + name + ".png")) orElse
-        Option(classOf[GridOutput].getResource("resources/" + name + ".gif"))
-      }
-      icons.put(name, url map { new ImageIcon(_) })
-    }
-    icons.get(name)
+        Option(classOf[GridOutput].getResource("resources/" + name + ".gif")) getOrElse {
+          throw InputException(s"System error loading icon: `$name`")
+        }
+      new ImageIcon(url)
+    })
   }
 
 }
 
-case class GridOutput(grid: Grid, icons: Seq[Icon], alt: String) extends AbstractOutput {
+case class GridOutput(grid: Grid, iconEnumValues: Seq[_], alt: String) extends AbstractOutput {
 
-  val cellSize = GridOutput.iconDimensions(icons, false)
-  val size = GridOutput.imageDimensions(grid, cellSize, 1, 1)
+  lazy val icons = iconEnumValues map {
+    case x: EnumObject => GridOutput.lookupIcon(x.literal)
+  }
+
+  lazy val cellSize = GridOutput.iconDimensions(icons, false)
+  lazy val size = GridOutput.imageDimensions(grid, cellSize, 1, 1)
 
   def write(out: PrintWriter, mode: Output.Mode) {
     mode match {

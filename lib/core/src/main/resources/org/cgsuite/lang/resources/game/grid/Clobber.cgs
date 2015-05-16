@@ -26,4 +26,6 @@ class Clobber(grid, directions ? Coordinates.Orthogonal, anti ? false) extends G
 
   override def CharMap := ".xo";
 
+  override def Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone];
+
 end

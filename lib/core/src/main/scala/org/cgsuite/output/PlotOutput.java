@@ -55,7 +55,7 @@ import org.cgsuite.core.*;
  * @author  Aaron Siegel
  * @version $Revision: 1.12 $ $Date: 2007/02/20 20:17:50 $
  */
-public class PlotOutput implements Output
+public class PlotOutput extends AbstractOutput
 {
     private final static Color[] STANDARD_COLORS = new Color[] {
         Color.black,

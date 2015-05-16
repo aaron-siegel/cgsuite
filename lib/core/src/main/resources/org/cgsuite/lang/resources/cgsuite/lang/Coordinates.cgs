@@ -15,4 +15,9 @@ system class Coordinates
   static var Diagonal := [Northeast, Southeast, Southwest, Northwest];
   static var Compass := [North, Northeast, East, Southeast, South, Southwest, West, Northwest];
 
+  external def Col;
+  external def Row;
+
+  def ToOutput := "(" + Row.ToOutput + "," + Col.ToOutput + ")";
+
 end

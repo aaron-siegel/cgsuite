@@ -6,6 +6,7 @@ import org.cgsuite.core._
 import org.cgsuite.exception.InputException
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
+import org.cgsuite.output._
 import org.cgsuite.util._
 
 import scala.collection.mutable
@@ -19,28 +20,86 @@ object CgsuiteClass {
     ord
   }
 
+  private val baseSystemClasses = Seq(
+
+    "cgsuite.lang.Object" -> classOf[AnyRef],
+    "cgsuite.lang.Enum" -> classOf[EnumObject]
+
+  )
+
+  private val typedSystemClasses = Seq(
+
+    "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
+    "cgsuite.lang.Class" -> classOf[ClassObject],
+    "cgsuite.lang.Coordinates" -> classOf[Coordinates],
+    "cgsuite.lang.List" -> classOf[Seq[_]],
+    "cgsuite.lang.Map" -> classOf[Map[_, _]],
+    "cgsuite.lang.MapEntry" -> classOf[(_,_)],
+    "cgsuite.lang.Procedure" -> classOf[Procedure],
+    "cgsuite.lang.Set" -> classOf[Set[_]],
+    "cgsuite.lang.String" -> classOf[String],
+    "cgsuite.lang.System" -> classOf[System],
+
+    "cgsuite.util.Grid" -> classOf[Grid],
+    "cgsuite.util.Strip" -> classOf[Strip],
+    "cgsuite.util.Symmetry" -> classOf[Symmetry],
+
+    // The order is extremely important in the following hierarchies (most specific first)
+
+    "cgsuite.util.output.GridOutput" -> classOf[GridOutput],
+    "cgsuite.util.output.TextOutput" -> classOf[StyledTextOutput],
+    "cgsuite.lang.Output" -> classOf[Output],
+
+    "game.Zero" -> Zero.getClass,
+    "game.Integer" -> classOf[Integer],
+    "game.DyadicRational" -> classOf[DyadicRationalNumber],
+    "game.Rational" -> classOf[RationalNumber],
+    "game.Nimber" -> classOf[Nimber],
+    "game.NumberUpStar" -> classOf[NumberUpStar],
+    "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
+    "game.Game" -> classOf[Game],
+
+    "game.Player" -> classOf[Player]
+
+  )
+
+  private val otherSystemClasses = Seq(
+
+    "cgsuite.util.Icon",
+
+    "game.GridGame",
+    "game.StripGame",
+
+    "game.grid.Amazons",
+    "game.grid.Clobber",
+    "game.grid.Domineering",
+    "game.grid.Fission",
+
+    "game.strip.ToadsAndFrogs"
+
+  )
+
+  val systemClasses = ((baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }) ++
+    (otherSystemClasses map { (_, None) })
+
+  systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
+
+  private def declareSystemClass(name: String, scalaClass: Option[Class[_]]) {
+
+    val path = name.replace('.', '/')
+    val url = getClass.getResource(s"resources/$path.cgs")
+    val components = name.split("\\.").toSeq
+    val pkg = CgsuitePackage.root.lookupSubpackage(components.dropRight(1)).getOrElse {
+      sys.error("Cannot find package: " + components.dropRight(1))
+    }
+    pkg.declareClass(Symbol(components.last), url, scalaClass)
+
+  }
+
   val Object = CgsuitePackage.lookupClassByName("Object").get
   val Class = CgsuitePackage.lookupClassByName("Class").get
-  val Boolean = CgsuitePackage.lookupClassByName("Boolean").get
-  val Coordinates = CgsuitePackage.lookupClassByName("Coordinates").get
-  val List = CgsuitePackage.lookupClassByName("List").get
-  val Map = CgsuitePackage.lookupClassByName("Map").get
-  val Set = CgsuitePackage.lookupClassByName("Set").get
-  val String = CgsuitePackage.lookupClassByName("String").get
-
-  val Grid = CgsuitePackage.lookupClassByName("Grid").get
-  val Strip = CgsuitePackage.lookupClassByName("Strip").get
-  val Symmetry = CgsuitePackage.lookupClassByName("Symmetry").get
-
+  val Enum = CgsuitePackage.lookupClassByName("Enum").get
   val Game = CgsuitePackage.lookupClassByName("Game").get
-  val Integer = CgsuitePackage.lookupClassByName("Integer").get
-  val DyadicRational = CgsuitePackage.lookupClassByName("DyadicRational").get
-  val Rational = CgsuitePackage.lookupClassByName("Rational").get
-  val CanonicalShortGame = CgsuitePackage.lookupClassByName("CanonicalShortGame").get
-  val Player = CgsuitePackage.lookupClassByName("Player").get
-  val Zero = CgsuitePackage.lookupClassByName("Zero").get
-  val Nimber = CgsuitePackage.lookupClassByName("Nimber").get
-  val NumberUpStar = CgsuitePackage.lookupClassByName("NumberUpStar").get
 
   Object.ensureLoaded()
 
@@ -49,30 +108,17 @@ object CgsuiteClass {
   def of(x: Any): CgsuiteClass = {
     val result = x match {
       case so: StandardObject => so.cls
-      case _ => classLookupCache.getOrElseUpdate(x.getClass, ofNew(x))
+      case _ => classLookupCache.getOrElseUpdate(x.getClass, toCgscriptClass(x))
     }
     result
   }
 
-  private def ofNew(x: Any): CgsuiteClass = {
-    x match {
-      case _: Zero => Zero
-      case _: Integer => Integer
-      case _: DyadicRationalNumber => DyadicRational
-      case _: RationalNumber => Rational
-      case _: Nimber => Nimber
-      case _: NumberUpStar => NumberUpStar
-      case _: CanonicalShortGame => CanonicalShortGame
-      case _: Player => Player
-      case _: Boolean => Boolean
-      case _: Coordinates => Coordinates
-      case _: String => String
-      case _: Grid => Grid
-      case _: Strip => Strip
-      case _: Map[_, _] => Map
-      case _: Seq[_] => List
-      case _: Set[_] => Set
-      case _: Symmetry => Symmetry
+  private def toCgscriptClass(x: Any): CgsuiteClass = {
+    // This is slow, but we cache the results so that it only happens once
+    // per distinct (Java) type witnessed.
+    val systemClass = typedSystemClasses find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
+    systemClass flatMap { case (name, _) => CgsuitePackage.lookupClassByName(name) } getOrElse {
+      sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
     }
   }
 
@@ -136,6 +182,7 @@ class CgsuiteClass(
     lazy val optionsMethod = lookupMethod('Options) getOrElse { throw InputException("Method not found: Options") }
     lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw InputException("Method not found: Decomposition") }
     lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw InputException("Method not found: CanonicalForm") }
+    lazy val toOutputMethod = lookupMethod('ToOutput) getOrElse { throw InputException("Method not found: ToOutput") }
 
   }
 
@@ -185,6 +232,7 @@ class CgsuiteClass(
       parameters foreach { param =>
         param.defaultValue foreach { _.elaborate(scope) }
       }
+      println(s"Done elaborating ${qualifiedId.name}")
     }
 
   }
@@ -254,8 +302,9 @@ class CgsuiteClass(
         Profiler.start(reflect)
         CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
-        case exc: IllegalArgumentException =>
-          throw new InputException(s"Invalid parameters for method $qualifiedName.")
+        case exc: IllegalArgumentException => throw new InputException(
+          s"Invalid parameters for method `${qualifiedId.name}` of types (${args.map { _.getClass.getName }.mkString(", ")})"
+        )
       } finally {
         Profiler.stop(reflect)
       }
@@ -263,15 +312,35 @@ class CgsuiteClass(
 
   }
 
-  case class Constructor(
+  case class ExplicitMethod(
+    id: Symbol,
+    parameters: Seq[MethodParameter],
+    autoinvoke: Boolean,
+    isStatic: Boolean)
+    (fn: (Any, Any) => Any) extends Method {
+
+    // TODO This only works for 0-ary methods currently
+    def call(obj: Any, args: Array[Any]): Any = {
+      fn(if (isStatic) classObject else obj, ())
+    }
+
+  }
+
+  trait Constructor extends Method with CallSite {
+
+    val autoinvoke = false
+    val isStatic = false
+
+    def call(obj: Any, args: Array[Any]): Any = call(args)
+
+  }
+
+  case class UserConstructor(
     id: Symbol,
     parameters: Seq[MethodParameter]
-  ) extends Method with CallSite {
+  ) extends Constructor {
 
     private val invokeConstructor = Symbol(s"InvokeConstructor [${qualifiedId.name}]")
-
-    def autoinvoke = false
-    def isStatic = false
 
     def call(args: Array[Any]): Any = {
       // TODO Superconstructor
@@ -287,15 +356,26 @@ class CgsuiteClass(
       }
     }
 
-    def call(obj: Any, args: Array[Any]): Any = call(args)
-
   }
 
-  case class ExplicitMethod0(id: Symbol, autoinvoke: Boolean, isStatic: Boolean)(fn: Any => Any) extends Method {
+  case class SystemConstructor(
+    id: Symbol,
+    parameters: Seq[MethodParameter],
+    javaConstructor: java.lang.reflect.Constructor[_]
+  ) extends Constructor {
 
-    def parameters = Seq.empty
-    def call(obj: Any, args: Array[Any]): Any = {
-      fn(if (isStatic) classObject else obj)
+    private val reflect = Symbol(s"Reflect [$javaConstructor]")
+
+    def call(args: Array[Any]): Any = {
+      try {
+        Profiler.start(reflect)
+        javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
+      } catch {
+        case exc: IllegalArgumentException =>
+          throw new InputException(s"Invalid parameters for constructor `${qualifiedId.name}`.")
+      } finally {
+        Profiler.stop(reflect)
+      }
     }
 
   }
@@ -329,7 +409,7 @@ class CgsuiteClass(
   private def load(url: URL) {
 
     if (loading) {
-      sys.error("circular class definition?")
+      sys.error("circular class definition?: " + url)
     }
     loading = true
 
@@ -363,22 +443,36 @@ class CgsuiteClass(
       if (CgsuiteClass.Object.isLoaded) { // Hack to bootstrap Object
 
         val supers = {
-          if (node.extendsClause.isEmpty)
-            Seq(CgsuiteClass.Object)
-          else
+          if (node.extendsClause.isEmpty) {
+            if (node.isEnum)
+              Seq(CgsuiteClass.Enum)
+            else
+              Seq(CgsuiteClass.Object)
+          } else {
             node.extendsClause.map {
               case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse {
                 throw InputException(s"Unknown superclass: `${superId.name}`", tree)
               }
-              case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse { sys.error("not found") }
+              case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse {
+                sys.error("not found")
+              }
             }
+          }
         }
         supers.foreach { _.ensureLoaded() }
         // TODO Check for unresolved superclass method conflicts
         // TODO Check for duplicate local method names
         val superMethods = supers.flatMap { _.classInfo.methods }
-        val localMethods = node.methodDeclarations.map { parseMethod }
-        val constructor = node.constructorParams.map { t => Constructor(id, parseParameterList(t)) }
+        val localMethods = node.methodDeclarations map parseMethod
+        val constructor = node.constructorParams.map { t =>
+          val parameters = parseParameterList(t)
+          systemClass match {
+            case None => UserConstructor(id, parameters)
+            case Some(cls) =>
+              val externalParameterTypes = parameters map { _.paramType.javaClass }
+              SystemConstructor(id, parameters, cls.getConstructor(externalParameterTypes : _*))
+          }
+        }
         val renamedSuperMethods = {
           for {
             (id, method) <- superMethods
@@ -392,7 +486,8 @@ class CgsuiteClass(
       } else {
 
         // We're loading Object right now!
-        (Seq.empty, methodsForObject(), None)
+        val localMethods = node.methodDeclarations map parseMethod
+        (Seq.empty, localMethods.toMap, None)
 
       }
 
@@ -436,6 +531,13 @@ class CgsuiteClass(
         node.body.evaluate(initializerDomain)
     }
 
+    // Enum construction
+    if (node.isEnum) {
+      for ((id, index) <- classInfoRef.staticVarOrdinals) {
+        classObjectRef.vars(index) = new EnumObject(this, id.name)
+      }
+    }
+
     node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.allSymbolsInScope)) }
 
   }
@@ -451,12 +553,18 @@ class CgsuiteClass(
 
     val newMethod = {
       if (node.isExternal) {
-        val externalName = name.updated(0, name(0).toLower)
-        val externalParameterTypes = parameters map { _.paramType.javaClass }
-        println(s"Declaring external method: $name => $externalName")
-        val externalMethod = javaClass.getMethod(externalName, externalParameterTypes : _*)
-        println(s"Here it is: $externalMethod")
-        new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
+        println(s"Declaring external method: $name")
+        SpecialMethods.specialMethods.get(qualifiedName.name + "." + name) match {
+          case Some(fn) =>
+            println("It's a special method.")
+            new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic)(fn)
+          case None =>
+            val externalName = name.updated(0, name(0).toLower)
+            val externalParameterTypes = parameters map { _.paramType.javaClass }
+            val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
+            println(s"It's a Java method via reflection: $externalMethod")
+            new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
+        }
       } else {
         println(s"[${qualifiedName.name}] Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
@@ -477,12 +585,6 @@ class CgsuiteClass(
       MethodParameter(n.id.id, ttype, n.defaultValue)
     }
 
-  }
-
-  private def methodsForObject(): Map[Symbol, CgsuiteClass#Method] = {
-    Map(Symbol("Class") -> ExplicitMethod0(Symbol("Class"), autoinvoke = true, isStatic = false) {
-      CgsuiteClass.of(_).classObject
-    })
   }
 
   override def toString = s"<class ${qualifiedName.name}>"
