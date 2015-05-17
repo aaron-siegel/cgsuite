@@ -118,7 +118,7 @@ object Ops {
   val Or = BinOp("or") { case (x: Boolean, y: Boolean) => x || y }
 
   val Is = BinOp("is") { case (x: Any, y: ClassObject) =>
-    CgsuiteClass.of(x).ancestors.contains(y.forClass)
+    CgscriptClass.of(x).ancestors.contains(y.forClass)
   }
 
   val MakeNimber = UnOp("nim") {

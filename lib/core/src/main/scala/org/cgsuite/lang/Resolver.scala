@@ -20,9 +20,9 @@ case class Resolver(id: Symbol) {
   def findResolution(x: Any): Resolution = {
 
     // No way to avoid this lookup
-    val cls = CgsuiteClass.of(x)
+    val cls = CgscriptClass.of(x)
     var res: Resolution = null
-    if (cls == CgsuiteClass.Class) {
+    if (cls == CgscriptClass.Class) {
       // Special handling for class objects
       val co = x.asInstanceOf[ClassObject]
       if (staticResolutions.length <= co.forClass.classOrdinal) {
@@ -68,7 +68,7 @@ case class Resolver(id: Symbol) {
 
 }
 
-case class Resolution(cls: CgsuiteClass, id: Symbol, static: Boolean = false) {
+case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
 
   val classScopeIndex = {
     if (static) {
@@ -81,7 +81,7 @@ case class Resolution(cls: CgsuiteClass, id: Symbol, static: Boolean = false) {
     if (static) {
       // This is a little more complicated since we also need to look up common
       // static methods, i.e., methods of class Class.
-      CgsuiteClass.Class.lookupMethod(id) match {
+      CgscriptClass.Class.lookupMethod(id) match {
         case Some(x) => Some(x)
         case None => cls.lookupMethod(id)
       }

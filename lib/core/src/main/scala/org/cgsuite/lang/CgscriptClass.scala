@@ -11,7 +11,7 @@ import org.cgsuite.util._
 
 import scala.collection.mutable
 
-object CgsuiteClass {
+object CgscriptClass {
 
   private var nextClassOrdinal = 0
   private[lang] def newClassOrdinal = {
@@ -89,23 +89,23 @@ object CgsuiteClass {
     val path = name.replace('.', '/')
     val url = getClass.getResource(s"resources/$path.cgs")
     val components = name.split("\\.").toSeq
-    val pkg = CgsuitePackage.root.lookupSubpackage(components.dropRight(1)).getOrElse {
+    val pkg = CgscriptPackage.root.lookupSubpackage(components.dropRight(1)).getOrElse {
       sys.error("Cannot find package: " + components.dropRight(1))
     }
     pkg.declareClass(Symbol(components.last), url, scalaClass)
 
   }
 
-  val Object = CgsuitePackage.lookupClassByName("Object").get
-  val Class = CgsuitePackage.lookupClassByName("Class").get
-  val Enum = CgsuitePackage.lookupClassByName("Enum").get
-  val Game = CgsuitePackage.lookupClassByName("Game").get
+  val Object = CgscriptPackage.lookupClassByName("Object").get
+  val Class = CgscriptPackage.lookupClassByName("Class").get
+  val Enum = CgscriptPackage.lookupClassByName("Enum").get
+  val Game = CgscriptPackage.lookupClassByName("Game").get
 
   Object.ensureLoaded()
 
-  private val classLookupCache = mutable.AnyRefMap[Class[_], CgsuiteClass]()
+  private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
 
-  def of(x: Any): CgsuiteClass = {
+  def of(x: Any): CgscriptClass = {
     val result = x match {
       case so: StandardObject => so.cls
       case _ => classLookupCache.getOrElseUpdate(x.getClass, toCgscriptClass(x))
@@ -113,16 +113,16 @@ object CgsuiteClass {
     result
   }
 
-  private def toCgscriptClass(x: Any): CgsuiteClass = {
+  private def toCgscriptClass(x: Any): CgscriptClass = {
     // This is slow, but we cache the results so that it only happens once
     // per distinct (Java) type witnessed.
     val systemClass = typedSystemClasses find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
-    systemClass flatMap { case (name, _) => CgsuitePackage.lookupClassByName(name) } getOrElse {
+    systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
       sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
     }
   }
 
-  def is(x: Any, cls: CgsuiteClass) = of(x).ancestors.contains(cls)
+  def is(x: Any, cls: CgscriptClass) = of(x).ancestors.contains(cls)
 
   // Various conversions from Java types to CGScript types.
   def internalize(obj: AnyRef) = {
@@ -134,19 +134,19 @@ object CgsuiteClass {
   }
 
   def clearAll() {
-    CgsuitePackage.classDictionary.values foreach { _.unload() }
+    CgscriptPackage.classDictionary.values foreach { _.unload() }
     Object.ensureLoaded()
   }
 
 }
 
-class CgsuiteClass(
-  val pkg: CgsuitePackage,
+class CgscriptClass(
+  val pkg: CgscriptPackage,
   val id: Symbol,
   val systemClass: Option[Class[_]] = None
   ) {
 
-  val classOrdinal = CgsuiteClass.newClassOrdinal
+  val classOrdinal = CgscriptClass.newClassOrdinal
   val javaClass = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
@@ -156,15 +156,15 @@ class CgsuiteClass(
 
   class ClassInfo(
     val modifiers: Set[Modifier.Value],
-    val supers: Seq[CgsuiteClass],
-    val methods: Map[Symbol, CgsuiteClass#Method],
-    val constructor: Option[CgsuiteClass#Constructor],
+    val supers: Seq[CgscriptClass],
+    val methods: Map[Symbol, CgscriptClass#Method],
+    val constructor: Option[CgscriptClass#Constructor],
     val initializers: Seq[InitializerNode],
     val staticInitializers: Seq[InitializerNode]
     ) {
 
-    val properAncestors: Seq[CgsuiteClass] = supers.flatMap { _.classInfo.ancestors }.distinct
-    val ancestors = properAncestors :+ CgsuiteClass.this
+    val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
+    val ancestors = properAncestors :+ CgscriptClass.this
     val isMutable = modifiers.contains(Modifier.Mutable)
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
@@ -222,7 +222,7 @@ class CgsuiteClass(
     def isStatic: Boolean
     def call(obj: Any, args: Array[Any]): Any
 
-    val declaringClass = CgsuiteClass.this
+    val declaringClass = CgscriptClass.this
     val qualifiedName = declaringClass.qualifiedName + "." + id.name
     val qualifiedId = Symbol(qualifiedName)
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
@@ -297,12 +297,12 @@ class CgsuiteClass(
       // TODO Named args should work here too
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
       assert(
-        target == null || CgsuiteClass.of(target).ancestors.contains(declaringClass),
-        (CgsuiteClass.of(target), declaringClass)
+        target == null || CgscriptClass.of(target).ancestors.contains(declaringClass),
+        (CgscriptClass.of(target), declaringClass)
       )
       try {
         Profiler.start(reflect)
-        CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
+        CgscriptClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw new InputException(
           s"Invalid parameters for method `$qualifiedName` of types (${args.map { _.getClass.getName }.mkString(", ")})"
@@ -349,10 +349,10 @@ class CgsuiteClass(
       // TODO Parse var initializers
       Profiler.start(invokeConstructor)
       try {
-        if (ancestors.contains(CgsuiteClass.Game))
-          new GameObject(CgsuiteClass.this, args)
+        if (ancestors.contains(CgscriptClass.Game))
+          new GameObject(CgscriptClass.this, args)
         else
-          new StandardObject(CgsuiteClass.this, args)
+          new StandardObject(CgscriptClass.this, args)
       } finally {
         Profiler.stop(invokeConstructor)
       }
@@ -394,7 +394,7 @@ class CgsuiteClass(
     this.transpositionTable.clear()
   }
 
-  def lookupMethod(id: Symbol): Option[CgsuiteClass#Method] = {
+  def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
     ensureLoaded()
     classInfo.methods.get(id)
   }
@@ -442,20 +442,20 @@ class CgsuiteClass(
 
     val (supers, methods, constructor) = {
 
-      if (CgsuiteClass.Object.isLoaded) { // Hack to bootstrap Object
+      if (CgscriptClass.Object.isLoaded) { // Hack to bootstrap Object
 
         val supers = {
           if (node.extendsClause.isEmpty) {
             if (node.isEnum)
-              Seq(CgsuiteClass.Enum)
+              Seq(CgscriptClass.Enum)
             else
-              Seq(CgsuiteClass.Object)
+              Seq(CgscriptClass.Object)
           } else {
             node.extendsClause.map {
-              case IdentifierNode(tree, superId) => CgsuitePackage.lookupClass(superId) getOrElse {
+              case IdentifierNode(tree, superId) => CgscriptPackage.lookupClass(superId) getOrElse {
                 throw InputException(s"Unknown superclass: `${superId.name}`", tree)
               }
-              case node: DotNode => CgsuitePackage.lookupClass(node.asQualifiedClassName.get) getOrElse {
+              case node: DotNode => CgscriptPackage.lookupClass(node.asQualifiedClassName.get) getOrElse {
                 sys.error("not found")
               }
             }
@@ -506,7 +506,7 @@ class CgsuiteClass(
     loading = false
 
     // Create the class object
-    classObjectRef = new ClassObject(CgsuiteClass.this)
+    classObjectRef = new ClassObject(CgscriptClass.this)
 
     // Elaborate methods
     constructor foreach { _.elaborate() }
@@ -581,7 +581,7 @@ class CgsuiteClass(
   private def parseParameterList(node: ParametersNode): Seq[MethodParameter] = {
 
     node.parameters.map { n =>
-      val ttype = CgsuitePackage.lookupClass(n.classId.id) getOrElse {
+      val ttype = CgscriptPackage.lookupClass(n.classId.id) getOrElse {
         sys.error("unknown symbol")
       }
       MethodParameter(n.id.id, ttype, n.defaultValue)
@@ -593,7 +593,7 @@ class CgsuiteClass(
 
 }
 
-case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[EvalNode]) {
+case class MethodParameter(id: Symbol, paramType: CgscriptClass, defaultValue: Option[EvalNode]) {
   val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "")
   var methodScopeIndex = -1
 }

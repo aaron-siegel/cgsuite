@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-case class InstanceMethod(obj: Any, method: CgsuiteClass#Method) extends CallSite {
+case class InstanceMethod(obj: Any, method: CgscriptClass#Method) extends CallSite {
 
   def parameters = method.parameters
   def ordinal = method.ordinal

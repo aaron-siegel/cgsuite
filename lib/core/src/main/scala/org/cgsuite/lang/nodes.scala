@@ -233,13 +233,13 @@ trait EvalNode extends Node {
 }
 
 private[lang] object Scope {
-  def apply(pkg: Option[CgsuitePackage], classVars: Set[Symbol]) = {
+  def apply(pkg: Option[CgscriptPackage], classVars: Set[Symbol]) = {
     new Scope(pkg, classVars, mutable.AnyRefMap(), mutable.Stack())
   }
 }
 
 private[lang] class Scope(
-  val pkg: Option[CgsuitePackage],    // None = "external" (Worksheet/REPL) scope
+  val pkg: Option[CgscriptPackage],    // None = "external" (Worksheet/REPL) scope
   val classVars: Set[Symbol],
   val varMap: mutable.AnyRefMap[Symbol, Int],
   val scopeStack: mutable.Stack[mutable.HashSet[Symbol]]
@@ -291,7 +291,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       case Some(cls) => classResolution = cls.classObject
       case None =>
         // Try looking up as a Class in default package scope
-        CgsuitePackage.lookupClass(id) match {
+        CgscriptPackage.lookupClass(id) match {
           case Some(cls) => classResolution = cls.classObject
           case None =>
             // Try looking up in local (method) scope
@@ -653,7 +653,7 @@ object ProcedureNode {
     val parameters = tree.getChild(0).children map { paramTree =>
       assert(paramTree.getType == METHOD_PARAMETER)
       val id = Symbol(paramTree.getChild(0).getText)
-      MethodParameter(id, CgsuiteClass.Object, None)
+      MethodParameter(id, CgscriptClass.Object, None)
     }
     ProcedureNode(tree, parameters, EvalNode(tree.getChild(1)))
   }
@@ -702,9 +702,9 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     case node: DotNode => node.asQualifiedClassName.map { next => Symbol(next.name + "." + idNode.id.name) }
     case _ => None
   }
-  var classResolution: CgsuiteClass = _
+  var classResolution: CgscriptClass = _
   override def elaborate(scope: Scope) {
-    asQualifiedClassName flatMap CgsuitePackage.lookupClass match {
+    asQualifiedClassName flatMap CgscriptPackage.lookupClass match {
       case Some(cls) => classResolution = cls
       case None => obj.elaborate(scope)     // Deliberately bypass idNode
     }
@@ -717,7 +717,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       val y = idNode.resolver.resolve(x)
       if (y == null)
         throw InputException(
-          s"Not a member variable: `${idNode.id.name}` (in object of class `${CgsuiteClass.of(x).qualifiedName}`)",
+          s"Not a member variable: `${idNode.id.name}` (in object of class `${CgscriptClass.of(x).qualifiedName}`)",
           token = Some(token)
         )
       else

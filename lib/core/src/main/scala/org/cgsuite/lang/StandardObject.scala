@@ -6,7 +6,7 @@ import org.cgsuite.core._
 import org.cgsuite.output.{Output, OutputTarget}
 import org.cgsuite.util.TranspositionTable
 
-class StandardObject(val cls: CgsuiteClass, objArgs: Array[Any]) extends OutputTarget {
+class StandardObject(val cls: CgscriptClass, objArgs: Array[Any]) extends OutputTarget {
 
   private[lang] var vars: Array[Any] = _
   init()
@@ -69,9 +69,9 @@ object GameObject {
 
 }
 
-class EnumObject(cls: CgsuiteClass, val literal: String) extends StandardObject(cls, Array.empty)
+class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty)
 
-class GameObject(cls: CgsuiteClass, objArgs: Array[Any]) extends StandardObject(cls, objArgs) with Game {
+class GameObject(cls: CgscriptClass, objArgs: Array[Any]) extends StandardObject(cls, objArgs) with Game {
 
   def options(player: Player) = {
     cls.classInfo.optionsMethod.call(this, Array(player)).asInstanceOf[Seq[Game]]

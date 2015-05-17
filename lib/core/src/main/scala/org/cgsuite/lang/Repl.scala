@@ -1,8 +1,8 @@
-package org.cgsuite.lang.parser
+package org.cgsuite.lang
 
 import java.lang.{System => JSystem}
 
-import org.cgsuite.lang._
+import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.Output
 
 import scala.collection.mutable
@@ -12,7 +12,7 @@ object Repl {
 
   def main(args: Array[String]) {
 
-    CgsuiteClass.Object.ensureLoaded()
+    CgscriptClass.Object.ensureLoaded()
     val replVarMap = mutable.AnyRefMap[Symbol, Any]()
 
     while (true) {
@@ -29,7 +29,7 @@ object Repl {
           println(node)
           val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(replVarMap))
           val result = node.evaluate(domain)
-          val output = CgsuiteClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
+          val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
           assert(output.isInstanceOf[Output])
           println(output)
         } catch {

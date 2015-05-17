@@ -1,7 +1,7 @@
 package org.cgsuite.lang
 
-class ClassObject(val forClass: CgsuiteClass)
-  extends StandardObject(CgsuiteClass.Class, Array.empty) {
+class ClassObject(val forClass: CgscriptClass)
+  extends StandardObject(CgscriptClass.Class, Array.empty) {
 
   def name() = forClass.id.name
 

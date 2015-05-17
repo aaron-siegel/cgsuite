@@ -10,15 +10,15 @@ import scala.collection.mutable
 object Profiler {
 
   def main(args: Array[String]) {
-    CgsuiteClass.Object.ensureLoaded()
+    CgscriptClass.Object.ensureLoaded()
     val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
     // Warm-up
     evalForProfiler(statement, profile = false)
     CanonicalShortGameOps.reinit()
-    CgsuiteClass.clearAll()
+    CgscriptClass.clearAll()
     val withoutProfiling = evalForProfiler(statement, profile = false)
     CanonicalShortGameOps.reinit()
-    CgsuiteClass.clearAll()
+    CgscriptClass.clearAll()
     val withProfiling = evalForProfiler(statement, profile = true)
     Profiler.print(withProfiling - withoutProfiling)
     printf("Without Profiling: %10.1f ms\n", withoutProfiling/1000000.0)
