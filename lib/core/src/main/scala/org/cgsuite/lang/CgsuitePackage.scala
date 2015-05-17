@@ -54,7 +54,7 @@ class CgsuitePackage(parent: Option[CgsuitePackage], name: String) {
   def declareClass(id: Symbol, url: URL, scalaClass: Option[Class[_]]): CgsuiteClass = {
     val cls = classes.getOrElseUpdate(id, new CgsuiteClass(this, id, scalaClass))
     cls.setURL(url)
-    CgsuitePackage.classDictionary.put(cls.qualifiedName, cls)
+    CgsuitePackage.classDictionary.put(cls.qualifiedId, cls)
     if (this == CgsuitePackage.lang || this == CgsuitePackage.util || this == CgsuitePackage.game) {
       // TODO We should have a way to manage conflicts here.
       CgsuitePackage.classDictionary.put(id, cls)

@@ -151,7 +151,8 @@ class CgsuiteClass(
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
-  val qualifiedName = Symbol(pkg.qualifiedName + "." + id.name)
+  val qualifiedName = pkg.qualifiedName + "." + id.name
+  val qualifiedId = Symbol(qualifiedName)
 
   class ClassInfo(
     val modifiers: Set[Modifier.Value],
@@ -222,17 +223,18 @@ class CgsuiteClass(
     def call(obj: Any, args: Array[Any]): Any
 
     val declaringClass = CgsuiteClass.this
-    val qualifiedId = Symbol(declaringClass.qualifiedName.name + "." + id.name)
-    val signature = s"${qualifiedId.name}(${parameters.map { _.signature }.mkString(", ")})"
+    val qualifiedName = declaringClass.qualifiedName + "." + id.name
+    val qualifiedId = Symbol(qualifiedName)
+    val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
 
     def elaborate(): Unit = {
-      println(s"Elaborating ${qualifiedId.name}")
+      println(s"Elaborating $qualifiedName")
       val scope = new Scope(Some(pkg), classInfo.allSymbolsInScope, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
       parameters foreach { param =>
         param.defaultValue foreach { _.elaborate(scope) }
       }
-      println(s"Done elaborating ${qualifiedId.name}")
+      println(s"Done elaborating $qualifiedName")
     }
 
   }
@@ -245,7 +247,7 @@ class CgsuiteClass(
     body: StatementSequenceNode
   ) extends Method {
 
-    private val invokeUserMethod = Symbol(s"InvokeUserMethod [${qualifiedId.name}]")
+    private val invokeUserMethod = Symbol(s"InvokeUserMethod [$qualifiedName]")
     private var localVariableCount: Int = 0
 
     override def elaborate(): Unit = {
@@ -288,7 +290,7 @@ class CgsuiteClass(
     javaMethod: java.lang.reflect.Method
   ) extends Method {
 
-    private val reflect = Symbol(s"Reflect [${javaMethod.toString}]")
+    private val reflect = Symbol(s"Reflect [$javaMethod]")
 
     def call(obj: Any, args: Array[Any]): Any = {
       // TODO Validation!
@@ -303,7 +305,7 @@ class CgsuiteClass(
         CgsuiteClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw new InputException(
-          s"Invalid parameters for method `${qualifiedId.name}` of types (${args.map { _.getClass.getName }.mkString(", ")})"
+          s"Invalid parameters for method `$qualifiedName` of types (${args.map { _.getClass.getName }.mkString(", ")})"
         )
       } finally {
         Profiler.stop(reflect)
@@ -340,7 +342,7 @@ class CgsuiteClass(
     parameters: Seq[MethodParameter]
   ) extends Constructor {
 
-    private val invokeConstructor = Symbol(s"InvokeConstructor [${qualifiedId.name}]")
+    private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
 
     def call(args: Array[Any]): Any = {
       // TODO Superconstructor
@@ -372,7 +374,7 @@ class CgsuiteClass(
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
-          throw new InputException(s"Invalid parameters for constructor `${qualifiedId.name}`.")
+          throw new InputException(s"Invalid parameters for constructor `$qualifiedName`.")
       } finally {
         Profiler.stop(reflect)
       }
@@ -511,11 +513,11 @@ class CgsuiteClass(
     methods foreach { case (_, method) => method.elaborate() }
 
     // Big temporary hack to populate Left and Right
-    if (qualifiedName.name == "game.Player") {
+    if (qualifiedName == "game.Player") {
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
     }
-    if (qualifiedName.name == "cgsuite.util.Symmetry") {
+    if (qualifiedName == "cgsuite.util.Symmetry") {
       import Symmetry._
       Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
         'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
@@ -554,7 +556,7 @@ class CgsuiteClass(
     val newMethod = {
       if (node.isExternal) {
         println(s"Declaring external method: $name")
-        SpecialMethods.specialMethods.get(qualifiedName.name + "." + name) match {
+        SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
             println("It's a special method.")
             new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic)(fn)
@@ -566,7 +568,7 @@ class CgsuiteClass(
             new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
         }
       } else {
-        println(s"[${qualifiedName.name}] Declaring user method: $name")
+        println(s"[$qualifiedName] Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
         new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, body)
       }
@@ -587,11 +589,11 @@ class CgsuiteClass(
 
   }
 
-  override def toString = s"<class ${qualifiedName.name}>"
+  override def toString = s"<<$qualifiedName>>"
 
 }
 
 case class MethodParameter(id: Symbol, paramType: CgsuiteClass, defaultValue: Option[EvalNode]) {
-  val signature = paramType.qualifiedName.name + " " + id.name + (if (defaultValue.isDefined) "?" else "")
+  val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "")
   var methodScopeIndex = -1
 }

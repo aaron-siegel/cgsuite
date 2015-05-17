@@ -717,7 +717,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       val y = idNode.resolver.resolve(x)
       if (y == null)
         throw InputException(
-          s"Not a member variable: ${idNode.id.name} (in object of type ${CgsuiteClass.of(x).qualifiedName.name})",
+          s"Not a member variable: `${idNode.id.name}` (in object of class `${CgsuiteClass.of(x).qualifiedName}`)",
           token = Some(token)
         )
       else
