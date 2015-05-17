@@ -217,7 +217,7 @@ class CgscriptClass(
   trait Method {
 
     def id: Symbol
-    def parameters: Seq[MethodParameter]
+    def parameters: Seq[Parameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
     def call(obj: Any, args: Array[Any]): Any
@@ -241,7 +241,7 @@ class CgscriptClass(
 
   case class UserMethod(
     id: Symbol,
-    parameters: Seq[MethodParameter],
+    parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     body: StatementSequenceNode
@@ -284,7 +284,7 @@ class CgscriptClass(
 
   case class SystemMethod(
     id: Symbol,
-    parameters: Seq[MethodParameter],
+    parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     javaMethod: java.lang.reflect.Method
@@ -316,7 +316,7 @@ class CgscriptClass(
 
   case class ExplicitMethod(
     id: Symbol,
-    parameters: Seq[MethodParameter],
+    parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean)
     (fn: (Any, Any) => Any) extends Method {
@@ -339,7 +339,7 @@ class CgscriptClass(
 
   case class UserConstructor(
     id: Symbol,
-    parameters: Seq[MethodParameter]
+    parameters: Seq[Parameter]
   ) extends Constructor {
 
     private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
@@ -362,7 +362,7 @@ class CgscriptClass(
 
   case class SystemConstructor(
     id: Symbol,
-    parameters: Seq[MethodParameter],
+    parameters: Seq[Parameter],
     javaConstructor: java.lang.reflect.Constructor[_]
   ) extends Constructor {
 
@@ -578,13 +578,13 @@ class CgscriptClass(
 
   }
 
-  private def parseParameterList(node: ParametersNode): Seq[MethodParameter] = {
+  private def parseParameterList(node: ParametersNode): Seq[Parameter] = {
 
     node.parameters.map { n =>
       val ttype = CgscriptPackage.lookupClass(n.classId.id) getOrElse {
         sys.error("unknown symbol")
       }
-      MethodParameter(n.id.id, ttype, n.defaultValue)
+      Parameter(n.id.id, ttype, n.defaultValue)
     }
 
   }
@@ -593,7 +593,7 @@ class CgscriptClass(
 
 }
 
-case class MethodParameter(id: Symbol, paramType: CgscriptClass, defaultValue: Option[EvalNode]) {
+case class Parameter(id: Symbol, paramType: CgscriptClass, defaultValue: Option[EvalNode]) {
   val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "")
   var methodScopeIndex = -1
 }

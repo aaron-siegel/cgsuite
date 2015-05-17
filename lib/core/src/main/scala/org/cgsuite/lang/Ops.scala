@@ -25,7 +25,7 @@ object Ops {
     case (x: Game) => ExplicitGame(x)(-x)
   }
 
-  val NewPlus = CachingBinOp("+") {
+  val Plus = CachingBinOp("+") {
     case (_: Game, _: Zero) => (x: Game, _: Zero) => x
     case (_: Zero, _: Game) => (_: Zero, y: Game) => y
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x + y
@@ -41,6 +41,7 @@ object Ops {
   }
 
   def toOutput(str: String) = new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), str)
+
   def outputSum(o1: Output, o2: Output) = {
     val result = new StyledTextOutput()
     result.appendOutput(o1)

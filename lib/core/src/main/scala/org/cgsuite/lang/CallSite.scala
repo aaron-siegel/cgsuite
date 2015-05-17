@@ -11,7 +11,7 @@ object CallSite {
 
 trait CallSite {
 
-  def parameters: Seq[MethodParameter]
+  def parameters: Seq[Parameter]
   def call(args: Array[Any]): Any
   def ordinal: Int
 
