@@ -6,9 +6,11 @@
 
 package org.cgsuite.core
 
-trait CanonicalStopperSidedGame extends Game
+trait CanonicalStopperSidedGame extends Game {
 
-trait CanonicalStopperGame extends CanonicalStopperSidedGame
+  def isZero = this == ZeroImpl
+
+}
 
 /*
 sealed trait Integer extends DyadicRationalNumber with Ordered[Integer] {

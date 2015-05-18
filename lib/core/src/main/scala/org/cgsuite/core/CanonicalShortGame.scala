@@ -14,6 +14,8 @@ import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{OutputTarget, Output, StyledTextOutput}
 
+import scala.collection.mutable
+
 object CanonicalShortGame {
   
   private[cgsuite] def apply(gameId: Int): CanonicalShortGame = {
@@ -79,15 +81,17 @@ object CanonicalShortGame {
   }
 }
 
-trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
+trait CanonicalShortGame extends CanonicalStopperGame {
 
   def gameId: Int
 
+  def loopyGame = new LoopyGame(this)
+
   override def unary_- = CanonicalShortGame(ops.getNegative(gameId))
 
-  def +(other: CanonicalShortGame) = CanonicalShortGame(ops.add(gameId, other.gameId))
+  override def +(other: CanonicalShortGame) = CanonicalShortGame(ops.add(gameId, other.gameId))
 
-  def -(other: CanonicalShortGame) = CanonicalShortGame(ops.subtract(gameId, other.gameId))
+  override def -(other: CanonicalShortGame) = CanonicalShortGame(ops.subtract(gameId, other.gameId))
 
   override def nCopies(n: Integer) = n.nortonMultiply(this)
 
@@ -110,7 +114,7 @@ trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
     }
   }
 
-  def sortedOptions(player: Player): Seq[CanonicalShortGame] = {
+  override def sortedOptions(player: Player): Seq[CanonicalShortGame] = {
     options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
@@ -120,15 +124,17 @@ trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
 
   def isInfinitesimal: Boolean = leftStop == Values.zero && rightStop == Values.zero
 
-  def isInteger: Boolean = ops.isInteger(gameId)
+  override def isInteger: Boolean = ops.isInteger(gameId)
+
+  override def isLoopfree = true
 
   def isNimber: Boolean = ops.isNimber(gameId)
 
-  def isNumber: Boolean = ops.isNumber(gameId)
+  override def isNumber: Boolean = ops.isNumber(gameId)
 
   def isNumberish: Boolean = leftStop == rightStop
 
-  def isNumberTiny: Boolean = {
+  override def isNumberTiny: Boolean = {
     val gl = options(Left)
     val gr = options(Right)
     if (gl.size == 1 && gr.size == 1 && gl.head.isNumber) {
@@ -158,13 +164,13 @@ trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
 
   def thermograph: Thermograph = ops.thermograph(gameId)
 
-  def toOutput: StyledTextOutput = {
+  override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
     appendTo(sto, true, false)
     sto
   }
 
-  protected def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
+  override private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
 
     if (Thread.interrupted()) {
       throw new InputException("Calculation canceled by user.")
@@ -266,10 +272,22 @@ trait CanonicalShortGame extends CanonicalStopperGame with OutputTarget {
 
   }
 
+  override private[core] def appendTo(
+    output: StyledTextOutput,
+    forceBrackets: Boolean,
+    forceParens: Boolean,
+    nodeStack: mutable.Map[CanonicalStopperGame, Option[String]],
+    numNamedNodes: Array[Int]
+    ): Int = {
+
+      appendTo(output, forceBrackets, forceParens)
+
+  }
+
 }
 
 case class CanonicalShortGameImpl(gameId: Int) extends CanonicalShortGame {
-  
+
   assert(!isNumberUpStar)
-  
+
 }

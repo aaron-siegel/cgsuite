@@ -44,7 +44,7 @@ trait NumberUpStar extends CanonicalShortGame {
   override def leftStop = numberPart
   override def rightStop = numberPart
 
-  override protected def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
+  override private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
 
     if (forceParens && !isNumber && !isNimber && !(numberPart == Values.zero && nimberPart == 0)) {
       // Not a number, nimber, or up multiple.  Force parens to clarify.

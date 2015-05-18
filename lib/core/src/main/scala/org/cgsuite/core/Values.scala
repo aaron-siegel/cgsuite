@@ -29,4 +29,9 @@ private[cgsuite] trait ValuesTrait {
   val negativeInfinity = RationalNumber(-1, 0)
   val nan = RationalNumber(0, 0)
 
+  val on = CanonicalStopperGame(LoopyGame.ON)
+  val off = CanonicalStopperGame(LoopyGame.OFF)
+  val over = CanonicalStopperGame(LoopyGame.OVER)
+  val under = CanonicalStopperGame(LoopyGame.UNDER)
+
 }
