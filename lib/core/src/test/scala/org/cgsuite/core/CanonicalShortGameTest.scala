@@ -7,49 +7,48 @@
 package org.cgsuite.core
 
 import org.cgsuite.dsl._
-import org.junit.runner.RunWith
-import org.specs2.mutable._
-import org.specs2.runner._
+import org.scalatest.{FlatSpec, Matchers}
 
-@RunWith(classOf[JUnitRunner])
-class CanonicalShortGameTest extends Specification {
+class CanonicalShortGameTest extends FlatSpec with Matchers {
 
-  "CanonicalShortGame" should {
+  val switch = CanonicalShortGame(Integer(3))(CanonicalShortGame(Integer(2))(Integer(1)))
 
-    val switch = CanonicalShortGame(Integer(3))(CanonicalShortGame(Integer(2))(Integer(1)))
+  "CanonicalShortGame" should "return the correct options" in {
 
-    "return the correct options" in {
+    switch.options(Left) shouldBe Set(Integer(3))
+    switch.options(Right) shouldBe Set(CanonicalShortGame(Integer(2))(Integer(1)))
 
-      switch.options(Left) must_== Iterable(Integer(3))
-      switch.options(Right) must_== Iterable(CanonicalShortGame(Integer(2))(Integer(1)))
+  }
 
-    }
+  it should "compute sums and negatives correctly" in {
 
-    "compute sums and negatives correctly" in {
-      
-      val doubleUp = up + up
-      doubleUp.options(Left) must_== Iterable(zero)
-      doubleUp.options(Right) must_== Iterable(upStar)
+    val doubleUp = up + up
+    doubleUp.options(Left) shouldBe Set(zero)
+    doubleUp.options(Right) shouldBe Set(upStar)
 
-      val tripleUp = doubleUp + up
-      tripleUp.options(Right) must_== Iterable(doubleUp + star)
-      
-      val doubled = switch + switch
-      doubled.options(Left) must_== Iterable(Integer(5))
-      doubled.options(Right).head.options(Right) must_== Iterable(Integer(3))
-      doubled.options(Right).head.options(Left) must_== Iterable(Integer(4), CanonicalShortGame(Integer(5))(Integer(4)))
+    val tripleUp = doubleUp + up
+    tripleUp.options(Right) shouldBe Set(doubleUp + star)
 
-      switch must_== doubled - switch
-      switch must_== doubled + (-switch)
-      
-    }
+    val doubled = switch + switch
+    doubled.options(Left) shouldBe Set(Integer(5))
+    doubled.options(Right).head.options(Right) shouldBe Set(Integer(3))
+    doubled.options(Right).head.options(Left) shouldBe Set(Integer(4), CanonicalShortGame(Integer(5))(Integer(4)))
 
-    "compute mean and temperature correctly" in {
+    switch shouldBe doubled - switch
+    switch shouldBe doubled + (-switch)
 
-      switch.mean must_== DyadicRationalNumber(9, 4)
-      switch.temperature must_== DyadicRationalNumber(3, 4)
+  }
 
-    }
+  it should "give the correct properties for {3||2|1}" in {
+
+    switch should have (
+      'birthday (Integer(4)),
+      'leftStop (Integer(3)),
+      'mean (DyadicRationalNumber(9, 4)),
+      'rightStop (Integer(2)),
+      'stopCount (Integer(3)),
+      'temperature (DyadicRationalNumber(3, 4))
+    )
 
   }
 

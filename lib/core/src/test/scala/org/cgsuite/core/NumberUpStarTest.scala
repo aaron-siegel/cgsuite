@@ -1,23 +1,16 @@
 package org.cgsuite.core
 
 import org.cgsuite.dsl._
-import org.junit.runner.RunWith
-import org.specs2.mutable._
-import org.specs2.runner._
+import org.scalatest.{FlatSpec, Matchers}
 
-@RunWith(classOf[JUnitRunner])
-class NumberUpStarTest extends Specification {
+class NumberUpStarTest extends FlatSpec with Matchers {
 
-  "NumberUpStar" should {
+  "NumberUpStar" should "return correct options" in {
 
-    "return correct options" in {
-
-      up.options(Left) must_== Iterable(zero)
-      up.options(Right) must_== Iterable(star)
-      upStar.options(Left) must_== Iterable(zero, star)
-      upStar.options(Right) must_== Iterable(zero)
-
-    }
+    up.options(Left) shouldBe Set(zero)
+    up.options(Right) shouldBe Set(star)
+    upStar.options(Left) shouldBe Set(zero, star)
+    upStar.options(Right) shouldBe Set(zero)
 
   }
 

@@ -24,7 +24,7 @@ system class List
 
   override def ToOutput begin
     if IsEmpty then
-      "nil"
+      cgsuite.util.output.TextOutput("nil")
     else
       "[" + MkOutput(",".ToOutput) + "]";
     end

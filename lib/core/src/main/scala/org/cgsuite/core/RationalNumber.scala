@@ -81,9 +81,9 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
 
   def pow(other: Integer): RationalNumber = {
     if (other >= Values.zero) {
-      RationalNumber(numerator.pow(other), denominator.pow(other))
+      RationalNumber(numerator.integerPow(other), denominator.integerPow(other))
     } else {
-      RationalNumber(denominator.pow(-other), numerator.pow(-other))
+      RationalNumber(denominator.integerPow(-other), numerator.integerPow(-other))
     }
   }
 

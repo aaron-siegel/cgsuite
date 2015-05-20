@@ -19,8 +19,15 @@ object CanonicalStopperGame {
     } else if (loopyGame.isStopper) {
       CanonicalStopperGameImpl(loopyGame.canonicalizeStopperInternal())
     } else {
-      throw new InputException("not a stopper")
+      throw new InputException(s"not a stopper: $loopyGame")
     }
+  }
+
+  def apply(lo: Iterable[CanonicalStopperGame], ro: Iterable[CanonicalStopperGame]): CanonicalStopperGame = {
+    val thisNode = new LoopyGame.Node()
+    lo foreach { gl => thisNode.addLeftEdge(gl.loopyGame) }
+    ro foreach { gr => thisNode.addRightEdge(gr.loopyGame) }
+    CanonicalStopperGame(new LoopyGame(thisNode))
   }
 
   private[core] def nthName(n: Int) = {
@@ -87,9 +94,15 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
   def -(that: CanonicalStopperGame): CanonicalStopperGame
   */
 
+  def +(that: CanonicalStopperGame): CanonicalStopperSidedGame = {
+    CanonicalStopperGame(loopyGame.add(that.loopyGame))   // TODO
+  }
+
   def +(that: CanonicalShortGame): CanonicalStopperGame = {
     CanonicalStopperGame(loopyGame.add(new LoopyGame(that)))
   }
+
+  def -(that: CanonicalStopperGame): CanonicalStopperSidedGame = this + (-that)
 
   def -(that: CanonicalShortGame): CanonicalStopperGame = this + (-that)
 

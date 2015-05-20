@@ -22,6 +22,8 @@ object Ops {
 
   val PlusMinus = UnOp("+-") {
     case (x: CanonicalShortGame) => CanonicalShortGame(x)(-x)
+    case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalShortGame] } =>
+      CanonicalShortGame(x.asInstanceOf[Set[CanonicalShortGame]], x.asInstanceOf[Set[CanonicalShortGame]] map { -_ })
     case (x: Game) => ExplicitGame(x)(-x)
   }
 
@@ -32,6 +34,7 @@ object Ops {
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x + y
     case (_: NumberUpStar, _: NumberUpStar) => (x: NumberUpStar, y: NumberUpStar) => x + y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
+    case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
     case (_: String, _: String) => (x: String, y: String) => x + y
@@ -55,7 +58,8 @@ object Ops {
     case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x - y
     case (_: RationalNumber, _:RationalNumber) => (x: RationalNumber, y: RationalNumber) => x - y
     case (_: NumberUpStar, _:NumberUpStar) => (x: NumberUpStar, y: NumberUpStar) => x - y
-    case (_: CanonicalShortGame, _:CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
+    case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
+    case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x - y
     case (_: Game, _:Game) => (x: Game, y: Game) => x - y
     case (_: Coordinates, _:Coordinates) => (x: Coordinates, y: Coordinates) => x - y
   }

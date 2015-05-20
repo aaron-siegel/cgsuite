@@ -1,0 +1,110 @@
+package org.cgsuite.lang
+
+import org.cgsuite.exception.InputException
+import org.cgsuite.lang.parser.ParserUtil
+import org.cgsuite.output.Output
+import org.scalatest.prop.{TableFor3, PropertyChecks}
+import org.scalatest.{FlatSpec, Matchers}
+
+import scala.collection.mutable
+
+// CGScript Functional Tests.
+
+class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
+
+  "CGScript" should "process basic expressions" in {
+
+    execute(Table(
+      ("Test Name", "input", "expected output"),
+      ("Simple echo", "0", "0"),
+      ("Semicolon suppress output", "0;", "nil"),
+      ("Variable assignment", "g := 7", "7"),
+      ("Variable retrieval", "g", "7"),
+      ("Multivee/identifier parse check", "vvvvx := vvvvv", "v5"),
+      ("Assign to name of class", "Integer := 5", "!!Cannot assign to class name as variable: `Integer`")
+    ))
+
+  }
+
+  it should "process arithmetic expressions" in {
+
+    execute(Table(
+      ("Test Name", "input", "expected output"),
+      ("Integer addition", "3+5", "8"),
+      ("Integer multiplication", "3*5", "15"),
+      ("Integer exponentiation", "3^5", "243"),
+      ("Rational number", "4/6", "2/3"),
+      ("Rational exponentiation", "(1/2)^4", "1/16"),
+      ("Negative power", "2^(-4)", "1/16"),
+      ("Negative power of rational", "(2/3)^(-3)", "27/8"),
+      ("Integer modulus", "17 % 5", "2"),
+      ("Rational modulus", "(17/6) % (1/3)", "1/6"),
+      ("Nimber addition", "*3+*5", "*6"),
+      ("Nimber operator", "*(3+5)", "*8"),
+      ("Ups", "^^^^^^+vvv*+^19*3+v14", "^8*2"),
+      ("Integer plus rational", "2 + 3/4", "11/4"),
+      ("Integer plus canonical game", "2 + (1+*)", "3*"),
+      ("Integer minus rational", "2 - 3/4", "5/4"),
+      ("Integer minus canonical game", "2 - (1+*)", "1*"),
+      ("Dyadic plus non-dyadic", "1/2 + 1/3", "5/6"),
+      ("Dyadic times non-dyadic", "(1/2) * (1/3)", "1/6")
+    ))
+
+  }
+
+  it should "correctly interpret canonical forms" in {
+    execute(Table(
+      ("Test Name", "input", "expected output"),
+      ("Composition", "{0|^*5}", "^^*4"),
+      ("Slashes", "{3|||2||1|0,*||||-1/2}", "{3|||2||1|0,*||||-1/2}"),
+      ("Ambiguous slashes", "{3|2|1}", "!!Syntax error: null"),
+      ("Floating slash", "1|0", "!!Syntax error: missing EOF at '|'"),
+      ("Switch", "+-1", "+-1"),
+      ("Fractional switch", "+-1/2", "+-1/2"),
+      ("Multiple switch", "+-{1,1+*}", "+-{1,1*}"),
+      ("Number + switch", "3+-1", "{4|2}"),
+      ("Compound switch", "+-1+-2+-3+-4", "+-{10|8||6|4|||4|2||0|-2}"),
+      ("Tiny", "{0||0|-1}", "1.Tiny"),
+      ("Tiny fraction", "{0||0|-1/4}", "(1/4).Tiny"),
+      ("Tiny G", "{0|||0||-1|-2}", "{2|1}.Tiny"),
+      ("Miny", "{1|0||0}", "1.Miny"),
+      ("Pow", "{0|v*}", "^.Pow(2)"),
+      ("Pow*", "{0,*|v}", "^.Pow(2)+*"),
+      ("PowTo", "{^|*}", "^.PowTo(2)"),
+      ("PowTo*", "{0,^*|0}", "^.PowTo(2)+*"),
+      ("Explicit game", "'{*|*}'", "'{*|*}'"),
+      ("Explicit game ordinal sum", "'{*|*}':1", "^")
+    ))
+  }
+
+  def execute(tests: TableFor3[String, String, String]): Unit = {
+
+    CgscriptClass.clearAll()
+    CgscriptClass.Object.ensureLoaded()
+
+    val varMap = mutable.AnyRefMap[Symbol, Any]()
+
+    forAll(tests) { (_, input: String, expectedOutput: String) =>
+      if (expectedOutput startsWith "!!") {
+        val thrown = the [InputException] thrownBy parseResult(input, varMap)
+        thrown.getMessage shouldBe (expectedOutput stripPrefix "!!")
+      } else {
+        val result = parseResult(input, varMap)
+        val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
+        output shouldBe an[Output]
+        output.toString shouldBe expectedOutput
+      }
+    }
+
+  }
+
+  def parseResult(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Any = {
+    val tree = ParserUtil.parseScript(input)
+    val node = EvalNode(tree.getChild(0))
+    val scope = Scope(None, Set.empty)
+    node.elaborate(scope)
+    val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(varMap))
+    node.evaluate(domain)
+  }
+
+}

@@ -76,7 +76,7 @@ trait Integer extends DyadicRationalNumber {
   
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
 
-  override def pow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
+  def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
 
   def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
   

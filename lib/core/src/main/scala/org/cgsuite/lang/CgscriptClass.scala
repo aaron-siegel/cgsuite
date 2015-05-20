@@ -57,6 +57,7 @@ object CgscriptClass {
     "game.Nimber" -> classOf[Nimber],
     "game.NumberUpStar" -> classOf[NumberUpStar],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
+    "game.CanonicalStopperGame" -> classOf[CanonicalStopperGame],
     "game.Game" -> classOf[Game],
 
     "game.Player" -> classOf[Player]

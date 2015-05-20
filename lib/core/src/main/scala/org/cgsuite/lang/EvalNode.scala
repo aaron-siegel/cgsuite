@@ -80,8 +80,15 @@ object EvalNode {
 
       // Game construction
 
-      case SLASHES => GameSpecNode(tree, gameOptions(tree.getChild(0)), gameOptions(tree.getChild(1)), forceExplicit = false)
+      case SLASHES =>
+        if (tree.getChild(0).getType == EXPRESSION_LIST && tree.getChild(0).children.exists { _.getType == PASS } ||
+            tree.getChild(1).getType == EXPRESSION_LIST && tree.getChild(1).children.exists { _.getType == PASS })
+          LoopyGameSpecNode(tree)
+        else
+          GameSpecNode(tree, gameOptions(tree.getChild(0)), gameOptions(tree.getChild(1)), forceExplicit = false)
       case SQUOTE => GameSpecNode(tree, gameOptions(tree.getChild(0).getChild(0)), gameOptions(tree.getChild(0).getChild(1)), forceExplicit = true)
+      case NODE_LABEL => LoopyGameSpecNode(tree)
+      case PASS => throw InputException("Unexpected `pass`.", tree)
 
       // Control flow
 
@@ -187,6 +194,22 @@ trait EvalNode extends Node {
       case sublist: Iterable[_] =>
         sublist map {
           case g: Game => g
+          case _ => sys.error("must be a list of games")
+        }
+      case _ => sys.error("must be a list of games")
+    }
+  }
+
+  def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
+    evaluate(domain) match {
+      case g: CanonicalShortGame => Iterable(new LoopyGame.Node(g))
+      case g: CanonicalStopperGame => Iterable(new LoopyGame.Node(g.loopyGame))   // TODO Refactor LoopyGame to consolidate w/ above
+      case node: LoopyGame.Node => Iterable(node)
+      case sublist: Iterable[_] =>
+        sublist map {
+          case g: CanonicalShortGame => new LoopyGame.Node(g)
+          case g: CanonicalStopperGame => new LoopyGame.Node(g.loopyGame)   // TODO Refactor LoopyGame to consolidate w/ above
+          case node: LoopyGame.Node => node
           case _ => sys.error("must be a list of games")
         }
       case _ => sys.error("must be a list of games")
@@ -405,10 +428,12 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
   override val children = lo ++ ro
   override def evaluate(domain: Domain) = {
-    val gl = lo.flatMap { _.evaluateAsGame(domain) }
-    val gr = ro.flatMap { _.evaluateAsGame(domain) }
+    val gl = lo flatMap { _.evaluateAsGame(domain) }
+    val gr = ro flatMap { _.evaluateAsGame(domain) }
     if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
       CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
+    } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopperGame] }) {
+      CanonicalStopperGame(gl map { _.asInstanceOf[CanonicalStopperGame] }, gr map { _.asInstanceOf[CanonicalStopperGame] })
     } else {
       ExplicitGame(gl, gr)
     }
@@ -418,6 +443,82 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
     val roStr = ro map { _.toNodeString } mkString ","
     s"{$loStr | $roStr}"
   }
+}
+
+object LoopyGameSpecNode {
+
+  def apply(tree: Tree): EvalNode = {
+    tree.getType match {
+      case NODE_LABEL => make(tree, Some(IdentifierNode(tree.getChild(0))), tree.getChild(1))
+      case SLASHES => make(tree, None, tree)
+      case _ => EvalNode(tree)
+    }
+  }
+
+  def make(tree: Tree, nodeLabel: Option[IdentifierNode], body: Tree): LoopyGameSpecNode = {
+    assert(body.getType == SLASHES)
+    val (loPass, lo) = loopyGameOptions(tree.getChild(0))
+    val (roPass, ro) = loopyGameOptions(tree.getChild(1))
+    LoopyGameSpecNode(tree, nodeLabel, lo, ro, loPass, roPass)
+  }
+
+  private def loopyGameOptions(tree: Tree): (Boolean, Seq[EvalNode]) = {
+    tree.getType match {
+      case SLASHES => (false, Seq(LoopyGameSpecNode(tree)))
+      case EXPRESSION_LIST =>
+        val (pass, opts) = tree.children partition { _.getType == PASS }
+        (pass.nonEmpty, opts map { LoopyGameSpecNode(_) })
+      case _ => (false, Seq(EvalNode(tree)))
+    }
+  }
+}
+
+case class LoopyGameSpecNode(
+  tree: Tree,
+  nodeLabel: Option[IdentifierNode],
+  lo: Seq[EvalNode],
+  ro: Seq[EvalNode],
+  loPass: Boolean,
+  roPass: Boolean
+  ) extends EvalNode {
+
+  override val children = nodeLabel ++ lo ++ ro
+
+  override def elaborate(scope: Scope): Unit = {
+    nodeLabel foreach { idNode =>
+      scope.scopeStack push mutable.HashSet()
+      scope.insertId(idNode.id)
+    }
+    super.elaborate(scope)
+    nodeLabel foreach { _ => scope.scopeStack.pop() }
+  }
+
+  override def evaluate(domain: Domain) = {
+    val thisNode = evaluateLoopy(domain).head
+    CanonicalStopperGame(new LoopyGame(thisNode))    // TODO General loopy games
+  }
+
+  override def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
+    val thisNode = new LoopyGame.Node()
+    if (nodeLabel.isDefined)
+      domain.localScope(nodeLabel.get.methodScopeIndex) = thisNode
+    lo flatMap { _.evaluateLoopy(domain) } foreach { thisNode.addLeftEdge }
+    ro flatMap { _.evaluateLoopy(domain) } foreach { thisNode.addRightEdge }
+    if (loPass)
+      thisNode.addLeftEdge(thisNode)
+    if (roPass)
+      thisNode.addRightEdge(thisNode)
+    if (nodeLabel.isDefined)
+      domain.localScope(nodeLabel.get.methodScopeIndex) = Nil
+    Iterable(thisNode)
+  }
+
+  def toNodeString = {
+    val loStr = (lo map { _.toNodeString }) ++ (if (loPass) Some("pass") else None) mkString ","
+    val roStr = (ro map { _.toNodeString }) ++ (if (roPass) Some("pass") else None) mkString ","
+    s"{$loStr | $roStr}"
+  }
+
 }
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
@@ -814,7 +915,7 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDec
     if (id.methodScopeIndex >= 0) {
       domain.localScope(id.methodScopeIndex) = newValue
     } else if (id.classResolution != null) {
-      throw InputException(s"Cannot assign to class name as variable: ${id.id.name}", token = Some(token))
+      throw InputException(s"Cannot assign to class name as variable: `${id.id.name}`", token = Some(token))
     } else if (domain.isOuterDomain) {
       domain.putDynamicVar(id.id, newValue)
     } else {
@@ -840,7 +941,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends 
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
   override def elaborate(scope: Scope) = {
-    scope.scopeStack.push(mutable.HashSet())
+    scope.scopeStack push mutable.HashSet()
     statements.foreach { _.elaborate(scope) }
     scope.scopeStack.pop()
   }

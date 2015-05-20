@@ -1,53 +1,48 @@
 package org.cgsuite.lang.parser
 
-import org.junit.runner.RunWith
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.cgsuite.core._
 import org.cgsuite.core.Values._
-import org.cgsuite.lang.{Namespace, Node, Domain}
+import org.cgsuite.core._
+import org.cgsuite.lang._
+import org.scalatest.{FlatSpec, Matchers}
 
-         /*
-@RunWith(classOf[JUnitRunner])
-class CgsuiteParserTest extends Specification {
 
-  "CgsuiteParser" should {
+class CgsuiteParserTest extends FlatSpec with Matchers {
 
-    "parse" in {
+  "CgsuiteParser" should "parse simple expressions" in {
 
-      testExpr("5 + 4", Integer(9))
+    testExpr("5 + 4", Integer(9))
 
-    }
+  }
 
-    "parse ups and stars" in {
+  it should "parse ups and stars" in {
 
-      testExpr("*", star)
-      testExpr("*2", starTwo)
-      //testExpr("*(1+1)", starTwo)
-      testExpr("^", up)
-      testExpr("^*", upStar)
-      testExpr("^*2", up + starTwo)
-      testExpr("^^", up + up)
-      testExpr("^^^", up + up + up)
-      testExpr("^3", up + up + up)
-      testExpr("^^*", up + up + star)
-      testExpr("v", down)
-      testExpr("vv", down + down)
-      testExpr("v3", down + down + down)
-      testExpr("v3*2", down + down + down + starTwo)
-
-    }
+    testExpr("*", star)
+    testExpr("*2", starTwo)
+    testExpr("*(1+1)", starTwo)
+    testExpr("^", up)
+    testExpr("^*", upStar)
+    testExpr("^*2", up + starTwo)
+    testExpr("^^", up + up)
+    testExpr("^^^", up + up + up)
+    testExpr("^3", up + up + up)
+    testExpr("^^*", up + up + star)
+    testExpr("v", down)
+    testExpr("vv", down + down)
+    testExpr("v3", down + down + down)
+    testExpr("v3*2", down + down + down + starTwo)
 
   }
 
   def testExpr(str: String, expected: Any) = {
 
     val tree = ParserUtil.parseExpression(str)
-    val namespace = Namespace.checkout(None, Map.empty)
-    Node(tree).evaluate(new Domain(namespace)) must_== expected
-    Namespace.checkin(namespace)
+    val node = EvalNode(tree)
+    val scope = Scope(None, Set.empty)
+    node.elaborate(scope)
+    val domain = new Domain(new Array[Any](scope.varMap.size))
+    val result = node.evaluate(domain)
+    result shouldBe expected
 
   }
 
 }
-        */

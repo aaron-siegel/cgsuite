@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 
 import org.antlr.runtime.tree.Tree
 import org.antlr.runtime.{CharStream, CommonTokenStream}
+import org.cgsuite.exception.InputException
 
 
 object ParserUtil {
@@ -34,9 +35,9 @@ object ParserUtil {
     val tree = fn(parser).getTree().asInstanceOf[Tree]
 
     if (!lexer.getErrors.isEmpty) {
-      sys.error(lexer.getErrors.toString)
+      throw InputException("Syntax error: " + lexer.getErrors.get(0).getMessage)
     } else if (!parser.getErrors.isEmpty) {
-      sys.error(parser.getErrors.toString)
+      throw InputException("Syntax error: " + parser.getErrors.get(0).getMessage)
     } else {
       tree
     }

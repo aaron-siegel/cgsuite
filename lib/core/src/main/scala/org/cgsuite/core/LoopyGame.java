@@ -285,7 +285,7 @@ public class LoopyGame
                     rightEdges = rightEdgeObjs;
                     rightEdgesSize = rightEdgeObjs.size();
                 }
-                else
+                else if (o instanceof Game)
                 {
                     scala.collection.Iterable<Game> loScala = ((Game) o).leftOptions();
                     scala.collection.Iterable<Game> roScala = ((Game) o).rightOptions();
@@ -297,6 +297,14 @@ public class LoopyGame
                     {
                         graphInfo.canonical[vertex] = true;
                     }
+                }
+                else
+                {
+                    assert(o instanceof LoopyGame);
+                    leftEdges = ((LoopyGame) o).getLeftOptions();
+                    rightEdges = ((LoopyGame) o).getRightOptions();
+                    leftEdgesSize = ((Set<?>) leftEdges).size();
+                    rightEdgesSize = ((Set<?>) rightEdges).size();
                 }
                 pg.leftEdges[vertex] = new int[leftEdgesSize];
                 pg.rightEdges[vertex] = new int[rightEdgesSize];
@@ -350,7 +358,7 @@ public class LoopyGame
                 }
             }
         }
-        else if (o instanceof CanonicalShortGame || o instanceof LoopyGame)
+        else if (o instanceof CanonicalShortGame)
         {
             Game g = (Game) o;
             nodeMap.put(g, nextVertexOrdinal);
@@ -360,6 +368,20 @@ public class LoopyGame
                 nextVertexOrdinal = serializeNodes(nodes, nodeMap, opt, nextVertexOrdinal);
             }
             for (Game opt : JavaConverters.asJavaIterableConverter(g.rightOptions()).asJava())
+            {
+                nextVertexOrdinal = serializeNodes(nodes, nodeMap, opt, nextVertexOrdinal);
+            }
+        }
+        else if (o instanceof LoopyGame)
+        {
+            LoopyGame g = (LoopyGame) o;
+            nodeMap.put(g, nextVertexOrdinal);
+            nextVertexOrdinal++;
+            for (LoopyGame opt : g.getLeftOptions())
+            {
+                nextVertexOrdinal = serializeNodes(nodes, nodeMap, opt, nextVertexOrdinal);
+            }
+            for (LoopyGame opt : g.getRightOptions())
             {
                 nextVertexOrdinal = serializeNodes(nodes, nodeMap, opt, nextVertexOrdinal);
             }

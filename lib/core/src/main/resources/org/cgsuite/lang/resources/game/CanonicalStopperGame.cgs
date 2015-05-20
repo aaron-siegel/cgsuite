@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+system class CanonicalShortGame extends Game
+
+  override external def Options(Player player);
+
+  override external def ToOutput;
+
+end
