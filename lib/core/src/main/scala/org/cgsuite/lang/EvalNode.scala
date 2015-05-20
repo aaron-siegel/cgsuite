@@ -99,7 +99,7 @@ object EvalNode {
         Option(tree.getChild(2)).map { EvalNode(_) }
       )
       case ERROR => ErrorNode(tree, EvalNode(tree.getChild(0)))
-      case DO | YIELD | LISTOF | SETOF => LoopNode(tree)
+      case DO | YIELD | LISTOF | SETOF | TABLEOF | SUMOF => LoopNode(tree)
 
       // Procedures
 
@@ -457,8 +457,8 @@ object LoopyGameSpecNode {
 
   def make(tree: Tree, nodeLabel: Option[IdentifierNode], body: Tree): LoopyGameSpecNode = {
     assert(body.getType == SLASHES)
-    val (loPass, lo) = loopyGameOptions(tree.getChild(0))
-    val (roPass, ro) = loopyGameOptions(tree.getChild(1))
+    val (loPass, lo) = loopyGameOptions(body.getChild(0))
+    val (roPass, ro) = loopyGameOptions(body.getChild(1))
     LoopyGameSpecNode(tree, nodeLabel, lo, ro, loPass, roPass)
   }
 
@@ -785,7 +785,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       val y = idNode.resolver.resolve(x)
       if (y == null)
         throw InputException(
-          s"Not a member variable: `${idNode.id.name}` (in object of class `${CgscriptClass.of(x).qualifiedName}`)",
+          s"Not a method or member variable: `${idNode.id.name}` (in object of class `${CgscriptClass.of(x).qualifiedName}`)",
           token = Some(token)
         )
       else

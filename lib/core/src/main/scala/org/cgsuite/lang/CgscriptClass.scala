@@ -29,15 +29,15 @@ object CgscriptClass {
 
   private val typedSystemClasses = Seq(
 
-    "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
     "cgsuite.lang.Class" -> classOf[ClassObject],
+    "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
+    "cgsuite.lang.String" -> classOf[String],
     "cgsuite.lang.Coordinates" -> classOf[Coordinates],
     "cgsuite.lang.List" -> classOf[Seq[_]],
+    "cgsuite.lang.Set" -> classOf[Set[_]],
     "cgsuite.lang.Map" -> classOf[Map[_, _]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
     "cgsuite.lang.Procedure" -> classOf[Procedure],
-    "cgsuite.lang.Set" -> classOf[Set[_]],
-    "cgsuite.lang.String" -> classOf[String],
     "cgsuite.lang.System" -> classOf[System],
 
     "cgsuite.util.Grid" -> classOf[Grid],
@@ -384,7 +384,7 @@ class CgscriptClass(
   }
 
   def setURL(url: URL) {
-    println(s"Declaring class: ${id.name} at $url")
+    println(s"Declaring class $classOrdinal: ${id.name} at $url")
     this.url = url
     unload()
   }

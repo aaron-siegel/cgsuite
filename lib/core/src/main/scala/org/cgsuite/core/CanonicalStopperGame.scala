@@ -17,7 +17,11 @@ object CanonicalStopperGame {
     if (loopyGame.isLoopfree) {
       toCanonicalShortGame(loopyGame)
     } else if (loopyGame.isStopper) {
-      CanonicalStopperGameImpl(loopyGame.canonicalizeStopperInternal())
+      val canonical = loopyGame.canonicalizeStopperInternal()
+      if (canonical.isLoopfree)
+        toCanonicalShortGame(canonical)
+      else
+        CanonicalStopperGameImpl(canonical)
     } else {
       throw new InputException(s"not a stopper: $loopyGame")
     }
@@ -29,6 +33,8 @@ object CanonicalStopperGame {
     ro foreach { gr => thisNode.addRightEdge(gr.loopyGame) }
     CanonicalStopperGame(new LoopyGame(thisNode))
   }
+
+  def apply(lo: CanonicalStopperGame*)(ro: CanonicalStopperGame*): CanonicalStopperGame = apply(lo, ro)
 
   private[core] def nthName(n: Int) = {
     if (n < 26)
@@ -184,7 +190,7 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
         Some((UponType.Upon, gr.asInstanceOf[CanonicalShortGame].leftStop))
       } else if (checkUponth && gl.isNumber) {
         (-gr + star).uponForm(false) match {
-          case Some((UponType.Upon, number)) if number == -gl.asInstanceOf[CanonicalShortGame].leftStop => Some((UponType.Uponth, number))
+          case Some((UponType.Upon, number)) if number == -gl.asInstanceOf[CanonicalShortGame].leftStop => Some((UponType.Uponth, -number))
           case _ => None
         }
       } else {
@@ -215,6 +221,7 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
     val ro = sortedOptions(Right)
 
     if (nodeStack.contains(this)) {
+
       val name = nodeStack(this) match {
         case Some(x) => x
         case None =>
@@ -224,14 +231,27 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
           x
       }
       output.appendMath(name); 0
+
     } else if (lo.size == 1 && ro.size == 0 && lo.head == this) {
+
       output.appendMath("on"); 0
+
     } else if (lo.size == 0 && ro.size == 1 && ro.head == this) {
+
       output.appendMath("off"); 0
-    } else if (lo.size == 1 && ro.size == 1 && lo.head == zero && ro.head == this) {
+
+    } else if (lo.size == 1 && ro.size == 1 && lo.head.isNumber && ro.head == this) {
+
+      if (lo.head != zero)
+        output.appendOutput(lo.head.toOutput)
       output.appendMath("over"); 0
-    } else if (lo.size == 1 && ro.size == 1 && lo.head == this && ro.head == zero) {
+
+    } else if (lo.size == 1 && ro.size == 1 && lo.head == this && ro.head.isNumber) {
+
+      if (ro.head != zero)
+        output.appendOutput(ro.head.toOutput)
       output.appendMath("under"); 0
+
     } else if (isNumberTiny || (-this).isNumberTiny) {
 
       val (str, translate, subscript) = {

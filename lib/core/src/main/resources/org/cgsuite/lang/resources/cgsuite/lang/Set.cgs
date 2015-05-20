@@ -4,6 +4,6 @@ system class Set
 
   external def ToList;
 
-  override def ToOutput := "{" + ToList.Sorted.MkOutput(",".ToOutput) + "}";
+  override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 
 end

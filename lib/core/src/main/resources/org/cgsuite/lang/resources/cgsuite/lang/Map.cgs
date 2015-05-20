@@ -7,9 +7,9 @@ system class Map
   override def ToOutput begin
     var entries := Entries;
     if entries.IsEmpty then
-      "{=>}".ToOutput
+      cgsuite.util.output.TextOutput("{=>}")
     else
-      "{" + Entries.Sorted.MkOutput(",".ToOutput) + "}"
+      "{" + Entries.Sorted.MkOutput(", ") + "}"
     end
   end
 

@@ -493,13 +493,7 @@ unaryAddExpr
     ;
 
 plusMinus
-options
-{
-    backtrack = true;
-    memoize = true;
-}
-    : PLUSMINUS LPAREN expression (COMMA expression)* RPAREN -> ^(PLUSMINUS expression*)
-    | PLUSMINUS^ sidleExpr
+    : PLUSMINUS^ sidleExpr
     ;
 
 sidleExpr

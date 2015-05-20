@@ -2,6 +2,6 @@
 
 system class Boolean
 
-  override def ToOutput := (if this then "true" else "false" end).ToOutput;
+  override def ToOutput := cgsuite.util.output.TextOutput(if this then "true" else "false" end);
 
 end

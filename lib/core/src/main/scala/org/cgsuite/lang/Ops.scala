@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import java.util
 
 import org.cgsuite.core._
+import org.cgsuite.exception.InputException
 import org.cgsuite.output.{StyledTextOutput, Output}
 import org.cgsuite.util.{Strip, Grid, Coordinates}
 import org.cgsuite.core.Values._
@@ -22,8 +23,11 @@ object Ops {
 
   val PlusMinus = UnOp("+-") {
     case (x: CanonicalShortGame) => CanonicalShortGame(x)(-x)
+    case (x: CanonicalStopperGame) => CanonicalStopperGame(x)(-x)
     case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalShortGame] } =>
       CanonicalShortGame(x.asInstanceOf[Set[CanonicalShortGame]], x.asInstanceOf[Set[CanonicalShortGame]] map { -_ })
+    case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalStopperGame] } =>
+      CanonicalStopperGame(x.asInstanceOf[Set[CanonicalStopperGame]], x.asInstanceOf[Set[CanonicalStopperGame]] map { -_ })
     case (x: Game) => ExplicitGame(x)(-x)
   }
 
@@ -177,6 +181,11 @@ class CachingUnOp(val name: String)(resolver: Any => _ => Any) extends UnOp {
 trait BinOp {
   def name: String
   def apply(x: Any, y: Any): Any
+  def throwInputException(x: Any, y: Any): Unit = {
+    val xClass = CgscriptClass.of(x).qualifiedName
+    val yClass = CgscriptClass.of(y).qualifiedName
+    throw InputException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`")
+  }
 }
 
 object BinOp {
@@ -184,7 +193,13 @@ object BinOp {
 }
 
 class SimpleBinOp(val name: String)(resolver: (Any, Any) => Any) extends BinOp {
-  def apply(x: Any, y: Any) = resolver(x, y)
+  def apply(x: Any, y: Any) = {
+    try {
+      resolver(x, y)
+    } catch {
+      case err: MatchError => throwInputException(x, y)
+    }
+  }
 }
 
 object CachingBinOp {
@@ -196,8 +211,12 @@ class CachingBinOp(val name: String)(resolver: (Any, Any) => (_, _) => Any) exte
   val classLookupCache = mutable.AnyRefMap[(Class[_], Class[_]), (Any, Any) => Any]()
 
   def apply(x: Any, y: Any): Any = {
-    val fn = classLookupCache.getOrElseUpdate((x.getClass, y.getClass), resolver(x, y).asInstanceOf[(Any, Any) => Any])
-    fn(x, y)
+    try {
+      val fn = classLookupCache.getOrElseUpdate((x.getClass, y.getClass), resolver(x, y).asInstanceOf[(Any, Any) => Any])
+      fn(x, y)
+    } catch {
+      case err: MatchError => throwInputException(x, y)
+    }
   }
 
 }

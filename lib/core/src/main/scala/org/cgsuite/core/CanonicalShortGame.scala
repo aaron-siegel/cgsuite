@@ -26,15 +26,13 @@ object CanonicalShortGame {
     }
   }
   
-  def apply(leftOptions: Iterable[CanonicalShortGame], rightOptions: Iterable[CanonicalShortGame]): CanonicalShortGame = {
-    val leftIds: Array[Int] = leftOptions.map { _.gameId }.toArray
-    val rightIds: Array[Int] = rightOptions.map { _.gameId }.toArray
+  def apply(lo: Iterable[CanonicalShortGame], ro: Iterable[CanonicalShortGame]): CanonicalShortGame = {
+    val leftIds: Array[Int] = lo.map { _.gameId }.toArray
+    val rightIds: Array[Int] = ro.map { _.gameId }.toArray
     CanonicalShortGame(ops.constructFromOptions(leftIds, rightIds))
   }
   
-  def apply(leftOptions: CanonicalShortGame*)(rightOptions: CanonicalShortGame*): CanonicalShortGame = {
-    apply(leftOptions.toIterable, rightOptions.toIterable)
-  }
+  def apply(lo: CanonicalShortGame*)(ro: CanonicalShortGame*): CanonicalShortGame = apply(lo, ro)
 
   val maxSlashes = 5
   val slashString: IndexedSeq[String] = (0 to maxSlashes) map { n =>

@@ -21,11 +21,22 @@ object UniversalOrdering extends Ordering[Any] {
         cmp
       case (a: (_,_), b: (_,_)) =>
         val cmp = compare(a._1, b._1)
+        if (cmp == 0) compare(a._2, b._2) else cmp
+      case (a: Seq[_], b: Seq[_]) =>
+        var cmp = 0
+        var i = 0
+        while (cmp == 0 && i < a.length && i < b.length) {
+          cmp = compare(a(i), b(i))
+          i += 1
+        }
+        if (cmp == 0) a.length - b.length else cmp
+      case (a: Set[_], b: Set[_]) => compare(a.toSeq.sorted(this), b.toSeq.sorted(this))
+      case (_, _) =>
+        val cmp = CgscriptClass.of(x).classOrdinal - CgscriptClass.of(y).classOrdinal
         if (cmp == 0)
-          compare(a._2, b._2)
+          x.hashCode - y.hashCode  // TODO this can be improved
         else
           cmp
-      case (_, _) => x.hashCode - y.hashCode  // TODO this can be improved
     }
   }
 

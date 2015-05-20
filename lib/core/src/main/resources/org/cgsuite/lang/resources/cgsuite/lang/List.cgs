@@ -6,7 +6,11 @@ system class List
   external def Length;
   external def Sorted;
 
-  def MkOutput(Output sep) begin
+  def MkOutput(sep) begin
+
+    if sep is String then
+      sep := cgsuite.util.output.TextOutput(sep);
+    end
 
     var first := true;
     var output := cgsuite.util.output.TextOutput();
@@ -26,7 +30,7 @@ system class List
     if IsEmpty then
       cgsuite.util.output.TextOutput("nil")
     else
-      "[" + MkOutput(",".ToOutput) + "]";
+      "[" + MkOutput(",") + "]"
     end
   end
 
