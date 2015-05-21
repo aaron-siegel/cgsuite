@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Table
+
+  override external def ToOutput;
+
+end

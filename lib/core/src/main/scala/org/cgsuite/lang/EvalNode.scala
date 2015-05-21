@@ -621,13 +621,17 @@ case class LoopNode(
 
   override def evaluate(domain: Domain): Any = {
 
-    val yieldResult = if (isYield) ArrayBuffer[Any]() else null
-    evaluate(domain, yieldResult)
+    val yieldResult = if (isYield && loopType != LoopNode.YieldSum) ArrayBuffer[Any]() else null
+    val sum = evaluate(domain, yieldResult)
     loopType match {
       case LoopNode.Do => Nil
       case LoopNode.YieldList => yieldResult
       case LoopNode.YieldSet => yieldResult.toSet   // TODO(?) This could be made more efficient
-      case _ => sys.error("not implemented yet")
+      case LoopNode.YieldTable => Table { yieldResult map {
+        case list: Seq[_] => list
+        case _ => throw InputException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
+      } } (OutputBuilder.toOutput)
+      case LoopNode.YieldSum => if (sum == null) Nil else sum
     }
 
   }
@@ -653,7 +657,7 @@ case class LoopNode(
     antecedent + " " + body.toNodeString + " end"
   }
 
-  def evaluate(domain: Domain, yieldResult: ArrayBuffer[Any]): Unit = {
+  def evaluate(domain: Domain, yieldResult: ArrayBuffer[Any]): Any = {
 
     Profiler.start(prepareLoop)
 
@@ -662,6 +666,7 @@ case class LoopNode(
     val toVal = if (to.isDefined) to.get.evaluate(domain) else null
     val byVal = if (by.isDefined) by.get.evaluate(domain) else one
     val iterator = if (in.isDefined) in.get.evaluateAsIterator(domain) else null
+    var sum: Any = null
 
     Profiler.stop(prepareLoop)
 
@@ -692,14 +697,18 @@ case class LoopNode(
           Profiler.start(loopBody)
           if (pushDownYield.isEmpty) {
             val r = body.evaluate(domain)
-            if (isYield) {
+            if (isYield && loopType != LoopNode.YieldTable) {
               r match {
                 case it: Iterable[_] => yieldResult ++= it
                 case x => yieldResult += x
               }
+            } else if (loopType == LoopNode.YieldTable) {
+              yieldResult += r
             }
+            if (loopType == LoopNode.YieldSum)
+              sum = if (sum == null) r else Ops.Plus(sum, r)
           } else {
-            pushDownYield.get.evaluate(domain, yieldResult)
+            val pushDown = pushDownYield.get.evaluate(domain, yieldResult)
           }
           Profiler.stop(loopBody)
         }
@@ -710,6 +719,8 @@ case class LoopNode(
     }
 
     Profiler.stop(loop)
+
+    sum
 
   }
 

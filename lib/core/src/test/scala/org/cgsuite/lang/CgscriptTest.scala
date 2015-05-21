@@ -137,17 +137,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Listof", "listof(x^2 for x from 1 to 5)", "[1,4,9,16,25]"),
       ("Setof", "setof(x^2 for x in [1,3,5,3])", "{1,9,25}"),
       ("Sumof", "sumof(n for n from 1 to 10)", "55"),
-      ("Sumof 2", """sumof("foo" from 1 to 4)""", """"foofoofoofoo"""")
-            /*
-      Tableof                         \ tableof([n,n^2] for n from 1 to 3) \
-      1 | 1
-      --+--
-      2 | 4
-      --+--
-      3 | 9 \
-
-      ("Shuffle", "a := [1,4,2,6,3]; b := a.Shuffle; a.Sort(); b.Sort(); a == b", "true"),
-             */
+      ("Sumof 2", """sumof("foo" for x from 1 to 4)""", """"foofoofoofoo""""),
+      ("Tableof", "tableof([n,n^2] for n from 1 to 3)",
+        """|1 | 1
+           |--+--
+           |2 | 4
+           |--+--
+           |3 | 9""".stripMargin)
     ))
   }
 

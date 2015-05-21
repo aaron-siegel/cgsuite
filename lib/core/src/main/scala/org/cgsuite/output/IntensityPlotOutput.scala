@@ -7,7 +7,7 @@ import java.io.PrintWriter
 
 import org.cgsuite.output.Output.Mode
 
-class IntensityPlotOutput(array: Seq[Seq[Int]]) extends AbstractOutput {
+case class IntensityPlotOutput(array: Seq[Seq[Int]]) extends AbstractOutput {
 
   val rowCount = array.length
   val colCount = array.map { _.length }.max

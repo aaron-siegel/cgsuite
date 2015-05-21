@@ -39,6 +39,7 @@ object CgscriptClass {
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
     "cgsuite.lang.Procedure" -> classOf[Procedure],
     "cgsuite.lang.System" -> classOf[System],
+    "cgsuite.lang.Table" -> classOf[Table],
 
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Strip" -> classOf[Strip],
