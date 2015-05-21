@@ -8,6 +8,7 @@ import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 
+import scala.collection.generic.Growable
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -621,17 +622,21 @@ case class LoopNode(
 
   override def evaluate(domain: Domain): Any = {
 
-    val yieldResult = if (isYield && loopType != LoopNode.YieldSum) ArrayBuffer[Any]() else null
-    val sum = evaluate(domain, yieldResult)
+    val yieldResult = loopType match {
+      case LoopNode.YieldList | LoopNode.YieldTable => ArrayBuffer[Any]()
+      case LoopNode.YieldSet => mutable.HashSet[Any]()
+      case LoopNode.YieldSum | LoopNode.Do => null
+    }
+    val r = evaluate(domain, yieldResult)
     loopType match {
       case LoopNode.Do => Nil
-      case LoopNode.YieldList => yieldResult
-      case LoopNode.YieldSet => yieldResult.toSet   // TODO(?) This could be made more efficient
-      case LoopNode.YieldTable => Table { yieldResult map {
+      case LoopNode.YieldList => yieldResult.toSeq
+      case LoopNode.YieldSet => yieldResult.toSet
+      case LoopNode.YieldTable => Table { yieldResult.toSeq map {
         case list: Seq[_] => list
         case _ => throw InputException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
       } } (OutputBuilder.toOutput)
-      case LoopNode.YieldSum => if (sum == null) Nil else sum
+      case LoopNode.YieldSum => if (r == null) Nil else r
     }
 
   }
@@ -657,7 +662,7 @@ case class LoopNode(
     antecedent + " " + body.toNodeString + " end"
   }
 
-  def evaluate(domain: Domain, yieldResult: ArrayBuffer[Any]): Any = {
+  def evaluate(domain: Domain, yieldResult: Growable[Any]): Any = {
 
     Profiler.start(prepareLoop)
 
@@ -695,20 +700,20 @@ case class LoopNode(
         val whereCond = where.isEmpty || where.get.evaluateAsBoolean(domain)
         if (whereCond) {
           Profiler.start(loopBody)
-          if (pushDownYield.isEmpty) {
-            val r = body.evaluate(domain)
-            if (isYield && loopType != LoopNode.YieldTable) {
-              r match {
-                case it: Iterable[_] => yieldResult ++= it
-                case x => yieldResult += x
+          pushDownYield match {
+            case Some(pushDown) => pushDown.evaluate(domain, yieldResult)
+            case None =>
+              val r = body.evaluate(domain)
+              loopType match {
+                case LoopNode.YieldList | LoopNode.YieldSet =>
+                  r match {
+                    case it: Iterable[_] => yieldResult ++= it
+                    case x => yieldResult += x
+                  }
+                case LoopNode.YieldTable => yieldResult += r
+                case LoopNode.YieldSum => sum = if (sum == null) r else Ops.Plus(sum, r)
+                case LoopNode.Do => // Nothing
               }
-            } else if (loopType == LoopNode.YieldTable) {
-              yieldResult += r
-            }
-            if (loopType == LoopNode.YieldSum)
-              sum = if (sum == null) r else Ops.Plus(sum, r)
-          } else {
-            val pushDown = pushDownYield.get.evaluate(domain, yieldResult)
           }
           Profiler.stop(loopBody)
         }

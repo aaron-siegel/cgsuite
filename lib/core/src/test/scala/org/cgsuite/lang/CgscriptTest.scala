@@ -135,9 +135,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Map", """{"foo" => 1, "bar" => *2, 16 => 22}""", """{16 => 22, "bar" => *2, "foo" => 1}"""),
       //("Range", "3..7", "[3,4,5,6,7]"),
       ("Listof", "listof(x^2 for x from 1 to 5)", "[1,4,9,16,25]"),
+      ("Multi-listof", "listof(x^2+y^2 for x from 1 to 5 for y from 1 to 5)", "[2,5,10,17,26,5,8,13,20,29,10,13,18,25,34,17,20,25,32,41,26,29,34,41,50]"),
       ("Setof", "setof(x^2 for x in [1,3,5,3])", "{1,9,25}"),
+      ("Multi-setof", "setof(x^2+y^2 for x from 1 to 5 for y from 1 to 5)", "{2,5,8,10,13,17,18,20,25,26,29,32,34,41,50}"),
       ("Sumof", "sumof(n for n from 1 to 10)", "55"),
       ("Sumof 2", """sumof("foo" for x from 1 to 4)""", """"foofoofoofoo""""),
+      ("Multi-sumof", "sumof(m+n for m from 1 to 10 for n from 1 to 10)", "1100"),
       ("Tableof", "tableof([n,n^2] for n from 1 to 3)",
         """|1 | 1
            |--+--
