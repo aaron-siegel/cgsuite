@@ -2,6 +2,8 @@
 
 system class Set
 
+  def Apply(Procedure fn) := setof(fn(x) for x in this);
+
   external def ToList;
 
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
