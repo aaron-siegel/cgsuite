@@ -290,7 +290,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
               methodScopeIndex = scope.varMap(id)
             } else if (scope.pkg.isDefined && !scope.classVars.contains(id)) {
               // Unless we're at Worksheet scope, it's illegal to refer to an undefined variable.
-              throw InputException(s"Undefined variable: ${id.name}", token = Some(token))
+              throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
             }
         }
     }
@@ -305,12 +305,12 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       classResolution
     } else if (domain.isOuterDomain) {
       domain getDynamicVar id getOrElse {
-        throw InputException(s"Undefined variable: ${id.name}", token = Some(token))
+        throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
       }
     } else {
       val y = resolver.resolve(domain.contextObject.get)
       if (y == null)
-        throw InputException(s"Undefined variable: ${id.name}", token = Some(token))
+        throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
       else
         y
     }

@@ -16,6 +16,7 @@ private[cgsuite] trait ValuesTrait {
   val one = SmallInteger(1)
   val negativeOne = SmallInteger(-1)
   val two = SmallInteger(2)
+  val three = SmallInteger(3)
 
   val star = Nimber(1)
   val starTwo = Nimber(2)

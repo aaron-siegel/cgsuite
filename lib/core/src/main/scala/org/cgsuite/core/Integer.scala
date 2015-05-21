@@ -35,6 +35,20 @@ object Integer {
       Integer(BigInt(str))
     }
   }
+
+  def pow2NimProduct(xExp: Int, yExp: Int): Integer = {
+    var x = Values.two integerPow SmallInteger(xExp ^ yExp)
+    val dup = xExp & yExp
+    val bitLength = 32 - java.lang.Integer.numberOfLeadingZeros(dup)
+    var n = 0
+    while (n < bitLength) {
+      val twoPow = dup & (1 << n)
+      if (twoPow != 0)
+        x = x.nimProduct(Values.three * Values.two.integerPow(SmallInteger(twoPow)) div Values.two)
+      n += 1
+    }
+    x
+  }
   
 }
 
@@ -56,7 +70,9 @@ trait Integer extends DyadicRationalNumber {
     case i: Integer => bigIntValue.compare(i.bigIntValue)
     case _ => super.compare(other)
   }
-  
+
+  def compare(other: Integer) = bigIntValue.compare(other.bigIntValue)
+
   override def unary_- = Integer(-bigIntValue)
   
   def +(other: Integer) = Integer(bigIntValue + other.bigIntValue)
@@ -65,35 +81,67 @@ trait Integer extends DyadicRationalNumber {
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
 
   def *(other: Game) = other.nCopies(this)
-  
-  def min(other: Integer) = if (this < other) this else other
-  def max(other: Integer) = if (this > other) this else other
 
-  def isEven = bigIntValue.testBit(0)
-  override def isInteger = true
-  def isSmallInteger = (bigIntValue >= Integer.minInt && bigIntValue <= Integer.maxInt)
   override def abs: Integer = Integer(bigIntValue.abs)
-  
+
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
+
+  def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
 
   def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
 
-  def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
-  
-  def sign = Integer(bigIntValue.signum)
+  def isEven = bigIntValue.testBit(0)
+
+  override def isInteger = true
+
+  def isSmallInteger = bigIntValue >= Integer.minInt && bigIntValue <= Integer.maxInt
 
   def isTwoPower = bigIntValue >= Integer.oneAsBigInt && bigIntValue.bitCount == 1
-  
-  def compare(other: Integer) = bigIntValue.compare(other.bigIntValue)
-  
+
+  def lb = SmallInteger(bigIntValue.bitLength - 1)
+
+  def min(other: Integer) = if (this < other) this else other
+
+  def max(other: Integer) = if (this > other) this else other
+
+  def nimProduct(other: Integer): Integer = {
+    if (bigIntValue < 0 || other.bigIntValue < 0)
+      throw new ArithmeticException("NimProduct applies only to nonnegative integers.")
+    var m = 0
+    var result: Integer = Values.zero
+    while (m < bigIntValue.bitLength) {
+      if (bigIntValue.testBit(m)) {
+        var n = 0
+        while (n < other.bigIntValue.bitLength) {
+          if (other.bigIntValue.testBit(n)) {
+            result = result.nimSum(Integer.pow2NimProduct(m, n))
+          }
+          n += 1
+        }
+      }
+      m += 1
+    }
+    result
+  }
+
+  def nimSum(other: Integer) = {
+    if (bigIntValue < 0 || other.bigIntValue < 0)
+      throw new ArithmeticException("NimSum applies only to nonnegative integers.")
+    Integer(bigIntValue ^ other.bigIntValue)
+  }
+
+  def sign = Integer(bigIntValue.signum)
+
   override def numerator = this
   override def denominator = Values.one
   override def denominatorExponent = 0
+
+  override def toString = bigIntValue.toString
   
 }
 
 case class IntegerImpl(bigIntValue: BigInt) extends Integer {
-  
+
   assert(!isSmallInteger)
-  
+
 }

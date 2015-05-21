@@ -2,6 +2,7 @@
 
 system class List
 
+  external def Apply(Procedure fn);
   external def IsEmpty;
   external def Length;
   external def Sorted;

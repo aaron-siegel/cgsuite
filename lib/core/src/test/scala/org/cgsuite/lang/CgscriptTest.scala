@@ -150,6 +150,54 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
+  it should "properly construct and evaluate procedures" in {
+
+    execute(Table(
+      ("Test Name", "input", "expected output"),
+      ("Procedure definition", "f := x -> x+1", "x -> (x + 1)"),
+      ("Procedure evaluation", "f(8)", "9"),
+      ("Procedure scope 1", "y := 3; f := x -> x+y; f(5)", "8"),
+      ("Procedure scope 2", "y := 6; f(5)", "11"),
+      ("Procedure scope 3", "x := 9; f(5); x", "9"),
+      ("Procedure scope 4", "f := temp -> temp+1; f(5); temp", "!!That variable is not defined: `temp`"),
+      ("No-parameter procedure", "f := () -> 3", "() -> 3"),
+      ("No-parameter procedure evaluation", "f()", "3"),
+      ("Multiparameter procedure", "f := (x,y) -> (x+y)/2", "(x, y) -> ((x + y) / 2)"),
+      ("Multiparameter procedure evaluation", "f(3,4)", "7/2"),
+      ("Procedure - too few args", "f(3)", "!!Expecting 2 argument(s); found 1"),
+      ("Procedure - too many args", "f(3,4,5)", "!!Expecting 2 argument(s); found 3"),
+      ("Procedure - optional arg", "f(3,4,foo => 5)", "!!Invalid optional parameter: foo")
+    ))
+
+  }
+
+  "cgsuite.lang.Integer" should "return correct answers" in {
+
+    execute(Table(
+      ("Test Name", "input", "expected output"),
+      ("MinValue", "-2147483648", "-2147483648"),
+      ("MinValue-1", "-2147483649", "-2147483649"),
+      ("Max", "3.Max(-2147483648)", "3"),
+      ("NimSum", "3.NimSum(5)", "6"),
+      ("NimProduct", "8.NimProduct(8)", "13"),
+      ("Div", "17.Div(4)", "4"),
+      ("IsTwoPower", "[32.IsTwoPower,48.IsTwoPower]", "[true,false]"),
+      ("IsSmallInteger", "[2^31,-2^31,2^31-1,-2^31-1].Apply(x -> x.IsSmallInteger)", "[false,true,true,false]"),
+      ("Lb", "[15,16,17,31,2^31-1,2^31].Apply(x -> x.Lb)", "[3,4,4,4,30,31]"),
+      ("Lb(0)", "0.Lb", "!!Error in call to `game.Integer.Lb`: Logarithm of 0"),
+      //("Random", "Integer.SetSeed(0); listof(Integer.Random(100) from 1 to 5)", "[61,49,30,48,16]"),
+      ("Isqrt",
+        """
+          |for n from 0 to 3000 do
+          |  var isqrt := n.Isqrt;
+          |  if n < isqrt^2 or n >= (isqrt+1)^2 then
+          |    error("Isqrt failed at " + n.ToString);
+          |  end
+          |end""".stripMargin, "nil")
+    ))
+
+  }
+
   def execute(tests: TableFor3[String, String, String]): Unit = {
 
     CgscriptClass.clearAll()

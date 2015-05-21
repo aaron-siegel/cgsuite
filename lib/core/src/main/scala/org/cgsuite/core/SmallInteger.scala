@@ -17,8 +17,8 @@ object SmallInteger {
   
   private def gcdR(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
   
-  val minSmall = apply(java.lang.Integer.MIN_VALUE)
-  val maxSmall = apply(java.lang.Integer.MAX_VALUE)
+  val minSmall = apply(Int.MinValue)
+  val maxSmall = apply(Int.MaxValue)
   
 }
 
@@ -34,9 +34,14 @@ trait SmallInteger extends Integer {
     case (Right, -1) => Set(SmallInteger(intValue+1))
     case _ => Set.empty
   }
+
+  override def compare(other: RationalNumber) = other match {
+    case small: SmallInteger => intValue.compare(small.intValue)
+    case _ => super.compare(other)
+  }
   
   override def compare(other: Integer) = other match {
-    case small: SmallInteger => intValue - small.intValue
+    case small: SmallInteger => intValue.compare(small.intValue)
     case _ => super.compare(other)
   }
 
@@ -72,6 +77,16 @@ trait SmallInteger extends Integer {
   override def gcd(other: Integer) = other match {
     case small: SmallInteger => SmallInteger(SmallInteger.gcd(intValue, small.intValue))
     case _ => super.gcd(other)
+  }
+
+  override def lb = SmallInteger(31 - java.lang.Integer.numberOfLeadingZeros(intValue))
+
+  override def nimSum(other: Integer) = other match {
+    case small: SmallInteger =>
+      if (intValue < 0 || other.intValue < 0)
+        throw new ArithmeticException("NimSum applies only to nonnegative integers.")
+      SmallInteger(intValue ^ other.intValue)
+    case _ => super.nimSum(other)
   }
 
   override def isEven = intValue % 2 == 0

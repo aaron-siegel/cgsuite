@@ -13,6 +13,17 @@ object SpecialMethods {
 
   )
 
-  val specialMethods = specialMethods0.asInstanceOf[Map[String, (Any, Any) => Any]]
+  private val specialMethods1: Map[String, (_, _) => Any] = Map(
+
+    "cgsuite.lang.List.Apply" -> { (list: Seq[_], fn: Procedure) =>
+      // TODO Assert that fn has arity 1
+      list map { element => fn.call(Array(element)) }
+    }
+
+  )
+
+  val specialMethods =
+    specialMethods0.asInstanceOf[Map[String, (Any, Any) => Any]] ++
+    specialMethods1.asInstanceOf[Map[String, (Any, Any) => Any]]
 
 }

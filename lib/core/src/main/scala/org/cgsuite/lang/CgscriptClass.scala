@@ -1,17 +1,22 @@
 package org.cgsuite.lang
 
+import java.lang.reflect.InvocationTargetException
 import java.net.URL
 
+import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
 import org.cgsuite.exception.InputException
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output._
 import org.cgsuite.util._
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
 object CgscriptClass {
+
+  private val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
 
   private var nextClassOrdinal = 0
   private[lang] def newClassOrdinal = {
@@ -146,9 +151,11 @@ class CgscriptClass(
   val pkg: CgscriptPackage,
   val id: Symbol,
   val systemClass: Option[Class[_]] = None
-  ) {
+  ) extends LazyLogging {
 
-  val classOrdinal = CgscriptClass.newClassOrdinal
+  import CgscriptClass._
+
+  val classOrdinal = newClassOrdinal
   val javaClass = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
@@ -231,12 +238,12 @@ class CgscriptClass(
     val ordinal = CallSite.newCallSiteOrdinal
 
     def elaborate(): Unit = {
-      println(s"Elaborating $qualifiedName")
+      logger.debug(s"Elaborating $qualifiedName")
       val scope = new Scope(Some(pkg), classInfo.allSymbolsInScope, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
       parameters foreach { param =>
         param.defaultValue foreach { _.elaborate(scope) }
       }
-      println(s"Done elaborating $qualifiedName")
+      logger.debug(s"Done elaborating $qualifiedName")
     }
 
   }
@@ -299,15 +306,23 @@ class CgscriptClass(
       // TODO Named args should work here too
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
       assert(
-        target == null || CgscriptClass.of(target).ancestors.contains(declaringClass),
-        (CgscriptClass.of(target), declaringClass)
+        target == null || of(target).ancestors.contains(declaringClass),
+        (of(target), declaringClass)
       )
       try {
         Profiler.start(reflect)
-        CgscriptClass.internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
+        internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
-        case exc: IllegalArgumentException => throw new InputException(
+        case exc: IllegalArgumentException => throw InputException(
           s"Invalid parameters for method `$qualifiedName` of types (${args.map { _.getClass.getName }.mkString(", ")})"
+        )
+        case exc: InvocationTargetException => throw InputException(
+          exc.getTargetException match {
+            case nestedExc: InputException =>
+              // TODO nestedExc.setInvocationTarget(qualifiedName)
+              throw nestedExc
+            case nestedExc => throw InputException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}")
+          }
         )
       } finally {
         Profiler.stop(reflect)
@@ -325,7 +340,12 @@ class CgscriptClass(
 
     // TODO This only works for 0-ary methods currently
     def call(obj: Any, args: Array[Any]): Any = {
-      fn(if (isStatic) classObject else obj, ())
+      val argsTuple = parameters.size match {
+        case 0 => ()
+        case 1 => args(0)
+        case 2 => (args(0), args(1))
+      }
+      fn(if (isStatic) classObject else obj, argsTuple)
     }
 
   }
@@ -351,7 +371,7 @@ class CgscriptClass(
       // TODO Parse var initializers
       Profiler.start(invokeConstructor)
       try {
-        if (ancestors.contains(CgscriptClass.Game))
+        if (ancestors.contains(Game))
           new GameObject(CgscriptClass.this, args)
         else
           new StandardObject(CgscriptClass.this, args)
@@ -385,7 +405,7 @@ class CgscriptClass(
   }
 
   def setURL(url: URL) {
-    println(s"Declaring class $classOrdinal: ${id.name} at $url")
+    logger.debug(s"Declaring class $classOrdinal: ${id.name} at $url")
     this.url = url
     unload()
   }
@@ -417,7 +437,7 @@ class CgscriptClass(
     }
     loading = true
 
-    println(s"Loading class: ${id.name} at $url")
+    logger.debug(s"Loading class: ${id.name} at $url")
 
     val in = url.openStream()
     val tree = try {
@@ -426,15 +446,15 @@ class CgscriptClass(
       in.close()
     }
 
-    println(tree.toStringTree)
+    logger.debug(tree.toStringTree)
 
     assert(tree.getType == EOF)
 
     val node = ClassDeclarationNode(tree.getChild(1))
-    println(node)
+    logger.debug(node.toString)
     declareClass(node)
 
-    println(s"Done loading class: ${id.name}")
+    logger.debug(s"Done loading class: ${id.name}")
 
   }
 
@@ -444,14 +464,14 @@ class CgscriptClass(
 
     val (supers, methods, constructor) = {
 
-      if (CgscriptClass.Object.isLoaded) { // Hack to bootstrap Object
+      if (Object.isLoaded) { // Hack to bootstrap Object
 
         val supers = {
           if (node.extendsClause.isEmpty) {
             if (node.isEnum)
-              Seq(CgscriptClass.Enum)
+              Seq(Enum)
             else
-              Seq(CgscriptClass.Object)
+              Seq(Object)
           } else {
             node.extendsClause.map {
               case IdentifierNode(tree, superId) => CgscriptPackage.lookupClass(superId) getOrElse {
@@ -557,20 +577,20 @@ class CgscriptClass(
 
     val newMethod = {
       if (node.isExternal) {
-        println(s"Declaring external method: $name")
+        logger.debug(s"Declaring external method: $name")
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
-            println("It's a special method.")
+            logger.debug("It's a special method.")
             new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
             val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
-            println(s"It's a Java method via reflection: $externalMethod")
+            logger.debug(s"It's a Java method via reflection: $externalMethod")
             new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
         }
       } else {
-        println(s"[$qualifiedName] Declaring user method: $name")
+        logger.debug(s"[$qualifiedName] Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
         new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, body)
       }

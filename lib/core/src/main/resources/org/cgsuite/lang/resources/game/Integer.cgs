@@ -3,5 +3,27 @@
 system class Integer extends DyadicRational
 
   external def Div(Integer other);
+  external def IsSmallInteger;
+  external def IsTwoPower;
+  external def Lb;
+  external def Max(Integer other);
+  external def NimProduct(Integer other);
+  external def NimSum(Integer other);
+
+  def Isqrt begin
+    if this == 0 then 0 else
+      var a := Lb + 1;
+      var x := 2^(a.Div(2) + a % 2);
+      var result := 0;
+      while result == 0 do
+        var y := (x + Div(x)).Div(2);
+        if y >= x then
+          result := x;
+        end
+        x := y;
+      end
+      result
+    end
+  end
 
 end
