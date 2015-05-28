@@ -474,7 +474,7 @@ standardRelationalToken
 	;
 
 rangeExpr
-    : addExpr (DOTDOT^ addExpr)?
+    : addExpr (DOTDOT^ addExpr (DOTDOT^ addExpr)?)?
     ;
 
 addExpr

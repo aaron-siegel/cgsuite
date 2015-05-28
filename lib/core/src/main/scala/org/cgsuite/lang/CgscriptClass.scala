@@ -12,6 +12,7 @@ import org.cgsuite.output._
 import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
+import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
 object CgscriptClass {
@@ -38,6 +39,7 @@ object CgscriptClass {
     "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
     "cgsuite.lang.String" -> classOf[String],
     "cgsuite.lang.Coordinates" -> classOf[Coordinates],
+    "cgsuite.lang.Range" -> classOf[NumericRange[_]],
     "cgsuite.lang.List" -> classOf[Seq[_]],
     "cgsuite.lang.Set" -> classOf[Set[_]],
     "cgsuite.lang.Map" -> classOf[Map[_, _]],

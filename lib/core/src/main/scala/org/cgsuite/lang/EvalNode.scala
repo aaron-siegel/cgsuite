@@ -78,6 +78,7 @@ object EvalNode {
       case EXPLICIT_LIST => ListNode(tree)
       case EXPLICIT_SET => SetNode(tree)
       case EXPLICIT_MAP => MapNode(tree)
+      case DOTDOT => BinOpNode(tree, Range)
 
       // Game construction
 
@@ -670,6 +671,10 @@ case class LoopNode(
     var counter = if (from.isDefined) from.get.evaluate(domain) else null
     val toVal = if (to.isDefined) to.get.evaluate(domain) else null
     val byVal = if (by.isDefined) by.get.evaluate(domain) else one
+    val checkLeq = byVal match {
+      case x: Integer => x >= zero
+      case _ => true
+    }
     val iterator = if (in.isDefined) in.get.evaluateAsIterator(domain) else null
     var sum: Any = null
 
@@ -684,7 +689,7 @@ case class LoopNode(
       if (iterator == null) {
         if (forIndex >= 0)
           domain.localScope(forIndex) = counter
-        continue = toVal == null || Ops.leq(counter, toVal)
+        continue = toVal == null || (checkLeq && Ops.leq(counter, toVal)) || (!checkLeq && Ops.leq(toVal, counter))
       } else {
         if (iterator.hasNext)
           domain.localScope(forIndex) = iterator.next()

@@ -3,10 +3,12 @@ package org.cgsuite.lang
 import java.util
 
 import org.cgsuite.core._
+import org.cgsuite.dsl.IntegerIsIntegral
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.{StyledTextOutput, Output}
 import org.cgsuite.util.{Strip, Grid, Coordinates}
 import org.cgsuite.core.Values._
+import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
 object Ops {
@@ -144,6 +146,11 @@ object Ops {
 
   val MakeCoordinates = BinOp("(,)") {
     case (x: Integer, y: Integer) => Coordinates(x.intValue, y.intValue)
+  }
+
+  val Range = BinOp("..") {
+    case (x: Integer, y: Integer) => NumericRange.inclusive(x, y, Values.one)
+    case (x: NumericRange[_], y: Integer) => x.asInstanceOf[NumericRange[Integer]] by y
   }
 
   val ArrayReference = BinOp("[]") {

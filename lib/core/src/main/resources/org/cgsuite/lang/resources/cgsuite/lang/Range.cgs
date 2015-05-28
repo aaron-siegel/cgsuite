@@ -1,0 +1,19 @@
+/*${cgsuite.banner}*/
+
+system class Range extends List
+
+  external def Start;
+  external def End;
+  external def Step;
+
+  override def ToOutput begin
+    if IsEmpty then
+      cgsuite.util.output.TextOutput("nil")
+    elseif Step == 1 then
+      Start.ToOutput + ".." + End.ToOutput
+    else
+      Start.ToOutput + ".." + End.ToOutput + ".." + Step.ToOutput
+    end
+  end
+
+end

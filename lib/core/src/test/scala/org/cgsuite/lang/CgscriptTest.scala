@@ -12,6 +12,8 @@ import scala.collection.mutable
 
 class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
+  val header = ("Test Name", "input", "expected output")
+
   "CGScript" should "process basic expressions" in {
 
     execute(Table(
@@ -133,7 +135,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Heterogeneous set", """{3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"}""", """{3,*2,+-6,true,"bar","foo",nil,[3,5,3,1]}"""),
       ("Empty Map", "{=>}", "{=>}"),
       ("Map", """{"foo" => 1, "bar" => *2, 16 => 22}""", """{16 => 22, "bar" => *2, "foo" => 1}"""),
-      //("Range", "3..7", "[3,4,5,6,7]"),
+      ("Range", "3..12", "3..12"),
+      ("Range w/ Step", "3..12..3", "3..12..3"),
+      ("Empty Range", "1..0", "nil"),
+      ("Range -> Explicit", "(3..12).ToSet", "{3,4,5,6,7,8,9,10,11,12}"),
+      ("Range -> Explicit 2", "(3..12..3).ToSet", "{3,6,9,12}"),
+      ("Range Equals List", "1..4 === [1,2,3,4]", "true"),
+      ("Empty Range Equals List", "1..0 === nil", "true"),
       ("Listof", "listof(x^2 for x from 1 to 5)", "[1,4,9,16,25]"),
       ("Multi-listof", "listof(x^2+y^2 for x from 1 to 5 for y from 1 to 5)", "[2,5,10,17,26,5,8,13,20,29,10,13,18,25,34,17,20,25,32,41,26,29,34,41,50]"),
       ("Setof", "setof(x^2 for x in [1,3,5,3])", "{1,9,25}"),
@@ -150,10 +158,53 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
+  it should "handle various types of loops correctly" in {
+
+    // (name, initializer, fn, for-snippet, result, optional-sorted-result, sum)
+    val loopScenarios = Seq(
+      ("for-from-to", "", "x*x", "for x from 1 to 5", "1,4,9,16,25", None, "55"),
+      ("for-from-to-by", "", "x*x", "for x from 1 to 10 by 3", "1,16,49,100", None, "166"),
+      ("for-from-to-by (neg)", "", "x*x", "for x from 6 to 1 by -2", "36,16,4", Some("4,16,36"), "56"),
+      ("for-from-to-by (game)", "", "x", "for x from 0 to ^5 by ^*", "0,^*,^^,^3*,^4", Some("0,^4,^3*,^^,^*"), "^10"), // TODO This isn't really the desired sorted behavior
+      ("for-from-while", "", "x", "for x from 1 while x < 5", "1,2,3,4", None, "10"),
+      ("for-from-to-where", "", "x", "for x from 1 to 10 where x % 3 == 1", "1,4,7,10", None, "22"),
+      ("for-from-while-where", "", "x", "for x from 1 while x < 10 where x % 3 == 1", "1,4,7", None, "12"),
+      ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", Some("1,4,9"), "18"),
+      ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", None, "4"),
+      ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", None, "1"),
+      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", null, Some(""), "nil")
+    )
+
+    val listofLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
+      val resultStr = Option(result) map { x => s"[$x]" } getOrElse "nil"
+      (s"listof: $name", s"${init}listof($fn $snippet)", s"$resultStr")
+    }
+
+    val setofLoops = loopScenarios map { case (name, init, fn, snippet, result, sortedResult, _) =>
+      val setResult = sortedResult getOrElse result
+      (s"setof: $name", s"${init}setof($fn $snippet)", s"{$setResult}")
+    }
+
+    val yieldLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
+      val resultStr = Option(result) map { x => s"[$x]" } getOrElse "nil"
+      (s"yield: $name", s"$init$snippet yield $fn end", s"$resultStr")
+    }
+
+    val sumofLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
+      (s"sumof: $name", s"${init}sumof($fn $snippet)", s"$sum")
+    }
+
+    execute(Table(header, listofLoops : _*))
+    execute(Table(header, setofLoops : _*))
+    execute(Table(header, yieldLoops : _*))
+    execute(Table(header, sumofLoops : _*))
+
+  }
+
   it should "properly construct and evaluate procedures" in {
 
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Procedure definition", "f := x -> x+1", "x -> (x + 1)"),
       ("Procedure evaluation", "f(8)", "9"),
       ("Procedure scope 1", "y := 3; f := x -> x+y; f(5)", "8"),

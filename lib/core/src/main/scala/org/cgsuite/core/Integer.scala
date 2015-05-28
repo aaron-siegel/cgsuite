@@ -56,6 +56,9 @@ trait Integer extends DyadicRationalNumber {
   
   def bigIntValue: BigInt
   override def intValue = bigIntValue.intValue()
+  def longValue = bigIntValue.longValue()
+  def floatValue = bigIntValue.floatValue()
+  def doubleValue = bigIntValue.doubleValue()
   def byteValue = bigIntValue.byteValue()
   
   override def options(player: Player): Iterable[Integer] = {

@@ -26,7 +26,9 @@ trait SmallInteger extends Integer {
   
   def intValue: Int
   override def byteValue: Byte = intValue.toByte
-  def longValue: Long = intValue.toLong
+  override def longValue: Long = intValue.toLong
+  override def floatValue: Float = intValue.toFloat
+  override def doubleValue: Double = intValue.toDouble
   def bigIntValue = BigInt(intValue)
   
   override def options(player: Player): Iterable[SmallInteger] = (player, intValue.signum) match {

@@ -6,6 +6,7 @@ system class List
   external def IsEmpty;
   external def Length;
   external def Sorted;
+  external def ToSet;
 
   def MkOutput(sep) begin
 

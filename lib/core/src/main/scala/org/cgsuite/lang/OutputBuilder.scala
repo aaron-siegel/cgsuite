@@ -2,7 +2,10 @@ package org.cgsuite.lang
 
 import java.util
 
+import org.cgsuite.core.Values
 import org.cgsuite.output.{StyledTextOutput, Output, OutputTarget}
+
+import scala.collection.immutable.NumericRange
 
 
 object OutputBuilder {
@@ -11,6 +14,16 @@ object OutputBuilder {
 
   def toOutput(x: Any): Output = x match {
     case ot: OutputTarget => ot.toOutput
+    case range: NumericRange[_] =>
+      val sto = new StyledTextOutput()
+      sto.appendMath(range.start.toString)
+      sto.appendMath("..")
+      sto.appendMath(range.end.toString)
+      if (range.step != Values.one) {
+        sto.appendMath("..")
+        sto.appendMath(range.step.toString)
+      }
+      sto
     case nil: Seq[_] if nil.isEmpty => new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), "nil")
     case list: Seq[_] => list mkOutput ("[", ",", "]")
     case set: Set[_] => set.toSeq sorted UniversalOrdering mkOutput ("{", ",", "}")
