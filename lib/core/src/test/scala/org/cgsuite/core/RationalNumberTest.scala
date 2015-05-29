@@ -18,7 +18,7 @@ class RationalNumberTest extends FlatSpec with Matchers {
     RationalNumber(Integer(1), Integer(1 << 10)).getClass shouldBe classOf[DyadicRationalNumberImpl]
     RationalNumber(Integer(1L << 37), Integer(3)).getClass shouldBe classOf[RationalNumberImpl]
     RationalNumber(Integer(-1), Integer(0)).getClass shouldBe classOf[RationalNumberImpl]
-    RationalNumber(Integer(0), Integer(0)).getClass shouldBe classOf[RationalNumberImpl]
+    the [ArithmeticException] thrownBy RationalNumber(Integer(0), Integer(0)) should have message "/ by zero"
 
   }
 
@@ -44,7 +44,6 @@ class RationalNumberTest extends FlatSpec with Matchers {
 
     numden(14212, 0) shouldBe (1, 0)
     numden(-12344, 0) shouldBe (-1, 0)
-    numden(0, 0) shouldBe (0, 0)
 
   }
 

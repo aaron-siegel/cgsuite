@@ -1,10 +1,18 @@
 /*${cgsuite.banner}*/
 
-system class Set
+system class Set extends Collection
+
+  external def Contains(x);
 
   def Apply(Procedure fn) := setof(fn(x) for x in this);
 
-  external def ToList;
+  def Mex begin
+    var n := 0;
+    while Contains(n) do
+      n := n + 1;
+    end
+    n
+  end
 
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 

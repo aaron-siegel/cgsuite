@@ -26,14 +26,14 @@ object CgscriptClass {
     ord
   }
 
-  private val baseSystemClasses = Seq(
+  private val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Object" -> classOf[AnyRef],
     "cgsuite.lang.Enum" -> classOf[EnumObject]
 
   )
 
-  private val typedSystemClasses = Seq(
+  private val typedSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Class" -> classOf[ClassObject],
     "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
@@ -47,6 +47,7 @@ object CgscriptClass {
     "cgsuite.lang.Procedure" -> classOf[Procedure],
     "cgsuite.lang.System" -> classOf[System],
     "cgsuite.lang.Table" -> classOf[Table],
+    "cgsuite.lang.Collection" -> classOf[Iterable[_]],
 
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Strip" -> classOf[Strip],
@@ -58,7 +59,7 @@ object CgscriptClass {
     "cgsuite.util.output.TextOutput" -> classOf[StyledTextOutput],
     "cgsuite.lang.Output" -> classOf[Output],
 
-    "game.Zero" -> Zero.getClass,
+    "game.Zero" -> classOf[Zero],
     "game.Integer" -> classOf[Integer],
     "game.DyadicRational" -> classOf[DyadicRationalNumber],
     "game.Rational" -> classOf[RationalNumber],
@@ -72,7 +73,7 @@ object CgscriptClass {
 
   )
 
-  private val otherSystemClasses = Seq(
+  private val otherSystemClasses: Seq[String] = Seq(
 
     "cgsuite.util.Icon",
 

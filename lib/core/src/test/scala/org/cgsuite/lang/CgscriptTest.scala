@@ -17,7 +17,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "CGScript" should "process basic expressions" in {
 
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Simple echo", "0", "0"),
       ("Semicolon suppress output", "0;", "nil"),
       ("Variable assignment", "g := 7", "7"),
@@ -31,7 +31,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "process arithmetic expressions" in {
 
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Integer addition", "3+5", "8"),
       ("Integer multiplication", "3*5", "15"),
       ("Integer exponentiation", "3^5", "243"),
@@ -56,7 +56,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "correctly interpret canonical forms" in {
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Composition", "{0|^*5}", "^^*4"),
       ("Slashes", "{3|||2||1|0,*||||-1/2}", "{3|||2||1|0,*||||-1/2}"),
       ("Ambiguous slashes", "{3|2|1}", "!!Syntax error: null"),
@@ -82,7 +82,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "correctly interpret loopy game specs" in {
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("on", "on := {pass|}", "on"),
       ("off", "off := {|pass}", "off"),
       //("dud", "{pass|pass}", "dud"),
@@ -111,7 +111,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "simplify properly" in {
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Multiplier simplification", "(*+*)*3", "0"),
       ("Integer exponent simplification", "2^(*+*)", "1"),
       ("+- loopy game simplification", "uponth := {0||0|0,pass}; +-(uponth+*)", "0")
@@ -120,14 +120,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "handle comparison operators" in {
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Heterogeneous compare", "3 == nil", "false")
     ))
   }
 
   it should "construct collections properly" in {
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
       ("Empty List", "[]", "nil"),
       ("List", "[3,5,3,1]", "[3,5,3,1]"),
       ("Empty Set", "{}", "{}"),
@@ -222,10 +222,49 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
-  "cgsuite.lang.Integer" should "return correct answers" in {
+  "cgsuite.lang.Collection" should "return correct answers" in {
+
+    // (call, seq, expected result)
+    val collectionScenarios = Seq(
+      ("Contains(4)", "0,1,7,5,3,2,9", "false"),
+      ("Contains(9)", "0,1,7,5,3,2,9", "true"),
+      ("IsEmpty", "", "true"),
+      ("IsEmpty", "0,1,3,4", "false"),
+      ("ToList.Sorted", "0,1,7,5,3,2,9", "[0,1,2,3,5,7,9]"),
+      ("ToSet", "0,1,7,5,3,2,9", "{0,1,2,3,5,7,9}")
+    )
+
+    val lists = collectionScenarios map { case (call, seq, result) =>
+      (s"List: $call", s"[$seq].$call", result)
+    }
+
+    val sets = collectionScenarios map { case (call, seq, result) =>
+      (s"Set: $call", s"{$seq}.$call", result)
+    }
+
+    execute(Table(header, lists : _*))
+    execute(Table(header, sets : _*))
+
+  }
+
+  "cgsuite.lang.Range" should "implement Collection faithfully" in {
 
     execute(Table(
-      ("Test Name", "input", "expected output"),
+      header,
+      ("Range: Contains(4)", "(1..10..2).Contains(4)", "false"),
+      ("Range: Contains(9)", "(1..10..2).Contains(9)", "true"),
+      ("Range: IsEmpty", "(1..0).IsEmpty", "true"),
+      ("Range: IsEmpty", "(1..10).IsEmpty", "false"),
+      ("Range: ToList", "(1..10).ToList", "[1,2,3,4,5,6,7,8,9,10]"),
+      ("Range: ToSet", "(1..10).ToSet", "{1,2,3,4,5,6,7,8,9,10}")
+    ))
+
+  }
+
+  "game.Integer" should "implement methods correctly" in {
+
+    execute(Table(
+      header,
       ("MinValue", "-2147483648", "-2147483648"),
       ("MinValue-1", "-2147483649", "-2147483649"),
       ("Max", "3.Max(-2147483648)", "3"),
@@ -246,6 +285,57 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
           |  end
           |end""".stripMargin, "nil")
     ))
+
+  }
+
+  "game.Rational" should "implement methods correctly" in {
+
+    // x, class, numerator, denominator, isDyadic, abs, floor, ceiling, reciprocal
+    val unaryInstances = Seq(
+      ("0/7", "0", "Zero", "0", "1", "true", "0", "0", "0", "inf"),
+      ("19/1", "19", "Integer", "19", "1", "true", "19", "19", "19", "1/19"),
+      ("-19/1", "-19", "Integer", "-19", "1", "true", "19", "-19", "-19", "-1/19"),
+      ("3/16", "3/16", "DyadicRational", "3", "16", "true", "3/16", "0", "1", "16/3"),
+      ("-3/16", "-3/16", "DyadicRational", "-3", "16", "true", "3/16", "-1", "0", "-16/3"),
+      ("3^22/2^72", "31381059609/4722366482869645213696", "DyadicRational", "31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "0", "1", "31381059609/4722366482869645213696"),
+      ("-3^22/2^72", "-31381059609/4722366482869645213696", "DyadicRational", "-31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "-1", "0", "-31381059609/4722366482869645213696"),
+      ("6/23", "6/23", "Rational", "6", "23", "false", "6/23", "0", "1", "23/6"),
+      ("-6/23", "-6/23", "Rational", "-6", "23", "false", "6/23", "-1", "0", "-23/6"),
+      ("17/0", "inf", "Rational", "1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0"),
+      ("-17/0", "-inf", "Rational", "-1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0")
+    )
+
+    val unaryTests = unaryInstances flatMap { case (x, xOut, cls, num, den, isDyadic, abs, floor, ceiling, reciprocal) =>
+      Seq(
+        (x, xOut),
+        (s"($x).Class", s"<<game.$cls>>"),
+        (s"($x).Numerator", num),
+        (s"($x).Denominator", den),
+        (s"($x).IsDyadic", isDyadic),
+        (s"($x).Abs", abs),
+        (s"($x).Floor", floor),
+        (s"($x).Ceiling", ceiling)
+      )
+    } map { case (expr, result) => (expr, expr, result) }
+
+    // x, y, max, min
+    val binaryInstances = Seq(
+      ("0", "1/7", "1/7", "0"),
+      ("-3", "14/5", "14/5", "-3"),
+      ("inf", "6", "inf", "6"),
+      ("inf", "-inf", "inf", "-inf")
+    )
+
+    val binaryTests = binaryInstances flatMap { case (x, y, max, min) =>
+      Seq(
+        (s"($x).Max($y)", max),
+        (s"($y).Max($x)", max),
+        (s"($x).Min($y)", min),
+        (s"($y).Min($x)", min)
+      )
+    } map { case (expr, result) => (expr, expr, result) }
+
+    execute(Table(header, unaryTests ++ binaryTests : _*))
 
   }
 

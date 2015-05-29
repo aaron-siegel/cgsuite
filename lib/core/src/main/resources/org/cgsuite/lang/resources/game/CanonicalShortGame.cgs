@@ -7,6 +7,7 @@ system class CanonicalShortGame extends Game
   external def Birthday;
   external def Cool(DyadicRational temperature);
   external def IsInfinitesimal;
+  external def IsInteger;
   external def IsNimber;
   external def IsNumber;
   external def IsNumberish;

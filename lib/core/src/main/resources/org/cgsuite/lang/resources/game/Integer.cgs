@@ -6,7 +6,6 @@ system class Integer extends DyadicRational
   external def IsSmallInteger;
   external def IsTwoPower;
   external def Lb;
-  external def Max(Integer other);
   external def NimProduct(Integer other);
   external def NimSum(Integer other);
 

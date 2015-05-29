@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Map
+system class Map extends Collection
 
   external def Entries;
 

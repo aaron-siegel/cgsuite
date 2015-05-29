@@ -1,12 +1,13 @@
 /*${cgsuite.banner}*/
 
-system class List
+system class List extends Collection
 
   def Apply(Procedure fn) := listof(fn(x) for x in this);
-  external def IsEmpty;
+  external def Contains(x);
+  external def Head;
   external def Length;
   external def Sorted;
-  external def ToSet;
+  external def Tail;
 
   def MkOutput(sep) begin
 

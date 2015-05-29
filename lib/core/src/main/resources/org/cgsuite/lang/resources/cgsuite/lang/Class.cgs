@@ -3,7 +3,8 @@
 system class Class
 
   external def Name;
+  external def QualifiedName;
 
-  override def ToOutput := "<<".ToOutput + Name + ">>";
+  override def ToOutput := cgsuite.util.output.TextOutput("<<") + QualifiedName + ">>";
 
 end

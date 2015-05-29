@@ -17,10 +17,12 @@ object Ops {
 
   val Pos = UnOp("pos") {
     case (x: Game) => +x
+    case (x: RationalNumber) => +x
   }
 
   val Neg = UnOp("neg") {
     case (x: Game) => -x
+    case (x: RationalNumber) => -x
   }
 
   val PlusMinus = UnOp("+-") {

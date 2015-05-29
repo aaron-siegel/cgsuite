@@ -268,7 +268,7 @@ public class StyledTextOutput extends AbstractOutput
         /** An integral sign. */
         INTEGRAL        (FontRef.SYMBOL, 's', "INTEGRAL", "\\int"),
         /** An infinity symbol. */
-        INFINITY        (FontRef.SYMBOL, '1', "Infinity", "\\infty"),
+        INFINITY        (FontRef.SYMBOL, '1', "inf", "\\infty"),
         /** A left angle bracket. */
         LANGLE          (FontRef.SYMBOL, 'h', "<", "\\langle"),
         /** A right angle bracket. */

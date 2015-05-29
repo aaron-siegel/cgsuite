@@ -16,7 +16,11 @@ object RationalNumber {
   def apply(numerator: Integer, denominator: Integer): RationalNumber = {
 
     (numerator, denominator) match {
-      case (_, ZeroImpl) => RationalNumberImpl(numerator.sign, denominator)
+      case (_, ZeroImpl) =>
+        if (numerator == Values.zero)   // 0/0
+          throw new ArithmeticException("/ by zero")
+        else
+          RationalNumberImpl(numerator.sign, denominator)
       case (ZeroImpl, _) => ZeroImpl
       case _ =>
         val gcd = numerator gcd denominator
@@ -44,9 +48,15 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
   def numerator: Integer
   def denominator: Integer
   
-  def compare(other: RationalNumber): Int = (numerator * other.denominator).compare(denominator * other.numerator)
-  
-  def unary_- : RationalNumber = RationalNumber(numerator, -denominator)
+  def compare(other: RationalNumber): Int = {
+    if (isInfinite && other.isInfinite)
+      numerator compare other.numerator
+    else
+      (numerator * other.denominator) compare (denominator * other.numerator)
+  }
+
+  def unary_+ : RationalNumber = this
+  def unary_- : RationalNumber = RationalNumber(-numerator, denominator)
 
   def +(other: RationalNumber): RationalNumber = RationalNumber(
     numerator * other.denominator + denominator * other.numerator,
@@ -95,13 +105,17 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
 
   def abs: RationalNumber = RationalNumber(numerator.abs, denominator)
   def floor: Integer = {
-    if (numerator >= Values.zero)
+    if (isInteger)
+      numerator
+    else if (numerator >= Values.zero)
       numerator div denominator
     else
       ceiling - Values.one
   }
   def ceiling: Integer = {
-    if (numerator <= Values.zero)
+    if (isInteger)
+      numerator
+    else if (numerator <= Values.zero)
       numerator div denominator
     else
       floor + Values.one

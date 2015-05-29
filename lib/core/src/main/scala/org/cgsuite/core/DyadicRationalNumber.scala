@@ -35,7 +35,9 @@ trait DyadicRationalNumber extends NumberUpStar with RationalNumber {
   def < (other: DyadicRationalNumber) = super[RationalNumber].< (other)
   def > (other: DyadicRationalNumber) = super[RationalNumber].> (other)
 
-  override def unary_- : DyadicRationalNumber = DyadicRationalNumber(numerator, -denominator)
+  override def unary_+ : DyadicRationalNumber = this
+
+  override def unary_- : DyadicRationalNumber = DyadicRationalNumber(-numerator, denominator)
 
   def +(other: DyadicRationalNumber): DyadicRationalNumber = DyadicRationalNumber(
     numerator * other.denominator + denominator * other.numerator,

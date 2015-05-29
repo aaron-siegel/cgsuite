@@ -1,0 +1,10 @@
+/*${cgsuite.banner}*/
+
+system class Collection
+
+  external def IsEmpty;
+  external def Size;
+  external def ToList;
+  external def ToSet;
+
+end

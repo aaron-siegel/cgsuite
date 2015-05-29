@@ -4,4 +4,15 @@ system class Rational
 
   override external def ToOutput;
 
+  external def Abs;
+  external def Ceiling;
+  external def Denominator;
+  external def Floor;
+  external def IsDyadic;
+  external def IsInteger;
+  external def Max(Rational other);
+  external def Min(Rational other);
+  external def Numerator;
+  external def Reciprocal;
+
 end
