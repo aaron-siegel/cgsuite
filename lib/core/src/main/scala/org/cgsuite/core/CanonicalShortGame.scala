@@ -148,6 +148,8 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def isSwitch: Boolean = this == -this
 
+  def isUptimal: Boolean = ops.uptimalExpansion(gameId) != null
+
   def leftStop: DyadicRationalNumber = ops.leftStop(gameId)
 
   def mean: DyadicRationalNumber = ops.mean(gameId)
@@ -161,6 +163,14 @@ trait CanonicalShortGame extends CanonicalStopperGame {
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
   def thermograph: Thermograph = ops.thermograph(gameId)
+
+  def uptimalExpansion: UptimalExpansion = {
+    val exp = ops.uptimalExpansion(gameId)
+    if (exp == null)
+      throw InputException("That game is not an uptimal.")
+    else
+      exp
+  }
 
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()

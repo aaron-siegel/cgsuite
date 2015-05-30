@@ -12,11 +12,13 @@ system class CanonicalShortGame extends Game
   external def IsNumber;
   external def IsNumberish;
   external def IsNumberTiny;
+  external def IsUptimal;
   external def LeftStop;
   external def Mean;
   external def RightStop;
   external def StopCount;
   external def Temperature;
+  external def UptimalExpansion;
 
   override external def ToOutput;
 

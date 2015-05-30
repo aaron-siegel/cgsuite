@@ -31,9 +31,7 @@ package org.cgsuite.core;
 
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 
 // TODO criticalTemperatures
 // TODO cool by negative temp
@@ -1571,6 +1569,142 @@ public final class CanonicalShortGameOps
         return constructFromCanonicalOptions(leftOptions, pack(rightOptions));
     }
 
+    public static UptimalExpansion uptimalExpansion(int id)
+    {
+        if (isKnownNonUptimal(id))
+        {
+            return null;
+        }
+
+        if (isNumberUpStar(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1)
+        {
+            return new UptimalExpansion(getNumberPart(id), getNimberPart(id) == 1);
+        }
+
+        if (UPTIMAL_MAP.containsKey(id))
+        {
+            return UPTIMAL_MAP.get(id);
+        }
+
+        UptimalExpansion ue = uptimalExpansion2(id);
+        if (ue == null)
+        {
+            ue = uptimalExpansion2(getNegative(id));
+            if (ue != null)
+                ue = ue.negate();
+        }
+
+        if (ue == null)
+        {
+            setKnownNonUptimal(id);
+        }
+        else
+        {
+            UPTIMAL_MAP.put(id, ue);
+        }
+
+        return ue;
+    }
+
+    private static Map<java.lang.Integer,UptimalExpansion> UPTIMAL_MAP;
+
+    private static UptimalExpansion uptimalExpansion2(int id)
+    {
+        if (getNumRightOptions(id) > 1 || getNumLeftOptions(id) > 2)
+        {
+            return null;
+        }
+        UptimalExpansion rExp = uptimalExpansion(getRightOption(id, 0));
+        if (rExp == null)
+        {
+            return null;
+        }
+        UptimalExpansion lExp1 = uptimalExpansion(getLeftOption(id, 0));
+        if (lExp1 == null || !lExp1.getNumberPart().equals(rExp.getNumberPart()))
+        {
+            return null;
+        }
+        UptimalExpansion lExp2 = null;
+        if (getNumLeftOptions(id) > 1)
+        {
+            lExp2 = uptimalExpansion(getLeftOption(id, 1));
+            if (lExp2 == null || !lExp2.getNumberPart().equals(rExp.getNumberPart()))
+            {
+                return null;
+            }
+        }
+
+        if (lExp1.hasBase() == rExp.hasBase() && lExp2 != null)
+        {
+            UptimalExpansion swap = lExp2;
+            lExp2 = lExp1;
+            lExp1 = swap;
+        }
+
+        // d_k > 1 case:
+        if (rExp.length() > 0 && rExp.getCoefficient(rExp.length()) > 0 &&
+                checkUptimalExpansion(rExp.increment(true), rExp, lExp1, lExp2))
+        {
+            return rExp.increment(true);
+        }
+
+        // d_k = 1 case:
+        if (checkUptimalExpansion(lExp1.addToCoefficient(Math.max(lExp1.length() + 1, rExp.length() + 1), 1), rExp, lExp1, lExp2))
+        {
+            return lExp1.addToCoefficient(Math.max(lExp1.length() + 1, rExp.length() + 1), 1);
+        }
+
+        return null;
+    }
+
+    private static boolean checkUptimalExpansion
+            (UptimalExpansion exp, UptimalExpansion rExp, UptimalExpansion lExp1, UptimalExpansion lExp2)
+    {
+        //System.out.println("Checking: " + exp + ", " + lExp1 + ", " + lExp2 + ", " + rExp);
+        assert exp.length() > 0;
+        assert exp.getCoefficient(exp.length()) > 0;
+        if (!exp.decrement(true).equals(rExp))
+        {
+            return false;
+        }
+        int lastNeg = 0, lastZeroOrNeg = 0;
+        for (int n = 1; n <= exp.length(); n++)
+        {
+            if (exp.getCoefficient(n) < 0)
+            {
+                lastNeg = n;
+            }
+            if (exp.getCoefficient(n) <= 0)
+            {
+                lastZeroOrNeg = n;
+            }
+        }
+        if (exp.getCoefficient(exp.length()) == 1)
+        {
+            lastZeroOrNeg = exp.length() - 1;
+        }
+        if (exp.isConfused() && lastNeg == 0)
+        {
+            // Special case.
+            return lExp2 != null && lExp2.length() == 0 && !lExp2.hasBase() && exp.truncateTo(lastZeroOrNeg).equals(lExp1);
+        }
+        if (exp.hasBase() && lastZeroOrNeg == 0 && exp.length() == rExp.length() && !exp.isConfused())
+        {
+            // Special case.
+            return lExp2 == null && lExp1.length() == 0 && !lExp1.hasBase();
+        }
+        if (lastNeg == 0)
+        {
+            return lExp2 == null && exp.truncateTo(lastZeroOrNeg).equals(lExp1);
+        }
+        if (lExp2 == null || lExp1.hasBase() != exp.hasBase() || lExp2.hasBase() == exp.hasBase())
+        {
+            return false;
+        }
+        return exp.truncateTo(lastZeroOrNeg).equals(lExp1) &&
+                exp.truncateTo(lastNeg).increment(true).equals(lExp2);
+    }
+
     static DyadicRationalNumber mean(int id)
     {
         if (isNumberUpStar(id))
@@ -2754,7 +2888,7 @@ public final class CanonicalShortGameOps
         opTableG = opTableH = opTableResult = null;
         index = null;
         data = null;
-        //UPTIMAL_MAP = new HashMap<java.lang.Integer,UptimalExpansion>();
+        UPTIMAL_MAP = new HashMap<java.lang.Integer,UptimalExpansion>();
         System.gc();
 
         opTableOp = new byte[opTableSize];

@@ -83,6 +83,7 @@ trait Integer extends DyadicRationalNumber {
   def *(other: Integer) = Integer(bigIntValue * other.bigIntValue)
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
 
+  def *(other: CanonicalShortGame) = other.nCopies(this)
   def *(other: Game) = other.nCopies(this)
 
   override def abs: Integer = Integer(bigIntValue.abs)

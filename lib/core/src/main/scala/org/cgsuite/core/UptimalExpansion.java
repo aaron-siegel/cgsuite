@@ -29,7 +29,14 @@
 
 package org.cgsuite.core;
 
+import org.cgsuite.output.Output;
+import org.cgsuite.output.StyledTextOutput;
+
 import java.util.EnumSet;
+
+import static org.cgsuite.output.StyledTextOutput.Style.LOCATION_SUPERSCRIPT;
+import static org.cgsuite.output.StyledTextOutput.Symbol.DASH;
+import static org.cgsuite.output.StyledTextOutput.Symbol.STAR;
 
 /**
  * An uptimal expansion, represented as a sequence of uptimal digits.  The
@@ -206,7 +213,7 @@ public class UptimalExpansion
         return new UptimalExpansion(numberPart, toggleBase ? !includeBase : includeBase, newCoefficients);
     }
 
-    public UptimalExpansion getNegative()
+    public UptimalExpansion negate()
     {
         int[] newCoefficients = new int[coefficients.length];
         for (int i = 0; i < newCoefficients.length; i++)
@@ -296,8 +303,7 @@ public class UptimalExpansion
         }
         return true;
     }
-    /*
-    @Override
+
     public Output toOutput()
     {
         StyledTextOutput output = new StyledTextOutput();
@@ -313,7 +319,7 @@ public class UptimalExpansion
         }
 
         output.appendMath(".");
-        
+
         if (length() == 0)
         {
             output.appendMath("0");
@@ -350,5 +356,11 @@ public class UptimalExpansion
         
         return output;
     }
-    */
+
+    @Override
+    public String toString()
+    {
+        return toOutput().toString();
+    }
+
 }

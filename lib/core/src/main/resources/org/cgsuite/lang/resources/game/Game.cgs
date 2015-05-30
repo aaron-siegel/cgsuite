@@ -9,5 +9,7 @@ system class Game
   end
 
   def Decomposition := [this];
+  def LeftOptions := Options(Player.Left);
+  def RightOptions := Options(Player.Right);
 
 end

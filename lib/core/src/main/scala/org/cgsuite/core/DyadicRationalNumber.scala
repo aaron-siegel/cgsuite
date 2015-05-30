@@ -54,8 +54,23 @@ trait DyadicRationalNumber extends NumberUpStar with RationalNumber {
     denominator * other.denominator
   )
 
+  override def birthday = {
+    if (this >= Values.zero)
+      ceiling + SmallInteger(denominatorExponent)
+    else
+      floor.abs + SmallInteger(denominatorExponent)
+  }
+  override def isInfinitesimal = numerator == Values.zero
   override def isInteger = denominator == Values.one
-
+  override def isNimber = numerator == Values.zero
+  override def isNumber = true
+  override def isNumberish = true
+  override def isNumberTiny = true
+  override def leftStop = this
+  override def mean = this
+  override def rightStop = this
+  override def stopCount = Values.one
+  override def temperature = DyadicRationalNumber(Values.negativeOne, denominator)
   def min(other: DyadicRationalNumber) = if (this < other) this else other
   def max(other: DyadicRationalNumber) = if (this > other) this else other
   def mean(other: DyadicRationalNumber) = ((this + other) / Values.two).asInstanceOf[DyadicRationalNumber]

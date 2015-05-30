@@ -41,8 +41,15 @@ trait NumberUpStar extends CanonicalShortGame {
   override def isNumberish = true
   override def isNumberTiny = false
   override def isNumberUpStar = true
+  override def isUptimal = nimberPart <= 1    // TODO: Include all nimbers?
   override def leftStop = numberPart
   override def rightStop = numberPart
+  override def uptimalExpansion: UptimalExpansion = {
+    if (nimberPart <= 1)
+      new UptimalExpansion(numberPart, nimberPart == 1, upMultiplePart)
+    else
+      super.uptimalExpansion
+  }
 
   override private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
 

@@ -52,6 +52,7 @@ object CgscriptClass {
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
+    "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
 
     // The order is extremely important in the following hierarchies (most specific first)
 
@@ -537,20 +538,6 @@ class CgscriptClass(
     constructor foreach { _.elaborate() }
     methods foreach { case (_, method) => method.elaborate() }
 
-    // Big temporary hack to populate Left and Right
-    if (qualifiedName == "game.Player") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
-    }
-    if (qualifiedName == "cgsuite.util.Symmetry") {
-      import Symmetry._
-      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
-        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
-        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
-        classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
-      }
-    }
-
     // Static declarations - create a domain whose context is the class object
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node =>
@@ -562,6 +549,20 @@ class CgscriptClass(
     if (node.isEnum) {
       for ((id, index) <- classInfoRef.staticVarOrdinals) {
         classObjectRef.vars(index) = new EnumObject(this, id.name)
+      }
+    }
+
+    // Big temporary hack to populate Left and Right
+    if (qualifiedName == "game.Player") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
+    }
+    if (qualifiedName == "cgsuite.util.Symmetry") {
+      import Symmetry._
+      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
+        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
+        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
+        classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
       }
     }
 

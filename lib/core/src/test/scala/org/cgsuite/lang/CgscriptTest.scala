@@ -339,6 +339,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "game.CanonicalShortGame" should "implement 0-ary methods correctly" in {
+
+    val tests = CanonicalShortGameTestCase.instances flatMap { _.toTests }
+
+    execute(Table(header, tests : _*))
+
+  }
+
   def execute(tests: TableFor3[String, String, String]): Unit = {
 
     CgscriptClass.clearAll()

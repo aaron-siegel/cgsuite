@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class UptimalExpansion
+
+  external def ToOutput;
+
+end
