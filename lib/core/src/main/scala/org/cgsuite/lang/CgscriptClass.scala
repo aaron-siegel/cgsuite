@@ -325,7 +325,7 @@ class CgscriptClass(
             case nestedExc: InputException =>
               // TODO nestedExc.setInvocationTarget(qualifiedName)
               throw nestedExc
-            case nestedExc => throw InputException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}")
+            case nestedExc => throw InputException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
           }
         )
       } finally {

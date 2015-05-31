@@ -68,11 +68,8 @@ import static org.cgsuite.output.StyledTextOutput.Symbol.STAR;
  */
 public class UptimalExpansion
 {
-    public final static UptimalExpansion ZERO = new UptimalExpansion(Values.zero(), false);
-    public final static UptimalExpansion BASE = new UptimalExpansion(Values.zero(), true);
-
     private int[] coefficients;
-    private boolean includeBase;
+    private int nimberPart;
     private RationalNumber numberPart;
 
     /**
@@ -88,7 +85,7 @@ public class UptimalExpansion
      */
     public UptimalExpansion(int ... coefficients)
     {
-        this(Values.zero(), false, coefficients);
+        this(Values.zero(), 0, coefficients);
     }
 
     /**
@@ -111,10 +108,10 @@ public class UptimalExpansion
      * @param   coefficients the coefficients for this expansion
      *
      */
-    public UptimalExpansion(RationalNumber numberPart, boolean includeBase, int ... coefficients)
+    public UptimalExpansion(RationalNumber numberPart, int nimberPart, int ... coefficients)
     {
         this.numberPart = numberPart;
-        this.includeBase = includeBase;
+        this.nimberPart = nimberPart;
         int length = 0;
         for (int i = coefficients.length-1; i >= 0; i--)
         {
@@ -136,14 +133,14 @@ public class UptimalExpansion
             return false;
         }
         return ((UptimalExpansion) obj).numberPart.equals(numberPart) &&
-            ((UptimalExpansion) obj).includeBase == includeBase &&
+            ((UptimalExpansion) obj).nimberPart == nimberPart &&
             java.util.Arrays.equals(((UptimalExpansion) obj).coefficients, coefficients);
     }
 
     @Override
     public int hashCode()
     {
-        return numberPart.hashCode() ^ (includeBase ? 0x55555555 : 0) ^ java.util.Arrays.hashCode(coefficients);
+        return numberPart.hashCode() ^ (nimberPart * 31) ^ java.util.Arrays.hashCode(coefficients);
     }
 
     /**
@@ -180,9 +177,9 @@ public class UptimalExpansion
     /**
      * Returns <code>true</code> if a <code>*</code> is included with this expansion.
      */
-    public boolean hasBase()
+    public int nimberPart()
     {
-        return includeBase;
+        return nimberPart;
     }
 
     /**
@@ -193,24 +190,22 @@ public class UptimalExpansion
         return numberPart;
     }
 
-    public UptimalExpansion increment(boolean toggleBase)
+    public UptimalExpansion increment(boolean withStar)
     {
-        int[] newCoefficients = new int[coefficients.length];
-        for (int i = 0; i < newCoefficients.length; i++)
-        {
-            newCoefficients[i] = coefficients[i] + 1;
-        }
-        return new UptimalExpansion(numberPart, toggleBase ? !includeBase : includeBase, newCoefficients);
+        return increment(withStar, length());
     }
 
-    public UptimalExpansion decrement(boolean toggleBase)
+    public UptimalExpansion increment(boolean withStar, int toLength)
     {
-        int[] newCoefficients = new int[coefficients.length];
+        int[] newCoefficients = new int[Math.max(toLength, coefficients.length)];
         for (int i = 0; i < newCoefficients.length; i++)
         {
-            newCoefficients[i] = coefficients[i] - 1;
+            if (i < coefficients.length)
+                newCoefficients[i] = coefficients[i] + (i < toLength ? 1 : 0);
+            else
+                newCoefficients[i] = 1;
         }
-        return new UptimalExpansion(numberPart, toggleBase ? !includeBase : includeBase, newCoefficients);
+        return new UptimalExpansion(numberPart, nimberPart ^ (withStar ? 1 : 0), newCoefficients);
     }
 
     public UptimalExpansion negate()
@@ -220,7 +215,20 @@ public class UptimalExpansion
         {
             newCoefficients[i] = -coefficients[i];
         }
-        return new UptimalExpansion(numberPart.unary_$minus(), includeBase, newCoefficients);
+        return new UptimalExpansion(numberPart.unary_$minus(), nimberPart, newCoefficients);
+    }
+
+    public UptimalExpansion sharplyTruncateTo(int n)
+    {
+        UptimalExpansion truncation = truncateTo(n);
+        if (truncation.length() == 0)
+        {
+            return new UptimalExpansion(numberPart, 0);
+        }
+        else
+        {
+            return truncation;
+        }
     }
 
     public UptimalExpansion truncateTo(int n)
@@ -228,7 +236,19 @@ public class UptimalExpansion
         n = Math.min(n, coefficients.length);
         int[] newCoefficients = new int[n];
         System.arraycopy(coefficients, 0, newCoefficients, 0, n);
-        return new UptimalExpansion(numberPart, includeBase, newCoefficients);
+        return new UptimalExpansion(numberPart, nimberPart, newCoefficients);
+    }
+
+    public int rightmostCoefficientLeq(int n)
+    {
+        for (int i = coefficients.length-1; i >= 0; i--)
+        {
+            if (coefficients[i] <= n)
+            {
+                return i+1;
+            }
+        }
+        return 0;
     }
 
     public UptimalExpansion addToCoefficient(int n, int value)
@@ -236,18 +256,22 @@ public class UptimalExpansion
         int[] newCoefficients = new int[Math.max(n, coefficients.length)];
         System.arraycopy(coefficients, 0, newCoefficients, 0, coefficients.length);
         newCoefficients[n-1] += value;
-        return new UptimalExpansion(numberPart, includeBase, newCoefficients);
+        return new UptimalExpansion(numberPart, nimberPart, newCoefficients);
     }
 
     public boolean isConfused()
     {
-        if (!includeBase)
+        if (nimberPart == 0)
         {
             return false;
         }
         if (coefficients.length == 0 || coefficients[0] == 0)
         {
             return true;
+        }
+        if (nimberPart >= 2)
+        {
+            return false;
         }
         boolean positive = (coefficients[0] > 0);
         for (int n = 0; n < coefficients.length; n++)
@@ -308,14 +332,18 @@ public class UptimalExpansion
     {
         StyledTextOutput output = new StyledTextOutput();
         
-        if (!hasBase() || !getNumberPart().equals(Values.zero()))
+        if (nimberPart == 0 || !getNumberPart().equals(Values.zero()))
         {
             output.appendOutput(getNumberPart().toOutput());
         }
         
-        if (hasBase())
+        if (nimberPart != 0)
         {
             output.appendSymbol(STAR);
+            if (nimberPart >= 2)
+            {
+                output.appendMath(String.valueOf(nimberPart));
+            }
         }
 
         output.appendMath(".");

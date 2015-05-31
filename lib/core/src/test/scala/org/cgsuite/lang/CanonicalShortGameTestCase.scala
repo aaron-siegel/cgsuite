@@ -113,7 +113,7 @@ object CanonicalShortGameTestCase {
       isNumber = "false",
       isNumberish = "true",
       isNumberTiny = "false",
-      isUptimal = "false",
+      isUptimal = "true",
       leftOptions = "{0,*,*2,*3,*4,*5,*6,*7}",
       leftStop = "0",
       mean = "0",
@@ -121,7 +121,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "4374",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "*8.0"
     ),
 
     CanonicalShortGameTestCase(
@@ -194,7 +194,7 @@ object CanonicalShortGameTestCase {
       isNumber = "false",
       isNumberish = "true",
       isNumberTiny = "false",
-      isUptimal = "false",
+      isUptimal = "true",
       leftOptions = "{0}",
       leftStop = "0",
       mean = "0",
@@ -202,7 +202,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "1459",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "*6.1"
     ),
 
     CanonicalShortGameTestCase(
@@ -214,7 +214,7 @@ object CanonicalShortGameTestCase {
       isNumber = "false",
       isNumberish = "true",
       isNumberTiny = "false",
-      isUptimal = "false",
+      isUptimal = "true",
       leftOptions = "{73/16v8*9}",
       leftStop = "73/16",
       mean = "73/16",
@@ -222,7 +222,7 @@ object CanonicalShortGameTestCase {
       rightStop = "73/16",
       stopCount = "13131",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "73/16*8.9-"
     ),
 
     CanonicalShortGameTestCase(

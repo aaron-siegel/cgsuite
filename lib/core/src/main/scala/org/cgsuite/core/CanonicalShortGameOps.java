@@ -1576,9 +1576,9 @@ public final class CanonicalShortGameOps
             return null;
         }
 
-        if (isNumberUpStar(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1)
+        if (isNumberUpStar(id))
         {
-            return new UptimalExpansion(getNumberPart(id), getNimberPart(id) == 1);
+            return new UptimalExpansion(getNumberPart(id), getNimberPart(id), getUpMultiplePart(id));
         }
 
         if (UPTIMAL_MAP.containsKey(id))
@@ -1610,7 +1610,40 @@ public final class CanonicalShortGameOps
 
     private static UptimalExpansion uptimalExpansion2(int id)
     {
-        if (getNumRightOptions(id) > 1 || getNumLeftOptions(id) > 2)
+
+        // We are checking to see whether this has the uptimal expansion
+        // G = *m . a_1a_2...a_k (a_k != 0).
+        // We assume that a_k > 0. (The a_k < 0 case will be checked separately
+        // by examining the negative.)
+        // Then all options are uptimals, and there is exactly one Right option,
+        // G^R = *(m#1) . a_1-a_2-...a_k-
+        // The possibilities are:
+        // (a)  If a_k = 1 and any a_i < 0, then Left has exactly two options:
+        //      *(m#1) . a_1+a_2+...a_j+    and
+        //      *m . a_1a_2...a_{k-1}
+        //      where j is the largest i with a_i < 0.
+        // (a') If a_k >= 2 and any a_i < 0, then Left has exactly two options:
+        //      *(m#1) . a_1+a_2+...a_j+    and
+        //      *m . a_1a_2...a_J
+        // (b)  If a_k = 1 and a_1 = 0, then Left's options are
+        //      0, *, *2, ..., *(m-1)    and
+        //      *m . a_1a_2...a_{k-1}
+        // (b') If a_k >= 2 and a_1 = 0, then Left's options are
+        //      0, *, *2, ..., *(m-1)    and
+        //      *m . a_1a_2...a_J
+        // (c)  If a_1 = 1, m = 1, and (a_1,a_2,...,a_k) <= (1,1,...,1), then
+        //      0    and
+        //      *m . a_1a_2...a_{k-1}
+        // (c') Just like all the others for a_k >= 2
+        // Otherwise, either a_1 > 1, or m != 1, or (a_1,a_2,...,a_k) > (1,1,...,1)
+        // (d)  If a_k = 1, then Left's only option is
+        //      *m . a_1a_2...a_{k-1}
+        // (d') If a_k >= 2, then Left's only option is
+        //      *m . a_1a_2...a_J
+        //      where J is the largest i with a_i <= 0.
+        //      If no such i exists, then Left's option is always 0.
+
+        if (getNumRightOptions(id) > 1)
         {
             return null;
         }
@@ -1619,90 +1652,117 @@ public final class CanonicalShortGameOps
         {
             return null;
         }
-        UptimalExpansion lExp1 = uptimalExpansion(getLeftOption(id, 0));
-        if (lExp1 == null || !lExp1.getNumberPart().equals(rExp.getNumberPart()))
+        int maxLExpLength = 0;
+        UptimalExpansion[] lExp = new UptimalExpansion[getNumLeftOptions(id)];
+        for (int i = 0; i < lExp.length; i++)
         {
-            return null;
-        }
-        UptimalExpansion lExp2 = null;
-        if (getNumLeftOptions(id) > 1)
-        {
-            lExp2 = uptimalExpansion(getLeftOption(id, 1));
-            if (lExp2 == null || !lExp2.getNumberPart().equals(rExp.getNumberPart()))
+            lExp[i] = uptimalExpansion(getLeftOption(id, i));
+            if (lExp[i] == null || !lExp[i].getNumberPart().equals(rExp.getNumberPart()))
             {
                 return null;
             }
+            maxLExpLength = Math.max(maxLExpLength, lExp[i].length());
         }
 
-        if (lExp1.hasBase() == rExp.hasBase() && lExp2 != null)
+        //System.out.println("Validating for " + CanonicalShortGame$.MODULE$.apply(id) + ":");
+
+        if (rExp.length() > 0 && rExp.getCoefficient(rExp.length()) > 0)
         {
-            UptimalExpansion swap = lExp2;
-            lExp2 = lExp1;
-            lExp1 = swap;
+            // Try the a_k > 1 case.
+            UptimalExpansion putativeExpansion1 = rExp.increment(true, rExp.length());
+            if (isValidUptimalExpansion(putativeExpansion1, lExp, rExp))
+            {
+                //System.out.println("Confirmed " + putativeExpansion1 + " for " + CanonicalShortGame$.MODULE$.apply(id) + ".");
+                return putativeExpansion1;
+            }
         }
 
-        // d_k > 1 case:
-        if (rExp.length() > 0 && rExp.getCoefficient(rExp.length()) > 0 &&
-                checkUptimalExpansion(rExp.increment(true), rExp, lExp1, lExp2))
+        // Try the a_k = 1 case.
+        UptimalExpansion putativeExpansion2 = rExp.increment(true, Math.max(rExp.length(), maxLExpLength) + 1);
+        if (isValidUptimalExpansion(putativeExpansion2, lExp, rExp))
         {
-            return rExp.increment(true);
+            //System.out.println("Confirmed " + putativeExpansion2 + " for " + CanonicalShortGame$.MODULE$.apply(id) + ".");
+            return putativeExpansion2;
         }
-
-        // d_k = 1 case:
-        if (checkUptimalExpansion(lExp1.addToCoefficient(Math.max(lExp1.length() + 1, rExp.length() + 1), 1), rExp, lExp1, lExp2))
+        else
         {
-            return lExp1.addToCoefficient(Math.max(lExp1.length() + 1, rExp.length() + 1), 1);
+            return null;
         }
 
-        return null;
     }
 
-    private static boolean checkUptimalExpansion
-            (UptimalExpansion exp, UptimalExpansion rExp, UptimalExpansion lExp1, UptimalExpansion lExp2)
+    public static boolean isValidUptimalExpansion(UptimalExpansion exp, UptimalExpansion[] lExp, UptimalExpansion rExp)
     {
-        //System.out.println("Checking: " + exp + ", " + lExp1 + ", " + lExp2 + ", " + rExp);
-        assert exp.length() > 0;
-        assert exp.getCoefficient(exp.length()) > 0;
-        if (!exp.decrement(true).equals(rExp))
+        //System.out.println("Trying: " + exp + " with " + Arrays.toString(lExp) + " | " + rExp);
+
+        int loThatMatchesBase = -1;
+        int firstNonNimber = lExp.length;
+
+        for (int i = 0; i < lExp.length; i++)
         {
-            return false;
-        }
-        int lastNeg = 0, lastZeroOrNeg = 0;
-        for (int n = 1; n <= exp.length(); n++)
-        {
-            if (exp.getCoefficient(n) < 0)
+            if (firstNonNimber == lExp.length && (lExp[i].length() > 0 || lExp[i].nimberPart() != i))
             {
-                lastNeg = n;
+                firstNonNimber = i;
             }
-            if (exp.getCoefficient(n) <= 0)
+            if (lExp[i].nimberPart() == rExp.nimberPart())
             {
-                lastZeroOrNeg = n;
+                if (loThatMatchesBase >= 0)
+                {
+                    // In an uptimal, there can only be one left option w/ matching base.
+                    return false;
+                }
+                loThatMatchesBase = i;
             }
         }
-        if (exp.getCoefficient(exp.length()) == 1)
+
+        int lastConsecutiveNimber = firstNonNimber - 1;
+
+        int rightmostNegative = exp.rightmostCoefficientLeq(-1);
+        int rightmostNonpositive = exp.rightmostCoefficientLeq(0);
+
+        if (rightmostNegative >= 1)
         {
-            lastZeroOrNeg = exp.length() - 1;
+            // Cases (a) and (a').
+            //System.out.println("Case (a).");
+            if (lExp.length == 2 && loThatMatchesBase >= 0)
+            {
+                UptimalExpansion loExpected1 = exp.truncateTo(rightmostNegative).increment(true);
+                UptimalExpansion loExpected2 = exp.truncateTo(
+                    exp.getCoefficient(exp.length()) == 1 ? exp.length() - 1 : rightmostNonpositive
+                );
+                return lExp[loThatMatchesBase].equals(loExpected1) && lExp[1-loThatMatchesBase].equals(loExpected2);
+            }
+            else
+            {
+                return false;
+            }
         }
-        if (exp.isConfused() && lastNeg == 0)
+        else if (exp.getCoefficient(1) == 0)
         {
-            // Special case.
-            return lExp2 != null && lExp2.length() == 0 && !lExp2.hasBase() && exp.truncateTo(lastZeroOrNeg).equals(lExp1);
+            // Cases (b) and (b').
+            //System.out.println("Case (b).");
+            return lExp.length == exp.nimberPart() + 1 && lastConsecutiveNimber >= exp.nimberPart() - 1 &&
+                lExp[lExp.length-1].equals(exp.truncateTo(
+                    exp.getCoefficient(exp.length()) == 1 ? exp.length() - 1 : rightmostNonpositive
+                ));
         }
-        if (exp.hasBase() && lastZeroOrNeg == 0 && exp.length() == rExp.length() && !exp.isConfused())
+        else if (exp.getCoefficient(1) == 1 && exp.isConfused())
         {
-            // Special case.
-            return lExp2 == null && lExp1.length() == 0 && !lExp1.hasBase();
+            // Case (c) and (c').
+            //System.out.println("Case (c).");
+            return lExp.length == 2 && lExp[0].nimberPart() == 0 && lExp[0].length() == 0 &&
+                lExp[1].equals(exp.truncateTo(
+                        exp.getCoefficient(exp.length()) == 1 ? exp.length() - 1 : rightmostNonpositive
+                ));
         }
-        if (lastNeg == 0)
+        else
         {
-            return lExp2 == null && exp.truncateTo(lastZeroOrNeg).equals(lExp1);
+            // Cases (d) and (d').
+            //System.out.println("Case (d).");
+            return lExp.length == 1 && lExp[0].equals(exp.sharplyTruncateTo(
+                    exp.getCoefficient(exp.length()) == 1 ? exp.length() - 1 : rightmostNonpositive
+            ));
         }
-        if (lExp2 == null || lExp1.hasBase() != exp.hasBase() || lExp2.hasBase() == exp.hasBase())
-        {
-            return false;
-        }
-        return exp.truncateTo(lastZeroOrNeg).equals(lExp1) &&
-                exp.truncateTo(lastNeg).increment(true).equals(lExp2);
     }
 
     static DyadicRationalNumber mean(int id)
