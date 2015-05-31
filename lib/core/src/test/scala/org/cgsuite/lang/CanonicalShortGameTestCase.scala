@@ -131,7 +131,7 @@ object CanonicalShortGameTestCase {
     // Primary uptimals
 
     CanonicalShortGameTestCase(
-      "^", "^", "NumberUpStar",
+      "^", "^", "Uptimal",
       birthday = "2",
       isInfinitesimal = "true",
       isInteger = "false",
@@ -151,7 +151,7 @@ object CanonicalShortGameTestCase {
     ),
 
     CanonicalShortGameTestCase(
-      "v*", "v*", "NumberUpStar",
+      "v*", "v*", "Uptimal",
       birthday = "2",
       isInfinitesimal = "true",
       isInteger = "false",
@@ -172,7 +172,7 @@ object CanonicalShortGameTestCase {
 
 
     CanonicalShortGameTestCase(
-      "6+^*", "6^*", "NumberUpStar",
+      "6+^*", "6^*", "Uptimal",
       birthday = "8",
       isInfinitesimal = "false",
       isInteger = "false",
@@ -192,7 +192,7 @@ object CanonicalShortGameTestCase {
     ),
 
     CanonicalShortGameTestCase(
-      "^*6", "^*6", "NumberUpStar",
+      "^*6", "^*6", "Uptimal",
       birthday = "8",
       isInfinitesimal = "true",
       isInteger = "false",
@@ -212,7 +212,7 @@ object CanonicalShortGameTestCase {
     ),
 
     CanonicalShortGameTestCase(
-      "73/16+v9*8", "73/16v9*8", "NumberUpStar",
+      "73/16+v9*8", "73/16v9*8", "Uptimal",
       birthday = "27",
       isInfinitesimal = "false",
       isInteger = "false",

@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+system class Uptimal extends CanonicalShortGame
+end

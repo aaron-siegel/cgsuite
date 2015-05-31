@@ -40,7 +40,7 @@ object Ops {
     case (_: Zero, _: Game) => (_: Zero, y: Game) => y
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x + y
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x + y
-    case (_: NumberUpStar, _: NumberUpStar) => (x: NumberUpStar, y: NumberUpStar) => x + y
+    case (_: Uptimal, _: Uptimal) => (x: Uptimal, y: Uptimal) => x + y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
     case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
@@ -65,7 +65,7 @@ object Ops {
     case (_: Zero, _:Game) => (_: Zero, y: Game) => y
     case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x - y
     case (_: RationalNumber, _:RationalNumber) => (x: RationalNumber, y: RationalNumber) => x - y
-    case (_: NumberUpStar, _:NumberUpStar) => (x: NumberUpStar, y: NumberUpStar) => x - y
+    case (_: Uptimal, _:Uptimal) => (x: Uptimal, y: Uptimal) => x - y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
     case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x - y
     case (_: Game, _:Game) => (x: Game, y: Game) => x - y
@@ -139,11 +139,11 @@ object Ops {
   }
 
   val MakeUpMultiple = BinOp("up") {
-    case (x: SmallInteger, y: SmallInteger) => NumberUpStar(zero, x.intValue, y.intValue)
+    case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, x.intValue, y.intValue)
   }
 
   val MakeDownMultiple = BinOp("down") {
-    case (x: SmallInteger, y: SmallInteger) => NumberUpStar(zero, -x.intValue, y.intValue)
+    case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, -x.intValue, y.intValue)
   }
 
   val MakeCoordinates = BinOp("(,)") {

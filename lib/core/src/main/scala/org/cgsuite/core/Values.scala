@@ -21,10 +21,10 @@ private[cgsuite] trait ValuesTrait {
   val star = Nimber(1)
   val starTwo = Nimber(2)
   
-  val up = NumberUpStar(zero, 1, 0)
-  val upStar = NumberUpStar(zero, 1, 1)
-  val down = NumberUpStar(zero, -1, 0)
-  val downStar = NumberUpStar(zero, -1, 1)
+  val up = Uptimal(zero, 1, 0)
+  val upStar = Uptimal(zero, 1, 1)
+  val down = Uptimal(zero, -1, 0)
+  val downStar = Uptimal(zero, -1, 1)
   
   val positiveInfinity = RationalNumber(1, 0)
   val negativeInfinity = RationalNumber(-1, 0)

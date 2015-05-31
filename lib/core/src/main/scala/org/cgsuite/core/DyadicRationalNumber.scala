@@ -21,7 +21,7 @@ object DyadicRationalNumber {
 
 }
 
-trait DyadicRationalNumber extends NumberUpStar with RationalNumber {
+trait DyadicRationalNumber extends Uptimal with RationalNumber {
 
   def numberPart = this
   def upMultiplePart = 0

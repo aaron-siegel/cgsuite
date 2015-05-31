@@ -1,4 +1,4 @@
 /*${cgsuite.banner}*/
 
-system class DyadicRational extends NumberUpStar, Rational
+system class DyadicRational extends Uptimal, Rational
 end

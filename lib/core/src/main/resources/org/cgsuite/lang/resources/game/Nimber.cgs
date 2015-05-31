@@ -1,4 +1,4 @@
 /*${cgsuite.banner}*/
 
-system class Nimber extends NumberUpStar
+system class Nimber extends Uptimal
 end

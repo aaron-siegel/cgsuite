@@ -6,6 +6,15 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class UptimalTest extends FlatSpec with Matchers {
 
+  "Uptimal" should "return correct options" in {
+
+    up.options(Left) shouldBe Set(zero)
+    up.options(Right) shouldBe Set(star)
+    upStar.options(Left) shouldBe Set(zero, star)
+    upStar.options(Right) shouldBe Set(zero)
+
+  }
+
   "UptimalExpansion" should "agree with sums of ups and stars" in {
 
     val multiples = (-3 to 3) map { Integer(_) }

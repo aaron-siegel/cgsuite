@@ -65,7 +65,7 @@ object CgscriptClass {
     "game.DyadicRational" -> classOf[DyadicRationalNumber],
     "game.Rational" -> classOf[RationalNumber],
     "game.Nimber" -> classOf[Nimber],
-    "game.NumberUpStar" -> classOf[NumberUpStar],
+    "game.Uptimal" -> classOf[Uptimal],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
     "game.CanonicalStopperGame" -> classOf[CanonicalStopperGame],
     "game.Game" -> classOf[Game],

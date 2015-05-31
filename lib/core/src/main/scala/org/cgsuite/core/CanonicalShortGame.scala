@@ -20,7 +20,7 @@ object CanonicalShortGame {
   
   private[cgsuite] def apply(gameId: Int): CanonicalShortGame = {
     if (ops.isNumberUpStar(gameId)) {
-      NumberUpStar(ops.getNumberPart(gameId), ops.getUpMultiplePart(gameId), ops.getNimberPart(gameId))
+      Uptimal(ops.getNumberPart(gameId), ops.getUpMultiplePart(gameId), ops.getNimberPart(gameId))
     } else {
       CanonicalShortGameImpl(gameId)
     }
@@ -49,9 +49,9 @@ object CanonicalShortGame {
         case (a: Nimber, b: Nimber) => a.nimValue - b.nimValue
         case (_: Nimber, _) => -1
         case (_, _: Nimber) => 1
-        case (a: NumberUpStar, b: NumberUpStar) => compareUptimals(a, b)
-        case (a: NumberUpStar, _) => -1
-        case (_, b: NumberUpStar) => 1
+        case (a: Uptimal, b: Uptimal) => compareUptimals(a, b)
+        case (a: Uptimal, _) => -1
+        case (_, b: Uptimal) => 1
         case (_, _) =>
           val cmp = compareLists(g.sortedOptions(Left), h.sortedOptions(Left))
           if (cmp != 0)
@@ -79,7 +79,7 @@ object CanonicalShortGame {
       cmp
     }
 
-    def compareUptimals(a: NumberUpStar, b: NumberUpStar): Int = {
+    def compareUptimals(a: Uptimal, b: Uptimal): Int = {
       (a.numberPart compare b.numberPart) match {
         case 0 => (a.upMultiplePart - b.upMultiplePart) match {
           case 0 => a.nimberPart - b.nimberPart

@@ -3,9 +3,9 @@ package org.cgsuite.core
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.output.StyledTextOutput.Symbol._
 
-object NumberUpStar {
+object Uptimal {
 
-  def apply(number: DyadicRationalNumber, upMultiple: Int, nimber: Int): NumberUpStar = {
+  def apply(number: DyadicRationalNumber, upMultiple: Int, nimber: Int): Uptimal = {
     if (upMultiple == 0 && nimber == 0) {
       number
     } else if (number == Values.zero && upMultiple == 0) {
@@ -13,13 +13,13 @@ object NumberUpStar {
     } else if (nimber < 0) {
       sys.error("nim value must be a positive integer")
     } else {
-      NumberUpStarImpl(number, upMultiple, nimber)
+      UptimalImpl(number, upMultiple, nimber)
     }
   }
 
 }
 
-trait NumberUpStar extends CanonicalShortGame {
+trait Uptimal extends CanonicalShortGame {
 
   def numberPart: DyadicRationalNumber
   def upMultiplePart: Int
@@ -27,12 +27,12 @@ trait NumberUpStar extends CanonicalShortGame {
 
   def gameId = CanonicalShortGameOps.constructNus(numberPart, upMultiplePart, nimberPart)
 
-  override def unary_- : NumberUpStar = NumberUpStar(-numberPart, -upMultiplePart, nimberPart)
-  def +(other: NumberUpStar): NumberUpStar = {
-    NumberUpStar(numberPart + other.numberPart, upMultiplePart + other.upMultiplePart, nimberPart ^ other.nimberPart)
+  override def unary_- : Uptimal = Uptimal(-numberPart, -upMultiplePart, nimberPart)
+  def +(other: Uptimal): Uptimal = {
+    Uptimal(numberPart + other.numberPart, upMultiplePart + other.upMultiplePart, nimberPart ^ other.nimberPart)
   }
-  def -(other: NumberUpStar): NumberUpStar = {
-    NumberUpStar(numberPart - other.numberPart, upMultiplePart - other.upMultiplePart, nimberPart ^ other.nimberPart)
+  def -(other: Uptimal): Uptimal = {
+    Uptimal(numberPart - other.numberPart, upMultiplePart - other.upMultiplePart, nimberPart ^ other.nimberPart)
   }
 
   override def isInfinitesimal = numberPart == Values.zero
@@ -83,7 +83,7 @@ trait NumberUpStar extends CanonicalShortGame {
 
 }
 
-case class NumberUpStarImpl(numberPart: DyadicRationalNumber, upMultiplePart: Int, nimberPart: Int) extends NumberUpStar {
+case class UptimalImpl(numberPart: DyadicRationalNumber, upMultiplePart: Int, nimberPart: Int) extends Uptimal {
 
   assert(!isNumber)
   assert(!isNimber)

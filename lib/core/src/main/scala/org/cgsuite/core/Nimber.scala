@@ -16,7 +16,7 @@ object Nimber {
   
 }
 
-trait Nimber extends NumberUpStar {
+trait Nimber extends Uptimal {
   
   def nimValue: Int
 
