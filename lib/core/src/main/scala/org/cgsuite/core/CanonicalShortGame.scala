@@ -34,7 +34,7 @@ object CanonicalShortGame {
   
   def apply(lo: CanonicalShortGame*)(ro: CanonicalShortGame*): CanonicalShortGame = apply(lo, ro)
 
-  val maxSlashes = 5
+  val maxSlashes = 4
   val slashString: IndexedSeq[String] = (0 to maxSlashes) map { n =>
     (1 to n) map { _ => "|" } mkString ""
   }
@@ -49,6 +49,9 @@ object CanonicalShortGame {
         case (a: Nimber, b: Nimber) => a.nimValue - b.nimValue
         case (_: Nimber, _) => -1
         case (_, _: Nimber) => 1
+        case (a: NumberUpStar, b: NumberUpStar) => compareUptimals(a, b)
+        case (a: NumberUpStar, _) => -1
+        case (_, b: NumberUpStar) => 1
         case (_, _) =>
           val cmp = compareLists(g.sortedOptions(Left), h.sortedOptions(Left))
           if (cmp != 0)
@@ -74,6 +77,16 @@ object CanonicalShortGame {
         }
       }
       cmp
+    }
+
+    def compareUptimals(a: NumberUpStar, b: NumberUpStar): Int = {
+      (a.numberPart compare b.numberPart) match {
+        case 0 => (a.upMultiplePart - b.upMultiplePart) match {
+          case 0 => a.nimberPart - b.nimberPart
+          case x => x
+        }
+        case x => x
+      }
     }
 
   }
@@ -133,15 +146,20 @@ trait CanonicalShortGame extends CanonicalStopperGame {
   def isNumberish: Boolean = leftStop == rightStop
 
   override def isNumberTiny: Boolean = {
-    val gl = options(Left)
-    val gr = options(Right)
-    if (gl.size == 1 && gr.size == 1 && gl.head.isNumber) {
-      val grl = gr.head.options(Left)
-      val grr = gr.head.options(Right)
-      grl.size == 1 && grr.size == 1 && gl.head == grl.head && grr.head.leftStop < gl.head.leftStop
-    } else {
-      false
-    }
+    val lo = options(Left)
+    val ro = options(Right)
+    lo.size == 1 && ro.size == 1 && (
+      lo.head.isNumber && {
+        val rlo = ro.head.options(Left)
+        val rro = ro.head.options(Right)
+        rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head.mean < lo.head.mean
+      } ||
+      ro.head.isNumber && {
+        val llo = lo.head.options(Left)
+        val lro = lo.head.options(Right)
+        lro.size == 1 && llo.size == 1 && ro.head == lro.head && llo.head.mean > ro.head.mean
+      }
+    )
   }
 
   def isNumberUpStar: Boolean = ops.isNumberUpStar(gameId)
@@ -199,10 +217,10 @@ trait CanonicalShortGame extends CanonicalStopperGame {
         output.appendMath("}")
       0
 
-    } else if (isNumberTiny || negative.isNumberTiny) {
+    } else if (isNumberTiny) {
 
       val (str, translate, subscript) = {
-        if (isNumberTiny)
+        if (lo.head.isNumber)
           ("Tiny", lo.head, -ro.head.options(Right).head + lo.head)
         else
           ("Miny", ro.head, lo.head.options(Left).head - ro.head)

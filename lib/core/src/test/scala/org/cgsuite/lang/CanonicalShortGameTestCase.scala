@@ -4,6 +4,8 @@ object CanonicalShortGameTestCase {
 
   val instances = Seq(
 
+    // Numbers
+
     CanonicalShortGameTestCase(
       "0", "0", "Zero",
       birthday = "0",
@@ -104,6 +106,8 @@ object CanonicalShortGameTestCase {
       uptimalExpansion = "25/16.0"
     ),
 
+    // Nimbers
+
     CanonicalShortGameTestCase(
       "*8", "*8", "Nimber",
       birthday = "8",
@@ -123,6 +127,8 @@ object CanonicalShortGameTestCase {
       temperature = "0",
       uptimalExpansion = "*8.0"
     ),
+
+    // Primary uptimals
 
     CanonicalShortGameTestCase(
       "^", "^", "NumberUpStar",
@@ -225,6 +231,8 @@ object CanonicalShortGameTestCase {
       uptimalExpansion = "73/16*8.9-"
     ),
 
+    // More complex uptimals
+
     CanonicalShortGameTestCase(
       "{0|*||*|||*||||*}", "{^|*||*|||*}", "CanonicalShortGame",
       birthday = "5",
@@ -263,6 +271,152 @@ object CanonicalShortGameTestCase {
       stopCount = "6",
       temperature = "0",
       uptimalExpansion = "*.12"
+    ),
+
+    CanonicalShortGameTestCase(
+      "{0||0,v*|vv|||{0||0,v*|vv},{0||0,v*|vv|||vv,{0,v*|vv}}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}",
+      "{0||0,v*|vv|||{0||0,v*|vv},{0||0,v*|vv|||vv,{0,v*|vv}}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}",
+      "CanonicalShortGame",
+      birthday = "9",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "false",
+      isUptimal = "true",
+      leftOptions = "{{0||0,v*|vv}}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{{{0||0,v*|vv},{0||0,v*|vv|||vv,{0,v*|vv}}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}}",
+      rightStop = "0",
+      stopCount = "79",
+      temperature = "0",
+      uptimalExpansion = "0.0202"
+    ),
+
+    CanonicalShortGameTestCase(
+      "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
+      "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
+      "CanonicalShortGame",
+      birthday = "12",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "false",
+      isUptimal = "true",
+      leftOptions = "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{{{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}}",
+      rightStop = "0",
+      stopCount = "1509",
+      temperature = "0",
+      uptimalExpansion = "*4.0202"
+    ),
+
+    // Other infinitesimals, tinies
+
+    CanonicalShortGameTestCase(
+      "{0||0|vvv}", "{0||0|v3}", "CanonicalShortGame",
+      birthday = "6",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "false",
+      isUptimal = "false",
+      leftOptions = "{0}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{{0|v3}}",
+      rightStop = "0",
+      stopCount = "7",
+      temperature = "0",
+      uptimalExpansion = "!!That game is not an uptimal."
+    ),
+
+    CanonicalShortGameTestCase(
+      "{^^^|vv}", "{^3|vv}", "CanonicalShortGame",
+      birthday = "5",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "false",
+      isUptimal = "false",
+      leftOptions = "{^3}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{vv}",
+      rightStop = "0",
+      stopCount = "10",
+      temperature = "0",
+      uptimalExpansion = "!!That game is not an uptimal."
+    ),
+
+    CanonicalShortGameTestCase(
+      "{0||0|-3/2}", "(3/2).Tiny", "CanonicalShortGame",
+      birthday = "5",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "true",
+      isUptimal = "false",
+      leftOptions = "{0}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{{0|-3/2}}",
+      rightStop = "0",
+      stopCount = "3",
+      temperature = "0",
+      uptimalExpansion = "!!That game is not an uptimal."
+    ),
+
+    CanonicalShortGameTestCase(
+      "{0|||0||-1|-3}", "{3|1}.Tiny", "CanonicalShortGame",
+      birthday = "6",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "true",
+      isUptimal = "false",
+      leftOptions = "{0}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{{0||-1|-3}}",
+      rightStop = "0",
+      stopCount = "4",
+      temperature = "0",
+      uptimalExpansion = "!!That game is not an uptimal."
+    ),
+
+    CanonicalShortGameTestCase(
+      "{5||3|1|||0||||0}", "{5||3|1}.Miny", "CanonicalShortGame",
+      birthday = "8",
+      isInfinitesimal = "true",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "true",
+      isNumberTiny = "true",
+      isUptimal = "false",
+      leftOptions = "{{5||3|1|||0}}",
+      leftStop = "0",
+      mean = "0",
+      rightOptions = "{0}",
+      rightStop = "0",
+      stopCount = "5",
+      temperature = "0",
+      uptimalExpansion = "!!That game is not an uptimal."
     )
 
   )

@@ -165,7 +165,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("for-from-to", "", "x*x", "for x from 1 to 5", "1,4,9,16,25", None, "55"),
       ("for-from-to-by", "", "x*x", "for x from 1 to 10 by 3", "1,16,49,100", None, "166"),
       ("for-from-to-by (neg)", "", "x*x", "for x from 6 to 1 by -2", "36,16,4", Some("4,16,36"), "56"),
-      ("for-from-to-by (game)", "", "x", "for x from 0 to ^5 by ^*", "0,^*,^^,^3*,^4", Some("0,^4,^3*,^^,^*"), "^10"), // TODO This isn't really the desired sorted behavior
+      ("for-from-to-by (game)", "", "x", "for x from 0 to ^5 by ^*", "0,^*,^^,^3*,^4", Some("0,^*,^^,^3*,^4"), "^10"),
       ("for-from-while", "", "x", "for x from 1 while x < 5", "1,2,3,4", None, "10"),
       ("for-from-to-where", "", "x", "for x from 1 to 10 where x % 3 == 1", "1,4,7,10", None, "22"),
       ("for-from-while-where", "", "x", "for x from 1 while x < 10 where x % 3 == 1", "1,4,7", None, "12"),
