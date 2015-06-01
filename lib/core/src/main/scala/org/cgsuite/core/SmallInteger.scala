@@ -93,6 +93,8 @@ trait SmallInteger extends Integer {
 
   override def isEven = intValue % 2 == 0
 
+  override def isOdd = intValue % 2 != 0
+
   override def isSmallInteger = true
   
   override def sign = SmallInteger(intValue.signum)

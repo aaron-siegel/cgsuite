@@ -94,9 +94,11 @@ trait Integer extends DyadicRationalNumber {
 
   def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
 
-  def isEven = bigIntValue.testBit(0)
+  override def isEven = !bigIntValue.testBit(0)
 
   override def isInteger = true
+
+  override def isOdd = bigIntValue.testBit(0)
 
   def isSmallInteger = bigIntValue >= Integer.minInt && bigIntValue <= Integer.maxInt
 

@@ -312,7 +312,7 @@ public final class CanonicalShortGameOps
         Arrays.sort(array, 0, array.length, LIKE_COMPARATOR);
         return array;
     }
-    
+
     static Comparator<java.lang.Integer> LIKE_COMPARATOR = new Comparator<java.lang.Integer>()
     {
         @Override
@@ -321,9 +321,6 @@ public final class CanonicalShortGameOps
             return compareLike(x, y);
         }
     };
-
-    private static boolean abbreviateInfinitesimals = false, meanZeroMode = false;
-    private static int maxSlashes = 4;
 
     static int getNegative(int id)
     {
@@ -769,7 +766,7 @@ public final class CanonicalShortGameOps
         return stop;
     }
 
-    private static int naiveAtomicWeight(int id)
+    static int naiveAtomicWeight(int id)
     {
         if (isNumberUpStar(id))
         {
@@ -865,7 +862,7 @@ public final class CanonicalShortGameOps
         return result;
     }
 
-    private static int farStar(int id)
+    static int farStar(int id)
     {
         if (isNimber(id))
         {
@@ -1269,7 +1266,7 @@ public final class CanonicalShortGameOps
     {
         if (isNumberUpStar(id))
         {
-            return !isExtendedRecord(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1 &&
+            return !isExtendedRecord(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1 && getDenExpPart(id) == 0 &&
                 (getSmallNumeratorPart(id) + getNimberPart(id)) % 2 == 0;
         }
         else
@@ -1296,7 +1293,7 @@ public final class CanonicalShortGameOps
     {
         if (isNumberUpStar(id))
         {
-            return !isExtendedRecord(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1 &&
+            return !isExtendedRecord(id) && getUpMultiplePart(id) == 0 && getNimberPart(id) <= 1 && getDenExpPart(id) == 0 &&
                 (getSmallNumeratorPart(id) + getNimberPart(id)) % 2 == 1;
         }
         else
@@ -1765,6 +1762,62 @@ public final class CanonicalShortGameOps
         }
     }
 
+    public static int constructUptimal(UptimalExpansion ue)
+    {
+        int id = CanonicalShortGameOps.constructNus(ue.getNumberPart(), 0, 0);
+        for (int n = 1; n <= ue.length(); n++)
+        {
+            int value = ue.getCoefficient(n);
+            if (value == 0)
+            {
+                continue;
+            }
+            int pow = pow(UP_ID, n);
+            if (value < 0)
+            {
+                pow = getNegative(pow);
+                value = -value;
+            }
+            for (int i = 0; i < value; i++)
+            {
+                id = add(id, pow);
+            }
+        }
+        return id;
+    }
+
+    public static int pow(int id, int n)
+    {
+        if (getNumLeftOptions(id) != 1 || getLeftOption(id, 0) != ZERO_ID || getNumRightOptions(id) != 1)
+        {
+            throw new IllegalArgumentException("This game is not of the form {0|H}.");
+        }
+        if (n == 0)
+        {
+            return getNegative(getRightOption(id, 0));
+        }
+        else
+        {
+            return constructFromOptions(ZERO_ID, subtract(getRightOption(id, 0), powTo(id, n-1)));
+        }
+    }
+
+    public static int powTo(int id, int n)
+    {
+        if (getNumLeftOptions(id) != 1 || getLeftOption(id, 0) != ZERO_ID || getNumRightOptions(id) != 1)
+        {
+            throw new IllegalArgumentException("This game is not of the form {0|H}.");
+        }
+        if (n == 0)
+        {
+            return ZERO_ID;
+        }
+        else
+        {
+            return constructFromOptions(powTo(id, n-1), getRightOption(id, 0));
+        }
+    }
+
     static DyadicRationalNumber mean(int id)
     {
         if (isNumberUpStar(id))
@@ -2105,6 +2158,11 @@ public final class CanonicalShortGameOps
         {
             return offset;
         }
+    }
+
+    static int constructFromOptions(int leftOption, int rightOption)
+    {
+        return constructFromOptions(new int[] { leftOption }, new int[] { rightOption });
     }
 
     static int constructFromOptions

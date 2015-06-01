@@ -129,9 +129,45 @@ trait CanonicalShortGame extends CanonicalStopperGame {
     options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
+  def atomicWeight = atomicWeightOpt getOrElse { throw InputException("That game is not atomic.") }
+
+  private[cgsuite] lazy val atomicWeightOpt: Option[CanonicalShortGame] = {
+    if (!isInfinitesimal)
+      None
+    else {
+      val naiveAtomicWeightId = ops.naiveAtomicWeight(gameId)
+      val isAtomic = isAllSmall || {
+        val difference = ops.subtract(gameId, ops.nortonMultiply(naiveAtomicWeightId, ops.UP_ID))
+        val farStar = ops.farStar(gameId)
+        var nextPow2 = 2
+        while (nextPow2 < farStar)
+          nextPow2 <<= 1
+        val redKite = ops.ordinalSum(ops.constructNus(zero, 0, nextPow2), ops.NEGATIVE_ONE_ID)
+        val epsilon = ops.add(ops.UP_STAR_ID, redKite)
+        ops.leq(difference, epsilon) && ops.leq(ops.getNegative(epsilon), difference)
+      }
+      if (isAtomic)
+        Some(CanonicalShortGame(naiveAtomicWeightId))
+      else
+        None
+    }
+  }
+
   def birthday: Integer = SmallInteger(ops.birthday(gameId))
 
+  def companion: CanonicalShortGame = CanonicalShortGame(ops.companion(gameId))
+
   def cool(t: DyadicRationalNumber): CanonicalShortGame = CanonicalShortGame(ops.cool(gameId, t, t.gameId))
+
+  def heat(t: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.heat(gameId, t.gameId))
+
+  def isAllSmall: Boolean = ops.isAllSmall(gameId)
+
+  def isAtomic: Boolean = atomicWeightOpt.isDefined
+
+  def isEven: Boolean = ops.isEven(gameId)
+
+  def isEvenTempered: Boolean = ops.isEvenTempered(gameId)
 
   def isInfinitesimal: Boolean = leftStop == Values.zero && rightStop == Values.zero
 
@@ -164,6 +200,10 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def isNumberUpStar: Boolean = ops.isNumberUpStar(gameId)
 
+  def isOdd: Boolean = ops.isOdd(gameId)
+
+  def isOddTempered: Boolean = ops.isOddTempered(gameId)
+
   def isSwitch: Boolean = this == -this
 
   def isUptimal: Boolean = ops.uptimalExpansion(gameId) != null
@@ -173,6 +213,16 @@ trait CanonicalShortGame extends CanonicalStopperGame {
   def mean: DyadicRationalNumber = ops.mean(gameId)
 
   def nortonMultiply(that: CanonicalShortGame) = CanonicalShortGame(ops.nortonMultiply(gameId, that.gameId))
+
+  def overheat(s: CanonicalShortGame, t: CanonicalShortGame): CanonicalShortGame = {
+    CanonicalShortGame(ops.overheat(gameId, s.gameId, t.gameId))
+  }
+
+  def pow(n: Int) = CanonicalShortGame(ops.pow(gameId, n))
+
+  def powTo(n: Int) = CanonicalShortGame(ops.powTo(gameId, n))
+
+  def reducedCanonicalForm: CanonicalShortGame = CanonicalShortGame(ops.rcf(gameId))
 
   def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
 

@@ -70,7 +70,7 @@ public class UptimalExpansion
 {
     private int[] coefficients;
     private int nimberPart;
-    private RationalNumber numberPart;
+    private DyadicRationalNumber numberPart;
 
     /**
      * Constructs an <code>UptimalExpansion</code> with the specified coefficients.
@@ -108,7 +108,7 @@ public class UptimalExpansion
      * @param   coefficients the coefficients for this expansion
      *
      */
-    public UptimalExpansion(RationalNumber numberPart, int nimberPart, int ... coefficients)
+    public UptimalExpansion(DyadicRationalNumber numberPart, int nimberPart, int ... coefficients)
     {
         this.numberPart = numberPart;
         this.nimberPart = nimberPart;
@@ -185,7 +185,7 @@ public class UptimalExpansion
     /**
      * Gets the number part of this expansion.
      */
-    public RationalNumber getNumberPart()
+    public DyadicRationalNumber getNumberPart()
     {
         return numberPart;
     }
@@ -216,6 +216,19 @@ public class UptimalExpansion
             newCoefficients[i] = -coefficients[i];
         }
         return new UptimalExpansion(numberPart.unary_$minus(), nimberPart, newCoefficients);
+    }
+
+    public UptimalExpansion add(UptimalExpansion that)
+    {
+        int[] newCoefficients = new int[Math.max(coefficients.length, that.coefficients.length)];
+        for (int i = 0; i < newCoefficients.length; i++)
+        {
+            int newValue = 0;
+            if (i < coefficients.length) newValue += coefficients[i];
+            if (i < that.coefficients.length) newValue += that.coefficients[i];
+            newCoefficients[i] = newValue;
+        }
+        return new UptimalExpansion(numberPart.$plus(that.numberPart), nimberPart ^ that.nimberPart, newCoefficients);
     }
 
     public UptimalExpansion sharplyTruncateTo(int n)

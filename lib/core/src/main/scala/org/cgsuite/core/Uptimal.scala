@@ -1,5 +1,6 @@
 package org.cgsuite.core
 
+import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.output.StyledTextOutput.Symbol._
 
@@ -34,15 +35,32 @@ trait Uptimal extends CanonicalShortGame {
   def -(other: Uptimal): Uptimal = {
     Uptimal(numberPart - other.numberPart, upMultiplePart - other.upMultiplePart, nimberPart ^ other.nimberPart)
   }
-
-  override def isInfinitesimal = numberPart == Values.zero
+          /*
+  override def atomicWeight = {
+    if (numberPart.isZero)
+      SmallInteger(upMultiplePart)
+    else
+      throw InputException("That game is not atomic.")
+  }      */
+  override def companion = {
+    if (numberPart.isZero && nimberPart <= 1)
+      Uptimal(numberPart, upMultiplePart, nimberPart ^ 1)
+    else
+      this
+  }
+  override def isAllSmall = numberPart.isZero
+  override def isAtomic = numberPart.isZero
+  override def isEvenTempered = upMultiplePart == 0 && nimberPart == 0
+  override def isInfinitesimal = numberPart.isZero
   override def isNimber = isInfinitesimal && upMultiplePart == 0
   override def isNumber = upMultiplePart == 0 && nimberPart == 0
   override def isNumberish = true
   override def isNumberTiny = false
   override def isNumberUpStar = true
+  override def isOddTempered = upMultiplePart == 0 && nimberPart == 1
   override def isUptimal = true
   override def leftStop = numberPart
+  override def reducedCanonicalForm = numberPart
   override def rightStop = numberPart
   override def uptimalExpansion: UptimalExpansion = new UptimalExpansion(numberPart, nimberPart, upMultiplePart)
 
