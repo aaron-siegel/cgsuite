@@ -35,13 +35,13 @@ trait Uptimal extends CanonicalShortGame {
   def -(other: Uptimal): Uptimal = {
     Uptimal(numberPart - other.numberPart, upMultiplePart - other.upMultiplePart, nimberPart ^ other.nimberPart)
   }
-          /*
+
   override def atomicWeight = {
     if (numberPart.isZero)
       SmallInteger(upMultiplePart)
     else
       throw InputException("That game is not atomic.")
-  }      */
+  }
   override def companion = {
     if (numberPart.isZero && nimberPart <= 1)
       Uptimal(numberPart, upMultiplePart, nimberPart ^ 1)
