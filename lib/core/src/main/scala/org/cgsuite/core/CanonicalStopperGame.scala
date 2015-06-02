@@ -308,9 +308,9 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
         )
         uponType match {
           case UponType.Upon => output.appendText(exponentStyle, "[on]")
-          case UponType.Uponth => output.appendText(exponentStyle, "on")
+          case UponType.Uponth => output.appendText(exponentStyle, "<on>")
           case UponType.Upover => output.appendText(exponentStyle, "[over]")
-          case UponType.Upoverth => output.appendText(exponentStyle, "over")
+          case UponType.Upoverth => output.appendText(exponentStyle, "<over>")
         }
         nimberPart match {
           case 0 =>

@@ -20,9 +20,11 @@ trait Nimber extends Uptimal {
   
   def nimValue: Int
 
-  def numberPart = Values.zero
-  def upMultiplePart = 0
-  def nimberPart = nimValue
+  override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, nimValue)
+  override def numberPart = Values.zero
+  override def nimberPart = nimValue
+  override def uptimalLength = 0
+  override def uptimalCoefficient(n: Int) = 0
 
   def +(other: Nimber) = Nimber(nimValue ^ other.nimValue)
   def -(other: Nimber) = Nimber(nimValue ^ other.nimValue)

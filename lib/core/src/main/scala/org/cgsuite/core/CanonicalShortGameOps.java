@@ -1764,8 +1764,8 @@ public final class CanonicalShortGameOps
 
     public static int constructUptimal(UptimalExpansion ue)
     {
-        int id = CanonicalShortGameOps.constructNus(ue.getNumberPart(), 0, 0);
-        for (int n = 1; n <= ue.length(); n++)
+        int id = CanonicalShortGameOps.constructNus(ue.getNumberPart(), ue.getCoefficient(1), ue.nimberPart());
+        for (int n = 2; n <= ue.length(); n++)
         {
             int value = ue.getCoefficient(n);
             if (value == 0)

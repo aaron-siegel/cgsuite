@@ -22,7 +22,11 @@ object CanonicalShortGame {
     if (ops.isNumberUpStar(gameId)) {
       Uptimal(ops.getNumberPart(gameId), ops.getUpMultiplePart(gameId), ops.getNimberPart(gameId))
     } else {
-      CanonicalShortGameImpl(gameId)
+      val uptimalExpansion = ops.uptimalExpansion(gameId)
+      if (uptimalExpansion != null)
+        Uptimal(uptimalExpansion)
+      else
+        CanonicalShortGameImpl(gameId)
     }
   }
   
@@ -49,7 +53,7 @@ object CanonicalShortGame {
         case (a: Nimber, b: Nimber) => a.nimValue - b.nimValue
         case (_: Nimber, _) => -1
         case (_, _: Nimber) => 1
-        case (a: Uptimal, b: Uptimal) => compareUptimals(a, b)
+        case (a: Uptimal, b: Uptimal) => a.uptimalExpansion compareTo b.uptimalExpansion
         case (a: Uptimal, _) => -1
         case (_, b: Uptimal) => 1
         case (_, _) =>
@@ -77,16 +81,6 @@ object CanonicalShortGame {
         }
       }
       cmp
-    }
-
-    def compareUptimals(a: Uptimal, b: Uptimal): Int = {
-      (a.numberPart compare b.numberPart) match {
-        case 0 => (a.upMultiplePart - b.upMultiplePart) match {
-          case 0 => a.nimberPart - b.nimberPart
-          case x => x
-        }
-        case x => x
-      }
     }
 
   }
@@ -232,14 +226,6 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def thermograph: Thermograph = ops.thermograph(gameId)
 
-  def uptimalExpansion: UptimalExpansion = {
-    val exp = ops.uptimalExpansion(gameId)
-    if (exp == null)
-      throw InputException("That game is not an uptimal.")
-    else
-      exp
-  }
-
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
     appendTo(sto, true, false)
@@ -309,8 +295,6 @@ trait CanonicalShortGame extends CanonicalStopperGame {
       0
 
     } else {
-
-      // TODO Uptimals
 
       val leftOutput = new StyledTextOutput()
       val rightOutput = new StyledTextOutput()

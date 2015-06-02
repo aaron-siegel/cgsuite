@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+system class ExplicitGame extends Game
+
+  override external def Options(Player player);
+  override def ToOutput := cgsuite.util.output.TextOutput("'{") + LeftOptions.ToList.Sorted.MkOutput(",") + "|" +
+    RightOptions.ToList.Sorted.MkOutput(",") + "}'";
+
+end

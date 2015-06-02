@@ -68,6 +68,9 @@ object CgscriptClass {
     "game.Uptimal" -> classOf[Uptimal],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
     "game.CanonicalStopperGame" -> classOf[CanonicalStopperGame],
+
+    "game.ExplicitGame" -> classOf[ExplicitGame],
+
     "game.Game" -> classOf[Game],
 
     "game.Player" -> classOf[Player]

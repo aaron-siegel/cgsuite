@@ -362,10 +362,10 @@ object CanonicalShortGameTestCase {
     // More complex uptimals
 
     CanonicalShortGameTestCase(
-      "{0|*||*|||*||||*}", "{^|*||*|||*}", "CanonicalShortGame",
+      "{0|*||*|||*||||*}", "^[4]", "Uptimal",
       atomicWeight = "1",
       birthday = "5",
-      companion = "{0,{0,{0,^*|0}|0}|0}",
+      companion = "^[4]*",
       isAllSmall = "true",
       isAtomic = "true",
       isEven = "false",
@@ -379,7 +379,7 @@ object CanonicalShortGameTestCase {
       isOdd = "false",
       isOddTempered = "false",
       isUptimal = "true",
-      leftOptions = "{{^|*||*}}",
+      leftOptions = "{^[3]}",
       leftStop = "0",
       mean = "0",
       reducedCanonicalForm = "0",
@@ -391,10 +391,10 @@ object CanonicalShortGameTestCase {
     ),
 
     CanonicalShortGameTestCase(
-      "{0||0|v*}", "{0||0|v*}", "CanonicalShortGame",
+      "{0||0|v*}", "{0|^<2>}", "Uptimal",
       atomicWeight = "1",
       birthday = "4",
-      companion = "{0||0,*|v}",
+      companion = "{0|^<2>*}",
       isAllSmall = "true",
       isAtomic = "true",
       isEven = "false",
@@ -412,7 +412,7 @@ object CanonicalShortGameTestCase {
       leftStop = "0",
       mean = "0",
       reducedCanonicalForm = "0",
-      rightOptions = "{{0|v*}}",
+      rightOptions = "{^<2>}",
       rightStop = "0",
       stopCount = "6",
       temperature = "0",
@@ -420,12 +420,12 @@ object CanonicalShortGameTestCase {
     ),
 
     CanonicalShortGameTestCase(
-      "{0||0,v*|vv|||{0||0,v*|vv},{0||0,v*|vv|||vv,{0,v*|vv}}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}",
-      "{0||0,v*|vv|||{0||0,v*|vv},{0||0,v*|vv|||vv,{0,v*|vv}}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}",
-      "CanonicalShortGame",
+      "{0||0,v*|vv|||{0||0,v*|vv|||vv,{0,v*|vv}},{0||0,v*|vv}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}",
+      "{0||0,v*|vv|||{0||0,v*|vv|||vv,{0,v*|vv}},{0||0,v*|vv}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}",
+      "Uptimal",
       atomicWeight = "0",
       birthday = "9",
-      companion = "{0,{0,*||*,v|vv*}||{0,*||*,v|vv*},{0,*||*,v|vv*|||vv*,{*,v|vv*}}|{0,*||*,v|vv*|||vv*,{*,v|vv*}||||vv*}}",
+      companion = "{0,{0,*||*,v|vv*}||{0,*||*,v|vv*|||vv*,{*,v|vv*}},{0,*||*,v|vv*}|{0,*||*,v|vv*|||vv*,{*,v|vv*}||||vv*}}",
       isAllSmall = "true",
       isAtomic = "true",
       isEven = "false",
@@ -443,7 +443,7 @@ object CanonicalShortGameTestCase {
       leftStop = "0",
       mean = "0",
       reducedCanonicalForm = "0",
-      rightOptions = "{{{0||0,v*|vv},{0||0,v*|vv|||vv,{0,v*|vv}}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}}",
+      rightOptions = "{{{0||0,v*|vv|||vv,{0,v*|vv}},{0||0,v*|vv}|{0||0,v*|vv|||vv,{0,v*|vv}||||vv}}}",
       rightStop = "0",
       stopCount = "79",
       temperature = "0",
@@ -451,12 +451,12 @@ object CanonicalShortGameTestCase {
     ),
 
     CanonicalShortGameTestCase(
-      "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
-      "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
-      "CanonicalShortGame",
+      "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}},{0,*,*2,*3,*4||*4,v*5|vv*4}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
+      "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}},{0,*,*2,*3,*4||*4,v*5|vv*4}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
+      "Uptimal",
       atomicWeight = "0",
       birthday = "12",
-      companion = "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
+      companion = "{0,*,*2,*3,{0,*,*2,*3,*4||*4,v*5|vv*4}||{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}},{0,*,*2,*3,*4||*4,v*5|vv*4}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}",
       isAllSmall = "true",
       isAtomic = "true",
       isEven = "false",
@@ -474,7 +474,7 @@ object CanonicalShortGameTestCase {
       leftStop = "0",
       mean = "0",
       reducedCanonicalForm = "0",
-      rightOptions = "{{{0,*,*2,*3,*4||*4,v*5|vv*4},{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}}",
+      rightOptions = "{{{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}},{0,*,*2,*3,*4||*4,v*5|vv*4}|{0,*,*2,*3,*4||*4,v*5|vv*4|||vv*4,{*4,v*5|vv*4}||||vv*4}}}",
       rightStop = "0",
       stopCount = "1509",
       temperature = "0",
@@ -509,7 +509,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "7",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
     CanonicalShortGameTestCase(
@@ -538,7 +538,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "10",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
     CanonicalShortGameTestCase(
@@ -567,7 +567,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "3",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
     CanonicalShortGameTestCase(
@@ -596,7 +596,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "4",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
     CanonicalShortGameTestCase(
@@ -625,7 +625,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "5",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
     CanonicalShortGameTestCase(
@@ -654,7 +654,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "9",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
     CanonicalShortGameTestCase(
@@ -683,7 +683,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "9",
       temperature = "0",
-      uptimalExpansion = "!!That game is not an uptimal."
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     )
 
   )

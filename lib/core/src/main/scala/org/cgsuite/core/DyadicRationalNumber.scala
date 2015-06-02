@@ -23,9 +23,11 @@ object DyadicRationalNumber {
 
 trait DyadicRationalNumber extends Uptimal with RationalNumber {
 
-  def numberPart = this
-  def upMultiplePart = 0
-  def nimberPart = 0
+  override lazy val uptimalExpansion = new UptimalExpansion(numberPart, 0)
+  override def numberPart = this
+  override def nimberPart = 0
+  override def uptimalLength = 0
+  override def uptimalCoefficient(n: Int) = 0
 
   override def options(player: Player): Iterable[DyadicRationalNumber] = Set(step(-player.sign))
 

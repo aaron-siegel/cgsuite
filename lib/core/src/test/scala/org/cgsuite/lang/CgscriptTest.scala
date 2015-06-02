@@ -71,12 +71,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Tiny fraction", "{0||0|-1/4}", "(1/4).Tiny"),
       ("Tiny G", "{0|||0||-1|-2}", "{2|1}.Tiny"),
       ("Miny", "{1|0||0}", "1.Miny"),
-      ("Pow", "{0|v*}", "^.Pow(2)"),
-      ("Pow*", "{0,*|v}", "^.Pow(2)+*"),
-      ("PowTo", "{^|*}", "^.PowTo(2)"),
-      ("PowTo*", "{0,^*|0}", "^.PowTo(2)+*"),
-      ("Explicit game", "'{*|*}'", "'{*|*}'"),
-      ("Explicit game ordinal sum", "'{*|*}':1", "^")
+      ("Pow", "{0|v*}", "^<2>"),
+      ("Pow*", "{0,*|v}", "^<2>*"),
+      ("PowTo", "{^|*}", "^[2]"),
+      ("PowTo*", "{0,^*|0}", "^[2]*"),
+      ("Explicit game", "'{*|*}'", "'{*|*}'")
+      //("Explicit game ordinal sum", "'{*|*}':1", "^")
     ))
   }
 
@@ -89,13 +89,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("over", "{0|pass}", "over"),
       ("under", "{pass|0}", "under"),
       ("upon", "[{pass|*},{pass,0|0},{*|pass},{0|0,pass}]", "[^[on],^[on]*,v[on],v[on]*]"),
-      ("uponth", "[{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}]", "[^on,^on*,von,von*]"),
+      ("uponth", "[{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}]", "[^<on>,^<on>*,v<on>,v<on>*]"),
       ("Hanging pass", "pass", "!!Unexpected `pass`."),
       ("Hanging pass 2", "{1|0+pass}", "!!Unexpected `pass`."),
       ("loopy plus number", "{0|pass}+5", "5over"),
       ("loopy plus number (under)", "{pass|0}+5", "5under"),
       ("loopy plus number (upon)", "listof(5+x for x in [{pass|*},{pass,0|0},{*|pass},{0|0,pass}])", "[5^[on],5^[on]*,5v[on],5v[on]*]"),
-      ("loopy plus number (uponth)", "listof(5+x for x in [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}])", "[5^on,5^on*,5von,5von*]"),
+      ("loopy plus number (uponth)", "listof(5+x for x in [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}])", "[5^<on>,5^<on>*,5v<on>,5v<on>*]"),
       ("loopy plus canonical", "{0|pass}+^", "over"),
       ("number plus loopy", "5+{0|pass}", "5over"),
       ("loopy minus number", "{0|pass}-5", "-5over"),
@@ -103,8 +103,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("over by node label", "x{0|x}", "over"),
       ("under by node label", "x{x|0}", "under"),
       ("canonical 4-cycle", "x{0||||0|||x|*||*}", "a{0||||0|||a|*||*}"),
-      ("+- loopy game", "uponth := {0||0|0,pass}; +-{0|uponth}", "{0|^on||von|0}"),
-      ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "{{0|^on},{0|^on*}|{von*|0},{von|0}}")
+      ("+- loopy game", "uponth := {0||0|0,pass}; +-{0|uponth}", "{0|^<on>||v<on>|0}"),
+      ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "{{0|^<on>},{0|^<on>*}|{v<on>*|0},{v<on>|0}}")
       //("not stopper-sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "!!That game is not stopper-sided.")
     ))
   }

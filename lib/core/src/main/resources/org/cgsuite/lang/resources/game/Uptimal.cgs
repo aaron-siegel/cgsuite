@@ -1,4 +1,7 @@
 /*${cgsuite.banner}*/
 
 system class Uptimal extends CanonicalShortGame
+
+  external def UptimalExpansion;
+
 end

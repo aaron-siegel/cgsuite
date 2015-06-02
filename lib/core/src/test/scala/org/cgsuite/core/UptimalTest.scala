@@ -34,7 +34,7 @@ class UptimalTest extends FlatSpec with Matchers {
       val g = number.asInstanceOf[CanonicalShortGame] + nimber + a1 * up + a2 * up2 + a3 * up3 + a4 * up4
       val expected = new UptimalExpansion(number, nimber.nimValue, a1.intValue, a2.intValue, a3.intValue, a4.intValue)
       try {
-        g.uptimalExpansion shouldBe expected
+        (g, g.asInstanceOf[Uptimal].uptimalExpansion) shouldBe (g, expected)
       } catch {
         case exc: InputException =>
           println("Got exception on " + expected)

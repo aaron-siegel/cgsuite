@@ -66,7 +66,7 @@ import static org.cgsuite.output.StyledTextOutput.Symbol.STAR;
  * @version $Revision: 1.2 $ $Date: 2007/08/16 20:52:52 $
  * @since   0.7.1
  */
-public class UptimalExpansion
+public class UptimalExpansion implements Comparable<UptimalExpansion>
 {
     private int[] coefficients;
     private int nimberPart;
@@ -264,6 +264,11 @@ public class UptimalExpansion
         return 0;
     }
 
+    public UptimalExpansion addNimber(int m)
+    {
+        return new UptimalExpansion(numberPart, nimberPart ^ m, coefficients);
+    }
+
     public UptimalExpansion addToCoefficient(int n, int value)
     {
         int[] newCoefficients = new int[Math.max(n, coefficients.length)];
@@ -402,6 +407,27 @@ public class UptimalExpansion
     public String toString()
     {
         return toOutput().toString();
+    }
+
+    @Override
+    public int compareTo(UptimalExpansion that)
+    {
+        int cmp = numberPart.compareTo(that.numberPart);
+        int n = 1;
+        while (cmp == 0 && n <= length() && n <= that.length())
+        {
+            cmp = coefficients[n-1] - that.coefficients[n-1];
+            n++;
+        }
+        if (cmp == 0)
+        {
+            cmp = length() - that.length();
+        }
+        if (cmp == 0)
+        {
+            cmp = nimberPart - that.nimberPart;
+        }
+        return cmp;
     }
 
 }

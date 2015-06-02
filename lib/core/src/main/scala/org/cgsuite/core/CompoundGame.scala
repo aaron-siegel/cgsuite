@@ -1,5 +1,7 @@
 package org.cgsuite.core
 
+import org.cgsuite.output.StyledTextOutput
+
 
 case class CompoundGame(compoundType: CompoundType.Value, g: Game, h: Game) extends Game {
 
@@ -16,6 +18,14 @@ case class CompoundGame(compoundType: CompoundType.Value, g: Game, h: Game) exte
     case Ordinal =>
       g.options(player) ++ h.options(player).map { CompoundGame(Ordinal, g, _) }
 
+  }
+
+  override def toOutput = {
+    val sto = new StyledTextOutput
+    sto.appendOutput(g.toOutput)
+    sto.appendMath(" + ")     // TODO Other compound types
+    sto.appendOutput(h.toOutput)
+    sto
   }
 
 }

@@ -6,9 +6,10 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.output.OutputTarget
 import org.cgsuite.util.TranspositionTable
 
-trait Game {
+trait Game extends OutputTarget {
 
   def unary_+ : Game = this
   def unary_- : Game = NegativeGame(this)
