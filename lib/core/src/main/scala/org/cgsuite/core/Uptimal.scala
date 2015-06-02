@@ -50,6 +50,14 @@ trait Uptimal extends CanonicalShortGame {
   }
   override def isAllSmall = numberPart.isZero
   override def isAtomic = numberPart.isZero
+  override def isEven: Boolean = {
+    upMultiplePart == 0 && nimberPart <= 1 && {
+      numberPart match {
+        case x: Integer => x.isEven == (nimberPart == 0)
+        case _ => false
+      }
+    }
+  }
   override def isEvenTempered = upMultiplePart == 0 && nimberPart == 0
   override def isInfinitesimal = numberPart.isZero
   override def isNimber = isInfinitesimal && upMultiplePart == 0
@@ -57,6 +65,14 @@ trait Uptimal extends CanonicalShortGame {
   override def isNumberish = true
   override def isNumberTiny = false
   override def isNumberUpStar = true
+  override def isOdd: Boolean = {
+    upMultiplePart == 0 && nimberPart <= 1 && {
+      numberPart match {
+        case x: Integer => x.isOdd == (nimberPart == 0)
+        case _ => false
+      }
+    }
+  }
   override def isOddTempered = upMultiplePart == 0 && nimberPart == 1
   override def isUptimal = true
   override def leftStop = numberPart

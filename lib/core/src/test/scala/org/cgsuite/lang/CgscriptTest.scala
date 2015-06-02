@@ -63,7 +63,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Floating slash", "1|0", "!!Syntax error: missing EOF at '|'"),
       ("Switch", "+-1", "+-1"),
       ("Fractional switch", "+-1/2", "+-1/2"),
-      ("Incorrect multiple switch syntax", "+-(1,1+*)", "!!No operation `(,)` for arguments of types `game.Integer`, `game.NumberUpStar`"),
+      ("Incorrect multiple switch syntax", "+-(1,1+*)", "!!No operation `(,)` for arguments of types `game.Integer`, `game.Uptimal`"),
       ("Multiple switch", "+-{1,1+*}", "+-{1,1*}"),
       ("Number + switch", "3+-1", "{4|2}"),
       ("Compound switch", "+-1+-2+-3+-4", "+-{10|8||6|4|||4|2||0|-2}"),
