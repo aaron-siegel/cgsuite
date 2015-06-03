@@ -889,8 +889,6 @@ case class FunctionCallNode(
   }
 
   private def makeNewResolution(callSite: CallSite) = {
-    if (argNames.length > callSite.parameters.length)
-      throw InputException(s"Too many arguments for `$callSite`: ${argNames.length}")
     FunctionCallResolution(callSite.parameters, argNames)
   }
 
@@ -907,14 +905,24 @@ case class FunctionCallNode(
 
 object FunctionCallResolution {
   def apply(params: Seq[Parameter], argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
-
+    if (argNames.length > params.length)
+      throw InputException(s"Too many arguments: ${argNames.length} (expecting at most ${params.length})")
     val parameterToArgsMapping = new Array[Int](params.length)
     java.util.Arrays.fill(parameterToArgsMapping, -1)
     argNames.zipWithIndex.foreach {
       case (None, index) => parameterToArgsMapping(index) = index
       case (Some(idNode), index) =>
         val namedIndex = params.indexWhere { _.id == idNode.id }
+        if (namedIndex == -1)
+          throw InputException(s"Invalid parameter name: `${idNode.id.name}`")
+        if (parameterToArgsMapping(namedIndex) != -1)
+          throw InputException(s"Duplicate parameter: `${idNode.id.name}`")
         parameterToArgsMapping(namedIndex) = index
+    }
+    // Validation
+    params zip parameterToArgsMapping foreach { case (param, index) =>
+      if (param.defaultValue.isEmpty && index == -1)
+        throw InputException(s"Missing required parameter: `${param.id.name}`")
     }
     FunctionCallResolution(parameterToArgsMapping)
   }

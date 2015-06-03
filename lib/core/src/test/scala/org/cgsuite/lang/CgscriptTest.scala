@@ -214,11 +214,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Procedure scope 4", "f := temp -> temp+1; f(5); temp", "!!That variable is not defined: `temp`"),
       ("No-parameter procedure", "f := () -> 3", "() -> 3"),
       ("No-parameter procedure evaluation", "f()", "3"),
-      ("Multiparameter procedure", "f := (x,y) -> (x+y)/2", "(x, y) -> ((x + y) / 2)"),
-      ("Multiparameter procedure evaluation", "f(3,4)", "7/2"),
-      ("Procedure - too few args", "f(3)", "!!Expecting 2 argument(s); found 1"),
-      ("Procedure - too many args", "f(3,4,5)", "!!Expecting 2 argument(s); found 3"),
-      ("Procedure - optional arg", "f(3,4,foo => 5)", "!!Invalid optional parameter: foo")
+      ("Multiparameter procedure", "f := (x,y) -> (x-y)/2", "(x, y) -> ((x - y) / 2)"),
+      ("Multiparameter procedure evaluation", "f(3,4)", "-1/2"),
+      ("Procedure - too few args", "f(3)", "!!Missing required parameter: `y`"),
+      ("Procedure - too many args", "f(3,4,5)", "!!Too many arguments: 3 (expecting at most 2)"),
+      ("Procedure - named args", "f(y => 3, x => 4)", "1/2"),
+      ("Procedure - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate parameter: `x`"),
+      ("Procedure - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate parameter: `y`"),
+      ("Procedure - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name: `foo`")
     ))
 
   }

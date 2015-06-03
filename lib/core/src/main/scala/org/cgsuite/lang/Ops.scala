@@ -97,6 +97,7 @@ object Ops {
   val leq: (Any, Any) => Boolean = {
     case (x: RationalNumber, y: RationalNumber) => x <= y
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x <= y
+    case (x: CanonicalStopperGame, y: CanonicalStopperGame) => x <= y
   }
 
   val Equals = BinOp("==") {
