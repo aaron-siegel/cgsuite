@@ -117,9 +117,10 @@ object Ops {
   val Geq = BinOp(">=") { (a, b) => leq(b, a) }
   val Lt = BinOp("<") { (a, b) => leq(a, b) && !leq(b, a) }
   val Gt = BinOp(">") { (a, b) => !leq(a, b) && leq(b, a) }
+  val Confused = BinOp("<>") { (a, b) => !leq(a, b) && !leq(b, a) }
   val LConfused = BinOp("<|") { (a, b) => !leq(b, a) }
   val GConfused = BinOp("|>") { (a, b) => !leq(a, b) }
-  val Compare = BinOp("<>") { (a, b) => (leq(a, b), leq(b, a)) match {
+  val Compare = BinOp("<=>") { (a, b) => (leq(a, b), leq(b, a)) match {
     case (true, true) => zero
     case (true, false) => negativeOne
     case (false, true) => one

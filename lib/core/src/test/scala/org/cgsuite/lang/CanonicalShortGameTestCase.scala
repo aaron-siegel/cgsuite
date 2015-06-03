@@ -684,6 +684,66 @@ object CanonicalShortGameTestCase {
       stopCount = "9",
       temperature = "0",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+    ),
+
+    // Hot games
+
+    CanonicalShortGameTestCase(
+      "{3||2+*|1+*}", "{3||2*|1*}", "CanonicalShortGame",
+      atomicWeight = "!!That game is not atomic.",
+      birthday = "5",
+      companion = "{3||2*|1*}",
+      isAllSmall = "false",
+      isAtomic = "false",
+      isEven = "false",
+      isEvenTempered = "false",
+      isInfinitesimal = "false",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "false",
+      isNumberTiny = "false",
+      isOdd = "false",
+      isOddTempered = "true",
+      isUptimal = "false",
+      leftOptions = "{3}",
+      leftStop = "3",
+      mean = "9/4",
+      reducedCanonicalForm = "{3||2|1}",
+      rightOptions = "{{2*|1*}}",
+      rightStop = "2",
+      stopCount = "5",
+      temperature = "3/4",
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+    ),
+
+    CanonicalShortGameTestCase(
+      "{3/2+*|1/2||{0|-3},{-1+*,{-1/2|-1+*}|-5/2}}", "{3/2*|1/2||{0|-3},{-1*,{-1/2|-1*}|-5/2}}", "CanonicalShortGame",
+      atomicWeight = "!!That game is not atomic.",
+      birthday = "6",
+      companion = "{3/2*|1/2||{*|-3},{-1*,{-1/2|-1*}|-5/2}}",
+      isAllSmall = "false",
+      isAtomic = "false",
+      isEven = "false",
+      isEvenTempered = "false",
+      isInfinitesimal = "false",
+      isInteger = "false",
+      isNimber = "false",
+      isNumber = "false",
+      isNumberish = "false",
+      isNumberTiny = "false",
+      isOdd = "false",
+      isOddTempered = "false",
+      isUptimal = "false",
+      leftOptions = "{{3/2*|1/2}}",
+      leftStop = "1/2",
+      mean = "-5/16",
+      reducedCanonicalForm = "{3/2|1/2||{0|-3},{-1/2|-1||-5/2}}",
+      rightOptions = "{{0|-3},{-1*,{-1/2|-1*}|-5/2}}",
+      rightStop = "-1",
+      stopCount = "11",
+      temperature = "21/16",
+      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     )
 
   )

@@ -121,6 +121,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "handle comparison operators" in {
     execute(Table(
       header,
+      ("Confused", "3 <> 3+*", "true"),
       ("Heterogeneous compare", "3 == nil", "false")
     ))
   }

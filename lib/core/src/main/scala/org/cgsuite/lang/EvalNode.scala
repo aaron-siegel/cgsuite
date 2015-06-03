@@ -62,6 +62,7 @@ object EvalNode {
       case GEQ => BinOpNode(tree, Geq)
       case LT => BinOpNode(tree, Lt)
       case GT => BinOpNode(tree, Gt)
+      case CONFUSED => BinOpNode(tree, Confused)
       case LCONFUSED => BinOpNode(tree, LConfused)
       case GCONFUSED => BinOpNode(tree, GConfused)
       case REFEQUALS => BinOpNode(tree, RefEquals)
