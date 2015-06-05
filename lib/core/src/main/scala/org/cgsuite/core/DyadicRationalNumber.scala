@@ -62,6 +62,17 @@ trait DyadicRationalNumber extends Uptimal with RationalNumber {
     else
       floor.abs + SmallInteger(denominatorExponent)
   }
+  override def incentives: Iterable[DyadicRationalNumber] = {
+    if (isZero) Set.empty
+    else Set(DyadicRationalNumber(Values.negativeOne, denominator))
+  }
+  override def incentives(player: Player): Iterable[DyadicRationalNumber] = {
+    if (isInteger && sign.intValue != player.sign) {
+      Set.empty           // This includes 0
+    } else {
+      Set(DyadicRationalNumber(Values.negativeOne, denominator))
+    }
+  }
   override def isInfinitesimal = numerator == Values.zero
   override def isInteger = denominator == Values.one
   override def isNimber = numerator == Values.zero

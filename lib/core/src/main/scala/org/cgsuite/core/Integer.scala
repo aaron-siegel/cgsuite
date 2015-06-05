@@ -136,13 +136,13 @@ trait Integer extends DyadicRationalNumber {
     Integer(bigIntValue ^ other.bigIntValue)
   }
 
-  def sign = Integer(bigIntValue.signum)
+  override def sign = Integer(bigIntValue.signum)
 
   override def numerator = this
   override def denominator = Values.one
   override def denominatorExponent = 0
 
-  override def toString = bigIntValue.toString
+  override def toString = bigIntValue.toString()
   
 }
 

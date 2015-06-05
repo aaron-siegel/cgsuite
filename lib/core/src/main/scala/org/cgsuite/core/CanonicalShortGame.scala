@@ -12,7 +12,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core.{CanonicalShortGameOps => ops}
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput.Symbol._
-import org.cgsuite.output.{OutputTarget, Output, StyledTextOutput}
+import org.cgsuite.output.{Output, StyledTextOutput}
 
 import scala.collection.mutable
 
@@ -151,9 +151,24 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def companion: CanonicalShortGame = CanonicalShortGame(ops.companion(gameId))
 
-  def cool(t: DyadicRationalNumber): CanonicalShortGame = CanonicalShortGame(ops.cool(gameId, t, t.gameId))
+  def conwayMultiply(h: CanonicalShortGame) = CanonicalShortGame(ops.conwayMultiply(gameId, h.gameId))
+
+  def cool(t: DyadicRationalNumber): CanonicalShortGame = {
+    if (t <= Values.negativeOne) {
+      throw InputException(s"Invalid cooling temperature (must be > -1): $t")
+    }
+    CanonicalShortGame(ops.cool(gameId, t, t.gameId))
+  }
 
   def heat(t: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.heat(gameId, t.gameId))
+
+  def incentives: Iterable[CanonicalShortGame] = {
+    ops.incentives(gameId, true, true) map { CanonicalShortGame(_) } toSet
+  }
+
+  def incentives(player: Player): Iterable[CanonicalShortGame] = {
+    ops.incentives(gameId, player == Left, player == Right) map { CanonicalShortGame(_) } toSet
+  }
 
   def isAllSmall: Boolean = ops.isAllSmall(gameId)
 
@@ -163,7 +178,7 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def isEvenTempered: Boolean = ops.isEvenTempered(gameId)
 
-  def isInfinitesimal: Boolean = leftStop == Values.zero && rightStop == Values.zero
+  def isInfinitesimal: Boolean = leftStop.isZero && rightStop.isZero
 
   override def isInteger: Boolean = ops.isInteger(gameId)
 
@@ -202,6 +217,8 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def isUptimal: Boolean = ops.uptimalExpansion(gameId) != null
 
+  def leftIncentives = incentives(Left)
+
   def leftStop: DyadicRationalNumber = ops.leftStop(gameId)
 
   def mean: DyadicRationalNumber = ops.mean(gameId)
@@ -217,6 +234,8 @@ trait CanonicalShortGame extends CanonicalStopperGame {
   def powTo(n: Int) = CanonicalShortGame(ops.powTo(gameId, n))
 
   def reducedCanonicalForm: CanonicalShortGame = CanonicalShortGame(ops.rcf(gameId))
+
+  def rightIncentives = incentives(Right)
 
   def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
 

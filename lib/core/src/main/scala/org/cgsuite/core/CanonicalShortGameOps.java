@@ -30,6 +30,8 @@
 package org.cgsuite.core;
 
 
+import org.cgsuite.exception.InputException;
+
 import java.math.BigInteger;
 import java.util.*;
 
@@ -558,7 +560,7 @@ public final class CanonicalShortGameOps
 
     static int cool(int id, DyadicRationalNumber temperature, int temperatureId)
     {
-        if (isNumber(id))
+        if (isInteger(id))
         {
             return id;
         }
@@ -1044,16 +1046,18 @@ public final class CanonicalShortGameOps
         return leq;
     }
 
-    static int[] incentives(int id)
+    static int[] incentives(int id, boolean left, boolean right)
     {
-        int[] incentiveIds = new int[getNumLeftOptions(id) + getNumRightOptions(id)];
-        for (int i = 0; i < getNumLeftOptions(id); i++)
+        int numLeftIncentiveIds = (left ? getNumLeftOptions(id) : 0);
+        int numRightIncentiveIds = (right ? getNumRightOptions(id) : 0);
+        int[] incentiveIds = new int[numLeftIncentiveIds + numRightIncentiveIds];
+        for (int i = 0; i < numLeftIncentiveIds; i++)
         {
             incentiveIds[i] = subtract(getLeftOption(id, i), id);
         }
-        for (int i = 0; i < getNumRightOptions(id); i++)
+        for (int i = 0; i < numRightIncentiveIds; i++)
         {
-            incentiveIds[getNumLeftOptions(id) + i] = subtract(id, getRightOption(id, i));
+            incentiveIds[numLeftIncentiveIds + i] = subtract(id, getRightOption(id, i));
         }
         eliminateDuplicateOptions(incentiveIds);
         eliminateDominatedOptions(incentiveIds, true);
@@ -1091,7 +1095,7 @@ public final class CanonicalShortGameOps
         }
         else
         {
-            int[] uPlusIncentives = incentives(uId);
+            int[] uPlusIncentives = incentives(uId, true, true);
             for (int i = 0; i < uPlusIncentives.length; i++)
             {
                 uPlusIncentives[i] = add(uId, uPlusIncentives[i]);
@@ -1126,15 +1130,12 @@ public final class CanonicalShortGameOps
 
     static int conwayMultiply(int gId, int hId)
     {
-        /* TODO
         if (isNimber(gId) && isNimber(hId))
         {
-            BigInteger m = BigInteger.valueOf(getNimberPart(gId));
-            BigInteger n = BigInteger.valueOf(getNimberPart(hId));
-            return constructNus(Values.zero(), 0, CgsuiteInteger.nimProduct(m, n).intValue());
+            int nimProduct = mkInteger(getNimberPart(gId)).nimProduct(mkInteger(getNimberPart(hId))).intValue();
+            return constructNus(Values.zero(), 0, nimProduct);
         }
-        */
-        
+
         int result = lookupOpResult(OPERATION_CONWAY_MULTIPLY, gId, hId);
         if (result != -1)
         {

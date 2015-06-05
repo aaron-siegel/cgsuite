@@ -120,7 +120,7 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
     else
       floor + Values.one
   }
-  
+  def sign: Integer = numerator.sign
   def step(n: Int): RationalNumber = step(SmallInteger(n))
   def step(n: Integer): RationalNumber = RationalNumber(numerator + n, denominator)
 

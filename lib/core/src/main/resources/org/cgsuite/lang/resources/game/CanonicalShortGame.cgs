@@ -7,7 +7,10 @@ system class CanonicalShortGame extends Game
   external def AtomicWeight;
   external def Birthday;
   external def Companion;
-  external def Cool(DyadicRational temperature);
+  external def ConwayMultiply(CanonicalShortGame h);
+  external def Cool(DyadicRational t);
+  external def Heat(CanonicalShortGame t);
+  external def Incentives;
   external def IsAllSmall;
   external def IsAtomic;
   external def IsEven;
@@ -21,12 +24,18 @@ system class CanonicalShortGame extends Game
   external def IsOdd;
   external def IsOddTempered;
   external def IsUptimal;
+  external def LeftIncentives;
   external def LeftStop;
   external def Mean;
+  def Miny := {this|0||0};
+  external def NortonMultiply(CanonicalShortGame h);
+  external def Overheat(CanonicalShortGame s, CanonicalShortGame t);
   external def ReducedCanonicalForm;
+  external def RightIncentives;
   external def RightStop;
   external def StopCount;
   external def Temperature;
+  def Tiny := {0||0|-this};
 
   override external def ToOutput;
 

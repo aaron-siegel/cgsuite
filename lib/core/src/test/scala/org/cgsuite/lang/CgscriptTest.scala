@@ -343,11 +343,56 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
-  "game.CanonicalShortGame" should "implement 0-ary methods correctly" in {
+  "game.CanonicalShortGame" should "implement unary methods correctly" in {
 
     val tests = CanonicalShortGameTestCase.instances flatMap { _.toTests }
 
     execute(Table(header, tests : _*))
+
+  }
+
+  it should "implement >=2-ary methods correctly" in {
+
+    val instances = Seq(
+      ("*4.ConwayMultiply(*4)", "*6"),
+      ("*19.ConwayMultiply(*23)", "*86"),
+      ("15.ConwayMultiply(^^*2)", "^30*2"),
+      ("{3|1}.ConwayMultiply(^^)", "{^6|^^}"),
+      ("^^.ConwayMultiply(^^)", "{0||0,*|0,{0,*|0,*2}}"),
+      ("{3||2+*|1+*}.Cool(0)", "{3||2*|1*}"),
+      ("{3||2+*|1+*}.Cool(1/4)", "{11/4||2|3/2}"),
+      ("{3||2+*|1+*}.Cool(1/2)", "{5/2|2*}"),
+      ("{3||2+*|1+*}.Cool(5/8)", "{19/8|17/8}"),
+      ("{3||2+*|1+*}.Cool(3/4)", "9/4*"),
+      ("{3||2+*|1+*}.Cool(70)", "9/4"),
+      ("{3||2+*|1+*}.Cool(-1/2)", "{7/2|||5/2|3/2||+-1/2}"),
+      ("{3||2+*|1+*}.Cool(-1)", "!!Invalid cooling temperature (must be > -1): -1"),
+      ("(1/4).Cool(-1/8)", "1/4"),
+      ("(1/4).Cool(-1/4)", "1/4*"),
+      ("(1/4).Cool(-3/8)", "{3/8|1/8}"),
+      ("{3||2+*|1+*}.Heat(0)", "{3||2*|1*}"),
+      ("{3||2+*|1+*}.Heat(1/2)", "{7/2|||5/2|3/2||+-1/2}"),
+      ("{3||2+*|1+*}.Heat(1)", "{4|||3|1||0|-2}"),
+      ("{3||2+*|1+*}.Heat(-3/4)", "9/4*"),
+      ("{3||2+*|1+*}.Heat(-1)", "9/4"),
+      ("{3||2+*|1+*}.Heat(-2)", "3/2"),
+      ("{3||2+*|1+*}.Heat(-3)", "1"),
+      ("{3||2+*|1+*}.Heat(-4)", "0"),
+      ("{3||2+*|1+*}.Heat(*)", "{3*||2|1}"),
+      ("0.NortonMultiply(^)", "0"),
+      ("6.NortonMultiply(^)", "^6"),
+      ("(-4).NortonMultiply(^)", "v4"),
+      ("(1/2).NortonMultiply(^)", "{^^*|v*}"),
+      ("^.NortonMultiply(^)", "{^^*||0|v4}"),
+      ("2.Tiny.NortonMultiply(^)", "{^^*||0|v6}"),
+      ("{3||2+*|1+*}.Overheat(*,1+*)", "{1||+-(1*)|-1,{-1|-3}}"),
+      ("(7/16).Overheat(0,0)", "^[3]")
+    )
+
+    execute(Table(
+      header,
+      instances map { case (expr, result) => (expr, expr, result) } : _*
+    ))
 
   }
 
