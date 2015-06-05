@@ -478,22 +478,11 @@ rangeExpr
     ;
 
 addExpr
-	: unaryAddExpr ((PLUS^ | MINUS^) unaryAddExpr | binaryPlusMinus^)*
+	: sidleExpr ((PLUS^ | MINUS^) sidleExpr | binaryPlusMinus^)*
 	;
 
 binaryPlusMinus
-    : plusMinus -> ^(PLUS plusMinus)
-    ;
-	
-unaryAddExpr
-    : plusMinus
-    | MINUS sidleExpr -> ^(UNARY_MINUS[$MINUS] sidleExpr)
-    | PLUS sidleExpr -> ^(UNARY_PLUS[$PLUS] sidleExpr)
-    | sidleExpr
-    ;
-
-plusMinus
-    : PLUSMINUS^ sidleExpr
+    : PLUSMINUS sidleExpr -> ^(PLUS ^(PLUSMINUS sidleExpr))
     ;
 
 sidleExpr
@@ -505,13 +494,20 @@ ordinalSumExpr
     ;
 
 multiplyExpr
-	: expExpr ((AST^ | FSLASH^ | PERCENT^) expExpr)*
+	: unaryExpr ((AST^ | FSLASH^ | PERCENT^) unaryExpr)*
 	;
+
+unaryExpr
+    : PLUSMINUS^ expExpr
+    | MINUS expExpr -> ^(UNARY_MINUS[$MINUS] expExpr)
+    | PLUS expExpr -> ^(UNARY_PLUS[$PLUS] expExpr)
+    | expExpr
+    ;
 
 expExpr
 	: postfixExpr (CARET^ postfixExpr { $CARET.setType(EXP); })?
 	;
-	
+
 postfixExpr
 	: (upstarExpr -> upstarExpr)
 	  ( DOT id=generalizedId  -> ^(DOT $postfixExpr $id)

@@ -225,6 +225,8 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def nortonMultiply(that: CanonicalShortGame) = CanonicalShortGame(ops.nortonMultiply(gameId, that.gameId))
 
+  def ordinalSum(that: CanonicalShortGame) = CanonicalShortGame(ops.ordinalSum(gameId, that.gameId))
+
   def overheat(s: CanonicalShortGame, t: CanonicalShortGame): CanonicalShortGame = {
     CanonicalShortGame(ops.overheat(gameId, s.gameId, t.gameId))
   }

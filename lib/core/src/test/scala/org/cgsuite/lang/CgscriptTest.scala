@@ -62,7 +62,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Ambiguous slashes", "{3|2|1}", "!!Syntax error: null"),
       ("Floating slash", "1|0", "!!Syntax error: missing EOF at '|'"),
       ("Switch", "+-1", "+-1"),
-      ("Fractional switch", "+-1/2", "+-1/2"),
+      ("Fractional switch", "+-(1/2)", "+-1/2"),
       ("Incorrect multiple switch syntax", "+-(1,1+*)", "!!No operation `(,)` for arguments of types `game.Integer`, `game.Uptimal`"),
       ("Multiple switch", "+-{1,1+*}", "+-{1,1*}"),
       ("Number + switch", "3+-1", "{4|2}"),
@@ -77,6 +77,16 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("PowTo*", "{0,^*|0}", "^[2]*"),
       ("Explicit game", "'{*|*}'", "'{*|*}'")
       //("Explicit game ordinal sum", "'{*|*}':1", "^")
+    ))
+  }
+
+  it should "respect order of operations" in {
+    execute(Table(
+      header,
+      ("Sums and differences", "5 - 3 + 4 - 8", "-2"),
+      ("Products and divs", "5 - 3 / 4 * 6 - 2", "-3/2"),
+      ("Exp", "5 * 3 ^ 2 / 4", "45/4"),
+      ("PlusMinus", "3 - 2 +- 6 - 7 +- 8 + 4", "{12|0||-4|-16}")
     ))
   }
 

@@ -43,6 +43,7 @@ object EvalNode {
 
       case PLUS => BinOpNode(tree, Plus)
       case MINUS => BinOpNode(tree, Minus)
+      case COLON => BinOpNode(tree, OrdinalPlus)
       case AST => BinOpNode(tree, Times)
       case FSLASH => BinOpNode(tree, Div)
       case PERCENT => BinOpNode(tree, Mod)

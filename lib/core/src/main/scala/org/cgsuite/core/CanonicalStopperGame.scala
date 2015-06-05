@@ -94,11 +94,6 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
   def sortedOptions(player: Player): Seq[CanonicalStopperGame] = {
     options(player).toSeq.sorted(CanonicalStopperGame.SemideterministicOrdering)
   }
-  /*
-  def +(that: CanonicalStopperGame): CanonicalStopperGame
-
-  def -(that: CanonicalStopperGame): CanonicalStopperGame
-  */
 
   def +(that: CanonicalStopperGame): CanonicalStopperSidedGame = {
     CanonicalStopperGame(loopyGame.add(that.loopyGame))   // TODO
@@ -121,6 +116,8 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
   def isLoopfree = loopyGame.isLoopfree
 
   def isNumber = false
+
+  def ordinalSum(that: CanonicalStopperGame) = CanonicalStopperGame(loopyGame.ordinalSum(that.loopyGame))
        /*
   def stop(player: Player) = player match {
     case Left => leftStop

@@ -23,6 +23,7 @@ trait Nimber extends Uptimal {
   override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, nimValue)
   override def numberPart = Values.zero
   override def nimberPart = nimValue
+  def ordinalSum(that: Nimber) = Nimber(nimValue + that.nimValue)
   override def uptimalLength = 0
   override def uptimalCoefficient(n: Int) = 0
 

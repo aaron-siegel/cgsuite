@@ -72,6 +72,12 @@ object Ops {
     case (_: Coordinates, _:Coordinates) => (x: Coordinates, y: Coordinates) => x - y
   }
 
+  val OrdinalPlus = CachingBinOp(":") {
+    case (_: Nimber, _: Nimber) => (x: Nimber, y: Nimber) => x ordinalSum y
+    case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x ordinalSum y
+    case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x ordinalSum y
+  }
+
   val Times = CachingBinOp("*") {
     case (_: Zero, _:Game) => (_: Zero, _: Game) => zero
     case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x * y
