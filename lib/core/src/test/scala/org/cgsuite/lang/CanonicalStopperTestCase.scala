@@ -114,6 +114,21 @@ object CanonicalStopperTestCase {
       rightOptions = "{a{0||||0|a||*|||*}}",
       rightStop = "0",
       variety = "{a{0,{0||0|a|||0}|0}|0}"
+    ),
+
+    // TODO Should this one be considered a tiny?
+    CanonicalStopperTestCase(
+      "{0|{0||||-1|||-1+*,a{0||0|a|||-1+*||||-1+*}||-2|b{-2,{-1,-1+*||-1+*|b|||-2}|-2}}}", "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}", "CanonicalStopper",
+      degree = "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}",
+      isIdempotent = "true",
+      isInfinitesimal = "true",
+      isNumberish = "true",
+      isPlumtree = "false",
+      leftOptions = "{0}",
+      leftStop = "0",
+      rightOptions = "{{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}",
+      rightStop = "0",
+      variety = "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}"
     )
 
   )
