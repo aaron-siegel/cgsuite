@@ -12,7 +12,7 @@ object CanonicalStopperTestCase {
       isNumberish = "false",
       isPlumtree = "true",
       leftOptions = "{on}",
-      leftStop = "{on}",
+      leftStop = "on",
       rightOptions = "{}",
       rightStop = "on",
       variety = "on"
@@ -26,9 +26,9 @@ object CanonicalStopperTestCase {
       isNumberish = "false",
       isPlumtree = "true",
       leftOptions = "{}",
-      leftStop = "on",
+      leftStop = "off",
       rightOptions = "{off}",
-      rightStop = "on",
+      rightStop = "off",
       variety = "off"
     ),
 
