@@ -96,7 +96,12 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
   }
 
   def +(that: CanonicalStopper): StopperSidedValue = {
-    CanonicalStopper(loopyGame.add(that.loopyGame))   // TODO
+    val sum = loopyGame.add(that.loopyGame)
+    if (sum.isStopper) {
+      CanonicalStopper(sum)
+    } else {
+      StopperSidedValue(sum.onside, sum.offside)
+    }
   }
 
   def +(that: CanonicalShortGame): CanonicalStopper = {
@@ -106,6 +111,8 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
   def -(that: CanonicalStopper): StopperSidedValue = this + (-that)
 
   def -(that: CanonicalShortGame): CanonicalStopper = this + (-that)
+
+  override def unary_+ : CanonicalStopper = this
 
   override def unary_- : CanonicalStopper = CanonicalStopper(loopyGame.negative)
 

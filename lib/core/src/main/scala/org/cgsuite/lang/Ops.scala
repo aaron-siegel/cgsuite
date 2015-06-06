@@ -17,11 +17,13 @@ object Ops {
 
   val Pos = UnOp("pos") {
     case (x: Game) => +x
+    case (x: StopperSidedValue) => +x
     case (x: RationalNumber) => +x
   }
 
   val Neg = UnOp("neg") {
     case (x: Game) => -x
+    case (x: StopperSidedValue) => -x
     case (x: RationalNumber) => -x
   }
 
@@ -43,6 +45,7 @@ object Ops {
     case (_: Uptimal, _: Uptimal) => (x: Uptimal, y: Uptimal) => x + y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x + y
+    case (_: StopperSidedValue, _: StopperSidedValue) => (x: StopperSidedValue, y: StopperSidedValue) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
     case (_: String, _: String) => (x: String, y: String) => x + y
@@ -68,6 +71,7 @@ object Ops {
     case (_: Uptimal, _:Uptimal) => (x: Uptimal, y: Uptimal) => x - y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x - y
+    case (_: StopperSidedValue, _: StopperSidedValue) => (x: StopperSidedValue, y: StopperSidedValue) => x - y
     case (_: Game, _:Game) => (x: Game, y: Game) => x - y
     case (_: Coordinates, _:Coordinates) => (x: Coordinates, y: Coordinates) => x - y
   }
@@ -104,6 +108,7 @@ object Ops {
     case (x: RationalNumber, y: RationalNumber) => x <= y
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x <= y
     case (x: CanonicalStopper, y: CanonicalStopper) => x <= y
+    case (x: StopperSidedValue, y: StopperSidedValue) => x <= y
   }
 
   val Equals = BinOp("==") {
@@ -152,6 +157,10 @@ object Ops {
 
   val MakeDownMultiple = BinOp("down") {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, -x.intValue, y.intValue)
+  }
+
+  val MakeSides = BinOp("&") {
+    case (x: CanonicalStopper, y: CanonicalStopper) => StopperSidedValue(x, y)
   }
 
   val MakeCoordinates = BinOp("(,)") {

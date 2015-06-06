@@ -30,7 +30,7 @@ object Repl {
           val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(replVarMap))
           val result = node.evaluate(domain)
           val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
-          assert(output.isInstanceOf[Output])
+          assert(output.isInstanceOf[Output], output.getClass)
           println(output)
         } catch {
           case exc: Throwable => exc.printStackTrace()

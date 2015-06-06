@@ -92,6 +92,7 @@ object EvalNode {
           GameSpecNode(tree, gameOptions(tree.getChild(0)), gameOptions(tree.getChild(1)), forceExplicit = false)
       case SQUOTE => GameSpecNode(tree, gameOptions(tree.getChild(0).getChild(0)), gameOptions(tree.getChild(0).getChild(1)), forceExplicit = true)
       case NODE_LABEL => LoopyGameSpecNode(tree)
+      case AMPERSAND => BinOpNode(tree, MakeSides)
       case PASS => throw InputException("Unexpected `pass`.", tree)
 
       // Control flow
