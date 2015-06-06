@@ -207,12 +207,12 @@ trait EvalNode extends Node {
   def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
     evaluate(domain) match {
       case g: CanonicalShortGame => Iterable(new LoopyGame.Node(g))
-      case g: CanonicalStopperGame => Iterable(new LoopyGame.Node(g.loopyGame))   // TODO Refactor LoopyGame to consolidate w/ above
+      case g: CanonicalStopper => Iterable(new LoopyGame.Node(g.loopyGame))   // TODO Refactor LoopyGame to consolidate w/ above
       case node: LoopyGame.Node => Iterable(node)
       case sublist: Iterable[_] =>
         sublist map {
           case g: CanonicalShortGame => new LoopyGame.Node(g)
-          case g: CanonicalStopperGame => new LoopyGame.Node(g.loopyGame)   // TODO Refactor LoopyGame to consolidate w/ above
+          case g: CanonicalStopper => new LoopyGame.Node(g.loopyGame)   // TODO Refactor LoopyGame to consolidate w/ above
           case node: LoopyGame.Node => node
           case _ => sys.error("must be a list of games")
         }
@@ -436,8 +436,8 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
     val gr = ro flatMap { _.evaluateAsGame(domain) }
     if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
       CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
-    } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopperGame] }) {
-      CanonicalStopperGame(gl map { _.asInstanceOf[CanonicalStopperGame] }, gr map { _.asInstanceOf[CanonicalStopperGame] })
+    } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopper] }) {
+      CanonicalStopper(gl map { _.asInstanceOf[CanonicalStopper] }, gr map { _.asInstanceOf[CanonicalStopper] })
     } else {
       ExplicitGame(gl, gr)
     }
@@ -499,7 +499,7 @@ case class LoopyGameSpecNode(
 
   override def evaluate(domain: Domain) = {
     val thisNode = evaluateLoopy(domain).head
-    CanonicalStopperGame(new LoopyGame(thisNode))    // TODO General loopy games
+    CanonicalStopper(new LoopyGame(thisNode))    // TODO General loopy games
   }
 
   override def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {

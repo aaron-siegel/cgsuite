@@ -86,7 +86,7 @@ object CanonicalShortGame {
   }
 }
 
-trait CanonicalShortGame extends CanonicalStopperGame {
+trait CanonicalShortGame extends CanonicalStopper {
 
   def gameId: Int
 
@@ -160,6 +160,8 @@ trait CanonicalShortGame extends CanonicalStopperGame {
     CanonicalShortGame(ops.cool(gameId, t, t.gameId))
   }
 
+  override def degree = zero
+
   def heat(t: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.heat(gameId, t.gameId))
 
   def incentives: Iterable[CanonicalShortGame] = {
@@ -170,7 +172,7 @@ trait CanonicalShortGame extends CanonicalStopperGame {
     ops.incentives(gameId, player == Left, player == Right) map { CanonicalShortGame(_) } toSet
   }
 
-  def isAllSmall: Boolean = ops.isAllSmall(gameId)
+  override def isAllSmall: Boolean = ops.isAllSmall(gameId)
 
   def isAtomic: Boolean = atomicWeightOpt.isDefined
 
@@ -178,17 +180,17 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def isEvenTempered: Boolean = ops.isEvenTempered(gameId)
 
-  def isInfinitesimal: Boolean = leftStop.isZero && rightStop.isZero
+  override def isIdempotent = isZero      // 0 is the only loopfree idempotent
 
   override def isInteger: Boolean = ops.isInteger(gameId)
 
   override def isLoopfree = true
 
-  def isNimber: Boolean = ops.isNimber(gameId)
+  override def isNimber: Boolean = ops.isNimber(gameId)
 
   override def isNumber: Boolean = ops.isNumber(gameId)
 
-  def isNumberish: Boolean = leftStop == rightStop
+  override def isNumberish: Boolean = leftStop == rightStop
 
   override def isNumberTiny: Boolean = {
     val lo = options(Left)
@@ -213,13 +215,15 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def isOddTempered: Boolean = ops.isOddTempered(gameId)
 
+  override def isPlumtree = true
+
   def isSwitch: Boolean = this == -this
 
-  def isUptimal: Boolean = ops.uptimalExpansion(gameId) != null
+  override def isUptimal: Boolean = ops.uptimalExpansion(gameId) != null
 
   def leftIncentives = incentives(Left)
 
-  def leftStop: DyadicRationalNumber = ops.leftStop(gameId)
+  override def leftStop: DyadicRationalNumber = ops.leftStop(gameId)
 
   def mean: DyadicRationalNumber = ops.mean(gameId)
 
@@ -239,13 +243,15 @@ trait CanonicalShortGame extends CanonicalStopperGame {
 
   def rightIncentives = incentives(Right)
 
-  def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
+  override def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
 
   def stopCount: Integer = Integer(ops.stopCount(gameId))
 
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
   def thermograph: Thermograph = ops.thermograph(gameId)
+
+  override def variety = zero
 
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
@@ -357,7 +363,7 @@ trait CanonicalShortGame extends CanonicalStopperGame {
     output: StyledTextOutput,
     forceBrackets: Boolean,
     forceParens: Boolean,
-    nodeStack: mutable.Map[CanonicalStopperGame, Option[String]],
+    nodeStack: mutable.Map[CanonicalStopper, Option[String]],
     numNamedNodes: Array[Int]
     ): Int = {
 

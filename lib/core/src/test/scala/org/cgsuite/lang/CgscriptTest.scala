@@ -406,6 +406,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "game.CanonicalStopperGame" should "implement unary methods correctly" in {
+
+    val tests = CanonicalStopperTestCase.instances flatMap { _.toTests }
+
+    execute(Table(header, tests : _*))
+
+  }
+
   def execute(tests: TableFor3[String, String, String]): Unit = {
 
     CgscriptClass.clearAll()

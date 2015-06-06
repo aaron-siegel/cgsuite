@@ -1,0 +1,20 @@
+/*${cgsuite.banner}*/
+
+system class CanonicalStopper extends Game, StopperSidedValue
+
+  override external def Options(Player player);
+
+  external def Degree;
+  external def Downsum(CanonicalStopper that);
+  external def DownsumVariety(CanonicalStopper deg);
+  external def LeftStop;
+  external def OrdinalSum(CanonicalStopper that);
+  external def RightStop;
+  external def Stop(Player player);
+  external def Upsum(CanonicalStopper that);
+  external def UpsumVariety(CanonicalStopper deg);
+  external def Variety;
+
+  override external def ToOutput;
+
+end

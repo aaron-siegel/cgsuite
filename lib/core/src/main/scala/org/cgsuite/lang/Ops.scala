@@ -27,11 +27,11 @@ object Ops {
 
   val PlusMinus = UnOp("+-") {
     case (x: CanonicalShortGame) => CanonicalShortGame(x)(-x)
-    case (x: CanonicalStopperGame) => CanonicalStopperGame(x)(-x)
+    case (x: CanonicalStopper) => CanonicalStopper(x)(-x)
     case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalShortGame] } =>
       CanonicalShortGame(x.asInstanceOf[Set[CanonicalShortGame]], x.asInstanceOf[Set[CanonicalShortGame]] map { -_ })
-    case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalStopperGame] } =>
-      CanonicalStopperGame(x.asInstanceOf[Set[CanonicalStopperGame]], x.asInstanceOf[Set[CanonicalStopperGame]] map { -_ })
+    case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalStopper] } =>
+      CanonicalStopper(x.asInstanceOf[Set[CanonicalStopper]], x.asInstanceOf[Set[CanonicalStopper]] map { -_ })
     case (x: Game) => ExplicitGame(x)(-x)
   }
 
@@ -42,7 +42,7 @@ object Ops {
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x + y
     case (_: Uptimal, _: Uptimal) => (x: Uptimal, y: Uptimal) => x + y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
-    case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x + y
+    case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
     case (_: String, _: String) => (x: String, y: String) => x + y
@@ -67,7 +67,7 @@ object Ops {
     case (_: RationalNumber, _:RationalNumber) => (x: RationalNumber, y: RationalNumber) => x - y
     case (_: Uptimal, _:Uptimal) => (x: Uptimal, y: Uptimal) => x - y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
-    case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x - y
+    case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x - y
     case (_: Game, _:Game) => (x: Game, y: Game) => x - y
     case (_: Coordinates, _:Coordinates) => (x: Coordinates, y: Coordinates) => x - y
   }
@@ -75,7 +75,7 @@ object Ops {
   val OrdinalPlus = CachingBinOp(":") {
     case (_: Nimber, _: Nimber) => (x: Nimber, y: Nimber) => x ordinalSum y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x ordinalSum y
-    case (_: CanonicalStopperGame, _: CanonicalStopperGame) => (x: CanonicalStopperGame, y: CanonicalStopperGame) => x ordinalSum y
+    case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x ordinalSum y
   }
 
   val Times = CachingBinOp("*") {
@@ -103,17 +103,17 @@ object Ops {
   val leq: (Any, Any) => Boolean = {
     case (x: RationalNumber, y: RationalNumber) => x <= y
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x <= y
-    case (x: CanonicalStopperGame, y: CanonicalStopperGame) => x <= y
+    case (x: CanonicalStopper, y: CanonicalStopper) => x <= y
   }
 
   val Equals = BinOp("==") {
-    case (x: CanonicalStopperSidedGame, y: CanonicalStopperSidedGame) => x == y
+    case (x: StopperSidedValue, y: StopperSidedValue) => x == y
     case (x: Game, y: Game) => leq(x, y) && leq(y, x)
     case (x, y) => x == y
   }
 
   val Neq = BinOp("!=") {
-    case (x: CanonicalStopperSidedGame, y: CanonicalStopperSidedGame) => x != y
+    case (x: StopperSidedValue, y: StopperSidedValue) => x != y
     case (x: Game, y: Game) => !leq(x, y) || !leq(y, x)
     case (x, y) => x != y
   }

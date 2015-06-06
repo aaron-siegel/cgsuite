@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class CanonicalShortGame extends Game
+system class CanonicalShortGame extends CanonicalStopper
 
   override external def Options(Player player);
 

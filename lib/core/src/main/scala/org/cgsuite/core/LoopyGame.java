@@ -81,7 +81,7 @@ import java.util.*;
  * @author  Aaron Siegel
  * @version $Revision: 1.29 $ $Date: 2007/02/16 20:10:13 $
  * @see     LoopyGame.Node
- * @see     CanonicalStopperGame
+ * @see     CanonicalStopper
  * @see     StopperSidedGame
  * @see     org.cgsuite.util.Digraph
  */
@@ -293,7 +293,7 @@ public class LoopyGame
                     rightEdges = JavaConverters.asJavaIterableConverter(roScala).asJava();
                     leftEdgesSize = loScala.size();
                     rightEdgesSize = roScala.size();
-                    if (o instanceof CanonicalShortGame || o instanceof CanonicalStopperGame)
+                    if (o instanceof CanonicalShortGame || o instanceof CanonicalStopper)
                     {
                         graphInfo.canonical[vertex] = true;
                     }
@@ -612,7 +612,7 @@ public class LoopyGame
     
     /**
      * Returns <code>true</code> if this game is equal to
-     * {@link CanonicalStopperGame#ON ON}.
+     * {@link CanonicalStopper#ON ON}.
      *
      * @return  <code>true</code> if this game is equal to <code>ON</code>.
      */
@@ -630,7 +630,7 @@ public class LoopyGame
     
     /**
      * Returns <code>true</code> if this game is equal to
-     * {@link CanonicalStopperGame#OFF OFF}.
+     * {@link CanonicalStopper#OFF OFF}.
      *
      * @return  <code>true</code> if this game is equal to <code>OFF</code>.
      */
@@ -1320,7 +1320,7 @@ public class LoopyGame
 
     /**
      * Calculates the canonical form of this game.  For details, see the
-     * {@link CanonicalStopperGame} class.
+     * {@link CanonicalStopper} class.
      *
      * @return  The canonical form of this game.
      * @throws  NotStopperException This game is not a stopper.
@@ -2209,14 +2209,14 @@ public class LoopyGame
      * @see     #sidle() sidle
      * @see     #offside() offside
      */
-    public CanonicalStopperGame onside() throws NotStopperException
+    public CanonicalStopper onside() throws NotStopperException
     {
         LoopyGame onside = new LoopyGame();
         onside.graph = simplifyGraph(graph, null, ONSIDE, startVertex);
         onside.startVertex = 0;
         if (onside.graph.isAlternatingCycleFree(0))
         {
-            return CanonicalStopperGameImpl$.MODULE$.apply(onside);
+            return CanonicalStopper$.MODULE$.apply(onside);
         }
         else
         {
@@ -2239,14 +2239,14 @@ public class LoopyGame
      * @see     #sidle() sidle
      * @see     #onside() onside
      */
-    public CanonicalStopperGame offside() throws NotStopperException
+    public CanonicalStopper offside() throws NotStopperException
     {
         LoopyGame offside = new LoopyGame();
         offside.graph = simplifyGraph(graph, null, OFFSIDE, startVertex);
         offside.startVertex = 0;
         if (offside.graph.isAlternatingCycleFree(0))
         {
-            return CanonicalStopperGameImpl$.MODULE$.apply(offside);
+            return CanonicalStopper$.MODULE$.apply(offside);
         }
         else
         {

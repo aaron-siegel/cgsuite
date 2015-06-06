@@ -2,7 +2,7 @@ package org.cgsuite.core
 
 import java.util
 
-import org.cgsuite.core.CanonicalStopperGame._
+import org.cgsuite.core.CanonicalStopper._
 import org.cgsuite.core.Values._
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput.Symbol._
@@ -11,9 +11,9 @@ import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-object CanonicalStopperGame {
+object CanonicalStopper {
 
-  def apply(loopyGame: LoopyGame): CanonicalStopperGame = {
+  def apply(loopyGame: LoopyGame): CanonicalStopper = {
     if (loopyGame.isLoopfree) {
       toCanonicalShortGame(loopyGame)
     } else if (loopyGame.isStopper) {
@@ -21,20 +21,20 @@ object CanonicalStopperGame {
       if (canonical.isLoopfree)
         toCanonicalShortGame(canonical)
       else
-        CanonicalStopperGameImpl(canonical)
+        CanonicalStopperImpl(canonical)
     } else {
       throw new InputException(s"not a stopper: $loopyGame")
     }
   }
 
-  def apply(lo: Iterable[CanonicalStopperGame], ro: Iterable[CanonicalStopperGame]): CanonicalStopperGame = {
+  def apply(lo: Iterable[CanonicalStopper], ro: Iterable[CanonicalStopper]): CanonicalStopper = {
     val thisNode = new LoopyGame.Node()
     lo foreach { gl => thisNode.addLeftEdge(gl.loopyGame) }
     ro foreach { gr => thisNode.addRightEdge(gr.loopyGame) }
-    CanonicalStopperGame(new LoopyGame(thisNode))
+    CanonicalStopper(new LoopyGame(thisNode))
   }
 
-  def apply(lo: CanonicalStopperGame*)(ro: CanonicalStopperGame*): CanonicalStopperGame = apply(lo, ro)
+  def apply(lo: CanonicalStopper*)(ro: CanonicalStopper*): CanonicalStopper = apply(lo, ro)
 
   private[core] def nthName(n: Int) = {
     if (n < 26)
@@ -60,9 +60,9 @@ object CanonicalStopperGame {
     }
   }
 
-  object SemideterministicOrdering extends Ordering[CanonicalStopperGame] {
+  object SemideterministicOrdering extends Ordering[CanonicalStopper] {
 
-    def compare(g: CanonicalStopperGame, h: CanonicalStopperGame): Int = {
+    def compare(g: CanonicalStopper, h: CanonicalStopper): Int = {
       (g, h) match {
         case (a: CanonicalShortGame, b: CanonicalShortGame) => CanonicalShortGame.DeterministicOrdering.compare(a, b)
         case (a: CanonicalShortGame, _) => -1
@@ -79,65 +79,122 @@ object CanonicalStopperGame {
 
 }
 
-trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
+trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
   def loopyGame: LoopyGame
 
-  def options(player: Player): Iterable[CanonicalStopperGame] = {
+  def options(player: Player): Iterable[CanonicalStopper] = {
     val lgOpts = player match {
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
     }
-    lgOpts map { CanonicalStopperGame(_) }
+    lgOpts map { CanonicalStopper(_) } toSet
   }
 
-  def sortedOptions(player: Player): Seq[CanonicalStopperGame] = {
-    options(player).toSeq.sorted(CanonicalStopperGame.SemideterministicOrdering)
+  def sortedOptions(player: Player): Seq[CanonicalStopper] = {
+    options(player).toSeq.sorted(CanonicalStopper.SemideterministicOrdering)
   }
 
-  def +(that: CanonicalStopperGame): CanonicalStopperSidedGame = {
-    CanonicalStopperGame(loopyGame.add(that.loopyGame))   // TODO
+  def +(that: CanonicalStopper): StopperSidedValue = {
+    CanonicalStopper(loopyGame.add(that.loopyGame))   // TODO
   }
 
-  def +(that: CanonicalShortGame): CanonicalStopperGame = {
-    CanonicalStopperGame(loopyGame.add(new LoopyGame(that)))
+  def +(that: CanonicalShortGame): CanonicalStopper = {
+    CanonicalStopper(loopyGame.add(new LoopyGame(that)))
   }
 
-  def -(that: CanonicalStopperGame): CanonicalStopperSidedGame = this + (-that)
+  def -(that: CanonicalStopper): StopperSidedValue = this + (-that)
 
-  def -(that: CanonicalShortGame): CanonicalStopperGame = this + (-that)
+  def -(that: CanonicalShortGame): CanonicalStopper = this + (-that)
 
-  override def unary_- : CanonicalStopperGame = CanonicalStopperGame(loopyGame.negative)
+  override def unary_- : CanonicalStopper = CanonicalStopper(loopyGame.negative)
 
-  def <=(that: CanonicalStopperGame) = loopyGame.leq(that.loopyGame, true)
+  def <=(that: CanonicalStopper) = loopyGame.leq(that.loopyGame, true)
 
-  def isInteger = false
-
-  def isLoopfree = loopyGame.isLoopfree
-
-  def isNumber = false
-
-  def ordinalSum(that: CanonicalStopperGame) = CanonicalStopperGame(loopyGame.ordinalSum(that.loopyGame))
-       /*
-  def stop(player: Player) = player match {
-    case Left => leftStop
-    case Right => rightStop
+  def degree: CanonicalStopper = {
+    if (loopyGame.graph.isCycleFree) {
+      zero
+    } else {
+      upsum(-this)
+    }
   }
 
-  def leftStop: CanonicalStopperGame = {
-    if (isOn) this else options(Left).map { _.rightStop }.reduce { _ max _ }
-    options(Left).map { _.rightStop }.max
+  def downsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).offside()
+
+  def downsumVariety(deg: CanonicalStopper): CanonicalStopper = {
+    if (deg.isIdempotent)
+      downsum((-this).upsum(deg))
+    else
+      throw InputException("Degree must be an idempotent.")
   }
 
-  def rightStop: CanonicalStopperGame = options(Right).map { _.leftStop }.min
-         */
+  override def isIdempotent = this + this == this
+
+  override def isInfinitesimal: Boolean = leftStop.isZero && rightStop.isZero
+
+  override def isNumberish: Boolean = {
+    val stop = leftStop
+    stop.isNumber && stop == rightStop
+  }
+
+  override def isLoopfree = loopyGame.isLoopfree
+
+  override def isPlumtree = loopyGame.isPlumtree
+
+  override def isStopper = true
+
+  override def offside = this
+
+  override def onside = this
+
+  def ordinalSum(that: CanonicalStopper): CanonicalStopper = CanonicalStopper(loopyGame.ordinalSum(that.loopyGame))
+
+  def upsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).onside()
+
+  def upsumVariety(deg: CanonicalStopper): CanonicalStopper = {
+    if (deg.isIdempotent)
+      upsum((-this).downsum(-deg))
+    else
+      throw InputException("Degree must be an idempotent.")
+  }
+
+  def variety: CanonicalStopper = {
+    val deg = degree
+    val v = upsumVariety(deg)
+    if (v == downsumVariety(deg))
+      v
+    else
+      throw InputException("Congratulations!  You've found a counterexample to the Stability Conjecture.  Please report this finding to asiegel@users.sourceforge.net.")
+  }
+
+  def stop(player: Player) = {
+    player match {
+      case Left => leftStop
+      case Right => rightStop
+    }
+  }
+
+  def leftStop: CanonicalStopper = {
+    if (loopyGame.isOn || loopyGame.isOff)
+      this
+    else
+      options(Left) map { _.rightStop } reduce { (g, h) => if (g <= h) h else g }
+  }
+
+  def rightStop: CanonicalStopper = {
+    if (loopyGame.isOn || loopyGame.isOff)
+      this
+    else
+      options(Right) map { _.leftStop } reduce { (g, h) => if (g <= h) g else h }
+  }
+
   override def toOutput: StyledTextOutput = {
     val output: StyledTextOutput = new StyledTextOutput
     appendTo(output, true, false)
     output
   }
 
-  def isNumberTiny = {
+  override def isNumberTiny = {
 
     val lo = options(Left)
     val ro = options(Right)
@@ -210,7 +267,7 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
     output: StyledTextOutput,
     forceBrackets: Boolean,
     forceParens: Boolean,
-    nodeStack: mutable.Map[CanonicalStopperGame, Option[String]],
+    nodeStack: mutable.Map[CanonicalStopper, Option[String]],
     numNamedNodes: Array[Int]
     ): Int = {
 
@@ -222,7 +279,7 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
       val name = nodeStack(this) match {
         case Some(x) => x
         case None =>
-          val x = CanonicalStopperGame.nthName(numNamedNodes(0))
+          val x = CanonicalStopper.nthName(numNamedNodes(0))
           nodeStack.put(this, Some(x))
           numNamedNodes(0) += 1
           x
@@ -365,4 +422,8 @@ trait CanonicalStopperGame extends CanonicalStopperSidedGame with OutputTarget {
 
 }
 
-case class CanonicalStopperGameImpl private[core] (loopyGame: LoopyGame) extends CanonicalStopperGame
+case class CanonicalStopperImpl private[core] (loopyGame: LoopyGame) extends CanonicalStopper {
+
+  assert (!isLoopfree)
+
+}

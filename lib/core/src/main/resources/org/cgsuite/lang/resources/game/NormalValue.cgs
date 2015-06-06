@@ -1,0 +1,19 @@
+/*${cgsuite.banner}*/
+
+system class NormalValue
+
+  external def IsAllSmall;
+  external def IsIdempotent;
+  external def IsInfinitesimal;
+  external def IsInteger;
+  external def IsLoopfree;
+  external def IsNimber;
+  external def IsNumber;
+  external def IsNumberish;
+  external def IsNumberTiny;
+  external def IsPlumtree;
+  external def IsStopper;
+  external def IsUptimal;
+  external def IsZero;
+
+end

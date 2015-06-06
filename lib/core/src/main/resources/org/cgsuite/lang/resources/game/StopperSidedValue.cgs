@@ -1,0 +1,8 @@
+/*${cgsuite.banner}*/
+
+system class StopperSidedValue extends NormalValue
+
+  external def Offside;
+  external def Onside;
+
+end

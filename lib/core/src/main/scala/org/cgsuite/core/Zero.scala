@@ -17,6 +17,8 @@ trait Zero extends SmallInteger with Nimber {
   override val intValue = 0
   val nimValue = 0
 
+  override def isZero = true
+
   override lazy val gameId = CanonicalShortGameOps.ZERO_ID
   override def numberPart = Values.zero
   override def nimberPart = 0
