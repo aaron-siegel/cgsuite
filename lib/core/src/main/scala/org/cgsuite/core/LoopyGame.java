@@ -645,6 +645,36 @@ public class LoopyGame
             graph.getNumRightEdges(vertex) == 1 &&
             graph.getRightEdgeTarget(vertex, 0) == vertex;
     }
+
+    public Pseudonumber asPseudonumber()
+    {
+        if (isOn()) {
+            return On$.MODULE$;
+        } else if (isOff()) {
+            return Off$.MODULE$;
+        } else if (graph.getNumLeftEdges(startVertex) == 1 && graph.getNumRightEdges(startVertex) == 1) {
+            if (graph.getRightEdgeTarget(startVertex, 0) == startVertex &&
+                graph.isCycleFree(graph.getLeftEdgeTarget(startVertex, 0))) {
+                CanonicalShortGame x = CanonicalStopper$.MODULE$.toCanonicalShortGame(
+                    new LoopyGame(graph, graph.getLeftEdgeTarget(startVertex, 0))
+                );
+                if (x instanceof DyadicRationalNumber) {
+                    return Pseudonumber$.MODULE$.apply((DyadicRationalNumber) x, 1);
+                }
+            }
+            if (graph.getLeftEdgeTarget(startVertex, 0) == startVertex &&
+                graph.isCycleFree(graph.getRightEdgeTarget(startVertex, 0))) {
+                CanonicalShortGame x = CanonicalStopper$.MODULE$.toCanonicalShortGame(
+                    new LoopyGame(graph, graph.getRightEdgeTarget(startVertex, 0))
+                );
+                if (x instanceof DyadicRationalNumber) {
+                    return Pseudonumber$.MODULE$.apply((DyadicRationalNumber) x, -1);
+                }
+            }
+        }
+
+        return null;
+    }
     
     public int graphComplexity()
     {

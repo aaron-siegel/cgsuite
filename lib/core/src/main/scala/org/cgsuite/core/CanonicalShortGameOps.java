@@ -1787,7 +1787,7 @@ public final class CanonicalShortGameOps
         return id;
     }
 
-    public static int pow(int id, int n)
+    private static int pow(int id, int n)
     {
         if (getNumLeftOptions(id) != 1 || getLeftOption(id, 0) != ZERO_ID || getNumRightOptions(id) != 1)
         {
@@ -1803,7 +1803,7 @@ public final class CanonicalShortGameOps
         }
     }
 
-    public static int powTo(int id, int n)
+    private static int powTo(int id, int n)
     {
         if (getNumLeftOptions(id) != 1 || getLeftOption(id, 0) != ZERO_ID || getNumRightOptions(id) != 1)
         {

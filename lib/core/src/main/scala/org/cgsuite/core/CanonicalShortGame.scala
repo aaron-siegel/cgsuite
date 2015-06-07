@@ -233,9 +233,29 @@ trait CanonicalShortGame extends CanonicalStopper {
     CanonicalShortGame(ops.overheat(gameId, s.gameId, t.gameId))
   }
 
-  def pow(n: Int) = CanonicalShortGame(ops.pow(gameId, n))
+  def pow(x: Pseudonumber): CanonicalStopper = {
+    val lo = options(Left)
+    val ro = options(Right)
+    if (lo.size == 1 && ro.size == 1 && lo.head == zero) {
+      x match {
+        case r: DyadicRationalNumber => CanonicalShortGame(zero)(-powTo(r - one) + ro.head)
+        case _ => CanonicalStopper(zero)(-powTo((x - one).asInstanceOf[Pseudonumber]) + ro.head)
+      }
+    } else {
+      throw InputException("Base must be of the form {0|H}.")
+    }
+  }
 
-  def powTo(n: Int) = CanonicalShortGame(ops.powTo(gameId, n))
+  def powTo(x: Pseudonumber): CanonicalStopper = {
+    x match {
+      case r: DyadicRationalNumber => powTo(r)
+      case _ => ordinalSum(x.blowup)
+    }
+  }
+
+  def powTo(x: DyadicRationalNumber): CanonicalShortGame = {
+    if (x.isZero) zero else ordinalSum(x.blowup)
+  }
 
   def reducedCanonicalForm: CanonicalShortGame = CanonicalShortGame(ops.rcf(gameId))
 

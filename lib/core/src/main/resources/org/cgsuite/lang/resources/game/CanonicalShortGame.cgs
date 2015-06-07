@@ -29,6 +29,8 @@ system class CanonicalShortGame extends CanonicalStopper
   external def Mean;
   external def NortonMultiply(CanonicalShortGame h);
   external def Overheat(CanonicalShortGame s, CanonicalShortGame t);
+  external def Pow(Pseudonumber x);
+  external def PowTo(Pseudonumber x);
   external def ReducedCanonicalForm;
   external def RightIncentives;
   external def RightStop;

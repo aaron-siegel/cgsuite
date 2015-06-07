@@ -20,17 +20,26 @@ object CanonicalStopper {
       val canonical = loopyGame.canonicalizeStopperInternal()
       if (canonical.isLoopfree)
         toCanonicalShortGame(canonical)
-      else
-        CanonicalStopperImpl(canonical)
+      else {
+        Option(canonical.asPseudonumber) match {
+          case Some(p) => p
+          case None => CanonicalStopperImpl(canonical)
+        }
+      }
     } else {
       throw new InputException(s"not a stopper: $loopyGame")
     }
   }
 
-  def apply(lo: Iterable[CanonicalStopper], ro: Iterable[CanonicalStopper]): CanonicalStopper = {
+  def apply(lo: Iterable[CanonicalStopper], ro: Iterable[CanonicalStopper], withPass: Option[Player] = None): CanonicalStopper = {
     val thisNode = new LoopyGame.Node()
     lo foreach { gl => thisNode.addLeftEdge(gl.loopyGame) }
     ro foreach { gr => thisNode.addRightEdge(gr.loopyGame) }
+    withPass match {
+      case None =>
+      case Some(Left) => thisNode.addLeftEdge(thisNode)
+      case Some(Right) => thisNode.addRightEdge(thisNode)
+    }
     CanonicalStopper(new LoopyGame(thisNode))
   }
 
@@ -118,13 +127,13 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
   def <=(that: CanonicalStopper) = loopyGame.leq(that.loopyGame, true)
 
-  def degree: CanonicalStopper = {
-    if (loopyGame.graph.isCycleFree) {
-      zero
-    } else {
-      upsum(-this)
-    }
-  }
+  def >=(that: CanonicalStopper) = that <= this
+
+  def < (that: CanonicalStopper) = this <= that && !(that <= this)
+
+  def > (that: CanonicalStopper) = that <= this && !(this <= that)
+
+  def degree: CanonicalStopper = if (isLoopfree) zero else upsum(-this)
 
   def downsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).offside()
 
@@ -144,9 +153,38 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
     stop.isNumber && stop == rightStop
   }
 
+  override def isNumberTiny: Boolean = {
+
+    val lo = options(Left)
+    val ro = options(Right)
+
+    lo.size == 1 && ro.size == 1 && (
+      lo.head.isNumber && {
+        val rlo = ro.head.options(Left)
+        val rro = ro.head.options(Right)
+        rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head - lo.head.asInstanceOf[DyadicRationalNumber] <= under
+      } ||
+        ro.head.isNumber && {
+          val llo = lo.head.options(Left)
+          val lro = lo.head.options(Right)
+          lro.size == 1 && llo.size == 1 && ro.head == lro.head && ro.head.asInstanceOf[DyadicRationalNumber] - llo.head <= under
+        }
+      )
+
+  }
+
   override def isLoopfree = loopyGame.isLoopfree
 
   override def isPlumtree = loopyGame.isPlumtree
+
+  override def isPseudonumber = {
+    isNumber || loopyGame.isOn || loopyGame.isOff || isPlumtree && {
+      val lo = options(Left)
+      val ro = options(Right)
+      (lo == Set(this) && ro.size == 1 && ro.head.isNumber) ||
+      (ro == Set(this) && lo.size == 1 && lo.head.isNumber)
+    }
+  }
 
   override def isStopper = true
 
@@ -203,26 +241,6 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
     output
   }
 
-  override def isNumberTiny = {
-
-    val lo = options(Left)
-    val ro = options(Right)
-
-    lo.size == 1 && ro.size == 1 && (
-      lo.head.isNumber && {
-        val rlo = ro.head.options(Left)
-        val rro = ro.head.options(Right)
-        rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head - lo.head.asInstanceOf[DyadicRationalNumber] <= under
-      } ||
-      ro.head.isNumber && {
-        val llo = lo.head.options(Left)
-        val lro = lo.head.options(Right)
-        lro.size == 1 && llo.size == 1 && ro.head == lro.head && ro.head.asInstanceOf[DyadicRationalNumber] - llo.head <= under
-      }
-    )
-
-  }
-
   private def uponForm: Option[UponForm] = {
     uponForm(true) match {
       case Some((uponType, number)) => Some(UponForm(uponType, number, 0, false))
@@ -266,8 +284,52 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
   }
 
-  // TODO Pretty sure this can be consolidated w/ CanonicalShortGame.toOutput. That will pick up other
-  // nice things like loopy switches.
+  private def uponForm2: Option[UponForm] = {
+
+    uponForm2(true) orElse {
+      (-this).uponForm2(true) map { uf =>
+        uf.copy(numberPart = -uf.numberPart, negated = true)
+      }
+    }
+
+  }
+
+  private def uponForm2(checkUponth: Boolean): Option[UponForm] = {
+
+    val lo = options(Left)
+    val ro = options(Right)
+
+    val x = if (ro.size == 1 && lo.size <= 2) {
+      ro.head match {
+        case roUptimal: Uptimal if roUptimal.uptimalLength == 0 =>
+          if (roUptimal.nimberPart == 0 && lo == Set(this, roUptimal.numberPart) ||
+              roUptimal.nimberPart != 0 && lo == Set(this)) {
+            Some(UponForm(UponType.Upon, roUptimal.numberPart, roUptimal.nimberPart ^ 1, negated = false))
+          } else {
+            None
+          }
+        case _ => None
+      }
+    } else {
+      None
+    }
+
+    x orElse {
+      if (checkUponth && ro.size == 1) {
+        (-ro.head).uponForm2(false) match {
+          case Some(UponForm(UponType.Upon, numberPart, nimberPart, false))
+            if lo == (0 to (nimberPart ^ 1)).map { n => Uptimal(-numberPart, 0, n) }.toSet =>
+            Some(UponForm(UponType.Uponth, -numberPart, nimberPart ^ 1, negated = false))
+          case _ => None
+        }
+      } else {
+        None
+      }
+    }
+
+  }
+
+  // TODO Consolidate w/ CanonicalShortGame.
 
   private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     appendTo(output, forceBrackets, forceParens, mutable.Map(), new Array[Int](1))
@@ -369,7 +431,7 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
         output.appendMath(")")
       0
 
-    } else uponForm match {
+    } else uponForm2 match {
 
       case Some(UponForm(uponType, numberPart, nimberPart, negated)) =>
         if (numberPart != zero)
@@ -388,9 +450,11 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
           case UponType.Upover => output.appendText(exponentStyle, "[over]")
           case UponType.Upoverth => output.appendText(exponentStyle, "<over>")
         }
-        nimberPart match {
-          case 0 =>
-          case 1 => output.appendSymbol(StyledTextOutput.Symbol.STAR)
+        if (nimberPart >= 1) {
+          output.appendSymbol(StyledTextOutput.Symbol.STAR)
+          if (nimberPart >= 2) {
+            output.appendMath(nimberPart.toString)
+          }
         }
         0
 

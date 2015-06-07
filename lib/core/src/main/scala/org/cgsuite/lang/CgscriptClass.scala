@@ -67,6 +67,7 @@ object CgscriptClass {
     "game.Nimber" -> classOf[Nimber],
     "game.Uptimal" -> classOf[Uptimal],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
+    "game.Pseudonumber" -> classOf[Pseudonumber],
     "game.CanonicalStopper" -> classOf[CanonicalStopper],
     "game.StopperSidedValue" -> classOf[StopperSidedValue],
     "game.NormalValue" -> classOf[NormalValue],

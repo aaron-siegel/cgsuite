@@ -80,7 +80,7 @@ trait Uptimal extends CanonicalShortGame {
   override def isNimber = isInfinitesimal && uptimalLength == 0
   override def isNumber = uptimalLength == 0 && nimberPart == 0
   override def isNumberish = true
-  override def isNumberTiny = false
+  override def isNumberTiny: Boolean = false
   override def isNumberUpStar = true
   override def isOdd: Boolean = {
     uptimalLength == 0 && nimberPart <= 1 && {

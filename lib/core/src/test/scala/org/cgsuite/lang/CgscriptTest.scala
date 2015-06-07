@@ -95,7 +95,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       header,
       ("on", "on := {pass|}", "on"),
       ("off", "off := {|pass}", "off"),
-      //("dud", "{pass|pass}", "dud"),
+      ("dud", "{pass|pass}", "dud"),
       ("over", "{0|pass}", "over"),
       ("under", "{pass|0}", "under"),
       ("upon", "[{pass|*},{pass,0|0},{*|pass},{0|0,pass}]", "[^[on],^[on]*,v[on],v[on]*]"),

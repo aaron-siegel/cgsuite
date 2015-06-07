@@ -5,7 +5,7 @@ object CanonicalStopperTestCase {
   val instances = Seq(
 
     CanonicalStopperTestCase(
-      "{pass|}", "on", "CanonicalStopper",
+      "{pass|}", "on", "Pseudonumber",
       degree = "on",
       isIdempotent = "true",
       isInfinitesimal = "false",
@@ -20,7 +20,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{|pass}", "off", "CanonicalStopper",
+      "{|pass}", "off", "Pseudonumber",
       degree = "on",
       isIdempotent = "true",
       isInfinitesimal = "false",
@@ -35,7 +35,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{0|pass}", "over", "CanonicalStopper",
+      "{0|pass}", "over", "Pseudonumber",
       degree = "over",
       isIdempotent = "true",
       isInfinitesimal = "true",
@@ -50,7 +50,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{pass|3/2}", "3/2under", "CanonicalStopper",
+      "{pass|3/2}", "3/2under", "Pseudonumber",
       degree = "over",
       isIdempotent = "false",
       isInfinitesimal = "false",

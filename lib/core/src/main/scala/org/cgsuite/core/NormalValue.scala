@@ -22,6 +22,8 @@ trait NormalValue {
 
   def isPlumtree = false
 
+  def isPseudonumber = false
+
   def isStopper = false
 
   def isUptimal = false

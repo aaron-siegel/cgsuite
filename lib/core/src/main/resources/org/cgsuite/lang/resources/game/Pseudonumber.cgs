@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Pseudonumber extends CanonicalStopper
+
+  external def Blowup;
+
+end
