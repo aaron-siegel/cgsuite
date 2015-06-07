@@ -27,7 +27,6 @@ system class CanonicalShortGame extends CanonicalStopper
   external def LeftIncentives;
   external def LeftStop;
   external def Mean;
-  def Miny := {this|0||0};
   external def NortonMultiply(CanonicalShortGame h);
   external def Overheat(CanonicalShortGame s, CanonicalShortGame t);
   external def ReducedCanonicalForm;
@@ -35,7 +34,6 @@ system class CanonicalShortGame extends CanonicalStopper
   external def RightStop;
   external def StopCount;
   external def Temperature;
-  def Tiny := {0||0|-this};
 
   override external def ToOutput;
 

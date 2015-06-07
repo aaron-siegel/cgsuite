@@ -217,8 +217,6 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def isPlumtree = true
 
-  def isSwitch: Boolean = this == -this
-
   override def isUptimal: Boolean = ops.uptimalExpansion(gameId) != null
 
   def leftIncentives = incentives(Left)
@@ -282,43 +280,44 @@ trait CanonicalShortGame extends CanonicalStopper {
 
     } else if (isNumberTiny) {
 
-      val (str, translate, subscript) = {
+      val (str, symbol, translate, subscript) = {
         if (lo.head.isNumber)
-          ("Tiny", lo.head, -ro.head.options(Right).head + lo.head)
+          ("Tiny", TINY, lo.head, -ro.head.options(Right).head + lo.head)
         else
-          ("Miny", ro.head, lo.head.options(Left).head - ro.head)
+          ("Miny", MINY, ro.head, lo.head.options(Left).head - ro.head)
       }
       if (forceParens)
         output.appendMath("(")
-      if (translate != zero) {
+      if (translate != zero)
         translate.appendTo(output, false, false)
-        output.appendText(Output.Mode.PLAIN_TEXT, "+")
-      }
       val sub = new StyledTextOutput()
-      subscript.appendTo(sub, true, true)
+      subscript.appendTo(sub, true, false)
       val styles = sub.allStyles()
       styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS)
       if (styles.isEmpty) {
-        if (subscript.isNumber && !subscript.isInteger) {
-          output.appendText(Output.Mode.PLAIN_TEXT, "(")
-        }
         output.appendSymbol(
-          util.EnumSet.noneOf(classOf[StyledTextOutput.Style]),
-          util.EnumSet.complementOf(util.EnumSet.of(Output.Mode.PLAIN_TEXT)),
-          if (isNumberTiny) TINY else MINY
+          util.EnumSet.of(StyledTextOutput.Style.FACE_MATH),
+          util.EnumSet.of(Output.Mode.GRAPHICAL),
+          symbol
+        )
+        output.appendText(
+          util.EnumSet.of(StyledTextOutput.Style.FACE_MATH),
+          util.EnumSet.of(Output.Mode.PLAIN_TEXT),
+          str + "("
         )
         output.appendOutput(util.EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT), sub)
-        if (subscript.isNumber && !subscript.isInteger) {
-          output.appendText(Output.Mode.PLAIN_TEXT, ")")
-        }
-        output.appendText(Output.Mode.PLAIN_TEXT, "." + str)
+        output.appendText(
+          util.EnumSet.of(StyledTextOutput.Style.FACE_MATH),
+          util.EnumSet.of(Output.Mode.PLAIN_TEXT),
+          ")"
+        )
       } else {
+        output.appendMath(str + "(")
         output.appendOutput(sub)
-        output.appendMath("." + str)
-      }
-      if (forceParens) {
         output.appendMath(")")
       }
+      if (forceParens)
+        output.appendMath(")")
       0
 
     } else {

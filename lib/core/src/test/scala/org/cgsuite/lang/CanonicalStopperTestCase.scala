@@ -10,6 +10,7 @@ object CanonicalStopperTestCase {
       isIdempotent = "true",
       isInfinitesimal = "false",
       isNumberish = "false",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{on}",
       leftStop = "on",
@@ -24,6 +25,7 @@ object CanonicalStopperTestCase {
       isIdempotent = "true",
       isInfinitesimal = "false",
       isNumberish = "false",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{}",
       leftStop = "off",
@@ -38,6 +40,7 @@ object CanonicalStopperTestCase {
       isIdempotent = "true",
       isInfinitesimal = "true",
       isNumberish = "true",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{0}",
       leftStop = "0",
@@ -52,6 +55,7 @@ object CanonicalStopperTestCase {
       isIdempotent = "false",
       isInfinitesimal = "false",
       isNumberish = "true",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{3/2under}",
       leftStop = "3/2",
@@ -66,6 +70,7 @@ object CanonicalStopperTestCase {
       isIdempotent = "false",
       isInfinitesimal = "false",
       isNumberish = "true",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{-1/4*}",
       leftStop = "-1/4",
@@ -80,6 +85,7 @@ object CanonicalStopperTestCase {
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{{0|^<on>}}",
       leftStop = "0",
@@ -87,27 +93,59 @@ object CanonicalStopperTestCase {
       rightStop = "0",
       variety = "{^[on]*,^<on>||v<on>|0}"
     ),
-        /*
+
     CanonicalStopperTestCase(
-      "{0|||0||0|{|pass}}", "{0|on.Tiny}", "CanonicalStopper",
-      degree = "{0||||0|||on.Miny|0||off}",
+      "{0|||0||0|{|pass}}", "{0|Tiny(on)}", "CanonicalStopper",
+      degree = "{0||||0|||Miny(on)|0||off}",
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
+      isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{0}",
       leftStop = "0",
-      rightOptions = "{on.Tiny}",
+      rightOptions = "{Tiny(on)}",
       rightStop = "0",
       variety = "!!Degree must be an idempotent."
     ),
-        */
+
+    CanonicalStopperTestCase(
+      "{{pass|}|0||0}", "Miny(on)", "CanonicalStopper",
+      degree = "Tiny(on)",
+      isIdempotent = "true",
+      isInfinitesimal = "true",
+      isNumberish = "true",
+      isNumberTiny = "true",
+      isPlumtree = "true",
+      leftOptions = "{{on|0}}",
+      leftStop = "0",
+      rightOptions = "{0}",
+      rightStop = "0",
+      variety = "Miny(on)"
+    ),
+
+    CanonicalStopperTestCase(
+      "{0|||0||pass|0}", "Tiny(over)", "CanonicalStopper",
+      degree = "Tiny(over)",
+      isIdempotent = "true",
+      isInfinitesimal = "true",
+      isNumberish = "true",
+      isNumberTiny = "true",
+      isPlumtree = "true",
+      leftOptions = "{0}",
+      leftStop = "0",
+      rightOptions = "{{0|under}}",
+      rightStop = "0",
+      variety = "Tiny(over)"
+    ),
+
     CanonicalStopperTestCase(
       "a{0||||0|||a|*||*}", "a{0||||0|||a|*||*}", "CanonicalStopper",
       degree = "{0|a{0|0,{0|||a|0||0}}}",
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
+      isNumberTiny = "false",
       isPlumtree = "false",
       leftOptions = "{0}",
       leftStop = "0",
@@ -116,13 +154,13 @@ object CanonicalStopperTestCase {
       variety = "{a{0,{0||0|a|||0}|0}|0}"
     ),
 
-    // TODO Should this one be considered a tiny?
     CanonicalStopperTestCase(
       "{0|{0||||-1|||-1+*,a{0||0|a|||-1+*||||-1+*}||-2|b{-2,{-1,-1+*||-1+*|b|||-2}|-2}}}", "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}", "CanonicalStopper",
       degree = "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}",
       isIdempotent = "true",
       isInfinitesimal = "true",
       isNumberish = "true",
+      isNumberTiny = "true",
       isPlumtree = "false",
       leftOptions = "{0}",
       leftStop = "0",
@@ -143,6 +181,7 @@ case class CanonicalStopperTestCase(
   isIdempotent: String,
   isInfinitesimal: String,
   isNumberish: String,
+  isNumberTiny: String,
   isPlumtree: String,
   leftOptions: String,
   leftStop: String,
@@ -163,7 +202,7 @@ case class CanonicalStopperTestCase(
       (s"($x).IsNimber", "false"),
       (s"($x).IsNumber", "false"),
       (s"($x).IsNumberish", isNumberish),
-      (s"($x).IsNumberTiny", "false"),    // TODO?
+      (s"($x).IsNumberTiny", isNumberTiny),
       (s"($x).IsPlumtree", isPlumtree),
       (s"($x).IsStopper", "true"),
       (s"($x).IsUptimal", "false"),

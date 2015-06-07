@@ -150,6 +150,8 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
   override def isStopper = true
 
+  def isSwitch: Boolean = this == -this
+
   override def offside = this
 
   override def onside = this
@@ -206,17 +208,18 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
     val lo = options(Left)
     val ro = options(Right)
 
-    lo.size == 1 && ro.size == 1 && {
-      val gl = lo.head
-      val gr = ro.head
-      val grlo = gl.options(Left)
-      val grro = gr.options(Right)
-      gl.isNumber && gr.isNumber && grlo.size == 1 && grro.size == 1 && {
-        val grl = grlo.head
-        val grr = grro.head
-        gl == grl && grr - gl.asInstanceOf[CanonicalShortGame] <= under
+    lo.size == 1 && ro.size == 1 && (
+      lo.head.isNumber && {
+        val rlo = ro.head.options(Left)
+        val rro = ro.head.options(Right)
+        rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head - lo.head.asInstanceOf[DyadicRationalNumber] <= under
+      } ||
+      ro.head.isNumber && {
+        val llo = lo.head.options(Left)
+        val lro = lo.head.options(Right)
+        lro.size == 1 && llo.size == 1 && ro.head == lro.head && ro.head.asInstanceOf[DyadicRationalNumber] - llo.head <= under
       }
-    }
+    )
 
   }
 
@@ -313,45 +316,57 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
         output.appendOutput(ro.head.toOutput)
       output.appendMath("under"); 0
 
-    } else if (isNumberTiny || (-this).isNumberTiny) {
+    } else if (isSwitch) {
 
-      val (str, translate, subscript) = {
-        if (isNumberTiny)
-          ("Tiny", lo.head.asInstanceOf[CanonicalShortGame], -ro.head.options(Right).head + lo.head.asInstanceOf[CanonicalShortGame])
+      output.appendSymbol(PLUS_MINUS)
+      if (lo.size > 1)
+        output.appendMath("{")
+      lo.head.appendTo(output, true, lo.size == 1)
+      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, true, false) }
+      if (lo.size > 1)
+        output.appendMath("}")
+      0
+
+    } else if (isPlumtree && isNumberTiny) {
+
+      val (str, symbol, translate, subscript) = {
+        if (lo.head.isNumber)
+          ("Tiny", TINY, lo.head.asInstanceOf[CanonicalShortGame], -ro.head.options(Right).head + lo.head.asInstanceOf[CanonicalShortGame])
         else
-          ("Miny", ro.head.asInstanceOf[CanonicalShortGame], lo.head.options(Left).head - ro.head.asInstanceOf[CanonicalShortGame])
+          ("Miny", MINY, ro.head.asInstanceOf[CanonicalShortGame], lo.head.options(Left).head - ro.head.asInstanceOf[CanonicalShortGame])
       }
       if (forceParens)
         output.appendMath("(")
-      if (translate != zero) {
+      if (translate != zero)
         translate.appendTo(output, false, false)
-        output.appendText(Output.Mode.PLAIN_TEXT, "+")
-      }
       val sub = new StyledTextOutput()
-      subscript.appendTo(sub, true, true)
+      subscript.appendTo(sub, true, false)
       val styles = sub.allStyles()
       styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS)
       if (styles.isEmpty) {
-        if (subscript.isNumber && !subscript.isInteger) {
-          output.appendText(Output.Mode.PLAIN_TEXT, "(")
-        }
         output.appendSymbol(
-          util.EnumSet.noneOf(classOf[StyledTextOutput.Style]),
-          util.EnumSet.complementOf(util.EnumSet.of(Output.Mode.PLAIN_TEXT)),
-          if (isNumberTiny) TINY else MINY
+          util.EnumSet.of(StyledTextOutput.Style.FACE_MATH),
+          util.EnumSet.of(Output.Mode.GRAPHICAL),
+          symbol
+        )
+        output.appendText(
+          util.EnumSet.of(StyledTextOutput.Style.FACE_MATH),
+          util.EnumSet.of(Output.Mode.PLAIN_TEXT),
+          str + "("
         )
         output.appendOutput(util.EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT), sub)
-        if (subscript.isNumber && !subscript.isInteger) {
-          output.appendText(Output.Mode.PLAIN_TEXT, ")")
-        }
-        output.appendText(Output.Mode.PLAIN_TEXT, "." + str)
+        output.appendText(
+          util.EnumSet.of(StyledTextOutput.Style.FACE_MATH),
+          util.EnumSet.of(Output.Mode.PLAIN_TEXT),
+          ")"
+        )
       } else {
+        output.appendMath(str + "(")
         output.appendOutput(sub)
-        output.appendMath("." + str)
-      }
-      if (forceParens) {
         output.appendMath(")")
       }
+      if (forceParens)
+        output.appendMath(")")
       0
 
     } else uponForm match {

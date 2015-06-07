@@ -67,10 +67,10 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Multiple switch", "+-{1,1+*}", "+-{1,1*}"),
       ("Number + switch", "3+-1", "{4|2}"),
       ("Compound switch", "+-1+-2+-3+-4", "+-{10|8||6|4|||4|2||0|-2}"),
-      ("Tiny", "{0||0|-1}", "1.Tiny"),
-      ("Tiny fraction", "{0||0|-1/4}", "(1/4).Tiny"),
-      ("Tiny G", "{0|||0||-1|-2}", "{2|1}.Tiny"),
-      ("Miny", "{1|0||0}", "1.Miny"),
+      ("Tiny", "{0||0|-1}", "Tiny(1)"),
+      ("Tiny fraction", "{0||0|-1/4}", "Tiny(1/4)"),
+      ("Tiny G", "{0|||0||-1|-2}", "Tiny({2|1})"),
+      ("Miny", "{1|0||0}", "Miny(1)"),
       ("Pow", "{0|v*}", "^<2>"),
       ("Pow*", "{0,*|v}", "^<2>*"),
       ("PowTo", "{^|*}", "^[2]"),
@@ -109,12 +109,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("loopy plus canonical", "{0|pass}+^", "over"),
       ("number plus loopy", "5+{0|pass}", "5over"),
       ("loopy minus number", "{0|pass}-5", "-5over"),
-      //("explicit stopper sided", "{0|pass} & v", "over & v"),
+      ("explicit stopper sided", "{0|pass} & v", "over & v"),
       ("over by node label", "x{0|x}", "over"),
       ("under by node label", "x{x|0}", "under"),
       ("canonical 4-cycle", "x{0||||0|||x|*||*}", "a{0||||0|||a|*||*}"),
-      ("+- loopy game", "uponth := {0||0|0,pass}; +-{0|uponth}", "{0|^<on>||v<on>|0}"),
-      ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "{{0|^<on>},{0|^<on>*}|{v<on>*|0},{v<on>|0}}")
+      ("+- loopy game", "uponth := {0||0|0,pass}; +-{0|uponth}", "+-{0|^<on>}"),
+      ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "+-{{0|^<on>},{0|^<on>*}}")
       //("not stopper-sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "!!That game is not stopper-sided.")
     ))
   }
