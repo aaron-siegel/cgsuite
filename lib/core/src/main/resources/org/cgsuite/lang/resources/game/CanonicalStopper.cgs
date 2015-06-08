@@ -12,6 +12,7 @@ system class CanonicalStopper extends Game, StopperSidedValue
   external def OrdinalSum(CanonicalStopper that);
   external def RightStop;
   external def Stop(Player player);
+  external def StrongStop(Player player);
   def Tiny := {0||0|-this};
   external def Upsum(CanonicalStopper that);
   external def UpsumVariety(CanonicalStopper deg);

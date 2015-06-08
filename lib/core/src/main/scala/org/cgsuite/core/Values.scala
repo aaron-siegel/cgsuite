@@ -29,8 +29,8 @@ private[cgsuite] trait ValuesTrait {
   val positiveInfinity = RationalNumber(1, 0)
   val negativeInfinity = RationalNumber(-1, 0)
 
-  val on = On
-  val off = Off
+  val on = Pseudonumber(1)
+  val off = Pseudonumber(-1)
   val over = Pseudonumber(zero, 1)
   val under = Pseudonumber(zero, -1)
 

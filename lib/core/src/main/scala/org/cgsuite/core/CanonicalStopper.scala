@@ -146,11 +146,11 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
   override def isIdempotent = this + this == this
 
-  override def isInfinitesimal: Boolean = leftStop.isZero && rightStop.isZero
+  override def isInfinitesimal: Boolean = strongStop(Left).isZero && strongStop(Right).isZero
 
   override def isNumberish: Boolean = {
-    val stop = leftStop
-    stop.isNumber && stop == rightStop
+    val stop = strongStop(Left)
+    stop.isNumber && stop == strongStop(Right)
   }
 
   override def isNumberTiny: Boolean = {
@@ -214,25 +214,26 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
       throw InputException("Congratulations!  You've found a counterexample to the Stability Conjecture.  Please report this finding to asiegel@users.sourceforge.net.")
   }
 
-  def stop(player: Player) = {
+  def stop(player: Player): Pseudonumber = {
     player match {
       case Left => leftStop
       case Right => rightStop
     }
   }
 
-  def leftStop: CanonicalStopper = {
-    if (loopyGame.isOn || loopyGame.isOff)
-      this
-    else
-      options(Left) map { _.rightStop } reduce { (g, h) => if (g <= h) h else g }
+  def strongStop(player: Player): Pseudonumber = {
+    stop(player) match {
+      case OverNumberImpl(x, _) => x
+      case x => x
+    }
   }
 
-  def rightStop: CanonicalStopper = {
-    if (loopyGame.isOn || loopyGame.isOff)
-      this
-    else
-      options(Right) map { _.leftStop } reduce { (g, h) => if (g <= h) g else h }
+  def leftStop: Pseudonumber = {
+    options(Left) map { _.rightStop } reduce { _ max _ }
+  }
+
+  def rightStop: Pseudonumber = {
+    options(Right) map { _.leftStop } reduce { _ min _ }
   }
 
   override def toOutput: StyledTextOutput = {
@@ -242,59 +243,16 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
   }
 
   private def uponForm: Option[UponForm] = {
-    uponForm(true) match {
-      case Some((uponType, number)) => Some(UponForm(uponType, number, 0, false))
-      case None =>
-        (this + star).uponForm(true) match {
-          case Some((uponType, number)) => Some(UponForm(uponType, number, 1, false))
-          case None =>
-            (-this).uponForm(true) match {
-              case Some((uponType, number)) => Some(UponForm(uponType, -number, 0, true))
-              case None =>
-                (-this + star).uponForm(true) match {
-                  case Some((uponType, number)) => Some(UponForm(uponType, -number, 1, true))
-                  case None => None
-                }
-            }
-        }
-    }
-  }
 
-  private def uponForm(checkUponth: Boolean): Option[(UponType.Value, DyadicRationalNumber)] = {
-
-    val lo = options(Left)
-    val ro = options(Right)
-
-    if (lo.size == 1 && ro.size == 1) {
-      val gl = lo.head
-      val gr = ro.head
-      if (this == gl && gr.isLoopfree && (gr + star).isNumber) {
-        Some((UponType.Upon, gr.asInstanceOf[CanonicalShortGame].leftStop))
-      } else if (checkUponth && gl.isNumber) {
-        (-gr + star).uponForm(false) match {
-          case Some((UponType.Upon, number)) if number == -gl.asInstanceOf[CanonicalShortGame].leftStop => Some((UponType.Uponth, -number))
-          case _ => None
-        }
-      } else {
-        None
-      }
-    } else {
-      None
-    }
-
-  }
-
-  private def uponForm2: Option[UponForm] = {
-
-    uponForm2(true) orElse {
-      (-this).uponForm2(true) map { uf =>
+    uponForm(true) orElse {
+      (-this).uponForm(true) map { uf =>
         uf.copy(numberPart = -uf.numberPart, negated = true)
       }
     }
 
   }
 
-  private def uponForm2(checkUponth: Boolean): Option[UponForm] = {
+  private def uponForm(checkUponth: Boolean): Option[UponForm] = {
 
     val lo = options(Left)
     val ro = options(Right)
@@ -316,7 +274,7 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
     x orElse {
       if (checkUponth && ro.size == 1) {
-        (-ro.head).uponForm2(false) match {
+        (-ro.head).uponForm(false) match {
           case Some(UponForm(UponType.Upon, numberPart, nimberPart, false))
             if lo == (0 to (nimberPart ^ 1)).map { n => Uptimal(-numberPart, 0, n) }.toSet =>
             Some(UponForm(UponType.Uponth, -numberPart, nimberPart ^ 1, negated = false))
@@ -357,26 +315,6 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
           x
       }
       output.appendMath(name); 0
-
-    } else if (lo.size == 1 && ro.size == 0 && lo.head == this) {
-
-      output.appendMath("on"); 0
-
-    } else if (lo.size == 0 && ro.size == 1 && ro.head == this) {
-
-      output.appendMath("off"); 0
-
-    } else if (lo.size == 1 && ro.size == 1 && lo.head.isNumber && ro.head == this) {
-
-      if (lo.head != zero)
-        output.appendOutput(lo.head.toOutput)
-      output.appendMath("over"); 0
-
-    } else if (lo.size == 1 && ro.size == 1 && lo.head == this && ro.head.isNumber) {
-
-      if (ro.head != zero)
-        output.appendOutput(ro.head.toOutput)
-      output.appendMath("under"); 0
 
     } else if (isSwitch) {
 
@@ -431,7 +369,7 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
         output.appendMath(")")
       0
 
-    } else uponForm2 match {
+    } else uponForm match {
 
       case Some(UponForm(uponType, numberPart, nimberPart, negated)) =>
         if (numberPart != zero)

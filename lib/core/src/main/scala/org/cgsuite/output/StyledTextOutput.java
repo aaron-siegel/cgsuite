@@ -450,6 +450,11 @@ public class StyledTextOutput extends AbstractOutput
     {
         init(new Block(styles, text));
     }
+
+    public StyledTextOutput(Style style, String text)
+    {
+        this(EnumSet.of(style), text);
+    }
     
     /**
      * Constructs a new <code>StyledTextOutput</code> beginning with

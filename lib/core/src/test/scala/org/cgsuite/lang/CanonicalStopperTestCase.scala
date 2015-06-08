@@ -43,9 +43,9 @@ object CanonicalStopperTestCase {
       isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{0}",
-      leftStop = "0",
+      leftStop = "over",
       rightOptions = "{over}",
-      rightStop = "0",
+      rightStop = "over",
       variety = "over"
     ),
 
@@ -58,9 +58,9 @@ object CanonicalStopperTestCase {
       isNumberTiny = "false",
       isPlumtree = "true",
       leftOptions = "{3/2under}",
-      leftStop = "3/2",
+      leftStop = "3/2under",
       rightOptions = "{3/2}",
-      rightStop = "3/2",
+      rightStop = "3/2under",
       variety = "under"
     ),
 
@@ -137,6 +137,36 @@ object CanonicalStopperTestCase {
       rightOptions = "{{0|under}}",
       rightStop = "0",
       variety = "Tiny(over)"
+    ),
+
+    CanonicalStopperTestCase(
+      "+-{0|pass}", "+-over", "CanonicalStopper",
+      degree = "over",
+      isIdempotent = "false",
+      isInfinitesimal = "true",
+      isNumberish = "true",
+      isNumberTiny = "false",
+      isPlumtree = "true",
+      leftOptions = "{over}",
+      leftStop = "over",
+      rightOptions = "{under}",
+      rightStop = "under",
+      variety = "+-over"
+    ),
+
+    CanonicalStopperTestCase(
+      "+-{5|pass}", "+-(5over)", "CanonicalStopper",
+      degree = "over",
+      isIdempotent = "false",
+      isInfinitesimal = "false",
+      isNumberish = "false",
+      isNumberTiny = "false",
+      isPlumtree = "true",
+      leftOptions = "{5over}",
+      leftStop = "5over",
+      rightOptions = "{-5under}",
+      rightStop = "-5under",
+      variety = "+-{10over|over}"
     ),
 
     CanonicalStopperTestCase(

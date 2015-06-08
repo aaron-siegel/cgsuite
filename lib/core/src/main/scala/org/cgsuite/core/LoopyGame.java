@@ -649,9 +649,9 @@ public class LoopyGame
     public Pseudonumber asPseudonumber()
     {
         if (isOn()) {
-            return On$.MODULE$;
+            return Values$.MODULE$.on();
         } else if (isOff()) {
-            return Off$.MODULE$;
+            return Values$.MODULE$.off();
         } else if (graph.getNumLeftEdges(startVertex) == 1 && graph.getNumRightEdges(startVertex) == 1) {
             if (graph.getRightEdgeTarget(startVertex, 0) == startVertex &&
                 graph.isCycleFree(graph.getLeftEdgeTarget(startVertex, 0))) {
