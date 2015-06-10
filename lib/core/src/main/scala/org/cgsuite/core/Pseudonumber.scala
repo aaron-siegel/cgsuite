@@ -49,7 +49,7 @@ trait Pseudonumber extends CanonicalStopper {
     output: StyledTextOutput,
     forceBrackets: Boolean,
     forceParens: Boolean,
-    nodeStack: mutable.Map[CanonicalStopper, Option[String]],
+    nodeStack: mutable.Map[SimplifiedLoopyGame, Option[String]],
     numNamedNodes: Array[Int]
     ): Int = {
 

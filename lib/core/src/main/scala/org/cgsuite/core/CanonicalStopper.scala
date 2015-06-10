@@ -10,6 +10,7 @@ import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.language.postfixOps
 
 object CanonicalStopper {
 
@@ -69,30 +70,19 @@ object CanonicalStopper {
     }
   }
 
-  object SemideterministicOrdering extends Ordering[CanonicalStopper] {
-
-    def compare(g: CanonicalStopper, h: CanonicalStopper): Int = {
-      (g, h) match {
-        case (a: CanonicalShortGame, b: CanonicalShortGame) => CanonicalShortGame.DeterministicOrdering.compare(a, b)
-        case (a: CanonicalShortGame, _) => -1
-        case (_, b: CanonicalShortGame) => 1
-        case (_, _) => g.hashCode - h.hashCode      // At least these are isomorphism-invariant.
-      }
-    }
-
-  }
-
   private object UponType extends Enumeration { val Upon, Uponth, Upover, Upoverth = Value }
 
   private case class UponForm(uponType: UponType.Value, numberPart: DyadicRationalNumber, nimberPart: Int, negated: Boolean)
 
 }
 
-trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
+trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with OutputTarget {
 
   def loopyGame: LoopyGame
 
-  def options(player: Player): Iterable[CanonicalStopper] = {
+  private[cgsuite] override def simplifiedSide = Onside   // They're equivalent for stoppers
+
+  override def options(player: Player): Iterable[CanonicalStopper] = {
     val lgOpts = player match {
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
@@ -100,8 +90,8 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
     lgOpts map { CanonicalStopper(_) } toSet
   }
 
-  def sortedOptions(player: Player): Seq[CanonicalStopper] = {
-    options(player).toSeq.sorted(CanonicalStopper.SemideterministicOrdering)
+  override def sortedOptions(player: Player): Seq[CanonicalStopper] = {
+    options(player).toSeq.sorted(SimplifiedLoopyGame.SemideterministicOrdering)
   }
 
   def +(that: CanonicalStopper): StopperSidedValue = {
@@ -236,12 +226,6 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
     options(Right) map { _.leftStop } reduce { _ min _ }
   }
 
-  override def toOutput: StyledTextOutput = {
-    val output: StyledTextOutput = new StyledTextOutput
-    appendTo(output, true, false)
-    output
-  }
-
   private def uponForm: Option[UponForm] = {
 
     uponForm(true) orElse {
@@ -287,36 +271,24 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
 
   }
 
+  // Disambiguate
+
+  override def toOutput = super[SimplifiedLoopyGame].toOutput
+
   // TODO Consolidate w/ CanonicalShortGame.
 
-  private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
-    appendTo(output, forceBrackets, forceParens, mutable.Map(), new Array[Int](1))
-  }
-
-  private[core] def appendTo(
+  private[core] override def appendTo(
     output: StyledTextOutput,
     forceBrackets: Boolean,
     forceParens: Boolean,
-    nodeStack: mutable.Map[CanonicalStopper, Option[String]],
+    nodeStack: mutable.Map[SimplifiedLoopyGame, Option[String]],
     numNamedNodes: Array[Int]
     ): Int = {
 
     val lo = sortedOptions(Left)
     val ro = sortedOptions(Right)
 
-    if (nodeStack.contains(this)) {
-
-      val name = nodeStack(this) match {
-        case Some(x) => x
-        case None =>
-          val x = CanonicalStopper.nthName(numNamedNodes(0))
-          nodeStack.put(this, Some(x))
-          numNamedNodes(0) += 1
-          x
-      }
-      output.appendMath(name); 0
-
-    } else if (isSwitch) {
+    if (isSwitch) {
 
       output.appendSymbol(PLUS_MINUS)
       if (lo.size > 1)
@@ -396,49 +368,7 @@ trait CanonicalStopper extends Game with StopperSidedValue with OutputTarget {
         }
         0
 
-      case None =>
-        nodeStack.put(this, None)
-        val leftOutput = new StyledTextOutput
-        var first = true
-        var numSlashes = 0
-        lo foreach { gl =>
-          if (first)
-            first = false
-          else
-            leftOutput.appendMath(",")
-          if (gl == this)
-            leftOutput.appendMath("pass")
-          else
-            numSlashes = numSlashes max gl.appendTo(leftOutput, lo.size > 1, false, nodeStack, numNamedNodes)
-        }
-        val rightOutput = new StyledTextOutput
-        first = true
-        ro foreach { gr =>
-          if (first)
-            first = false
-          else
-            rightOutput.appendMath(",")
-          if (gr == this)
-            rightOutput.appendMath("pass")
-          else
-            numSlashes = numSlashes max gr.appendTo(rightOutput, ro.size > 1, false, nodeStack, numNamedNodes)
-        }
-        val isNamed = nodeStack.remove(this) match {
-          case Some(Some(name)) => output.appendMath(name); true
-          case _ => false
-        }
-        numSlashes += 1
-        val showBrackets =
-          forceBrackets || isNamed || lo.isEmpty || ro.isEmpty || numSlashes == CanonicalShortGame.maxSlashes
-        if (showBrackets)
-          output.appendMath("{")
-        output.appendOutput(leftOutput)
-        output.appendMath(CanonicalShortGame.slashString(numSlashes))
-        output.appendOutput(rightOutput)
-        if (showBrackets)
-          output.appendMath("}")
-
-        if (showBrackets) 0 else numSlashes
+      case None => super.appendTo(output, forceBrackets, forceParens, nodeStack, numNamedNodes)
 
     }
 

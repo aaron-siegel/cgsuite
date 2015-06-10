@@ -235,6 +235,7 @@ case class CanonicalStopperTestCase(
       (s"($x).IsNumberTiny", isNumberTiny),
       (s"($x).IsPlumtree", isPlumtree),
       (s"($x).IsStopper", "true"),
+      (s"($x).IsStopperSided", "true"),
       (s"($x).IsUptimal", "false"),
       (s"($x).IsZero", "false"),
       (s"($x).LeftOptions", leftOptions),

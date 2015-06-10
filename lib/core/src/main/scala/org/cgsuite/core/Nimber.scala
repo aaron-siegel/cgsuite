@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import scala.language.postfixOps
+
 object Nimber {
   
   def apply(nimValue: Int): Nimber = nimValue match {

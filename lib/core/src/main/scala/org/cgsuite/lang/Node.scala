@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import org.antlr.runtime.tree.{CommonTree, Tree}
 
 import scala.collection.JavaConversions._
+import scala.language.implicitConversions
 
 object Node {
 

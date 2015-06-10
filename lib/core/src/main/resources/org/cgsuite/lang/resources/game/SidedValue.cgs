@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class SidedValue extends NormalValue
+
+  external def ToOutput;
+
+end

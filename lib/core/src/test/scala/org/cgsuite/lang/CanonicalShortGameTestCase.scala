@@ -916,6 +916,7 @@ case class CanonicalShortGameTestCase(
     (s"($x).IsOddTempered", isOddTempered),
     (s"($x).IsPlumtree", "true"),
     (s"($x).IsStopper", "true"),
+    (s"($x).IsStopperSided", "true"),
     (s"($x).IsUptimal", isUptimal),
     (s"($x).IsZero", isZero),
     (s"($x).LeftIncentives", leftIncentives),

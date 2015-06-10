@@ -6,6 +6,7 @@ import org.antlr.runtime.tree.Tree
 import org.antlr.runtime.{CharStream, CommonTokenStream}
 import org.cgsuite.exception.InputException
 
+import scala.language.reflectiveCalls
 
 object ParserUtil {
 

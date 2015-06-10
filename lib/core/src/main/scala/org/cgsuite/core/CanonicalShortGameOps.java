@@ -36,7 +36,6 @@ import java.math.BigInteger;
 import java.util.*;
 
 // TODO criticalTemperatures
-// TODO cool by negative temp
 
 /**
  * A short combinatorial game in canonical

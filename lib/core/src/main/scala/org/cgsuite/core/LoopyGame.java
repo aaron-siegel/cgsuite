@@ -1417,7 +1417,7 @@ public class LoopyGame
     }
     */
     
-    private static Bigraph simplifyGraph(Bigraph graph, boolean[] canonical, int side, int specificVertex)
+    static Bigraph simplifyGraph(Bigraph graph, boolean[] canonical, int side, int specificVertex)
     {
         //if (side != STOPPER) Context.getActiveContext().getLogger().finer("Entered simplifyGraph: " + side + "," + specificVertex);
 

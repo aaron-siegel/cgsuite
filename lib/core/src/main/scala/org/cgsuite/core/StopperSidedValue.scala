@@ -17,7 +17,7 @@ object StopperSidedValue {
 
 }
 
-trait StopperSidedValue extends NormalValue {
+trait StopperSidedValue extends SidedValue {
 
   def unary_+ : StopperSidedValue = this
 
@@ -30,6 +30,8 @@ trait StopperSidedValue extends NormalValue {
   def <=(that: StopperSidedValue): Boolean = onside <= that.onside && offside <= that.offside
 
   override def isStopper = onside == offside
+
+  override def isStopperSided = true
 
   def offside: CanonicalStopper
 

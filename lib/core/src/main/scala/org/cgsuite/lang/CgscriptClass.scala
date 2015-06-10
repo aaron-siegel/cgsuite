@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
+import scala.language.existentials
+
 object CgscriptClass {
 
   private val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
@@ -70,6 +72,7 @@ object CgscriptClass {
     "game.Pseudonumber" -> classOf[Pseudonumber],
     "game.CanonicalStopper" -> classOf[CanonicalStopper],
     "game.StopperSidedValue" -> classOf[StopperSidedValue],
+    "game.SidedValue" -> classOf[SidedValue],
     "game.NormalValue" -> classOf[NormalValue],
 
     "game.ExplicitGame" -> classOf[ExplicitGame],

@@ -13,6 +13,7 @@ system class NormalValue
   external def IsNumberTiny;
   external def IsPlumtree;
   external def IsStopper;
+  external def IsStopperSided;
   external def IsUptimal;
   external def IsZero;
 

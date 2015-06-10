@@ -15,6 +15,7 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 
 import scala.collection.mutable
+import scala.language.postfixOps
 
 object CanonicalShortGame {
   
@@ -382,7 +383,7 @@ trait CanonicalShortGame extends CanonicalStopper {
     output: StyledTextOutput,
     forceBrackets: Boolean,
     forceParens: Boolean,
-    nodeStack: mutable.Map[CanonicalStopper, Option[String]],
+    nodeStack: mutable.Map[SimplifiedLoopyGame, Option[String]],
     numNamedNodes: Array[Int]
     ): Int = {
 

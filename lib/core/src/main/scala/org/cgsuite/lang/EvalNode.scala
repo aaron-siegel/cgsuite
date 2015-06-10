@@ -501,11 +501,7 @@ case class LoopyGameSpecNode(
   override def evaluate(domain: Domain) = {
     val thisNode = evaluateLoopy(domain).head
     val loopyGame = new LoopyGame(thisNode)
-    // TODO Non stopper sided values
-    if (loopyGame.isStopper)
-      CanonicalStopper(loopyGame)
-    else
-      StopperSidedValue(loopyGame.onside, loopyGame.offside)
+    SidedValue(loopyGame)
   }
 
   override def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {

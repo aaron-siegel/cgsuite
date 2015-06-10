@@ -85,6 +85,7 @@
             <configuration>
               <recompileMode>incremental</recompileMode>
               <args>
+                <arg>-feature</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>

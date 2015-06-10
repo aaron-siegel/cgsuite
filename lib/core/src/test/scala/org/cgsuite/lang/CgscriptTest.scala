@@ -114,8 +114,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("under by node label", "x{x|0}", "under"),
       ("canonical 4-cycle", "x{0||||0|||x|*||*}", "a{0||||0|||a|*||*}"),
       ("+- loopy game", "uponth := {0||0|0,pass}; +-{0|uponth}", "+-{0|^<on>}"),
-      ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "+-{{0|^<on>},{0|^<on>*}}")
-      //("not stopper-sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "!!That game is not stopper-sided.")
+      ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "+-{{0|^<on>},{0|^<on>*}}"),
+      ("stopper-sided", "a{1||a|0}", "2 & +-1"),
+      ("not stopper-sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "a{1|1,{1*|a||*}||0} & a{0,{1|||1*|a||*}|0}")
     ))
   }
 

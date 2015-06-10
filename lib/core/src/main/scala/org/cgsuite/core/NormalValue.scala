@@ -26,6 +26,8 @@ trait NormalValue {
 
   def isStopper = false
 
+  def isStopperSided = false
+
   def isUptimal = false
 
   def isZero = false

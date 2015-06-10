@@ -6,6 +6,7 @@ import org.cgsuite.core.Values
 import org.cgsuite.output.{StyledTextOutput, Output, OutputTarget}
 
 import scala.collection.immutable.NumericRange
+import scala.language.implicitConversions
 
 
 object OutputBuilder {
