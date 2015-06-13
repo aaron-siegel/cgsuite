@@ -397,7 +397,31 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("^.NortonMultiply(^)", "{^^*||0|v4}"),
       ("2.Tiny.NortonMultiply(^)", "{^^*||0|v6}"),
       ("{3||2+*|1+*}.Overheat(*,1+*)", "{1||+-(1*)|-1,{-1|-3}}"),
-      ("(7/16).Overheat(0,0)", "^[3]")
+      ("(7/16).Overheat(0,0)", "^[3]"),
+      ("^.Pow({pass|1})", "!!Exponent must be nonnegative."),
+      ("^.Pow({1|pass})", "{0||0,pass|0,*}"),
+      ("^.Pow(7/4)", "{0||0,v*|0,{0,v*|0,*}}"),
+      ("^.Pow(3)", "^<3>"),
+      ("^.Pow({5|pass})", "{0||0,pass|0,v[4]*}"),
+      ("^.Pow({pass|5})", "{0||0,v[4]*|0,pass}"),
+      ("^.Pow({pass|})", "^<on>"),
+      ("{0||0|-2}.Pow(3)", "{0||0|-2,{0|-2,{0|-2}}}"),
+      ("{0||0|-2}.Pow(7/4)", "{0||0,{0|-2,{0|-2}}|-2,{0,{0|-2,{0|-2}}|-2,{0|-2}}}"),
+      ("{0||0|-2}.Pow({5|pass})", "{0||0,pass|-2,{0|-2,{0|-2,{0|-2,{0|-2,{0|-2}}}}}}"),
+      ("{0||0|-2}.Pow({pass|})", "{0||0|-2,pass}"),
+      ("^.PowTo({pass|1})", "{pass|*,^}"),
+      ("^.PowTo({1|pass})", "{^|*,pass}"),
+      ("^.PowTo(7/4)", "{^|*,^[2]||*,^[2]}"),
+      ("^.PowTo(3)", "^[3]"),
+      ("^.PowTo({5|pass})", "{^[5]|*,pass}"),
+      ("^.PowTo({pass|5})", "{pass|*,^[5]}"),
+      ("^.PowTo({pass|})", "^[on]"),
+      ("{0||0|-2}.PowTo(3)", "{Tiny(2)||0|-2|||0|-2}"),
+      ("{0||0|-2}.PowTo(7/4)", "{Tiny(2)|{0|-2},{Tiny(2)||0|-2}||{0|-2},{Tiny(2)||0|-2}}"),
+      ("{0||0|-2}.PowTo({5|pass})", "{{Tiny(2)||0|-2|||0|-2||||0|-2}||0|-2|||{0|-2},pass}"),
+      ("{0||0|-2}.PowTo({pass|})", "{pass||0|-2}"),
+      ("(+-1).PowTo(3)", "{1,{1,+-1|-1}|-1}"),
+      ("(+-1).Pow(3)", "!!Base must be of the form {0|H}.")
     )
 
     execute(Table(
@@ -412,6 +436,37 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     val tests = CanonicalStopperTestCase.instances flatMap { _.toTests }
 
     execute(Table(header, tests : _*))
+
+  }
+
+  it should "implement >=2-ary methods correctly" in {
+
+    val instances = Seq(
+      ("on := {pass|}; ^.PowTo(on).Downsum(^.Pow(on))", "^[on]"),
+      ("^.PowTo(on).DownsumVariety(^.Pow(on))", "v<on>"),
+      ("^.PowTo(on).Upsum(^.Pow(on))", "{0|^<on>*}"),
+      ("^.PowTo(on).UpsumVariety(^.Pow(on))", "v<on>")
+    )
+
+    execute(Table(
+      header,
+      instances map { case (expr, result) => (expr, expr, result) } : _*
+    ))
+
+  }
+
+  "game.StopperSidedValue" should "implement methods correctly" in {
+
+    val instances = Seq(
+      ("g := ^.Pow({pass|}) + {0|^.PowTo({pass|})}", "{0||0|^<on>*} & {0|^[on]}"),
+      ("g.Onside", "{0||0|^<on>*}"),
+      ("g.Offside", "{0|^[on]}")
+    )
+
+    execute(Table(
+      header,
+      instances map { case (expr, result) => (expr, expr, result) } : _*
+    ))
 
   }
 

@@ -915,6 +915,7 @@ case class CanonicalShortGameTestCase(
     (s"($x).IsOdd", isOdd),
     (s"($x).IsOddTempered", isOddTempered),
     (s"($x).IsPlumtree", "true"),
+    (s"($x).IsPseudonumber", isNumber),   // IsPseudonumber is equivalent to IsNumber for short games
     (s"($x).IsStopper", "true"),
     (s"($x).IsStopperSided", "true"),
     (s"($x).IsUptimal", isUptimal),
