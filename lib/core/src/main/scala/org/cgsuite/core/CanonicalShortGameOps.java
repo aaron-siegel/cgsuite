@@ -630,6 +630,36 @@ public final class CanonicalShortGameOps
         return constructFromOptions(newLeftOptions, newRightOptions);
     }
 
+    static int diversity(int id)
+    {
+        return followerIds(id).size();
+    }
+
+    static Set<java.lang.Integer> followerIds(int id)
+    {
+        Set<java.lang.Integer> memory = new HashSet<java.lang.Integer>();
+        makeFollowerIds(id, memory);
+        return memory;
+    }
+
+    // TODO For number-up-stars, is this just birthday+1?
+    // How about uptimals???
+    static void makeFollowerIds(int id, Set<java.lang.Integer> memory)
+    {
+        if (!memory.contains(id))
+        {
+            memory.add(id);
+            for (int i = 0; i < getNumLeftOptions(id); i++)
+            {
+                makeFollowerIds(getLeftOption(id, i), memory);
+            }
+            for (int i = 0; i < getNumRightOptions(id); i++)
+            {
+                makeFollowerIds(getRightOption(id, i), memory);
+            }
+        }
+    }
+
     static int add(int gId, int hId)
     {
         if (isNumberUpStar(gId) && isNumberUpStar(hId))

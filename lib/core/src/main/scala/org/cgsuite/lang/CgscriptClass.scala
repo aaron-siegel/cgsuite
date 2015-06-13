@@ -547,13 +547,6 @@ class CgscriptClass(
     constructor foreach { _.elaborate() }
     methods foreach { case (_, method) => method.elaborate() }
 
-    // Static declarations - create a domain whose context is the class object
-    val initializerDomain = new Domain(null, Some(classObject))
-    node.staticInitializers.foreach { node =>
-      if (!node.isExternal)
-        node.body.evaluate(initializerDomain)
-    }
-
     // Enum construction
     if (node.isEnum) {
       for ((id, index) <- classInfoRef.staticVarOrdinals) {
@@ -573,6 +566,13 @@ class CgscriptClass(
         'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
         classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
       }
+    }
+
+    // Static declarations - create a domain whose context is the class object
+    val initializerDomain = new Domain(null, Some(classObject))
+    node.staticInitializers.foreach { node =>
+      if (!node.isExternal)
+        node.body.evaluate(initializerDomain)
     }
 
     node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.allSymbolsInScope)) }

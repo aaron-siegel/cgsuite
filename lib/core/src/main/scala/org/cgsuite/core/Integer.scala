@@ -94,6 +94,8 @@ trait Integer extends DyadicRationalNumber {
 
   def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
 
+  override def diversity: Integer = abs + Values.one
+
   override def isEven = !bigIntValue.testBit(0)
 
   override def isInteger = true

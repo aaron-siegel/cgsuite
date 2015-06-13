@@ -65,6 +65,7 @@ trait Uptimal extends CanonicalShortGame {
     else
       this
   }
+  override def freeze = this
   override def isAllSmall = numberPart.isZero
   override def isAtomic = numberPart.isZero
   override def isEven: Boolean = {

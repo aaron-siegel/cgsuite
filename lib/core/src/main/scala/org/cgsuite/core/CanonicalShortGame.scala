@@ -15,6 +15,7 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 
 import scala.collection.mutable
+import scala.collection.JavaConversions._
 import scala.language.postfixOps
 
 object CanonicalShortGame {
@@ -162,6 +163,12 @@ trait CanonicalShortGame extends CanonicalStopper {
   }
 
   override def degree = zero
+
+  override def diversity: Integer = SmallInteger(ops.diversity(gameId))
+
+  override def followers = ops.followerIds(gameId) map { CanonicalShortGame(_) } toSet
+
+  def freeze = cool(temperature)
 
   def heat(t: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.heat(gameId, t.gameId))
 

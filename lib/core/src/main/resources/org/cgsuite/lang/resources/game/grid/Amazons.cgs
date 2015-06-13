@@ -19,6 +19,6 @@ class Amazons(grid) extends GridGame
 
   end
 
-  override def CharMap := ".lrx";
+  override def CharMap := ".xo#";
 
 end

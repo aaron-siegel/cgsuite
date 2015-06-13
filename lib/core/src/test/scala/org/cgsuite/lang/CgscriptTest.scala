@@ -470,6 +470,29 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "game.grid" should "define Amazons properly" in {
+    execute(Table(
+      header,
+      ("Amazons", """game.grid.Amazons("x...|o...").CanonicalForm""", "+-{3,{4|0,{1|0,*}},{4|{0,{1/2|0}|v},+-1,+-{1,{2|0}}}}")
+    ))
+  }
+
+  it should "define Clobber properly" in {
+    execute(Table(
+      header,
+      ("Clobber", """game.grid.Clobber("xox|ox.").CanonicalForm""", "{^^*|*,v}"),
+      ("Clobber (Diagonal)", """game.grid.Clobber("xoxo|oox.|xxx.", directions => Coordinates.Diagonal).CanonicalForm""", "{0,v*|vv}"),
+      ("Clobber (Anti)", """game.grid.Clobber("xoxo|oo..", anti => true).CanonicalForm""", "{*|-1}")
+    ))
+  }
+
+  it should "define Domineering properly" in {
+    execute(Table(
+      header,
+      ("Domineering", """game.grid.Domineering("....|....|....|....").CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}")
+    ))
+  }
+
   def execute(tests: TableFor3[String, String, String]): Unit = {
 
     CgscriptClass.clearAll()
