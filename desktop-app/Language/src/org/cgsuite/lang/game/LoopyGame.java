@@ -592,7 +592,7 @@ public class LoopyGame extends Game
         CanonicalShortGame tinyN = isNumberTiny();
         CanonicalShortGame minyN = negate().isNumberTiny();
         
-        if (tinyN != null || minyN != null)
+        if ((tinyN != null || minyN != null) && isPlumtree())
         {
             boolean tiny = (tinyN != null);
             
