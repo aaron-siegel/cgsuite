@@ -79,7 +79,8 @@ object CgscriptClass {
 
     "game.Game" -> classOf[Game],
 
-    "game.Player" -> classOf[Player]
+    "game.Player" -> classOf[Player],
+    "game.Side" -> classOf[Side]
 
   )
 
@@ -87,6 +88,7 @@ object CgscriptClass {
 
     "cgsuite.util.Icon",
 
+    "game.constants",
     "game.GridGame",
     "game.StripGame",
 
@@ -559,6 +561,10 @@ class CgscriptClass(
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
     }
+    if (qualifiedName == "game.Side") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Onside)) = Onside
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
+    }
     if (qualifiedName == "cgsuite.util.Symmetry") {
       import Symmetry._
       Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
@@ -571,8 +577,17 @@ class CgscriptClass(
     // Static declarations - create a domain whose context is the class object
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node =>
-      if (!node.isExternal)
+      if (!node.isExternal) {
+        val scope = Scope(Some(pkg), classInfo.allSymbolsInScope)
+        // We intentionally don't elaborate var declarations, since those are already
+        // accounted for in the class vars. But we still need to elaborate the RHS of
+        // the assignment.
+        node.body match {
+          case AssignToNode(_, _, expr, true) => expr.elaborate(scope)
+          case evalNode => evalNode.elaborate(scope)
+        }
         node.body.evaluate(initializerDomain)
+      }
     }
 
     node.ordinaryInitializers.foreach { _.body.elaborate(Scope(Some(pkg), classInfo.allSymbolsInScope)) }

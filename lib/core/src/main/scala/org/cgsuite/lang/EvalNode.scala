@@ -274,49 +274,70 @@ object IdentifierNode {
 case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   // Cache the resolver here
-  val resolver = Resolver.forId(id)
+  val resolver: Resolver = Resolver.forId(id)
+  var constantResolution: Resolution = _
   var classResolution: ClassObject = _
   var methodScopeIndex: Int = -1
 
   override val children = Seq.empty
 
   override def elaborate(scope: Scope) {
-    // Try looking up as a Class in local package scope
-    scope.pkg.flatMap { _.lookupClass(id) } match {
+    // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
+    scope.pkg.flatMap { _.lookupClass(id) } orElse CgscriptPackage.lookupClass(id) match {
       case Some(cls) => classResolution = cls.classObject
       case None =>
-        // Try looking up as a Class in default package scope
-        CgscriptPackage.lookupClass(id) match {
-          case Some(cls) => classResolution = cls.classObject
-          case None =>
-            // Try looking up in local (method) scope
-            if (scope.scopeStack.exists { _.contains(id) }) {
-              methodScopeIndex = scope.varMap(id)
-            } else if (scope.pkg.isDefined && !scope.classVars.contains(id)) {
-              // Unless we're at Worksheet scope, it's illegal to refer to an undefined variable.
-              throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
-            }
-        }
+    }
+    // Can this be resolved as a local (method-scope) variable?
+    if (scope.scopeStack.exists { _.contains(id) }) {
+      methodScopeIndex = scope.varMap(id)
+    }
+    // Can this be resolved as a constant? Check first in local package scope, then in default package scope
+    scope.pkg.flatMap { _.lookupConstant(id) } orElse CgscriptPackage.lookupConstant(id) match {
+      case Some(res) => constantResolution = res
+      case None =>
+    }
+    // If there's no possible resolution and we're inside a package (i.e., not at Worksheet scope),
+    // we can throw an exception now
+    if (classResolution == null && methodScopeIndex == -1 && constantResolution == null &&
+        !scope.classVars.contains(id) && scope.pkg.isDefined) {
+      throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
     }
   }
 
   override def evaluate(domain: Domain) = {
-    if (methodScopeIndex >= 0) {
+    // Try resolving in the following precedence order:
+    // (1) As a class name;
+    // (2) As a local (method-scope) variable;
+    // (3) [Inside a package] As a member variable of the context object or
+    //     [Worksheet scope] As a global (Worksheet) variable;
+    // (4) As a package constant
+    if (classResolution != null) {
+      // Class name
+      classResolution
+    } else if (methodScopeIndex >= 0) {
+      // Local var
       val x = domain.localScope(methodScopeIndex)
       val result = if (x == null) Nil else x
       result
-    } else if (classResolution != null) {
-      classResolution
-    } else if (domain.isOuterDomain) {
-      domain getDynamicVar id getOrElse {
-        throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
-      }
     } else {
-      val y = resolver.resolve(domain.contextObject.get)
-      if (y == null)
-        throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
-      else
-        y
+      lookupLocally(domain) match {
+        case Some(x) => x     // Member/Worksheet var
+        case None =>
+          if (constantResolution != null) {
+            // Constant
+            constantResolution evaluateFor constantResolution.cls.classObject
+          } else {
+            throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
+          }
+      }
+    }
+  }
+
+  private[this] def lookupLocally(domain: Domain): Option[Any] = {
+    if (domain.isOuterDomain) {
+      domain getDynamicVar id
+    } else {
+      Option(resolver.resolve(domain.contextObject.get))
     }
   }
 

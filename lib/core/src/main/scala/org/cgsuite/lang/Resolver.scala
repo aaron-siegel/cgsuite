@@ -49,22 +49,7 @@ case class Resolver(id: Symbol) {
 
   }
 
-  def resolve(x: Any): Any = {
-
-    val res = findResolution(x)
-    if (res.classScopeIndex >= 0) {
-      val y = x.asInstanceOf[StandardObject].vars(res.classScopeIndex)
-      if (y == null) Nil else y
-    } else if (res.method.isDefined) {
-      if (res.method.get.autoinvoke)
-        res.method.get.call(x, Array.empty)
-      else
-        InstanceMethod(x, res.method.get)
-    } else {
-      null
-    }
-
-  }
+  def resolve(x: Any): Any = findResolution(x).evaluateFor(x)
 
 }
 
@@ -90,6 +75,23 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       cls.lookupMethod(id)
     }
   }
+
   assert(classScopeIndex == -1 || method.isEmpty)
+
+  val isResolvable = classScopeIndex >= 0 || method.isDefined
+
+  def evaluateFor(x: Any): Any = {
+    if (classScopeIndex >= 0) {
+      val y = x.asInstanceOf[StandardObject].vars(classScopeIndex)
+      if (y == null) Nil else y
+    } else if (method.isDefined) {
+      if (method.get.autoinvoke)
+        method.get.call(x, Array.empty)
+      else
+        InstanceMethod(x, method.get)
+    } else {
+      null
+    }
+  }
 
 }

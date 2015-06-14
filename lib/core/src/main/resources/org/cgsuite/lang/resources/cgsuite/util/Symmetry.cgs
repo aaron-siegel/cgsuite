@@ -16,4 +16,6 @@ system enum Symmetry
   static var EightWay := [Identity, Inversion, HorizontalFlip, VerticalFlip, ClockwiseRotation, AnticlockwiseRotation,
     Transpose, AntiTranspose];
 
+  external override def Literal;
+
 end

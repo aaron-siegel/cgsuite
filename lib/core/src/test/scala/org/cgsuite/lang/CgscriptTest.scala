@@ -125,7 +125,10 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       header,
       ("Multiplier simplification", "(*+*)*3", "0"),
       ("Integer exponent simplification", "2^(*+*)", "1"),
-      ("+- loopy game simplification", "uponth := {0||0|0,pass}; +-(uponth+*)", "0")
+      ("+- loopy game simplification", "uponth := {0||0|0,pass}; +-(uponth+*)", "0"),
+      ("integer * canonical game", "5*{3||2|1}", "{12|||11||10,{11|10}|9Tiny({2|1})}"),
+      ("integer * stopper", "3*upon", "{0||0|^[on]}"),
+      ("integer * stopper sided", "3*(upon & v)", "{0||0|^[on]} & v3")
     ))
   }
 
@@ -468,6 +471,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       instances map { case (expr, result) => (expr, expr, result) } : _*
     ))
 
+  }
+
+  "game.Player" should "behave correctly" in {
+    execute(Table(
+      header,
+      ("Player.Left", "Player.Left", "Left"),
+      ("Player.Right", "Player.Right", "Right")
+    ))
   }
 
   "game.grid" should "define Amazons properly" in {

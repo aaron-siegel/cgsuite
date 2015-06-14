@@ -20,6 +20,10 @@ object CgscriptPackage {
 
   def lookupClass(id: Symbol): Option[CgscriptClass] = classDictionary.get(id)
 
+  def lookupConstant(id: Symbol): Option[Resolution] = {
+    lang.lookupConstant(id) orElse util.lookupConstant(id) orElse game.lookupConstant(id)
+  }
+
   // Less efficient!
   def lookupClassByName(name: String): Option[CgscriptClass] = classDictionary.get(Symbol(name))
 
@@ -60,6 +64,15 @@ class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
       CgscriptPackage.classDictionary.put(id, cls)
     }
     cls
+  }
+
+  def lookupConstant(id: Symbol): Option[Resolution] = {
+    lookupClass('constants) flatMap { constantsCls =>
+      Option(Resolver forId id findResolution constantsCls.classObject) match {
+        case Some(res) if res.isResolvable => Some(res)
+        case _ => None
+      }
+    }
   }
 
 }

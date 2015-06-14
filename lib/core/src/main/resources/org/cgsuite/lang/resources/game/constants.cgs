@@ -1,0 +1,18 @@
+/*${cgsuite.banner}*/
+
+class constants
+
+  static var Left := Player.Left;
+  static var Right := Player.Right;
+
+  static var Onside := Side.Onside;
+  static var Offside := Side.Offside;
+
+  static var on := {pass|};
+  static var off := -on;
+  static var dud := on & off;
+  static var over := {0|pass};
+  static var under := -over;
+  static var upon := {pass|*};
+
+end

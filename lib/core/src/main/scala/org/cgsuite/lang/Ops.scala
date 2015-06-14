@@ -83,12 +83,12 @@ object Ops {
   }
 
   val Times = CachingBinOp("*") {
-    case (_: Zero, _:Game) => (_: Zero, _: Game) => zero
-    case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x * y
-    case (_: RationalNumber, _:RationalNumber) => (x: RationalNumber, y: RationalNumber) => x * y
-    case (_: Integer, _:Game) => (x: Integer, y: Game) => x * y
-    case (_: Coordinates, _:Integer) => (x: Coordinates, y: Integer) => x * y
-    case (_: Integer, _:Coordinates) => (x: Integer, y: Coordinates) => y * x
+    case (_: Zero, _: Game) => (_: Zero, _: Game) => zero
+    case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x * y
+    case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x * y
+    case (_: Integer, _: Game) => (x: Integer, y: Game) => x * y
+    case (_: Coordinates, _: Integer) => (x: Coordinates, y: Integer) => x * y
+    case (_: Integer, _: Coordinates) => (x: Integer, y: Coordinates) => y * x
   }
 
   val Div = BinOp("/") {
