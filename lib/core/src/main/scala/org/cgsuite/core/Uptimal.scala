@@ -94,6 +94,7 @@ trait Uptimal extends CanonicalShortGame {
   override def isOddTempered = uptimalLength == 0 && nimberPart == 1
   override def isUptimal = true
   override def leftStop = numberPart
+  override def nCopies(n: Integer) = Uptimal(uptimalExpansion.nCopies(n))
   override def reducedCanonicalForm = numberPart
   override def rightStop = numberPart
 

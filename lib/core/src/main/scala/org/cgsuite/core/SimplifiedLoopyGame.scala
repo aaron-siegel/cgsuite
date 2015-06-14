@@ -36,6 +36,8 @@ trait SimplifiedLoopyGame extends Game {
   def loopyGame: LoopyGame
   private[cgsuite] def simplifiedSide: Side
 
+  override def unary_- : SimplifiedLoopyGame = SimplifiedLoopyGameImpl(loopyGame.negative(), -simplifiedSide)
+
   def options(player: Player): Iterable[SimplifiedLoopyGame] = {
     val lgOpts = player match {
       case Left => loopyGame.getLeftOptions

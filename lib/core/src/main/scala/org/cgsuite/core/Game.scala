@@ -16,8 +16,7 @@ trait Game extends OutputTarget {
 
   def +(other: Game): Game = CompoundGame(CompoundType.Disjunctive, this, other)
   def -(other: Game): Game = this + (-other)
-  def nCopies(n: Integer): Game = MultipleGame(n, this)
-  
+
   def options(player: Player): Iterable[Game]
 
   def canonicalForm: Game = canonicalForm(new TranspositionTable())

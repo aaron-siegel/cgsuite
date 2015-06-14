@@ -120,15 +120,27 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
+  it should "process game operations" in {
+
+    execute(Table(
+      header,
+      ("sided + sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}+1", "a{2|2,{2*|a||1*}||1} & a{1,{2|||2*|a||1*}|1}"),
+      ("even integer * uptimal", "10*(1+^.Pow(2)+*4)", "{10||10,10v*|{10vv,10v*||||10v3*,10vv|||10v4,10v3*||10v5*,10v4|{10v6,10v5*||||10v7*,10v6|||10v8,10v7*||10v9*,10v8|10v10}}}"),
+      ("odd integer * uptimal", "9*(1+^.Pow(2)+*4)", "{9,9*,9*2,9*3,9*4|{9*4,9v*5||||9vv*4,9v*5|||9v3*5,9vv*4||9v4*4,9v3*5|{9v5*5,9v4*4||||9v6*4,9v5*5|||9v7*5,9v6*4||9v8*4,9v7*5|9v9*5}}}"),
+      ("integer * canonical game", "5*{3||2|1}", "{12|||11||10,{11|10}|9Tiny({2|1})}"),
+      ("integer * stopper", "10*upon", "{0|{0||||0|||0||0|{0||||0|||0||0|^[on]*}}}"),
+      ("integer * stopper sided", "9*(upon & v)", "{0||||0|||0||0|{0||||0|||0||0|^[on]}} & v9"),
+      ("integer * sided", "3*a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "{a{2*|||2|2,{a|1*}||1}|2||d{2|b{1|1,{1*||b|0|||*}},{2*|c{1*|||1|1,{c|*}||0},d||0}||1}} & {0||0|a{1*||0,{1|a}|0|||*}}")
+    ))
+
+  }
+
   it should "simplify properly" in {
     execute(Table(
       header,
       ("Multiplier simplification", "(*+*)*3", "0"),
       ("Integer exponent simplification", "2^(*+*)", "1"),
-      ("+- loopy game simplification", "uponth := {0||0|0,pass}; +-(uponth+*)", "0"),
-      ("integer * canonical game", "5*{3||2|1}", "{12|||11||10,{11|10}|9Tiny({2|1})}"),
-      ("integer * stopper", "3*upon", "{0||0|^[on]}"),
-      ("integer * stopper sided", "3*(upon & v)", "{0||0|^[on]} & v3")
+      ("+- loopy game simplification", "uponth := {0||0|0,pass}; +-(uponth+*)", "0")
     ))
   }
 

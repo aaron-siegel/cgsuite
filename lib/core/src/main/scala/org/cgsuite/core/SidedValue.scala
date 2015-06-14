@@ -1,5 +1,6 @@
 package org.cgsuite.core
 
+import org.cgsuite.core.Values._
 import org.cgsuite.output.StyledTextOutput
 
 object SidedValue {
@@ -8,17 +9,21 @@ object SidedValue {
     if (g.isStopper) {
       CanonicalStopper(g)
     } else {
-      val onside = new LoopyGame
-      onside.graph = LoopyGame.simplifyGraph(g.graph, null, LoopyGame.ONSIDE, g.startVertex)
-      onside.startVertex = 0
-      val offside = new LoopyGame
-      offside.graph = LoopyGame.simplifyGraph(g.graph, null, LoopyGame.OFFSIDE, g.startVertex)
-      offside.startVertex = 0
-      if (onside.isStopper && offside.isStopper) {
-        StopperSidedValue(CanonicalStopper(onside), CanonicalStopper(offside))
-      } else {
-        SidedValueImpl(SimplifiedLoopyGame(onside, Onside), SimplifiedLoopyGame(offside, Offside))
-      }
+      apply(g, g)
+    }
+  }
+
+  def apply(onside: LoopyGame, offside: LoopyGame) = {
+    val simplifiedOnside = new LoopyGame
+    simplifiedOnside.graph = LoopyGame.simplifyGraph(onside.graph, null, LoopyGame.ONSIDE, onside.startVertex)
+    simplifiedOnside.startVertex = 0
+    val simplifiedOffside = new LoopyGame
+    simplifiedOffside.graph = LoopyGame.simplifyGraph(offside.graph, null, LoopyGame.OFFSIDE, offside.startVertex)
+    simplifiedOffside.startVertex = 0
+    if (simplifiedOnside.isStopper && simplifiedOffside.isStopper) {
+      StopperSidedValue(CanonicalStopper(simplifiedOnside), CanonicalStopper(simplifiedOffside))
+    } else {
+      SidedValueImpl(SimplifiedLoopyGame(simplifiedOnside, Onside), SimplifiedLoopyGame(simplifiedOffside, Offside))
     }
   }
 
@@ -28,6 +33,24 @@ trait SidedValue extends NormalValue {
 
   def onside: SimplifiedLoopyGame
   def offside: SimplifiedLoopyGame
+
+  def unary_+ : SidedValue = this
+
+  def unary_- : SidedValue = SidedValueImpl(-offside, -onside)
+
+  def +(that: SidedValue): SidedValue = {
+    SidedValue(onside.loopyGame.add(that.onside.loopyGame), offside.loopyGame.add(that.offside.loopyGame))
+  }
+
+  def -(that: SidedValue): SidedValue = this + (-that)
+
+  def <=(that: SidedValue): Boolean = {
+    onside.loopyGame.leq(that.onside.loopyGame, true) && offside.loopyGame.leq(that.offside.loopyGame, false)
+  }
+
+  def nCopies(n: Integer): SidedValue = {
+    if (n < zero) -nCopies(-n) else MultipleGame.binarySum(n.intValue, this, zero) { _ + _ }
+  }
 
   override def isStopperSided = onside.loopyGame.isStopper && offside.loopyGame.isStopper
 

@@ -1,5 +1,6 @@
 package org.cgsuite.core
 
+import org.cgsuite.core.Values._
 import org.cgsuite.exception.InputException
 
 
@@ -19,9 +20,9 @@ object StopperSidedValue {
 
 trait StopperSidedValue extends SidedValue {
 
-  def unary_+ : StopperSidedValue = this
+  override def unary_+ : StopperSidedValue = this
 
-  def unary_- : StopperSidedValue = StopperSidedValue(-offside, -onside)
+  override def unary_- : StopperSidedValue = StopperSidedValue(-offside, -onside)
 
   def +(that: StopperSidedValue) = StopperSidedValue(onside upsum that.onside, offside downsum that.offside)
 
@@ -32,6 +33,10 @@ trait StopperSidedValue extends SidedValue {
   override def isStopper = onside == offside
 
   override def isStopperSided = true
+
+  override def nCopies(n: Integer): StopperSidedValue = {
+    if (n < zero) -nCopies(-n) else MultipleGame.binarySum(n.intValue, this, zero) { _ + _ }
+  }
 
   def offside: CanonicalStopper
 

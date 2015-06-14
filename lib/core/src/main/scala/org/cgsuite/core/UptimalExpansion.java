@@ -231,6 +231,16 @@ public class UptimalExpansion implements Comparable<UptimalExpansion>
         return new UptimalExpansion(numberPart.$plus(that.numberPart), nimberPart ^ that.nimberPart, newCoefficients);
     }
 
+    public UptimalExpansion nCopies(Integer n)
+    {
+        int[] newCoefficients = new int[coefficients.length];
+        for (int i = 0; i < newCoefficients.length; i++)
+        {
+            newCoefficients[i] = coefficients[i] * n.intValue();
+        }
+        return new UptimalExpansion(numberPart.$times(n), n.isEven() ? 0 : nimberPart, newCoefficients);
+    }
+
     public UptimalExpansion sharplyTruncateTo(int n)
     {
         UptimalExpansion truncation = truncateTo(n);

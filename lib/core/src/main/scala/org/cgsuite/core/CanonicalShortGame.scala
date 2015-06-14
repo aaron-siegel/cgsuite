@@ -100,7 +100,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def -(other: CanonicalShortGame) = CanonicalShortGame(ops.subtract(gameId, other.gameId))
 
-  override def nCopies(n: Integer) = n.nortonMultiply(this)
+  override def nCopies(n: Integer): CanonicalShortGame = n nortonMultiply this
 
   def <=(other: CanonicalShortGame) = ops.leq(gameId, other.gameId)
 

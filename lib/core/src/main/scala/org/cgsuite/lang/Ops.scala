@@ -17,13 +17,13 @@ object Ops {
 
   val Pos = UnOp("pos") {
     case (x: Game) => +x
-    case (x: StopperSidedValue) => +x
+    case (x: SidedValue) => +x
     case (x: RationalNumber) => +x
   }
 
   val Neg = UnOp("neg") {
     case (x: Game) => -x
-    case (x: StopperSidedValue) => -x
+    case (x: SidedValue) => -x
     case (x: RationalNumber) => -x
   }
 
@@ -46,6 +46,7 @@ object Ops {
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x + y
     case (_: StopperSidedValue, _: StopperSidedValue) => (x: StopperSidedValue, y: StopperSidedValue) => x + y
+    case (_: SidedValue, _: SidedValue) => (x: SidedValue, y: SidedValue) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
     case (_: String, _: String) => (x: String, y: String) => x + y
@@ -72,6 +73,7 @@ object Ops {
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x - y
     case (_: StopperSidedValue, _: StopperSidedValue) => (x: StopperSidedValue, y: StopperSidedValue) => x - y
+    case (_: SidedValue, _: SidedValue) => (x: SidedValue, y: SidedValue) => x - y
     case (_: Game, _:Game) => (x: Game, y: Game) => x - y
     case (_: Coordinates, _:Coordinates) => (x: Coordinates, y: Coordinates) => x - y
   }
@@ -86,7 +88,8 @@ object Ops {
     case (_: Zero, _: Game) => (_: Zero, _: Game) => zero
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x * y
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x * y
-    case (_: Integer, _: Game) => (x: Integer, y: Game) => x * y
+    case (_: Integer, _: SidedValue) => (x: Integer, y: SidedValue) => y.nCopies(x)
+    case (_: Integer, _: Game) => (x: Integer, y: Game) => MultipleGame(x, y)
     case (_: Coordinates, _: Integer) => (x: Coordinates, y: Integer) => x * y
     case (_: Integer, _: Coordinates) => (x: Integer, y: Coordinates) => y * x
   }
@@ -109,6 +112,7 @@ object Ops {
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x <= y
     case (x: CanonicalStopper, y: CanonicalStopper) => x <= y
     case (x: StopperSidedValue, y: StopperSidedValue) => x <= y
+    case (x: SidedValue, y: SidedValue) => x <= y
   }
 
   val Equals = BinOp("==") {
