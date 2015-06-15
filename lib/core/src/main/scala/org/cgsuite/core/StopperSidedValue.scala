@@ -42,6 +42,11 @@ trait StopperSidedValue extends SidedValue {
 
   def onside: CanonicalStopper
 
+  def side(side: Side) = side match {
+    case Onside => onside
+    case Offside => offside
+  }
+
 }
 
 case class StopperSidedValueImpl(onside: CanonicalStopper, offside: CanonicalStopper) extends StopperSidedValue {

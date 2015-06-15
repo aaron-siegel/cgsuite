@@ -5,7 +5,7 @@ object CanonicalStopperTestCase {
   val instances = Seq(
 
     CanonicalStopperTestCase(
-      "{pass|}", "on", "Pseudonumber",
+      "on", "on", "Pseudonumber",
       degree = "on",
       followerCount = "1",
       isIdempotent = "true",
@@ -21,7 +21,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{|pass}", "off", "Pseudonumber",
+      "off", "off", "Pseudonumber",
       degree = "on",
       followerCount = "1",
       isIdempotent = "true",
@@ -37,7 +37,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{0|pass}", "over", "Pseudonumber",
+      "over", "over", "Pseudonumber",
       degree = "over",
       followerCount = "2",
       isIdempotent = "true",
@@ -101,7 +101,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{0|||0||0|{|pass}}", "{0|Tiny(on)}", "CanonicalStopper",
+      "{0|||0||0|off}", "{0|Tiny(on)}", "CanonicalStopper",
       degree = "{0||||0|||Miny(on)|0||off}",
       followerCount = "5",
       isIdempotent = "false",
@@ -117,7 +117,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{{pass|}|0||0}", "Miny(on)", "CanonicalStopper",
+      "{on|0||0}", "Miny(on)", "CanonicalStopper",
       degree = "Tiny(on)",
       followerCount = "4",
       isIdempotent = "true",
@@ -133,7 +133,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "{0|||0||pass|0}", "Tiny(over)", "CanonicalStopper",
+      "{0||0|under}", "Tiny(over)", "CanonicalStopper",
       degree = "Tiny(over)",
       followerCount = "4",
       isIdempotent = "true",
@@ -258,12 +258,12 @@ case class CanonicalStopperTestCase(
       (s"($x).LeftStop", leftStop),
       (s"($x).Offside", xOut),
       (s"($x).Onside", xOut),
-      (s"($x).Options(Player.Left)", leftOptions),
-      (s"($x).Options(Player.Right)", rightOptions),
+      (s"($x).Options(Left)", leftOptions),
+      (s"($x).Options(Right)", rightOptions),
       (s"($x).RightOptions", rightOptions),
       (s"($x).RightStop", rightStop),
-      (s"($x).Stop(Player.Left)", leftStop),
-      (s"($x).Stop(Player.Right)", rightStop),
+      (s"($x).Stop(Left)", leftStop),
+      (s"($x).Stop(Right)", rightStop),
       (s"($x).Variety", variety)
     ) map { case (expr, result) => (expr, expr, result) }
   }

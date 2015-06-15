@@ -4,7 +4,7 @@ class Domineering(grid) extends GridGame
 
   override def Options(Player player) begin
 
-    var directions := if player == Player.Left then [(1,0)] else [(0,1)] end;
+    var directions := if player == Left then [(1,0)] else [(0,1)] end;
 
     for m from 1 to grid.RowCount
     for n from 1 to grid.ColCount

@@ -10,11 +10,9 @@ system class CanonicalStopper extends Game, StopperSidedValue
   external def FollowerCount;
   external def Followers;
   external def LeftStop;
-  def Miny := {this|0||0};
   external def RightStop;
   external def Stop(Player player);
   external def StrongStop(Player player);
-  def Tiny := {0||0|-this};
   external def Upsum(CanonicalStopper that);
   external def UpsumVariety(CanonicalStopper deg);
   external def Variety;

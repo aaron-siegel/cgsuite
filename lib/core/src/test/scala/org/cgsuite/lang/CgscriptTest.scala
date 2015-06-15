@@ -93,23 +93,23 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "correctly interpret loopy game specs" in {
     execute(Table(
       header,
-      ("on", "on := {pass|}", "on"),
-      ("off", "off := {|pass}", "off"),
+      ("on", "on", "on"),
+      ("off", "off", "off"),
       ("dud", "{pass|pass}", "dud"),
-      ("over", "{0|pass}", "over"),
-      ("under", "{pass|0}", "under"),
+      ("over", "over", "over"),
+      ("under", "under", "under"),
       ("upon", "[{pass|*},{pass,0|0},{*|pass},{0|0,pass}]", "[^[on],^[on]*,v[on],v[on]*]"),
       ("uponth", "[{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}]", "[^<on>,^<on>*,v<on>,v<on>*]"),
       ("Hanging pass", "pass", "!!Unexpected `pass`."),
       ("Hanging pass 2", "{1|0+pass}", "!!Unexpected `pass`."),
-      ("loopy plus number", "{0|pass}+5", "5over"),
-      ("loopy plus number (under)", "{pass|0}+5", "5under"),
+      ("loopy plus number", "over+5", "5over"),
+      ("loopy plus number (under)", "under+5", "5under"),
       ("loopy plus number (upon)", "listof(5+x for x in [{pass|*},{pass,0|0},{*|pass},{0|0,pass}])", "[5^[on],5^[on]*,5v[on],5v[on]*]"),
       ("loopy plus number (uponth)", "listof(5+x for x in [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}])", "[5^<on>,5^<on>*,5v<on>,5v<on>*]"),
-      ("loopy plus canonical", "{0|pass}+^", "over"),
-      ("number plus loopy", "5+{0|pass}", "5over"),
-      ("loopy minus number", "{0|pass}-5", "-5over"),
-      ("explicit stopper sided", "{0|pass} & v", "over & v"),
+      ("loopy plus canonical", "over+^", "over"),
+      ("number plus loopy", "5+over", "5over"),
+      ("loopy minus number", "over-5", "-5over"),
+      ("explicit stopper sided", "over & v", "over & v"),
       ("over by node label", "x{0|x}", "over"),
       ("under by node label", "x{x|0}", "under"),
       ("canonical 4-cycle", "x{0||||0|||x|*||*}", "a{0||||0|||a|*||*}"),
@@ -410,7 +410,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("(-4).NortonMultiply(^)", "v4"),
       ("(1/2).NortonMultiply(^)", "{^^*|v*}"),
       ("^.NortonMultiply(^)", "{^^*||0|v4}"),
-      ("2.Tiny.NortonMultiply(^)", "{^^*||0|v6}"),
+      ("Tiny(2).NortonMultiply(^)", "{^^*||0|v6}"),
       ("{3||2+*|1+*}.Overheat(*,1+*)", "{1||+-(1*)|-1,{-1|-3}}"),
       ("(7/16).Overheat(0,0)", "^[3]"),
       ("^.Pow({pass|1})", "!!Exponent must be nonnegative."),
@@ -419,22 +419,22 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("^.Pow(3)", "^<3>"),
       ("^.Pow({5|pass})", "{0||0,pass|0,v[4]*}"),
       ("^.Pow({pass|5})", "{0||0,v[4]*|0,pass}"),
-      ("^.Pow({pass|})", "^<on>"),
+      ("^.Pow(on)", "^<on>"),
       ("{0||0|-2}.Pow(3)", "{0||0|-2,{0|-2,{0|-2}}}"),
       ("{0||0|-2}.Pow(7/4)", "{0||0,{0|-2,{0|-2}}|-2,{0,{0|-2,{0|-2}}|-2,{0|-2}}}"),
       ("{0||0|-2}.Pow({5|pass})", "{0||0,pass|-2,{0|-2,{0|-2,{0|-2,{0|-2,{0|-2}}}}}}"),
-      ("{0||0|-2}.Pow({pass|})", "{0||0|-2,pass}"),
+      ("{0||0|-2}.Pow(on)", "{0||0|-2,pass}"),
       ("^.PowTo({pass|1})", "{pass|*,^}"),
       ("^.PowTo({1|pass})", "{^|*,pass}"),
       ("^.PowTo(7/4)", "{^|*,^[2]||*,^[2]}"),
       ("^.PowTo(3)", "^[3]"),
       ("^.PowTo({5|pass})", "{^[5]|*,pass}"),
       ("^.PowTo({pass|5})", "{pass|*,^[5]}"),
-      ("^.PowTo({pass|})", "^[on]"),
+      ("upon", "^[on]"),
       ("{0||0|-2}.PowTo(3)", "{Tiny(2)||0|-2|||0|-2}"),
       ("{0||0|-2}.PowTo(7/4)", "{Tiny(2)|{0|-2},{Tiny(2)||0|-2}||{0|-2},{Tiny(2)||0|-2}}"),
       ("{0||0|-2}.PowTo({5|pass})", "{{Tiny(2)||0|-2|||0|-2||||0|-2}||0|-2|||{0|-2},pass}"),
-      ("{0||0|-2}.PowTo({pass|})", "{pass||0|-2}"),
+      ("{0||0|-2}.PowTo(on)", "{pass||0|-2}"),
       ("(+-1).PowTo(3)", "{1,{1,+-1|-1}|-1}"),
       ("(+-1).Pow(3)", "!!Base must be of the form {0|H}.")
     )
@@ -457,7 +457,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "implement >=2-ary methods correctly" in {
 
     val instances = Seq(
-      ("on := {pass|}; ^.PowTo(on).Downsum(^.Pow(on))", "^[on]"),
+      ("^.PowTo(on).Downsum(^.Pow(on))", "^[on]"),
       ("^.PowTo(on).DownsumVariety(^.Pow(on))", "v<on>"),
       ("^.PowTo(on).Upsum(^.Pow(on))", "{0|^<on>*}"),
       ("^.PowTo(on).UpsumVariety(^.Pow(on))", "v<on>")
@@ -473,7 +473,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.StopperSidedValue" should "implement methods correctly" in {
 
     val instances = Seq(
-      ("g := ^.Pow({pass|}) + {0|^.PowTo({pass|})}", "{0||0|^<on>*} & {0|^[on]}"),
+      ("g := ^.Pow(on) + {0|upon}", "{0||0|^<on>*} & {0|^[on]}"),
       ("g.Onside", "{0||0|^<on>*}"),
       ("g.Offside", "{0|^[on]}")
     )
@@ -488,8 +488,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.Player" should "behave correctly" in {
     execute(Table(
       header,
+      ("Left", "Left", "Left"),
       ("Player.Left", "Player.Left", "Left"),
-      ("Player.Right", "Player.Right", "Right")
+      ("Right", "Right", "Right"),
+      ("Player.Right", "Player.Right", "Right"),
+      ("Player properties", "for p in [Left,Right] yield [p, p.Opponent, p.Sign, p.Ordinal] end",
+        "[Left,Right,1,1,Right,Left,-1,2]")
     ))
   }
 
