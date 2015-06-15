@@ -6,7 +6,7 @@ system class StopperSidedValue extends NormalValue
   external def Onside;
 
   override def ToOutput begin
-    if Onside == {pass|} and Offside == {|pass} then
+    if Onside == on and Offside == off then
       cgsuite.util.output.TextOutput("dud")
     else
       Onside.ToOutput + " & " + Offside.ToOutput

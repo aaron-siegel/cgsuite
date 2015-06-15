@@ -457,10 +457,10 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "implement >=2-ary methods correctly" in {
 
     val instances = Seq(
-      ("^.PowTo(on).Downsum(^.Pow(on))", "^[on]"),
-      ("^.PowTo(on).DownsumVariety(^.Pow(on))", "v<on>"),
-      ("^.PowTo(on).Upsum(^.Pow(on))", "{0|^<on>*}"),
-      ("^.PowTo(on).UpsumVariety(^.Pow(on))", "v<on>")
+      ("upon.Downsum(^.Pow(on))", "^[on]"),
+      ("upon.DownsumVariety(^.Pow(on))", "v<on>"),
+      ("upon.Upsum(^.Pow(on))", "{0|^<on>*}"),
+      ("upon.UpsumVariety(^.Pow(on))", "v<on>")
     )
 
     execute(Table(
@@ -517,6 +517,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     execute(Table(
       header,
       ("Domineering", """game.grid.Domineering("....|....|....|....").CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}")
+    ))
+  }
+
+  "game.strip" should "define Toads and Frogs properly" in {
+    execute(Table(
+      header,
+      ("ToadsAndFrogs", """game.strip.ToadsAndFrogs("ttttt..fffff").CanonicalForm""", "+-{{2|*},{5/2||2|{0||||{0||v<2>|-1},{0||||0||Miny(1/32)|-2|||-1/2*}|||v<2>|-1/2||-1*}|||0}}")
     ))
   }
 
