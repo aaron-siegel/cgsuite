@@ -164,7 +164,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def degree = zero
 
-  override def diversity: Integer = SmallInteger(ops.diversity(gameId))
+  override def followerCount: Integer = SmallInteger(ops.followerCount(gameId))
 
   override def followers = ops.followerIds(gameId) map { CanonicalShortGame(_) } toSet
 

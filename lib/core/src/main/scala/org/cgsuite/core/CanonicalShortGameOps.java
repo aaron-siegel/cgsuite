@@ -630,7 +630,7 @@ public final class CanonicalShortGameOps
         return constructFromOptions(newLeftOptions, newRightOptions);
     }
 
-    static int diversity(int id)
+    static int followerCount(int id)
     {
         return followerIds(id).size();
     }

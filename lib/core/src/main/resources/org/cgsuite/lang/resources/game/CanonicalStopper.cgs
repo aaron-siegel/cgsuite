@@ -5,9 +5,9 @@ system class CanonicalStopper extends Game, StopperSidedValue
   override external def Options(Player player);
 
   external def Degree;
-  external def Diversity;
   external def Downsum(CanonicalStopper that);
   external def DownsumVariety(CanonicalStopper deg);
+  external def FollowerCount;
   external def Followers;
   external def LeftStop;
   def Miny := {this|0||0};

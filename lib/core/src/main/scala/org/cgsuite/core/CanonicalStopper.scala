@@ -125,14 +125,6 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def degree: CanonicalStopper = if (isLoopfree) zero else upsum(-this)
 
-  def diversity: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
-
-  def followers: Iterable[CanonicalStopper] = {
-    (0 until loopyGame.getGraph.getNumVertices) map { n =>
-      CanonicalStopper(loopyGame.deriveGame(n))
-    } toSet
-  }
-
   def downsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).offside()
 
   def downsumVariety(deg: CanonicalStopper): CanonicalStopper = {
@@ -140,6 +132,14 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       downsum((-this).upsum(deg))
     else
       throw InputException("Degree must be an idempotent.")
+  }
+
+  def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
+
+  def followers: Iterable[CanonicalStopper] = {
+    (0 until loopyGame.getGraph.getNumVertices) map { n =>
+      CanonicalStopper(loopyGame.deriveGame(n))
+    } toSet
   }
 
   override def isIdempotent = this + this == this
