@@ -2,9 +2,36 @@
 
 system class Collection
 
+  external def Exists(Procedure proc);
+
+  external def ForAll(Procedure proc);
+
+  external def Head;
+
   external def IsEmpty;
+
+  def Max begin
+    var max := Head;
+    for x in Tail where x > max do
+      max := x;
+    end
+    max
+  end
+
+  def Min begin
+    var min := Head;
+    for x in Tail where x < min do
+      min := x;
+    end
+    min
+  end
+
   external def Size;
+
+  external def Tail;
+
   external def ToList;
+
   external def ToSet;
 
 end

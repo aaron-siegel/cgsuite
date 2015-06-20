@@ -3,6 +3,7 @@ package org.cgsuite.core
 import org.cgsuite.core.Values._
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.util.TranspositionTable
 
 import scala.collection.mutable
 

@@ -11,7 +11,7 @@ object InputException {
   }
 }
 
-case class InputException(msg: String, e: Throwable = null, token: Option[Token] = None) extends Exception(msg, e) {
+case class InputException(msg: String, e: Throwable = null, token: Option[Token] = None) extends CgsuiteException(msg, e) {
 
   var invocationTarget: Option[String] = None
   val tokenStack = mutable.MutableList[Token]()

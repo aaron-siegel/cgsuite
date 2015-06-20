@@ -3,10 +3,11 @@
 system class Game
 
   external def CanonicalForm;
+  external def GameValue;
 
-  def Options(Player player) begin
-    error("Subclasses of Game must override the Options method.")
-  end
+  def DepthHint := error("Loopy games must override the `DepthHint` method. For more information, see the Loopy Games section in Help.");
+
+  def Options(Player player) := error("Subclasses of `Game` must override the `Options` method.");
 
   def Decomposition := [this];
   def LeftOptions := Options(Left);

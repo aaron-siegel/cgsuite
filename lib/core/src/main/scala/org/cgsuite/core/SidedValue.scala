@@ -5,6 +5,16 @@ import org.cgsuite.output.StyledTextOutput
 
 object SidedValue {
 
+  def apply(onside: LoopyGame.Node, offside: LoopyGame.Node) = {
+    val simplifiedOnside = LoopyGame.constructSimplifiedGame(onside, Onside.jConst)
+    val simplifiedOffside = LoopyGame.constructSimplifiedGame(offside, Offside.jConst)
+    if (simplifiedOnside.isStopper && simplifiedOffside.isStopper) {
+      StopperSidedValue(CanonicalStopper(simplifiedOnside), CanonicalStopper(simplifiedOffside))
+    } else {
+      SidedValueImpl(SimplifiedLoopyGame(simplifiedOnside, Onside), SimplifiedLoopyGame(simplifiedOffside, Offside))
+    }
+  }
+
   def apply(g: LoopyGame): SidedValue = {
     if (g.isStopper) {
       CanonicalStopper(g)
@@ -32,7 +42,15 @@ object SidedValue {
 trait SidedValue extends NormalValue {
 
   def onside: SimplifiedLoopyGame
+
   def offside: SimplifiedLoopyGame
+
+  def side(side: Side): SimplifiedLoopyGame = {
+    side match {
+      case Onside => onside
+      case Offside => offside
+    }
+  }
 
   def unary_+ : SidedValue = this
 

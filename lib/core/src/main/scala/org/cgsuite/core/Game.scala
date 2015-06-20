@@ -19,15 +19,17 @@ trait Game extends OutputTarget {
 
   def options(player: Player): Iterable[Game]
 
-  def canonicalForm: Game = canonicalForm(new TranspositionTable())
+  def gameValue: SidedValue = canonicalForm
 
-  def canonicalForm(tt: TranspositionTable): Game = shortCanonicalForm(tt)
+  def canonicalForm: CanonicalShortGame = canonicalForm(new TranspositionTable())
+
+  def canonicalForm(tt: TranspositionTable): CanonicalShortGame = shortCanonicalForm(tt)
 
   def shortCanonicalForm(tt: TranspositionTable): CanonicalShortGame = {
     var result: CanonicalShortGame = Values.zero
     val it = decomposition.iterator
     while (it.hasNext) {
-      result += it.next().shortCanonicalFormR(tt)
+      result += it.next().asInstanceOf[Game].shortCanonicalFormR(tt)
     }
     result
   }
@@ -48,6 +50,6 @@ trait Game extends OutputTarget {
   
   def rightOptions: Iterable[Game] = options(Right)
 
-  def decomposition: Seq[Game] = Seq(this)
+  def decomposition: Seq[_] = Seq(this)
 
 }

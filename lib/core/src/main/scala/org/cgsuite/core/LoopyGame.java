@@ -1364,14 +1364,13 @@ public class LoopyGame
         return g;
     }
 
-    /*
-    public static LoopyGame constructSimplifiedGame(LoopyGame.Node node, boolean onside)
+    public static LoopyGame constructSimplifiedGame(LoopyGame.Node node, int side)
     {
         if (node.graphInfo == null || !node.graphInfo.valid)
         {
             initialize(node);
         }
-        int side = (onside ? ONSIDE : OFFSIDE);
+
         if (node.graphInfo.simplifiedGraphs[side] == null)
         {
             //Context.getActiveContext().getLogger().finer("Building simplified graph.");
@@ -1388,7 +1387,7 @@ public class LoopyGame
         
         if (node.graphInfo.simplifiedGraphs[side].isAlternatingCycleFree(node.startVertex))
         {
-            CanonicalStopperGameImpl g = new CanonicalStopperGameImpl();
+            LoopyGame g = new LoopyGame();
             Pregraph pg = new Pregraph(node.graphInfo.simplifiedGraphs[side].pack(node.startVertex));
             //Context.getActiveContext().getLogger().finer("Fusing an ACF graph.");
             fuse(pg, pg.reverse(), STOPPER, 0);
@@ -1410,13 +1409,12 @@ public class LoopyGame
         //    "Local simplifications produced an alternating cycle-free graph." :
         //    "There are still alternating cycles.  The graph is a carousel!"
         //    );
-        LoopyGame g = (simplerGraph.isAlternatingCycleFree(0) ? new CanonicalStopperGameImpl() : new LoopyGame());
+        LoopyGame g = new LoopyGame();
         g.graph = simplerGraph;
         g.startVertex = 0;
         return g;
     }
-    */
-    
+
     static Bigraph simplifyGraph(Bigraph graph, boolean[] canonical, int side, int specificVertex)
     {
         //if (side != STOPPER) Context.getActiveContext().getLogger().finer("Entered simplifyGraph: " + side + "," + specificVertex);

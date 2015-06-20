@@ -17,6 +17,21 @@ class ToadsAndFrogs(strip, allowedMoves ? [1,2]) extends StripGame
 
   end
 
+  override def DepthHint begin
+
+    var toadCount := 0;
+    var leapCount := 0;
+
+    for n from 1 to strip.Length do
+      if strip[n] == 1 then toadCount := toadCount + 1;
+      elseif strip[n] == 2 then leapCount := leapCount + toadCount;
+      end
+    end
+
+    leapCount
+
+  end
+
   /* This is a neat little theorem, but the effort involved in checking the
    * criterion outweighs the actual benefit (as the number of positions
    * to which it can actually be applied is small).

@@ -14,6 +14,8 @@ class TranspositionTable {
 
   def contains(k: AnyRef) = map.contains(k)
 
+  def apply(k: AnyRef) = map(k)
+
   def clear() = map.clear()
 
 }

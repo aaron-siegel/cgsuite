@@ -14,6 +14,8 @@ system class Set extends Collection
     n
   end
 
+  external def Replaced(Map replacements);
+
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 
 end

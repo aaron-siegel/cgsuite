@@ -520,10 +520,18 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
+  it should "define FoxAndGeese properly" in {
+    execute(Table(
+      header,
+      ("FoxAndGeese", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7),(3,9)}, (1,9), boardWidth => 10).GameValue", "{6over|5*}")
+    ))
+  }
+
   "game.strip" should "define Toads and Frogs properly" in {
     execute(Table(
       header,
-      ("ToadsAndFrogs", """game.strip.ToadsAndFrogs("ttttt..fffff").CanonicalForm""", "+-{{2|*},{5/2||2|{0||||{0||v<2>|-1},{0||||0||Miny(1/32)|-2|||-1/2*}|||v<2>|-1/2||-1*}|||0}}")
+      ("ToadsAndFrogs", """game.strip.ToadsAndFrogs("ttttt..fffff").CanonicalForm""", "+-{{2|*},{5/2||2|{0||||{0||v<2>|-1},{0||||0||Miny(1/32)|-2|||-1/2*}|||v<2>|-1/2||-1*}|||0}}"),
+      ("BackslidingToadsAndFrogs", """game.strip.ToadsAndFrogs("ttt..fff", [-1,1,2]).GameValue""", "{on||0|-1/2} & {1/2|0||off}")
     ))
   }
 

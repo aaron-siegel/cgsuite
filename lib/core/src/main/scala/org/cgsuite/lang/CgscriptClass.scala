@@ -5,7 +5,7 @@ import java.net.URL
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.{CgsuiteException, InputException}
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output._
@@ -96,6 +96,7 @@ object CgscriptClass {
     "game.grid.Clobber",
     "game.grid.Domineering",
     "game.grid.Fission",
+    "game.grid.FoxAndGeese",
 
     "game.strip.ToadsAndFrogs"
 
@@ -204,10 +205,12 @@ class CgscriptClass(
     val allSymbolsInScope: Set[Symbol] = classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val optionsMethod = lookupMethod('Options) getOrElse { throw InputException("Method not found: Options") }
-    lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw InputException("Method not found: Decomposition") }
-    lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw InputException("Method not found: CanonicalForm") }
-    lazy val toOutputMethod = lookupMethod('ToOutput) getOrElse { throw InputException("Method not found: ToOutput") }
+    lazy val optionsMethod = lookupMethod('Options) getOrElse { throw InputException("Method not found: `Options`") }
+    lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw InputException("Method not found: `Decomposition`") }
+    lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw InputException("Method not found: `CanonicalForm`") }
+    lazy val gameValueMethod = lookupMethod('GameValue) getOrElse { throw InputException("Method not found: `GameValue`") }
+    lazy val depthHintMethod = lookupMethod('DepthHint) getOrElse { throw InputException("Method not found: `DepthHint`") }
+    lazy val toOutputMethod = lookupMethod('ToOutput) getOrElse { throw InputException("Method not found: `ToOutput`") }
 
   }
 
@@ -333,7 +336,7 @@ class CgscriptClass(
         )
         case exc: InvocationTargetException => throw InputException(
           exc.getTargetException match {
-            case nestedExc: InputException =>
+            case nestedExc: CgsuiteException =>
               // TODO nestedExc.setInvocationTarget(qualifiedName)
               throw nestedExc
             case nestedExc => throw InputException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)

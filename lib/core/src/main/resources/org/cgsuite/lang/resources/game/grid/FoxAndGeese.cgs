@@ -1,0 +1,60 @@
+/*${cgsuite.banner}*/
+
+class FoxAndGeese(Set geese, Coordinates fox, Integer boardWidth ? 8) extends Game
+
+  static var GeeseMoves := [(-1,-1),(-1,1)];
+
+  override def Options(Player player) begin
+
+    var next;
+
+    if player == Right then
+      for dir in Coordinates.Diagonal
+      where (next := fox + dir) >= (1,1) and next.Col <= boardWidth and not geese.Contains(next)
+      yield
+        FoxAndGeese(geese, next, boardWidth)
+      end
+    else
+      for goose in geese
+      for dir in FoxAndGeese.GeeseMoves
+      where (next := goose + dir) >= (1,1) and next.Col <= boardWidth
+        and next != fox and not geese.Contains(next)
+      yield
+        FoxAndGeese(geese.Replaced({goose => next}), fox, boardWidth)
+      end
+    end
+
+  end
+
+  override def Decomposition begin
+
+    var maxGooseRow := geese.Apply(x -> x.Row).Max;
+    if fox.Row >= maxGooseRow or
+      (fox.Row == maxGooseRow - 1 and
+        (fox.Col > 1 and not geese.Contains(fox + (1,-1)) or fox.Col < boardWidth and not geese.Contains(fox + (1,1)))) then
+      [off]
+    else
+      [this]
+    end
+
+  end
+
+  override def DepthHint := sumof(goose.Row for goose in geese);
+
+  static def Table(Set geese2, Integer boardWidth2 ? 8) begin
+
+    var maxGooseRow := geese2.Apply(x -> x.Row).Max;
+    tableof(listof(
+      if geese2.Contains((row,col)) then
+        "X"
+      elseif (row + col) % 2 == 0 then
+        FoxAndGeese(geese2, (row,col), boardWidth2).GameValue
+      else
+        ""
+      end
+      for col from 1 to boardWidth2
+    ) for row from maxGooseRow to 1 by -1)
+
+  end
+
+end

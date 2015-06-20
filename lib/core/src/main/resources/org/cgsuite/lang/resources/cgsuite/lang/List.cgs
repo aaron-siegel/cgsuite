@@ -8,6 +8,7 @@ system class List extends Collection
   external def Length;
   external def Sorted;
   external def Tail;
+  external def Updated(Integer index, Object value);
 
   def MkOutput(sep) begin
 
