@@ -248,6 +248,7 @@ class CgscriptClass(
     def parameters: Seq[Parameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
+    def isOverride: Boolean
     def call(obj: Any, args: Array[Any]): Any
 
     val declaringClass = CgscriptClass.this
@@ -272,6 +273,7 @@ class CgscriptClass(
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
+    isOverride: Boolean,
     body: StatementSequenceNode
   ) extends Method {
 
@@ -315,6 +317,7 @@ class CgscriptClass(
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
+    isOverride: Boolean,
     javaMethod: java.lang.reflect.Method
   ) extends Method {
 
@@ -354,10 +357,11 @@ class CgscriptClass(
     id: Symbol,
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
-    isStatic: Boolean)
+    isStatic: Boolean,
+    isOverride: Boolean
+    )
     (fn: (Any, Any) => Any) extends Method {
 
-    // TODO This only works for 0-ary methods currently
     def call(obj: Any, args: Array[Any]): Any = {
       val argsTuple = parameters.size match {
         case 0 => ()
@@ -373,6 +377,7 @@ class CgscriptClass(
 
     val autoinvoke = false
     val isStatic = false
+    val isOverride = false
 
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
@@ -524,6 +529,22 @@ class CgscriptClass(
           }
         }
 
+        // override modifier validation.
+
+        localMethods foreach { case (methodId, method) =>
+          if (method.isOverride) {
+            if (!superMethods.exists { case (superId, _) => superId == methodId }) {
+              throw InputException(s"Method `${method.qualifiedName}` is declared with `override` but overrides nothing.")
+            }
+          } else {
+            superMethods find { case (superId, _) => superId == methodId } match {
+              case None =>
+              case Some((_, superMethod)) =>
+                throw InputException(s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`.")
+            }
+          }
+        }
+
         (supers, (superMethods ++ renamedSuperMethods ++ localMethods).toMap, constructor)
 
       } else {
@@ -612,18 +633,18 @@ class CgscriptClass(
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
             logger.debug("It's a special method.")
-            new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic)(fn)
+            new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
             val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
             logger.debug(s"It's a Java method via reflection: $externalMethod")
-            new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, externalMethod)
+            new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride, externalMethod)
         }
       } else {
         logger.debug(s"[$qualifiedName] Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
-        new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, body)
+        new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride, body)
       }
     }
 

@@ -2,7 +2,7 @@
 
 system class CanonicalShortGame extends CanonicalStopper
 
-  override external def Options(Player player);
+  external override def Options(Player player);
 
   external def AtomicWeight;
   external def Birthday;
@@ -12,21 +12,21 @@ system class CanonicalShortGame extends CanonicalStopper
   external def Freeze;
   external def Heat(CanonicalShortGame t);
   external def Incentives;
-  external def IsAllSmall;
+  external override def IsAllSmall;
   external def IsAtomic;
   external def IsEven;
   external def IsEvenTempered;
-  external def IsInfinitesimal;
-  external def IsInteger;
-  external def IsNimber;
-  external def IsNumber;
-  external def IsNumberish;
-  external def IsNumberTiny;
+  external override def IsInfinitesimal;
+  external override def IsInteger;
+  external override def IsNimber;
+  external override def IsNumber;
+  external override def IsNumberish;
+  external override def IsNumberTiny;
   external def IsOdd;
   external def IsOddTempered;
-  external def IsUptimal;
+  external override def IsUptimal;
   external def LeftIncentives;
-  external def LeftStop;
+  external override def LeftStop;
   external def Mean;
   external def NortonMultiply(CanonicalShortGame h);
   external def Overheat(CanonicalShortGame s, CanonicalShortGame t);
@@ -34,10 +34,10 @@ system class CanonicalShortGame extends CanonicalStopper
   external def PowTo(Pseudonumber x);
   external def ReducedCanonicalForm;
   external def RightIncentives;
-  external def RightStop;
+  external override def RightStop;
   external def StopCount;
   external def Temperature;
 
-  override external def ToOutput;
+  external override def ToOutput;
 
 end

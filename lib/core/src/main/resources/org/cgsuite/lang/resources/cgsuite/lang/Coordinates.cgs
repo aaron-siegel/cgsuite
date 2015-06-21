@@ -18,6 +18,6 @@ system class Coordinates
   external def Col;
   external def Row;
 
-  def ToOutput := "(" + Row.ToOutput + "," + Col.ToOutput + ")";
+  override def ToOutput := "(" + Row.ToOutput + "," + Col.ToOutput + ")";
 
 end

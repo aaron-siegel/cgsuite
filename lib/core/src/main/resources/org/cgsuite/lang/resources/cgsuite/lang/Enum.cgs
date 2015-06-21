@@ -4,6 +4,6 @@ system class EnumValue
 
   external def Literal;
 
-  def ToOutput := cgsuite.util.output.TextOutput(Literal);
+  override def ToOutput := cgsuite.util.output.TextOutput(Literal);
 
 end

@@ -4,10 +4,8 @@ system class List extends Collection
 
   def Apply(Procedure fn) := listof(fn(x) for x in this);
   external def Contains(x);
-  external def Head;
   external def Length;
   external def Sorted;
-  external def Tail;
   external def Updated(Integer index, Object value);
 
   def MkOutput(sep) begin

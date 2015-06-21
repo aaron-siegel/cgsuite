@@ -2,6 +2,6 @@
 
 system class SidedValue extends NormalValue
 
-  external def ToOutput;
+  external override def ToOutput;
 
 end
