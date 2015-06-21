@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.{CgsuiteException, InputException}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.Output
 import org.scalatest.prop.{TableFor3, PropertyChecks}
@@ -485,6 +485,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "game.Game" should "behave correctly" in {
+    execute(Table(
+      header,
+      ("CanonicalForm on loopy game", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,1)).CanonicalForm",
+        "!!That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`.")
+    ))
+  }
+
   "game.Player" should "behave correctly" in {
     execute(Table(
       header,
@@ -550,7 +558,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
     forAll(tests) { (_, input: String, expectedOutput: String) =>
       if (expectedOutput startsWith "!!") {
-        val thrown = the [InputException] thrownBy parseResult(input, varMap)
+        val thrown = the [CgsuiteException] thrownBy parseResult(input, varMap)
         thrown.getMessage shouldBe (expectedOutput stripPrefix "!!")
       } else {
         val result = parseResult(input, varMap)

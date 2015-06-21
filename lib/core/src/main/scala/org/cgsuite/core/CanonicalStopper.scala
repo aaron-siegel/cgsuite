@@ -7,6 +7,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
+import org.cgsuite.util.TranspositionTable
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -81,6 +82,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
   def loopyGame: LoopyGame
 
   private[cgsuite] override def simplifiedSide = Onside   // They're equivalent for stoppers
+
+  override def gameValue(tt: TranspositionTable) = this
 
   override def options(player: Player): Iterable[CanonicalStopper] = {
     val lgOpts = player match {

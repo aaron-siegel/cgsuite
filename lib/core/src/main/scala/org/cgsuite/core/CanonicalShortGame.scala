@@ -126,7 +126,7 @@ trait CanonicalShortGame extends CanonicalStopper {
     options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
-  override def shortCanonicalForm(tt: TranspositionTable) = this
+  override def canonicalForm(tt: TranspositionTable) = this
 
   def atomicWeight = atomicWeightOpt getOrElse { throw InputException("That game is not atomic.") }
 

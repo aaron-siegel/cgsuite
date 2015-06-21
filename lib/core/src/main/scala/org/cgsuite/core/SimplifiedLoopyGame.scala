@@ -40,9 +40,11 @@ trait SimplifiedLoopyGame extends Game {
 
   override def unary_- : SimplifiedLoopyGame = SimplifiedLoopyGameImpl(loopyGame.negative(), -simplifiedSide)
 
-  override def shortCanonicalForm(tt: TranspositionTable): CanonicalShortGame = {
+  override def canonicalForm(tt: TranspositionTable): CanonicalShortGame = {
     throw NotShortGameException("That is a loopy game.")
   }
+
+  override def gameValue(tt: TranspositionTable): SidedValue = SidedValue(loopyGame)
 
   def options(player: Player): Iterable[SimplifiedLoopyGame] = {
     val lgOpts = player match {
