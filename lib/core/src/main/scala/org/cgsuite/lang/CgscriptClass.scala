@@ -510,7 +510,7 @@ class CgscriptClass(
         supers.foreach { _.ensureLoaded() }
         // TODO Check for unresolved superclass method conflicts
         // TODO Check for duplicate local method names
-        val superMethods = supers.flatMap { _.classInfo.methods }
+        val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
         val localMethods = node.methodDeclarations map parseMethod
         val constructor = node.constructorParams.map { t =>
           val parameters = parseParameterList(t)
@@ -521,12 +521,43 @@ class CgscriptClass(
               SystemConstructor(id, parameters, cls.getConstructor(externalParameterTypes : _*))
           }
         }
-        val renamedSuperMethods = {
-          for {
-            (id, method) <- superMethods
-          } yield {
-            (Symbol("super$" + id.name), method)
+
+        // Check for duplicate methods.
+
+        localMethods groupBy { _._1 } find { _._2.size > 1 } foreach { case (methodId, _) =>
+          throw InputException(s"Method `${methodId.name}` is declared twice in class `$qualifiedName`.")
+        }
+
+        // Check for conflicting superclass methods.
+
+        val mostSpecificSuperMethods = superMethods groupBy { _._1 } map { case (superId, instances) =>
+          val mostSpecificInstances = instances.distinct filterNot { case (_, method) =>
+            // Filter out this declaration if there exists a strict subclass that also declares this method
+            // (that one will override)
+            instances.exists { case (_, otherMethod) =>
+              otherMethod != method && otherMethod.declaringClass.ancestors.contains(method.declaringClass)
+            }
           }
+          // If there are multiple most specific instances (so that neither one overrides the other),
+          // and this method isn't redeclared by the loading class, that's an error
+          if (mostSpecificInstances.size > 1 && !localMethods.exists { case (localId, _) => localId == superId }) {
+            val superclassNames = mostSpecificInstances map { case (_, superMethod) => s"`${superMethod.declaringClass.qualifiedName}`" }
+            throw InputException(
+              s"Method `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
+                s"because it is defined in multiple superclasses (${superclassNames mkString ", "})"
+            )
+          }
+          (superId, mostSpecificInstances)
+        }
+
+        val resolvedSuperMethods = mostSpecificSuperMethods collect {
+          case (_, instances) if instances.size == 1 => instances.head
+        }
+
+        // TODO What if there are multiple resolved supermethods? How do we define `super.` syntax in that case?
+
+        val renamedSuperMethods = resolvedSuperMethods map { case (superId, superMethod) =>
+          (Symbol("super$" + superId.name), superMethod)
         }
 
         // override modifier validation.
@@ -545,7 +576,7 @@ class CgscriptClass(
           }
         }
 
-        (supers, (superMethods ++ renamedSuperMethods ++ localMethods).toMap, constructor)
+        (supers, resolvedSuperMethods ++ renamedSuperMethods ++ localMethods, constructor)
 
       } else {
 
