@@ -185,7 +185,8 @@ class CgscriptClass(
     val methods: Map[Symbol, CgscriptClass#Method],
     val constructor: Option[CgscriptClass#Constructor],
     val initializers: Seq[InitializerNode],
-    val staticInitializers: Seq[InitializerNode]
+    val staticInitializers: Seq[InitializerNode],
+    val enumElements: Seq[EnumElementNode]
     ) {
 
     val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
@@ -198,7 +199,7 @@ class CgscriptClass(
     }
     val allClassVars: Seq[Symbol] = (constructorParamVars ++ inheritedClassVars ++ localClassVars).distinct
     val classVarOrdinals: Map[Symbol, Int] = allClassVars.zipWithIndex.toMap
-    val staticVars = staticInitializers.collect {
+    val staticVars = enumElements.map { _.id.id } ++ staticInitializers.collect {
       case InitializerNode(_, AssignToNode(_, assignId, _, true), true, _) => assignId.id
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
@@ -541,7 +542,8 @@ class CgscriptClass(
       methods,
       constructor,
       node.ordinaryInitializers,
-      node.staticInitializers
+      node.staticInitializers,
+      node.enumElements
     )
     loading = false
 
@@ -553,10 +555,8 @@ class CgscriptClass(
     methods foreach { case (_, method) => method.elaborate() }
 
     // Enum construction
-    if (node.isEnum) {
-      for ((id, index) <- classInfoRef.staticVarOrdinals) {
-        classObjectRef.vars(index) = new EnumObject(this, id.name)
-      }
+    node.enumElements foreach { element =>
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(element.id.id)) = new EnumObject(this, element.id.id.name)
     }
 
     // Big temporary hack to populate Left and Right

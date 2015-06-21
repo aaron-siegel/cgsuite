@@ -50,7 +50,7 @@ class FoxAndGeese(Set geese, Coordinates fox, Integer boardWidth ? 8) extends Ga
       elseif (row + col) % 2 == 0 then
         FoxAndGeese(geese2, (row,col), boardWidth2).GameValue
       else
-        ""
+        [nil]
       end
       for col from 1 to boardWidth2
     ) for row from maxGooseRow to 1 by -1)

@@ -523,7 +523,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "define FoxAndGeese properly" in {
     execute(Table(
       header,
-      ("FoxAndGeese", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7),(3,9)}, (1,9), boardWidth => 10).GameValue", "{6over|5*}")
+      ("FoxAndGeese", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7),(3,9)}, (1,9), boardWidth => 10).GameValue", "{6over|5*}"),
+      ("FoxAndGeese.Table", "game.grid.FoxAndGeese.Table({(3,1),(3,3),(3,5),(3,7)})",
+        """|      "X" |       |       "X" |   |      "X" |    |        "X" |      @
+           |----------+-------+-----------+---+----------+----+------------+------@
+           |          | 2over |           | 2 |          | 3* |            | 4over@
+           |----------+-------+-----------+---+----------+----+------------+------@
+           |{6|2over} |       | {2over|2} |   | {4|3||2} |    | {4over|3*} |      @""".filterNot{ _ == '@' }.stripMargin)
     ))
   }
 

@@ -268,7 +268,10 @@ case class ThisNode(tree: Tree) extends EvalNode {
 }
 
 object IdentifierNode {
-  def apply(tree: Tree): IdentifierNode = IdentifierNode(tree, Symbol(tree.getText))
+  def apply(tree: Tree): IdentifierNode = {
+    assert(tree.getType == IDENTIFIER)
+    IdentifierNode(tree, Symbol(tree.getText))
+  }
 }
 
 case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
@@ -661,7 +664,7 @@ case class LoopNode(
       case LoopNode.YieldTable => Table { yieldResult.toSeq map {
         case list: Seq[_] => list
         case _ => throw InputException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
-      } } (OutputBuilder.toOutput)
+      } } (OutputBuilder.toOutputHideNil)
       case LoopNode.YieldSum => if (r == null) Nil else r
     }
 

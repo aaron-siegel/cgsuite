@@ -44,7 +44,7 @@ case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCe
         g.drawLine(pos, 0, pos, height)
       }
     }
-    for (i <- 0 until table.size; j <- 0 until table(i).size) {
+    for (i <- table.indices; j <- table(i).indices) {
       val hPos = colWidth.take(j).sum + j * (hSpace * 2 + 1)
       val vPos = rowHeight.take(i).sum + i * (vSpace * 2 + 1)
       val entry = table(i)(j)
@@ -67,7 +67,7 @@ case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCe
     val colStringWidth = (0 until colCount) map { n => outputStrings.map { row => if (row.length > n) row(n).length else 0 }.max }
     val formats = colStringWidth map { width => s"%${width}s" }
     val rowStrings = outputStrings map { row =>
-      val paddedEntries = row zip (0 until row.size) map { case (entry, j) => formats(j).format(entry) }
+      val paddedEntries = row.zipWithIndex map { case (entry, j) => formats(j).format(entry) }
       paddedEntries mkString " | "
     }
     val sep = colStringWidth map { TableOutput.repchar('-', _) } mkString "-+-"
