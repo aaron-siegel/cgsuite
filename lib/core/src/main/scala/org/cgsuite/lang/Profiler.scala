@@ -32,7 +32,7 @@ object Profiler {
     println(tree.toStringTree)
     val node = EvalNode(tree)
     println(node)
-    node.elaborate(Scope(None, Set.empty))
+    node.elaborate(Scope(None, Set.empty, None))
     Profiler.clear()
     Profiler.setEnabled(enabled = profile)
     val start = JSystem.nanoTime()

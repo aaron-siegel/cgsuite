@@ -9,7 +9,7 @@ case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with 
   def parameters = node.parameters
   def ordinal = node.ordinal
   def call(args: Array[Any]) = {
-    val newDomain = new Domain(new Array[Any](node.localVariableCount), domain.contextObject, domain.dynamicVarMap)
+    val newDomain = new Domain(new Array[Any](node.localVariableCount), domain.contextObject, domain.dynamicVarMap, Some(domain))
     var i = 0
     while (i < node.parameters.length) {
       newDomain.localScope(node.parameters(i).methodScopeIndex) = args(i)

@@ -24,7 +24,7 @@ object Repl {
           val tree = ParserUtil.parseScript(str)
           println(tree.toStringTree)
           val node = EvalNode(tree.getChild(0))
-          val scope = Scope(None, Set.empty)
+          val scope = Scope(None, Set.empty, None)
           node.elaborate(scope)
           println(node)
           val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(replVarMap))

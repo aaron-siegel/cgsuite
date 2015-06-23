@@ -233,6 +233,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     execute(Table(
       header,
       ("Procedure definition", "f := x -> x+1", "x -> (x + 1)"),
+      ("Procedure definition - duplicate var", "(x, x) -> x", "!!Duplicate var: `x`"),
       ("Procedure evaluation", "f(8)", "9"),
       ("Procedure scope 1", "y := 3; f := x -> x+y; f(5)", "8"),
       ("Procedure scope 2", "y := 6; f(5)", "11"),
@@ -242,12 +243,17 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("No-parameter procedure evaluation", "f()", "3"),
       ("Multiparameter procedure", "f := (x,y) -> (x-y)/2", "(x, y) -> ((x - y) / 2)"),
       ("Multiparameter procedure evaluation", "f(3,4)", "-1/2"),
-      ("Procedure - too few args", "f(3)", "!!Missing required parameter: `y`"),
-      ("Procedure - too many args", "f(3,4,5)", "!!Too many arguments: 3 (expecting at most 2)"),
-      ("Procedure - named args", "f(y => 3, x => 4)", "1/2"),
-      ("Procedure - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate parameter: `x`"),
-      ("Procedure - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate parameter: `y`"),
-      ("Procedure - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name: `foo`")
+      ("Procedure eval - too few args", "f(3)", "!!Missing required parameter: `y`"),
+      ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments: 3 (expecting at most 2)"),
+      ("Procedure eval - named args", "f(y => 3, x => 4)", "1/2"),
+      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate parameter: `x`"),
+      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate parameter: `y`"),
+      ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name: `foo`"),
+      ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> (x + y)"),
+      ("Curried procedure evaluation - 1", "g := f(3)", "y -> (x + y)"),
+      ("Curried procedure evaluation - 2", "h := f(5)", "y -> (x + y)"),
+      ("Curried procedure evaluation - 3", "[g(7),h(7)]", "[10,12]"),
+      ("Curried procedure definition - duplicate var", "x -> x -> (x + 3)", "!!Duplicate var: `x`")
     ))
 
   }
@@ -573,7 +579,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   def parseResult(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Any = {
     val tree = ParserUtil.parseScript(input)
     val node = EvalNode(tree.getChild(0))
-    val scope = Scope(None, Set.empty)
+    val scope = Scope(None, Set.empty, None)
     node.elaborate(scope)
     val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(varMap))
     node.evaluate(domain)

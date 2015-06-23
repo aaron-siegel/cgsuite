@@ -228,21 +228,33 @@ trait EvalNode extends Node {
 }
 
 private[lang] object Scope {
-  def apply(pkg: Option[CgscriptPackage], classVars: Set[Symbol]) = {
-    new Scope(pkg, classVars, mutable.AnyRefMap(), mutable.Stack())
+  def apply(pkg: Option[CgscriptPackage], classVars: Set[Symbol], backref: Option[Scope]) = {
+    new Scope(pkg, classVars, backref, mutable.AnyRefMap(), mutable.Stack())
   }
 }
 
 private[lang] class Scope(
   val pkg: Option[CgscriptPackage],    // None = "external" (Worksheet/REPL) scope
   val classVars: Set[Symbol],
+  val backref: Option[Scope],
   val varMap: mutable.AnyRefMap[Symbol, Int],
   val scopeStack: mutable.Stack[mutable.HashSet[Symbol]]
   ) {
-  def contains(id: Symbol) = classVars.contains(id) || scopeStack.exists { _.contains(id) }
+  def contains(id: Symbol): Boolean = {
+    classVars.contains(id) || scopeStack.exists { _.contains(id) } || backref.exists { _.contains(id) }
+  }
+  def containsAtMethodScope(id: Symbol): Boolean = {
+    scopeStack.exists { _.contains(id) } || backref.exists { _.containsAtMethodScope(id) }
+  }
+  def methodScopeBackrefAndIndex(id: Symbol, depth: Int = 0): (Int, Int) = {
+    varMap.get(id) match {
+      case Some(n) => (depth, n)
+      case None => backref.get.methodScopeBackrefAndIndex(id, depth + 1)
+    }
+  }
   def insertId(id: Symbol) {
     if (contains(id)) {
-      throw InputException(s"Duplicate var: ${id.name}")
+      throw InputException(s"Duplicate var: `${id.name}`")
     } else {
       scopeStack.top += id
       varMap.getOrElseUpdate(id, varMap.size)
@@ -281,6 +293,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   var constantResolution: Resolution = _
   var classResolution: ClassObject = _
   var methodScopeIndex: Int = -1
+  var domainBackref: Int = 0
 
   override val children = Seq.empty
 
@@ -291,8 +304,10 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       case None =>
     }
     // Can this be resolved as a local (method-scope) variable?
-    if (scope.scopeStack.exists { _.contains(id) }) {
-      methodScopeIndex = scope.varMap(id)
+    if (scope.containsAtMethodScope(id)) {
+      val res = scope.methodScopeBackrefAndIndex(id)
+      domainBackref = res._1
+      methodScopeIndex = res._2
     }
     // Can this be resolved as a constant? Check first in local package scope, then in default package scope
     scope.pkg.flatMap { _.lookupConstant(id) } orElse CgscriptPackage.lookupConstant(id) match {
@@ -319,7 +334,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       classResolution
     } else if (methodScopeIndex >= 0) {
       // Local var
-      val x = domain.localScope(methodScopeIndex)
+      val x = domain.backref(domainBackref).localScope(methodScopeIndex)
       val result = if (x == null) Nil else x
       result
     } else {
@@ -779,7 +794,7 @@ object ProcedureNode {
 case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
   override def elaborate(scope: Scope) = {
-    val newScope = Scope(scope.pkg, scope.classVars)
+    val newScope = Scope(scope.pkg, scope.classVars, Some(scope))
     newScope.scopeStack.push(mutable.HashSet())
     parameters foreach { param =>
       newScope.insertId(param.id)
