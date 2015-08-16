@@ -4,7 +4,11 @@
  */
 package org.cgsuite.ui.browser;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyVetoException;
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.ActionMap;
 import javax.swing.text.DefaultEditorKit;
@@ -21,6 +25,7 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.filesystems.LocalFileSystem;
 import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Lookup;
 
 /**
@@ -28,7 +33,7 @@ import org.openide.util.Lookup;
  */
 @ConvertAsProperties(dtd = "-//org.cgsuite.ui.browser//Browser//EN",
 autostore = false)
-public final class BrowserTopComponent extends TopComponent implements ExplorerManager.Provider
+public final class BrowserTopComponent extends TopComponent implements ExplorerManager.Provider, PropertyChangeListener
 {
     private static BrowserTopComponent instance;
     /** path to the icon used by the component and its open action */
@@ -47,7 +52,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
-        
+        /*
         try
         {
             LocalFileSystem fs = new LocalFileSystem();
@@ -59,7 +64,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         catch (Exception exc)
         {
         }
-
+        */
         ActionMap map = getActionMap();
         
         this.em = new ExplorerManager();
@@ -71,7 +76,9 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         map.put(DefaultEditorKit.pasteAction, ExplorerUtils.actionPaste(em));
         map.put("delete", ExplorerUtils.actionDelete(em, true));
         
-        this.em.setRootContext(rootDataObject.getNodeDelegate());
+        //this.em.setRootContext(rootDataObject.getNodeDelegate());
+        
+        setRootFolder(new RootFolder(CgsuitePackage.USER_FOLDER, "User Folder"));
         
         jComboBox1.addItem(new RootFolder(CgsuitePackage.USER_FOLDER, "User Folder"));
         jComboBox1.addItem(new RootFolder(CgsuitePackage.LIB_FOLDER, "System Folder"));
@@ -85,7 +92,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
             jComboBox1.addItem(new RootFolder(null, "[dev] System Filesystem"));
         }
     }
-
+ 
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -109,28 +116,8 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     }// </editor-fold>//GEN-END:initComponents
 
     private void jComboBox1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBox1ItemStateChanged
-
-        try
-        {
-            RootFolder rf = (RootFolder) evt.getItem();
-            if (rf.folder == null)
-            {
-                this.root = FileUtil.getConfigRoot();
-            }
-            else
-            {
-                LocalFileSystem fs = new LocalFileSystem();
-                fs.setRootDirectory(rf.folder);
-                this.root = fs.getRoot();
-            }
-            
-            this.rootDataObject = DataObject.find(this.root);
-            this.em.setRootContext(rootDataObject.getNodeDelegate());
-        }
-        catch (Exception exc)
-        {
-            throw new RuntimeException(exc);
-        }
+        RootFolder rf = (RootFolder) evt.getItem();
+        setRootFolder(rf);
     }//GEN-LAST:event_jComboBox1ItemStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -216,6 +203,32 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     public ExplorerManager getExplorerManager()
     {
         return em;
+    }
+   
+    private void setRootFolder(RootFolder rf) {
+        try {
+            if (rf.folder == null)
+            {
+                this.root = FileUtil.getConfigRoot();
+            }
+            else
+            {
+                LocalFileSystem fs = new LocalFileSystem();
+                fs.setRootDirectory(rf.folder);
+                this.root = fs.getRoot();
+            }
+            this.rootDataObject = DataObject.find(this.root);
+            this.rootDataObject.addPropertyChangeListener(this);
+            this.em.setRootContext(rootDataObject.getNodeDelegate());
+        } catch (PropertyVetoException exc) {
+            throw new RuntimeException(exc);
+        } catch (IOException exc) {
+            throw new RuntimeException(exc);
+        }
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
     }
     
     private static class RootFolder

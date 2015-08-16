@@ -1,11 +1,3 @@
-For a 1.0.1 release:
-
-* r387 bugfix for ^.PowTo(0) and ^.Pow(1)
-* r392 Fix error messages during method load routine
-
-TODO for 1.1:
-
-* There's a bug in CgBreakIterator when the last character of a superscript is ]
 * There's a display bug in (1+*).Tiny (parenthesis shouldn't belong)
 * Tiny(Tiny()) display
 

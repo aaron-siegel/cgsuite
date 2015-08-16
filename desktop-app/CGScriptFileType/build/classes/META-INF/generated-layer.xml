@@ -92,6 +92,17 @@
                 </folder>
             </folder>
         </folder>
+        <folder name="folder">
+            <folder name="any">
+                <folder name="Actions">
+                    <file name="org-openide-actions-NewTemplateAction.shadow">
+                        <!--org.cgsuite.filetype.cgscript.CgscriptDataObject-->
+                        <attr name="originalFile" stringvalue="Actions/System/org-openide-actions-NewTemplateAction.instance"/>
+                        <attr intvalue="200" name="position"/>
+                    </file>
+                </folder>
+            </folder>
+        </folder>
     </folder>
     <folder name="Services">
         <folder name="MIMEResolver">
@@ -109,11 +120,24 @@
         </folder>
     </folder>
     <folder name="Templates">
-        <folder name="Other">
-            <file name="CgscriptTemplate.cgs" url="nbresloc:/org/cgsuite/filetype/cgscript/CgscriptTemplate.cgs">
+        <folder name="CGSuite">
+            <file name="ClassTemplate.cgs" url="nbresloc:/org/cgsuite/filetype/cgscript/ClassTemplate.cgs">
                 <!--org.cgsuite.filetype.cgscript-->
                 <attr boolvalue="true" name="template"/>
-                <attr boolvalue="true" name="requireProject"/>
+                <attr intvalue="100" name="position"/>
+                <attr name="displayName" stringvalue="Class"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/thermograph-16x16.png"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr boolvalue="false" name="requireProject"/>
+            </file>
+            <file name="ScriptTemplate.cgs" url="nbresloc:/org/cgsuite/filetype/cgscript/ScriptTemplate.cgs">
+                <!--org.cgsuite.filetype.cgscript-->
+                <attr boolvalue="true" name="template"/>
+                <attr intvalue="200" name="position"/>
+                <attr name="displayName" stringvalue="Script"/>
+                <attr name="iconBase" stringvalue="org/cgsuite/filetype/cgscript/thermograph-16x16.png"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+                <attr boolvalue="false" name="requireProject"/>
             </file>
         </folder>
     </folder>

@@ -15,9 +15,7 @@ import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectExistsException;
 import org.openide.loaders.MultiDataObject;
 import org.openide.loaders.MultiFileLoader;
-import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
-import org.openide.windows.TopComponent;
 
 @Messages({
     "LBL_Cgscript_LOADER=Files of Cgscript"
@@ -83,7 +81,12 @@ import org.openide.windows.TopComponent;
             path = "Loaders/text/x-cgscript/Actions",
             id = @ActionID(category = "System", id = "org.openide.actions.PropertiesAction"),
             position = 1400
-    )
+    ),
+    @ActionReference(
+            path = "Loaders/folder/any/Actions",
+            id = @ActionID(category = "System", id = "org.openide.actions.NewTemplateAction"),
+            position = 200
+    )    
 })
 public class CgscriptDataObject extends MultiDataObject {
 

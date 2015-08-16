@@ -128,6 +128,7 @@ public class CgBreakIterator extends BreakIterator
     
     private boolean isCloseParen(char c)
     {
-        return c == ')' || c == '}' || c == ']';
+        // TODO We should include ']' here and explicitly exclude superscripts
+        return c == ')' || c == '}';
     }
 }

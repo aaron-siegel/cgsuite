@@ -13,6 +13,15 @@
             <file name="word-match-prev.instance_hidden"/>
         </folder>
     </folder>
+    <folder name="Loaders">
+        <folder name="folder">
+            <folder name="any">
+                <folder name="Actions">
+                    <file name="NewProjectFile.instance_hidden"/>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
     <folder name="Menu">
         <file name="BuildProject_hidden"/>
         <folder name="Edit">
@@ -28,9 +37,14 @@
         <folder name="File">
             <file name="Export_hidden"/>
             <file name="Import_hidden"/>
+            <file name="SeparatorNew.instance_hidden"/>
+            <file name="SeparatorOpen.instance_hidden"/>
             <file name="org-netbeans-modules-editor-ExportHtmlAction.shadow_hidden"/>
+            <file name="org-netbeans-modules-openfile-OpenFileAction.shadow_hidden"/>
+            <file name="org-netbeans-modules-openfile-RecentFileAction.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-CloseProject.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-CustomizeProject.shadow_hidden"/>
+            <file name="org-netbeans-modules-project-ui-NewFile.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-NewProject.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-OpenProject.shadow_hidden"/>
             <file name="org-netbeans-modules-project-ui-RecentProjects.shadow_hidden"/>
@@ -111,6 +125,7 @@
         </folder>
     </folder>
     <folder name="Shortcuts">
+        <file name="D-N.shadow_hidden"/>
         <file name="DELETE.shadow">
             <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-DeleteAction.instance"/>
         </file>
@@ -135,6 +150,13 @@
         <file name="D-Z.shadow">
             <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-UndoAction.instance"/>
         </file>
+    </folder>
+    <folder name="Templates">
+        <file name="Licenses_hidden"/>
+        <folder name="Other">
+            <file name="file_hidden"/>
+        </folder>
+        <file name="Properties_hidden"/>
     </folder>
     <folder name="Toolbars">
         <file name="Build_hidden"/>

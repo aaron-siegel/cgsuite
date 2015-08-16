@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Templates">
+        <folder name="Recent">
+            <file name="ClassTemplate.shadow">
+                <attr name="originalFile" stringvalue="Templates/CGSuite/ClassTemplate.cgs"/>
+                <attr name="position" intvalue="107"/>
+                <attr name="template" boolvalue="true"/>
+            </file>
+            <file name="ScriptTemplate.shadow">
+                <attr name="originalFile" stringvalue="Templates/CGSuite/ScriptTemplate.cgs"/>
+                <attr name="position" intvalue="108"/>
+                <attr name="template" boolvalue="true"/>
+            </file>
+            <!--
+            <file name="FolderTemplate.shadow">
+                <attr name="originalFile" stringvalue="Templates/Other/Folder"/>
+                <attr name="position" intvalue="109"/>
+                <attr name="template" boolvalue="true"/>
+            </file>
+            -->
+        </folder>
+    </folder>
+</filesystem>
