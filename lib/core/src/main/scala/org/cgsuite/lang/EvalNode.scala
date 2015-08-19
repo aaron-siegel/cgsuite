@@ -118,7 +118,10 @@ object EvalNode {
 
       // Assignment
 
-      case ASSIGN => AssignToNode(tree, IdentifierNode(tree.getChild(0)), EvalNode(tree.getChild(1)), isVarDeclaration = false)
+      case ASSIGN =>
+        if (tree.getChild(0).getType != IDENTIFIER)
+          throw InputException("Syntax error.", tree)
+        AssignToNode(tree, IdentifierNode(tree.getChild(0)), EvalNode(tree.getChild(1)), isVarDeclaration = false)
       case VAR =>
         val (modifiers, nodes) = VarNode(tree)
         assert(modifiers.isEmpty && nodes.size == 1)
@@ -221,45 +224,10 @@ trait EvalNode extends Node {
     }
   }
 
-  def elaborate(scope: Scope): Unit = {
+  def elaborate(scope: ElaborationDomain): Unit = {
     children foreach { _.elaborate(scope) }
   }
 
-}
-
-private[lang] object Scope {
-  def apply(pkg: Option[CgscriptPackage], classVars: Set[Symbol], backref: Option[Scope]) = {
-    new Scope(pkg, classVars, backref, mutable.AnyRefMap(), mutable.Stack())
-  }
-}
-
-private[lang] class Scope(
-  val pkg: Option[CgscriptPackage],    // None = "external" (Worksheet/REPL) scope
-  val classVars: Set[Symbol],
-  val backref: Option[Scope],
-  val varMap: mutable.AnyRefMap[Symbol, Int],
-  val scopeStack: mutable.Stack[mutable.HashSet[Symbol]]
-  ) {
-  def contains(id: Symbol): Boolean = {
-    classVars.contains(id) || scopeStack.exists { _.contains(id) } || backref.exists { _.contains(id) }
-  }
-  def containsAtMethodScope(id: Symbol): Boolean = {
-    scopeStack.exists { _.contains(id) } || backref.exists { _.containsAtMethodScope(id) }
-  }
-  def methodScopeBackrefAndIndex(id: Symbol, depth: Int = 0): (Int, Int) = {
-    varMap.get(id) match {
-      case Some(n) => (depth, n)
-      case None => backref.get.methodScopeBackrefAndIndex(id, depth + 1)
-    }
-  }
-  def insertId(id: Symbol) {
-    if (contains(id)) {
-      throw InputException(s"Duplicate var: `${id.name}`")
-    } else {
-      scopeStack.top += id
-      varMap.getOrElseUpdate(id, varMap.size)
-    }
-  }
 }
 
 case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
@@ -281,33 +249,35 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object IdentifierNode {
   def apply(tree: Tree): IdentifierNode = {
-    assert(tree.getType == IDENTIFIER)
+    assert(tree.getType == IDENTIFIER, tree.toStringTree)
     IdentifierNode(tree, Symbol(tree.getText))
   }
 }
 
 case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
-  // Cache the resolver here
-  val resolver: Resolver = Resolver.forId(id)
+  var resolver: Resolver = Resolver.forId(id)
   var constantResolution: Resolution = _
   var classResolution: ClassObject = _
-  var methodScopeIndex: Int = -1
-  var domainBackref: Int = 0
+
+  // We cache these separately - that provides for faster resolution than
+  // using a matcher.
+  var localVariableReference: LocalVariableReference = _
+  var classVariableReference: ClassVariableReference = _
 
   override val children = Seq.empty
 
-  override def elaborate(scope: Scope) {
+  override def elaborate(scope: ElaborationDomain) {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
     scope.pkg.flatMap { _.lookupClass(id) } orElse CgscriptPackage.lookupClass(id) match {
       case Some(cls) => classResolution = cls.classObject
       case None =>
     }
-    // Can this be resolved as a local (method-scope) variable?
-    if (scope.containsAtMethodScope(id)) {
-      val res = scope.methodScopeBackrefAndIndex(id)
-      domainBackref = res._1
-      methodScopeIndex = res._2
+    // Can this be resolved as a scoped variable?
+    scope.lookup(id) match {
+      case Some(l@LocalVariableReference(_, _)) => localVariableReference = l
+      case Some(c@ClassVariableReference(_, _)) => classVariableReference = c
+      case None =>
     }
     // Can this be resolved as a constant? Check first in local package scope, then in default package scope
     scope.pkg.flatMap { _.lookupConstant(id) } orElse CgscriptPackage.lookupConstant(id) match {
@@ -316,8 +286,8 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     }
     // If there's no possible resolution and we're inside a package (i.e., not at Worksheet scope),
     // we can throw an exception now
-    if (classResolution == null && methodScopeIndex == -1 && constantResolution == null &&
-        !scope.classVars.contains(id) && scope.pkg.isDefined) {
+    if (classResolution == null && localVariableReference == null && classVariableReference == null &&
+      constantResolution == null && scope.pkg.isDefined) {
       throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
     }
   }
@@ -332,11 +302,10 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     if (classResolution != null) {
       // Class name
       classResolution
-    } else if (methodScopeIndex >= 0) {
+    } else if (localVariableReference != null) {
       // Local var
-      val x = domain.backref(domainBackref).localScope(methodScopeIndex)
-      val result = if (x == null) Nil else x
-      result
+      val x = domain.backref(localVariableReference.domainHops).localScope(localVariableReference.index)
+      if (x == null) Nil else x
     } else {
       lookupLocally(domain) match {
         case Some(x) => x     // Member/Worksheet var
@@ -354,8 +323,11 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   private[this] def lookupLocally(domain: Domain): Option[Any] = {
     if (domain.isOuterDomain) {
       domain getDynamicVar id
+    } else if (classVariableReference != null) {
+      // TODO Nesting
+      Some(classVariableReference.resolver resolve domain.contextObject.get)
     } else {
-      Option(resolver.resolve(domain.contextObject.get))
+      None
     }
   }
 
@@ -528,13 +500,13 @@ case class LoopyGameSpecNode(
 
   override val children = nodeLabel ++ lo ++ ro
 
-  override def elaborate(scope: Scope): Unit = {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     nodeLabel foreach { idNode =>
-      scope.scopeStack push mutable.HashSet()
+      scope.pushScope()
       scope.insertId(idNode.id)
     }
     super.elaborate(scope)
-    nodeLabel foreach { _ => scope.scopeStack.pop() }
+    nodeLabel foreach { _ => scope.popScope() }
   }
 
   override def evaluate(domain: Domain) = {
@@ -546,7 +518,7 @@ case class LoopyGameSpecNode(
   override def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
     val thisNode = new LoopyGame.Node()
     if (nodeLabel.isDefined)
-      domain.localScope(nodeLabel.get.methodScopeIndex) = thisNode
+      domain.localScope(nodeLabel.get.localVariableReference.index) = thisNode
     lo flatMap { _.evaluateLoopy(domain) } foreach { thisNode.addLeftEdge }
     ro flatMap { _.evaluateLoopy(domain) } foreach { thisNode.addRightEdge }
     if (loPass)
@@ -554,7 +526,7 @@ case class LoopyGameSpecNode(
     if (roPass)
       thisNode.addRightEdge(thisNode)
     if (nodeLabel.isDefined)
-      domain.localScope(nodeLabel.get.methodScopeIndex) = Nil
+      domain.localScope(nodeLabel.get.localVariableReference.index) = Nil
     Iterable(thisNode)
   }
 
@@ -651,16 +623,16 @@ case class LoopNode(
     case _ => None
   }
 
-  override def elaborate(scope: Scope) {
+  override def elaborate(scope: ElaborationDomain) {
     forId match {
       case Some(idNode) =>
-        scope.scopeStack.push(new mutable.HashSet())
+        scope.pushScope()
         scope.insertId(idNode.id)
       case None =>
     }
     super.elaborate(scope)
     if (forId.isDefined) {
-      scope.scopeStack.pop()
+      scope.popScope()
     }
   }
 
@@ -710,7 +682,7 @@ case class LoopNode(
 
     Profiler.start(prepareLoop)
 
-    val forIndex = if (forId.isDefined) forId.get.methodScopeIndex else -1
+    val forIndex = if (forId.isDefined) forId.get.localVariableReference.index else -1
     var counter = if (from.isDefined) from.get.evaluate(domain) else null
     val toVal = if (to.isDefined) to.get.evaluate(domain) else null
     val byVal = if (by.isDefined) by.get.evaluate(domain) else one
@@ -793,17 +765,14 @@ object ProcedureNode {
 
 case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
-  override def elaborate(scope: Scope) = {
-    val newScope = Scope(scope.pkg, scope.classVars, Some(scope))
-    newScope.scopeStack.push(mutable.HashSet())
+  override def elaborate(scope: ElaborationDomain) = {
+    val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
     parameters foreach { param =>
-      newScope.insertId(param.id)
-      param.methodScopeIndex = newScope.varMap(param.id)
+      param.methodScopeIndex = newScope.insertId(param.id)
       param.defaultValue foreach { _.elaborate(newScope) }
     }
     body.elaborate(newScope)
-    newScope.scopeStack.pop()
-    localVariableCount = newScope.varMap.size
+    localVariableCount = newScope.localVariableCount
   }
   override def evaluate(domain: Domain) = Procedure(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
@@ -835,7 +804,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     case _ => None
   }
   var classResolution: CgscriptClass = _
-  override def elaborate(scope: Scope) {
+  override def elaborate(scope: ElaborationDomain) {
     asQualifiedClassName flatMap CgscriptPackage.lookupClass match {
       case Some(cls) => classResolution = cls
       case None => obj.elaborate(scope)     // Deliberately bypass idNode
@@ -895,7 +864,7 @@ case class FunctionCallNode(
 
   override val children = (callSite +: args) ++ argNames.flatten
 
-  override def elaborate(scope: Scope): Unit = {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     callSite elaborate scope
     args foreach { _ elaborate scope }
   }
@@ -976,7 +945,7 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDec
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   override val children = Seq(id, expr)
-  override def elaborate(scope: Scope) {
+  override def elaborate(scope: ElaborationDomain) {
     if (isVarDeclaration) {
       scope.insertId(id.id)
     }
@@ -984,13 +953,15 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDec
   }
   override def evaluate(domain: Domain) = {
     val newValue = expr.evaluate(domain)
-    if (id.methodScopeIndex >= 0) {
-      domain.localScope(id.methodScopeIndex) = newValue
-    } else if (id.classResolution != null) {
+    if (id.classResolution != null) {
       throw InputException(s"Cannot assign to class name as variable: `${id.id.name}`", token = Some(token))
+    } else if (id.localVariableReference != null) {
+      val refDomain = domain backref id.localVariableReference.domainHops
+      refDomain.localScope(id.localVariableReference.index) = newValue
     } else if (domain.isOuterDomain) {
       domain.putDynamicVar(id.id, newValue)
     } else {
+      // TODO Nested classes
       val res = id.resolver.findResolution(domain.contextObject.get)
       if (res.classScopeIndex >= 0)
         domain.contextObject.get.asInstanceOf[StandardObject].vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
@@ -1012,10 +983,10 @@ object StatementSequenceNode {
 case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends EvalNode {
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
-  override def elaborate(scope: Scope) = {
-    scope.scopeStack push mutable.HashSet()
+  override def elaborate(scope: ElaborationDomain) = {
+    scope.pushScope()
     statements.foreach { _.elaborate(scope) }
-    scope.scopeStack.pop()
+    scope.popScope()
   }
   override def evaluate(domain: Domain) = {
     var result: Any = Nil

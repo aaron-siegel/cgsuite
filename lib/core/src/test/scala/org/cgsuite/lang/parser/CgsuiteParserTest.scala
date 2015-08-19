@@ -37,9 +37,9 @@ class CgsuiteParserTest extends FlatSpec with Matchers {
 
     val tree = ParserUtil.parseExpression(str)
     val node = EvalNode(tree)
-    val scope = Scope(None, Set.empty, None)
+    val scope = ElaborationDomain(None, Seq.empty, None)
     node.elaborate(scope)
-    val domain = new Domain(new Array[Any](scope.varMap.size))
+    val domain = new Domain(new Array[Any](scope.localVariableCount))
     val result = node.evaluate(domain)
     result shouldBe expected
 

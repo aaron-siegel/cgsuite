@@ -253,7 +253,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Curried procedure evaluation - 1", "g := f(3)", "y -> (x + y)"),
       ("Curried procedure evaluation - 2", "h := f(5)", "y -> (x + y)"),
       ("Curried procedure evaluation - 3", "[g(7),h(7)]", "[10,12]"),
-      ("Curried procedure definition - duplicate var", "x -> x -> (x + 3)", "!!Duplicate var: `x`")
+      ("Curried procedure definition - duplicate var", "x -> x -> (x + 3)", "!!Duplicate var: `x`"),
+      ("Recursive procedure", "fact := n -> if n == 0 then 1 else n * fact(n-1) end; fact(6)", "720"),
+      ("Closure",
+        """f := () -> begin var x := nil; [y -> (x := y), () -> x] end;
+          |pair1 := f(); set1 := pair1[1]; get1 := pair1[2]; pair2 := f(); set2 := pair2[1]; get2 := pair2[2];
+          |set1("foo"); set2("bar"); [get1(), get2()]
+        """.stripMargin, """["foo","bar"]"""),
+      ("Procedure involving assignment - syntax error", "x -> y := x", "!!Syntax error.")
     ))
 
   }
@@ -579,9 +586,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   def parseResult(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Any = {
     val tree = ParserUtil.parseScript(input)
     val node = EvalNode(tree.getChild(0))
-    val scope = Scope(None, Set.empty, None)
+    val scope = ElaborationDomain(None, Seq.empty, None)
     node.elaborate(scope)
-    val domain = new Domain(new Array[Any](scope.varMap.size), dynamicVarMap = Some(varMap))
+    val domain = new Domain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
     node.evaluate(domain)
   }
 
