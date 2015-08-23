@@ -49,6 +49,8 @@ object ElaborationDomain {
     new ElaborationDomain(pkg, classVars, enclosingDomain, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
   }
 
+  def empty(pkg: Option[CgscriptPackage] = None) = ElaborationDomain(pkg, Seq(), None)
+
 }
 
 class ElaborationDomain private (

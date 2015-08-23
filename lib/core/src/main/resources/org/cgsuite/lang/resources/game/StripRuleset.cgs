@@ -1,0 +1,26 @@
+/*${cgsuite.banner}*/
+
+class StripRuleset extends Ruleset
+
+  def Eval(arg) begin
+    if arg is Strip then
+      Position(arg)
+    elseif arg is String then
+      Position(Strip.Parse(arg, CharMap))
+    else
+      error("Expecting a `Strip` or a `String`.")
+    end
+  end
+
+  def CharMap := error("Subclasses of `StripRuleset` must override `CharMap`.");
+
+  def Icons := error("Subclasses of `StripRuleset` must override `Icons`.");
+
+  class StripGame(Strip strip) extends Game
+
+    //override def ToOutput :=
+    //  cgsuite.util.output.GridOutput(strip, Icons, this.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
+
+  end
+
+end

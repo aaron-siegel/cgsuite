@@ -529,8 +529,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     execute(Table(
       header,
       ("Clobber", """game.grid.Clobber("xox|ox.").CanonicalForm""", "{^^*|*,v}"),
-      ("Clobber (Diagonal)", """game.grid.Clobber("xoxo|oox.|xxx.", directions => Coordinates.Diagonal).CanonicalForm""", "{0,v*|vv}"),
-      ("Clobber (Anti)", """game.grid.Clobber("xoxo|oo..", anti => true).CanonicalForm""", "{*|-1}")
+      ("Clobber (Diagonal)", """game.grid.GenClobber(directions => Coordinates.Diagonal)("xoxo|oox.|xxx.").CanonicalForm""", "{0,v*|vv}"),
+      ("Clobber (Anti)", """game.grid.AntiClobber("xoxo|oo..").CanonicalForm""", "{*|-1}")
     ))
   }
 
@@ -558,7 +558,15 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     execute(Table(
       header,
       ("ToadsAndFrogs", """game.strip.ToadsAndFrogs("ttttt..fffff").CanonicalForm""", "+-{{2|*},{5/2||2|{0||||{0||v<2>|-1},{0||||0||Miny(1/32)|-2|||-1/2*}|||v<2>|-1/2||-1*}|||0}}"),
-      ("BackslidingToadsAndFrogs", """game.strip.ToadsAndFrogs("ttt..fff", [-1,1,2]).GameValue""", "{on||0|-1/2} & {1/2|0||off}")
+      ("BackslidingToadsAndFrogs", """game.strip.BackslidingToadsAndFrogs("ttt..fff").GameValue""", "{on||0|-1/2} & {1/2|0||off}"),
+      ("GenToadsAndFrogs", """game.strip.GenToadsAndFrogs(2)("tttt..fff").CanonicalForm""", "{1/2*|v}")
+    ))
+  }
+
+  it should "avoid a weird class load order bug" in {
+    execute(Table(
+      header,
+      ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(2).Class""", "<<game.strip.GenToadsAndFrogs>>")
     ))
   }
 

@@ -122,10 +122,7 @@ object EvalNode {
         if (tree.getChild(0).getType != IDENTIFIER)
           throw InputException("Syntax error.", tree)
         AssignToNode(tree, IdentifierNode(tree.getChild(0)), EvalNode(tree.getChild(1)), isVarDeclaration = false)
-      case VAR =>
-        val (modifiers, nodes) = VarNode(tree)
-        assert(modifiers.isEmpty && nodes.size == 1)
-        nodes.head
+      case VAR => VarNode(tree)
 
       // Suppressor
 
@@ -258,7 +255,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   var resolver: Resolver = Resolver.forId(id)
   var constantResolution: Resolution = _
-  var classResolution: ClassObject = _
+  var classResolution: Any = _
 
   // We cache these separately - that provides for faster resolution than
   // using a matcher.
@@ -270,7 +267,9 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   override def elaborate(scope: ElaborationDomain) {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
     scope.pkg.flatMap { _.lookupClass(id) } orElse CgscriptPackage.lookupClass(id) match {
-      case Some(cls) => classResolution = cls.classObject
+      case Some(cls) => classResolution = {
+        if (cls.isSingleton) cls.singletonInstance else cls.classObject
+      }
       case None =>
     }
     // Can this be resolved as a scoped variable?
@@ -948,6 +947,17 @@ object FunctionCallResolution {
 }
 
 case class FunctionCallResolution(parameterToArgsMapping: Array[Int])
+
+object VarNode {
+  def apply(tree: Tree): AssignToNode = {
+    assert(tree.getType == VAR && tree.children.size == 1)
+    val t = tree.children.head
+    t.getType match {
+      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
+      case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
+    }
+  }
+}
 
 case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDeclaration: Boolean) extends EvalNode {
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)

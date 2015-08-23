@@ -2,6 +2,25 @@
 
 class GridRuleset extends Ruleset
 
-  class
+  def Eval(arg) begin
+    if arg is Grid then
+      Position(arg)
+    elseif arg is String then
+      Position(Grid.Parse(arg, CharMap))
+    else
+      error("Expecting a `Grid` or a `String`.")
+    end
+  end
+
+  def CharMap := error("Subclasses of `GridRuleset` must override `CharMap`.");
+
+  def Icons := error("Subclasses of `GridRuleset` must override `Icons`.");
+
+  class GridGame(Grid grid) extends Game
+
+    override def ToOutput :=
+      cgsuite.util.output.GridOutput(grid, Icons, this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
+
+  end
 
 end

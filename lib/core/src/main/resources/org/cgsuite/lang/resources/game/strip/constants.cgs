@@ -1,0 +1,12 @@
+/*${cgsuite.banner}*/
+
+class constants
+
+  // TODO There is a circularity bug that prevents these from being vars. Need to fix it.
+  // (Happens when you load GenToadsAndFrogs, forcing constants to load, forcing GenToadsAndFrogs to load.
+  //  I think maybe constants need to load lazily in order to work?)
+  static def ToadsAndFrogs := game.strip.GenToadsAndFrogs(1);
+  static def ElephantsAndRhinos := game.strip.GenToadsAndFrogs(0);
+  static def BackslidingToadsAndFrogs := game.strip.GenToadsAndFrogs(1, backsliding => true);
+
+end

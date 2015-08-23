@@ -179,6 +179,7 @@ object Ops {
 
   val ArrayReference = BinOp("[]") {
     case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
+    case (map: Map[Any,_], key: Any) => map(key)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
   }

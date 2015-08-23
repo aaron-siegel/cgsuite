@@ -16,6 +16,7 @@ import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
 import scala.language.existentials
+import scala.language.postfixOps
 
 object CgscriptClass {
 
@@ -90,17 +91,20 @@ object CgscriptClass {
 
     "game.constants",
     "game.GridGame",
+    "game.GridRuleset",
+    "game.Ruleset",
     "game.StripGame",
+    "game.StripRuleset",
 
     "game.grid.Amazons",
-    "game.grid.Clobber",
     "game.grid.constants",
     "game.grid.Domineering",
     "game.grid.Fission",
     "game.grid.FoxAndGeese",
     "game.grid.GenClobber",
 
-    "game.strip.ToadsAndFrogs"
+    "game.strip.constants",
+    "game.strip.GenToadsAndFrogs"
 
   )
 
@@ -168,16 +172,21 @@ object CgscriptClass {
 
 }
 
+trait Member {
+  def declaringClass: CgscriptClass
+}
+
 class CgscriptClass(
   val pkg: CgscriptPackage,
   val enclosingClass: Option[CgscriptClass],
   val id: Symbol,
   val systemClass: Option[Class[_]] = None
-  ) extends LazyLogging {
+  ) extends Member with LazyLogging {
 
   import CgscriptClass._
 
   val classOrdinal = newClassOrdinal        // TODO How to handle for nested classes??
+  val declaringClass = enclosingClass orNull
   val javaClass = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
@@ -204,15 +213,16 @@ class CgscriptClass(
     val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
     val isMutable = modifiers.contains(Modifier.Mutable)
+    val isSingleton = modifiers.contains(Modifier.Singleton)
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
     val localClassVars = initializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, true), false, _) => assignId.id
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, false, _) => assignId.id
     }
     val allClassVars: Seq[Symbol] = (constructorParamVars ++ inheritedClassVars ++ localClassVars).distinct
     val classVarOrdinals: Map[Symbol, Int] = allClassVars.zipWithIndex.toMap
     val staticVars = enumElements.map { _.id.id } ++ staticInitializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, true), true, _) => assignId.id
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, true, _) => assignId.id
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
     val allSymbolsInThisClass: Set[Symbol] = {
@@ -243,6 +253,7 @@ class CgscriptClass(
   private var classInfoRef: ClassInfo = _
   private var loading = false
   private var classObjectRef: ClassObject = _
+  private var singletonInstanceRef: Any = _
 
   val transpositionTable = new TranspositionTable()
 
@@ -258,7 +269,14 @@ class CgscriptClass(
     classObjectRef
   }
 
+  def singletonInstance = {
+    ensureLoaded()
+    singletonInstanceRef
+  }
+
   def isMutable = classInfo.isMutable
+
+  def isSingleton = classInfo.isSingleton
 
   def constructor = classInfo.constructor
 
@@ -266,7 +284,7 @@ class CgscriptClass(
 
   def initializers = classInfo.initializers
 
-  trait Method {
+  trait Method extends Member {
 
     def id: Symbol
     def parameters: Seq[Parameter]
@@ -524,33 +542,35 @@ class CgscriptClass(
 
         val supers = {
           if (node.extendsClause.isEmpty) {
-            if (node.isEnum)
-              Seq(Enum)
-            else
-              Seq(Object)
+            Seq(if (node.isEnum) Enum else Object)
           } else {
             node.extendsClause map {
-              case IdentifierNode(tree, superId) => CgscriptPackage.lookupClass(superId) getOrElse {
-                throw InputException(s"Unknown superclass: `${superId.name}`", tree)
-              }
-              case node: DotNode => Option(node.classResolution) getOrElse {
-                sys.error("not found")
-              }
+              case IdentifierNode(tree, superId) =>
+                // Try looking this id up two ways:
+                // First, if this is a nested class, then look it up as some other nested class
+                // of this class's enclosing class;
+                // Then try looking it up as a global class.
+                enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
+                  CgscriptPackage lookupClass superId getOrElse {
+                    throw InputException(s"Unknown superclass: `${superId.name}`", tree)
+                  }
+                }
+              case node: DotNode =>
+                node.elaborate(ElaborationDomain.empty(Some(pkg)))
+                Option(node.classResolution) getOrElse {
+                  sys.error("not found")
+                }
             }
           }
         }
         supers foreach { _.ensureLoaded() }
 
-        val nestedClasses = node.nestedClassDeclarations.map { decl =>
+        val localMethods = node.methodDeclarations map parseMethod
+        val localNestedClasses = node.nestedClassDeclarations map { decl =>
           val newClass = new CgscriptClass(pkg, Some(this), decl.id.id)
           (decl.id.id, newClass)
-        }.toMap
-
-        // TODO Check for unresolved superclass method conflicts
-        // TODO Check for duplicate local method names
-        val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
-        val localMethods = node.methodDeclarations map parseMethod
-        val constructor = node.constructorParams.map { t =>
+        } toMap
+        val constructor = node.constructorParams map { t =>
           val parameters = parseParameterList(t)
           systemClass match {
             case None => UserConstructor(id, parameters)
@@ -559,46 +579,54 @@ class CgscriptClass(
               SystemConstructor(id, parameters, cls.getConstructor(externalParameterTypes : _*))
           }
         }
+        val localMembers = localMethods ++ localNestedClasses
 
         // Check for duplicate methods.
 
-        localMethods groupBy { _._1 } find { _._2.size > 1 } foreach { case (methodId, _) =>
-          throw InputException(s"Method `${methodId.name}` is declared twice in class `$qualifiedName`.")
+        localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
+          throw InputException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`.")
         }
+
+        // TODO Check for unresolved superclass method conflicts
+        // TODO Check for duplicate local method names
+        val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
+        val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
+        val superMembers = superMethods ++ superNestedClasses
 
         // Check for conflicting superclass methods.
 
-        val mostSpecificSuperMethods = superMethods groupBy { _._1 } map { case (superId, instances) =>
-          val mostSpecificInstances = instances.distinct filterNot { case (_, method) =>
+        val mostSpecificSuperMembers = superMembers groupBy { _._1 } map { case (superId, instances) =>
+          val mostSpecificInstances = instances.distinct filterNot { case (_, member) =>
             // Filter out this declaration if there exists a strict subclass that also declares this method
             // (that one will override)
-            instances.exists { case (_, otherMethod) =>
-              otherMethod != method && otherMethod.declaringClass.ancestors.contains(method.declaringClass)
+            instances.exists { case (_, other) =>
+              other != member && other.declaringClass.ancestors.contains(member.declaringClass)
             }
           }
           // If there are multiple most specific instances (so that neither one overrides the other),
           // and this method isn't redeclared by the loading class, that's an error
-          if (mostSpecificInstances.size > 1 && !localMethods.exists { case (localId, _) => localId == superId }) {
-            val superclassNames = mostSpecificInstances map { case (_, superMethod) => s"`${superMethod.declaringClass.qualifiedName}`" }
+          if (mostSpecificInstances.size > 1 && !localMembers.exists { case (localId, _) => localId == superId }) {
+            val superclassNames = mostSpecificInstances map { case (_, superMember) => s"`${superMember.declaringClass.qualifiedName}`" }
             throw InputException(
-              s"Method `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
+              s"Member `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
                 s"because it is defined in multiple superclasses (${superclassNames mkString ", "})"
             )
           }
           (superId, mostSpecificInstances)
         }
 
-        val resolvedSuperMethods = mostSpecificSuperMethods collect {
+        val resolvedSuperMembers = mostSpecificSuperMembers collect {
           case (_, instances) if instances.size == 1 => instances.head
         }
 
         // TODO What if there are multiple resolved supermethods? How do we define `super.` syntax in that case?
 
-        val renamedSuperMethods = resolvedSuperMethods map { case (superId, superMethod) =>
-          (Symbol("super$" + superId.name), superMethod)
+        val renamedSuperMembers = resolvedSuperMembers map { case (superId, superMember) =>
+          (Symbol("super$" + superId.name), superMember)
         }
 
         // override modifier validation.
+        // TODO for Nested classes too!
 
         localMethods foreach { case (methodId, method) =>
           if (method.isOverride) {
@@ -614,7 +642,14 @@ class CgscriptClass(
           }
         }
 
-        (supers, nestedClasses, resolvedSuperMethods ++ renamedSuperMethods ++ localMethods, constructor)
+        val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
+        val (allMethods, allNestedClasses) = allMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
+
+        ( supers,
+          allNestedClasses mapValues { _.asInstanceOf[CgscriptClass] },
+          allMethods mapValues { _.asInstanceOf[CgscriptClass#Method] },
+          constructor
+        )
 
       } else {
 
@@ -650,6 +685,22 @@ class CgscriptClass(
     // Elaborate methods
     constructor foreach { _.elaborate() }
     methods foreach { case (_, method) => method.elaborate() }
+
+    // TODO Validate that singletons have no constructor
+
+    // Singleton construction
+    if (classInfo.isSingleton) {
+      if (enclosingClass.isDefined) {
+        sys.error("Nested singleton classes are not yet supported.")
+      }
+      if (qualifiedName == "game.Zero") {
+        singletonInstanceRef = ZeroImpl
+      } else {
+        singletonInstanceRef = new StandardObject(this, Array.empty)
+      }
+    } else {
+      singletonInstanceRef = null
+    }
 
     // Enum construction
     node.enumElements foreach { element =>
@@ -690,7 +741,7 @@ class CgscriptClass(
       }
     }
 
-    node.ordinaryInitializers.foreach { _.body.elaborate(ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)) }
+    node.ordinaryInitializers.foreach { _.body elaborate ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None) }
 
   }
 

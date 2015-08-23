@@ -2,6 +2,8 @@
 
 class constants
 
-  static var Clobber2 := game.grid.GenClobber();
+  static def Clobber := game.grid.GenClobber();
+  static def AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1});
+  static def HotClobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}});
 
 end

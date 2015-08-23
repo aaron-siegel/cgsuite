@@ -1,0 +1,46 @@
+/*${cgsuite.banner}*/
+
+class GenToadsAndFrogs(Integer maxJump, Boolean backsliding ? false) extends StripRuleset
+
+  var minMove := if backsliding then -1 else 1 end;
+  var maxMove := maxJump + 1;
+
+  class Position(Strip strip) extends StripGame
+
+    override def Options(Player player) begin
+
+      var us := player.Ordinal;
+      var them := player.Opponent.Ordinal;
+
+      for n in strip.FindAll(us)
+      for k from minMove to maxMove
+      while k < 2 or strip[n+(k-1)*player.Sign] == them
+      where k != 0 and strip[n+k*player.Sign] == 0
+      yield
+        Position(strip.Updated({n => 0, n+k*player.Sign => us}))
+      end
+
+    end
+
+    override def DepthHint begin
+
+      var toadCount := 0;
+      var leapCount := 0;
+
+      for n from 1 to strip.Length do
+        if strip[n] == 1 then toadCount := toadCount + 1;
+        elseif strip[n] == 2 then leapCount := leapCount + toadCount;
+        end
+      end
+
+      leapCount
+
+    end
+
+  end
+
+  override def CharMap := ".tf";
+
+  override def Icons := [Icon.Blank, Icon.Toad, Icon.Frog];
+
+end

@@ -96,6 +96,7 @@ tokens
 	RETURN		= 'return';
 	SET         = 'set';
     SETOF       = 'setof';
+    SINGLETON   = 'singleton';
     STATIC      = 'static';
     SUMOF       = 'sumof';
     SUPER       = 'super';
@@ -114,6 +115,7 @@ tokens
 	ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
 	ASN_ANTECEDENT;
+	CLASS_VAR;
 	COORDINATES;
 	DECLARATIONS;
     ENUM_ELEMENT;
@@ -266,7 +268,7 @@ classModifiers
     ;
 
 classModifier
-    : MUTABLE | SYSTEM
+    : MUTABLE | OVERRIDE | SINGLETON | STATIC | SYSTEM
     ;
 	
 extendsClause
@@ -288,7 +290,7 @@ declarations
 declarationChain
 	:   (modifiers CLASS) => classDeclaration declarationChain?
     | (modifiers DEF) => defDeclaration declarationChain?
-    | (modifiers VAR) => varDeclaration SEMI! declarationChain?
+    | (modifiers VAR) => classVarDeclaration SEMI! declarationChain?
     | (STATIC) => staticDeclaration declarationChain?
     | (IF | loopAntecedent | BEGIN) => controlExpression declarationChain?
     | (TRY) => tryStatement declarationChain?
@@ -299,8 +301,8 @@ staticDeclaration
     : STATIC^ statementSequence END!
     ;
 	
-varDeclaration
-    : modifiers VAR^ varInitializer (COMMA! varInitializer)*
+classVarDeclaration
+    : modifiers VAR varInitializer (COMMA varInitializer)* -> ^(CLASS_VAR[$VAR] modifiers varInitializer*)
     ;
 
 varInitializer
@@ -404,12 +406,16 @@ statement
 	| RETURN^ expression?
     | CLEAR
     | tryStatement
-    | varDeclaration
+    | localVarDeclaration
     | expression
     ;
 
 tryStatement
     : TRY^ statementSequence FINALLY! statementSequence END!
+    ;
+
+localVarDeclaration
+    : VAR^ varInitializer
     ;
 
 expression

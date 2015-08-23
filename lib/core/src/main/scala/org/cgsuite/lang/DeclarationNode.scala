@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -21,14 +22,15 @@ object DeclarationNode {
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
-      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true, isExternal = false))
+      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isVarDeclaration = false, isStatic = true, isExternal = false))
 
-      case VAR =>
-        val (modifiers, nodes) = VarNode(tree)
+      case CLASS_VAR =>
+        val (modifiers, nodes) = ClassVarNode(tree)
         nodes.map { node =>
           InitializerNode(
             tree,
             node,
+            isVarDeclaration = true,
             isStatic = tree.getType == ENUM_ELEMENT || modifiers.exists { _.modifier == Modifier.Static },
             isExternal = modifiers.exists { _.modifier == Modifier.External }
           )
@@ -36,7 +38,7 @@ object DeclarationNode {
 
       case ENUM_ELEMENT => Iterable(EnumElementNode(tree))
 
-      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isStatic = false, isExternal = false))
+      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isVarDeclaration = false, isStatic = false, isExternal = false))
 
     }
 
@@ -139,14 +141,14 @@ case class ParameterNode(
   override val children = Seq(id, classId) ++ defaultValue
 }
 
-object VarNode {
+object ClassVarNode {
   def apply(tree: Tree): (Seq[ModifierNode], Seq[AssignToNode]) = {
-    assert(tree.getType == VAR)
+    assert(tree.getType == CLASS_VAR)
     val modifiers = ModifierNodes(tree.getChild(0))
-    val nodes = tree.children.tail.map { t =>
+    val nodes = tree.children.tail map { t =>
       t.getType match {
-        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
-        case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
+        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = false)
+        case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = false)
       }
     }
     (modifiers, nodes)
@@ -180,14 +182,14 @@ case class MethodDeclarationNode(
 
 }
 
-case class InitializerNode(tree: Tree, body: EvalNode, isStatic: Boolean, isExternal: Boolean) extends Node {
+case class InitializerNode(tree: Tree, body: EvalNode, isVarDeclaration: Boolean, isStatic: Boolean, isExternal: Boolean) extends Node {
   val children = Seq(body)
 }
 
 object ModifierNodes {
   def apply(tree: Tree): Seq[ModifierNode] = {
     assert(tree.getType == MODIFIERS)
-    tree.children.map { t => ModifierNode(t, Modifier.fromString(t.getText)) }
+    tree.children map { t => ModifierNode(t, Modifier.fromToken(t.token)) }
   }
 }
 
@@ -197,12 +199,13 @@ case class ModifierNode(tree: Tree, modifier: Modifier.Value) extends Node {
 
 object Modifier extends Enumeration {
   type Modifier = Value
-  val External, Mutable, Override, Static, System = Value
-  def fromString(str: String) = str match {
-    case "external" => External
-    case "mutable" => Mutable
-    case "override" => Override
-    case "static" => Static
-    case "system" => System
+  val External, Mutable, Override, Singleton, Static, System = Value
+  def fromToken(token: Token) = token.getType match {
+    case EXTERNAL => External
+    case MUTABLE => Mutable
+    case OVERRIDE => Override
+    case SINGLETON => Singleton
+    case STATIC => Static
+    case SYSTEM => System
   }
 }

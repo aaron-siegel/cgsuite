@@ -1,4 +1,4 @@
 /*${cgsuite.banner}*/
 
-system class Zero extends Integer, Nimber
+singleton system class Zero extends Integer, Nimber
 end

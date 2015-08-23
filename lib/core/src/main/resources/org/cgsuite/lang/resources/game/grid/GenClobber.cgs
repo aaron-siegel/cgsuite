@@ -1,41 +1,37 @@
 /*${cgsuite.banner}*/
 
-class GenClobber(directions ? Coordinates.Orthogonal, anti ? false)
+class GenClobber(
+  directions ? Coordinates.Orthogonal,
+  clobbered ? {Left => {2}, Right => {1}},
+  leftBehind ? {Left => 0, Right => 0}
+  ) extends GridRuleset
 
-  def Eval(arg) begin
-    if arg is Grid then
-      Position(arg)
-    elseif arg is String then
-      Position(Grid.Parse(arg, ".xo"))
-    else
-      error("GridGame Constructor argument must be a Grid or a String.")
-    end
-  end
+  var clobberedAsList := [clobbered[Left], clobbered[Right]];
+  var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
 
   class Position(Grid grid) extends GridGame
 
     override def Options(Player player) begin
 
       var us := player.Ordinal;
-      var them := player.Opponent.Ordinal;
 
-      var clobbered := if anti then 0 else them end;
-      var leftBehind := if anti then them else 0 end;
+      var clob := clobberedAsList[us];
+      var lb := leftBehindAsList[us];
 
       for c in grid.FindAll(us)
-      for d in directions where grid[c+d] == clobbered
+      for d in directions where clob.Contains(grid[c+d])
       yield
-        Position(grid.Updated({c => leftBehind, c+d => us}))
+        Position(grid.Updated({c => lb, c+d => us}))
       end
 
     end
 
     override def Decomposition := listof(Position(component) for component in grid.Decomposition(0, directions));
 
-    override def CharMap := ".xo";
-
-    override def Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone];
-
   end
+
+  override def CharMap := ".xo#";
+
+  override def Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone, Icon.GraySquare];
 
 end
