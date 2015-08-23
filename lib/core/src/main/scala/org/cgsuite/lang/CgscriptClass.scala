@@ -94,9 +94,11 @@ object CgscriptClass {
 
     "game.grid.Amazons",
     "game.grid.Clobber",
+    "game.grid.constants",
     "game.grid.Domineering",
     "game.grid.Fission",
     "game.grid.FoxAndGeese",
+    "game.grid.GenClobber",
 
     "game.strip.ToadsAndFrogs"
 
@@ -129,6 +131,7 @@ object CgscriptClass {
   private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
 
   def of(x: Any): CgscriptClass = {
+    assert(x != null)
     val result = x match {
       case so: StandardObject => so.cls
       case _ => classLookupCache.getOrElseUpdate(x.getClass, toCgscriptClass(x))
@@ -157,6 +160,8 @@ object CgscriptClass {
   }
 
   def clearAll() {
+    CanonicalShortGameOps.reinit()
+    Resolver.clearAll()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
     Object.ensureLoaded()
   }
@@ -165,23 +170,30 @@ object CgscriptClass {
 
 class CgscriptClass(
   val pkg: CgscriptPackage,
+  val enclosingClass: Option[CgscriptClass],
   val id: Symbol,
   val systemClass: Option[Class[_]] = None
   ) extends LazyLogging {
 
   import CgscriptClass._
 
-  val classOrdinal = newClassOrdinal
+  val classOrdinal = newClassOrdinal        // TODO How to handle for nested classes??
   val javaClass = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
-  val qualifiedName = pkg.qualifiedName + "." + id.name
-  val qualifiedId = Symbol(qualifiedName)
+  val name: String = enclosingClass match {
+    case Some(encl) => encl.name + "." + id.name
+    case None => id.name
+  }
+  val qualifiedName: String = pkg.qualifiedName + "." + name
+  val qualifiedId: Symbol = Symbol(qualifiedName)
+  val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
   class ClassInfo(
     val modifiers: Set[Modifier.Value],
     val supers: Seq[CgscriptClass],
+    val nestedClasses: Map[Symbol, CgscriptClass],
     val methods: Map[Symbol, CgscriptClass#Method],
     val constructor: Option[CgscriptClass#Constructor],
     val initializers: Seq[InitializerNode],
@@ -203,9 +215,21 @@ class CgscriptClass(
       case InitializerNode(_, AssignToNode(_, assignId, _, true), true, _) => assignId.id
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
-    val allSymbolsInScope: Set[Symbol] = classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet
+    val allSymbolsInThisClass: Set[Symbol] = {
+      classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
+    }
+    lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
+      allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
+    }
+    val allMethodsInScope: Map[Symbol, CgscriptClass#Method] = {
+      (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
+    }
+    val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
+      (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
+    }
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
+    lazy val evalMethod = lookupMethod('Eval) getOrElse { throw InputException("Method not found: `Eval`") }
     lazy val optionsMethod = lookupMethod('Options) getOrElse { throw InputException("Method not found: `Options`") }
     lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw InputException("Method not found: `Decomposition`") }
     lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw InputException("Method not found: `CanonicalForm`") }
@@ -258,12 +282,12 @@ class CgscriptClass(
     val ordinal = CallSite.newCallSiteOrdinal
 
     def elaborate(): Unit = {
-      logger.debug(s"Elaborating $qualifiedName")
-      val scope = ElaborationDomain(Some(pkg), Seq(classInfo.allSymbolsInScope), None)
+      logger.debug(s"$logPrefix Elaborating.")
+      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
         param.defaultValue foreach { _.elaborate(scope) }
       }
-      logger.debug(s"Done elaborating $qualifiedName")
+      logger.debug(s"$logPrefix Done elaborating.")
     }
 
   }
@@ -281,7 +305,7 @@ class CgscriptClass(
     private var localVariableCount: Int = 0
 
     override def elaborate(): Unit = {
-      val scope = ElaborationDomain(Some(pkg), Seq(classInfo.allSymbolsInScope), None)
+      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
         param.methodScopeIndex = scope.insertId(param.id)
         param.defaultValue foreach { _.elaborate(scope) }
@@ -428,26 +452,35 @@ class CgscriptClass(
   }
 
   def setURL(url: URL) {
-    logger.debug(s"Declaring class $classOrdinal: ${id.name} at $url")
+    logger.debug(s"$logPrefix Setting URL: $url")
     this.url = url
     unload()
   }
 
   def unload() {
-    this.classInfoRef = null
+    logger.debug(s"$logPrefix Unloading.")
+    if (classInfoRef != null) {
+      classInfoRef.nestedClasses.values foreach { _.unload() }
+      classInfoRef = null
+    }
     this.loading = false
     this.transpositionTable.clear()
   }
 
   def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
     ensureLoaded()
-    classInfo.methods.get(id)
+    classInfo.allMethodsInScope.get(id)
+  }
+
+  def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
+    ensureLoaded()
+    classInfo.allNestedClassesInScope.get(id)
   }
 
   def ensureLoaded() {
     if (classInfoRef == null) {
       if (url == null) {
-        sys.error("URL not set")
+        sys.error("URL not set: " + logPrefix)
       }
       load(url)
     }
@@ -460,7 +493,7 @@ class CgscriptClass(
     }
     loading = true
 
-    logger.debug(s"Loading class: ${id.name} at $url")
+    logger.debug(s"$logPrefix Loading class from URL: $url")
 
     val in = url.openStream()
     val tree = try {
@@ -469,15 +502,15 @@ class CgscriptClass(
       in.close()
     }
 
-    logger.debug(tree.toStringTree)
+    logger.debug(s"$logPrefix Parse tree: ${tree.toStringTree}")
 
     assert(tree.getType == EOF)
 
     val node = ClassDeclarationNode(tree.getChild(1))
-    logger.debug(node.toString)
+    logger.debug(s"$logPrefix Node: $node")
     declareClass(node)
 
-    logger.debug(s"Done loading class: ${id.name}")
+    logger.debug(s"$logPrefix Done loading class from URL: $url")
 
   }
 
@@ -485,7 +518,7 @@ class CgscriptClass(
 
     val modifiers = node.modifiers.map { _.modifier }.toSet
 
-    val (supers, methods, constructor) = {
+    val (supers, nestedClasses, methods, constructor) = {
 
       if (Object.isLoaded) { // Hack to bootstrap Object
 
@@ -496,17 +529,23 @@ class CgscriptClass(
             else
               Seq(Object)
           } else {
-            node.extendsClause.map {
+            node.extendsClause map {
               case IdentifierNode(tree, superId) => CgscriptPackage.lookupClass(superId) getOrElse {
                 throw InputException(s"Unknown superclass: `${superId.name}`", tree)
               }
-              case node: DotNode => CgscriptPackage.lookupClass(node.asQualifiedClassName.get) getOrElse {
+              case node: DotNode => Option(node.classResolution) getOrElse {
                 sys.error("not found")
               }
             }
           }
         }
-        supers.foreach { _.ensureLoaded() }
+        supers foreach { _.ensureLoaded() }
+
+        val nestedClasses = node.nestedClassDeclarations.map { decl =>
+          val newClass = new CgscriptClass(pkg, Some(this), decl.id.id)
+          (decl.id.id, newClass)
+        }.toMap
+
         // TODO Check for unresolved superclass method conflicts
         // TODO Check for duplicate local method names
         val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
@@ -575,13 +614,13 @@ class CgscriptClass(
           }
         }
 
-        (supers, resolvedSuperMethods ++ renamedSuperMethods ++ localMethods, constructor)
+        (supers, nestedClasses, resolvedSuperMethods ++ renamedSuperMethods ++ localMethods, constructor)
 
       } else {
 
         // We're loading Object right now!
         val localMethods = node.methodDeclarations map parseMethod
-        (Seq.empty, localMethods.toMap, None)
+        (Seq.empty[CgscriptClass], Map.empty[Symbol, CgscriptClass], localMethods.toMap, None)
 
       }
 
@@ -590,6 +629,7 @@ class CgscriptClass(
     classInfoRef = new ClassInfo(
       modifiers,
       supers,
+      nestedClasses,
       methods,
       constructor,
       node.ordinaryInitializers,
@@ -600,6 +640,12 @@ class CgscriptClass(
 
     // Create the class object
     classObjectRef = new ClassObject(CgscriptClass.this)
+
+    // Declare nested classes
+    node.nestedClassDeclarations foreach { decl =>
+      val id = decl.id.id
+      classInfo.nestedClasses(id).declareClass(decl)
+    }
 
     // Elaborate methods
     constructor foreach { _.elaborate() }
@@ -632,7 +678,7 @@ class CgscriptClass(
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node =>
       if (!node.isExternal) {
-        val scope = ElaborationDomain(Some(pkg), Seq(classInfo.allSymbolsInScope), None)
+        val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
         // We intentionally don't elaborate var declarations, since those are already
         // accounted for in the class vars. But we still need to elaborate the RHS of
         // the assignment.
@@ -644,7 +690,7 @@ class CgscriptClass(
       }
     }
 
-    node.ordinaryInitializers.foreach { _.body.elaborate(ElaborationDomain(Some(pkg), Seq(classInfo.allSymbolsInScope), None)) }
+    node.ordinaryInitializers.foreach { _.body.elaborate(ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)) }
 
   }
 
@@ -659,20 +705,20 @@ class CgscriptClass(
 
     val newMethod = {
       if (node.isExternal) {
-        logger.debug(s"Declaring external method: $name")
+        logger.debug(s"$logPrefix Declaring external method: $name")
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
-            logger.debug("It's a special method.")
+            logger.debug(s"$logPrefix   It's a special method.")
             new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
             val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
-            logger.debug(s"It's a Java method via reflection: $externalMethod")
+            logger.debug(s"$logPrefix   It's a Java method via reflection: $externalMethod")
             new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride, externalMethod)
         }
       } else {
-        logger.debug(s"[$qualifiedName] Declaring user method: $name")
+        logger.debug(s"$logPrefix Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
         new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride, body)
       }

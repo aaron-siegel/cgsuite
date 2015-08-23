@@ -56,7 +56,7 @@ class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
   def lookupClass(id: Symbol): Option[CgscriptClass] = classes.get(id)
 
   def declareClass(id: Symbol, url: URL, scalaClass: Option[Class[_]]): CgscriptClass = {
-    val cls = classes.getOrElseUpdate(id, new CgscriptClass(this, id, scalaClass))
+    val cls = classes.getOrElseUpdate(id, new CgscriptClass(this, None, id, scalaClass))
     cls.setURL(url)
     CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
     if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game) {

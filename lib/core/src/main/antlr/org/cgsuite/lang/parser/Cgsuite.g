@@ -286,9 +286,10 @@ declarations
 	;
 
 declarationChain
-	: (modifiers DEF) => defDeclaration declarationChain?
-	| (modifiers VAR) => varDeclaration SEMI! declarationChain?
-	| (STATIC) => staticDeclaration declarationChain?
+	:   (modifiers CLASS) => classDeclaration declarationChain?
+    | (modifiers DEF) => defDeclaration declarationChain?
+    | (modifiers VAR) => varDeclaration SEMI! declarationChain?
+    | (STATIC) => staticDeclaration declarationChain?
     | (IF | loopAntecedent | BEGIN) => controlExpression declarationChain?
     | (TRY) => tryStatement declarationChain?
     | statement SEMI! declarationChain?
@@ -331,8 +332,8 @@ defInitializer
     ;
 
 modifiers
-	: (OVERRIDE | MUTABLE | STATIC | EXTERNAL)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC* EXTERNAL*)
-	;
+    : (OVERRIDE | MUTABLE | STATIC | EXTERNAL)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC* EXTERNAL*)
+    ;
 
 opCode
 options { greedy = true; }

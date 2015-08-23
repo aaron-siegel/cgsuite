@@ -9,7 +9,8 @@ import org.cgsuite.util.TranspositionTable
 
 import scala.collection.mutable
 
-class StandardObject(val cls: CgscriptClass, objArgs: Array[Any]) extends OutputTarget {
+class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: StandardObject = null)
+  extends OutputTarget {
 
   private[lang] var vars: Array[Any] = _
   init()
@@ -27,14 +28,18 @@ class StandardObject(val cls: CgscriptClass, objArgs: Array[Any]) extends Output
     if (cls.isMutable) {
       None
     } else {
-      Some(cls.hashCode() ^ java.util.Arrays.hashCode(vars.asInstanceOf[Array[AnyRef]]))
+      // TODO We can probably improve the hashcode resolution here
+      val clsHashCode = cls.hashCode()
+      val enclHashCode = if (enclosingObj == null) 0 else enclosingObj.hashCode()
+      val varsHashCode = java.util.Arrays.hashCode(vars.asInstanceOf[Array[AnyRef]])
+      Some(clsHashCode ^ enclHashCode ^ varsHashCode)
     }
   }
 
   override def equals(other: Any) = other match {
     case obj: StandardObject =>
       (this eq obj) ||
-        cls == obj.cls && java.util.Arrays.equals(vars.asInstanceOf[Array[AnyRef]], obj.vars.asInstanceOf[Array[AnyRef]])
+        cls == obj.cls && enclosingObj == obj.enclosingObj && java.util.Arrays.equals(vars.asInstanceOf[Array[AnyRef]], obj.vars.asInstanceOf[Array[AnyRef]])
     case _ => false
   }
 
@@ -63,18 +68,19 @@ class StandardObject(val cls: CgscriptClass, objArgs: Array[Any]) extends Output
 
 class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty)
 
-class GameObject(cls: CgscriptClass, objArgs: Array[Any]) extends StandardObject(cls, objArgs) with Game {
+class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: StandardObject = null)
+  extends StandardObject(cls, objArgs, enclosingObj) with Game {
 
   def options(player: Player) = {
-    cls.classInfo.optionsMethod.call(this, Array(player)).asInstanceOf[Seq[Game]]
+    cls.classInfo.optionsMethod.call(this, Array(player)).asInstanceOf[Iterable[Game]]
   }
 
   override def canonicalForm: CanonicalShortGame = canonicalForm(cls.transpositionTable)
 
   override def gameValue: SidedValue = gameValue(cls.transpositionTable)
 
-  override def decomposition: Seq[_] = {
-    cls.classInfo.decompositionMethod.call(this, Array.empty).asInstanceOf[Seq[_]]
+  override def decomposition: Iterable[_] = {
+    cls.classInfo.decompositionMethod.call(this, Array.empty).asInstanceOf[Iterable[_]]
   }
 
   override def depthHint: Int = {

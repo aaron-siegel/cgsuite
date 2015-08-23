@@ -324,8 +324,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     if (domain.isOuterDomain) {
       domain getDynamicVar id
     } else if (classVariableReference != null) {
-      // TODO Nesting
-      Some(classVariableReference.resolver resolve domain.contextObject.get)
+      Some(classVariableReference.resolver resolve domain.nestingBackrefContextObject(classVariableReference.nestingHops))
     } else {
       None
     }
@@ -798,22 +797,30 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
 
 case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
   override val children = Seq(obj, idNode)
-  val asQualifiedClassName: Option[Symbol] = obj match {
-    case IdentifierNode(_, antecedentId) => Some(Symbol(antecedentId.name + "." + idNode.id.name))
-    case node: DotNode => node.asQualifiedClassName.map { next => Symbol(next.name + "." + idNode.id.name) }
+  val antecedentAsPackagePath: Option[Seq[String]] = obj match {
+    case IdentifierNode(_, antecedentId) => Some(Seq(antecedentId.name))
+    case node: DotNode => node.antecedentAsPackagePath.map { _ :+ node.idNode.id.name }
     case _ => None
   }
+  val antecedentAsPackage: Option[CgscriptPackage] = antecedentAsPackagePath flatMap { CgscriptPackage.root.lookupSubpackage }
   var classResolution: CgscriptClass = _
+  var constantResolution: Resolution = _
   override def elaborate(scope: ElaborationDomain) {
-    asQualifiedClassName flatMap CgscriptPackage.lookupClass match {
+    antecedentAsPackage flatMap { _.lookupClass(idNode.id) } match {
       case Some(cls) => classResolution = cls
-      case None => obj.elaborate(scope)     // Deliberately bypass idNode
+      case None =>
+        antecedentAsPackage flatMap { _.lookupConstant(idNode.id) } match {
+          case Some(res) => constantResolution = res
+          case None => obj.elaborate(scope)     // Deliberately bypass idNode
+        }
     }
   }
   override def evaluate(domain: Domain): Any = {
     if (classResolution != null)
       classResolution.classObject
-    else {
+    else if (constantResolution != null) {
+      constantResolution evaluateFor constantResolution.cls.classObject
+    } else {
       val x = obj.evaluate(domain)
       val y = idNode.resolver.resolve(x)
       if (y == null)
@@ -873,8 +880,7 @@ case class FunctionCallNode(
 
     val obj = this.callSite.evaluate(domain)
     val callSite: CallSite = obj match {
-      case im: InstanceMethod => im
-      case proc: Procedure => proc
+      case cs: CallSite => cs
       case co: ClassObject => co.forClass.constructor match {
         case Some(ctor) => ctor
         case None => throw InputException(
@@ -882,6 +888,8 @@ case class FunctionCallNode(
           token = Some(token)
         )
       }
+        // TODO Maybe just make StandardObject a CallSite
+      case so: StandardObject => InstanceMethod(so, so.cls.classInfo.evalMethod)    // Faster than lookupInstanceMethod
       case _ => throw InputException("That is not a method or procedure: " + obj, token = Some(token))
     }
 

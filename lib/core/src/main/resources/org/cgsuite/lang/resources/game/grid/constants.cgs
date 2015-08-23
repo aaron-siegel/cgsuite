@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+class constants
+
+  static var Clobber2 := game.grid.GenClobber();
+
+end

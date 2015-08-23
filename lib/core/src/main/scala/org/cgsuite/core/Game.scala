@@ -158,6 +158,6 @@ trait Game extends OutputTarget {
   
   def rightOptions: Iterable[Game] = options(Right)
 
-  def decomposition: Seq[_] = Seq(this)
+  def decomposition: Iterable[_] = Seq(this)
 
 }

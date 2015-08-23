@@ -3,7 +3,8 @@ package org.cgsuite.lang
 class ClassObject(val forClass: CgscriptClass)
   extends StandardObject(CgscriptClass.Class, Array.empty) {
 
-  def name = forClass.id.name
+  def name = forClass.name
+  def ordinal = forClass.classOrdinal
   def qualifiedName = forClass.qualifiedName
 
   override def init(): Unit = {

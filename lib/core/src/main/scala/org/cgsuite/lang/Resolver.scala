@@ -8,7 +8,7 @@ object Resolver {
 
   def forId(id: Symbol): Resolver = resolvers.getOrElseUpdate(id, Resolver(id))
 
-  def clear(): Unit = resolvers.clear()
+  def clearAll(): Unit = resolvers.clear()
 
 }
 
@@ -62,6 +62,14 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       cls.classInfo.classVarOrdinals.getOrElse(id, -1)
     }
   }
+  val nestedClass = {
+    // TODO Static nested classes?
+    if (static) {
+      None
+    } else {
+      cls.lookupNestedClass(id)
+    }
+  }
   val method = {
     if (static) {
       // This is a little more complicated since we also need to look up common
@@ -89,6 +97,8 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
         method.get.call(x, Array.empty)
       else
         InstanceMethod(x, method.get)
+    } else if (nestedClass.isDefined) {
+      InstanceClass(x.asInstanceOf[StandardObject], nestedClass.get)
     } else {
       null
     }

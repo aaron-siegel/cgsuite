@@ -32,6 +32,15 @@ class Domain(
     }
   }
 
+  def nestingBackrefContextObject(n: Int): Any = {
+    n match {
+      case 0 => contextObject.get
+      case 1 => contextObject.get.asInstanceOf[StandardObject].enclosingObj
+      case 2 => contextObject.get.asInstanceOf[StandardObject].enclosingObj.enclosingObj
+      case _ => sys.error("not supported yet")
+    }
+  }
+
 }
 
 object ElaborationDomain {

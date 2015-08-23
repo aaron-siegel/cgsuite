@@ -10,13 +10,15 @@ object DeclarationNode {
 
     tree.getType match {
 
+      case CLASS => Iterable(ClassDeclarationNode(tree))
+
       case DEF =>
         Iterable(MethodDeclarationNode(
           tree,
           IdentifierNode(tree.getChild(1)),
           ModifierNodes(tree.getChild(0)),
-          tree.children.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) },
-          tree.children.find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
+          tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) },
+          tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
       case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.getChild(0)), isStatic = true, isExternal = false))
@@ -53,6 +55,9 @@ object ClassDeclarationNode {
     }
     val constructorParams = tree.children.find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) }
     val declarations = tree.children.filter { _.getType == DECLARATIONS }.flatMap { _.children.flatMap { DeclarationNode(_) } }
+    val nestedClassDeclarations = declarations collect {
+      case x: ClassDeclarationNode => x
+    }
     val methodDeclarations = declarations collect {
       case x: MethodDeclarationNode => x
     }
@@ -72,6 +77,7 @@ object ClassDeclarationNode {
       modifiers,
       extendsClause,
       constructorParams,
+      nestedClassDeclarations,
       methodDeclarations,
       staticInitializers,
       ordinaryInitializers,
@@ -87,6 +93,7 @@ case class ClassDeclarationNode(
   modifiers: Seq[ModifierNode],
   extendsClause: Seq[Node],
   constructorParams: Option[ParametersNode],
+  nestedClassDeclarations: Seq[ClassDeclarationNode],
   methodDeclarations: Seq[MethodDeclarationNode],
   staticInitializers: Seq[InitializerNode],
   ordinaryInitializers: Seq[InitializerNode],
@@ -94,9 +101,10 @@ case class ClassDeclarationNode(
   ) extends Node {
 
   val children = (id +: modifiers) ++ extendsClause ++ constructorParams.toSeq ++
-    methodDeclarations ++ staticInitializers ++ ordinaryInitializers
+    nestedClassDeclarations ++ methodDeclarations ++ staticInitializers ++ ordinaryInitializers
   def isMutable = modifiers.exists { _.modifier == Modifier.Mutable }
   def isSystem = modifiers.exists { _.modifier == Modifier.System }
+  def isStatic = modifiers.exists { _.modifier == Modifier.Static }
 
 }
 

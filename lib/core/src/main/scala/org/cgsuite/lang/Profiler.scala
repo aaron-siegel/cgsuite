@@ -11,13 +11,11 @@ object Profiler {
 
   def main(args: Array[String]) {
     CgscriptClass.Object.ensureLoaded()
-    val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
+    val statement = """game.grid.Clobber2("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
     // Warm-up
     evalForProfiler(statement, profile = false)
-    CanonicalShortGameOps.reinit()
     CgscriptClass.clearAll()
     val withoutProfiling = evalForProfiler(statement, profile = false)
-    CanonicalShortGameOps.reinit()
     CgscriptClass.clearAll()
     val withProfiling = evalForProfiler(statement, profile = true)
     Profiler.print(withProfiling - withoutProfiling)
