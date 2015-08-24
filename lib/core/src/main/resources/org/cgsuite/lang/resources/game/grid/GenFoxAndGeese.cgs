@@ -1,0 +1,88 @@
+/*${cgsuite.banner}*/
+
+class GenFoxAndGeese(Integer boardWidth ? 8, Integer foxRange ? 1) extends Ruleset
+
+  if foxRange < 1 then
+    error("`foxRange` must be >= 1.");
+  end
+
+  var GeeseMoves := [(-1,-1),(-1,1)];
+
+  def Eval(Set geese, Coordinates fox) begin
+    ValidateGeese(geese);
+    if not IsValidCoordinate(fox) then
+      error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
+    end
+    Position(geese, fox)
+  end
+
+  def ValidateGeese(Set geese) begin
+    if not geese.ForAll(c -> IsValidCoordinate(c)) then
+      error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
+    end
+  end
+
+  def IsValidCoordinate(c) begin
+    c is Coordinates and 1 <= c.Row and 1 <= c.Col and c.Col <= boardWidth and (c.Row + c.Col).IsEven
+  end
+
+  class Position(Set geese, Coordinates fox) extends Game
+
+    override def Options(Player player) begin
+
+      var next;
+
+      if player == Right then
+        for dir in Coordinates.Diagonal
+        for distance from 1 to foxRange
+        while (next := fox + dir * distance) >= (1,1) and next.Col <= boardWidth and not geese.Contains(next)
+        yield
+          Position(geese, next)
+        end
+      else
+        for goose in geese
+        for dir in FoxAndGeese.GeeseMoves
+        where (next := goose + dir) >= (1,1) and next.Col <= boardWidth
+          and next != fox and not geese.Contains(next)
+        yield
+          Position(geese.Replaced({goose => next}), fox)
+        end
+      end
+
+    end
+
+    override def Decomposition begin
+
+      var maxGooseRow := geese.Apply(x -> x.Row).Max;
+      if fox.Row >= maxGooseRow or
+        (fox.Row == maxGooseRow - 1 and
+          (fox.Col > 1 and not geese.Contains(fox + (1,-1)) or fox.Col < boardWidth and not geese.Contains(fox + (1,1)))) then
+        [off]
+      else
+        [this]
+      end
+
+    end
+
+    override def DepthHint := sumof(goose.Row for goose in geese);
+
+  end
+
+  def Table(Set geese) begin
+
+    ValidateGeese(geese);
+    var maxGooseRow := geese.Apply(x -> x.Row).Max;
+    tableof(listof(
+      if geese.Contains((row,col)) then
+        "X"
+      elseif (row + col) % 2 == 0 then
+        Position(geese, (row,col)).GameValue
+      else
+        [nil]
+      end
+      for col from 1 to boardWidth
+    ) for row from maxGooseRow to 1 by -1)
+
+  end
+
+end

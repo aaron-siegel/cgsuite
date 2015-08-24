@@ -815,9 +815,9 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     }
   }
   override def evaluate(domain: Domain): Any = {
-    if (classResolution != null)
-      classResolution.classObject
-    else if (constantResolution != null) {
+    if (classResolution != null) {
+      if (classResolution.isSingleton) classResolution.singletonInstance else classResolution.classObject
+    } else if (constantResolution != null) {
       constantResolution evaluateFor constantResolution.cls.classObject
     } else {
       val x = obj.evaluate(domain)
@@ -883,7 +883,7 @@ case class FunctionCallNode(
       case co: ClassObject => co.forClass.constructor match {
         case Some(ctor) => ctor
         case None => throw InputException(
-          s"The class ${co.forClass.id.name} cannot be directly instantiated.",
+          s"The class `${co.forClass.qualifiedName}` has no constructor and cannot be directly instantiated.",
           token = Some(token)
         )
       }

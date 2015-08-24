@@ -1,25 +1,29 @@
 /*${cgsuite.banner}*/
 
-class Domineering(grid) extends GridGame
+singleton class Domineering extends GridRuleset
 
-  override def Options(Player player) begin
+  class Position(Grid grid) extends GridGame
 
-    var directions := if player == Left then [(1,0)] else [(0,1)] end;
+    override def Options(Player player) begin
 
-    for m from 1 to grid.RowCount
-    for n from 1 to grid.ColCount
-    for d in directions
-    where grid[(m,n)] == 0 and grid[(m,n)+d] == 0
-    yield
-      Domineering(grid.Updated({(m,n) => 1, (m,n)+d => 1}))
+      var directions := if player == Left then [(1,0)] else [(0,1)] end;
+
+      for m from 1 to grid.RowCount
+      for n from 1 to grid.ColCount
+      for d in directions
+      where grid[(m,n)] == 0 and grid[(m,n)+d] == 0
+      yield
+        Position(grid.Updated({(m,n) => 1, (m,n)+d => 1}))
+      end
+
     end
 
-  end
-
-  override def Decomposition begin
-    for component in grid.Decomposition(1) yield
-      Domineering(component.SymmetryInvariant(Symmetry.Flip))
+    override def Decomposition begin
+      for component in grid.Decomposition(1) yield
+        Position(component.SymmetryInvariant(Symmetry.Flip))
+      end
     end
+
   end
 
   override def CharMap := ".#";

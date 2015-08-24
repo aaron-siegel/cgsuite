@@ -100,7 +100,7 @@ object CgscriptClass {
     "game.grid.constants",
     "game.grid.Domineering",
     "game.grid.Fission",
-    "game.grid.FoxAndGeese",
+    "game.grid.GenFoxAndGeese",
     "game.grid.GenClobber",
 
     "game.strip.constants",
@@ -687,9 +687,10 @@ class CgscriptClass(
     methods foreach { case (_, method) => method.elaborate() }
 
     // TODO Validate that singletons have no constructor
+    // TODO Validate that singletons cannot be subclassed
 
     // Singleton construction
-    if (classInfo.isSingleton) {
+    if (isSingleton) {
       if (enclosingClass.isDefined) {
         sys.error("Nested singleton classes are not yet supported.")
       }
