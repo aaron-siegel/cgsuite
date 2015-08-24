@@ -9,92 +9,92 @@ options
 
 tokens
 {
-	PLUS		= '+';
-	MINUS		= '-';
-	PLUSMINUS   = '+-';
-	AST         = '*';
-	FSLASH		= '/';
-	DOT			= '.';
-	PERCENT		= '%';
-	LPAREN		= '(';
-	RPAREN		= ')';
-	LBRACKET	= '[';
-	RBRACKET	= ']';
-	LBRACE		= '{';
-	RBRACE		= '}';
-	DQUOTE		= '"';
+    PLUS        = '+';
+    MINUS       = '-';
+    PLUSMINUS   = '+-';
+    AST         = '*';
+    FSLASH      = '/';
+    DOT         = '.';
+    PERCENT     = '%';
+    LPAREN      = '(';
+    RPAREN      = ')';
+    LBRACKET    = '[';
+    RBRACKET    = ']';
+    LBRACE      = '{';
+    RBRACE      = '}';
+    DQUOTE      = '"';
     SQUOTE      = '\'';
-	COMMA		= ',';
-	SEMI		= ';';
-	COLON		= ':';
-	QUESTION	= '?';
-	CARET       = '^';
-	VEE         = 'v';
+    COMMA       = ',';
+    SEMI        = ';';
+    COLON       = ':';
+    QUESTION    = '?';
+    CARET       = '^';
+    VEE         = 'v';
     AMPERSAND   = '&';
-	EQUALS		= '==';
-	NEQ			= '!=';
-	LT			= '<';
-	GT			= '>';
-	LEQ			= '<=';
-	GEQ			= '>=';
-	CONFUSED    = '<>';
+    EQUALS      = '==';
+    NEQ         = '!=';
+    LT          = '<';
+    GT          = '>';
+    LEQ         = '<=';
+    GEQ         = '>=';
+    CONFUSED    = '<>';
     LCONFUSED   = '<|';
     GCONFUSED   = '|>';
-	COMPARE		= '<=>';
-	RARROW		= '->';
-	BIGRARROW	= '=>';
-	BACKSLASH	= '\\';
-	REFEQUALS	= '===';
-	REFNEQ		= '!==';
-	
-	ASSIGN		= ':=';
-    BAD_ASSIGN  = '=';
-	
-	DOTDOT		= '..';
-	DOTDOTDOT   = '...';
+    COMPARE     = '<=>';
+    RARROW      = '->';
+    BIGRARROW   = '=>';
+    BACKSLASH   = '\\';
+    REFEQUALS   = '===';
+    REFNEQ      = '!==';
 
-	AND			= 'and';
-	BEGIN		= 'begin';
-	BREAK		= 'break';
-	BY			= 'by';
+    ASSIGN      = ':=';
+    BAD_ASSIGN  = '=';
+
+    DOTDOT      = '..';
+    DOTDOTDOT   = '...';
+
+    AND         = 'and';
+    BEGIN       = 'begin';
+    BREAK       = 'break';
+    BY          = 'by';
     CLASS       = 'class';
     CLEAR       = 'clear';
-	CONTINUE	= 'continue';
-	DEF         = 'def';
-	DO			= 'do';
-	ELSE		= 'else';
-	ELSEIF		= 'elseif';
-	END			= 'end';
+    CONTINUE    = 'continue';
+    DEF         = 'def';
+    DO          = 'do';
+    ELSE        = 'else';
+    ELSEIF      = 'elseif';
+    END         = 'end';
     ENUM        = 'enum';
     ERROR       = 'error';
-	EXTENDS		= 'extends';
-	EXTERNAL    = 'external';
-	FALSE		= 'false';
+    EXTENDS     = 'extends';
+    EXTERNAL    = 'external';
+    FALSE       = 'false';
     FINALLY     = 'finally';
-	FOR			= 'for';
-	FOREACH		= 'foreach';
-	FROM		= 'from';
-	GET         = 'get';
-	IF			= 'if';
-    IMPORT		= 'import';
-	IN			= 'in';
+    FOR         = 'for';
+    FOREACH     = 'foreach';
+    FROM        = 'from';
+    GET         = 'get';
+    IF          = 'if';
+    IMPORT      = 'import';
+    IN          = 'in';
     INF         = 'inf';
     IS          = 'is';
-	JAVA        = 'java';
+    JAVA        = 'java';
     LISTOF      = 'listof';
-	METHOD		= 'method';
+    METHOD      = 'method';
     MUTABLE     = 'mutable';
     NEG         = 'neg';
     NIL         = 'nil';
-	NOT			= 'not';
-	OP          = 'op';
-	OR			= 'or';
+    NOT         = 'not';
+    OP          = 'op';
+    OR          = 'or';
     OVERRIDE    = 'override';
     PASS        = 'pass';
-	POS         = 'pos';
-	PROPERTY	= 'property';
-	RETURN		= 'return';
-	SET         = 'set';
+    POS         = 'pos';
+    PROPERTY    = 'property';
+    RETURN      = 'return';
+    SET         = 'set';
     SETOF       = 'setof';
     SINGLETON   = 'singleton';
     STATIC      = 'static';
@@ -102,41 +102,41 @@ tokens
     SUPER       = 'super';
     SYSTEM      = 'system';
     TABLEOF     = 'tableof';
-	THEN		= 'then';
-	THIS        = 'this';
-	TO			= 'to';
-	TRUE		= 'true';
+    THEN        = 'then';
+    THIS        = 'this';
+    TO          = 'to';
+    TRUE        = 'true';
     TRY         = 'try';
-	VAR         = 'var';
-	WHERE		= 'where';
-	WHILE		= 'while';
-	YIELD       = 'yield';
-	
-	ARRAY_REFERENCE;
+    VAR         = 'var';
+    WHERE       = 'where';
+    WHILE       = 'while';
+    YIELD       = 'yield';
+
+    ARRAY_REFERENCE;
     ARRAY_INDEX_LIST;
-	ASN_ANTECEDENT;
-	CLASS_VAR;
-	COORDINATES;
-	DECLARATIONS;
+    ASN_ANTECEDENT;
+    CLASS_VAR;
+    COORDINATES;
+    DECLARATIONS;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
     EXP;
-	EXPLICIT_LIST;
-	EXPLICIT_MAP;
-	EXPLICIT_SET;
-	EXPRESSION_LIST;
-	FUNCTION_CALL;
-	FUNCTION_CALL_ARGUMENT_LIST;
-	LOOP_SPEC;
-	METHOD_PARAMETER;
-	METHOD_PARAMETER_LIST;
-	MODIFIERS;
+    EXPLICIT_LIST;
+    EXPLICIT_MAP;
+    EXPLICIT_SET;
+    EXPRESSION_LIST;
+    FUNCTION_CALL;
+    FUNCTION_CALL_ARGUMENT_LIST;
+    LOOP_SPEC;
+    METHOD_PARAMETER;
+    METHOD_PARAMETER_LIST;
+    MODIFIERS;
     NODE_LABEL;
     PREAMBLE;
-	STATEMENT_SEQUENCE;
+    STATEMENT_SEQUENCE;
     UNARY_AST;
-	UNARY_MINUS;
-	UNARY_PLUS;
+    UNARY_MINUS;
+    UNARY_PLUS;
 }
 
 @lexer::header
@@ -198,7 +198,7 @@ tokens
 
     public String getErrorMessageString()
     {
-        StringBuilder str = new StringBuilder();
+          StringBuilder str = new StringBuilder();
         for (SyntaxError error : errors)
         {
             str.append(error.getMessage());
@@ -237,9 +237,9 @@ tokens
 }
 
 compilationUnit
-	: cuDeclaration
+    : cuDeclaration
     | script
-	;
+    ;
 
 cuDeclaration
     : preamble (classDeclaration | enumDeclaration) EOF^
@@ -259,9 +259,9 @@ importClause
 
 classDeclaration
     : (classModifiers CLASS IDENTIFIER LPAREN methodParameterList RPAREN) =>
-	  classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END!
-	| classModifiers CLASS^ IDENTIFIER extendsClause? declarations END!
-	;
+      classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END!
+    | classModifiers CLASS^ IDENTIFIER extendsClause? declarations END!
+    ;
 
 classModifiers
     : classModifier* -> ^(MODIFIERS classModifier*)
@@ -270,10 +270,10 @@ classModifiers
 classModifier
     : MUTABLE | OVERRIDE | SINGLETON | STATIC | SYSTEM
     ;
-	
+    
 extendsClause
-	: EXTENDS^ qualifiedId (COMMA! qualifiedId)*
-	;
+    : EXTENDS^ qualifiedId (COMMA! qualifiedId)*
+    ;
 
 qualifiedId
     : IDENTIFIER (DOT^ IDENTIFIER)*
@@ -284,11 +284,11 @@ javaClause
     ;
 
 declarations
-	: declarationChain? -> ^(DECLARATIONS declarationChain?)
-	;
+    : declarationChain? -> ^(DECLARATIONS declarationChain?)
+    ;
 
 declarationChain
-	:   (modifiers CLASS) => classDeclaration declarationChain?
+    : (modifiers CLASS) => classDeclaration declarationChain?
     | (modifiers DEF) => defDeclaration declarationChain?
     | (modifiers VAR) => classVarDeclaration SEMI! declarationChain?
     | (STATIC) => staticDeclaration declarationChain?
@@ -300,7 +300,7 @@ declarationChain
 staticDeclaration
     : STATIC^ statementSequence END!
     ;
-	
+    
 classVarDeclaration
     : modifiers VAR varInitializer (COMMA varInitializer)* -> ^(CLASS_VAR[$VAR] modifiers varInitializer*)
     ;
@@ -310,17 +310,17 @@ varInitializer
     ;
 
 propertyDeclaration
-	: modifiers PROPERTY^ IDENTIFIER DOT! (GET | setterClause)
-	  (javaClause SEMI! | statementSequence END!)
-	;
+    : modifiers PROPERTY^ IDENTIFIER DOT! (GET | setterClause)
+      (javaClause SEMI! | statementSequence END!)
+    ;
 
 setterClause
     : SET LPAREN requiredParameter RPAREN -> ^(SET ^(METHOD_PARAMETER_LIST requiredParameter))
     ;
-	
+    
 methodDeclaration
-	: modifiers METHOD^ generalizedId LPAREN! methodParameterList RPAREN!
-	;
+    : modifiers METHOD^ generalizedId LPAREN! methodParameterList RPAREN!
+    ;
 
 defDeclaration
     : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
@@ -344,25 +344,25 @@ options { greedy = true; }
     | (LBRACKET RBRACKET ASSIGN) => LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
     ;
-	
+    
 methodParameterList
-	: (methodParameter (COMMA methodParameter)*)? -> ^(METHOD_PARAMETER_LIST methodParameter*)
-	;
-	
+    : (methodParameter (COMMA methodParameter)*)? -> ^(METHOD_PARAMETER_LIST methodParameter*)
+    ;
+    
 methodParameter
     : optionalParameter
     | requiredParameter
     ;
 
 optionalParameter
-	: a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $b $a? ^(QUESTION expression?))
+    : a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $b $a? ^(QUESTION expression?))
     | a=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] ^(QUESTION expression?))
     ;
 
 requiredParameter
-	: a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $b $a DOTDOTDOT?)
-	| a=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] DOTDOTDOT?)
-	;
+    : a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $b $a DOTDOTDOT?)
+    | a=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] DOTDOTDOT?)
+    ;
 
 enumDeclaration
 scope
@@ -390,8 +390,8 @@ script
     ;
 
 statementSequence
-	: statementChain? -> ^(STATEMENT_SEQUENCE statementChain?)
-	;
+    : statementChain? -> ^(STATEMENT_SEQUENCE statementChain?)
+    ;
 
 statementChain
     : (IF | loopAntecedent | BEGIN) => controlExpression statementChain?
@@ -399,11 +399,11 @@ statementChain
     | statement (SEMI statementChain?)?
     | SEMI statementChain?
     ;
-	
+    
 statement
-	: BREAK
-	| CONTINUE
-	| RETURN^ expression?
+    : BREAK
+    | CONTINUE
+    | RETURN^ expression?
     | CLEAR
     | tryStatement
     | localVarDeclaration
@@ -419,34 +419,34 @@ localVarDeclaration
     ;
 
 expression
-	: assignmentExpression
-	;
+    : assignmentExpression
+    ;
 
 assignmentExpression
-	: functionExpression (assignmentToken^ assignmentExpression)?
-	;
-	
+    : functionExpression (assignmentToken^ assignmentExpression)?
+    ;
+    
 assignmentToken
-	: ASSIGN
-	;
-	
+    : ASSIGN
+    ;
+    
 functionExpression
-	: procedureAntecedent RARROW^ functionExpression
+    : procedureAntecedent RARROW^ functionExpression
     | orExpression
-	;
+    ;
 
 procedureAntecedent
     : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
     | LPAREN! methodParameterList RPAREN!
     ;
-	
+    
 orExpression
-	: andExpression (OR^ orExpression)?
-	;
+    : andExpression (OR^ orExpression)?
+    ;
 
 andExpression
-	: notExpr (AND^ andExpression)?
-	;
+    : notExpr (AND^ andExpression)?
+    ;
 
 notExpr
     : NOT^ notExpr
@@ -458,35 +458,35 @@ isExpr
     ;
 
 relationalExpr
-	: rangeExpr (relationalToken^ relationalExpr)?
-	;
+    : rangeExpr (relationalToken^ relationalExpr)?
+    ;
 
 relationalToken
-	: REFEQUALS
-	| REFNEQ
-	| standardRelationalToken
-	;
-	
+    : REFEQUALS
+    | REFNEQ
+    | standardRelationalToken
+    ;
+    
 standardRelationalToken
     : EQUALS
-	| NEQ
-	| LT
-	| GT
-	| LEQ
-	| GEQ
+    | NEQ
+    | LT
+    | GT
+    | LEQ
+    | GEQ
     | CONFUSED
     | LCONFUSED
     | GCONFUSED
-	| COMPARE
-	;
+    | COMPARE
+    ;
 
 rangeExpr
     : addExpr (DOTDOT^ addExpr (DOTDOT^ addExpr)?)?
     ;
 
 addExpr
-	: sidleExpr ((PLUS^ | MINUS^) sidleExpr | binaryPlusMinus^)*
-	;
+    : sidleExpr ((PLUS^ | MINUS^) sidleExpr | binaryPlusMinus^)*
+    ;
 
 binaryPlusMinus
     : PLUSMINUS sidleExpr -> ^(PLUS ^(PLUSMINUS sidleExpr))
@@ -501,8 +501,8 @@ ordinalSumExpr
     ;
 
 multiplyExpr
-	: unaryExpr ((AST^ | FSLASH^ | PERCENT^) unaryExpr)*
-	;
+    : unaryExpr ((AST^ | FSLASH^ | PERCENT^) unaryExpr)*
+    ;
 
 unaryExpr
     : PLUSMINUS^ expExpr
@@ -512,30 +512,30 @@ unaryExpr
     ;
 
 expExpr
-	: postfixExpr (CARET^ postfixExpr { $CARET.setType(EXP); })?
-	;
+    : postfixExpr (CARET^ postfixExpr { $CARET.setType(EXP); })?
+    ;
 
 postfixExpr
-	: (upstarExpr -> upstarExpr)
-	  ( DOT id=generalizedId  -> ^(DOT $postfixExpr $id)
-	  | x=arrayReference-> ^(ARRAY_REFERENCE[$x.tree.getToken()] $postfixExpr arrayReference)
-	  | y=functionCall	-> ^(FUNCTION_CALL[$y.tree.getToken()] $postfixExpr functionCall)
-	  )*
-	  ;
+    : (upstarExpr -> upstarExpr)
+      ( DOT id=generalizedId -> ^(DOT $postfixExpr $id)
+      | x=arrayReference     -> ^(ARRAY_REFERENCE[$x.tree.getToken()] $postfixExpr arrayReference)
+      | y=functionCall       -> ^(FUNCTION_CALL[$y.tree.getToken()] $postfixExpr functionCall)
+      )*
+      ;
 
 arrayReference
-	: LBRACKET expression RBRACKET -> ^(ARRAY_INDEX_LIST[$LBRACKET] expression)
-	;
+    : LBRACKET expression RBRACKET -> ^(ARRAY_INDEX_LIST[$LBRACKET] expression)
+    ;
 
 functionCall
-	: LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
+    : LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
       -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] functionArgument*)
-	;
-		
+    ;
+        
 functionArgument
-	: (IDENTIFIER BIGRARROW^)? expression
-	;
-	
+    : (IDENTIFIER BIGRARROW^)? expression
+    ;
+    
 upstarExpr
 options
 {
@@ -559,28 +559,28 @@ options
     : AST primaryExpr -> ^(UNARY_AST[$AST] primaryExpr)
     | AST -> UNARY_AST[$AST]
     ;
-	
+    
 primaryExpr
-	: NIL
-	| THIS
-	| TRUE
-	| FALSE
-	| INTEGER
+    : NIL
+    | THIS
+    | TRUE
+    | FALSE
+    | INTEGER
     | INF
-	| STRING
+    | STRING
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! expression RPAREN!
     | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES expression*)
-	| LPAREN! expression RPAREN!
+    | LPAREN! expression RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
-	| (LBRACE expression? BIGRARROW) => explicitMap
-	| generalizedId
-	| explicitSet
-	| explicitList
+    | (LBRACE expression? BIGRARROW) => explicitMap
+    | generalizedId
+    | explicitSet
+    | explicitList
     | of
     | controlExpression
-	;
+    ;
 
 explicitGame
     : IDENTIFIER explicitGameBraces -> ^(NODE_LABEL IDENTIFIER explicitGameBraces)
@@ -636,20 +636,20 @@ slashExpression
     ;
 
 explicitMap
-	: LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
-	;
+    : LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
+    ;
 
 mapEntry
-	: expression BIGRARROW^ expression
-	;
+    : expression BIGRARROW^ expression
+    ;
 
 explicitSet
-	: LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
-	;
+    : LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
+    ;
 
 explicitList
-	: LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
-	;
+    : LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
+    ;
 
 of
     : ofToken LPAREN expression forLoopAntecedent+ RPAREN
@@ -665,10 +665,10 @@ expressionList
     ;
 
 controlExpression
-	: IF^ expression THEN! statementSequence elseifClause? END!
-	| loopAntecedent (forLoopAntecedent)* (DO^ | YIELD^) statementSequence END!
+    : IF^ expression THEN! statementSequence elseifClause? END!
+    | loopAntecedent (forLoopAntecedent)* (DO^ | YIELD^) statementSequence END!
     | BEGIN! statementSequence END!
-	;
+    ;
 
 loopAntecedent
     : forLoopAntecedent
@@ -710,10 +710,10 @@ toClause
 byClause
     : BY^ expression
     ;
-	
+    
 whileClause
     : WHILE^ expression
-	;
+    ;
 
 whereClause
     : WHERE^ expression
@@ -724,26 +724,26 @@ inClause
     ;
 
 elseifClause
-	: ELSEIF^ expression THEN! statementSequence elseifClause?
-	| ELSE! statementSequence
-	;
+    : ELSEIF^ expression THEN! statementSequence elseifClause?
+    | ELSE! statementSequence
+    ;
 
 generalizedId
     : IDENTIFIER
     | OP opc=opCode -> IDENTIFIER[$OP, $OP.getText() + " " + $opc.tree.getText()]
     ;
 
-INTEGER		: DIGIT+;
+INTEGER        : DIGIT+;
 
 MULTI_CARET : '^' ('^')+;
 
 MULTI_VEE   : 'v' ('v')+;
 
-IDENTIFIER	: 'v'* NONV (LETTER | DIGIT)*;
+IDENTIFIER    : 'v'* NONV (LETTER | DIGIT)*;
 
-STRING		: DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
+STRING        : DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 
-SLASHES		: SLASH+;
+SLASHES        : SLASH+;
 
 // 00A0 = non-breaking space
 WHITESPACE  : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
@@ -753,30 +753,30 @@ SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
 ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
 
 fragment
-DIGIT		: '0'..'9';
+DIGIT        : '0'..'9';
 
 fragment
-HEX_DIGIT	: '0'..'9' | 'A'..'F' | 'a'..'f';
+HEX_DIGIT    : '0'..'9' | 'A'..'F' | 'a'..'f';
 
 fragment
-LETTER		: 'A'..'Z' | 'a'..'z' | '_';
+LETTER        : 'A'..'Z' | 'a'..'z' | '_';
 
 fragment
 NONV        : 'A'..'Z' | 'a'..'u' | 'w'..'z' | '_';
 
 fragment
-SLASH		: '|';
+SLASH        : '|';
 
 fragment
-ESCAPE_SEQ	: BACKSLASH
-			  ( BACKSLASH
-			  | 'n'
-			  | 'r'
-			  | 't'
-			  | DQUOTE
-			  | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
-			  )
-			;
+ESCAPE_SEQ    : BACKSLASH
+              ( BACKSLASH
+              | 'n'
+              | 'r'
+              | 't'
+              | DQUOTE
+              | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+              )
+            ;
 
 fragment
 NEWLINE     : '\r'? '\n';
