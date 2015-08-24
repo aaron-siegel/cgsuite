@@ -54,6 +54,15 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  it should "give helpful error messages for certain arithmetic expressions" in {
+
+    execute(Table(
+      header,
+      ("Nil plus number", "[] + 5", "!!No operation `+` for arguments of types `cgsuite.lang.Nil`, `game.Integer`")
+    ))
+
+  }
+
   it should "correctly interpret canonical forms" in {
     execute(Table(
       header,
@@ -159,12 +168,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("List", "[3,5,3,1]", "[3,5,3,1]"),
       ("Empty Set", "{}", "{}"),
       ("Set", "{3,5,3,1}", "{1,3,5}"),
-      ("Heterogeneous set", """{3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"}""", """{3,*2,+-6,true,"bar","foo",nil,[3,5,3,1]}"""),
+      ("Heterogeneous set", """{3,"foo",nil,true,[3,5,3,1],+-6,*2,"bar"}""", """{nil,3,*2,+-6,true,"bar","foo",[3,5,3,1]}"""),
       ("Empty Map", "{=>}", "{=>}"),
       ("Map", """{"foo" => 1, "bar" => *2, 16 => 22}""", """{16 => 22, "bar" => *2, "foo" => 1}"""),
       ("Range", "3..12", "3..12"),
       ("Range w/ Step", "3..12..3", "3..12..3"),
-      ("Empty Range", "1..0", "nil"),
+      ("Empty Range", "1..0", "1..0"),
       ("Range -> Explicit", "(3..12).ToSet", "{3,4,5,6,7,8,9,10,11,12}"),
       ("Range -> Explicit 2", "(3..12..3).ToSet", "{3,6,9,12}"),
       ("Range Equals List", "1..4 === [1,2,3,4]", "true"),

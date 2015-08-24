@@ -7,6 +7,8 @@ object UniversalOrdering extends Ordering[Any] {
 
   def compare(x: Any, y: Any): Int = {
     (x, y) match {
+      case (Nil, b: Any) => -1
+      case (a: Any, Nil) => 1
       case (g: CanonicalShortGame, h: CanonicalShortGame) => CanonicalShortGame.DeterministicOrdering.compare(g, h)
       case (_: CanonicalShortGame, _) => -1
       case (_, _: CanonicalShortGame) => 1

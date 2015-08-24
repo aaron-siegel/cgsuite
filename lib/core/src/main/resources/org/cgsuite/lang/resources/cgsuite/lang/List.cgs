@@ -28,12 +28,6 @@ system class List extends Collection
 
   end
 
-  override def ToOutput begin
-    if IsEmpty then
-      cgsuite.util.output.TextOutput("nil")
-    else
-      "[" + MkOutput(",") + "]"
-    end
-  end
+  override def ToOutput := "[" + MkOutput(",") + "]";
 
 end

@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+singleton system class Nil extends List
+
+  override def ToOutput := cgsuite.util.output.TextOutput("nil");
+
+end

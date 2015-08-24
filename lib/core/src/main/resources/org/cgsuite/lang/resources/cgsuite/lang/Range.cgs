@@ -1,15 +1,17 @@
 /*${cgsuite.banner}*/
 
-system class Range extends List
+system class Range extends Collection
+
+  def Apply(Procedure fn) := listof(fn(x) for x in this);
+
+  external def Contains(x);
 
   external def Start;
   external def End;
   external def Step;
 
   override def ToOutput begin
-    if IsEmpty then
-      cgsuite.util.output.TextOutput("nil")
-    elseif Step == 1 then
+    if Step == 1 then
       Start.ToOutput + ".." + End.ToOutput
     else
       Start.ToOutput + ".." + End.ToOutput + ".." + Step.ToOutput

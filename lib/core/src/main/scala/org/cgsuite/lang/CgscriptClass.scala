@@ -39,6 +39,7 @@ object CgscriptClass {
   private val typedSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Class" -> classOf[ClassObject],
+    "cgsuite.lang.Nil" -> Nil.getClass,
     "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
     "cgsuite.lang.String" -> classOf[String],
     "cgsuite.lang.Coordinates" -> classOf[Coordinates],
@@ -129,6 +130,8 @@ object CgscriptClass {
   val Class = CgscriptPackage.lookupClassByName("Class").get
   val Enum = CgscriptPackage.lookupClassByName("Enum").get
   val Game = CgscriptPackage.lookupClassByName("Game").get
+  val List = CgscriptPackage.lookupClassByName("List").get
+  val NilClass = CgscriptPackage.lookupClassByName("Nil").get
 
   Object.ensureLoaded()
 
@@ -136,11 +139,10 @@ object CgscriptClass {
 
   def of(x: Any): CgscriptClass = {
     assert(x != null)
-    val result = x match {
+    x match {
       case so: StandardObject => so.cls
       case _ => classLookupCache.getOrElseUpdate(x.getClass, toCgscriptClass(x))
     }
-    result
   }
 
   private def toCgscriptClass(x: Any): CgscriptClass = {
