@@ -91,21 +91,19 @@ object CgscriptClass {
     "cgsuite.util.Icon",
 
     "game.constants",
-    "game.GridGame",
-    "game.GridRuleset",
     "game.Ruleset",
-    "game.StripGame",
-    "game.StripRuleset",
 
     "game.grid.Amazons",
     "game.grid.constants",
     "game.grid.Domineering",
     "game.grid.Fission",
-    "game.grid.GenFoxAndGeese",
     "game.grid.GenClobber",
+    "game.grid.GenFoxAndGeese",
+    "game.grid.GridRuleset",
 
     "game.strip.constants",
-    "game.strip.GenToadsAndFrogs"
+    "game.strip.GenToadsAndFrogs",
+    "game.strip.StripRuleset"
 
   )
 
@@ -553,8 +551,10 @@ class CgscriptClass(
                 // of this class's enclosing class;
                 // Then try looking it up as a global class.
                 enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
-                  CgscriptPackage lookupClass superId getOrElse {
-                    throw InputException(s"Unknown superclass: `${superId.name}`", tree)
+                  pkg lookupClass superId getOrElse {
+                    CgscriptPackage lookupClass superId getOrElse {
+                      throw InputException(s"Unknown superclass: `${superId.name}`", tree)
+                    }
                   }
                 }
               case node: DotNode =>
