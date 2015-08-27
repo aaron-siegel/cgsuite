@@ -4,17 +4,9 @@ system class Set extends Collection
 
   external def Contains(x);
 
-  def Apply(Procedure fn) := setof(fn(x) for x in this);
+  def Apply(fn as Procedure) := setof(fn(x) for x in this);
 
-  def Mex begin
-    var n := 0;
-    while Contains(n) do
-      n := n + 1;
-    end
-    n
-  end
-
-  external def Replaced(Map replacements);
+  external def Replaced(replacements as Map);
 
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 

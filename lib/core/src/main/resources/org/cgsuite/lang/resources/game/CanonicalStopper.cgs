@@ -2,19 +2,19 @@
 
 system class CanonicalStopper extends Game, StopperSidedValue
 
-  override external def Options(Player player);
+  override external def Options(player as Player);
 
   external def Degree;
-  external def Downsum(CanonicalStopper that);
-  external def DownsumVariety(CanonicalStopper deg);
+  external def Downsum(that as CanonicalStopper);
+  external def DownsumVariety(deg as CanonicalStopper);
   external def FollowerCount;
   external def Followers;
   external def LeftStop;
   external def RightStop;
-  external def Stop(Player player);
-  external def StrongStop(Player player);
-  external def Upsum(CanonicalStopper that);
-  external def UpsumVariety(CanonicalStopper deg);
+  external def Stop(player as Player);
+  external def StrongStop(player as Player);
+  external def Upsum(that as CanonicalStopper);
+  external def UpsumVariety(deg as CanonicalStopper);
   external def Variety;
 
   override external def ToOutput;

@@ -2,7 +2,7 @@
 
 system class ExplicitGame extends Game
 
-  override external def Options(Player player);
+  override external def Options(player as Player);
   override def ToOutput := cgsuite.util.output.TextOutput("'{") + LeftOptions.ToList.Sorted.MkOutput(",") + "|" +
     RightOptions.ToList.Sorted.MkOutput(",") + "}'";
 

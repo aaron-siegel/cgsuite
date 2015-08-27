@@ -10,8 +10,8 @@ system class Rational
   external def Floor;
   external def IsDyadic;
   external def IsInteger;
-  external def Max(Rational other);
-  external def Min(Rational other);
+  external def Max(that as Rational);
+  external def Min(that as Rational);
   external def Numerator;
   external def Reciprocal;
 

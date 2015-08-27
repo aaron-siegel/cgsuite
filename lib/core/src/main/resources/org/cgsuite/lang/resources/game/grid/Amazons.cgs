@@ -2,9 +2,9 @@
 
 singleton class Amazons extends GridRuleset
 
-  class Position(Grid grid) extends GridGame
+  class Position(grid as Grid) extends GridGame
 
-    override def Options(Player player) begin
+    override def Options(player as Player) begin
 
       var us := player.Ordinal;
       var moveTo;

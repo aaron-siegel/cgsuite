@@ -15,7 +15,7 @@ class constants
   static var under := -over;
   static var upon := {pass|*};
 
-  static def Miny(CanonicalStopper g) := {g|0||0};
-  static def Tiny(CanonicalStopper g) := {0||0|-g};
+  static def Miny(g as CanonicalStopper) := {g|0||0};
+  static def Tiny(g as CanonicalStopper) := {0||0|-g};
 
 end

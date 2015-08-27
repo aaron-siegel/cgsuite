@@ -9,9 +9,9 @@ class GenClobber(
   var clobberedAsList := [clobbered[Left], clobbered[Right]];
   var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
 
-  class Position(Grid grid) extends GridGame
+  class Position(grid as Grid) extends GridGame
 
-    override def Options(Player player) begin
+    override def Options(player as Player) begin
 
       var us := player.Ordinal;
 

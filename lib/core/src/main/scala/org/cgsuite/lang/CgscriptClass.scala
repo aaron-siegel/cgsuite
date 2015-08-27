@@ -785,8 +785,11 @@ class CgscriptClass(
   private def parseParameterList(node: ParametersNode): Seq[Parameter] = {
 
     node.parameters.map { n =>
-      val ttype = CgscriptPackage.lookupClass(n.classId.id) getOrElse {
-        sys.error("unknown symbol")
+      val ttype = n.classId match {
+        case None => CgscriptClass.Object
+        case Some(idNode) => CgscriptPackage.lookupClass(idNode.id) getOrElse {
+          sys.error("unknown symbol")
+        }
       }
       Parameter(n.id.id, ttype, n.defaultValue)
     }

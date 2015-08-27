@@ -118,7 +118,7 @@ object ParametersNode {
       ParameterNode(
         t,
         IdentifierNode(t.getChild(0)),
-        IdentifierNode(t.getChild(1)),
+        t.children.find { _.getType == AS } map { u => IdentifierNode(u.getChild(0)) },
         t.children.find { _.getType == QUESTION } map { u => EvalNode(u.getChild(0)) },
         t.children.exists { _.getType == DOTDOTDOT }
       )
@@ -134,11 +134,11 @@ case class ParametersNode(tree: Tree, parameters: Seq[ParameterNode]) extends No
 case class ParameterNode(
   tree: Tree,
   id: IdentifierNode,
-  classId: IdentifierNode,
+  classId: Option[IdentifierNode],
   defaultValue: Option[EvalNode],
   isExpandable: Boolean
   ) extends Node {
-  override val children = Seq(id, classId) ++ defaultValue
+  override val children = Seq(id) ++ classId ++ defaultValue
 }
 
 object ClassVarNode {

@@ -1,7 +1,7 @@
 /*${cgsuite.banner}*/
 
-system class TextOutput(String text ? "") extends Output
+system class TextOutput(text as String ? "") extends Output
 
-  external def Append(Output output);
+  external def Append(output as Output);
 
 end

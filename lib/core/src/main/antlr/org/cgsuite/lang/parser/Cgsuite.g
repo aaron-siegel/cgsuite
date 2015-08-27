@@ -54,6 +54,7 @@ tokens
     DOTDOTDOT   = '...';
 
     AND         = 'and';
+    AS          = 'as';
     BEGIN       = 'begin';
     BREAK       = 'break';
     BY          = 'by';
@@ -74,7 +75,6 @@ tokens
     FOR         = 'for';
     FOREACH     = 'foreach';
     FROM        = 'from';
-    GET         = 'get';
     IF          = 'if';
     IMPORT      = 'import';
     IN          = 'in';
@@ -82,7 +82,6 @@ tokens
     IS          = 'is';
     JAVA        = 'java';
     LISTOF      = 'listof';
-    METHOD      = 'method';
     MUTABLE     = 'mutable';
     NEG         = 'neg';
     NIL         = 'nil';
@@ -92,9 +91,7 @@ tokens
     OVERRIDE    = 'override';
     PASS        = 'pass';
     POS         = 'pos';
-    PROPERTY    = 'property';
     RETURN      = 'return';
-    SET         = 'set';
     SETOF       = 'setof';
     SINGLETON   = 'singleton';
     STATIC      = 'static';
@@ -309,19 +306,6 @@ varInitializer
     : IDENTIFIER (ASSIGN^ functionExpression)?
     ;
 
-propertyDeclaration
-    : modifiers PROPERTY^ IDENTIFIER DOT! (GET | setterClause)
-      (javaClause SEMI! | statementSequence END!)
-    ;
-
-setterClause
-    : SET LPAREN requiredParameter RPAREN -> ^(SET ^(METHOD_PARAMETER_LIST requiredParameter))
-    ;
-    
-methodDeclaration
-    : modifiers METHOD^ generalizedId LPAREN! methodParameterList RPAREN!
-    ;
-
 defDeclaration
     : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
     | modifiers DEF^ IDENTIFIER defInitializer
@@ -350,18 +334,16 @@ methodParameterList
     ;
     
 methodParameter
-    : optionalParameter
-    | requiredParameter
+    : IDENTIFIER asClause? (questionClause | DOTDOTDOT)?
+      -> ^(METHOD_PARAMETER IDENTIFIER asClause? questionClause? DOTDOTDOT?)
     ;
 
-optionalParameter
-    : a=IDENTIFIER b=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $b $a? ^(QUESTION expression?))
-    | a=IDENTIFIER QUESTION expression? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] ^(QUESTION expression?))
+asClause
+    : AS^ IDENTIFIER
     ;
 
-requiredParameter
-    : a=IDENTIFIER b=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $b $a DOTDOTDOT?)
-    | a=IDENTIFIER DOTDOTDOT? -> ^(METHOD_PARAMETER $a IDENTIFIER["Object"] DOTDOTDOT?)
+questionClause
+    : QUESTION^ expression?
     ;
 
 enumDeclaration
@@ -379,12 +361,7 @@ enumElementList
 enumElement
     : modifiers IDENTIFIER -> ^(ENUM_ELEMENT modifiers IDENTIFIER)
     ;
-/*
-enumElement
-    : IDENTIFIER (functionCall)?
-      -> ^(ENUM_ELEMENT[$IDENTIFIER] ^(ASSIGN IDENTIFIER ^(FUNCTION_CALL[$IDENTIFIER] IDENTIFIER[$IDENTIFIER, $enumDeclaration::name] functionCall?)))
-    ;
-*/
+
 script
     : statementSequence EOF^
     ;

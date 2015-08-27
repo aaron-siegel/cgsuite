@@ -2,16 +2,16 @@
 
 system class Grid
 
-  external static def Parse(String str, String charMap);
+  external static def Parse(str as String, charMap as String);
 
   external def ColCount;
-  external def Decomposition(Integer boundaryValue, List directions ? Coordinates.Orthogonal);
-  external def FindAll(Integer value);
-  external def IsInBounds(Coordinates coord);
+  external def Decomposition(boundaryValue as Integer, directions as List ? Coordinates.Orthogonal);
+  external def FindAll(value as Integer);
+  external def IsInBounds(coord as Coordinates);
   external def RowCount;
-  external def Subgrid(Coordinates northwest, Coordinates southeast);
-  external def SymmetryInvariant(List symmetries);
-  external def ToString(String charMap);
-  external def Updated(Map newValues);
+  external def Subgrid(northwest as Coordinates, southeast as Coordinates);
+  external def SymmetryInvariant(symmetries as List);
+  external def ToString(charMap as String);
+  external def Updated(newValues as Map);
 
 end

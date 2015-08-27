@@ -16,7 +16,7 @@ class GridRuleset extends Ruleset
 
   def Icons := error("Subclasses of `GridRuleset` must override `Icons`.");
 
-  class GridGame(Grid grid) extends Game
+  class GridGame(grid as Grid) extends Game
 
     override def ToOutput :=
       cgsuite.util.output.GridOutput(grid, Icons, this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");

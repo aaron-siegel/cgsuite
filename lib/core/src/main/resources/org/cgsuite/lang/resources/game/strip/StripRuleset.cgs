@@ -16,7 +16,7 @@ class StripRuleset extends Ruleset
 
   def Icons := error("Subclasses of `StripRuleset` must override `Icons`.");
 
-  class StripGame(Strip strip) extends Game
+  class StripGame(strip as Strip) extends Game
 
     //override def ToOutput :=
     //  cgsuite.util.output.GridOutput(strip, Icons, this.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");

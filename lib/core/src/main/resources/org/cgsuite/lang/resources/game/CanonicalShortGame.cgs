@@ -2,15 +2,15 @@
 
 system class CanonicalShortGame extends CanonicalStopper
 
-  external override def Options(Player player);
+  external override def Options(player as Player);
 
   external def AtomicWeight;
   external def Birthday;
   external def Companion;
-  external def ConwayMultiply(CanonicalShortGame h);
-  external def Cool(DyadicRational t);
+  external def ConwayMultiply(h as CanonicalShortGame);
+  external def Cool(t as DyadicRational);
   external def Freeze;
-  external def Heat(CanonicalShortGame t);
+  external def Heat(t as CanonicalShortGame);
   external def Incentives;
   external override def IsAllSmall;
   external def IsAtomic;
@@ -28,10 +28,10 @@ system class CanonicalShortGame extends CanonicalStopper
   external def LeftIncentives;
   external override def LeftStop;
   external def Mean;
-  external def NortonMultiply(CanonicalShortGame h);
-  external def Overheat(CanonicalShortGame s, CanonicalShortGame t);
-  external def Pow(Pseudonumber x);
-  external def PowTo(Pseudonumber x);
+  external def NortonMultiply(h as CanonicalShortGame);
+  external def Overheat(s as CanonicalShortGame, t as CanonicalShortGame);
+  external def Pow(x as Pseudonumber);
+  external def PowTo(x as Pseudonumber);
   external def ReducedCanonicalForm;
   external def RightIncentives;
   external override def RightStop;

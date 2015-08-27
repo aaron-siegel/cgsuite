@@ -2,7 +2,7 @@
 
 system class Range extends Collection
 
-  def Apply(Procedure fn) := listof(fn(x) for x in this);
+  def Apply(fn as Procedure) := listof(fn(x) for x in this);
 
   external def Contains(x);
 

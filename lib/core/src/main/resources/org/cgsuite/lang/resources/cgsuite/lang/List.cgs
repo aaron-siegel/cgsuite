@@ -2,11 +2,11 @@
 
 system class List extends Collection
 
-  def Apply(Procedure fn) := listof(fn(x) for x in this);
+  def Apply(fn as Procedure) := listof(fn(x) for x in this);
   external def Contains(x);
   external def Length;
   external def Sorted;
-  external def Updated(Integer index, Object value);
+  external def Updated(index as Integer, value);
 
   def MkOutput(sep) begin
 

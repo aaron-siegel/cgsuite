@@ -2,9 +2,9 @@
 
 system class Collection
 
-  external def Exists(Procedure proc);
+  external def Exists(proc as Procedure);
 
-  external def ForAll(Procedure proc);
+  external def ForAll(proc as Procedure);
 
   external def Head;
 
@@ -17,6 +17,8 @@ system class Collection
     end
     max
   end
+
+  external def Mex;
 
   def Min begin
     var min := Head;

@@ -2,12 +2,12 @@
 
 system class Integer extends DyadicRational
 
-  external def Div(Integer other);
+  external def Div(that as Integer);
   external def IsSmallInteger;
   external def IsTwoPower;
   external def Lb;
-  external def NimProduct(Integer other);
-  external def NimSum(Integer other);
+  external def NimProduct(that as Integer);
+  external def NimSum(that as Integer);
 
   def Isqrt begin
     if this == 0 then 0 else

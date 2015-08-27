@@ -7,7 +7,7 @@ system class Game
 
   def DepthHint := error("Loopy games must override the `DepthHint` method. For more information, see the Loopy Games section in Help.");
 
-  def Options(Player player) := error("Subclasses of `Game` must override the `Options` method.");
+  def Options(player as Player) := error("Subclasses of `Game` must override the `Options` method.");
 
   def Decomposition := [this];
   def LeftOptions := Options(Left);

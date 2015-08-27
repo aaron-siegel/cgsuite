@@ -1,0 +1,11 @@
+/*${cgsuite.banner}*/
+
+system class ImpartialGame extends Game
+
+  override def CanonicalForm := *NimValue;
+  override def GameValue := *NimValue;
+  external def NimValue;
+
+  def Decomposition := [this];
+
+end

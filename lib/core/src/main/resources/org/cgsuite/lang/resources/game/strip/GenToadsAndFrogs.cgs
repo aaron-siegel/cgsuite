@@ -1,13 +1,13 @@
 /*${cgsuite.banner}*/
 
-class GenToadsAndFrogs(Integer maxJump, Boolean backsliding ? false) extends StripRuleset
+class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) extends StripRuleset
 
   var minMove := if backsliding then -1 else 1 end;
   var maxMove := maxJump + 1;
 
-  class Position(Strip strip) extends StripGame
+  class Position(strip as Strip) extends StripGame
 
-    override def Options(Player player) begin
+    override def Options(player as Player) begin
 
       var us := player.Ordinal;
       var them := player.Opponent.Ordinal;

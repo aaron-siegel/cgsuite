@@ -2,9 +2,9 @@
 
 singleton class Domineering extends GridRuleset
 
-  class Position(Grid grid) extends GridGame
+  class Position(grid as Grid) extends GridGame
 
-    override def Options(Player player) begin
+    override def Options(player as Player) begin
 
       var directions := if player == Left then [(1,0)] else [(0,1)] end;
 

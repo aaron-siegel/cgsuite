@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-class GenFoxAndGeese(Integer boardWidth ? 8, Integer foxRange ? 1) extends Ruleset
+class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends Ruleset
 
   if foxRange < 1 then
     error("`foxRange` must be >= 1.");
@@ -8,7 +8,7 @@ class GenFoxAndGeese(Integer boardWidth ? 8, Integer foxRange ? 1) extends Rules
 
   var GeeseMoves := [(-1,-1),(-1,1)];
 
-  def Eval(Set geese, Coordinates fox) begin
+  def Eval(geese as Set, fox as Coordinates) begin
     ValidateGeese(geese);
     if not IsValidCoordinate(fox) then
       error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
@@ -16,7 +16,7 @@ class GenFoxAndGeese(Integer boardWidth ? 8, Integer foxRange ? 1) extends Rules
     Position(geese, fox)
   end
 
-  def ValidateGeese(Set geese) begin
+  def ValidateGeese(geese as Set) begin
     if not geese.ForAll(c -> IsValidCoordinate(c)) then
       error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
     end
@@ -26,9 +26,9 @@ class GenFoxAndGeese(Integer boardWidth ? 8, Integer foxRange ? 1) extends Rules
     c is Coordinates and 1 <= c.Row and 1 <= c.Col and c.Col <= boardWidth and (c.Row + c.Col).IsEven
   end
 
-  class Position(Set geese, Coordinates fox) extends Game
+  class Position(geese as Set, fox as Coordinates) extends Game
 
-    override def Options(Player player) begin
+    override def Options(player as Player) begin
 
       var next;
 
@@ -68,7 +68,7 @@ class GenFoxAndGeese(Integer boardWidth ? 8, Integer foxRange ? 1) extends Rules
 
   end
 
-  def Table(Set geese) begin
+  def Table(geese as Set) begin
 
     ValidateGeese(geese);
     var maxGooseRow := geese.Apply(x -> x.Row).Max;

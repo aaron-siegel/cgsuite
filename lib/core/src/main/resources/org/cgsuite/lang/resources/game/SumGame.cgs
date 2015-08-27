@@ -1,4 +1,4 @@
 /*${cgsuite.banner}*/
 
-system class SumGame(Game g, Game h) extends Game
+system class SumGame(g as Game, h as Game) extends Game
 end
