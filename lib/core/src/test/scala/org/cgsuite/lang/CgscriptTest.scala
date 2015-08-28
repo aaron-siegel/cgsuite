@@ -89,13 +89,28 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
+  it should "process infix ops" in {
+    execute(Table(
+      header,
+      ("Simple infix", "3 Max 5", "5"),
+      ("Star infix", "* Heat 2", "+-2"),
+      ("Star2 infix", "*2 Heat 2", "+-{2,{4|0}}"),
+      ("Up infix", "^ Heat 2", "{2||0|-4}"),
+      ("UpStar infix", "^* Heat 2", "{2,{4|0}|-2}"),
+      ("Double-up infix", "^^ Heat 2", "{2||0,+-2|-4}"),
+      ("Up infix star", "^ Heat *", "!!That variable is not defined: `Heat`"),
+      ("Double-up infix star", "^^ Heat *", "0")
+    ))
+  }
+
   it should "respect order of operations" in {
     execute(Table(
       header,
       ("Sums and differences", "5 - 3 + 4 - 8", "-2"),
       ("Products and divs", "5 - 3 / 4 * 6 - 2", "-3/2"),
       ("Exp", "5 * 3 ^ 2 / 4", "45/4"),
-      ("PlusMinus", "3 - 2 +- 6 - 7 +- 8 + 4", "{12|0||-4|-16}")
+      ("PlusMinus", "3 - 2 +- 6 - 7 +- 8 + 4", "{12|0||-4|-16}"),
+      ("Infix", "4 Max 3 + 5", "8")
     ))
   }
 
