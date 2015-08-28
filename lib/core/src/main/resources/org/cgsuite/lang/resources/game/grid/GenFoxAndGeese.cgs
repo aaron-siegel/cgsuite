@@ -45,7 +45,7 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
         where (next := goose + dir) >= (1,1) and next.Col <= boardWidth
           and next != fox and not geese.Contains(next)
         yield
-          Position(geese.Replaced({goose => next}), fox)
+          Position(geese Replaced {goose => next}, fox)
         end
       end
 
@@ -73,7 +73,7 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
     ValidateGeese(geese);
     var maxGooseRow := geese.Apply(x -> x.Row).Max;
     tableof(listof(
-      if geese.Contains((row,col)) then
+      if geese Contains (row,col) then
         "X"
       elseif (row + col) % 2 == 0 then
         Position(geese, (row,col)).GameValue

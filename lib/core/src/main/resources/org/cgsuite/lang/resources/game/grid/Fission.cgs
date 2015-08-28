@@ -8,10 +8,10 @@ singleton class Fission extends GridRuleset
 
       var direction := if player == Left then (1,0) else (0,1) end;
 
-      for c in grid.FindAll(1)
+      for c in grid FindAll 1
       where grid[c-direction] == 0 and grid[c+direction] == 0
       yield
-        Position(grid.Updated({c => 0, c-direction => 1, c+direction => 1}))
+        Position(grid Updated {c => 0, c-direction => 1, c+direction => 1})
       end
 
     end

@@ -18,10 +18,10 @@ class GenClobber(
       var clob := clobberedAsList[us];
       var lb := leftBehindAsList[us];
 
-      for c in grid.FindAll(us)
+      for c in grid FindAll us
       for d in directions where clob.Contains(grid[c+d])
       yield
-        Position(grid.Updated({c => lb, c+d => us}))
+        Position(grid Updated {c => lb, c+d => us})
       end
 
     end

@@ -12,12 +12,12 @@ class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) exten
       var us := player.Ordinal;
       var them := player.Opponent.Ordinal;
 
-      for n in strip.FindAll(us)
+      for n in strip FindAll us
       for k from minMove to maxMove
       while k < 2 or strip[n+(k-1)*player.Sign] == them
       where k != 0 and strip[n+k*player.Sign] == 0
       yield
-        Position(strip.Updated({n => 0, n+k*player.Sign => us}))
+        Position(strip Updated {n => 0, n+k*player.Sign => us})
       end
 
     end

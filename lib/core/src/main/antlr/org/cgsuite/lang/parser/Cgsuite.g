@@ -124,6 +124,7 @@ tokens
     EXPRESSION_LIST;
     FUNCTION_CALL;
     FUNCTION_CALL_ARGUMENT_LIST;
+    INFIX_OP;
     LOOP_SPEC;
     METHOD_PARAMETER;
     METHOD_PARAMETER_LIST;
@@ -435,7 +436,7 @@ isExpr
     ;
 
 relationalExpr
-    : rangeExpr (relationalToken^ relationalExpr)?
+    : infixExpr (relationalToken^ relationalExpr)?
     ;
 
 relationalToken
@@ -455,6 +456,14 @@ standardRelationalToken
     | LCONFUSED
     | GCONFUSED
     | COMPARE
+    ;
+
+// Infix operators such as `3 Max 4`. We need to special case the potentially ambiguous
+// "optional postfix" operations, ^ and *. For example, `^ Heat 2` should parse as
+// `^.Heat(2)`, whereas `^ Heat` should parse as `^(Heat)` (where `Heat` is a variable).
+infixExpr
+    : (nonterminalUpstarExpr IDENTIFIER rangeExpr) => nonterminalUpstarExpr IDENTIFIER^ rangeExpr { $IDENTIFIER.setType(INFIX_OP); }
+    | rangeExpr (IDENTIFIER^ rangeExpr { $IDENTIFIER.setType(INFIX_OP); })?
     ;
 
 rangeExpr
@@ -535,6 +544,18 @@ options
 }
     : AST primaryExpr -> ^(UNARY_AST[$AST] primaryExpr)
     | AST -> UNARY_AST[$AST]
+    ;
+
+nonterminalUpstarExpr
+options
+{
+    backtrack = true;
+    memoize = true;
+}
+    : (CARET | MULTI_CARET | VEE | MULTI_VEE)^ AST { $AST.setType(UNARY_AST); }
+    | (CARET | VEE)^ primaryExpr AST { $AST.setType(UNARY_AST); }
+    | CARET | VEE
+    | AST { $AST.setType(UNARY_AST); }
     ;
     
 primaryExpr

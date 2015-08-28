@@ -55,6 +55,8 @@ object EvalNode {
 
       case IS => BinOpNode(tree, Is)
 
+      case INFIX_OP => InfixOpNode(tree)
+
       // Relations
 
       case EQUALS => BinOpNode(tree, Equals)
@@ -246,7 +248,7 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object IdentifierNode {
   def apply(tree: Tree): IdentifierNode = {
-    assert(tree.getType == IDENTIFIER, tree.toStringTree)
+    assert(tree.getType == IDENTIFIER || tree.getType == INFIX_OP, tree.toStringTree)
     IdentifierNode(tree, Symbol(tree.getText))
   }
 }
@@ -837,6 +839,13 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
         _: GameSpecNode | _: MapNode | _: ThisNode => s"${obj.toNodeString}.${idNode.toNodeString}"
       case _ => s"(${obj.toNodeString}).${idNode.toNodeString})"
     }
+  }
+}
+
+object InfixOpNode {
+  def apply(tree: Tree): FunctionCallNode = {
+    val callSiteNode = DotNode(tree, EvalNode(tree.children.head), IdentifierNode(tree))
+    FunctionCallNode(tree, callSiteNode, IndexedSeq(EvalNode(tree.children(1))), IndexedSeq(None))
   }
 }
 
