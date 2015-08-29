@@ -1,15 +1,11 @@
 /*${cgsuite.banner}*/
 
-class constants
+singleton class constants
 
-  static def Clobber := game.grid.GenClobber();
-
-  static def AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1});
-
-  static def HotClobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}});
-
-  static def FoxAndGeese := game.grid.GenFoxAndGeese();
-
-  static def CeyloneseFoxAndGeese := game.grid.GenFoxAndGeese(foxRange => 2);
+  def Clobber := game.grid.GenClobber();
+  def AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1});
+  def HotClobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}});
+  def FoxAndGeese := game.grid.GenFoxAndGeese();
+  def CeyloneseFoxAndGeese := game.grid.GenFoxAndGeese(foxRange => 2);
 
 end

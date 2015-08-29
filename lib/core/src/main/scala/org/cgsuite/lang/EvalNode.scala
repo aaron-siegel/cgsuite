@@ -313,7 +313,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
         case None =>
           if (constantResolution != null) {
             // Constant
-            constantResolution evaluateFor constantResolution.cls.classObject
+            constantResolution evaluateFor constantResolution.cls.singletonInstance
           } else {
             throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
           }
@@ -820,7 +820,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     if (classResolution != null) {
       if (classResolution.isSingleton) classResolution.singletonInstance else classResolution.classObject
     } else if (constantResolution != null) {
-      constantResolution evaluateFor constantResolution.cls.classObject
+      constantResolution evaluateFor constantResolution.cls.singletonInstance
     } else {
       val x = obj.evaluate(domain)
       val y = idNode.resolver.resolve(x)

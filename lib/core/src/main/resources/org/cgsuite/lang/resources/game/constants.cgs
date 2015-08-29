@@ -1,21 +1,21 @@
 /*${cgsuite.banner}*/
 
-class constants
+singleton class constants
 
-  static var Left := Player.Left;
-  static var Right := Player.Right;
+  var Left := Player.Left;
+  var Right := Player.Right;
 
-  static var Onside := Side.Onside;
-  static var Offside := Side.Offside;
+  var Onside := Side.Onside;
+  var Offside := Side.Offside;
 
-  static var on := {pass|};
-  static var off := -on;
-  static var dud := on & off;
-  static var over := {0|pass};
-  static var under := -over;
-  static var upon := {pass|*};
+  var on := {pass|};
+  var off := -on;
+  var dud := on & off;
+  var over := {0|pass};
+  var under := -over;
+  var upon := {pass|*};
 
-  static def Miny(g as CanonicalStopper) := {g|0||0};
-  static def Tiny(g as CanonicalStopper) := {0||0|-g};
+  def Miny(g as CanonicalStopper) := {g|0||0};
+  def Tiny(g as CanonicalStopper) := {0||0|-g};
 
 end

@@ -700,23 +700,6 @@ class CgscriptClass(
     constructor foreach { _.elaborate() }
     methods foreach { case (_, method) => method.elaborate() }
 
-    // TODO Validate that singletons have no constructor
-    // TODO Validate that singletons cannot be subclassed
-
-    // Singleton construction
-    if (isSingleton) {
-      if (enclosingClass.isDefined) {
-        sys.error("Nested singleton classes are not yet supported.")
-      }
-      if (qualifiedName == "game.Zero") {
-        singletonInstanceRef = ZeroImpl
-      } else {
-        singletonInstanceRef = new StandardObject(this, Array.empty)
-      }
-    } else {
-      singletonInstanceRef = null
-    }
-
     // Enum construction
     node.enumElements foreach { element =>
       classObjectRef.vars(classInfoRef.staticVarOrdinals(element.id.id)) = new EnumObject(this, element.id.id.name)
@@ -757,6 +740,25 @@ class CgscriptClass(
     }
 
     node.ordinaryInitializers.foreach { _.body elaborate ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None) }
+
+    // TODO Validate that singletons have no constructor
+    // TODO Validate that singletons cannot be subclassed
+    // TODO Validate that constants classes must be singletons
+
+    // Singleton construction
+    if (isSingleton) {
+      if (enclosingClass.isDefined) {
+        sys.error("Nested singleton classes are not yet supported.")
+      }
+      if (qualifiedName == "game.Zero") {
+        singletonInstanceRef = ZeroImpl
+      } else {
+        singletonInstanceRef = new StandardObject(this, Array.empty)
+        logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
+      }
+    } else {
+      singletonInstanceRef = null
+    }
 
   }
 
