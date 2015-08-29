@@ -19,6 +19,6 @@ case class TakeAndBreak(code: String) extends HeapRuleset {
     result
   }
 
-  override def apChecker: Option[APChecker] = Some(tbCode.getAPChecker)
+  override def periodicityChecker: Option[PeriodicityChecker] = Some(tbCode.getAPChecker)
 
 }

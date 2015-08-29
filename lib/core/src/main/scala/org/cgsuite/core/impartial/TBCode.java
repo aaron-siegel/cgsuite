@@ -390,7 +390,7 @@ public class TBCode
     /**
      * Tests <code>arr[beg .. beg+n-1]</code> for periodicity or
      * arithmeto-periodicity.
-     * Adapted from Michael Albert's APChecker code.
+     * Adapted from Michael Albert's PeriodicityChecker code.
      *
      * @param arr    The array containing possibly periodic data
      * @param beg    The beginning index of the possibly periodic data
@@ -1211,9 +1211,9 @@ public class TBCode
         return new TBTraversal(heapSize);
     }
 
-    public APChecker getAPChecker()
+    public PeriodicityChecker getAPChecker()
     {
-        APChecker apchecker = new APChecker();
+        PeriodicityChecker apchecker = new PeriodicityChecker();
         apchecker.setLinearCriteria(maxSplit(), maxSplit(), lastDigit() + maxSplit());
         apchecker.setMaxSaltus(0);
         return apchecker;

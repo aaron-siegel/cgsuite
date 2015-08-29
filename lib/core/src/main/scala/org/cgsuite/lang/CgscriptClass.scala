@@ -5,7 +5,7 @@ import java.net.URL
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
-import org.cgsuite.core.impartial.{APInfo, HeapRuleset, TakeAndBreak}
+import org.cgsuite.core.impartial.{Periodicity, HeapRuleset, TakeAndBreak}
 import org.cgsuite.exception.{CgsuiteException, InputException}
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
@@ -88,7 +88,7 @@ object CgscriptClass {
 
     "game.heap.TakeAndBreak" -> classOf[TakeAndBreak],
     "game.heap.HeapRuleset" -> classOf[HeapRuleset],
-    "game.heap.Periodicity" -> classOf[APInfo]
+    "game.heap.Periodicity" -> classOf[Periodicity]
 
   )
 

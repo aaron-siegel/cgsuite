@@ -39,7 +39,7 @@ import java.util.List;
  * @author malbert
  * @version $Revision: 1.7 $ $Date: 2007/02/20 23:52:29 $
  */
-public class APChecker {
+public class PeriodicityChecker {
   
   static int[] suffixPointers = new int[1000];
   
@@ -51,12 +51,12 @@ public class APChecker {
   private int offset = 0;
   
   /**
-   * Constructs a new APChecker object. Owing to the complexity of the potential data fields
+   * Constructs a new PeriodicityChecker object. Owing to the complexity of the potential data fields
    * for the periodicity criteria, these are all to be set using methods rather than at
    * construction. By default, if unset, any AP behaviour with at least one full repetition of 
    * ther period will be recognised.
    */
-  public APChecker() {};
+  public PeriodicityChecker() {};
   
   /**
    * Sets the maximum allowed period.
@@ -127,7 +127,7 @@ public class APChecker {
    * @return An <CODE>APInfo</CODE> object representing the result of this test. If
    * the test is unsuccessful the return will be <CODE>null</CODE>.
    */
-  public APInfo checkSequence(int[] values) {
+  public Periodicity checkSequence(int[] values) {
     return checkSequence(values, values.length);
   }
   
@@ -140,7 +140,7 @@ public class APChecker {
    * @return An <CODE>APInfo</CODE> object representing the result of this test. If
    * the test is unsuccessful the return will be <CODE>null</CODE>.
    */
-  public APInfo checkSequence(int[] values, int endIndex) {
+  public Periodicity checkSequence(int[] values, int endIndex) {
     if (suffixPointers.length < endIndex) {
       suffixPointers = new int[(endIndex*5)/4 + 1];
     }
@@ -164,7 +164,7 @@ public class APChecker {
           int per = suffixPointers[prep] - prep;
           int saltus = values[top] - values[top-per];
           if (meetsCriteria(prep, per, saltus, endIndex)) {
-            return new APInfo(prep, per, saltus);
+            return new Periodicity(per, prep, saltus);
           }
         }
       }
@@ -175,7 +175,7 @@ public class APChecker {
     if (per < top) {
       int saltus = values[top] - values[top - per];
       if (meetsCriteria(0, per, saltus, endIndex)) {
-        return new APInfo(0, per, saltus);
+        return new Periodicity(per, 0, saltus);
       }
     }
     
@@ -191,7 +191,7 @@ public class APChecker {
    * @return An <CODE>APInfo</CODE> object representing the result of this test. If
    * the test is unsuccessful the return will be <CODE>null</CODE>.
    */
-  public APInfo checkSequence(short[] values) {
+  public Periodicity checkSequence(short[] values) {
     return checkSequence(values, values.length);
   }
   
@@ -204,7 +204,7 @@ public class APChecker {
    * @return An <CODE>APInfo</CODE> object representing the result of this test. If
    * the test is unsuccessful the return will be <CODE>null</CODE>.
    */
-  public APInfo checkSequence(short[] values, int endIndex) {
+  public Periodicity checkSequence(short[] values, int endIndex) {
     if (suffixPointers.length < endIndex) {
       suffixPointers = new int[(endIndex*5)/4 + 1];
     }
@@ -226,7 +226,7 @@ public class APChecker {
           int per = suffixPointers[prep] - prep;
           int saltus = values[top] - values[top-per];
           if (meetsCriteria(prep, per, saltus, endIndex)) {
-            return new APInfo(prep, per, saltus);
+            return new Periodicity(per, prep, saltus);
           }
         }
       }
@@ -237,7 +237,7 @@ public class APChecker {
     if (per < top) {
       int saltus = values[top] - values[top - per];
       if (meetsCriteria(0, per, saltus, endIndex)) {
-        return new APInfo(0, per, saltus);
+        return new Periodicity(per, 0, saltus);
       }
     }
     
@@ -251,7 +251,7 @@ public class APChecker {
    * @return An <CODE>APInfo</CODE> object representing the result of this test. If
    * the test is unsuccessful the return will be <CODE>null</CODE>.
    */
-  public APInfo checkSequence(List<Integer> values) {
+  public Periodicity checkSequence(List<Integer> values) {
     if (suffixPointers.length < values.size()) {
       suffixPointers = new int[(values.size()*5)/4 + 1];
     }
@@ -273,7 +273,7 @@ public class APChecker {
           int per = suffixPointers[prep] - prep;
           int saltus = values.get(top) - values.get(top-per);
           if (meetsCriteria(prep, per, saltus, values.size())) {
-            return new APInfo(prep, per, saltus);
+            return new Periodicity(per, prep, saltus);
           }
         }
       }
@@ -284,7 +284,7 @@ public class APChecker {
     if (per < top) {
       int saltus = values.get(top) - values.get(top - per);
       if (meetsCriteria(0, per, saltus, values.size())) {
-        return new APInfo(0, per, saltus);
+        return new Periodicity(per, 0, saltus);
       }
     }
     

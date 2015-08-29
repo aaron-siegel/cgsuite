@@ -183,8 +183,8 @@ public class NimValueSequence
     
     public short[] nimValues(int maxHeapSize)
     {
-        calculateNimValues(maxHeapSize);
-        return Arrays.copyOfRange(nimValues, 0, maxHeapSize);
+        calculateNimValues(maxHeapSize+1);
+        return Arrays.copyOfRange(nimValues, 0, maxHeapSize+1);
     }
 
     /**
@@ -198,10 +198,10 @@ public class NimValueSequence
         return maxKnown;
     }
 
-    public APInfo checkPeriodicity(int maxHeapSize)
+    public Periodicity checkPeriodicity(int maxHeapSize)
     {
         calculateNimValues(maxHeapSize);
-        Option<APChecker> checker = rules.apChecker();
+        Option<PeriodicityChecker> checker = rules.periodicityChecker();
         if (checker.isDefined())
         {
             return checker.get().checkSequence(nimValues, maxHeapSize);

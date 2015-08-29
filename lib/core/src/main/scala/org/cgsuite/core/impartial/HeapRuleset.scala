@@ -34,11 +34,13 @@ trait HeapRuleset {
 
   }
 
-  def apChecker: Option[APChecker] = None
+  def periodicityChecker: Option[PeriodicityChecker] = None
 
-  def checkPeriodicity(toHeapSize: Integer): APInfo = sequence checkPeriodicity toHeapSize.intValue
+  def checkPeriodicity(toHeapSize: Integer): Periodicity = sequence checkPeriodicity toHeapSize.intValue
 
 }
+
+case class Periodicity(period: Int, preperiod: Int, saltus: Int)
 
 trait Traversal {
 
