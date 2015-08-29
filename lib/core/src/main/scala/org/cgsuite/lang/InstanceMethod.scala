@@ -16,7 +16,9 @@ case class InstanceClass(obj: StandardObject, cls: CgscriptClass) extends CallSi
   def ordinal = cls.constructor.get.ordinal
   def call(args: Array[Any]): Any = {
     // TODO There's some duplicated logic here w/ UserConstructor
-    if (cls.ancestors.contains(CgscriptClass.Game))
+    if (cls.ancestors.contains(CgscriptClass.ImpartialGame))
+      new ImpartialGameObject(cls, args, obj)
+    else if (cls.ancestors.contains(CgscriptClass.Game))
       new GameObject(cls, args, obj)
     else
       new StandardObject(cls, args, obj)

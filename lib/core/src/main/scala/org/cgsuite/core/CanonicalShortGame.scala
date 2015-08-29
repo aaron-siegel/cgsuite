@@ -53,7 +53,7 @@ object CanonicalShortGame {
         case (a: DyadicRationalNumber, b: DyadicRationalNumber) => a compare b
         case (_: DyadicRationalNumber, _) => -1
         case (_, _: DyadicRationalNumber) => 1
-        case (a: Nimber, b: Nimber) => a.nimValue - b.nimValue
+        case (a: Nimber, b: Nimber) => a.intNimValue - b.intNimValue
         case (_: Nimber, _) => -1
         case (_, _: Nimber) => 1
         case (a: Uptimal, b: Uptimal) => a.uptimalExpansion compareTo b.uptimalExpansion

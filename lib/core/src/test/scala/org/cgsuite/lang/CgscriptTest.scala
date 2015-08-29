@@ -355,6 +355,16 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "game.Nimber" should "implement methods correctly" in {
+
+    execute(Table(
+      header,
+      ("NimValue (0)", "0.NimValue", "0"),
+      ("NimValue (non-0)", "*3.NimValue", "3")
+    ))
+
+  }
+
   "game.Rational" should "implement methods correctly" in {
 
     // x, class, numerator, denominator, isDyadic, abs, floor, ceiling, reciprocal

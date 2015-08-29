@@ -6,6 +6,4 @@ system class ImpartialGame extends Game
   override def GameValue := *NimValue;
   external def NimValue;
 
-  def Decomposition := [this];
-
 end

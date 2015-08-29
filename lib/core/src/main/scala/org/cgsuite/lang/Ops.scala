@@ -153,7 +153,7 @@ object Ops {
   }
 
   val MakeNimber = UnOp("nim") {
-    case x: SmallInteger => Nimber(x.intValue)
+    case x: SmallInteger => Nimber(x)
   }
 
   val MakeUpMultiple = BinOp("up") {

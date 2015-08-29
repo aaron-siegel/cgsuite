@@ -68,6 +68,11 @@ trait SmallInteger extends Integer {
     case small: SmallInteger => SmallInteger(intValue % other.intValue)
     case _ => super.%(other)
   }
+
+  override def ^(other: Integer) = other match {
+    case small: SmallInteger => SmallInteger(intValue ^ other.intValue)
+    case _ => super.^(other)
+  }
     
   override def abs: SmallInteger = SmallInteger(intValue.abs)
   

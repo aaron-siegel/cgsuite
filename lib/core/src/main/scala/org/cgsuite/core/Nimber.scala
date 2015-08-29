@@ -9,7 +9,9 @@ package org.cgsuite.core
 import scala.language.postfixOps
 
 object Nimber {
-  
+
+  def apply(nimValue: Integer): Nimber = Nimber(nimValue.intValue)
+
   def apply(nimValue: Int): Nimber = nimValue match {
     case 0 => ZeroImpl
     case m if m < 0 => sys.error("nim value must be a positive integer")
@@ -18,29 +20,32 @@ object Nimber {
   
 }
 
-trait Nimber extends Uptimal {
+trait Nimber extends ImpartialGame with Uptimal {
   
-  def nimValue: Int
+  def nimValue: Integer
+  def intNimValue: Int
 
-  override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, nimValue)
+  override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, intNimValue)
   override def numberPart = Values.zero
-  override def nimberPart = nimValue
-  def ordinalSum(that: Nimber) = Nimber(nimValue + that.nimValue)
+  override def nimberPart = intNimValue
+  def ordinalSum(that: Nimber) = Nimber(intNimValue + that.intNimValue)
   override def uptimalLength = 0
   override def uptimalCoefficient(n: Int) = 0
 
-  def +(other: Nimber) = Nimber(nimValue ^ other.nimValue)
-  def -(other: Nimber) = Nimber(nimValue ^ other.nimValue)
+  def +(other: Nimber) = Nimber(intNimValue ^ other.intNimValue)
+  def -(other: Nimber) = Nimber(intNimValue ^ other.intNimValue)
   override def unary_- = this
 
   override def options(player: Player): Iterable[Nimber] = {
-    (0 until nimValue) map { Nimber(_) } toSet
+    (0 until intNimValue) map { Nimber(_) } toSet
   }
   
 }
 
-case class NimberImpl(nimValue: Int) extends Nimber {
+case class NimberImpl(intNimValue: Int) extends Nimber {
 
-  assert(nimValue > 0)
+  assert(intNimValue > 0)
+
+  override def nimValue = SmallInteger(intNimValue)
   
 }

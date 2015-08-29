@@ -2,7 +2,6 @@ package org.cgsuite.lang
 
 import java.lang.{System => JSystem}
 
-import org.cgsuite.core.CanonicalShortGameOps
 import org.cgsuite.lang.parser.ParserUtil
 
 import scala.collection.mutable
@@ -11,7 +10,7 @@ object Profiler {
 
   def main(args: Array[String]) {
     CgscriptClass.Object.ensureLoaded()
-    val statement = """game.grid.Clobber2("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
+    val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
     // Warm-up
     evalForProfiler(statement, profile = false)
     CgscriptClass.clearAll()
@@ -25,7 +24,7 @@ object Profiler {
 
   def evalForProfiler(str: String, profile: Boolean): Long = {
     println(s"Evaluating with profile = $profile: $str")
-    val domain = new Domain(null, None)
+    val domain = new Domain(null, None, Some(mutable.AnyRefMap()))
     val tree = ParserUtil.parseStatement(str)
     println(tree.toStringTree)
     val node = EvalNode(tree)

@@ -79,6 +79,7 @@ object CgscriptClass {
 
     "game.ExplicitGame" -> classOf[ExplicitGame],
 
+    "game.ImpartialGame" -> classOf[ImpartialGame],
     "game.Game" -> classOf[Game],
 
     "game.Player" -> classOf[Player],
@@ -128,6 +129,7 @@ object CgscriptClass {
   val Class = CgscriptPackage.lookupClassByName("Class").get
   val Enum = CgscriptPackage.lookupClassByName("Enum").get
   val Game = CgscriptPackage.lookupClassByName("Game").get
+  val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
   val List = CgscriptPackage.lookupClassByName("List").get
   val NilClass = CgscriptPackage.lookupClassByName("Nil").get
 
@@ -436,7 +438,10 @@ class CgscriptClass(
       // TODO Parse var initializers
       Profiler.start(invokeConstructor)
       try {
-        if (ancestors.contains(Game))
+        // TODO We could cache these checks
+        if (ancestors.contains(ImpartialGame))
+          new ImpartialGameObject(CgscriptClass.this, args)
+        else if (ancestors.contains(Game))
           new GameObject(CgscriptClass.this, args)
         else
           new StandardObject(CgscriptClass.this, args)

@@ -15,7 +15,8 @@ object Zero {
 trait Zero extends SmallInteger with Nimber {
   
   override val intValue = 0
-  val nimValue = 0
+  override val nimValue = this
+  override val intNimValue = 0
 
   override def isZero = true
 

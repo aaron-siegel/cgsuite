@@ -28,12 +28,14 @@ trait ImpartialGame extends Game {
 
   override def canonicalForm: CanonicalShortGame = Nimber(nimValue)
 
-  def nimValue: Int = {
+  override def canonicalForm(tt: TranspositionTable): CanonicalShortGame = Nimber(nimValue(tt))
+
+  def nimValue: Integer = {
     nimValue(new TranspositionTable())
   }
 
-  def nimValue(tt: TranspositionTable): Int = {
-    nimValue(tt, mutable.HashSet[ImpartialGame]())
+  def nimValue(tt: TranspositionTable): Integer = {
+    SmallInteger(nimValue(tt, mutable.HashSet[ImpartialGame]()))
   }
 
   private def nimValue(tt: TranspositionTable, visited: mutable.Set[ImpartialGame]): Int = {

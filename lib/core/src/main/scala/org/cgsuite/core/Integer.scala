@@ -82,6 +82,7 @@ trait Integer extends DyadicRationalNumber {
   def -(other: Integer) = Integer(bigIntValue - other.bigIntValue)
   def *(other: Integer) = Integer(bigIntValue * other.bigIntValue)
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
+  def ^(other: Integer) = Integer(bigIntValue ^ other.bigIntValue)
 
   def *(other: SidedValue): SidedValue = other.nCopies(this)
   def *(other: StopperSidedValue): StopperSidedValue = other.nCopies(this)
