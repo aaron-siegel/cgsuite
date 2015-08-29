@@ -47,6 +47,7 @@ object Ops {
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x + y
     case (_: StopperSidedValue, _: StopperSidedValue) => (x: StopperSidedValue, y: StopperSidedValue) => x + y
     case (_: SidedValue, _: SidedValue) => (x: SidedValue, y: SidedValue) => x + y
+    case (_: ImpartialGame, _: ImpartialGame) => (x: ImpartialGame, y: ImpartialGame) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
     case (_: String, _: String) => (x: String, y: String) => x + y

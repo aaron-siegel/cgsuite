@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+class constants
+
+  static def Nim := TakeAndBreak("0.[3]");
+  static def Kayles := TakeAndBreak("0.77");
+  static def DawsonsKayles := TakeAndBreak("0.07");
+
+end

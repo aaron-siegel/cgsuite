@@ -98,7 +98,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       else
         InstanceMethod(x, method.get)
     } else if (nestedClass.isDefined) {
-      InstanceClass(x.asInstanceOf[StandardObject], nestedClass.get)
+      InstanceClass(x, nestedClass.get)
     } else {
       null
     }

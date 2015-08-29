@@ -9,7 +9,7 @@ import org.cgsuite.util.TranspositionTable
 
 import scala.collection.mutable
 
-class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: StandardObject = null)
+class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: Any = null)
   extends OutputTarget {
 
   private[lang] var vars: Array[Any] = _
@@ -68,7 +68,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
 
 class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty)
 
-class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: StandardObject = null)
+class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends StandardObject(cls, objArgs, enclosingObj) with Game {
 
   def options(player: Player) = {
@@ -91,7 +91,7 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Standard
 
 }
 
-class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: StandardObject = null)
+class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends GameObject(cls, objArgs, enclosingObj) with ImpartialGame {
 
   override def options(player: Player) = {

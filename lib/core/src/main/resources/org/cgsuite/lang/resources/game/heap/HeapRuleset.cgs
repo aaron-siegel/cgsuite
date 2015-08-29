@@ -1,0 +1,16 @@
+/*${cgsuite.banner}*/
+
+class HeapRuleset extends Ruleset
+
+  def Eval(heapSize as Integer) := Position(heapSize);
+
+  def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must override `HeapOptions`.");
+
+  class Position(heapSize as Integer) extends ImpartialGame
+
+    override def Options(player as Player) := HeapOptions(heapSize) Apply
+      (heaps -> if heaps.IsEmpty then 0 else sumof(Position(n) for n in heaps) end);
+
+  end
+
+end

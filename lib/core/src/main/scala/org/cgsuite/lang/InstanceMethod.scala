@@ -10,7 +10,8 @@ case class InstanceMethod(obj: Any, method: CgscriptClass#Method) extends CallSi
 
 }
 
-case class InstanceClass(obj: StandardObject, cls: CgscriptClass) extends CallSite {
+// TODO This shouldn't have to be a StandardObject - it breaks e.g. TakeAndBreak.Eval
+case class InstanceClass(obj: Any, cls: CgscriptClass) extends CallSite {
 
   def parameters = cls.constructor.get.parameters
   def ordinal = cls.constructor.get.ordinal

@@ -6,23 +6,29 @@ import org.cgsuite.core.ImpartialGame.mex
 
 import scala.collection.{BitSet, mutable}
 
-/**
- * Created by asiegel on 8/25/15.
- */
 object ImpartialGame {
 
   def mex(set: Iterable[Int]): Int = {
-    val bitset = BitSet.empty ++ set
-    var m = 0
-    while (m <= bitset.max && (bitset contains m)) {
-      m += 1
+    if (set.isEmpty) {
+      0
+    } else {
+      val bitset = BitSet.empty ++ set
+      var m = 0
+      while (m <= bitset.max && (bitset contains m)) {
+        m += 1
+      }
+      m
     }
-    m
   }
 
 }
 
 trait ImpartialGame extends Game {
+
+  override def unary_- : ImpartialGame = this
+
+  def +(other: ImpartialGame): ImpartialGame = CompoundImpartialGame(CompoundType.Disjunctive, this, other)
+  def -(other: ImpartialGame): ImpartialGame = this + this
 
   override def options(player: Player): Iterable[ImpartialGame]
 
