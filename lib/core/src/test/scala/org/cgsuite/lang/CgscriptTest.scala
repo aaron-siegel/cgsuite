@@ -16,7 +16,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   "CGScript" should "process basic expressions" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("Simple echo", "0", "0"),
       ("Semicolon suppress output", "0;", "nil"),
@@ -30,7 +30,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "process arithmetic expressions" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("Integer addition", "3+5", "8"),
       ("Integer multiplication", "3*5", "15"),
@@ -56,7 +56,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "give helpful error messages for certain arithmetic expressions" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("Nil plus number", "[] + 5", "!!No operation `+` for arguments of types `cgsuite.lang.Nil`, `game.Integer`")
     ))
@@ -64,7 +64,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "correctly interpret canonical forms" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Composition", "{0|^*5}", "^^*4"),
       ("Slashes", "{3|||2||1|0,*||||-1/2}", "{3|||2||1|0,*||||-1/2}"),
@@ -90,7 +90,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "process infix ops" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Simple infix", "3 Max 5", "5"),
       ("Star infix", "* Heat 2", "+-2"),
@@ -104,7 +104,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "respect order of operations" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Sums and differences", "5 - 3 + 4 - 8", "-2"),
       ("Products and divs", "5 - 3 / 4 * 6 - 2", "-3/2"),
@@ -115,7 +115,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "correctly interpret loopy game specs" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("on", "on", "on"),
       ("off", "off", "off"),
@@ -146,7 +146,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "process game operations" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("sided + sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}+1", "a{2|2,{2*|a||1*}||1} & a{1,{2|||2*|a||1*}|1}"),
       ("even integer * uptimal", "10*(1+^.Pow(2)+*4)", "{10||10,10v*|{10vv,10v*||||10v3*,10vv|||10v4,10v3*||10v5*,10v4|{10v6,10v5*||||10v7*,10v6|||10v8,10v7*||10v9*,10v8|10v10}}}"),
@@ -160,7 +160,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "simplify properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Multiplier simplification", "(*+*)*3", "0"),
       ("Integer exponent simplification", "2^(*+*)", "1"),
@@ -169,7 +169,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "handle comparison operators" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Confused", "3 <> 3+*", "true"),
       ("Heterogeneous compare", "3 == nil", "false")
@@ -177,7 +177,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "construct collections properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Empty List", "[]", "nil"),
       ("List", "[3,5,3,1]", "[3,5,3,1]"),
@@ -245,16 +245,16 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       (s"sumof: $name", s"${init}sumof($fn $snippet)", s"$sum")
     }
 
-    execute(Table(header, listofLoops : _*))
-    execute(Table(header, setofLoops : _*))
-    execute(Table(header, yieldLoops : _*))
-    execute(Table(header, sumofLoops : _*))
+    executeTests(Table(header, listofLoops : _*))
+    executeTests(Table(header, setofLoops : _*))
+    executeTests(Table(header, yieldLoops : _*))
+    executeTests(Table(header, sumofLoops : _*))
 
   }
 
   it should "properly construct and evaluate procedures" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("Procedure definition", "f := x -> x+1", "x -> (x + 1)"),
       ("Procedure definition - duplicate var", "(x, x) -> x", "!!Duplicate var: `x`"),
@@ -309,14 +309,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       (s"Set: $call", s"{$seq}.$call", result)
     }
 
-    execute(Table(header, lists : _*))
-    execute(Table(header, sets : _*))
+    executeTests(Table(header, lists : _*))
+    executeTests(Table(header, sets : _*))
 
   }
 
   "cgsuite.lang.Range" should "implement Collection faithfully" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("Range: Contains(4)", "(1..10..2).Contains(4)", "false"),
       ("Range: Contains(9)", "(1..10..2).Contains(9)", "true"),
@@ -330,7 +330,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   "game.Integer" should "implement methods correctly" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("MinValue", "-2147483648", "-2147483648"),
       ("MinValue-1", "-2147483649", "-2147483649"),
@@ -357,7 +357,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   "game.Nimber" should "implement methods correctly" in {
 
-    execute(Table(
+    executeTests(Table(
       header,
       ("NimValue (0)", "0.NimValue", "0"),
       ("NimValue (non-0)", "*3.NimValue", "3")
@@ -412,7 +412,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       )
     } map { case (expr, result) => (expr, expr, result) }
 
-    execute(Table(header, unaryTests ++ binaryTests : _*))
+    executeTests(Table(header, unaryTests ++ binaryTests : _*))
 
   }
 
@@ -420,7 +420,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
     val tests = CanonicalShortGameTestCase.instances flatMap { _.toTests }
 
-    execute(Table(header, tests : _*))
+    executeTests(Table(header, tests : _*))
 
   }
 
@@ -486,7 +486,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("(+-1).Pow(3)", "!!Base must be of the form {0|H}.")
     )
 
-    execute(Table(
+    executeTests(Table(
       header,
       instances map { case (expr, result) => (expr, expr, result) } : _*
     ))
@@ -497,7 +497,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
     val tests = CanonicalStopperTestCase.instances flatMap { _.toTests }
 
-    execute(Table(header, tests : _*))
+    executeTests(Table(header, tests : _*))
 
   }
 
@@ -510,7 +510,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("upon.UpsumVariety(^.Pow(on))", "v<on>")
     )
 
-    execute(Table(
+    executeTests(Table(
       header,
       instances map { case (expr, result) => (expr, expr, result) } : _*
     ))
@@ -525,7 +525,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("g.Offside", "{0|^[on]}")
     )
 
-    execute(Table(
+    executeTests(Table(
       header,
       instances map { case (expr, result) => (expr, expr, result) } : _*
     ))
@@ -533,7 +533,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   "game.Game" should "behave correctly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("CanonicalForm on loopy game", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,1)).CanonicalForm",
         "!!That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`.")
@@ -541,7 +541,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   "game.Player" should "behave correctly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Left", "Left", "Left"),
       ("Player.Left", "Player.Left", "Left"),
@@ -553,14 +553,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   "game.grid" should "define Amazons properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Amazons", """game.grid.Amazons("x...|o...").CanonicalForm""", "+-{3,{4|0,{1|0,*}},{4|{0,{1/2|0}|v},+-1,+-{1,{2|0}}}}")
     ))
   }
 
   it should "define Clobber properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Clobber", """game.grid.Clobber("xox|ox.").CanonicalForm""", "{^^*|*,v}"),
       ("Clobber (Diagonal)", """game.grid.GenClobber(directions => Coordinates.Diagonal)("xoxo|oox.|xxx.").CanonicalForm""", "{0,v*|vv}"),
@@ -569,14 +569,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "define Domineering properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("Domineering", """game.grid.Domineering("....|....|....|....").CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}")
     ))
   }
 
   it should "define FoxAndGeese properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("FoxAndGeese", "game.grid.FoxAndGeese({(4,2),(4,4),(4,6),(4,8)}, (1,1)).GameValue", "{4*|7/2}"),
       ("CeyloneseFoxAndGeese", "game.grid.CeyloneseFoxAndGeese({(4,2),(4,4),(4,6),(4,8)}, (1,1)).GameValue", "{9||4v[on]*|5/2*|||3|5/2*,5/2v||5/2}"),
@@ -592,7 +592,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   "game.strip" should "define Toads and Frogs properly" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("ToadsAndFrogs", """game.strip.ToadsAndFrogs("ttttt..fffff").CanonicalForm""", "+-{{2|*},{5/2||2|{0||||{0||v<2>|-1},{0||||0||Miny(1/32)|-2|||-1/2*}|||v<2>|-1/2||-1*}|||0}}"),
       ("BackslidingToadsAndFrogs", """game.strip.BackslidingToadsAndFrogs("ttt..fff").GameValue""", "{on||0|-1/2} & {1/2|0||off}"),
@@ -601,18 +601,29 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   it should "avoid a weird class load order bug" in {
-    execute(Table(
+    executeTests(Table(
       header,
       ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(2).Class""", "<<game.strip.GenToadsAndFrogs>>")
     ))
   }
 
-  def execute(tests: TableFor3[String, String, String]): Unit = {
+  "game.heap" should "define TakeAndBreak properly" in {
+    executeTests(Table(
+      header,
+      ("Nim", "twenty(game.heap.Nim)", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]"),
+      ("GrundysGame", "twenty(game.heap.GrundysGame)", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]"),
+      ("Kayles", "twenty(game.heap.Kayles)", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]")
+    ), "twenty := rs -> listof(rs(n).NimValue for n from 0 to 20)")
+  }
+
+  def executeTests(tests: TableFor3[String, String, String], preamble: String = ""): Unit = {
 
     CgscriptClass.clearAll()
     CgscriptClass.Object.ensureLoaded()
 
     val varMap = mutable.AnyRefMap[Symbol, Any]()
+
+    if (preamble != "") parseResult(preamble, varMap)
 
     forAll(tests) { (_, input: String, expectedOutput: String) =>
       if (expectedOutput startsWith "!!") {

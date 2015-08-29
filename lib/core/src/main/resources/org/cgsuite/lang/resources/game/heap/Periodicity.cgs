@@ -1,0 +1,12 @@
+/*${cgsuite.banner}*/
+
+system class Periodicity
+
+  external def Period;
+  external def Preperiod;
+  external def Saltus;
+
+  override def ToOutput :=
+    cgsuite.util.output.TextOutput("Periodicity(Period => ") + Period.ToOutput + ", Preperiod => " + Preperiod.ToOutput + ", Saltus => " + Saltus.ToOutput + ")";
+
+end

@@ -5,7 +5,7 @@ import java.net.URL
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
-import org.cgsuite.core.impartial.TakeAndBreak
+import org.cgsuite.core.impartial.{APInfo, HeapRuleset, TakeAndBreak}
 import org.cgsuite.exception.{CgsuiteException, InputException}
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
@@ -86,7 +86,9 @@ object CgscriptClass {
     "game.Player" -> classOf[Player],
     "game.Side" -> classOf[Side],
 
-    "game.heap.TakeAndBreak" -> classOf[TakeAndBreak]
+    "game.heap.TakeAndBreak" -> classOf[TakeAndBreak],
+    "game.heap.HeapRuleset" -> classOf[HeapRuleset],
+    "game.heap.Periodicity" -> classOf[APInfo]
 
   )
 
@@ -109,8 +111,7 @@ object CgscriptClass {
     "game.strip.GenToadsAndFrogs",
     "game.strip.StripRuleset",
 
-    "game.heap.constants",
-    "game.heap.HeapRuleset"
+    "game.heap.constants"
 
   )
 

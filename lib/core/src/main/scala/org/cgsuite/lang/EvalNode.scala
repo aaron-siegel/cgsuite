@@ -896,9 +896,7 @@ case class FunctionCallNode(
           token = Some(token)
         )
       }
-        // TODO Maybe just make StandardObject a CallSite
-      case so: StandardObject => InstanceMethod(so, so.cls.classInfo.evalMethod)    // Faster than lookupInstanceMethod
-      case _ => throw InputException("That is not a method or procedure: " + obj, token = Some(token))
+      case x => InstanceMethod(x, (CgscriptClass of x).classInfo.evalMethod)   // TODO attach token to `Eval` not found
     }
 
     val res = resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))

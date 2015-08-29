@@ -151,7 +151,7 @@ import org.cgsuite.output.StyledTextOutput;
  * @author  Dan Hoey
  * @version $Revision: 1.20 $ $Date: 2008/01/06 21:18:25 $
  */
-public class TBCode extends HeapRules
+public class TBCode
 {
     ////////////////////////////////////////////////////////////////
     // private constants
@@ -1188,12 +1188,11 @@ public class TBCode extends HeapRules
                 && (mask & digitTriple[INDEX_PAIRWISE_UNEQUAL]) != 0);
     }*/
 
-    @Override
     public List<int[]> allOptions(int heapSize)
     {
         ArrayList<int[]> allOptions = new ArrayList<int[]>();
-        
-        HeapRules.Traversal t = new TBTraversal(heapSize);
+
+        Traversal t = new TBTraversal(heapSize);
         while (t.advance())
         {
             int[] opt = new int[t.currentLength()];
@@ -1203,17 +1202,15 @@ public class TBCode extends HeapRules
             }
             allOptions.add(opt);
         }
-        
+
         return allOptions;
     }
-    
-    @Override
-    public HeapRules.Traversal traversal(int heapSize)
+
+    public Traversal traversal(int heapSize)
     {
         return new TBTraversal(heapSize);
     }
-    
-    @Override
+
     public APChecker getAPChecker()
     {
         APChecker apchecker = new APChecker();
@@ -1559,7 +1556,7 @@ public class TBCode extends HeapRules
         }
     }
     
-    private class TBTraversal implements HeapRules.Traversal
+    private class TBTraversal implements Traversal
     {
         private int heapSize;
         private int minTokensToRemove, maxTokensToRemove;

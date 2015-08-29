@@ -8,13 +8,17 @@ case class TakeAndBreak(code: String) extends HeapRuleset {
 
   val tbCode = new TBCode(code)
 
+  override def traversal(heapSize: Int): Traversal = tbCode traversal heapSize
+
   override def heapOptions(heapSize: Integer): Iterable[Iterable[Integer]] = {
-    val traversal = tbCode traversal heapSize.intValue
+    val tr = traversal(heapSize.intValue)
     val result = mutable.MutableList[Iterable[Integer]]()
-    while (traversal.advance()) {
-      result += (0 until traversal.currentLength) map { n => Integer(traversal.currentPart(n)) }
+    while (tr.advance()) {
+      result += (0 until tr.currentLength) map { n => Integer(tr.currentPart(n)) }
     }
     result
   }
+
+  override def apChecker: Option[APChecker] = Some(tbCode.getAPChecker)
 
 }

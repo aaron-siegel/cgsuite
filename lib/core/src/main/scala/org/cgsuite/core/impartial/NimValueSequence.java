@@ -29,23 +29,23 @@
 
 package org.cgsuite.core.impartial;
 
+import scala.Option;
+
 import java.util.Arrays;
 import java.util.BitSet;
 
 /**
- * A sequence of Grundy values corresponding to a fixed <code>HeapRules</code>.
+ * A sequence of Grundy values corresponding to a fixed <code>HeapRuleset</code>.
  *
  * @author  Michael Albert
  * @version $Revision: 1.10 $ $Date: 2008/01/15 20:36:06 $
- * @see     HeapGame
- * @see     HeapRules
  */
 public class NimValueSequence
 {
     private static final short UNDEFINED_VALUE = -1;
     private static final int DEFAULT_SIZE = 100;
     private static int nCalcs = 0;
-    private HeapRules rules;
+    private HeapRuleset rules;
     private short[] nimValues;
     private int maxKnown;
     
@@ -58,7 +58,7 @@ public class NimValueSequence
      *
      * @param rules The <code>HeapRules</code> for this sequence.
      */
-    public NimValueSequence(HeapRules rules)
+    public NimValueSequence(HeapRuleset rules)
     {
         this(rules, DEFAULT_SIZE);
     }
@@ -70,7 +70,7 @@ public class NimValueSequence
      * @param rules The <code>HeapRules</code> for this sequence.
      * @param capacity The initial capacity.
      */
-    public NimValueSequence(HeapRules rules, int capacity)
+    public NimValueSequence(HeapRuleset rules, int capacity)
     {
         this.rules = rules;
         this.nimValues = new short[capacity];
@@ -112,7 +112,7 @@ public class NimValueSequence
             nCalcs=0;
         }
         mexSet.clear();
-        HeapRules.Traversal t = rules.traversal(position);
+        Traversal t = rules.traversal(position);
         while (t.advance()) {
             int result = 0;
             for (int i = 0; i < t.currentLength(); i++) {
@@ -186,18 +186,7 @@ public class NimValueSequence
         calculateNimValues(maxHeapSize);
         return Arrays.copyOfRange(nimValues, 0, maxHeapSize);
     }
-    
-    /**
-     * Gets the rules attached to this sequence.
-     *
-     * @return The <code>HeapRules</code> on which this sequence was
-     *         constructed.
-     */
-    public HeapRules getRules()
-    {
-        return rules;
-    }
-    
+
     /**
      * Gets the size of this sequence (the number of positive-sized
      * heaps that have been computed so far).
@@ -208,18 +197,18 @@ public class NimValueSequence
     {
         return maxKnown;
     }
-    
+
     public APInfo checkPeriodicity(int maxHeapSize)
     {
         calculateNimValues(maxHeapSize);
-        APChecker checker = rules.getAPChecker();
-        if (checker == null)
+        Option<APChecker> checker = rules.apChecker();
+        if (checker.isDefined())
         {
-            return null;
+            return checker.get().checkSequence(nimValues, maxHeapSize);
         }
         else
         {
-            return checker.checkSequence(nimValues, maxHeapSize);
+            return null;
         }
     }
 }

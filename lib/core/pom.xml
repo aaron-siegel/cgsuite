@@ -19,7 +19,7 @@
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
     <scala.tools.version>2.11</scala.tools.version>
-    <scala.version>2.11.6</scala.version>
+    <scala.version>2.11.7</scala.version>
   </properties>
 
   <dependencies>

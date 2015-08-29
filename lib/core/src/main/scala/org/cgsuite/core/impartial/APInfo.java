@@ -56,7 +56,7 @@ public class APInfo
      * Return the preperiod.
      * @return The preperiod.
      */
-	public int getPreperiod() {
+	public int preperiod() {
 		return preperiod;
 	}
 	
@@ -64,7 +64,7 @@ public class APInfo
      * Return the period.
      * @return The period.
      */
-	public int getPeriod(){
+	public int period(){
 		return period;
 	}
 	
@@ -72,7 +72,7 @@ public class APInfo
      * Return the saltus.
      * @return The saltus.
      */
-	public int getSaltus(){
+	public int saltus(){
 		return saltus;
 	}
 	
