@@ -1,0 +1,5 @@
+class ExtraneousOverrideTest extends BaseClassTest
+
+  override def NewMethod := "bar";
+
+end

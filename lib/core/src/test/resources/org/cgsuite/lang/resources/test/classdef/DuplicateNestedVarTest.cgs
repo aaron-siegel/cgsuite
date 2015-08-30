@@ -1,0 +1,8 @@
+class DuplicateNestedVarTest
+
+  class x
+  end
+
+  var x := "bar";
+
+end

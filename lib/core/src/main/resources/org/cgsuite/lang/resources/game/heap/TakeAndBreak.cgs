@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-class TakeAndBreak(code as String) extends HeapRuleset
+system class TakeAndBreak(code as String) extends HeapRuleset
 
   external def Code;
   external override def HeapOptions(heapSize as Integer);

@@ -5,9 +5,9 @@ system enum Player
   external Left,
   external Right;
 
-  external def Sign := if this === Left then 1 else -1 end;
-  external def Opponent := if this === Left then Right else Left end;
-  external def Ordinal := if this == Left then 1 else 2 end;
+  external def Sign; // := if this === Left then 1 else -1 end;
+  external def Opponent; // := if this === Left then Right else Left end;
+  external def Ordinal; // := if this == Left then 1 else 2 end;
 
   external override def Literal;
 

@@ -23,7 +23,6 @@ object EvalNode {
       case TRUE => ConstantNode(tree, true)
       case FALSE => ConstantNode(tree, false)
       case INTEGER => ConstantNode(tree, Integer.parseInteger(tree.getText))
-      case INF => ConstantNode(tree, positiveInfinity)
       case STRING => ConstantNode(tree, tree.getText.drop(1).dropRight(1).replaceAll("\\\\\"", "\""))
       case NIL => ConstantNode(tree, Nil)
 

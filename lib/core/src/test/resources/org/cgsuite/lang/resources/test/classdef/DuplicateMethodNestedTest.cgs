@@ -1,0 +1,8 @@
+class DuplicateMethodNestedTest
+
+  def Method := "foo";
+
+  class Method()
+  end
+
+end

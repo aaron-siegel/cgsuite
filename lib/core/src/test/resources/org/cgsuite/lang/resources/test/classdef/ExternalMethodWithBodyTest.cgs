@@ -1,0 +1,5 @@
+system class ExternalMethodWithBodyTest
+
+  external def ExternalMethod := "foo";
+
+end

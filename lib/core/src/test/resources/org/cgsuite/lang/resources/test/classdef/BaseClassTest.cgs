@@ -1,0 +1,5 @@
+class BaseClassTest
+
+  def Method := "foo";
+
+end

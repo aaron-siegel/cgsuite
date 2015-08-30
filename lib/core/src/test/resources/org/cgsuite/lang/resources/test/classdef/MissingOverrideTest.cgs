@@ -1,0 +1,5 @@
+class MissingOverrideText extends BaseClassTest
+
+  def Method := "bar";
+
+end

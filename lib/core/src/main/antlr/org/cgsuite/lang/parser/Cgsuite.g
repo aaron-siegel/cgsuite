@@ -78,9 +78,7 @@ tokens
     IF          = 'if';
     IMPORT      = 'import';
     IN          = 'in';
-    INF         = 'inf';
     IS          = 'is';
-    JAVA        = 'java';
     LISTOF      = 'listof';
     MUTABLE     = 'mutable';
     NEG         = 'neg';
@@ -266,7 +264,7 @@ classModifiers
     ;
 
 classModifier
-    : MUTABLE | OVERRIDE | SINGLETON | STATIC | SYSTEM
+    : MUTABLE | OVERRIDE | SINGLETON | SYSTEM
     ;
     
 extendsClause
@@ -275,10 +273,6 @@ extendsClause
 
 qualifiedId
     : IDENTIFIER (DOT^ IDENTIFIER)*
-    ;
-
-javaClause
-    : COLON! JAVA^ STRING
     ;
 
 declarations
@@ -564,7 +558,6 @@ primaryExpr
     | TRUE
     | FALSE
     | INTEGER
-    | INF
     | STRING
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)

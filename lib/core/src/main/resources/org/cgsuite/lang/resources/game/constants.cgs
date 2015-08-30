@@ -8,6 +8,8 @@ singleton class constants
   var Onside := Side.Onside;
   var Offside := Side.Offside;
 
+  var inf := 1/0;
+
   var on := {pass|};
   var off := -on;
   var dud := on & off;

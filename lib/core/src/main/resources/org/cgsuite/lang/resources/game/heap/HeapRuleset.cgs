@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-class HeapRuleset extends Ruleset
+system class HeapRuleset extends Ruleset
 
   def Eval(heapSize as Integer) := Position(heapSize);
 

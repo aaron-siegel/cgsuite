@@ -453,24 +453,23 @@ class CgscriptClass(
 
     private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
 
+    lazy val instantiator: (Array[Any], Any) => StandardObject = {
+      if (ancestors.contains(ImpartialGame)) {
+        (args: Array[Any], enclosingObject: Any) => new ImpartialGameObject(thisClass, args, enclosingObject)
+      } else if (ancestors.contains(Game)) {
+        (args: Array[Any], enclosingObject: Any) => new GameObject(thisClass, args, enclosingObject)
+      } else {
+        (args: Array[Any], enclosingObject: Any) => new StandardObject(thisClass, args, enclosingObject)
+      }
+    }
+
     def call(args: Array[Any]): Any = call(args, null)
 
     def call(args: Array[Any], enclosingObject: Any): Any = {
       // TODO Superconstructor
       // TODO Parse var initializers
-      Profiler.start(invokeConstructor)
       validateArguments(args)
-      try {
-        // TODO We could cache these checks
-        if (ancestors.contains(ImpartialGame))
-          new ImpartialGameObject(CgscriptClass.this, args, enclosingObject)
-        else if (ancestors.contains(Game))
-          new GameObject(CgscriptClass.this, args, enclosingObject)
-        else
-          new StandardObject(CgscriptClass.this, args, enclosingObject)
-      } finally {
-        Profiler.stop(invokeConstructor)
-      }
+      instantiator(args, enclosingObject)
     }
 
   }
@@ -596,7 +595,7 @@ class CgscriptClass(
         }
         supers foreach { _.ensureLoaded() }
 
-        val localMethods = node.methodDeclarations map parseMethod
+        val localMethods = node.methodDeclarations map { parseMethod(_, modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
           val newClass = new CgscriptClass(pkg, Some(this), decl.id.id)
           (decl.id.id, newClass)
@@ -615,7 +614,7 @@ class CgscriptClass(
         // Check for duplicate methods.
 
         localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
-          throw InputException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`.")
+          throw InputException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
         }
 
         // TODO Check for unresolved superclass method conflicts
@@ -662,13 +661,13 @@ class CgscriptClass(
         localMethods foreach { case (methodId, method) =>
           if (method.isOverride) {
             if (!superMethods.exists { case (superId, _) => superId == methodId }) {
-              throw InputException(s"Method `${method.qualifiedName}` is declared with `override` but overrides nothing.")
+              throw InputException(s"Method `${method.qualifiedName}` overrides nothing")
             }
           } else {
             superMethods find { case (superId, _) => superId == methodId } match {
               case None =>
               case Some((_, superMethod)) =>
-                throw InputException(s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`.")
+                throw InputException(s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`")
             }
           }
         }
@@ -685,7 +684,7 @@ class CgscriptClass(
       } else {
 
         // We're loading Object right now!
-        val localMethods = node.methodDeclarations map parseMethod
+        val localMethods = node.methodDeclarations map { parseMethod (_, modifiers) }
         (Seq.empty[CgscriptClass], Map.empty[Symbol, CgscriptClass], localMethods.toMap, None)
 
       }
@@ -702,6 +701,23 @@ class CgscriptClass(
       node.staticInitializers,
       node.enumElements
     )
+
+    // Check for duplicate vars (we make an exception for the constructor)
+
+    classInfoRef.inheritedClassVars ++ classInfoRef.localClassVars groupBy { x => x } find { _._2.size > 1 } foreach { case (varId, _) =>
+      throw InputException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", node.tree)
+    }
+
+    // Check for member/var conflicts
+
+    // TODO We may want to allow defs to override vars in the future - then the vars become private to the
+    // superclass. For now, we prohibit it.
+
+    methods ++ nestedClasses foreach { case (memberId, _) =>
+      if (classInfoRef.allClassVars contains memberId)
+        throw InputException(s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`")
+    }
+
     loading = false
 
     // Create the class object
@@ -779,7 +795,7 @@ class CgscriptClass(
 
   }
 
-  private def parseMethod(node: MethodDeclarationNode): (Symbol, Method) = {
+  private def parseMethod(node: MethodDeclarationNode, classModifiers: Set[Modifier.Value]): (Symbol, Method) = {
 
     val name = node.idNode.id.name
 
@@ -790,6 +806,10 @@ class CgscriptClass(
 
     val newMethod = {
       if (node.isExternal) {
+        if (!classModifiers.contains(Modifier.System))
+          throw InputException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
+        if (node.body.isDefined)
+          throw InputException(s"Method is declared `external` but has a method body", node.tree)
         logger.debug(s"$logPrefix Declaring external method: $name")
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>

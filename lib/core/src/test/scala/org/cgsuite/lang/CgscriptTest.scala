@@ -14,7 +14,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   val header = ("Test Name", "input", "expected output")
 
-  CgscriptPackage.root.declareSubpackage("test")
+  val testPackage = CgscriptPackage.root.declareSubpackage("test")
+  testPackage.declareSubpackage("classdef")
 
   "CGScript" should "process basic expressions" in {
 
@@ -295,12 +296,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "validate function calls correctly" in {
 
     CgscriptClass.declareSystemClass("test.ValidationTest")
-
-    // TODO Tests for system methods, special methods, and outer classes
+    CgscriptClass.declareSystemClass("test.ValidationOuterTest")
 
     val instances = Seq(
       ("3-param method", "test.ValidationTest.Method3", "3", 3, "in call to `test.ValidationTest.Method3`"),
       ("5-param method", "test.ValidationTest.Method5", "3", 5, "in call to `test.ValidationTest.Method5`"),
+      ("Outer constructor", "test.ValidationOuterTest", "<Object of Class ValidationOuterTest>", 3, "in call to `test.ValidationOuterTest` constructor"),
       ("Nested constructor", "test.ValidationTest.Nested", "<Object of Class ValidationTest.Nested>", 3, "in call to `test.ValidationTest.Nested` constructor"),
       ("Procedure", "f", "3", 3, "in procedure call")
     )
@@ -319,6 +320,51 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     }
 
     executeTests(Table(header, tests : _*), """f := (a as Integer, b as Integer, c as String ? "foo") -> a + b""")
+
+    executeTests(Table(
+      header,
+      ("Invalid argument type (System method)", "3.NimSum(1/2)",
+        "!!Argument `that` (in call to `game.Integer.NimSum`) has type `game.DyadicRational`, which does not match expected type `game.Integer`"),
+      ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
+        "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
+    ))
+
+  }
+
+  it should "validate class definitions correctly" in {
+
+    CgscriptClass.declareSystemClass("test.classdef.BaseClassTest")
+    CgscriptClass.declareSystemClass("test.classdef.MissingOverrideTest")
+    CgscriptClass.declareSystemClass("test.classdef.ExtraneousOverrideTest")
+    CgscriptClass.declareSystemClass("test.classdef.ExternalMethodWithBodyTest")
+    CgscriptClass.declareSystemClass("test.classdef.NonsystemClassWithExternalMethodTest")
+    CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodMethodTest")
+    CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodNestedTest")
+    CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodVarTest")
+    CgscriptClass.declareSystemClass("test.classdef.DuplicateNestedVarTest")
+    CgscriptClass.declareSystemClass("test.classdef.DuplicateVarVarTest")
+
+    executeTests(Table(
+      header,
+      ("Missing override", "test.classdef.MissingOverrideTest.X",
+        "!!Method `test.classdef.MissingOverrideTest.Method` must be declared with `override`, since it overrides `test.classdef.BaseClassTest.Method`"),
+      ("Extraneous override", "test.classdef.ExtraneousOverrideTest.X",
+        "!!Method `test.classdef.ExtraneousOverrideTest.NewMethod` overrides nothing"),
+      ("External method with body", "test.classdef.ExternalMethodWithBodyTest.X",
+        "!!Method is declared `external` but has a method body"),
+      ("External method of nonsystem class", "test.classdef.NonsystemClassWithExternalMethodTest.X",
+        "!!Method is declared `external`, but class `test.classdef.NonsystemClassWithExternalMethodTest` is not declared `system`"),
+      ("Duplicate method + method", "test.classdef.DuplicateMethodMethodTest.X",
+        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodMethodTest`"),
+      ("Duplicate method + nested", "test.classdef.DuplicateMethodNestedTest.X",
+        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodNestedTest`"),
+      ("Duplicate method + var", "test.classdef.DuplicateMethodVarTest.X",
+        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateMethodVarTest`"),
+      ("Duplicate nested + var", "test.classdef.DuplicateNestedVarTest.X",
+        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateNestedVarTest`"),
+      ("Duplicate var + var", "test.classdef.DuplicateVarVarTest.X",
+        "!!Variable `x` is declared twice in class `test.classdef.DuplicateVarVarTest`")
+    ))
 
   }
 
