@@ -1,0 +1,12 @@
+/*${cgsuite.banner}*/
+
+singleton class ValidationTest(x as Integer, y as Integer, z as Integer)
+
+  def Method3(a as Integer, b as Integer, c as String ? "bell") := a + b;
+
+  def Method5(a as Integer, b as Integer, c as Nimber ? *, d ? nil, e as Game ? ^*) := a + b;
+
+  class Nested(a as Integer, b as Integer, c as String ? "bell")
+  end
+
+end

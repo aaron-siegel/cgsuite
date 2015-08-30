@@ -127,8 +127,24 @@ object ParametersNode {
   }
 }
 
-case class ParametersNode(tree: Tree, parameters: Seq[ParameterNode]) extends Node {
-  override val children = parameters
+case class ParametersNode(tree: Tree, parameterNodes: Seq[ParameterNode]) extends Node {
+
+  override val children = parameterNodes
+
+  def toParameters: Seq[Parameter] = {
+
+    parameterNodes.map { n =>
+      val ttype = n.classId match {
+        case None => CgscriptClass.Object
+        case Some(idNode) => CgscriptPackage.lookupClass(idNode.id) getOrElse {
+          sys.error("unknown symbol")
+        }
+      }
+      Parameter(n.id.id, ttype, n.defaultValue)
+    }
+
+  }
+
 }
 
 case class ParameterNode(

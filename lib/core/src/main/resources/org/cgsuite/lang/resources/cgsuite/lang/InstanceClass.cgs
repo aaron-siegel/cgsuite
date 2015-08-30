@@ -1,0 +1,8 @@
+/*${cgsuite.banner}*/
+
+system class InstanceClass
+
+  external def EnclosingObject;
+  external def NestedClass;
+
+end

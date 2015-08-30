@@ -753,12 +753,7 @@ case class LoopNode(
 
 object ProcedureNode {
   def apply(tree: Tree): ProcedureNode = {
-    // TODO Parse arguments properly (types & defaults) - requires some refactoring
-    val parameters = tree.getChild(0).children map { paramTree =>
-      assert(paramTree.getType == METHOD_PARAMETER)
-      val id = Symbol(paramTree.getChild(0).getText)
-      Parameter(id, CgscriptClass.Object, None)
-    }
+    val parameters = ParametersNode(tree.getChild(0)).toParameters
     ProcedureNode(tree, parameters, EvalNode(tree.getChild(1)))
   }
 }
@@ -774,6 +769,7 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
     body.elaborate(newScope)
     localVariableCount = newScope.localVariableCount
   }
+  private[lang] val knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
   override def evaluate(domain: Domain) = Procedure(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
   var localVariableCount: Int = 0

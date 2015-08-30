@@ -53,6 +53,7 @@ object CgscriptClass {
     "cgsuite.lang.System" -> classOf[System],
     "cgsuite.lang.Table" -> classOf[Table],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
+    "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
 
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Strip" -> classOf[Strip],
@@ -120,7 +121,7 @@ object CgscriptClass {
 
   systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
 
-  private def declareSystemClass(name: String, scalaClass: Option[Class[_]]) {
+  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None) {
 
     val path = name.replace('.', '/')
     val url = getClass.getResource(s"resources/$path.cgs")
@@ -190,7 +191,7 @@ class CgscriptClass(
   val enclosingClass: Option[CgscriptClass],
   val id: Symbol,
   val systemClass: Option[Class[_]] = None
-  ) extends Member with LazyLogging {
+  ) extends Member with LazyLogging { thisClass =>
 
   import CgscriptClass._
 
@@ -307,6 +308,7 @@ class CgscriptClass(
     val qualifiedId = Symbol(qualifiedName)
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
+    val locationMessage = s"in call to `$qualifiedName`"
 
     var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
 
@@ -322,32 +324,7 @@ class CgscriptClass(
     // This is optimized to be really fast for methods with <= 4 parameters.
     // TODO Optimize for more than 4 parameters?
     def validateArguments(args: Array[Any]): Unit = {
-      assert(args.length == parameters.length)
-      var classcode: Long = 0
-      if (parameters.size <= 4 && {
-        var i = 0
-        while (i < args.length) {
-          classcode &= (CgscriptClass of args(i)).classOrdinal
-          classcode <<= 16
-          i += 1
-        }
-        knownValidArgs contains classcode
-      }) {
-        // We're known to be ok
-      } else {
-        var i = 0
-        while (i < args.length) {
-          val cls = CgscriptClass of args(i)
-          if (!(cls.ancestors contains parameters(i).paramType)) {
-            throw InputException(s"Argument `${parameters(i).id.name}` (in call to `$qualifiedName`) " +
-              s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
-          }
-          i += 1
-        }
-        if (parameters.size <= 4) {
-          knownValidArgs put (classcode, ())
-        }
-      }
+      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage)
     }
 
   }
@@ -465,7 +442,7 @@ class CgscriptClass(
 
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
-    def locationMessage = s"in call to `$qualifiedName` constructor"
+    override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
   }
 
@@ -476,7 +453,9 @@ class CgscriptClass(
 
     private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
 
-    def call(args: Array[Any]): Any = {
+    def call(args: Array[Any]): Any = call(args, null)
+
+    def call(args: Array[Any], enclosingObject: Any): Any = {
       // TODO Superconstructor
       // TODO Parse var initializers
       Profiler.start(invokeConstructor)
@@ -484,11 +463,11 @@ class CgscriptClass(
       try {
         // TODO We could cache these checks
         if (ancestors.contains(ImpartialGame))
-          new ImpartialGameObject(CgscriptClass.this, args)
+          new ImpartialGameObject(CgscriptClass.this, args, enclosingObject)
         else if (ancestors.contains(Game))
-          new GameObject(CgscriptClass.this, args)
+          new GameObject(CgscriptClass.this, args, enclosingObject)
         else
-          new StandardObject(CgscriptClass.this, args)
+          new StandardObject(CgscriptClass.this, args, enclosingObject)
       } finally {
         Profiler.stop(invokeConstructor)
       }
@@ -623,7 +602,7 @@ class CgscriptClass(
           (decl.id.id, newClass)
         } toMap
         val constructor = node.constructorParams map { t =>
-          val parameters = parseParameterList(t)
+          val parameters = t.toParameters
           systemClass match {
             case None => UserConstructor(id, parameters)
             case Some(cls) =>
@@ -805,7 +784,7 @@ class CgscriptClass(
     val name = node.idNode.id.name
 
     val (autoinvoke, parameters) = node.parameters match {
-      case Some(n) => (false, parseParameterList(n))
+      case Some(n) => (false, n.toParameters)
       case None => (true, Seq.empty)
     }
 
@@ -831,20 +810,6 @@ class CgscriptClass(
     }
 
     node.idNode.id -> newMethod
-
-  }
-
-  private def parseParameterList(node: ParametersNode): Seq[Parameter] = {
-
-    node.parameters.map { n =>
-      val ttype = n.classId match {
-        case None => CgscriptClass.Object
-        case Some(idNode) => CgscriptPackage.lookupClass(idNode.id) getOrElse {
-          sys.error("unknown symbol")
-        }
-      }
-      Parameter(n.id.id, ttype, n.defaultValue)
-    }
 
   }
 

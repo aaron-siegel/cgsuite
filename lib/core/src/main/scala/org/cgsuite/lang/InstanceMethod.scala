@@ -11,20 +11,13 @@ case class InstanceMethod(obj: Any, method: CgscriptClass#Method) extends CallSi
 
 }
 
-// TODO This shouldn't have to be a StandardObject - it breaks e.g. TakeAndBreak.Eval
-case class InstanceClass(obj: Any, cls: CgscriptClass) extends CallSite {
+case class InstanceClass(enclosingObject: Any, cls: CgscriptClass) extends CallSite {
 
-  def parameters = cls.constructor.get.parameters
-  def ordinal = cls.constructor.get.ordinal
-  def call(args: Array[Any]): Any = {
-    // TODO There's some duplicated logic here w/ UserConstructor
-    if (cls.ancestors.contains(CgscriptClass.ImpartialGame))
-      new ImpartialGameObject(cls, args, obj)
-    else if (cls.ancestors.contains(CgscriptClass.Game))
-      new GameObject(cls, args, obj)
-    else
-      new StandardObject(cls, args, obj)
-  }
-  def locationMessage = s"in call to ${cls.qualifiedName} constructor"
+  val ctor = cls.constructor.get.asInstanceOf[cls.UserConstructor]
+  def parameters = ctor.parameters
+  def ordinal = ctor.ordinal
+  def call(args: Array[Any]): Any = ctor.call(args, enclosingObject)
+  def locationMessage = s"in call to `${cls.qualifiedName}` constructor"
+  def nestedClass = cls.classObject
 
 }
