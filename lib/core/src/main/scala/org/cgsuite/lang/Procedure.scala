@@ -4,8 +4,6 @@ import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with OutputTarget {
 
-  // TODO This fails to form a closure over Domain (we need a Stack of Domains to fix that)
-
   def parameters = node.parameters
   def ordinal = node.ordinal
   def call(args: Array[Any]) = {
@@ -17,6 +15,7 @@ case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with 
     }
     node.body.evaluate(newDomain)
   }
+  def locationMessage = "in procedure call"
 
   def toOutput: StyledTextOutput = new StyledTextOutput(node.toNodeString)
 

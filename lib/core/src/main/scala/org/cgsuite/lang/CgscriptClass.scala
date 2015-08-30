@@ -308,13 +308,46 @@ class CgscriptClass(
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
 
+    var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
+
     def elaborate(): Unit = {
-      logger.debug(s"$logPrefix Elaborating.")
+      logger.debug(s"$logPrefix Elaborating method: $qualifiedName")
       val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
         param.defaultValue foreach { _.elaborate(scope) }
       }
-      logger.debug(s"$logPrefix Done elaborating.")
+      logger.debug(s"$logPrefix Done elaborating method: $qualifiedName")
+    }
+
+    // This is optimized to be really fast for methods with <= 4 parameters.
+    // TODO Optimize for more than 4 parameters?
+    def validateArguments(args: Array[Any]): Unit = {
+      assert(args.length == parameters.length)
+      var classcode: Long = 0
+      if (parameters.size <= 4 && {
+        var i = 0
+        while (i < args.length) {
+          classcode &= (CgscriptClass of args(i)).classOrdinal
+          classcode <<= 16
+          i += 1
+        }
+        knownValidArgs contains classcode
+      }) {
+        // We're known to be ok
+      } else {
+        var i = 0
+        while (i < args.length) {
+          val cls = CgscriptClass of args(i)
+          if (!(cls.ancestors contains parameters(i).paramType)) {
+            throw InputException(s"Argument `${parameters(i).id.name}` (in call to `$qualifiedName`) " +
+              s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
+          }
+          i += 1
+        }
+        if (parameters.size <= 4) {
+          knownValidArgs put (classcode, ())
+        }
+      }
     }
 
   }
@@ -348,7 +381,7 @@ class CgscriptClass(
         // Construct a new domain with local scope for this method.
         val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
         val domain = new Domain(array, Some(target))
-        // TODO more intelligent populating of arguments, validation etc
+        validateArguments(args)
         var i = 0
         while (i < parameters.length) {
           domain.localScope(parameters(i).methodScopeIndex) = args(i)
@@ -374,7 +407,6 @@ class CgscriptClass(
     private val reflect = Symbol(s"Reflect [$javaMethod]")
 
     def call(obj: Any, args: Array[Any]): Any = {
-      // TODO Validation!
       // TODO Named args should work here too
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
       assert(
@@ -383,6 +415,7 @@ class CgscriptClass(
       )
       try {
         Profiler.start(reflect)
+        validateArguments(args)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw InputException(
@@ -413,6 +446,7 @@ class CgscriptClass(
     (fn: (Any, Any) => Any) extends Method {
 
     def call(obj: Any, args: Array[Any]): Any = {
+      validateArguments(args)
       val argsTuple = parameters.size match {
         case 0 => ()
         case 1 => args(0)
@@ -431,6 +465,8 @@ class CgscriptClass(
 
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
+    def locationMessage = s"in call to `$qualifiedName` constructor"
+
   }
 
   case class UserConstructor(
@@ -444,6 +480,7 @@ class CgscriptClass(
       // TODO Superconstructor
       // TODO Parse var initializers
       Profiler.start(invokeConstructor)
+      validateArguments(args)
       try {
         // TODO We could cache these checks
         if (ancestors.contains(ImpartialGame))
@@ -470,6 +507,7 @@ class CgscriptClass(
     def call(args: Array[Any]): Any = {
       try {
         Profiler.start(reflect)
+        validateArguments(args)
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>

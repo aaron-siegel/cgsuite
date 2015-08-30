@@ -14,5 +14,6 @@ trait CallSite {
   def parameters: Seq[Parameter]
   def call(args: Array[Any]): Any
   def ordinal: Int
+  def locationMessage: String
 
 }

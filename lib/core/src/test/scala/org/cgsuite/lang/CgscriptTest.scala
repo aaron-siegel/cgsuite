@@ -267,12 +267,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("No-parameter procedure evaluation", "f()", "3"),
       ("Multiparameter procedure", "f := (x,y) -> (x-y)/2", "(x, y) -> ((x - y) / 2)"),
       ("Multiparameter procedure evaluation", "f(3,4)", "-1/2"),
-      ("Procedure eval - too few args", "f(3)", "!!Missing required parameter: `y`"),
-      ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments: 3 (expecting at most 2)"),
+      ("Procedure eval - too few args", "f(3)", "!!Missing required parameter (in procedure call): `y`"),
+      ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments (in procedure call): 3 (expecting at most 2)"),
       ("Procedure eval - named args", "f(y => 3, x => 4)", "1/2"),
-      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate parameter: `x`"),
-      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate parameter: `y`"),
-      ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name: `foo`"),
+      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` (in procedure call) appears in earlier position than an ordinary argument"),
+      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate named parameter (in procedure call): `x`"),
+      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter (in procedure call): `y`"),
+      ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name (in procedure call): `foo`"),
       ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> (x + y)"),
       ("Curried procedure evaluation - 1", "g := f(3)", "y -> (x + y)"),
       ("Curried procedure evaluation - 2", "h := f(5)", "y -> (x + y)"),
@@ -285,6 +286,25 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
           |set1("foo"); set2("bar"); [get1(), get2()]
         """.stripMargin, """["foo","bar"]"""),
       ("Procedure involving assignment - syntax error", "x -> y := x", "!!Syntax error.")
+    ))
+
+  }
+
+  it should "validate methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("Too many arguments", "11.Div(4,8)", "!!Too many arguments (in call to `game.Integer.Div`): 2 (expecting at most 1)"),
+      ("Missing required parameter", "[1,2,3].Updated(4)", "!!Missing required parameter (in call to `cgsuite.lang.List.Updated`): `value`"),
+      ("Invalid parameter name", "[1,2,3].Updated(4, foo => true)", "!!Invalid parameter name (in call to `cgsuite.lang.List.Updated`): `foo`"),
+      ("Duplicate named parameter", "[1,2,3].Updated(value => false, value => true)",
+        "!!Duplicate named parameter (in call to `cgsuite.lang.List.Updated`): `value`"),
+      ("Invalid class (system method)", "3.NimSum(1/2)",
+        "!!Argument `that` (in call to `game.Integer.NimSum`) has type `game.DyadicRational`, which does not match expected type `game.Integer`"),
+      ("Invalid class (user method)", "[1,2,3].PeriodicTable(*)",
+        "!!Argument `period` (in call to `cgsuite.lang.List.PeriodicTable`) has type `game.Nimber`, which does not match expected type `game.Integer`"),
+      ("Invalid class (special method)", "[1,2,3,4].Updated(true, false)",
+        "!!Argument `index` (in call to `cgsuite.lang.List.Updated`) has type `cgsuite.lang.Boolean`, which does not match expected type `game.Integer`")
     ))
 
   }

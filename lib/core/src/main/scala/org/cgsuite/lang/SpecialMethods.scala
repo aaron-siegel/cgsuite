@@ -40,6 +40,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.forall { x => proc.call(Array(x)).asInstanceOf[Boolean] }
     },
+    "cgsuite.lang.List.Grouped" -> { (list: Seq[_], n: Integer) =>
+      list.grouped(n.intValue).toIterable
+    },
     "cgsuite.lang.Set.Replaced" -> { (set: Set[Any], replacements: Map[_,_]) =>
       set -- replacements.keys ++ replacements.values
     }

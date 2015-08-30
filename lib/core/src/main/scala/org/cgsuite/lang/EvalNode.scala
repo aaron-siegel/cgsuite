@@ -914,7 +914,7 @@ case class FunctionCallNode(
   }
 
   private def makeNewResolution(callSite: CallSite) = {
-    FunctionCallResolution(callSite.parameters, argNames)
+    FunctionCallResolution(callSite, argNames)
   }
 
   def toNodeString = {
@@ -929,25 +929,33 @@ case class FunctionCallNode(
 }
 
 object FunctionCallResolution {
-  def apply(params: Seq[Parameter], argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
+  def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
+    val params = callSite.parameters
     if (argNames.length > params.length)
-      throw InputException(s"Too many arguments: ${argNames.length} (expecting at most ${params.length})")
+      throw InputException(s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})")
     val parameterToArgsMapping = new Array[Int](params.length)
     java.util.Arrays.fill(parameterToArgsMapping, -1)
-    argNames.zipWithIndex.foreach {
+    // Check for named args in earlier position than ordinary args.
+    val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
+    argNames take (lastOrdinaryArgIndex+1) foreach {
+      case None =>
+      case Some(idNode) => throw InputException(s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
+        "appears in earlier position than an ordinary argument")
+    }
+    argNames.zipWithIndex foreach {
       case (None, index) => parameterToArgsMapping(index) = index
       case (Some(idNode), index) =>
-        val namedIndex = params.indexWhere { _.id == idNode.id }
+        val namedIndex = params indexWhere { _.id == idNode.id }
         if (namedIndex == -1)
-          throw InputException(s"Invalid parameter name: `${idNode.id.name}`")
+          throw InputException(s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`")
         if (parameterToArgsMapping(namedIndex) != -1)
-          throw InputException(s"Duplicate parameter: `${idNode.id.name}`")
+          throw InputException(s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`")
         parameterToArgsMapping(namedIndex) = index
     }
     // Validation
     params zip parameterToArgsMapping foreach { case (param, index) =>
       if (param.defaultValue.isEmpty && index == -1)
-        throw InputException(s"Missing required parameter: `${param.id.name}`")
+        throw InputException(s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`")
     }
     FunctionCallResolution(parameterToArgsMapping)
   }

@@ -7,6 +7,7 @@ case class InstanceMethod(obj: Any, method: CgscriptClass#Method) extends CallSi
   def call(args: Array[Any]): Any = {
     method.call(obj, args)
   }
+  def locationMessage = s"in call to `${method.qualifiedName}`"
 
 }
 
@@ -24,5 +25,6 @@ case class InstanceClass(obj: Any, cls: CgscriptClass) extends CallSite {
     else
       new StandardObject(cls, args, obj)
   }
+  def locationMessage = s"in call to ${cls.qualifiedName} constructor"
 
 }
