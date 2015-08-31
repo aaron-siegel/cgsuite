@@ -86,12 +86,12 @@ object EvalNode {
       // Game construction
 
       case SLASHES =>
-        if (tree.getChild(0).getType == EXPRESSION_LIST && tree.getChild(0).children.exists { _.getType == PASS } ||
-            tree.getChild(1).getType == EXPRESSION_LIST && tree.getChild(1).children.exists { _.getType == PASS })
+        if (tree.head.getType == EXPRESSION_LIST && tree.head.children.exists { _.getType == PASS } ||
+            tree.children(1).getType == EXPRESSION_LIST && tree.children(1).children.exists { _.getType == PASS })
           LoopyGameSpecNode(tree)
         else
-          GameSpecNode(tree, gameOptions(tree.getChild(0)), gameOptions(tree.getChild(1)), forceExplicit = false)
-      case SQUOTE => GameSpecNode(tree, gameOptions(tree.getChild(0).getChild(0)), gameOptions(tree.getChild(0).getChild(1)), forceExplicit = true)
+          GameSpecNode(tree, gameOptions(tree.head), gameOptions(tree.children(1)), forceExplicit = false)
+      case SQUOTE => GameSpecNode(tree, gameOptions(tree.head.head), gameOptions(tree.head.children(1)), forceExplicit = true)
       case NODE_LABEL => LoopyGameSpecNode(tree)
       case AMPERSAND => BinOpNode(tree, MakeSides)
       case PASS => throw InputException("Unexpected `pass`.", tree)
@@ -100,11 +100,11 @@ object EvalNode {
 
       case IF | ELSEIF => IfNode(
         tree,
-        EvalNode(tree.getChild(0)),
-        StatementSequenceNode(tree.getChild(1)),
-        Option(tree.getChild(2)).map { EvalNode(_) }
+        EvalNode(tree.head),
+        StatementSequenceNode(tree.children(1)),
+        if (tree.children.size > 2) Some(EvalNode(tree.children(2))) else None
       )
-      case ERROR => ErrorNode(tree, EvalNode(tree.getChild(0)))
+      case ERROR => ErrorNode(tree, EvalNode(tree.head))
       case DO | YIELD | LISTOF | SETOF | TABLEOF | SUMOF => LoopNode(tree)
 
       // Procedures
@@ -113,16 +113,16 @@ object EvalNode {
 
       // Resolvers
 
-      case DOT => DotNode(tree, EvalNode(tree.getChild(0)), IdentifierNode(tree.getChild(1)))
+      case DOT => DotNode(tree, EvalNode(tree.head), IdentifierNode(tree.children(1)))
       case FUNCTION_CALL => FunctionCallNode(tree)
-      case ARRAY_REFERENCE => BinOpNode(tree, ArrayReference, EvalNode(tree.getChild(0)), EvalNode(tree.getChild(1).getChild(0)))
+      case ARRAY_REFERENCE => BinOpNode(tree, ArrayReference, EvalNode(tree.head), EvalNode(tree.children(1).head))
 
       // Assignment
 
       case ASSIGN =>
-        if (tree.getChild(0).getType != IDENTIFIER)
+        if (tree.head.getType != IDENTIFIER)
           throw InputException("Syntax error.", tree)
-        AssignToNode(tree, IdentifierNode(tree.getChild(0)), EvalNode(tree.getChild(1)), isVarDeclaration = false)
+        AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), isVarDeclaration = false)
       case VAR => VarNode(tree)
 
       // Suppressor
@@ -140,12 +140,12 @@ object EvalNode {
   private def gameOptions(tree: Tree): Seq[EvalNode] = {
     tree.getType match {
       case SLASHES => Seq(EvalNode(tree))
-      case EXPRESSION_LIST => tree.children.map { EvalNode(_) }
+      case EXPRESSION_LIST => tree.children map { EvalNode(_) }
     }
   }
 
   private def nimber(tree: Tree): EvalNode = {
-    if (tree.getChildCount == 0) {
+    if (tree.children.isEmpty) {
       ConstantNode(tree, star)
     } else {
       UnOpNode(tree, MakeNimber)
@@ -153,17 +153,17 @@ object EvalNode {
   }
 
   private def upMultiple(tree: Tree): EvalNode = {
-    val (upMultipleTree, nimberTree) = tree.getChildCount match {
+    val (upMultipleTree, nimberTree) = tree.children.size match {
       case 0 => (None, None)
-      case 1 => tree.getChild(0).getType match {
-        case UNARY_AST => (None, Some(tree.getChild(0)))
-        case _ => (Some(tree.getChild(0)), None)
+      case 1 => tree.head.getType match {
+        case UNARY_AST => (None, Some(tree.head))
+        case _ => (Some(tree.head), None)
       }
-      case _ => (Some(tree.getChild(0)), Some(tree.getChild(1)))
+      case _ => (Some(tree.head), Some(tree.children(1)))
     }
     val upMultipleNode = upMultipleTree map { EvalNode(_) } getOrElse { ConstantNode(tree, Integer(tree.getText.length)) }
     val nimberNode = nimberTree map { t =>
-      if (t.getChildCount == 0) ConstantNode(t, one) else EvalNode(t.getChild(0))
+      if (t.children.isEmpty) ConstantNode(t, one) else EvalNode(t.head)
     } getOrElse { ConstantNode(null, zero) }
     tree.getType match {
       case CARET | MULTI_CARET => BinOpNode(tree, MakeUpMultiple, upMultipleNode, nimberNode)
@@ -267,20 +267,20 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   override def elaborate(scope: ElaborationDomain) {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
-    scope.pkg.flatMap { _.lookupClass(id) } orElse CgscriptPackage.lookupClass(id) match {
+    scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
       case Some(cls) => classResolution = {
         if (cls.isSingleton) cls.singletonInstance else cls.classObject
       }
       case None =>
     }
     // Can this be resolved as a scoped variable?
-    scope.lookup(id) match {
+    scope lookup id match {
       case Some(l@LocalVariableReference(_, _)) => localVariableReference = l
       case Some(c@ClassVariableReference(_, _)) => classVariableReference = c
       case None =>
     }
     // Can this be resolved as a constant? Check first in local package scope, then in default package scope
-    scope.pkg.flatMap { _.lookupConstant(id) } orElse CgscriptPackage.lookupConstant(id) match {
+    scope.pkg flatMap { _ lookupConstant id } orElse (CgscriptPackage lookupConstant id) match {
       case Some(res) => constantResolution = res
       case None =>
     }
@@ -304,7 +304,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       classResolution
     } else if (localVariableReference != null) {
       // Local var
-      val x = domain.backref(localVariableReference.domainHops).localScope(localVariableReference.index)
+      val x = domain backref localVariableReference.domainHops localScope localVariableReference.index
       if (x == null) Nil else x
     } else {
       lookupLocally(domain) match {
@@ -335,7 +335,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 }
 
 object UnOpNode {
-  def apply(tree: Tree, op: UnOp): UnOpNode = UnOpNode(tree, op, EvalNode(tree.getChild(0)))
+  def apply(tree: Tree, op: UnOp): UnOpNode = UnOpNode(tree, op, EvalNode(tree.head))
 }
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
@@ -345,7 +345,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 }
 
 object BinOpNode {
-  def apply(tree: Tree, op: BinOp): BinOpNode = BinOpNode(tree, op, EvalNode(tree.getChild(0)), EvalNode(tree.getChild(1)))
+  def apply(tree: Tree, op: BinOp): BinOpNode = BinOpNode(tree, op, EvalNode(tree.head), EvalNode(tree.children(1)))
 }
 
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
@@ -408,7 +408,7 @@ case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode 
 object MapNode {
   def apply(tree: Tree): MapNode = {
     assert(tree.getType == EXPLICIT_MAP)
-    val mapPairNodes = tree.children.map { t => MapPairNode(t, EvalNode(t.getChild(0)), EvalNode(t.getChild(1))) }
+    val mapPairNodes = tree.children.map { t => MapPairNode(t, EvalNode(t.head), EvalNode(t.children(1))) }
     MapNode(tree, mapPairNodes.toIndexedSeq)
   }
 }
@@ -464,7 +464,7 @@ object LoopyGameSpecNode {
 
   def apply(tree: Tree): EvalNode = {
     tree.getType match {
-      case NODE_LABEL => make(tree, Some(IdentifierNode(tree.getChild(0))), tree.getChild(1))
+      case NODE_LABEL => make(tree, Some(IdentifierNode(tree.head)), tree.children(1))
       case SLASHES => make(tree, None, tree)
       case _ => EvalNode(tree)
     }
@@ -472,8 +472,8 @@ object LoopyGameSpecNode {
 
   def make(tree: Tree, nodeLabel: Option[IdentifierNode], body: Tree): LoopyGameSpecNode = {
     assert(body.getType == SLASHES)
-    val (loPass, lo) = loopyGameOptions(body.getChild(0))
-    val (roPass, ro) = loopyGameOptions(body.getChild(1))
+    val (loPass, lo) = loopyGameOptions(body.head)
+    val (roPass, ro) = loopyGameOptions(body.children(1))
     LoopyGameSpecNode(tree, nodeLabel, lo, ro, loPass, roPass)
   }
 
@@ -561,20 +561,20 @@ object LoopNode {
       case SUMOF => YieldSum
     }
     val body = EvalNode(tree.children.last)
-    val loopSpecs = tree.children.dropRight(1)
+    val loopSpecs = tree.children dropRight 1
     assert(loopSpecs.forall { _.getType == LOOP_SPEC })
 
     def makeLoopNode(loopSpecTree: Tree, nextNode: EvalNode): LoopNode = {
       LoopNode(
         loopSpecTree,
         loopType,
-        loopSpecTree.children.find { _.getType == FOR   }.map { t => IdentifierNode(t.getChild(0)) },
-        loopSpecTree.children.find { _.getType == IN    }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.children.find { _.getType == FROM  }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.children.find { _.getType == TO    }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.children.find { _.getType == BY    }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.children.find { _.getType == WHILE }.map { t => EvalNode(t.getChild(0)) },
-        loopSpecTree.children.find { _.getType == WHERE }.map { t => EvalNode(t.getChild(0)) },
+        loopSpecTree.children find { _.getType == FOR   } map { t => IdentifierNode(t.head) },
+        loopSpecTree.children find { _.getType == IN    } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == FROM  } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == TO    } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == BY    } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == WHILE } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == WHERE } map { t => EvalNode(t.head) },
         nextNode
       )
     }
@@ -752,8 +752,8 @@ case class LoopNode(
 
 object ProcedureNode {
   def apply(tree: Tree): ProcedureNode = {
-    val parameters = ParametersNode(tree.getChild(0)).toParameters
-    ProcedureNode(tree, parameters, EvalNode(tree.getChild(1)))
+    val parameters = ParametersNode(tree.head).toParameters
+    ProcedureNode(tree, parameters, EvalNode(tree.children(1)))
   }
 }
 
@@ -846,10 +846,10 @@ object InfixOpNode {
 
 object FunctionCallNode {
   def apply(tree: Tree): FunctionCallNode = {
-    val callSite = EvalNode(tree.getChild(0))
-    val argsWithNames = tree.getChild(1).children.map { t =>
+    val callSite = EvalNode(tree.head)
+    val argsWithNames = tree.children(1).children.map { t =>
       t.getType match {
-        case BIGRARROW => (EvalNode(t.getChild(1)), Some(IdentifierNode(t.getChild(0))))
+        case BIGRARROW => (EvalNode(t.children(1)), Some(IdentifierNode(t.head)))
         case _ => (EvalNode(t), None)
       }
     }
@@ -964,7 +964,7 @@ object VarNode {
     val t = tree.children.head
     t.getType match {
       case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
-      case ASSIGN => AssignToNode(t, IdentifierNode(t.getChild(0)), EvalNode(t.getChild(1)), isVarDeclaration = true)
+      case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), isVarDeclaration = true)
     }
   }
 }

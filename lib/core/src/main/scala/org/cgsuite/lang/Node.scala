@@ -18,10 +18,11 @@ object Node {
       else
         jChildren.toSeq map { _.asInstanceOf[Tree] }
     }
+    lazy val head = children.head
     def location = {
       if (token.getInputStream == null)
         throw new RuntimeException(tree.toStringTree)
-      token.getInputStream.getSourceName + ":" + token.getLine + ":" + token.getCharPositionInLine
+      token.getInputStream.getSourceName + " line " + token.getLine + ":" + token.getCharPositionInLine
     }
   }
 

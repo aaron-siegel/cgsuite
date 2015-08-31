@@ -210,7 +210,7 @@ class CgscriptClass(
   val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
   class ClassInfo(
-    val modifiers: Set[Modifier.Value],
+    val modifiers: Modifiers,
     val supers: Seq[CgscriptClass],
     val nestedClasses: Map[Symbol, CgscriptClass],
     val methods: Map[Symbol, CgscriptClass#Method],
@@ -222,8 +222,6 @@ class CgscriptClass(
 
     val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
-    val isMutable = modifiers.contains(Modifier.Mutable)
-    val isSingleton = modifiers.contains(Modifier.Singleton)
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
     val localClassVars = initializers.collect {
@@ -284,9 +282,11 @@ class CgscriptClass(
     singletonInstanceRef
   }
 
-  def isMutable = classInfo.isMutable
+  def isMutable = classInfo.modifiers.hasMutable
 
-  def isSingleton = classInfo.isSingleton
+  def isSingleton = classInfo.modifiers.hasSingleton
+
+  def isSystem = classInfo.modifiers.hasSystem
 
   def constructor = classInfo.constructor
 
@@ -560,8 +560,6 @@ class CgscriptClass(
 
   private def declareClass(node: ClassDeclarationNode) {
 
-    val modifiers = node.modifiers.map { _.modifier }.toSet
-
     val (supers, nestedClasses, methods, constructor) = {
 
       if (Object.isLoaded) { // Hack to bootstrap Object
@@ -593,7 +591,7 @@ class CgscriptClass(
         }
         supers foreach { _.ensureLoaded() }
 
-        val localMethods = node.methodDeclarations map { parseMethod(_, modifiers) }
+        val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
           val newClass = new CgscriptClass(pkg, Some(this), decl.id.id)
           (decl.id.id, newClass)
@@ -680,7 +678,7 @@ class CgscriptClass(
       } else {
 
         // We're loading Object right now!
-        val localMethods = node.methodDeclarations map { parseMethod (_, modifiers) }
+        val localMethods = node.methodDeclarations map { parseMethod (_, node.modifiers) }
         (Seq.empty[CgscriptClass], Map.empty[Symbol, CgscriptClass], localMethods.toMap, None)
 
       }
@@ -688,7 +686,7 @@ class CgscriptClass(
     }
 
     classInfoRef = new ClassInfo(
-      modifiers,
+      node.modifiers,
       supers,
       nestedClasses,
       methods,
@@ -717,7 +715,7 @@ class CgscriptClass(
     }
 
     // Check that singleton => no constructor
-    if (classInfoRef.constructor.isDefined && classInfoRef.isSingleton)
+    if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton)
       throw InputException(s"Class `$qualifiedName` must not have a constructor if declared `singleton`")
 
     // Check that no ancestor is a singleton
@@ -727,7 +725,7 @@ class CgscriptClass(
     }
 
     // Check that constants classes must be singletons
-    if (name == "constants" && !classInfoRef.isSingleton)
+    if (name == "constants" && !node.modifiers.hasSingleton)
       throw InputException(s"Constants class `$qualifiedName` must be declared `singleton`")
 
     // Create the class object
@@ -801,7 +799,7 @@ class CgscriptClass(
 
   }
 
-  private def parseMethod(node: MethodDeclarationNode, classModifiers: Set[Modifier.Value]): (Symbol, Method) = {
+  private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): (Symbol, Method) = {
 
     val name = node.idNode.id.name
 
@@ -811,8 +809,8 @@ class CgscriptClass(
     }
 
     val newMethod = {
-      if (node.isExternal) {
-        if (!classModifiers.contains(Modifier.System))
+      if (node.modifiers.hasExternal) {
+        if (!classModifiers.hasSystem)
           throw InputException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
         if (node.body.isDefined)
           throw InputException(s"Method is declared `external` but has a method body", node.tree)
@@ -820,18 +818,18 @@ class CgscriptClass(
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
             logger.debug(s"$logPrefix   It's a special method.")
-            new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride)(fn)
+            new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
             val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
             logger.debug(s"$logPrefix   It's a Java method via reflection: $externalMethod")
-            new SystemMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride, externalMethod)
+            new SystemMethod(node.idNode.id, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
         }
       } else {
         logger.debug(s"$logPrefix Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
-        new UserMethod(node.idNode.id, parameters, autoinvoke, node.isStatic, node.isOverride, body)
+        new UserMethod(node.idNode.id, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
       }
     }
 
