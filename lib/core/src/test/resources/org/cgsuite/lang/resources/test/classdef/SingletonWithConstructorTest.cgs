@@ -1,0 +1,2 @@
+singleton class SingletonWithConstructorTest(nope as Integer)
+end

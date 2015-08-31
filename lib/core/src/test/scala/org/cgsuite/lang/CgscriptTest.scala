@@ -14,8 +14,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   val header = ("Test Name", "input", "expected output")
 
-  val testPackage = CgscriptPackage.root.declareSubpackage("test")
-  testPackage.declareSubpackage("classdef")
+  val testPackage = CgscriptPackage.root declareSubpackage "test"
+  val classdefPackage = testPackage declareSubpackage "classdef"
 
   "CGScript" should "process basic expressions" in {
 
@@ -333,7 +333,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "validate class definitions correctly" in {
 
+    classdefPackage declareSubpackage "invalidconstants"
     CgscriptClass.declareSystemClass("test.classdef.BaseClassTest")
+    CgscriptClass.declareSystemClass("test.classdef.SingletonClassTest")
     CgscriptClass.declareSystemClass("test.classdef.MissingOverrideTest")
     CgscriptClass.declareSystemClass("test.classdef.ExtraneousOverrideTest")
     CgscriptClass.declareSystemClass("test.classdef.ExternalMethodWithBodyTest")
@@ -343,6 +345,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodVarTest")
     CgscriptClass.declareSystemClass("test.classdef.DuplicateNestedVarTest")
     CgscriptClass.declareSystemClass("test.classdef.DuplicateVarVarTest")
+    CgscriptClass.declareSystemClass("test.classdef.SingletonWithConstructorTest")
+    CgscriptClass.declareSystemClass("test.classdef.SubclassOfSingletonTest")
+    CgscriptClass.declareSystemClass("test.classdef.invalidconstants.constants")
 
     executeTests(Table(
       header,
@@ -363,7 +368,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Duplicate nested + var", "test.classdef.DuplicateNestedVarTest.X",
         "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateNestedVarTest`"),
       ("Duplicate var + var", "test.classdef.DuplicateVarVarTest.X",
-        "!!Variable `x` is declared twice in class `test.classdef.DuplicateVarVarTest`")
+        "!!Variable `x` is declared twice in class `test.classdef.DuplicateVarVarTest`"),
+      ("Singleton with constructor", "test.classdef.SingletonWithConstructorTest.X",
+        "!!Class `test.classdef.SingletonWithConstructorTest` must not have a constructor if declared `singleton`"),
+      ("Subclass of singleton", "test.classdef.SubclassOfSingletonTest.X",
+        "!!Class `test.classdef.SubclassOfSingletonTest` may not extend singleton class `test.classdef.SingletonClassTest`"),
+      ("constants is not singleton", "test.classdef.invalidconstants.constants.X",
+        "!!Constants class `test.classdef.invalidconstants.constants` must be declared `singleton`")
     ))
 
   }

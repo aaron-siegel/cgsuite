@@ -384,7 +384,6 @@ class CgscriptClass(
     private val reflect = Symbol(s"Reflect [$javaMethod]")
 
     def call(obj: Any, args: Array[Any]): Any = {
-      // TODO Named args should work here too
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
       assert(
         target == null || of(target).ancestors.contains(declaringClass),
@@ -396,7 +395,7 @@ class CgscriptClass(
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw InputException(
-          s"Invalid parameters for method `$qualifiedName` of types (${args.map { _.getClass.getName }.mkString(", ")})"
+          s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)"
         )
         case exc: InvocationTargetException => throw InputException(
           exc.getTargetException match {
@@ -467,7 +466,6 @@ class CgscriptClass(
 
     def call(args: Array[Any], enclosingObject: Any): Any = {
       // TODO Superconstructor
-      // TODO Parse var initializers
       validateArguments(args)
       instantiator(args, enclosingObject)
     }
@@ -489,7 +487,7 @@ class CgscriptClass(
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
-          throw new InputException(s"Invalid parameters for constructor `$qualifiedName`.")
+          throw new InputException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
       } finally {
         Profiler.stop(reflect)
       }
@@ -617,8 +615,6 @@ class CgscriptClass(
           throw InputException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
         }
 
-        // TODO Check for unresolved superclass method conflicts
-        // TODO Check for duplicate local method names
         val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
         val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
         val superMembers = superMethods ++ superNestedClasses
@@ -702,6 +698,8 @@ class CgscriptClass(
       node.enumElements
     )
 
+    loading = false
+
     // Check for duplicate vars (we make an exception for the constructor)
 
     classInfoRef.inheritedClassVars ++ classInfoRef.localClassVars groupBy { x => x } find { _._2.size > 1 } foreach { case (varId, _) =>
@@ -718,7 +716,19 @@ class CgscriptClass(
         throw InputException(s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`")
     }
 
-    loading = false
+    // Check that singleton => no constructor
+    if (classInfoRef.constructor.isDefined && classInfoRef.isSingleton)
+      throw InputException(s"Class `$qualifiedName` must not have a constructor if declared `singleton`")
+
+    // Check that no ancestor is a singleton
+    classInfoRef.properAncestors foreach { ancestor =>
+      if (ancestor.isSingleton)
+        throw InputException(s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`")
+    }
+
+    // Check that constants classes must be singletons
+    if (name == "constants" && !classInfoRef.isSingleton)
+      throw InputException(s"Constants class `$qualifiedName` must be declared `singleton`")
 
     // Create the class object
     classObjectRef = new ClassObject(CgscriptClass.this)
@@ -773,10 +783,6 @@ class CgscriptClass(
     }
 
     node.ordinaryInitializers.foreach { _.body elaborate ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None) }
-
-    // TODO Validate that singletons have no constructor
-    // TODO Validate that singletons cannot be subclassed
-    // TODO Validate that constants classes must be singletons
 
     // Singleton construction
     if (isSingleton) {
