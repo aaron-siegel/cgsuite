@@ -1,5 +1,0 @@
-class NonsystemClassWithExternalMethodTest
-
-  external def ExternalMethod;
-
-end

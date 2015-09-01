@@ -1,6 +1,0 @@
-class DuplicateMethodMethodTest
-
-  def Method := "foo";
-  def Method := "bar";
-
-end

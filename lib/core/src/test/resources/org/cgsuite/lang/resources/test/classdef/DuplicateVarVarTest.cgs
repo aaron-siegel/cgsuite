@@ -1,6 +1,0 @@
-class DuplicateVarVarTest
-
-  var x := "foo";
-  var x := "bar";
-
-end

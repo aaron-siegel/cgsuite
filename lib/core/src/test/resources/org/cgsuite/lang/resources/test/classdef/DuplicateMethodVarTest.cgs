@@ -1,6 +1,0 @@
-class DuplicateMethodVarTest
-
-  def x := "foo";
-  var x := "bar";
-
-end
