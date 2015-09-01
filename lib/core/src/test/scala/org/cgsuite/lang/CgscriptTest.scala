@@ -15,7 +15,10 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   val header = ("Test Name", "input", "expected output")
 
   val testPackage = CgscriptPackage.root declareSubpackage "test"
-  val classdefPackage = testPackage declareSubpackage "classdef"
+
+  def decl(name: String, explicitDefinition: String) = {
+    CgscriptClass declareSystemClass (name, explicitDefinition = Some(explicitDefinition))
+  }
 
   "CGScript" should "process basic expressions" in {
 
@@ -295,14 +298,30 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "validate function calls correctly" in {
 
-    CgscriptClass.declareSystemClass("test.ValidationTest")
-    CgscriptClass.declareSystemClass("test.ValidationOuterTest")
+    testPackage declareSubpackage "validation"
+
+    decl("test.validation.Outer",
+    """class Outer(a as Integer, b as Integer, c as String ? "bell")
+      |end
+      |""".stripMargin)
+    decl("test.validation.Inner",
+    """singleton class Inner
+      |
+      |  def Method3(a as Integer, b as Integer, c as String ? "bell") := a + b;
+      |
+      |  def Method5(a as Integer, b as Integer, c as Nimber ? *, d ? nil, e as Game ? ^*) := a + b;
+      |
+      |  class Nested(a as Integer, b as Integer, c as String ? "bell")
+      |  end
+      |
+      |end
+      |""".stripMargin)
 
     val instances = Seq(
-      ("3-param method", "test.ValidationTest.Method3", "3", 3, "in call to `test.ValidationTest.Method3`"),
-      ("5-param method", "test.ValidationTest.Method5", "3", 5, "in call to `test.ValidationTest.Method5`"),
-      ("Outer constructor", "test.ValidationOuterTest", "<Object of Class ValidationOuterTest>", 3, "in call to `test.ValidationOuterTest` constructor"),
-      ("Nested constructor", "test.ValidationTest.Nested", "<Object of Class ValidationTest.Nested>", 3, "in call to `test.ValidationTest.Nested` constructor"),
+      ("3-param method", "test.validation.Inner.Method3", "3", 3, "in call to `test.validation.Inner.Method3`"),
+      ("5-param method", "test.validation.Inner.Method5", "3", 5, "in call to `test.validation.Inner.Method5`"),
+      ("Outer constructor", "test.validation.Outer", "<Object of Class Outer>", 3, "in call to `test.validation.Outer` constructor"),
+      ("Nested constructor", "test.validation.Inner.Nested", "<Object of Class Inner.Nested>", 3, "in call to `test.validation.Inner.Nested` constructor"),
       ("Procedure", "f", "3", 3, "in procedure call")
     )
 
@@ -333,48 +352,59 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   it should "validate class definitions correctly" in {
 
+    val classdefPackage = testPackage declareSubpackage "classdef"
     classdefPackage declareSubpackage "invalidconstants"
-    CgscriptClass.declareSystemClass("test.classdef.BaseClassTest")
-    CgscriptClass.declareSystemClass("test.classdef.SingletonClassTest")
-    CgscriptClass.declareSystemClass("test.classdef.MissingOverrideTest")
-    CgscriptClass.declareSystemClass("test.classdef.ExtraneousOverrideTest")
-    CgscriptClass.declareSystemClass("test.classdef.ExternalMethodWithBodyTest")
-    CgscriptClass.declareSystemClass("test.classdef.NonsystemClassWithExternalMethodTest")
-    CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodMethodTest")
-    CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodNestedTest")
-    CgscriptClass.declareSystemClass("test.classdef.DuplicateMethodVarTest")
-    CgscriptClass.declareSystemClass("test.classdef.DuplicateNestedVarTest")
-    CgscriptClass.declareSystemClass("test.classdef.DuplicateVarVarTest")
-    CgscriptClass.declareSystemClass("test.classdef.SingletonWithConstructorTest")
-    CgscriptClass.declareSystemClass("test.classdef.SubclassOfSingletonTest")
-    CgscriptClass.declareSystemClass("test.classdef.invalidconstants.constants")
+    decl("test.classdef.BaseClass", "class BaseClass def Method := 3; end")
+    decl("test.classdef.SingletonClass", "singleton class SingletonClass end")
+    decl("test.classdef.MutableClass", "mutable class MutableClass end")
+    decl("test.classdef.MissingOverride", "class MissingOverride extends BaseClass def Method := 4; end")
+    decl("test.classdef.ExtraneousOverride", "class ExtraneousOverride extends BaseClass override def NewMethod := 4; end")
+    decl("test.classdef.ExternalMethodWithBody", "system class ExternalMethodWithBody external def ExternalMethod := 3; end")
+    decl("test.classdef.NonsystemClassWithExternalMethod", "class NonsystemClassWithExternalMethod external def ExternalMethod := 3; end")
+    decl("test.classdef.DuplicateMethodMethod", "class DuplicateMethodMethod def Method := 3; def Method := 4; end")
+    decl("test.classdef.DuplicateMethodNested", "class DuplicateMethodNested def Method := 3; class Method() end end")
+    decl("test.classdef.DuplicateMethodVar", "class DuplicateMethodVar def x := 3; var x := 4; end")
+    decl("test.classdef.DuplicateNestedVar", "class DuplicateNestedVar class x end var x := 3; end")
+    decl("test.classdef.DuplicateVarVar", "class DuplicateVarVar var x := 3; var x := 4; end")
+    decl("test.classdef.SingletonWithConstructor", "singleton class SingletonWithConstructor(nope as Integer) end")
+    decl("test.classdef.SubclassOfSingleton", "class SubclassOfSingleton extends SingletonClass end")
+    decl("test.classdef.invalidconstants.constants", "class constants end")
+    decl("test.classdef.ImmutableSubclassOfMutable", "class ImmutableSubclassOfMutable extends MutableClass end")
+    decl("test.classdef.ImmutableNestedClassOfMutable", "mutable class ImmutableNestedClassOfMutable class Nested end end")
+    decl("test.classdef.MutableVarOfImmutable", "class MutableVarOfImmutable mutable var x := 4; end")
 
     executeTests(Table(
       header,
-      ("Missing override", "test.classdef.MissingOverrideTest.X",
-        "!!Method `test.classdef.MissingOverrideTest.Method` must be declared with `override`, since it overrides `test.classdef.BaseClassTest.Method`"),
-      ("Extraneous override", "test.classdef.ExtraneousOverrideTest.X",
-        "!!Method `test.classdef.ExtraneousOverrideTest.NewMethod` overrides nothing"),
-      ("External method with body", "test.classdef.ExternalMethodWithBodyTest.X",
+      ("Missing override", "test.classdef.MissingOverride.X",
+        "!!Method `test.classdef.MissingOverride.Method` must be declared with `override`, since it overrides `test.classdef.BaseClass.Method`"),
+      ("Extraneous override", "test.classdef.ExtraneousOverride.X",
+        "!!Method `test.classdef.ExtraneousOverride.NewMethod` overrides nothing"),
+      ("External method with body", "test.classdef.ExternalMethodWithBody.X",
         "!!Method is declared `external` but has a method body"),
-      ("External method of nonsystem class", "test.classdef.NonsystemClassWithExternalMethodTest.X",
-        "!!Method is declared `external`, but class `test.classdef.NonsystemClassWithExternalMethodTest` is not declared `system`"),
-      ("Duplicate method + method", "test.classdef.DuplicateMethodMethodTest.X",
-        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodMethodTest`"),
-      ("Duplicate method + nested", "test.classdef.DuplicateMethodNestedTest.X",
-        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodNestedTest`"),
-      ("Duplicate method + var", "test.classdef.DuplicateMethodVarTest.X",
-        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateMethodVarTest`"),
-      ("Duplicate nested + var", "test.classdef.DuplicateNestedVarTest.X",
-        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateNestedVarTest`"),
-      ("Duplicate var + var", "test.classdef.DuplicateVarVarTest.X",
-        "!!Variable `x` is declared twice in class `test.classdef.DuplicateVarVarTest`"),
-      ("Singleton with constructor", "test.classdef.SingletonWithConstructorTest.X",
-        "!!Class `test.classdef.SingletonWithConstructorTest` must not have a constructor if declared `singleton`"),
-      ("Subclass of singleton", "test.classdef.SubclassOfSingletonTest.X",
-        "!!Class `test.classdef.SubclassOfSingletonTest` may not extend singleton class `test.classdef.SingletonClassTest`"),
+      ("External method of nonsystem class", "test.classdef.NonsystemClassWithExternalMethod.X",
+        "!!Method is declared `external`, but class `test.classdef.NonsystemClassWithExternalMethod` is not declared `system`"),
+      ("Duplicate method + method", "test.classdef.DuplicateMethodMethod.X",
+        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodMethod`"),
+      ("Duplicate method + nested", "test.classdef.DuplicateMethodNested.X",
+        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodNested`"),
+      ("Duplicate method + var", "test.classdef.DuplicateMethodVar.X",
+        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateMethodVar`"),
+      ("Duplicate nested + var", "test.classdef.DuplicateNestedVar.X",
+        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateNestedVar`"),
+      ("Duplicate var + var", "test.classdef.DuplicateVarVar.X",
+        "!!Variable `x` is declared twice in class `test.classdef.DuplicateVarVar`"),
+      ("Singleton with constructor", "test.classdef.SingletonWithConstructor.X",
+        "!!Class `test.classdef.SingletonWithConstructor` must not have a constructor if declared `singleton`"),
+      ("Subclass of singleton", "test.classdef.SubclassOfSingleton.X",
+        "!!Class `test.classdef.SubclassOfSingleton` may not extend singleton class `test.classdef.SingletonClass`"),
       ("constants is not singleton", "test.classdef.invalidconstants.constants.X",
-        "!!Constants class `test.classdef.invalidconstants.constants` must be declared `singleton`")
+        "!!Constants class `test.classdef.invalidconstants.constants` must be declared `singleton`"),
+      ("Immutable subclass of mutable class", "test.classdef.ImmutableSubclassOfMutable.X",
+        "!!Subclass `test.classdef.ImmutableSubclassOfMutable` of mutable class `test.classdef.MutableClass` is not declared `mutable`"),
+      ("Immutable nested class of mutable class", "test.classdef.ImmutableNestedClassOfMutable.X",
+        "!!Nested class `Nested` of mutable class `test.classdef.ImmutableNestedClassOfMutable` is not declared `mutable`"),
+      ("Mutable var of immutable class", "test.classdef.MutableVarOfImmutable.X",
+        "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`")
     ))
 
   }
