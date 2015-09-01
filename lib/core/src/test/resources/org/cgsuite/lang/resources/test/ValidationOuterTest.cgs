@@ -1,2 +1,0 @@
-class ValidationOuterTest(a as Integer, b as Integer, c as String ? "bell")
-end
