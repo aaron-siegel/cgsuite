@@ -23,7 +23,7 @@ object DeclarationNode {
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
-      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.head), isVarDeclaration = false, isStatic = true, isExternal = false))
+      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.head), isVarDeclaration = false, isStatic = true, Modifiers.none))
 
       case CLASS_VAR =>
         val (modifiers, nodes) = ClassVarNode(tree)
@@ -33,13 +33,13 @@ object DeclarationNode {
             node,
             isVarDeclaration = true,
             isStatic = tree.getType == ENUM_ELEMENT || modifiers.hasStatic,
-            isExternal = modifiers.hasExternal
+            modifiers = modifiers
           )
         }
 
       case ENUM_ELEMENT => Iterable(EnumElementNode(tree))
 
-      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isVarDeclaration = false, isStatic = false, isExternal = false))
+      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isVarDeclaration = false, isStatic = false, Modifiers.none))
 
     }
 
@@ -193,11 +193,12 @@ case class MethodDeclarationNode(
 
 }
 
-case class InitializerNode(tree: Tree, body: EvalNode, isVarDeclaration: Boolean, isStatic: Boolean, isExternal: Boolean) extends Node {
+case class InitializerNode(tree: Tree, body: EvalNode, isVarDeclaration: Boolean, isStatic: Boolean, modifiers: Modifiers) extends Node {
   val children = Seq(body)
 }
 
 object Modifiers {
+  val none: Modifiers = Modifiers(None, None, None, None, None, None)
   def apply(tree: Tree, allowed: Int*): Modifiers = {
     val tokens = tree.children map { _.token }
     tokens foreach { token =>

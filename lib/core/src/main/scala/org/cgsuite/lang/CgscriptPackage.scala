@@ -56,9 +56,13 @@ class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   def lookupClass(id: Symbol): Option[CgscriptClass] = classes.get(id)
 
-  def declareClass(id: Symbol, url: URL, scalaClass: Option[Class[_]]): CgscriptClass = {
+  def declareClass(id: Symbol, url: Option[URL], explicitDefinition: Option[String], scalaClass: Option[Class[_]]): CgscriptClass = {
     val cls = classes.getOrElseUpdate(id, new CgscriptClass(this, None, id, scalaClass))
-    cls.setURL(url)
+    (url, explicitDefinition) match {
+      case (Some(u), None) => cls setURL u
+      case (None, Some(d)) => cls setExplicitDefinition d
+      case _ => sys.error("Invalid arguments")
+    }
     CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
     if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game) {
       // TODO We should have a way to manage conflicts here.

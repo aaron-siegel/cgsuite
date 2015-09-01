@@ -1,12 +1,15 @@
 package org.cgsuite.lang
 
+import java.io.{ByteArrayInputStream, InputStream}
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
+import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
-import org.cgsuite.core.impartial.{Periodicity, HeapRuleset, TakeAndBreak}
+import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
 import org.cgsuite.exception.{CgsuiteException, InputException}
+import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output._
@@ -15,9 +18,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
-
-import scala.language.existentials
-import scala.language.postfixOps
+import scala.language.{existentials, postfixOps}
 
 object CgscriptClass {
 
@@ -121,15 +122,20 @@ object CgscriptClass {
 
   systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
 
-  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None) {
+  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
     val path = name.replace('.', '/')
-    val url = getClass.getResource(s"resources/$path.cgs")
-    val components = name.split("\\.").toSeq
-    val pkg = CgscriptPackage.root.lookupSubpackage(components.dropRight(1)).getOrElse {
-      sys.error("Cannot find package: " + components.dropRight(1))
+    val url = {
+      if (explicitDefinition.isDefined)
+        None
+      else
+        Some(getClass.getResource(s"resources/$path.cgs"))
     }
-    pkg.declareClass(Symbol(components.last), url, scalaClass)
+    val components = name.split("\\.").toSeq
+    val pkg = CgscriptPackage.root lookupSubpackage (components dropRight 1) getOrElse {
+      sys.error("Cannot find package: " + (components dropRight 1))
+    }
+    pkg.declareClass(Symbol(components.last), url, explicitDefinition, scalaClass)
 
   }
 
@@ -258,6 +264,7 @@ class CgscriptClass(
   }
 
   private var url: URL = _
+  private var definition: String = _
   private var classInfoRef: ClassInfo = _
   private var loading = false
   private var classObjectRef: ClassObject = _
@@ -495,9 +502,17 @@ class CgscriptClass(
 
   }
 
-  def setURL(url: URL) {
-    logger.debug(s"$logPrefix Setting URL: $url")
+  def setURL(url: URL): Unit = {
+    logger debug s"$logPrefix Setting URL: $url"
     this.url = url
+    this.definition = null
+    unload()
+  }
+
+  def setExplicitDefinition(definition: String): Unit = {
+    logger debug s"$logPrefix Setting explicit definition"
+    this.url = null
+    this.definition = definition
     unload()
   }
 
@@ -523,34 +538,42 @@ class CgscriptClass(
 
   def ensureLoaded() {
     if (classInfoRef == null) {
-      if (url == null) {
-        sys.error("URL not set: " + logPrefix)
-      }
-      load(url)
+      load()
     }
   }
 
-  private def load(url: URL) {
+  private def load() {
 
-    if (loading) {
-      sys.error("circular class definition?: " + url)
+    val (in, source) = {
+      if (url != null) {
+        logger debug s"$logPrefix Loading class from URL: $url"
+        (url.openStream(), url.toString)
+      } else if (definition != null) {
+        logger debug s"$logPrefix Loading class from explicit definition"
+        (new ByteArrayInputStream(definition.getBytes(StandardCharsets.UTF_8)), qualifiedName)
+      } else {
+        sys.error("URL not set: " + logPrefix)
+      }
     }
+
+    val tree = {
+      try {
+        ParserUtil.parseCU(in, source)
+      } finally {
+        in.close()
+      }
+    }
+
+    if (loading)
+      sys.error("circular class definition?: " + qualifiedName)
+
     loading = true
-
-    logger.debug(s"$logPrefix Loading class from URL: $url")
-
-    val in = url.openStream()
-    val tree = try {
-      ParserUtil.parseCU(in, url.toString)
-    } finally {
-      in.close()
-    }
 
     logger.debug(s"$logPrefix Parse tree: ${tree.toStringTree}")
 
     assert(tree.getType == EOF)
 
-    val node = ClassDeclarationNode(tree.getChild(1))
+    val node = ClassDeclarationNode(tree.children(1))
     logger.debug(s"$logPrefix Node: $node")
     declareClass(node)
 
@@ -718,8 +741,8 @@ class CgscriptClass(
     if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton)
       throw InputException(s"Class `$qualifiedName` must not have a constructor if declared `singleton`")
 
-    // Check that no ancestor is a singleton
-    classInfoRef.properAncestors foreach { ancestor =>
+    // Check that no superclass is a singleton
+    classInfoRef.supers foreach { ancestor =>
       if (ancestor.isSingleton)
         throw InputException(s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`")
     }
@@ -727,6 +750,26 @@ class CgscriptClass(
     // Check that constants classes must be singletons
     if (name == "constants" && !node.modifiers.hasSingleton)
       throw InputException(s"Constants class `$qualifiedName` must be declared `singleton`")
+
+    if (node.modifiers.hasMutable) {
+      // If we're mutable, check that no nested class is immutable
+      node.nestedClassDeclarations foreach { nested =>
+        if (!nested.modifiers.hasMutable)
+          throw InputException(s"Nested class `${nested.id.id.name}` of mutable class `$qualifiedName` is not declared `mutable`")
+      }
+    } else {
+      // If we're immutable, check that no superclass is mutable
+      classInfoRef.supers foreach { spr =>
+        if (spr.isMutable)
+          throw InputException(s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`")
+      }
+      // ... and that there are no mutable vars
+      classInfoRef.initializers foreach {
+        case InitializerNode(_, AssignToNode(_, assignId, _, _), true, false, modifiers) if (modifiers.hasMutable) =>
+          throw InputException(s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`")
+        case _ =>
+      }
+    }
 
     // Create the class object
     classObjectRef = new ClassObject(CgscriptClass.this)
@@ -767,7 +810,7 @@ class CgscriptClass(
     // Static declarations - create a domain whose context is the class object
     val initializerDomain = new Domain(null, Some(classObject))
     node.staticInitializers.foreach { node =>
-      if (!node.isExternal) {
+      if (!node.modifiers.hasExternal) {
         val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
         // We intentionally don't elaborate var declarations, since those are already
         // accounted for in the class vars. But we still need to elaborate the RHS of
