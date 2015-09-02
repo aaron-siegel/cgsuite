@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.ByteArrayInputStream
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -229,14 +229,19 @@ class CgscriptClass(
     val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
-    val constructorParamVars = constructor.toSeq.flatMap { _.parameters.map { _.id } }
-    val localClassVars = initializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, false, _) => assignId.id
+    val constructorParamVars = constructor match {
+      case Some(ctor) => ctor.parameters map { param => Var(param.id, Modifiers.none, isConstructorParam = true) }
+      case None => Seq.empty
     }
-    val allClassVars: Seq[Symbol] = (constructorParamVars ++ inheritedClassVars ++ localClassVars).distinct
-    val classVarOrdinals: Map[Symbol, Int] = allClassVars.zipWithIndex.toMap
+    val localClassVars = initializers collect {
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic => Var(assignId.id, modifiers)
+    }
+    val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
+    val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
+    val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
+    val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
     val staticVars = enumElements.map { _.id.id } ++ staticInitializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, true, _) => assignId.id
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if modifiers.hasStatic => assignId.id
     }
     val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
     val allSymbolsInThisClass: Set[Symbol] = {
@@ -301,6 +306,11 @@ class CgscriptClass(
 
   def initializers = classInfo.initializers
 
+  case class Var(id: Symbol, modifiers: Modifiers, isConstructorParam: Boolean = false) extends Member() {
+    def declaringClass = thisClass
+    def isMutable = modifiers.hasMutable
+  }
+
   trait Method extends Member {
 
     def id: Symbol
@@ -310,7 +320,7 @@ class CgscriptClass(
     def isOverride: Boolean
     def call(obj: Any, args: Array[Any]): Any
 
-    val declaringClass = CgscriptClass.this
+    val declaringClass = thisClass
     val qualifiedName = declaringClass.qualifiedName + "." + id.name
     val qualifiedId = Symbol(qualifiedName)
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
@@ -723,8 +733,17 @@ class CgscriptClass(
 
     // Check for duplicate vars (we make an exception for the constructor)
 
-    classInfoRef.inheritedClassVars ++ classInfoRef.localClassVars groupBy { x => x } find { _._2.size > 1 } foreach { case (varId, _) =>
-      throw InputException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", node.tree)
+    (classInfoRef.inheritedClassVars ++ classInfoRef.localClassVars) groupBy { _.id } foreach { case (varId, vars) =>
+      if (vars.size > 1 && (vars exists { !_.isConstructorParam })) {
+        val class1 = vars.head.declaringClass
+        val class2 = vars(1).declaringClass
+        if (class1 == thisClass && class2 == thisClass)
+          throw InputException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", node.tree)
+        else if (class2 == thisClass)
+          throw InputException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
+        else
+          throw InputException(s"Variable `${varId.name}` is defined in multiple superclasses: `${class1.qualifiedName}`, `${class2.qualifiedName}`")
+      }
     }
 
     // Check for member/var conflicts
@@ -733,7 +752,7 @@ class CgscriptClass(
     // superclass. For now, we prohibit it.
 
     methods ++ nestedClasses foreach { case (memberId, _) =>
-      if (classInfoRef.allClassVars contains memberId)
+      if (classInfoRef.classVarLookup contains memberId)
         throw InputException(s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`")
     }
 
@@ -765,7 +784,7 @@ class CgscriptClass(
       }
       // ... and that there are no mutable vars
       classInfoRef.initializers foreach {
-        case InitializerNode(_, AssignToNode(_, assignId, _, _), true, false, modifiers) if (modifiers.hasMutable) =>
+        case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic && modifiers.hasMutable =>
           throw InputException(s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`")
         case _ =>
       }
@@ -816,7 +835,7 @@ class CgscriptClass(
         // accounted for in the class vars. But we still need to elaborate the RHS of
         // the assignment.
         node.body match {
-          case AssignToNode(_, _, expr, true) => expr.elaborate(scope)
+          case AssignToNode(_, _, expr, AssignmentDeclType.ClassVarDecl) => expr.elaborate(scope)
           case evalNode => evalNode.elaborate(scope)
         }
         node.body.evaluate(initializerDomain)

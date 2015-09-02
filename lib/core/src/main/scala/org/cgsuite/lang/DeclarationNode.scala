@@ -23,7 +23,7 @@ object DeclarationNode {
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
-      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.head), isVarDeclaration = false, isStatic = true, Modifiers.none))
+      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.head), isVarDeclaration = false, Modifiers(static = Some(tree.token))))
 
       case CLASS_VAR =>
         val (modifiers, nodes) = ClassVarNode(tree)
@@ -32,14 +32,13 @@ object DeclarationNode {
             tree,
             node,
             isVarDeclaration = true,
-            isStatic = tree.getType == ENUM_ELEMENT || modifiers.hasStatic,
             modifiers = modifiers
           )
         }
 
       case ENUM_ELEMENT => Iterable(EnumElementNode(tree))
 
-      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isVarDeclaration = false, isStatic = false, Modifiers.none))
+      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isVarDeclaration = false, Modifiers.none))
 
     }
 
@@ -65,10 +64,10 @@ object ClassDeclarationNode {
       case x: MethodDeclarationNode => x
     }
     val staticInitializers = declarations collect {
-      case x: InitializerNode if x.isStatic => x
+      case x: InitializerNode if x.modifiers.hasStatic => x
     }
     val ordinaryInitializers = declarations collect {
-      case x: InitializerNode if !x.isStatic => x
+      case x: InitializerNode if !x.modifiers.hasStatic => x
     }
     val enumElements = declarations collect {
       case x: EnumElementNode => x
@@ -161,8 +160,8 @@ object ClassVarNode {
     val modifiers = Modifiers(tree.head, EXTERNAL, MUTABLE, STATIC)
     val nodes = tree.children.tail map { t =>
       t.getType match {
-        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = false)
-        case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), isVarDeclaration = false)
+        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), AssignmentDeclType.ClassVarDecl)
+        case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), AssignmentDeclType.ClassVarDecl)
       }
     }
     (modifiers, nodes)
@@ -173,11 +172,11 @@ object EnumElementNode {
   def apply(tree: Tree): EnumElementNode = {
     assert(tree.getType == ENUM_ELEMENT)
     val modifiers = Modifiers(tree.head, EXTERNAL)
-    EnumElementNode(tree, IdentifierNode(tree.children(1)), modifiers.hasExternal)
+    EnumElementNode(tree, IdentifierNode(tree.children(1)), modifiers)
   }
 }
 
-case class EnumElementNode(tree: Tree, id: IdentifierNode, isExternal: Boolean) extends Node {
+case class EnumElementNode(tree: Tree, id: IdentifierNode, modifiers: Modifiers) extends Node {
   val children = Seq(id)
 }
 
@@ -193,12 +192,12 @@ case class MethodDeclarationNode(
 
 }
 
-case class InitializerNode(tree: Tree, body: EvalNode, isVarDeclaration: Boolean, isStatic: Boolean, modifiers: Modifiers) extends Node {
+case class InitializerNode(tree: Tree, body: EvalNode, isVarDeclaration: Boolean, modifiers: Modifiers) extends Node {
   val children = Seq(body)
 }
 
 object Modifiers {
-  val none: Modifiers = Modifiers(None, None, None, None, None, None)
+  val none: Modifiers = Modifiers()
   def apply(tree: Tree, allowed: Int*): Modifiers = {
     val tokens = tree.children map { _.token }
     tokens foreach { token =>
@@ -217,12 +216,12 @@ object Modifiers {
 }
 
 case class Modifiers(
-  external: Option[Token],
-  mutable: Option[Token],
-  `override`: Option[Token],
-  singleton: Option[Token],
-  static: Option[Token],
-  system: Option[Token]
+  external: Option[Token] = None,
+  mutable: Option[Token] = None,
+  `override`: Option[Token] = None,
+  singleton: Option[Token] = None,
+  static: Option[Token] = None,
+  system: Option[Token] = None
   ) {
   val hasExternal = external.isDefined
   val hasMutable = mutable.isDefined

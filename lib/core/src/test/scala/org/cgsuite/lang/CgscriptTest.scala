@@ -372,6 +372,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     decl("test.classdef.ImmutableSubclassOfMutable", "class ImmutableSubclassOfMutable extends MutableClass end")
     decl("test.classdef.ImmutableNestedClassOfMutable", "mutable class ImmutableNestedClassOfMutable class Nested end end")
     decl("test.classdef.MutableVarOfImmutable", "class MutableVarOfImmutable mutable var x := 4; end")
+    decl("test.classdef.ImmutableVarWithNoInitializer", "class ImmutableVarWithNoInitializer var x; end")
 
     executeTests(Table(
       header,
@@ -404,7 +405,38 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Immutable nested class of mutable class", "test.classdef.ImmutableNestedClassOfMutable.X",
         "!!Nested class `Nested` of mutable class `test.classdef.ImmutableNestedClassOfMutable` is not declared `mutable`"),
       ("Mutable var of immutable class", "test.classdef.MutableVarOfImmutable.X",
-        "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`")
+        "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`"),
+      ("Immutable var with no initializer", "test.classdef.ImmutableVarWithNoInitializer.X",
+        "!!Variable `x` of immutable class `test.classdef.ImmutableVarWithNoInitializer` must be assigned at time of declaration")
+    ))
+
+  }
+
+  it should "handle mutables correctly" in {
+
+    testPackage declareSubpackage "mutables"
+    decl("test.mutables.MutableClass",
+      """mutable class MutableClass()
+        |  var immutableVar := 5;
+        |  mutable var mutableVar;
+        |  def SetMutable(newValue) begin mutableVar := newValue end
+        |  def SetImmutable(newValue) begin immutableVar := newValue end
+        |end""".stripMargin)
+    decl("test.mutables.ImmutableClass1", "class ImmutableClass1() var immutableVar := MutableClass(); end")
+    decl("test.mutables.SingletonImmutableClass", "singleton class SingletonImmutableClass var immutableVar := MutableClass(); end")
+    decl("test.mutables.ImmutableClass2", "class ImmutableClass(cparam) end")
+
+    executeTests(Table(
+      header,
+      ("Reassign to mutable", "x := test.mutables.MutableClass(); x.SetMutable(168); x.mutableVar", "168"),
+      ("Cannot reassign to immutable", "y := test.mutables.MutableClass(); y.SetImmutable(168)",
+        "!!Cannot reassign to immutable var: `immutableVar`"),
+      ("Cannot assign mutable object to var of immutable class", "test.mutables.ImmutableClass1()",
+        "!!Cannot assign mutable object to var `immutableVar` of immutable class `test.mutables.ImmutableClass1`"),
+      ("Cannot assign mutable object to var of singleton immutable class", "test.mutables.SingletonImmutableClass.X",
+        "!!Cannot assign mutable object to var `immutableVar` of immutable class `test.mutables.SingletonImmutableClass"),
+      ("Cannot pass mutable object to constructor of immutable class", "test.mutables.ImmutableClass2()",
+        "!!Cannot assign mutable object to var `cparam` of immutable class `test.mutables.ImmutableClass2`")
     ))
 
   }

@@ -122,7 +122,7 @@ object EvalNode {
       case ASSIGN =>
         if (tree.head.getType != IDENTIFIER)
           throw InputException("Syntax error.", tree)
-        AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), isVarDeclaration = false)
+        AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), AssignmentDeclType.Ordinary)
       case VAR => VarNode(tree)
 
       // Suppressor
@@ -821,7 +821,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       val y = idNode.resolver.resolve(x)
       if (y == null)
         throw InputException(
-          s"Not a method or member variable: `${idNode.id.name}` (in object of class `${CgscriptClass.of(x).qualifiedName}`)",
+          s"Not a method or member variable: `${idNode.id.name}` (in object of class `${(CgscriptClass of x).qualifiedName}`)",
           token = Some(token)
         )
       else
@@ -963,18 +963,18 @@ object VarNode {
     assert(tree.getType == VAR && tree.children.size == 1)
     val t = tree.children.head
     t.getType match {
-      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), isVarDeclaration = true)
-      case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), isVarDeclaration = true)
+      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), AssignmentDeclType.VarDecl)
+      case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), AssignmentDeclType.VarDecl)
     }
   }
 }
 
-case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDeclaration: Boolean) extends EvalNode {
+case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, declType: AssignmentDeclType.Value) extends EvalNode {
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   override val children = Seq(id, expr)
   override def elaborate(scope: ElaborationDomain) {
-    if (isVarDeclaration) {
+    if (declType == AssignmentDeclType.VarDecl) {
       scope.insertId(id.id)
     }
     super.elaborate(scope)
@@ -991,17 +991,23 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, isVarDec
     } else {
       // TODO Nested classes
       val res = id.resolver.findResolution(domain.contextObject.get)
-      if (res.classScopeIndex >= 0)
+      if (res.classScopeIndex >= 0) {
+        if (declType == AssignmentDeclType.Ordinary && !res.isMutableVar)
+          throw InputException(s"Cannot reassign to immutable var: `${id.id.name}`", token = Some(token))
         domain.contextObject.get.asInstanceOf[StandardObject].vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
-      else
+      } else
         throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(token))
     }
     newValue
   }
   def toNodeString = {
-    val varStr = if (isVarDeclaration) "var " else ""
+    val varStr = if (declType != AssignmentDeclType.Ordinary) "var " else ""
     varStr + id.toNodeString + " := " + expr.toNodeString
   }
+}
+
+object AssignmentDeclType extends Enumeration {
+  val Ordinary, VarDecl, ClassVarDecl = Value
 }
 
 object StatementSequenceNode {
