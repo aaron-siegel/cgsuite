@@ -42,13 +42,18 @@ object CgscriptClass {
 
     "cgsuite.lang.Class" -> classOf[ClassObject],
     "cgsuite.lang.Nil" -> Nil.getClass,
+
+    "cgsuite.util.MutableList" -> classOf[mutable.ArrayBuffer[_]],
+    "cgsuite.util.MutableSet" -> classOf[mutable.HashSet[_]],
+    "cgsuite.util.MutableMap" -> classOf[mutable.HashMap[_,_]],
+
     "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
     "cgsuite.lang.String" -> classOf[String],
     "cgsuite.lang.Coordinates" -> classOf[Coordinates],
     "cgsuite.lang.Range" -> classOf[NumericRange[_]],
     "cgsuite.lang.List" -> classOf[Seq[_]],
-    "cgsuite.lang.Set" -> classOf[Set[_]],
-    "cgsuite.lang.Map" -> classOf[Map[_, _]],
+    "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
+    "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
     "cgsuite.lang.Procedure" -> classOf[Procedure],
     "cgsuite.lang.System" -> classOf[System],
@@ -147,9 +152,9 @@ object CgscriptClass {
   val List = CgscriptPackage.lookupClassByName("List").get
   val NilClass = CgscriptPackage.lookupClassByName("Nil").get
 
-  Object.ensureLoaded()
-
   private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
+
+  Object.ensureLoaded()
 
   def of(x: Any): CgscriptClass = {
     assert(x != null)
@@ -340,8 +345,8 @@ class CgscriptClass(
 
     // This is optimized to be really fast for methods with <= 4 parameters.
     // TODO Optimize for more than 4 parameters?
-    def validateArguments(args: Array[Any]): Unit = {
-      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage)
+    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
+      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
     }
 
   }
@@ -483,7 +488,7 @@ class CgscriptClass(
 
     def call(args: Array[Any], enclosingObject: Any): Any = {
       // TODO Superconstructor
-      validateArguments(args)
+      validateArguments(args, ensureImmutable = !isMutable)
       instantiator(args, enclosingObject)
     }
 
@@ -500,7 +505,7 @@ class CgscriptClass(
     def call(args: Array[Any]): Any = {
       try {
         Profiler.start(reflect)
-        validateArguments(args)
+        validateArguments(args, ensureImmutable = !isMutable)
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
@@ -788,6 +793,15 @@ class CgscriptClass(
           throw InputException(s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`")
         case _ =>
       }
+    }
+
+    // Check that immutable class vars are assigned at declaration time
+    initializers collect {
+      // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
+      // a "default" nil value. This could be refactored to be a bit more elegant.
+      case InitializerNode(_, AssignToNode(_, assignId, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), true, modifiers)
+        if !modifiers.hasMutable =>
+        throw InputException(s"Immutable variable `${assignId.id.name}` must be assigned a value (or else declared `mutable`)")
     }
 
     // Create the class object

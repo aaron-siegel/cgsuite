@@ -994,7 +994,10 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, declType
       if (res.classScopeIndex >= 0) {
         if (declType == AssignmentDeclType.Ordinary && !res.isMutableVar)
           throw InputException(s"Cannot reassign to immutable var: `${id.id.name}`", token = Some(token))
-        domain.contextObject.get.asInstanceOf[StandardObject].vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
+        val stdObj = domain.contextObject.get.asInstanceOf[StandardObject]
+        if (!stdObj.cls.isMutable && (CgscriptClass of newValue).isMutable)
+          throw InputException(s"Cannot assign mutable object to var `${id.id.name}` of immutable class `${stdObj.cls.qualifiedName}`")
+        stdObj.vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
       } else
         throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(token))
     }

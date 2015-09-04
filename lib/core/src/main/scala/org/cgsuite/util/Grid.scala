@@ -62,7 +62,7 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
     updated(coord.row, coord.col, newValue.intValue.toByte)
   }
 
-  def updated(coords: Map[Coordinates, Integer]): Grid = {
+  def updated(coords: scala.collection.Map[Coordinates, Integer]): Grid = {
     val newValues = new Array[Byte](values.length)
     System.arraycopy(values, 0, newValues, 0, values.length)
     val it = coords.iterator

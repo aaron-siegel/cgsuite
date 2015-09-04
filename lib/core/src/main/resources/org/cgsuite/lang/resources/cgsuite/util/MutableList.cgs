@@ -1,0 +1,11 @@
+/*${cgsuite.banner}*/
+
+mutable system class MutableList() extends List
+
+  external def Add(obj);
+  external def AddAll(coll as Collection);
+  external def Clear();
+  external def Remove(obj);
+  external def RemoveAll(coll as Collection);
+
+end

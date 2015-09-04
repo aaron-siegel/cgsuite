@@ -407,7 +407,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Mutable var of immutable class", "test.classdef.MutableVarOfImmutable.X",
         "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`"),
       ("Immutable var with no initializer", "test.classdef.ImmutableVarWithNoInitializer.X",
-        "!!Variable `x` of immutable class `test.classdef.ImmutableVarWithNoInitializer` must be assigned at time of declaration")
+        "!!Immutable variable `x` must be assigned a value (or else declared `mutable`)")
     ))
 
   }
@@ -434,9 +434,10 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Cannot assign mutable object to var of immutable class", "test.mutables.ImmutableClass1()",
         "!!Cannot assign mutable object to var `immutableVar` of immutable class `test.mutables.ImmutableClass1`"),
       ("Cannot assign mutable object to var of singleton immutable class", "test.mutables.SingletonImmutableClass.X",
-        "!!Cannot assign mutable object to var `immutableVar` of immutable class `test.mutables.SingletonImmutableClass"),
-      ("Cannot pass mutable object to constructor of immutable class", "test.mutables.ImmutableClass2()",
-        "!!Cannot assign mutable object to var `cparam` of immutable class `test.mutables.ImmutableClass2`")
+        "!!Cannot assign mutable object to var `immutableVar` of immutable class `test.mutables.SingletonImmutableClass`"),
+      ("Cannot pass mutable object to constructor of immutable class",
+        "x := test.mutables.MutableClass(); test.mutables.ImmutableClass2(x)",
+        "!!Cannot assign mutable object to var `cparam` of immutable class")
     ))
 
   }

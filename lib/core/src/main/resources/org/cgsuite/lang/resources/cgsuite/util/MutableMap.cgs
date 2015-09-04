@@ -1,0 +1,11 @@
+/*${cgsuite.banner}*/
+
+mutable system class MutableMap() extends Map
+
+  external def Clear();
+  external def Put(key, value);
+  external def PutAll(map as Map);
+  external def Remove(key);
+  external def RemoveAll(keys as Collection);
+
+end

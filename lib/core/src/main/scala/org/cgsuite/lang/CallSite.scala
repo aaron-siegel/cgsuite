@@ -18,7 +18,8 @@ object CallSite {
     parameters: Seq[Parameter],
     args: Array[Any],
     knownValidArgs: mutable.LongMap[Unit],
-    locationMessage: String
+    locationMessage: String,
+    ensureImmutable: Boolean = false
     ): Unit = {
 
     assert(args.length == parameters.length)
@@ -40,6 +41,9 @@ object CallSite {
         if (!(cls.ancestors contains parameters(i).paramType)) {
           throw InputException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
             s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
+        }
+        if (ensureImmutable && cls.isMutable) {
+          throw InputException(s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class")
         }
         i += 1
       }

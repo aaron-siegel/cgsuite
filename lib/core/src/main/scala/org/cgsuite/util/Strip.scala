@@ -35,7 +35,7 @@ class Strip private (val values: Array[Byte]) extends Ordered[Strip] {
       Nil
   }
 
-  def updated(positions: Map[Integer, Integer]): Strip = {
+  def updated(positions: scala.collection.Map[Integer, Integer]): Strip = {
     val newValues = new Array[Byte](values.length)
     System.arraycopy(values, 0, newValues, 0, values.length)
     val it = positions.iterator
