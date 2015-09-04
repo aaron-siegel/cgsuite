@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import org.cgsuite.core.CanonicalShortGameOps
+import org.cgsuite.exception.InputException
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.Output
 
@@ -40,6 +41,7 @@ object Repl {
             assert(output.isInstanceOf[Output], output.getClass)
             println(output)
           } catch {
+            case exc: InputException => println(exc.msgWithLocation); exc.printStackTrace()
             case exc: Throwable => exc.printStackTrace()
           }
           val totalDuration = JSystem.nanoTime - start

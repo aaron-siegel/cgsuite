@@ -294,9 +294,29 @@ class CgscriptClass(
     classObjectRef
   }
 
+  // Singleton instance is instantiated lazily
   def singletonInstance = {
     ensureLoaded()
+    if (singletonInstanceRef == null)
+      constructSingletonInstance()
     singletonInstanceRef
+  }
+
+  private[this] def constructSingletonInstance(): Unit = {
+    if (isSingleton) {
+      logger debug s"$logPrefix Constructing singleton instance"
+      if (enclosingClass.isDefined) {
+        sys.error("Nested singleton classes are not yet supported.")
+      }
+      if (qualifiedName == "game.Zero") {
+        singletonInstanceRef = ZeroImpl
+      } else {
+        singletonInstanceRef = new StandardObject(this, Array.empty)
+        logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
+      }
+    } else {
+      sys.error("Not a singleton")
+    }
   }
 
   def isMutable = classInfo.modifiers.hasMutable
@@ -857,21 +877,6 @@ class CgscriptClass(
     }
 
     node.ordinaryInitializers.foreach { _.body elaborate ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None) }
-
-    // Singleton construction
-    if (isSingleton) {
-      if (enclosingClass.isDefined) {
-        sys.error("Nested singleton classes are not yet supported.")
-      }
-      if (qualifiedName == "game.Zero") {
-        singletonInstanceRef = ZeroImpl
-      } else {
-        singletonInstanceRef = new StandardObject(this, Array.empty)
-        logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
-      }
-    } else {
-      singletonInstanceRef = null
-    }
 
   }
 

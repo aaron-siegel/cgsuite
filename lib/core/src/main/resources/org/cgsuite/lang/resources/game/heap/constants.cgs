@@ -2,9 +2,9 @@
 
 singleton class constants
 
-  def Nim := TakeAndBreak("0.[3]");
-  def GrundysGame := TakeAndBreak("4!.0");
-  def Kayles := TakeAndBreak("0.77");
-  def DawsonsKayles := TakeAndBreak("0.07");
+  var Nim := TakeAndBreak("0.[3]");
+  var GrundysGame := TakeAndBreak("4!.0");
+  var Kayles := TakeAndBreak("0.77");
+  var DawsonsKayles := TakeAndBreak("0.07");
 
 end

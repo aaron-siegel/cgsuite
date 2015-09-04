@@ -21,32 +21,38 @@ case class Resolver(id: Symbol) {
 
     // No way to avoid this lookup
     val cls = CgscriptClass.of(x)
-    var res: Resolution = null
     if (cls == CgscriptClass.Class) {
-      // Special handling for class objects
-      val co = x.asInstanceOf[ClassObject]
-      if (staticResolutions.length <= co.forClass.classOrdinal) {
-        staticResolutions = staticResolutions ++ new Array[Resolution](co.forClass.classOrdinal + 1 - staticResolutions.length)
-      }
-      var res = staticResolutions(co.forClass.classOrdinal)
-      if (res == null) {
-        res = Resolution(co.forClass, id, static = true)
-        staticResolutions(co.forClass.classOrdinal) = res
-      }
-      res
+      findStaticResolution(x.asInstanceOf[ClassObject])
     } else {
-      if (resolutions.length <= cls.classOrdinal) {
-        // Grow the array. This can happen at most O(#classes) times.
-        resolutions = resolutions ++ new Array[Resolution](cls.classOrdinal + 1 - resolutions.length)
-      }
-      var res = resolutions(cls.classOrdinal)
-      if (res == null) {
-        res = Resolution(cls, id)
-        resolutions(cls.classOrdinal) = res
-      }
-      res
+      findResolutionForClass(cls)
     }
 
+  }
+
+  // TODO This should go away when statics do
+  def findStaticResolution(co: ClassObject) = {
+    if (staticResolutions.length <= co.forClass.classOrdinal) {
+      staticResolutions = staticResolutions ++ new Array[Resolution](co.forClass.classOrdinal + 1 - staticResolutions.length)
+    }
+    var res = staticResolutions(co.forClass.classOrdinal)
+    if (res == null) {
+      res = Resolution(co.forClass, id, static = true)
+      staticResolutions(co.forClass.classOrdinal) = res
+    }
+    res
+  }
+
+  def findResolutionForClass(cls: CgscriptClass) = {
+    if (resolutions.length <= cls.classOrdinal) {
+      // Grow the array. This can happen at most O(#classes) times.
+      resolutions = resolutions ++ new Array[Resolution](cls.classOrdinal + 1 - resolutions.length)
+    }
+    var res = resolutions(cls.classOrdinal)
+    if (res == null) {
+      res = Resolution(cls, id)
+      resolutions(cls.classOrdinal) = res
+    }
+    res
   }
 
   def resolve(x: Any): Any = findResolution(x).evaluateFor(x)

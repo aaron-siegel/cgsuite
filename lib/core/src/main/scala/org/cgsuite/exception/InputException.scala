@@ -22,4 +22,11 @@ case class InputException(msg: String, e: Throwable = null, token: Option[Token]
     tokenStack += token
   }
 
+  def msgWithLocation: String = {
+    token match {
+      case None => s"[unknown location] $msg"
+      case Some(t) => s"[${t.getInputStream.getSourceName} line ${t.getLine}:${t.getCharPositionInLine}] $msg"
+    }
+  }
+
 }

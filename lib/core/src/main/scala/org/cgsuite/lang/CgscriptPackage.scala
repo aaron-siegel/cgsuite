@@ -73,15 +73,9 @@ class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   def lookupConstant(id: Symbol): Option[Resolution] = {
     lookupClass('constants) flatMap { constantsCls =>
-      if (constantsCls.singletonInstance == null) {
-        // This check is necessary for the edge case where we are elaborating the
-        // constants class itself, and the singleton instance hasn't been created yet
-        None
-      } else {
-        Option(Resolver forId id findResolution constantsCls.singletonInstance) match {
-          case Some(res) if res.isResolvable => Some(res)
-          case _ => None
-        }
+      Option(Resolver forId id findResolutionForClass constantsCls) match {
+        case Some(res) if res.isResolvable => Some(res)
+        case _ => None
       }
     }
   }
