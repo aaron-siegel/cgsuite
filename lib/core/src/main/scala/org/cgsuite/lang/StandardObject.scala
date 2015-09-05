@@ -94,8 +94,8 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
 class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends GameObject(cls, objArgs, enclosingObj) with ImpartialGame {
 
-  override def options(player: Player) = {
-    cls.classInfo.optionsMethod.call(this, Array(player)).asInstanceOf[Iterable[ImpartialGame]]
+  override def options = {
+    cls.classInfo.optionsMethod.call(this, Array.empty).asInstanceOf[Iterable[ImpartialGame]]
   }
 
   override def nimValue: Integer = nimValue(cls.transpositionTable)

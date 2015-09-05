@@ -467,6 +467,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  it should "implement methods correctly" in {
+
+    val tests = CollectionTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests : _*))
+
+  }
+
   "cgsuite.lang.Range" should "implement Collection faithfully" in {
 
     executeTests(Table(
@@ -763,16 +771,17 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.heap" should "define TakeAndBreak properly" in {
 
     val instances = Seq(
-      ("game.heap.Nim", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "nil"),
-      ("game.heap.GrundysGame", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "nil"),
-      ("game.heap.Kayles", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]", "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)"),
-      ("game.heap.DawsonsKayles", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]", "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)"),
-      ("game.heap.TakeAndBreak(\"0.3f\")", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "nil")
+      ("game.heap.Nim", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "nil"),
+      ("game.heap.GrundysGame", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "nil"),
+      ("game.heap.Kayles", "20", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]", "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)"),
+      ("game.heap.DawsonsKayles", "10", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]", "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)"),
+      ("game.heap.TakeAndBreak(\"0.3f\")", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "nil")
     )
 
-    val tests = instances flatMap { case (rs, nimSequence, periodicity) =>
+    val tests = instances flatMap { case (rs, optionCount, nimSequence, periodicity) =>
       Seq(
         (s"$rs.NimValue", s"listof($rs(n).NimValue for n from 0 to 20)", nimSequence),
+        (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
         (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence),
         (s"$rs.CheckPeriodicity(2000)", s"$rs.CheckPeriodicity(2000)", periodicity)
       )

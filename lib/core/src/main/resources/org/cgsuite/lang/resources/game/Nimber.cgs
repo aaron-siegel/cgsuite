@@ -1,4 +1,7 @@
 /*${cgsuite.banner}*/
 
 system class Nimber extends ImpartialGame, Uptimal
+
+  override external def Options;
+
 end

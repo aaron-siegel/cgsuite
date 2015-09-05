@@ -30,7 +30,9 @@ trait ImpartialGame extends Game {
   def +(other: ImpartialGame): ImpartialGame = CompoundImpartialGame(CompoundType.Disjunctive, this, other)
   def -(other: ImpartialGame): ImpartialGame = this + this
 
-  override def options(player: Player): Iterable[ImpartialGame]
+  override def options(player: Player): Iterable[ImpartialGame] = options
+
+  def options: Iterable[ImpartialGame]
 
   override def canonicalForm: CanonicalShortGame = Nimber(nimValue)
 
@@ -67,7 +69,7 @@ trait ImpartialGame extends Game {
       case None if !visited.contains(this) =>
         visited += this
         try {
-          val opts = options(Left) map { _.nimValue(tt, visited) }
+          val opts = options map { _.nimValue(tt, visited) }
           val m = mex(opts)
           tt.put(this, m)
           m

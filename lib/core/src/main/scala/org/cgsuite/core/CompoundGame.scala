@@ -66,16 +66,16 @@ class CompoundImpartialGame(compoundType: CompoundType.Value, g: ImpartialGame, 
 
   override def unary_- : CompoundImpartialGame = this
 
-  override def options(player: Player): Iterable[ImpartialGame] = {
+  override def options: Iterable[ImpartialGame] = {
 
     compoundType match {
 
       case Disjunctive =>
-        g.options(player).map { CompoundImpartialGame(Disjunctive, _, h) } ++
-        h.options(player).map { CompoundImpartialGame(Disjunctive, g, _) }
+        g.options.map { CompoundImpartialGame(Disjunctive, _, h) } ++
+        h.options.map { CompoundImpartialGame(Disjunctive, g, _) }
 
       case Ordinal =>
-        g.options(player) ++ h.options(player).map { CompoundImpartialGame(Ordinal, g, _) }
+        g.options ++ h.options.map { CompoundImpartialGame(Ordinal, g, _) }
 
     }
 
