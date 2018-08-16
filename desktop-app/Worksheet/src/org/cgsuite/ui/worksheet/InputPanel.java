@@ -16,6 +16,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import org.cgsuite.filetype.cgscript.CgscriptEditorKit;
+import org.netbeans.modules.editor.NbEditorDocument;
+import org.netbeans.modules.editor.NbEditorKit;
+import org.openide.text.CloneableEditorSupport;
 
 /**
  *
@@ -23,6 +28,9 @@ import javax.swing.JPanel;
  */
 public class InputPanel extends JPanel
 {
+    boolean isActivated = false;
+    boolean isDeactivated = false;
+    
     /** Creates new form InputPanel */
     public InputPanel()
     {
@@ -48,6 +56,57 @@ public class InputPanel extends JPanel
     public JLabel getPrompt()
     {
         return inputLabel;
+    }
+    
+    public void activate()
+    {
+        if (isActivated || isDeactivated)
+            throw new IllegalStateException();
+        
+        assert SwingUtilities.isEventDispatchThread();
+        
+        try
+        {
+            NbEditorKit kit = new CgscriptEditorKit();
+            NbEditorDocument doc = new NbEditorDocument("text/x-cgscript");
+
+            inputPane.setEditorKit(kit);
+            inputPane.setDocument(doc);
+            isActivated = true;
+        }
+        catch (Exception exc)
+        {
+            setEnabled(false);
+        }  
+    }
+    
+    public void deactivate()
+    {
+        if (!isActivated)
+            throw new IllegalStateException();
+        
+        assert SwingUtilities.isEventDispatchThread();
+        
+        String text = inputPane.getText();
+        Font font = inputPane.getFont();
+        remove(inputPane);
+        inputPane = new InputPane();
+        inputPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 0, 0, 0));
+        inputPane.setAlignmentY(0.0F);
+        inputPane.setMinimumSize(new java.awt.Dimension(0, 0));
+        add(inputPane);
+        inputPane.setEditorKit(CloneableEditorSupport.getEditorKit("text/plain"));
+        inputPane.setDocument(new NbEditorDocument("text/plain"));
+        inputPane.setText(text);
+        inputPane.setFont(font);
+        inputPane.setEditable(false);
+        isActivated = false;
+        isDeactivated = true;
+    }
+    
+    public boolean isDeactivated()
+    {
+        return isDeactivated;
     }
 
     /** This method is called from within the constructor to

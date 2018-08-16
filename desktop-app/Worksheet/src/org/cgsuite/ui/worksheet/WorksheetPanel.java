@@ -176,7 +176,7 @@ public class WorksheetPanel extends JPanel
     private void addNewCell()
     {
         activeInputPanel = new InputPanel();
-        activeInputPanel.getInputPane().activate();
+        activeInputPanel.activate();
         activeInputPanel.getInputPane().addKeyListener(this);
         activeInputPanel.getInputPane().getDocument().addDocumentListener(this);
         add(activeInputPanel);
@@ -261,7 +261,7 @@ public class WorksheetPanel extends JPanel
         getBuffer().addCommand(source.getText());
         activeInputPanel.getInputPane().removeKeyListener(this);
         activeInputPanel.getInputPane().getDocument().removeDocumentListener(this);
-        activeInputPanel.getInputPane().deactivate();
+        activeInputPanel.deactivate();
         activeInputPanel = null;
         commandHistoryPrefix = null;
         processCommand(source.getText());
@@ -464,7 +464,7 @@ public class WorksheetPanel extends JPanel
             {
                 InputPanel cell = (InputPanel) components[index];
                 InputPane pane = cell.getInputPane();
-                if (pane.isDeactivated())
+                if (((InputPanel) pane.getParent()).isDeactivated())
                 {
                     int worksheetWidth = width - cell.getPrompt().getWidth();
                     pane.setMinimumSize(new Dimension(worksheetWidth, pane.getMinimumSize().height));
