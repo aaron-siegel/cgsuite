@@ -74,8 +74,10 @@ object CgscriptClass {
 
     "game.Zero" -> classOf[Zero],
     "game.Integer" -> classOf[Integer],
+    "game.GeneralizedOrdinal" -> classOf[GeneralizedOrdinal],
     "game.DyadicRational" -> classOf[DyadicRationalNumber],
     "game.Rational" -> classOf[RationalNumber],
+    "game.SurrealNumber" -> classOf[SurrealNumber],
     "game.Nimber" -> classOf[Nimber],
     "game.Uptimal" -> classOf[Uptimal],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],

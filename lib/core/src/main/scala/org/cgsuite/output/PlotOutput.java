@@ -132,7 +132,7 @@ public class PlotOutput extends AbstractOutput
     // TODO: Handle infinite trajectories?
     public void addTrajectory(Trajectory trajectory, Color color, int hDisplacement)
     {
-        if (trajectory.getMastValue().isInfinite())
+        if (trajectory.getMastValue().hasZeroDenominator())
         {
             return;
         }
@@ -148,7 +148,7 @@ public class PlotOutput extends AbstractOutput
     
     public void setWaterLevel(RationalNumber waterLevel)
     {
-        if (waterLevel.isInfinite() || waterLevel.compareTo(Values.negativeOne()) < 0)
+        if (waterLevel.hasZeroDenominator() || waterLevel.compareTo(Values.negativeOne()) < 0)
         {
             throw new IllegalArgumentException("waterLevel must be >= -1 and < Infinity.");
         }

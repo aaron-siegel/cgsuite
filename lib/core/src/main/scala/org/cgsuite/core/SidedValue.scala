@@ -70,6 +70,8 @@ trait SidedValue extends NormalValue {
     if (n < zero) -nCopies(-n) else MultipleGame.binarySum(n.intValue, this, zero) { _ + _ }
   }
 
+  override def isFinite = true
+
   override def isStopperSided = onside.loopyGame.isStopper && offside.loopyGame.isStopper
 
   // TODO When we figure out how to handle SimplifiedLoopyGame in cgscript, move this

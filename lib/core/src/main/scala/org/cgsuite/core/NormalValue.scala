@@ -4,6 +4,8 @@ trait NormalValue {
 
   def isAllSmall = false
 
+  def isFinite = false
+
   def isIdempotent = false
 
   def isInfinitesimal = false
@@ -19,6 +21,8 @@ trait NormalValue {
   def isNumberish = false
 
   def isNumberTiny = false
+
+  def isOrdinal = false
 
   def isPlumtree = false
 

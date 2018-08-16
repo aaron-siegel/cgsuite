@@ -6,6 +6,7 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.{CanonicalShortGameOps => ops}
 
 object Values extends ValuesTrait
@@ -17,6 +18,7 @@ private[cgsuite] trait ValuesTrait {
   val negativeOne = SmallInteger(-1)
   val two = SmallInteger(2)
   val three = SmallInteger(3)
+  val omega = GeneralizedOrdinal(Term(one, one))
 
   val star = Nimber(1)
   val starTwo = Nimber(2)

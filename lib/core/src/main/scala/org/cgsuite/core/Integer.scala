@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.core.GeneralizedOrdinal.Term
+
 object Integer {
   
   private[core] val minInt: BigInt = BigInt(Int.MinValue)
@@ -52,7 +54,7 @@ object Integer {
   
 }
 
-trait Integer extends DyadicRationalNumber {
+trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   
   def bigIntValue: BigInt
   override def intValue = bigIntValue.intValue()
@@ -60,6 +62,13 @@ trait Integer extends DyadicRationalNumber {
   def floatValue = bigIntValue.floatValue()
   def doubleValue = bigIntValue.doubleValue()
   def byteValue = bigIntValue.byteValue()
+
+  override def terms: IndexedSeq[Term] = {
+    if (isZero)
+      Vector.empty
+    else
+      Vector(Term(this, ZeroImpl))
+  }
   
   override def options(player: Player): Iterable[Integer] = {
     (player, bigIntValue.signum) match {
@@ -69,12 +78,12 @@ trait Integer extends DyadicRationalNumber {
     }
   }
   
-  override def compare(other: RationalNumber) = other match {
-    case i: Integer => bigIntValue.compare(i.bigIntValue)
-    case _ => super.compare(other)
+  override def compare(that: SurrealNumber): Int = {
+    that match {
+      case thatInteger: Integer => bigIntValue compare thatInteger.bigIntValue
+      case _ => super.compare(that)
+    }
   }
-
-  def compare(other: Integer) = bigIntValue.compare(other.bigIntValue)
 
   override def unary_- = Integer(-bigIntValue)
   
@@ -90,6 +99,10 @@ trait Integer extends DyadicRationalNumber {
 
   override def abs: Integer = Integer(bigIntValue.abs)
 
+  override def birthday: Integer = abs
+
+  override def pow(n: Integer): RationalNumber = super[DyadicRationalNumber].pow(n)
+
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
 
   def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
@@ -101,6 +114,8 @@ trait Integer extends DyadicRationalNumber {
   override def isEven = !bigIntValue.testBit(0)
 
   override def isInteger = true
+
+  override def isOrdinal = this >= Values.zero
 
   override def isOdd = bigIntValue.testBit(0)
 
@@ -147,6 +162,8 @@ trait Integer extends DyadicRationalNumber {
   override def denominatorExponent = 0
 
   override def toString = bigIntValue.toString()
+
+  override def toOutput = super[DyadicRationalNumber].toOutput
   
 }
 

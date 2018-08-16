@@ -1,0 +1,14 @@
+/*${cgsuite.banner}*/
+
+system class SurrealNumber extends NormalValue
+
+  external def Abs;
+  external def Birthday;
+  external def Denominator;
+  external def Numerator;
+  external def Reciprocal;
+  external def Sign;
+
+  override external def ToOutput;
+
+end

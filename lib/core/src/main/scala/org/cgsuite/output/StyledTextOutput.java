@@ -327,6 +327,8 @@ public class StyledTextOutput extends AbstractOutput
         CALY            (FontRef.SYMBOL, 'Y', "Y", "\\mathcal{Y}"),
         /** A calligraphic uppercase Z. */
         CALZ            (FontRef.SYMBOL, 'Z', "Z", "\\mathcal{Z}"),
+        /** Greek letter omega. */
+        OMEGA           (FontRef.SANS_SERIF, '\u03C9', "\u03C9", "\\omega"),
         ;
         
         private FontRef fontRef;

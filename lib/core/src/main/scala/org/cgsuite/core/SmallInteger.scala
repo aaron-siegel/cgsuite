@@ -37,14 +37,9 @@ trait SmallInteger extends Integer {
     case _ => Set.empty
   }
 
-  override def compare(other: RationalNumber) = other match {
-    case small: SmallInteger => intValue.compare(small.intValue)
-    case _ => super.compare(other)
-  }
-  
-  override def compare(other: Integer) = other match {
-    case small: SmallInteger => intValue.compare(small.intValue)
-    case _ => super.compare(other)
+  override def compare(that: SurrealNumber): Int = that match {
+    case smallInteger: SmallInteger => intValue compare smallInteger.intValue
+    case _ => super.compare(that)
   }
 
   override def unary_- = Integer(-longValue)

@@ -9,7 +9,7 @@ import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 
 import scala.collection.generic.Growable
-import scala.collection.mutable
+import scala.collection.{AbstractIterable, mutable}
 import scala.collection.mutable.ArrayBuffer
 
 object EvalNode {
@@ -637,7 +637,7 @@ case class LoopNode(
 
   override def evaluate(domain: Domain): Any = {
 
-    val yieldResult = loopType match {
+    val yieldResult: Iterable[Any] with Growable[Any] = loopType match {
       case LoopNode.YieldList | LoopNode.YieldTable => ArrayBuffer[Any]()
       case LoopNode.YieldSet => mutable.HashSet[Any]()
       case LoopNode.YieldSum | LoopNode.Do => null

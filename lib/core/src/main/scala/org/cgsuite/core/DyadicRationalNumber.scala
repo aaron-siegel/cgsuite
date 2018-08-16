@@ -95,12 +95,13 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
     denominator * other.denominator
   )
 
-  override def birthday = {
+  override def birthday: Integer = {
     if (this >= zero)
       ceiling + SmallInteger(denominatorExponent)
     else
       floor.abs + SmallInteger(denominatorExponent)
   }
+
   override def incentives: Iterable[DyadicRationalNumber] = {
     if (isZero) Set.empty
     else Set(DyadicRationalNumber(negativeOne, denominator))
@@ -117,7 +118,7 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
   override def isNimber = numerator == zero
   override def isNumber = true
   override def isNumberish = true
-  override def isNumberTiny: Boolean = true
+  override def isNumberTiny = true
   override def leftStop = this
   override def mean = this
   override def rightStop = this

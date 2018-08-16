@@ -291,7 +291,7 @@ public class Trajectory
     {
         int i;
         for (i = 0; i < criticalPoints.length && r.compareTo(criticalPoints[i]) < 0; i++);
-        if (r.isInfinite() && slopes[i].equals(Values.zero()))
+        if (r.hasZeroDenominator() && slopes[i].equals(Values.zero()))
         {
             return xIntercepts[i];
         }
@@ -588,7 +588,7 @@ public class Trajectory
      */
     public boolean isInfinite()
     {
-        return xIntercepts[0].isInfinite();
+        return xIntercepts[0].hasZeroDenominator();
     }
 
     /**
@@ -726,7 +726,7 @@ public class Trajectory
      */
     public Trajectory translate(RationalNumber r)
     {
-        if (isInfinite() || r.isInfinite())
+        if (isInfinite() || r.hasZeroDenominator())
         {
             return new Trajectory(getMastXIntercept().$plus(r));
         }

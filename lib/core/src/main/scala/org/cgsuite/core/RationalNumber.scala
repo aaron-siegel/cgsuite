@@ -43,36 +43,45 @@ object RationalNumber {
   
 }
 
-trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
+trait RationalNumber extends SurrealNumber with OutputTarget {
   
-  def numerator: Integer
-  def denominator: Integer
+  override def numerator: Integer
+
+  override def denominator: Integer
   
-  def compare(other: RationalNumber): Int = {
-    if (isInfinite && other.isInfinite)
-      numerator compare other.numerator
-    else
-      (numerator * other.denominator) compare (denominator * other.numerator)
+  override def compare(that: SurrealNumber): Int = {
+    that match {
+      case thatRationalNumber: RationalNumber => compareRationalNumber(thatRationalNumber)
+      case _ => super.compare(that)
+    }
   }
 
-  def unary_+ : RationalNumber = this
-  def unary_- : RationalNumber = RationalNumber(-numerator, denominator)
+  def compareRationalNumber(that: RationalNumber): Int = {
+    if (hasZeroDenominator && that.hasZeroDenominator)
+      numerator compare that.numerator
+    else
+      (numerator * that.denominator) compare (denominator * that.numerator)
+  }
+
+  override def unary_+ : RationalNumber = this
+
+  override def unary_- : RationalNumber = RationalNumber(-numerator, denominator)
 
   def +(other: RationalNumber): RationalNumber = RationalNumber(
     numerator * other.denominator + denominator * other.numerator,
     denominator * other.denominator
     )
-    
+
   def -(other: RationalNumber): RationalNumber = RationalNumber(
     numerator * other.denominator - denominator * other.numerator,
     denominator * other.denominator
   )
-  
+
   def *(other: RationalNumber): RationalNumber = RationalNumber(
     numerator * other.numerator,
     denominator * other.denominator
   )
-  
+
   def /(other: RationalNumber): RationalNumber = RationalNumber(
     numerator * other.denominator,
     denominator * other.numerator
@@ -89,7 +98,7 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
   def max(other: RationalNumber) = if (this > other) this else other
   def mean(other: RationalNumber) = (this + other) / Values.two
 
-  def pow(other: Integer): RationalNumber = {
+  override def pow(other: Integer): RationalNumber = {
     if (other >= Values.zero) {
       RationalNumber(numerator.integerPow(other), denominator.integerPow(other))
     } else {
@@ -97,13 +106,20 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
     }
   }
 
-  def reciprocal = RationalNumber(denominator, numerator)
+  override def birthday: GeneralizedOrdinal = {
+    assert(!isDyadic)
+    if (denominator == zero)
+      sys.error("inf has no birthday")
+    else
+      omega
+  }
+
+  override def reciprocal = RationalNumber(denominator, numerator)
 
   def isDyadic = denominator.isTwoPower
-  def isInteger = denominator == Values.one
-  def isInfinite = denominator == Values.zero
+  def hasZeroDenominator = denominator == Values.zero
 
-  def abs: RationalNumber = RationalNumber(numerator.abs, denominator)
+  override def abs: RationalNumber = if (this < zero) -this else this
   def floor: Integer = {
     if (isInteger)
       numerator
@@ -120,15 +136,15 @@ trait RationalNumber extends Ordered[RationalNumber] with OutputTarget {
     else
       floor + Values.one
   }
-  def sign: Integer = numerator.sign
+
   def step(n: Int): RationalNumber = step(SmallInteger(n))
   def step(n: Integer): RationalNumber = RationalNumber(numerator + n, denominator)
 
-  def toOutput: StyledTextOutput = {
+  override def toOutput: StyledTextOutput = {
 
     val output = new StyledTextOutput()
 
-    if (isInfinite) {
+    if (hasZeroDenominator) {
       if (numerator < zero)
         output.appendMath("-")
       output.appendSymbol(StyledTextOutput.Symbol.INFINITY)

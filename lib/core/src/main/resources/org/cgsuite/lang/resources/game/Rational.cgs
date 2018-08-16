@@ -1,18 +1,14 @@
 /*${cgsuite.banner}*/
 
-system class Rational
+system class Rational extends GeneralizedOrdinal
 
   override external def ToOutput;
 
-  external def Abs;
+  override external def Birthday;
   external def Ceiling;
-  external def Denominator;
   external def Floor;
   external def IsDyadic;
-  external def IsInteger;
   external def Max(that as Rational);
   external def Min(that as Rational);
-  external def Numerator;
-  external def Reciprocal;
 
 end

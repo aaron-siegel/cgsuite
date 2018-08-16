@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+system class GeneralizedOrdinal extends SurrealNumber
+
+  external def OmegaPower;
+
+  override external def ToOutput;
+
+end

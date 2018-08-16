@@ -18,13 +18,13 @@ object Ops {
   val Pos = UnOp("pos") {
     case (x: Game) => +x
     case (x: SidedValue) => +x
-    case (x: RationalNumber) => +x
+    case (x: SurrealNumber) => +x
   }
 
   val Neg = UnOp("neg") {
     case (x: Game) => -x
     case (x: SidedValue) => -x
-    case (x: RationalNumber) => -x
+    case (x: SurrealNumber) => -x
   }
 
   val PlusMinus = UnOp("+-") {
@@ -41,7 +41,9 @@ object Ops {
     case (_: Game, _: Zero) => (x: Game, _: Zero) => x
     case (_: Zero, _: Game) => (_: Zero, y: Game) => y
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x + y
+    case (_: GeneralizedOrdinal, _: GeneralizedOrdinal) => (x: GeneralizedOrdinal, y: GeneralizedOrdinal) => x + y
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x + y
+    case (_: SurrealNumber, _: SurrealNumber) => (x: SurrealNumber, y: SurrealNumber) => x + y
     case (_: Uptimal, _: Uptimal) => (x: Uptimal, y: Uptimal) => x + y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x + y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x + y
@@ -69,7 +71,9 @@ object Ops {
     case (_: Game, _:Zero) => (x: Game, _: Zero) => x
     case (_: Zero, _:Game) => (_: Zero, y: Game) => y
     case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x - y
+    case (_: GeneralizedOrdinal, _: GeneralizedOrdinal) => (x: GeneralizedOrdinal, y: GeneralizedOrdinal) => x - y
     case (_: RationalNumber, _:RationalNumber) => (x: RationalNumber, y: RationalNumber) => x - y
+    case (_: SurrealNumber, _: SurrealNumber) => (x: SurrealNumber, y: SurrealNumber) => x - y
     case (_: Uptimal, _:Uptimal) => (x: Uptimal, y: Uptimal) => x - y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x - y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x - y
@@ -88,7 +92,9 @@ object Ops {
   val Times = CachingBinOp("*") {
     case (_: Zero, _: Game) => (_: Zero, _: Game) => zero
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x * y
+    case (_: GeneralizedOrdinal, _: GeneralizedOrdinal) => (x: GeneralizedOrdinal, y: GeneralizedOrdinal) => x * y
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x * y
+    case (_: SurrealNumber, _: SurrealNumber) => (x: SurrealNumber, y: SurrealNumber) => x * y
     case (_: Integer, _: SidedValue) => (x: Integer, y: SidedValue) => y.nCopies(x)
     case (_: Integer, _: Game) => (x: Integer, y: Game) => MultipleGame(x, y)
     case (_: Coordinates, _: Integer) => (x: Coordinates, y: Integer) => x * y
@@ -97,6 +103,7 @@ object Ops {
 
   val Div = BinOp("/") {
     case (x: RationalNumber, y: RationalNumber) => x / y
+    case (x: SurrealNumber, y: SurrealNumber) => x / y
   }
 
   val Mod = BinOp("%") {
@@ -105,11 +112,14 @@ object Ops {
   }
 
   val Exp = BinOp("^") {
-    case (x: RationalNumber, y: Integer) => x.pow(y)
+    case (x: RationalNumber, y: Integer) => x pow y
+    case (x: GeneralizedOrdinal, y: GeneralizedOrdinal) if x.isOmega => y.omegaPower
+    case (x: SurrealNumber, y: Integer) => x pow y
   }
 
   val leq: (Any, Any) => Boolean = {
     case (x: RationalNumber, y: RationalNumber) => x <= y
+    case (x: SurrealNumber, y: SurrealNumber) => x <= y
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x <= y
     case (x: CanonicalStopper, y: CanonicalStopper) => x <= y
     case (x: StopperSidedValue, y: StopperSidedValue) => x <= y

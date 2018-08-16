@@ -11,6 +11,7 @@ system class NormalValue
   external def IsNumber;
   external def IsNumberish;
   external def IsNumberTiny;
+  external def IsOrdinal;
   external def IsPlumtree;
   external def IsPseudonumber;
   external def IsStopper;

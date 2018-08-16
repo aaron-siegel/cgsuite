@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Integer extends DyadicRational
+system class Integer extends DyadicRational, GeneralizedOrdinal
 
   external def Div(that as Integer);
   external def IsSmallInteger;
@@ -8,6 +8,8 @@ system class Integer extends DyadicRational
   external def Lb;
   external def NimProduct(that as Integer);
   external def NimSum(that as Integer);
+
+  override external def ToOutput;
 
   def Isqrt begin
     if this == 0 then 0 else

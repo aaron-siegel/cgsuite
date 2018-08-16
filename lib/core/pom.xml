@@ -18,8 +18,8 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.tools.version>2.11</scala.tools.version>
-    <scala.version>2.11.7</scala.version>
+    <scala.tools.version>2.12</scala.tools.version>
+    <scala.version>2.12.6</scala.version>
   </properties>
 
   <dependencies>
@@ -31,7 +31,7 @@
     <dependency>
       <groupId>com.typesafe.scala-logging</groupId>
       <artifactId>scala-logging_${scala.tools.version}</artifactId>
-      <version>3.1.0</version>
+      <version>3.9.0</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -42,6 +42,11 @@
       <groupId>org.antlr</groupId>
       <artifactId>antlr</artifactId>
       <version>3.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>cc.redberry</groupId>
+      <artifactId>rings.scaladsl_${scala.tools.version}</artifactId>
+      <version>2.5.1</version>
     </dependency>
 
     <!-- Test -->
@@ -54,13 +59,13 @@
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.tools.version}</artifactId>
-      <version>2.2.4</version>
+      <version>3.0.5</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.scalacheck</groupId>
       <artifactId>scalacheck_${scala.tools.version}</artifactId>
-      <version>1.12.2</version>
+      <version>1.14.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
