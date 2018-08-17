@@ -28,61 +28,15 @@
 
 package org.cgsuite.ui.worksheet;
 
-import java.awt.Font;
 import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
-import org.cgsuite.filetype.cgscript.CgscriptEditorKit;
-import org.netbeans.modules.editor.NbEditorDocument;
-import org.netbeans.modules.editor.NbEditorKit;
-import org.openide.text.CloneableEditorSupport;
 
 public class InputPane extends JEditorPane
 {
     public InputPane()
     {
     }
-    /*
-    public void activate()
-    {
-        if (isActivated || isDeactivated)
-            throw new IllegalStateException();
-        
-        assert SwingUtilities.isEventDispatchThread();
-        
-        try
-        {
-            NbEditorKit kit = new CgscriptEditorKit();
-            NbEditorDocument doc = new NbEditorDocument("text/x-cgscript");
-
-            setEditorKit(kit);
-            setDocument(doc);
-            isActivated = true;
-        }
-        catch (Exception exc)
-        {
-            setEnabled(false);
-        }
-    }
-    
-    public void deactivate()
-    {
-        if (!isActivated)
-            throw new IllegalStateException();
-        
-        assert SwingUtilities.isEventDispatchThread();
-        
-        String text = getText();
-        Font font = getFont();
-        setEditorKit(CloneableEditorSupport.getEditorKit("text/plain"));
-        setDocument(new NbEditorDocument("text/plain"));
-        setText(text);
-        setFont(font);
-        setEditable(false);
-        isActivated = false;
-        isDeactivated = true;
-    }
-    */
     
     public void insert(String str, int pos)
     {
