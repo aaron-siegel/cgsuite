@@ -6,6 +6,10 @@
     <description>Builds the module suite CGSuite.</description>
     <import file="nbproject/build-impl.xml"/>
     
+    <target name="-init" depends="suite.-init">
+        <copy file="../lib/core/target/cgsuite-core-${app.version}-jar-with-dependencies.jar" tofile="cgsuite-core-lib/release/modules/ext/cgsuite-core.jar"/>
+    </target>
+    
     <target name="branding" depends="-init,-pre-branding" if="run.branding">
         <mkdir dir="${cluster}"/>
         <branding cluster="${cluster}" overrides="${suite.build.dir}/branding-tmp" token="${branding.token}"/>
@@ -53,6 +57,8 @@
                 <filtersfile file="${basedir}/nbproject/project.properties"/>
             </filterset>
         </copy>
+        
+        <copy file="${basedir}/../lib/core/target/cgsuite-core-${app.version}-jar-with-dependencies.jar" todir="${cluster}/modules/ext"/>
         
         <!-- Generate svn info -->
         <exec executable="svn" output="${cluster}/svninfo.txt" failifexecutionfails="false">

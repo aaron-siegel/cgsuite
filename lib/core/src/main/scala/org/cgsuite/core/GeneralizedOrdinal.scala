@@ -150,19 +150,26 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
 
   private[cgsuite] def appendTermToOutput(output: StyledTextOutput, term: Term, head: Boolean, inExponent: Boolean): Unit = {
 
+    val baseStyles = {
+      if (inExponent)
+        util.EnumSet.of(Style.FACE_MATH, Style.LOCATION_SUPERSCRIPT)
+      else
+        util.EnumSet.of(Style.FACE_MATH)
+    }
+
     (head, term.coefficient.sign.intValue) match {
-      case (_, -1) => output appendMath "-"
+      case (_, -1) => output appendText (baseStyles, "-")
       case (true, 1) =>
-      case (false, 1) => output appendMath "+"
+      case (false, 1) => output appendText (baseStyles, "+")
       case _ => sys.error("coefficient cannot be 0")
     }
 
     if (term.exponent.terms.isEmpty || term.coefficient.abs != one)
-      output appendMath term.coefficient.abs.toString
+      output appendText (baseStyles, term.coefficient.abs.toString)
 
     if (term.exponent.terms.nonEmpty) {
 
-      output appendSymbol StyledTextOutput.Symbol.OMEGA
+      output appendSymbol (baseStyles, StyledTextOutput.Symbol.OMEGA)
 
       if (term.exponent != one) {
         val exponentModes = {
@@ -171,7 +178,7 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
           else
             util.EnumSet.of(Output.Mode.PLAIN_TEXT)
         }
-        output appendText (util.EnumSet.of(Style.FACE_MATH), exponentModes, "^")
+        output appendText (util.EnumSet.of(Style.FACE_MATH, Style.LOCATION_SUPERSCRIPT), exponentModes, "^")
         val requireParensForExponent = {
           term.exponent.terms.size > 1 ||
             (term.exponent.terms.head.coefficient != one && term.exponent.terms.head.exponent != zero)

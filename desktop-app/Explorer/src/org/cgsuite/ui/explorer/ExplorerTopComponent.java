@@ -10,6 +10,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.logging.Logger;
+/*
 import org.cgsuite.lang.CgsuiteCollection;
 import org.cgsuite.lang.CgsuiteObject;
 import org.cgsuite.lang.CgsuitePackage;
@@ -19,8 +20,9 @@ import org.cgsuite.lang.explorer.EditorPanel;
 import org.cgsuite.lang.explorer.Explorer;
 import org.cgsuite.lang.explorer.ExplorerNode;
 import org.cgsuite.lang.explorer.ExplorerWindow;
-import org.cgsuite.lang.output.Output;
-import org.cgsuite.lang.output.StyledTextOutput;
+*/
+import org.cgsuite.output.Output;
+import org.cgsuite.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
 import org.cgsuite.ui.worksheet.InputPane;
 import org.openide.util.NbBundle;
@@ -37,7 +39,7 @@ import org.openide.util.TaskListener;
  */
 @ConvertAsProperties(dtd = "-//org.cgsuite.ui.explorer//Explorer//EN",
 autostore = false)
-public final class ExplorerTopComponent extends TopComponent implements ExplorerWindow, ExplorerTreeListener, KeyListener, TaskListener
+public final class ExplorerTopComponent extends TopComponent implements KeyListener, TaskListener
 {
     private static ExplorerTopComponent instance;
     /** path to the icon used by the component and its open action */
@@ -46,18 +48,17 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     
     private String enterCommandHint;
 
-    private Explorer explorer;
-    private EditorPanel editorPanel;
+    //private Explorer explorer;
+    //private EditorPanel editorPanel;
     
     private CalculationCapsule currentCapsule;
     
     private String requestedEvaluationText;
     private String activeEvaluationText;
-    private ExplorerNode activeEvaluationNode;
+    //private ExplorerNode activeEvaluationNode;
 
     public ExplorerTopComponent()
     {
-//        gamesToNodes = new HashMap<Game,ExplorerNode>();
         initComponents();
         inputPanel.getInputPane().addKeyListener(this);
         editorScrollPane.getViewport().setBackground(Color.white);
@@ -67,14 +68,13 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         inputPanel.activate();
         setName(NbBundle.getMessage(ExplorerTopComponent.class, "CTL_ExplorerTopComponent"));
         setToolTipText(NbBundle.getMessage(ExplorerTopComponent.class, "HINT_ExplorerTopComponent"));
-//        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         
         enterCommandHint = NbBundle.getMessage(ExplorerTopComponent.class, "HINT_EnterCommand");
         
         commandComboBox.insertItemAt(enterCommandHint, 0);
         commandComboBox.setSelectedIndex(0);
     }
-
+/*
     public void setExplorer(Explorer explorer)
     {
         this.explorer = explorer;
@@ -205,12 +205,12 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         add(infoPanel, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
-    private CgsuiteObject leftOptions, rightOptions;
-    private CgsuiteObject leftLines, rightLines;
+//    private CgsuiteObject leftOptions, rightOptions;
+//    private CgsuiteObject leftLines, rightLines;
 
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
-        final ExplorerNode node = tree.getSelectedNode();
+ /*       final ExplorerNode node = tree.getSelectedNode();
         if (node == null)
             return;
         
@@ -238,7 +238,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
             node.addRightChild((Game) gr);
         }
 
-        tree.refresh();
+        tree.refresh();*/
     }//GEN-LAST:event_expandSensibleOptionsMenuItemActionPerformed
 
     private void treeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_treeMouseClicked
@@ -261,17 +261,17 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
     private void addPositionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addPositionButtonActionPerformed
     {//GEN-HEADEREND:event_addPositionButtonActionPerformed
-        Game g = (Game) editorPanel.constructObject();
+       /* Game g = (Game) editorPanel.constructObject();
         ExplorerNode node = explorer.findOrAdd(g);
-        tree.setSelectedNode(node);
+        tree.setSelectedNode(node);*/
     }//GEN-LAST:event_addPositionButtonActionPerformed
 
     private void commandComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commandComboBoxActionPerformed
-        setCommand((String) commandComboBox.getSelectedItem());
+        //setCommand((String) commandComboBox.getSelectedItem());
     }//GEN-LAST:event_commandComboBoxActionPerformed
 
 private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_expandSensibleLinesMenuItemActionPerformed
-        final ExplorerNode node = tree.getSelectedNode();
+       /* final ExplorerNode node = tree.getSelectedNode();
         if (node == null)
             return;
         
@@ -311,7 +311,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             }
         }
 
-        tree.refresh();
+        tree.refresh();*/
 }//GEN-LAST:event_expandSensibleLinesMenuItemActionPerformed
 
     private void doTreePopup(MouseEvent evt)
@@ -389,7 +389,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     public void componentClosed()
     {
     }
-
+/*
     @Override
     public void selectionPathChanged(List<ExplorerNode> newPath)
     {
@@ -412,7 +412,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             this.typeLabel.setText("Exploring " + node.getG().getCgsuiteClass().getQualifiedName() + ".");
         }
     }
-
+*/
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
@@ -434,7 +434,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     {
         String version = p.getProperty("version");
     }
-
+/*
     @Override
     protected String preferredID()
     {
@@ -541,7 +541,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     {
         return tree.getSelectionPath();
     }
-
+*/
     @Override
     public synchronized void taskFinished(Task task)
     {
@@ -556,7 +556,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         analysisWorksheetPanel.postOutput(output);
         analysisScrollPane.validate();
         
-        reeval();   // In case things have changed since we started this calc.
+        //reeval();   // In case things have changed since we started this calc.
     }
 
     @Override
@@ -577,7 +577,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
                     evt.consume();
                     if (!source.getText().equals(""))
                     {
-                        setCommand(source.getText());
+                        //setCommand(source.getText());
                         source.setText("");
                     }
                 }

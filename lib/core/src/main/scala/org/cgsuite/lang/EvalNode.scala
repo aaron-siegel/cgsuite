@@ -904,7 +904,13 @@ case class FunctionCallNode(
         args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
       i += 1
     }
-    callSite.call(args)
+    try {
+      callSite.call(args)
+    } catch {
+      case exc: InputException =>
+        exc.tokenStack += token
+        throw exc
+    }
 
   }
 

@@ -30,9 +30,9 @@
 package org.cgsuite.ui.explorer;
 
 import java.util.List;
-import org.cgsuite.lang.explorer.ExplorerNode;
+//import org.cgsuite.lang.explorer.ExplorerNode;
 
 public interface ExplorerTreeListener
 {
-    public void selectionPathChanged(List<ExplorerNode> newPath);
+  //  public void selectionPathChanged(List<ExplorerNode> newPath);
 }

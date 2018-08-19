@@ -5,17 +5,16 @@
 
 package org.cgsuite.ui.highlighting;
 
-import java.util.HashSet;
-import java.util.Set;
-import org.cgsuite.lang.parser.CgsuiteParser;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import static org.cgsuite.lang.parser.CgsuiteLexer.*;
+import org.cgsuite.lang.parser.CgsuiteParser;
 import org.netbeans.spi.lexer.LanguageHierarchy;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerRestartInfo;
-
-import static org.cgsuite.lang.parser.CgsuiteLexer.*;
 /**
  *
  * @author asiegel
@@ -30,13 +29,13 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         
         tokenTypes.put("Keyword", new int[]
         {
-            AND, BEGIN, BREAK, BY, CLASS, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
-            FALSE, FINALLY, FOR, FOREACH, FROM, GET, IF, IMPORT, IN, IS, JAVA, LISTOF, METHOD, MUTABLE,
-            NEG, NIL, NOT, OP, OR, OVERRIDE, PASS, POS, PROPERTY, RETURN,
-            SET, SETOF, SQUOTE, SUMOF, SUPER, STATIC, TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE
+            AND, AS, BEGIN, BREAK, BY, CLASS, CLEAR, CONTINUE, DEF, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
+            EXTERNAL, FALSE, FINALLY, FOR, FOREACH, FROM, IF, IMPORT, IN, IS, LISTOF, MUTABLE,
+            NEG, NIL, NOT, OP, OR, OVERRIDE, PASS, POS, RETURN,
+            SETOF, SQUOTE, STATIC, SUMOF, SUPER, SYSTEM, TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE
         });
         tokenTypes.put("Identifier", new int[] { IDENTIFIER });
-        tokenTypes.put("Number", new int[] { INTEGER, INF });
+        tokenTypes.put("Number", new int[] { INTEGER });
         tokenTypes.put("String", new int[] { STRING });
         tokenTypes.put("Comment", new int[] { SL_COMMENT, ML_COMMENT });
         tokenTypes.put("Separator", new int[]

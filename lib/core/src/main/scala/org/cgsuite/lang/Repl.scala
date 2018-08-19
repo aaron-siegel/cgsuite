@@ -26,6 +26,7 @@ object Repl {
         case "" =>
         case ":clear" =>
           CgscriptClass.clearAll()
+          replVarMap.clear()
         case _ =>
           val start = JSystem.nanoTime
           try {

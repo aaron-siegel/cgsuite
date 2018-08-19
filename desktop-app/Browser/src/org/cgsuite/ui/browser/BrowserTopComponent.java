@@ -6,27 +6,30 @@ package org.cgsuite.ui.browser;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.logging.Logger;
 import javax.swing.ActionMap;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.DefaultEditorKit;
-import org.cgsuite.lang.CgsuitePackage;
-import org.openide.util.NbBundle;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
-//import org.openide.util.ImageUtilities;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
 import org.openide.explorer.view.BeanTreeView;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.filesystems.JarFileSystem;
 import org.openide.filesystems.LocalFileSystem;
 import org.openide.loaders.DataObject;
-import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.modules.InstalledFileLocator;
 import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
+import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component which displays something.
@@ -39,7 +42,11 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     /** path to the icon used by the component and its open action */
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "BrowserTopComponent";
-
+    
+    private File USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
+    private File CORE_JAR = InstalledFileLocator.getDefault().locate("modules/ext/cgsuite-core.jar", "org.cgsuite", false);
+    private File DEV_LIB_FOLDER = FileUtil.normalizeFile(new File("../lib/core/src/main/resources/org/cgsuite/lang/resources"));
+    private File DEV_TEST_FOLDER = FileUtil.normalizeFile(new File("../lib/core/src/test/resources/org/cgsuite"));
     private FileObject root;
     private DataObject rootDataObject;
     private ExplorerManager em;
@@ -52,19 +59,27 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 //        setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
-        /*
+        FileObject libFileObject = null;
         try
         {
+            // TODO Ensure this works.
+            if (!USER_FOLDER.exists())
+            {
+                File defaultUserFolder = InstalledFileLocator.getDefault().locate("etc/default-userdir", "org.cgsuite", false);
+                copyFolder(defaultUserFolder, USER_FOLDER);
+            }
             LocalFileSystem fs = new LocalFileSystem();
-            fs.setRootDirectory(CgsuitePackage.USER_FOLDER);
+            fs.setRootDirectory(USER_FOLDER);
             fs.setReadOnly(false);
             this.root = fs.getRoot();
             this.rootDataObject = DataObject.find(root);
+            libFileObject = new JarFileSystem(CORE_JAR).getRoot().getFileObject("org/cgsuite/lang/resources");
         }
         catch (Exception exc)
         {
+            exc.printStackTrace();
         }
-        */
+
         ActionMap map = getActionMap();
         
         this.em = new ExplorerManager();
@@ -76,20 +91,58 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         map.put(DefaultEditorKit.pasteAction, ExplorerUtils.actionPaste(em));
         map.put("delete", ExplorerUtils.actionDelete(em, true));
         
-        //this.em.setRootContext(rootDataObject.getNodeDelegate());
+        this.em.setRootContext(rootDataObject.getNodeDelegate());
         
-        setRootFolder(new RootFolder(CgsuitePackage.USER_FOLDER, "User Folder"));
+        setRootFolder(new RootFolder(FileUtil.toFileObject(USER_FOLDER), "User Folder"));
         
-        jComboBox1.addItem(new RootFolder(CgsuitePackage.USER_FOLDER, "User Folder"));
-        jComboBox1.addItem(new RootFolder(CgsuitePackage.LIB_FOLDER, "System Folder"));
+        jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(USER_FOLDER), "User Folder"));
+        jComboBox1.addItem(new RootFolder(libFileObject, "System Folder"));
         
         if (System.getProperty("org.cgsuite.devbuild") != null)
         {
             // Add some convenience folders for developers
             File defaultUserdir = new File(System.getProperty("org.cgsuite.devbuild"), "release/etc/default-userdir");
-            jComboBox1.addItem(new RootFolder(defaultUserdir, "[dev] Default User Folder"));
-            jComboBox1.addItem(new RootFolder(CgsuitePackage.TEST_FOLDER, "[dev] Test Folder"));
-            jComboBox1.addItem(new RootFolder(null, "[dev] System Filesystem"));
+            jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(DEV_LIB_FOLDER), "[dev] Core Library Source Folder"));
+            jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(DEV_TEST_FOLDER), "[dev] Core Library Test Folder"));
+            jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(defaultUserdir), "[dev] Default User Folder"));
+            jComboBox1.addItem(new RootFolder(FileUtil.getConfigRoot(), "[dev] System Filesystem"));
+        }
+    }
+    
+    public static void copyFolder(File src, File dest) throws IOException
+    {
+        if (src.isDirectory())
+        {
+            dest.mkdir();
+ 
+                //list all the directory contents
+            String files[] = src.list();
+ 
+            for (String file : files)
+            {
+                //construct the src and dest file structure
+                File srcFile = new File(src, file);
+                File destFile = new File(dest, file);
+                //recursive copy
+                copyFolder(srcFile, destFile);
+             }
+        }
+        else
+        {
+            InputStream in = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dest); 
+
+            byte[] buffer = new byte[1024];
+
+            int length;
+
+            while ((length = in.read(buffer)) > 0)
+            {
+               out.write(buffer, 0, length);
+            }
+
+            in.close();
+            out.close();
         }
     }
  
@@ -207,21 +260,10 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
    
     private void setRootFolder(RootFolder rf) {
         try {
-            if (rf.folder == null)
-            {
-                this.root = FileUtil.getConfigRoot();
-            }
-            else
-            {
-                LocalFileSystem fs = new LocalFileSystem();
-                fs.setRootDirectory(rf.folder);
-                this.root = fs.getRoot();
-            }
+            this.root = rf.folder;
             this.rootDataObject = DataObject.find(this.root);
             this.rootDataObject.addPropertyChangeListener(this);
             this.em.setRootContext(rootDataObject.getNodeDelegate());
-        } catch (PropertyVetoException exc) {
-            throw new RuntimeException(exc);
         } catch (IOException exc) {
             throw new RuntimeException(exc);
         }
@@ -233,10 +275,10 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     
     private static class RootFolder
     {
-        private File folder;
+        private FileObject folder;
         private String displayName;
         
-        RootFolder(File folder, String displayName)
+        RootFolder(FileObject folder, String displayName)
         {
             this.folder = folder;
             this.displayName = displayName;

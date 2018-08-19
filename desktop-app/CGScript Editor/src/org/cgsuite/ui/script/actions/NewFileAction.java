@@ -10,7 +10,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.JFileChooser;
-import org.cgsuite.lang.CgsuitePackage;
+import javax.swing.filechooser.FileSystemView;
+import org.cgsuite.lang.CgscriptPackage;
 import org.cgsuite.ui.script.CgsFileFilter;
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileChooserBuilder;
@@ -27,13 +28,15 @@ public abstract class NewFileAction implements ActionListener {
     
     public abstract String getApproveText();
 
+    private File USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
         FileChooserBuilder fcb = new FileChooserBuilder(OpenAction.class);
         fcb.setApproveText(getApproveText());
         fcb.setFileFilter(CgsFileFilter.INSTANCE);
-        fcb.setDefaultWorkingDirectory(CgsuitePackage.USER_FOLDER);
+        fcb.setDefaultWorkingDirectory(USER_FOLDER);
         
         JFileChooser jfc = fcb.createFileChooser();
         jfc.setApproveButtonText("Create");

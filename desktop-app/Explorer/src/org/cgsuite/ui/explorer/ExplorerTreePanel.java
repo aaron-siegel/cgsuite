@@ -35,16 +35,17 @@ import javax.swing.InputMap;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
-import org.cgsuite.lang.explorer.Explorer;
-import org.cgsuite.lang.explorer.ExplorerListener;
-import org.cgsuite.lang.explorer.ExplorerNode;
+//import org.cgsuite.lang.explorer.Explorer;
+//import org.cgsuite.lang.explorer.ExplorerListener;
+//import org.cgsuite.lang.explorer.ExplorerNode;
 
 /**
  *
  * @author asiegel
  */
-public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerListener
+public class ExplorerTreePanel extends JPanel// implements Scrollable//, ExplorerListener
 {
+    /*
     public final static String NODE_RADIUS_PROPERTY = ExplorerTreePanel.class.getName() + ".nodeRadius";
 
     private int nodeRadius;
@@ -64,10 +65,10 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
     private boolean treeValid = false;
 
     private Set<ExplorerTreeListener> listeners;
-
+*/
     /** Creates new form ExplorerTreePanel */
     public ExplorerTreePanel()
-    {
+    {/*
         initComponents();
         nodeRadius = 16;
 
@@ -119,9 +120,9 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
                     setSelectionPath(path);
                     requestFocusInWindow();
                 }
-        }});
+        }});*/
     }
-
+/*
     public void setExplorer(Explorer explorer)
     {
         this.explorer = explorer;
@@ -815,7 +816,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             return path;
         }
     }
-    
+    */
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is

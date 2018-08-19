@@ -4,9 +4,9 @@ import java.io.{ByteArrayInputStream, InputStream}
 
 import org.antlr.runtime.tree.Tree
 import org.antlr.runtime.{CharStream, CommonTokenStream}
-import org.cgsuite.exception.InputException
-import scala.collection.JavaConversions._
+import org.cgsuite.exception.{InputException, SyntaxException}
 
+import scala.collection.JavaConversions._
 import scala.language.reflectiveCalls
 
 object ParserUtil {
@@ -37,12 +37,11 @@ object ParserUtil {
     val tree = fn(parser).getTree().asInstanceOf[Tree]
 
     if (!lexer.getErrors.isEmpty) {
-      throw InputException("Syntax error: " + lexer.getErrors.get(0).getMessage)
+      throw SyntaxException(lexer.getErrors.head.getException)
+      //throw InputException("Syntax error: " + lexer.getErrors.get(0).getMessage)
     } else if (!parser.getErrors.isEmpty) {
-      val err = parser.getErrors.head
-      throw InputException {
-        s"Syntax error at ${err.getException.token.getInputStream.getSourceName} line ${err.getException.line}:${err.getException.charPositionInLine}: ${err.getMessage}"
-      }
+      throw SyntaxException(parser.getErrors.head.getException)
+      //s"Syntax error at ${err.getException.token.getInputStream.getSourceName} line ${err.getException.line}:${err.getException.charPositionInLine}: ${err.getMessage}"
     } else {
       tree
     }

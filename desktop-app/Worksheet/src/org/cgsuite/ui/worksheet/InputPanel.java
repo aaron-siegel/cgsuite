@@ -85,7 +85,7 @@ public class InputPanel extends JPanel
         if (!isActivated)
             throw new IllegalStateException();
         
-        assert SwingUtilities.isEventDispatchThread();
+        assert SwingUtilities.isEventDispatchThread();  
         
         String text = inputPane.getText();
         Font font = inputPane.getFont();

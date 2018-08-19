@@ -7,7 +7,7 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
-                    <code-name-base>org.antlr</code-name-base>
+                    <code-name-base>org.cgsuite</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
@@ -16,14 +16,6 @@
                 </dependency>
                 <dependency>
                     <code-name-base>org.cgsuite.filetype.cgscript</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.cgsuite.lang</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>

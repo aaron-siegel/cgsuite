@@ -6,14 +6,14 @@ package org.cgsuite.ui.explorer.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.cgsuite.lang.explorer.Explorer;
-import org.cgsuite.lang.explorer.ExplorerWindow;
-import org.cgsuite.lang.explorer.ExplorerWindowFactory;
+//import org.cgsuite.lang.explorer.Explorer;
+//import org.cgsuite.lang.explorer.ExplorerWindow;
+//import org.cgsuite.lang.explorer.ExplorerWindowFactory;
 import org.cgsuite.ui.explorer.ExplorerTopComponent;
 import org.openide.util.lookup.ServiceProvider;
 
-@ServiceProvider(service=ExplorerWindowFactory.class)
-public final class NewExplorerAction implements ActionListener, ExplorerWindowFactory
+//@ServiceProvider(service=ExplorerWindowFactory.class)
+public final class NewExplorerAction implements ActionListener//, ExplorerWindowFactory
 {
     @Override
     public void actionPerformed(ActionEvent e)
@@ -22,7 +22,7 @@ public final class NewExplorerAction implements ActionListener, ExplorerWindowFa
         component.open();
         component.requestActive();
     }
-
+/*
     @Override
     public ExplorerWindow createWindow(Explorer client)
     {
@@ -32,4 +32,5 @@ public final class NewExplorerAction implements ActionListener, ExplorerWindowFa
         component.requestActive();
         return component;
     }
+*/
 }

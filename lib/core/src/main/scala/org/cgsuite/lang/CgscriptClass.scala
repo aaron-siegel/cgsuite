@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, File}
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -584,7 +584,7 @@ class CgscriptClass(
     val (in, source) = {
       if (url != null) {
         logger debug s"$logPrefix Loading class from URL: $url"
-        (url.openStream(), url.toString)
+        (url.openStream(), new File(url.getFile).getName)
       } else if (definition != null) {
         logger debug s"$logPrefix Loading class from explicit definition"
         (new ByteArrayInputStream(definition.getBytes(StandardCharsets.UTF_8)), qualifiedName)
