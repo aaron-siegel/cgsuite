@@ -2,12 +2,14 @@ package org.cgsuite.lang
 
 import java.util
 
+import org.antlr.runtime.tree.Tree
+import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.dsl.IntegerIsIntegral
 import org.cgsuite.exception.InputException
-import org.cgsuite.output.{StyledTextOutput, Output}
-import org.cgsuite.util.{Strip, Grid, Coordinates}
-import org.cgsuite.core.Values._
+import org.cgsuite.output.{Output, StyledTextOutput}
+import org.cgsuite.util.{Coordinates, Grid, Strip}
+
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
@@ -223,11 +225,11 @@ class CachingUnOp(val name: String)(resolver: Any => _ => Any) extends UnOp {
 
 trait BinOp {
   def name: String
-  def apply(x: Any, y: Any): Any
-  def throwInputException(x: Any, y: Any): Unit = {
+  def apply(tree: Tree, x: Any, y: Any): Any
+  def throwInputException(tree: Tree, x: Any, y: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
     val yClass = CgscriptClass.of(y).qualifiedName
-    throw InputException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`")
+    throw InputException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`", tree)
   }
 }
 
@@ -236,11 +238,11 @@ object BinOp {
 }
 
 class SimpleBinOp(val name: String)(resolver: (Any, Any) => Any) extends BinOp {
-  def apply(x: Any, y: Any) = {
+  override def apply(tree: Tree, x: Any, y: Any) = {
     try {
       resolver(x, y)
     } catch {
-      case err: MatchError => throwInputException(x, y)
+      case err: MatchError => throwInputException(tree, x, y)
     }
   }
 }
@@ -253,12 +255,12 @@ class CachingBinOp(val name: String)(resolver: (Any, Any) => (_, _) => Any) exte
 
   val classLookupCache = mutable.AnyRefMap[(Class[_], Class[_]), (Any, Any) => Any]()
 
-  def apply(x: Any, y: Any): Any = {
+  override def apply(tree: Tree, x: Any, y: Any): Any = {
     try {
       val fn = classLookupCache.getOrElseUpdate((x.getClass, y.getClass), resolver(x, y).asInstanceOf[(Any, Any) => Any])
       fn(x, y)
     } catch {
-      case err: MatchError => throwInputException(x, y)
+      case err: MatchError => throwInputException(tree, x, y)
     }
   }
 

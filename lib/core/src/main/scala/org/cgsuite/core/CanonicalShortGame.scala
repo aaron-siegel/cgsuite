@@ -291,7 +291,7 @@ trait CanonicalShortGame extends CanonicalStopper {
   override private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
 
     if (Thread.interrupted()) {
-      throw new InputException("Calculation canceled by user.")
+      throw InputException("Calculation canceled by user.")
     }
 
     val negative = -this

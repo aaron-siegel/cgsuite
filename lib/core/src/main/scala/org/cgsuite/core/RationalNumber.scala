@@ -17,7 +17,7 @@ object RationalNumber {
 
     (numerator, denominator) match {
       case (_, ZeroImpl) =>
-        if (numerator == Values.zero)   // 0/0
+        if (numerator == zero)   // 0/0
           throw new ArithmeticException("/ by zero")
         else
           RationalNumberImpl(numerator.sign, denominator)
@@ -26,7 +26,7 @@ object RationalNumber {
         val gcd = numerator gcd denominator
         val newNumerator = (numerator div gcd) * denominator.sign
         val newDenominator = (denominator div gcd) * denominator.sign
-        if (newDenominator == Values.one) {
+        if (newDenominator == one) {
           newNumerator
         } else if (newDenominator.isTwoPower) {
           DyadicRationalNumberImpl(newNumerator, newDenominator)

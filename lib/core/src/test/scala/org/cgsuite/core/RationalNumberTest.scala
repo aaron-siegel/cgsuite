@@ -6,6 +6,7 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.exception.InputException
 import org.scalatest.{FlatSpec, Matchers}
   
 class RationalNumberTest extends FlatSpec with Matchers {

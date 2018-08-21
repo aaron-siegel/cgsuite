@@ -29,7 +29,7 @@ object CanonicalStopper {
         }
       }
     } else {
-      throw new InputException(s"not a stopper: $loopyGame")
+      throw InputException(s"not a stopper: $loopyGame")
     }
   }
 

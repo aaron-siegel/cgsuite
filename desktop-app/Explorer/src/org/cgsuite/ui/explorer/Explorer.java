@@ -6,8 +6,6 @@
 package org.cgsuite.ui.explorer;
 
 import org.cgsuite.core.Game;
-import org.cgsuite.output.Output;
-import org.cgsuite.output.OutputTarget;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
 
@@ -19,7 +17,7 @@ import javax.swing.SwingUtilities;
  *
  * @author asiegel
  */
-public class Explorer implements OutputTarget
+public class Explorer
 {
     private ExplorerWindow window;
     private List<ExplorerNode> roots;
@@ -155,10 +153,5 @@ public class Explorer implements OutputTarget
         allNodes.add(node);
         fireNodeAddedEvent(node);
         return node;
-    }
-
-    @Override
-    public Output toOutput() {
-        throw new RuntimeException("not implemented");
     }
 }

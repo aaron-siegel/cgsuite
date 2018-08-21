@@ -59,16 +59,6 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
                 observedTokens.add(id);
             }
         }
-/*
-        for (int id = 0; id < CgsuiteParser.tokenNames.length; id++)
-        {
-            if (!observedTokens.contains(id))
-            {
-                ID_TO_TOKEN.put(id, new CgsuiteTokenId(CgsuiteParser.tokenNames[id], "separator", id));
-            }
-        }
-         * 
-         */
     }
     
     /**

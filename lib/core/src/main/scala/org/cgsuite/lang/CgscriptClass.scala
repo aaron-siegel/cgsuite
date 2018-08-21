@@ -543,7 +543,7 @@ class CgscriptClass(
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
-          throw new InputException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
+          throw InputException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
       } finally {
         Profiler.stop(reflect)
       }

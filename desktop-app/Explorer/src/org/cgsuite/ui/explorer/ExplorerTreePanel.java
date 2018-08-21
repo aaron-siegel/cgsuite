@@ -279,7 +279,6 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
     @Override
     public void nodeAdded(ExplorerNode node)
     {
-        System.out.println("QWAARG");
         refresh();
         if (node.isRoot())
             setSelectedNode(node);

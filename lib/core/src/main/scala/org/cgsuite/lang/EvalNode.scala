@@ -9,7 +9,7 @@ import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 
 import scala.collection.generic.Growable
-import scala.collection.{AbstractIterable, mutable}
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object EvalNode {
@@ -350,7 +350,13 @@ object BinOpNode {
 
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
   override val children = Seq(operand1, operand2)
-  override def evaluate(domain: Domain) = op(operand1.evaluate(domain), operand2.evaluate(domain))
+  override def evaluate(domain: Domain) = {
+    try {
+      op(tree, operand1.evaluate(domain), operand2.evaluate(domain))
+    } catch {
+      case exc: ArithmeticException => throw InputException(exc.getMessage, tree)
+    }
+  }
   def toNodeString = s"(${operand1.toNodeString} ${op.name} ${operand2.toNodeString})"
 }
 
@@ -730,14 +736,14 @@ case class LoopNode(
                     case x => yieldResult += x
                   }
                 case LoopNode.YieldTable => yieldResult += r
-                case LoopNode.YieldSum => sum = if (sum == null) r else Ops.Plus(sum, r)
+                case LoopNode.YieldSum => sum = if (sum == null) r else Ops.Plus(tree, sum, r)
                 case LoopNode.Do => // Nothing
               }
           }
           Profiler.stop(loopBody)
         }
         if (counter != null)
-          counter = Ops.Plus(counter, byVal)
+          counter = Ops.Plus(tree, counter, byVal)
       }
 
     }

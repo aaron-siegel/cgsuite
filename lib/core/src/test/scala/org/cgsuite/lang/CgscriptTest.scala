@@ -42,6 +42,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Integer multiplication", "3*5", "15"),
       ("Integer exponentiation", "3^5", "243"),
       ("Rational number", "4/6", "2/3"),
+      ("Division by zero", "0/0", "!!/ by zero"),
       ("Rational exponentiation", "(1/2)^4", "1/16"),
       ("Negative power", "2^(-4)", "1/16"),
       ("Negative power of rational", "(2/3)^(-3)", "27/8"),
