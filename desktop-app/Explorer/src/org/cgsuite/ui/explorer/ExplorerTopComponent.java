@@ -8,19 +8,18 @@ import java.awt.event.KeyEvent;
 import java.awt.Color;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-/*
-import org.cgsuite.lang.CgsuiteCollection;
-import org.cgsuite.lang.CgsuiteObject;
-import org.cgsuite.lang.CgsuitePackage;
+import org.cgsuite.lang.CgscriptPackage;
 import org.cgsuite.lang.Domain;
-import org.cgsuite.lang.Game;
-import org.cgsuite.lang.explorer.EditorPanel;
-import org.cgsuite.lang.explorer.Explorer;
-import org.cgsuite.lang.explorer.ExplorerNode;
-import org.cgsuite.lang.explorer.ExplorerWindow;
-*/
+import org.cgsuite.core.Game;
+import org.cgsuite.core.Left$;
+import org.cgsuite.core.Right$;
+import org.cgsuite.core.Player;
+import org.cgsuite.lang.CgscriptClass;
+import org.cgsuite.lang.StandardObject;
+import org.cgsuite.output.GridOutput;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
@@ -33,13 +32,18 @@ import org.openide.windows.WindowManager;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.RequestProcessor;
 import org.openide.util.TaskListener;
+import scala.Symbol;
+import scala.Symbol$;
+import scala.collection.JavaConverters;
+import scala.collection.Seq;
+import scala.collection.mutable.AnyRefMap;
 
 /**
  * Top component which displays something.
  */
 @ConvertAsProperties(dtd = "-//org.cgsuite.ui.explorer//Explorer//EN",
 autostore = false)
-public final class ExplorerTopComponent extends TopComponent implements KeyListener, TaskListener
+public final class ExplorerTopComponent extends TopComponent implements ExplorerWindow, ExplorerTreeListener, KeyListener, TaskListener
 {
     private static ExplorerTopComponent instance;
     /** path to the icon used by the component and its open action */
@@ -48,14 +52,15 @@ public final class ExplorerTopComponent extends TopComponent implements KeyListe
     
     private String enterCommandHint;
 
-    //private Explorer explorer;
-    //private EditorPanel editorPanel;
+    private Explorer explorer;
+    private EditorPanel editorPanel;
     
+    private AnyRefMap<Symbol,Object> varMap = new AnyRefMap<Symbol,Object>();
     private CalculationCapsule currentCapsule;
     
     private String requestedEvaluationText;
     private String activeEvaluationText;
-    //private ExplorerNode activeEvaluationNode;
+    private ExplorerNode activeEvaluationNode;
 
     public ExplorerTopComponent()
     {
@@ -74,7 +79,7 @@ public final class ExplorerTopComponent extends TopComponent implements KeyListe
         commandComboBox.insertItemAt(enterCommandHint, 0);
         commandComboBox.setSelectedIndex(0);
     }
-/*
+
     public void setExplorer(Explorer explorer)
     {
         this.explorer = explorer;
@@ -205,12 +210,12 @@ public final class ExplorerTopComponent extends TopComponent implements KeyListe
         add(infoPanel, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
-//    private CgsuiteObject leftOptions, rightOptions;
-//    private CgsuiteObject leftLines, rightLines;
+    private Collection<Game> leftOptions, rightOptions;
+    private Collection<Seq<Game>> leftLines, rightLines;
 
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
- /*       final ExplorerNode node = tree.getSelectedNode();
+        final ExplorerNode node = tree.getSelectedNode();
         if (node == null)
             return;
         
@@ -221,24 +226,24 @@ public final class ExplorerTopComponent extends TopComponent implements KeyListe
             @Override
             public void run()
             {
-                leftOptions = g.invokeMethod("SensibleLeftOptions$get");
-                rightOptions = g.invokeMethod("SensibleRightOptions$get");
+                leftOptions = JavaConverters.asJavaCollection(g.sensibleOptions(Left$.MODULE$));
+                rightOptions = JavaConverters.asJavaCollection(g.sensibleOptions(Right$.MODULE$));
             }
         });
 
         task.schedule(0);
         task.waitFinished();
 
-        for (CgsuiteObject gl : (CgsuiteCollection) leftOptions)
+        for (Game gl : leftOptions)
         {
-            node.addLeftChild((Game) gl);
+            node.addLeftChild(gl);
         }
-        for (CgsuiteObject gr : (CgsuiteCollection) rightOptions)
+        for (Game gr : rightOptions)
         {
-            node.addRightChild((Game) gr);
+            node.addRightChild(gr);
         }
 
-        tree.refresh();*/
+        tree.refresh();
     }//GEN-LAST:event_expandSensibleOptionsMenuItemActionPerformed
 
     private void treeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_treeMouseClicked
@@ -261,17 +266,17 @@ public final class ExplorerTopComponent extends TopComponent implements KeyListe
 
     private void addPositionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addPositionButtonActionPerformed
     {//GEN-HEADEREND:event_addPositionButtonActionPerformed
-       /* Game g = (Game) editorPanel.constructObject();
+        Game g = (Game) editorPanel.constructObject();
         ExplorerNode node = explorer.findOrAdd(g);
-        tree.setSelectedNode(node);*/
+        tree.setSelectedNode(node);
     }//GEN-LAST:event_addPositionButtonActionPerformed
 
     private void commandComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commandComboBoxActionPerformed
-        //setCommand((String) commandComboBox.getSelectedItem());
+        setCommand((String) commandComboBox.getSelectedItem());
     }//GEN-LAST:event_commandComboBoxActionPerformed
 
 private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_expandSensibleLinesMenuItemActionPerformed
-       /* final ExplorerNode node = tree.getSelectedNode();
+        final ExplorerNode node = tree.getSelectedNode();
         if (node == null)
             return;
         
@@ -282,36 +287,36 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             @Override
             public void run()
             {
-                leftLines = g.invokeMethod("SensibleLeftLines$get");
-                rightLines = g.invokeMethod("SensibleRightLines$get");
+                leftLines = JavaConverters.asJavaCollection(g.sensibleLines(Left$.MODULE$));
+                rightLines = JavaConverters.asJavaCollection(g.sensibleLines(Right$.MODULE$));
             }
         });
 
         task.schedule(0);
         task.waitFinished();
 
-        for (CgsuiteObject line : (CgsuiteCollection) leftLines)
+        for (Seq<Game> line : leftLines)
         {
             ExplorerNode curNode = node;
             boolean left = true;
-            for (CgsuiteObject follower : (CgsuiteCollection) line)
+            for (Game follower : JavaConverters.asJavaCollection(line))
             {
                 curNode = curNode.addChild((Game) follower, left);
                 left = !left;
             }
         }
-        for (CgsuiteObject line : (CgsuiteCollection) rightLines)
+        for (Seq<Game> line : rightLines)
         {
             ExplorerNode curNode = node;
             boolean left = false;
-            for (CgsuiteObject follower : (CgsuiteCollection) line)
+            for (Game follower : JavaConverters.asJavaCollection(line))
             {
                 curNode = curNode.addChild((Game) follower, left);
                 left = !left;
             }
         }
 
-        tree.refresh();*/
+        tree.refresh();
 }//GEN-LAST:event_expandSensibleLinesMenuItemActionPerformed
 
     private void doTreePopup(MouseEvent evt)
@@ -389,7 +394,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     public void componentClosed()
     {
     }
-/*
+
     @Override
     public void selectionPathChanged(List<ExplorerNode> newPath)
     {
@@ -406,13 +411,32 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         }
         else
         {
-            this.editorPanel = node.getG().toEditor();
+            this.editorPanel = editorFor(node.getG());
             this.editorScrollPane.setViewportView(editorPanel);
             this.addPositionButton.setEnabled(true);
-            this.typeLabel.setText("Exploring " + node.getG().getCgsuiteClass().getQualifiedName() + ".");
+            this.typeLabel.setText("Exploring " + CgscriptClass.of(node.getG()).qualifiedName() + ".");
         }
     }
-*/
+    
+    private CgscriptClass gridRuleset = CgscriptPackage.lookupClassByName("game.grid.GridRuleset").get();
+    
+    private EditorPanel editorFor(Game g)
+    {
+        Output output = g.toOutput();
+        CgscriptClass type = CgscriptClass.of(g);
+        boolean isGridRuleset = type.enclosingClass().isDefined() &&
+                type.enclosingClass().get().ancestors().contains(gridRuleset);
+        if (isGridRuleset && output instanceof GridOutput)
+        {
+            GridOutput gridOutput = (GridOutput) output;
+            return new GridEditorPanel(type, ((StandardObject) g).enclosingObj(), gridOutput.grid(), gridOutput.icons());
+        }
+        else
+        {
+            return new DefaultEditorPanel(g);
+        }
+    }
+
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
@@ -434,7 +458,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     {
         String version = p.getProperty("version");
     }
-/*
+
     @Override
     protected String preferredID()
     {
@@ -494,8 +518,8 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             tree.getSelectedNode() != null &&
             !activeEvaluationText.equals(enterCommandHint))
         {
-            Domain domain = new Domain(explorer, null);
-            CalculationCapsule capsule = new CalculationCapsule(activeEvaluationText, domain);
+            varMap.put(Symbol$.MODULE$.apply("Selection"), tree.getSelectedNode().getG());
+            CalculationCapsule capsule = new CalculationCapsule(varMap, activeEvaluationText);
             RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
             task.addTaskListener(this);
             task.schedule(0);
@@ -541,7 +565,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     {
         return tree.getSelectionPath();
     }
-*/
+
     @Override
     public synchronized void taskFinished(Task task)
     {

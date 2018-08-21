@@ -6,12 +6,15 @@ package org.cgsuite.ui.worksheet;
 
 import java.awt.Color;
 import java.util.logging.Logger;
+import org.cgsuite.lang.CgscriptClass$;
 import org.cgsuite.output.Output;
+import org.cgsuite.output.OutputTarget;
+import org.netbeans.api.settings.ConvertAsProperties;
+import org.openide.util.ImageUtilities;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
-import org.openide.util.ImageUtilities;
-import org.netbeans.api.settings.ConvertAsProperties;
 
 /**
  * Top component which displays something.
@@ -38,7 +41,9 @@ public final class WorksheetTopComponent extends TopComponent
         setToolTipText(NbBundle.getMessage(WorksheetTopComponent.class, "HINT_WorksheetTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
-
+        
+        ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+        CgscriptClass$.MODULE$.registerExplorer(explorerService.getExplorerClass());
     }
 
     /** This method is called from within the constructor to

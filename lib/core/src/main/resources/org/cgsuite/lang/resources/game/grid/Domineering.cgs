@@ -28,4 +28,6 @@ singleton class Domineering extends GridRuleset
 
   override def CharMap := ".#";
 
+  override def Icons := [Icon.Blank, Icon.GraySquare];
+
 end

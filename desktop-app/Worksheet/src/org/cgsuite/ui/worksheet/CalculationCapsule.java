@@ -35,18 +35,18 @@ import scala.collection.mutable.AnyRefMap;
 public class CalculationCapsule implements Runnable
 {
     private final static Logger log = Logger.getLogger(CalculationCapsule.class.getName());
-    private final static AnyRefMap<Symbol,Object> WORKSPACE_VAR_MAP = new AnyRefMap<Symbol,Object>();
 
     public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor
         (WorksheetPanel.class.getName(), 1, true);
 
-    private Domain domain;
+    private AnyRefMap<Symbol,Object> varMap;
     private String text;
     private Output[] output;
     private boolean isErrorOutput;
 
-    public CalculationCapsule(String text)
+    public CalculationCapsule(AnyRefMap<Symbol,Object> varMap, String text)
     {
+        this.varMap = varMap;
         this.text = text;
     }
     
@@ -69,7 +69,7 @@ public class CalculationCapsule implements Runnable
         {
             //CgsuitePackage.refreshAll();
             Tree tree = ParserUtil.parseScript(text);
-            Output result = EvalUtil.evaluate(WORKSPACE_VAR_MAP, tree);
+            Output result = EvalUtil.evaluate(varMap, tree);
             output = new Output[] { result };
         }
         catch (Throwable exc)

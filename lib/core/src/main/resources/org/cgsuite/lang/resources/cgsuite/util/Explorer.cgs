@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+mutable system class Explorer(g as Game)
+
+  external def Add(g as Game);
+  external def Selection;
+  external def SelectionPath;
+
+end

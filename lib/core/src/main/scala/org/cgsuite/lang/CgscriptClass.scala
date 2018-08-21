@@ -124,10 +124,20 @@ object CgscriptClass {
 
   )
 
+  private val additionalSystemClasses: mutable.MutableList[(String, Class[_])] = new mutable.MutableList()
+
   val systemClasses = ((baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }) ++
     (otherSystemClasses map { (_, None) })
 
   systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
+
+  def registerExplorer(cls: Class[_]): Unit = {
+    if (additionalSystemClasses exists { _._1 == "cgsuite.util.Explorer" }) {
+      sys.error("Duplicate registration for cgsuite.util.Explorer")
+    }
+    additionalSystemClasses += (("cgsuite.util.Explorer", cls))
+    declareSystemClass("cgsuite.util.Explorer", Some(cls))
+  }
 
   private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
@@ -169,7 +179,7 @@ object CgscriptClass {
   private def toCgscriptClass(x: Any): CgscriptClass = {
     // This is slow, but we cache the results so that it only happens once
     // per distinct (Java) type witnessed.
-    val systemClass = typedSystemClasses find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
+    val systemClass = (typedSystemClasses ++ additionalSystemClasses) find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
     systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
       sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
     }
@@ -328,6 +338,8 @@ class CgscriptClass(
   def isSystem = classInfo.modifiers.hasSystem
 
   def constructor = classInfo.constructor
+
+  def evalMethod = lookupMethod('Eval)
 
   def ancestors = classInfo.ancestors
 

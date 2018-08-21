@@ -23,7 +23,7 @@ trait Game extends OutputTarget {
   def options(player: Player): Iterable[Game]
 
   def canonicalForm: CanonicalShortGame = {
-    canonicalForm(new TranspositionTable())
+    canonicalForm(new TranspositionTable())   // TODO Cache in class obj??
   }
 
   def canonicalForm(tt: TranspositionTable): CanonicalShortGame = {
@@ -157,6 +157,19 @@ trait Game extends OutputTarget {
   def leftOptions: Iterable[Game] = options(Left)
   
   def rightOptions: Iterable[Game] = options(Right)
+
+  def sensibleOptions(player: Player): Iterable[Game] = {
+    val allOptions = options(player)
+    val canonicalOptions = canonicalForm options player
+    canonicalOptions flatMap { k =>
+      if (player == Left)
+        allOptions find { _.canonicalForm >= k }
+      else
+        allOptions find { _.canonicalForm <= k }
+    }
+  }
+
+  def sensibleLines(player: Player): Iterable[Seq[Game]] = ???
 
   def decomposition: Iterable[_] = Seq(this)
 

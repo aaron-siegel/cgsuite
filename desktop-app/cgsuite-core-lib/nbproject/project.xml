@@ -176,6 +176,7 @@
                 <package>org.cgsuite.core.impartial</package>
                 <package>org.cgsuite.dsl</package>
                 <package>org.cgsuite.exception</package>
+                <package>org.cgsuite.explorer</package>
                 <package>org.cgsuite.lang</package>
                 <package>org.cgsuite.lang.parser</package>
                 <package>org.cgsuite.output</package>

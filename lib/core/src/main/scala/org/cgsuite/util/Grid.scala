@@ -73,6 +73,22 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
     new Grid(rowCount, colCount, newValues)
   }
 
+  def paste(grid: Grid, startRow: Int, startCol: Int, endRow: Int, endCol: Int, pasteRow: Int, pasteCol: Int): Grid = {
+    val newValues = new Array[Byte](values.length)
+    System.arraycopy(values, 0, newValues, 0, values.length)
+    var row = pasteRow
+    while (row < endRow - startRow + pasteRow) {
+      var col = pasteCol
+      while (col < endCol - startCol + pasteCol) {
+        val value = grid get (startRow + row - pasteRow, startCol + col - pasteCol)
+        newValues((row-1)*colCount+(col-1)) = value
+        col += 1
+      }
+      row += 1
+    }
+    new Grid(rowCount, colCount, newValues)
+  }
+
   def isInBounds(coord: Coordinates) = {
     val rowInt = coord.row
     val colInt = coord.col

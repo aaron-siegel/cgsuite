@@ -39,6 +39,8 @@ import org.openide.util.Task;
 import org.openide.util.TaskListener;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
+import scala.Symbol;
+import scala.collection.mutable.AnyRefMap;
 
 
 // TODO Check if there are unsaved files before starting a calculation
@@ -51,6 +53,8 @@ import org.openide.windows.WindowManager;
 public class WorksheetPanel extends JPanel
     implements Scrollable, KeyListener, TaskListener, DocumentListener, CommandListener
 {
+    private final static AnyRefMap<Symbol,Object> WORKSPACE_VAR_MAP = new AnyRefMap<Symbol,Object>();
+    
     private boolean deferredAdvance;
     
     private InputPanel activeInputPanel;
@@ -95,7 +99,7 @@ public class WorksheetPanel extends JPanel
     {
         // Forcibly instantiate a CanonicalShortGame so that the interface will seem snappier
         // once the user starts using it
-        new CalculationCapsule("{1|1/2}").runAndWait();
+        new CalculationCapsule(WORKSPACE_VAR_MAP, "{1|1/2}").runAndWait();
         processCommand("startup();");
         getBuffer();
         
@@ -271,7 +275,7 @@ public class WorksheetPanel extends JPanel
     {
         assert SwingUtilities.isEventDispatchThread();
         
-        CalculationCapsule capsule = new CalculationCapsule(command);
+        CalculationCapsule capsule = new CalculationCapsule(WORKSPACE_VAR_MAP, command);
         RequestProcessor.Task task = capsule.createTask();
         task.addTaskListener(this);
         task.schedule(0);

@@ -12,6 +12,7 @@ object CgscriptPackage {
   val cgsuite = root.declareSubpackage("cgsuite")
   val lang = cgsuite.declareSubpackage("lang")
   val util = cgsuite.declareSubpackage("util")
+  val ui = cgsuite.declareSubpackage("ui")
   val output = util.declareSubpackage("output")
 
   val game = root.declareSubpackage("game")
