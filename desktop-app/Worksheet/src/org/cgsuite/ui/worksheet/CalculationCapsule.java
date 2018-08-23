@@ -138,8 +138,8 @@ public class CalculationCapsule implements Runnable
             else
             {
                 List<Output> output = new ArrayList<Output>();
-                output.add(errorOutput("Syntax error."));
-                output.addAll(Arrays.asList(getLineColOutput("Worksheet", input, line, col)));
+                output.add(errorOutput(exc.getMessage()));
+                output.addAll(Arrays.asList(getLineColOutput(((SyntaxException) exc).source(), input, line, col)));
                 return output.toArray(new Output[0]);
             }
         }

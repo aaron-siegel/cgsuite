@@ -31,7 +31,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         {
             AND, AS, BEGIN, BREAK, BY, CLASS, CLEAR, CONTINUE, DEF, DO, ELSE, ELSEIF, END, ENUM, ERROR, EXTENDS,
             EXTERNAL, FALSE, FINALLY, FOR, FOREACH, FROM, IF, IMPORT, IN, IS, LISTOF, MUTABLE,
-            NEG, NIL, NOT, OP, OR, OVERRIDE, PASS, POS, RETURN, SETOF, SQUOTE, STATIC, SUMOF, SUPER, SYSTEM,
+            NEG, NIL, NOT, OP, OR, OVERRIDE, PASS, POS, RETURN, SETOF, SINGLETON, SQUOTE, STATIC, SUMOF, SUPER, SYSTEM,
             TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE, YIELD
         });
         tokenTypes.put("Identifier", new int[] { IDENTIFIER });

@@ -41,6 +41,7 @@ object CgscriptClass {
   private val typedSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Class" -> classOf[ClassObject],
+    "cgsuite.lang.Script" -> classOf[Script],
     "cgsuite.lang.Nil" -> Nil.getClass,
 
     "cgsuite.util.MutableList" -> classOf[mutable.ArrayBuffer[_]],
@@ -130,6 +131,8 @@ object CgscriptClass {
     (otherSystemClasses map { (_, None) })
 
   systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
+
+  CgscriptClasspath.declareFolders()
 
   def registerExplorer(cls: Class[_]): Unit = {
     if (additionalSystemClasses exists { _._1 == "cgsuite.util.Explorer" }) {
@@ -228,7 +231,12 @@ class CgscriptClass(
     case Some(encl) => encl.name + "." + id.name
     case None => id.name
   }
-  val qualifiedName: String = pkg.qualifiedName + "." + name
+  val qualifiedName: String = {
+    if (pkg.isRoot)
+      name
+    else
+      s"${pkg.qualifiedName}.$name"
+  }
   val qualifiedId: Symbol = Symbol(qualifiedName)
   val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
@@ -288,6 +296,7 @@ class CgscriptClass(
   private var url: URL = _
   private var definition: String = _
   private var classInfoRef: ClassInfo = _
+  private var scriptObjectRef: Script = _
   private var loading = false
   private var classObjectRef: ClassObject = _
   private var singletonInstanceRef: Any = _
@@ -304,6 +313,11 @@ class CgscriptClass(
   def classObject = {
     ensureLoaded()
     classObjectRef
+  }
+
+  def scriptObject: Script = {
+    ensureLoaded()
+    scriptObjectRef
   }
 
   // Singleton instance is instantiated lazily
@@ -330,6 +344,8 @@ class CgscriptClass(
       sys.error("Not a singleton")
     }
   }
+
+  def isScript = scriptObject != null
 
   def isMutable = classInfo.modifiers.hasMutable
 
@@ -569,8 +585,9 @@ class CgscriptClass(
     logger.debug(s"$logPrefix Unloading.")
     if (classInfoRef != null) {
       classInfoRef.nestedClasses.values foreach { _.unload() }
-      classInfoRef = null
     }
+    classInfoRef = null
+    scriptObjectRef = null
     this.loading = false
     this.transpositionTable.clear()
   }
@@ -586,7 +603,7 @@ class CgscriptClass(
   }
 
   def ensureLoaded() {
-    if (classInfoRef == null) {
+    if (classInfoRef == null && scriptObjectRef == null) {
       load()
     }
   }
@@ -616,21 +633,36 @@ class CgscriptClass(
     if (loading)
       sys.error("circular class definition?: " + qualifiedName)
 
-    loading = true
-
     logger.debug(s"$logPrefix Parse tree: ${tree.toStringTree}")
 
-    assert(tree.getType == EOF)
-
-    val node = ClassDeclarationNode(tree.children(1))
-    logger.debug(s"$logPrefix Node: $node")
-    declareClass(node)
+    tree.getType match {
+      case SCRIPT =>
+        val node = StatementSequenceNode(tree.children.head)
+        logger debug s"$logPrefix Script Node: $node"
+        declareScript(node)
+      case EOF =>
+        val node = ClassDeclarationNode(tree.children(1))
+        logger debug s"$logPrefix Class Node: $node"
+        declareClass(node)
+    }
 
     logger.debug(s"$logPrefix Done loading class from URL: $url")
 
   }
 
-  private def declareClass(node: ClassDeclarationNode) {
+  private def declareScript(node: StatementSequenceNode): Unit = {
+
+    val domain = ElaborationDomain.empty()
+    node.elaborate(domain)
+    classInfoRef = null
+    scriptObjectRef = Script(this, node, domain)
+    singletonInstanceRef = null
+
+  }
+
+  private def declareClass(node: ClassDeclarationNode): Unit = {
+
+    loading = true
 
     val (supers, nestedClasses, methods, constructor) = {
 

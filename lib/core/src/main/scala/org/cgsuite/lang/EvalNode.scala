@@ -269,7 +269,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
     scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
       case Some(cls) => classResolution = {
-        if (cls.isSingleton) cls.singletonInstance else cls.classObject
+        if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject
       }
       case None =>
     }
@@ -897,6 +897,7 @@ case class FunctionCallNode(
           token = Some(token)
         )
       }
+      case scr: Script => ScriptCaller(domain, scr)   // TODO We could eliminate this obj creation by passing Domain to every CallSite, and having Script implement CallSite
       case x => InstanceMethod(x, (CgscriptClass of x).classInfo.evalMethod)   // TODO attach token to `Eval` not found
     }
 
@@ -917,6 +918,21 @@ case class FunctionCallNode(
         exc.tokenStack += token
         throw exc
     }
+
+  }
+
+  case class ScriptCaller(domain: Domain, script: Script) extends CallSite {
+
+    override def parameters: Seq[Parameter] = Seq.empty
+
+    override def call(args: Array[Any]): Any = {
+      val scriptDomain = new Domain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
+      script.node evaluate scriptDomain
+    }
+
+    override def ordinal: Int = -1
+
+    override def locationMessage: String = ???
 
   }
 
@@ -984,6 +1000,7 @@ object VarNode {
 case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, declType: AssignmentDeclType.Value) extends EvalNode {
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
+  // TODO Catch illegal assignment to constant
   override val children = Seq(id, expr)
   override def elaborate(scope: ElaborationDomain) {
     if (declType == AssignmentDeclType.VarDecl) {

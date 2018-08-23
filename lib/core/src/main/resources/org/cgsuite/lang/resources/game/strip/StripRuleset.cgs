@@ -2,7 +2,7 @@
 
 class StripRuleset extends Ruleset
 
-  def Eval(arg) begin
+  override def Eval(arg) begin
     if arg is Strip then
       Position(arg)
     elseif arg is String then

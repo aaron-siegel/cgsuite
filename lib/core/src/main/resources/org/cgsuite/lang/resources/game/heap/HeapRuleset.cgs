@@ -2,8 +2,6 @@
 
 system class HeapRuleset extends Ruleset
 
-  def Eval(heapSize as Integer) := Position(heapSize);
-
   def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must override `HeapOptions`.");
 
   external def HeapNimValue(heapSize as Integer);

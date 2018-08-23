@@ -31,7 +31,7 @@ object CgscriptPackage {
 
 }
 
-class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
+case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   private val subpackages = mutable.Map[String, CgscriptPackage]()
   private val classes = mutable.Map[Symbol, CgscriptClass]()
@@ -42,6 +42,8 @@ class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
   }
 
   val qualifiedName = path mkString "."
+
+  def isRoot: Boolean = parent.isEmpty
 
   def declareSubpackage(name: String): CgscriptPackage = {
     subpackages.getOrElseUpdate(name, new CgscriptPackage(Some(this), name))

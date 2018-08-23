@@ -119,7 +119,7 @@ object Ops {
     case (x: SurrealNumber, y: Integer) => x pow y
   }
 
-  val leq: (Any, Any) => Boolean = {
+  val leq: PartialFunction[(Any, Any), Boolean] = {
     case (x: RationalNumber, y: RationalNumber) => x <= y
     case (x: SurrealNumber, y: SurrealNumber) => x <= y
     case (x: CanonicalShortGame, y: CanonicalShortGame) => x <= y
@@ -141,16 +141,16 @@ object Ops {
     case (x, y) => x != y
   }
 
-  val RefEquals = BinOp("===") { _ == _ }
-  val RefNeq = BinOp("!==") { _ != _ }
-  val Leq = BinOp("<=") { (a, b) => leq(a, b) }
-  val Geq = BinOp(">=") { (a, b) => leq(b, a) }
-  val Lt = BinOp("<") { (a, b) => leq(a, b) && !leq(b, a) }
-  val Gt = BinOp(">") { (a, b) => !leq(a, b) && leq(b, a) }
-  val Confused = BinOp("<>") { (a, b) => !leq(a, b) && !leq(b, a) }
-  val LConfused = BinOp("<|") { (a, b) => !leq(b, a) }
-  val GConfused = BinOp("|>") { (a, b) => !leq(a, b) }
-  val Compare = BinOp("<=>") { (a, b) => (leq(a, b), leq(b, a)) match {
+  val RefEquals = BinOp("===") { case (a, b) => a == b }
+  val RefNeq = BinOp("!==") { case (a, b) => a != b }
+  val Leq = BinOp("<=") { case (a, b) => leq(a, b) }
+  val Geq = BinOp(">=") { case (a, b) => leq(b, a) }
+  val Lt = BinOp("<") { case (a, b) => leq(a, b) && !leq(b, a) }
+  val Gt = BinOp(">") { case (a, b) => !leq(a, b) && leq(b, a) }
+  val Confused = BinOp("<>") { case (a, b) => !leq(a, b) && !leq(b, a) }
+  val LConfused = BinOp("<|") { case (a, b) => !leq(b, a) }
+  val GConfused = BinOp("|>") { case (a, b) => !leq(a, b) }
+  val Compare = BinOp("<=>") { case (a, b) => (leq(a, b), leq(b, a)) match {
     case (true, true) => zero
     case (true, false) => negativeOne
     case (false, true) => one
@@ -192,7 +192,7 @@ object Ops {
 
   val ArrayReference = BinOp("[]") {
     case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
-    case (map: Map[Any,_], key: Any) => map(key)
+    case (map: Map[Any, _], key: Any) => map(key)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
   }
@@ -234,10 +234,10 @@ trait BinOp {
 }
 
 object BinOp {
-  def apply(name: String)(resolver: (Any, Any) => Any) = new SimpleBinOp(name)(resolver)
+  def apply(name: String)(resolver: PartialFunction[(Any, Any), Any]) = new SimpleBinOp(name)(resolver)
 }
 
-class SimpleBinOp(val name: String)(resolver: (Any, Any) => Any) extends BinOp {
+class SimpleBinOp(val name: String)(resolver: PartialFunction[(Any, Any), Any]) extends BinOp {
   override def apply(tree: Tree, x: Any, y: Any) = {
     try {
       resolver(x, y)
@@ -248,10 +248,10 @@ class SimpleBinOp(val name: String)(resolver: (Any, Any) => Any) extends BinOp {
 }
 
 object CachingBinOp {
-  def apply(name: String)(resolver: (Any, Any) => (_, _) => Any) = new CachingBinOp(name)(resolver)
+  def apply(name: String)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) = new CachingBinOp(name)(resolver)
 }
 
-class CachingBinOp(val name: String)(resolver: (Any, Any) => (_, _) => Any) extends BinOp {
+class CachingBinOp(val name: String)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) extends BinOp {
 
   val classLookupCache = mutable.AnyRefMap[(Class[_], Class[_]), (Any, Any) => Any]()
 

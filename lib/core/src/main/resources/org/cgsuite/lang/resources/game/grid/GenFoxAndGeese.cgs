@@ -8,7 +8,7 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
 
   var GeeseMoves := [(-1,-1),(-1,1)];
 
-  def Eval(geese as Set, fox as Coordinates) begin
+  override def Eval(geese as Set, fox as Coordinates) begin
     ValidateGeese(geese);
     if not IsValidCoordinate(fox) then
       error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")

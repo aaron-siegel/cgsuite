@@ -129,6 +129,7 @@ tokens
     MODIFIERS;
     NODE_LABEL;
     PREAMBLE;
+    SCRIPT;
     STATEMENT_SEQUENCE;
     UNARY_AST;
     UNARY_MINUS;
@@ -194,7 +195,7 @@ tokens
 
     public String getErrorMessageString()
     {
-          StringBuilder str = new StringBuilder();
+        StringBuilder str = new StringBuilder();
         for (SyntaxError error : errors)
         {
             str.append(error.getMessage());
@@ -358,7 +359,7 @@ enumElement
     ;
 
 script
-    : statementSequence EOF^
+    : statementSequence EOF -> ^(SCRIPT statementSequence)
     ;
 
 statementSequence
