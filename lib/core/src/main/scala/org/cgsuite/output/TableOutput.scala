@@ -21,8 +21,8 @@ case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCe
   val vSpace = if (format.contains(Format.VerticalGridLines)) 6 else 0
   lazy val rowHeight = table map { _.map { _.getSize(0).height }.max }
   lazy val colWidth = (0 until colCount) map { n => table.map { row => if (row.length > n) row(n).getSize(0).width else 0 }.max }
-  lazy val height = rowHeight.sum + vSpace * 2 * (rowCount - 1) + rowCount + 1
-  lazy val width = colWidth.sum + hSpace * 2 * (colCount - 1) + colCount + 1
+  lazy val height = rowHeight.sum + vSpace * 2 * rowCount + rowCount + 1
+  lazy val width = colWidth.sum + hSpace * 2 * colCount + colCount + 1
 
   def getSize(preferredWidth: Int) = new Dimension(width, height)
 
