@@ -40,6 +40,10 @@ trait Nimber extends ImpartialGame with Uptimal {
   override def options: Iterable[Nimber] = {
     (0 until intNimValue) map { Nimber(_) } toSet
   }
+
+  override def outcomeClass: ImpartialOutcomeClass = {
+    if (nimValue.isZero) OutcomeClass.P else OutcomeClass.N
+  }
   
 }
 

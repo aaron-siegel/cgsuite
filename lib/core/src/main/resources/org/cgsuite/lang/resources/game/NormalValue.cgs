@@ -18,5 +18,6 @@ system class NormalValue
   external def IsStopperSided;
   external def IsUptimal;
   external def IsZero;
+  external def OutcomeClass;
 
 end

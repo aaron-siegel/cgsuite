@@ -126,6 +126,19 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def > (that: CanonicalStopper) = that <= this && !(this <= that)
 
+  override def outcomeClass: OutcomeClass = {
+    if (isZero)
+      OutcomeClass.P
+    else {
+      (this >= zero, this <= zero) match {
+        case (false, false) => OutcomeClass.N
+        case (true, false) => OutcomeClass.L
+        case (false, true) => OutcomeClass.R
+        case (true, true) => sys error "this shouldn't happen; we checked for isZero above"
+      }
+    }
+  }
+
   def degree: CanonicalStopper = if (isLoopfree) zero else upsum(-this)
 
   def downsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).offside()

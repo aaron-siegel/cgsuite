@@ -152,6 +152,8 @@ trait Game extends OutputTarget {
 
   def depthHint: Int = sys.error("Loopy games must override `depthHint`.")
 
+  def outcomeClass: LoopyOutcomeClass = gameValue.outcomeClass
+
   def gameName: String = getClass.getName
 
   def leftOptions: Iterable[Game] = options(Left)
@@ -159,7 +161,7 @@ trait Game extends OutputTarget {
   def rightOptions: Iterable[Game] = options(Right)
 
   def sensibleOptions(player: Player): Iterable[Game] = {
-    val allOptions = options(player)
+    val allOptions = this options player
     val canonicalOptions = canonicalForm options player
     canonicalOptions flatMap { k =>
       if (player == Left)
@@ -169,7 +171,36 @@ trait Game extends OutputTarget {
     }
   }
 
-  def sensibleLines(player: Player): Iterable[Seq[Game]] = ???
+  def sensibleLines(player: Player): Iterable[Vector[Game]] = {
+    val canonicalOptions = canonicalForm options player
+    canonicalOptions map { k =>
+      val line = mutable.MutableList(this)
+      var done = false
+      while (!done) {
+        val options = line.last options player
+        val sensibleOption = {
+          if (player == Left)
+            options find { _.canonicalForm >= k }
+          else
+            options find { _.canonicalForm <= k }
+        }
+        line += (sensibleOption getOrElse { sys error "unable to find sensible continuation" })
+        done = line.last.canonicalForm == k
+        if (!done) {
+          // Find a reverting option
+          val options = line.last options player.opponent
+          val revertingOption = {
+            if (player == Left)
+              options find { _.canonicalForm <= k }
+            else
+              options find { _.canonicalForm >= k }
+          }
+          line += (revertingOption getOrElse { sys error "unable to find reverting continuation" })
+        }
+      }
+      line.toVector
+    }
+  }
 
   def decomposition: Iterable[_] = Seq(this)
 

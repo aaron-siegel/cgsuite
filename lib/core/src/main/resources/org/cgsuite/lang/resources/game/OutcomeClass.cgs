@@ -1,0 +1,17 @@
+/*${cgsuite.banner}*/
+
+system enum OutcomeClass
+
+  external P,
+  external N,
+  external L,
+  external R,
+  external D,
+  external PHat,
+  external PCheck,
+  external NHat,
+  external NCheck;
+
+  external override def Literal;
+
+end

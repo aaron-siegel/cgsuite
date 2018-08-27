@@ -119,6 +119,12 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
   override def isStopperSided = true
   override def isUptimal = true
 
+  override def outcomeClass: OutcomeClass = {
+    if (this > zero) OutcomeClass.L
+    else if (this < zero) OutcomeClass.R
+    else OutcomeClass.P
+  }
+
   def +(other: SurrealNumber): SurrealNumber = SurrealNumber(
     numerator * other.denominator + denominator * other.numerator,
     denominator * other.denominator

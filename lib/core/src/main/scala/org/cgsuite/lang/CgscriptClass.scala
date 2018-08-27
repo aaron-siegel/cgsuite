@@ -95,6 +95,7 @@ object CgscriptClass {
 
     "game.Player" -> classOf[Player],
     "game.Side" -> classOf[Side],
+    "game.OutcomeClass" -> classOf[LoopyOutcomeClass],
 
     "game.heap.TakeAndBreak" -> classOf[TakeAndBreak],
     "game.heap.HeapRuleset" -> classOf[HeapRuleset],
@@ -896,6 +897,18 @@ class CgscriptClass(
     if (qualifiedName == "game.Side") {
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Onside)) = Onside
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
+    }
+    if (qualifiedName == "game.OutcomeClass") {
+      import OutcomeClass._
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('P)) = P
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('N)) = N
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('L)) = L
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('R)) = R
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('D)) = D
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('PHat)) = PHat
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('PCheck)) = PCheck
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('NHat)) = NHat
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('NCheck)) = NCheck
     }
     if (qualifiedName == "cgsuite.util.Symmetry") {
       import Symmetry._

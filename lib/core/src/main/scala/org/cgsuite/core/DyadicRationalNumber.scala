@@ -125,6 +125,8 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
   override def stopCount = one
   override def temperature = DyadicRationalNumber(negativeOne, denominator)
 
+  override def outcomeClass: OutcomeClass = super[RationalNumber].outcomeClass
+
   def blowup: DyadicRationalNumber = {
     if (this <= zero) {
       throw InputException("Exponent must be a nonnegative pseudonumber.")

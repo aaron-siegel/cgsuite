@@ -11,6 +11,7 @@ system class CanonicalStopper extends Game, StopperSidedValue
   external def Followers;
   external def LeftStop;
   def Miny := {this|0||0};
+  external override def OutcomeClass;
   external def RightStop;
   external def Stop(player as Player);
   external def StrongStop(player as Player);

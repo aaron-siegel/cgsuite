@@ -30,6 +30,10 @@ trait StopperSidedValue extends SidedValue {
 
   def <=(that: StopperSidedValue): Boolean = onside <= that.onside && offside <= that.offside
 
+  override def sidedOutcomeClass(side: Side): OutcomeClass = {
+    this.side(side).outcomeClass
+  }
+
   override def isStopper = onside == offside
 
   override def isStopperSided = true

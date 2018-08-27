@@ -36,4 +36,6 @@ trait NormalValue {
 
   def isZero = false
 
+  def outcomeClass: LoopyOutcomeClass
+
 }

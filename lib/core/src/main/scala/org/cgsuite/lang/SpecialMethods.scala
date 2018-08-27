@@ -30,7 +30,8 @@ object SpecialMethods {
     "cgsuite.lang.MapEntry.Value" -> { (entry: (_,_), _: Unit) => entry._2 },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
-    "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString }
+    "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
+    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString }
 
   )
 

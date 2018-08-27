@@ -37,6 +37,8 @@ object SidedValue {
     }
   }
 
+  private lazy val zeroAsLoopyGame = new LoopyGame(zero)
+
 }
 
 trait SidedValue extends NormalValue {
@@ -64,6 +66,33 @@ trait SidedValue extends NormalValue {
 
   def <=(that: SidedValue): Boolean = {
     onside.loopyGame.leq(that.onside.loopyGame, true) && offside.loopyGame.leq(that.offside.loopyGame, false)
+  }
+
+  def sidedOutcomeClass(side: Side): OutcomeClass = {
+    val geqZero = SidedValue.zeroAsLoopyGame.leq(this.side(side).loopyGame, side == Onside)
+    val leqZero = this.side(side).loopyGame.leq(SidedValue.zeroAsLoopyGame, side == Onside)
+    (geqZero, leqZero) match {
+      case (true, false) => OutcomeClass.L
+      case (false, false) => OutcomeClass.N
+      case (true, true) => OutcomeClass.P
+      case (false, true) => OutcomeClass.R
+    }
+  }
+
+  override def outcomeClass: LoopyOutcomeClass = {
+    import OutcomeClass._
+    (sidedOutcomeClass(Onside), sidedOutcomeClass(Offside)) match {
+      case (L, L) => L
+      case (L, N) => NHat
+      case (L, P) => PHat
+      case (L, R) => D
+      case (N, N) => N
+      case (N, R) => NCheck
+      case (P, P) => P
+      case (P, R) => PCheck
+      case (R, R) => R
+      case _ => sys error "onside.outcomeClass <| offside.outcomeClass"
+    }
   }
 
   def nCopies(n: Integer): SidedValue = {
