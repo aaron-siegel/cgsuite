@@ -62,8 +62,8 @@ object CgscriptClass {
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
 
-    "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Strip" -> classOf[Strip],
+    "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
 

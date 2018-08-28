@@ -1,7 +1,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 object SidedValue {
 
@@ -41,7 +41,7 @@ object SidedValue {
 
 }
 
-trait SidedValue extends NormalValue {
+trait SidedValue extends NormalValue with OutputTarget {
 
   def onside: SimplifiedLoopyGame
 
@@ -105,15 +105,16 @@ trait SidedValue extends NormalValue {
 
   override def isStopperSided = onside.loopyGame.isStopper && offside.loopyGame.isStopper
 
-  // TODO When we figure out how to handle SimplifiedLoopyGame in cgscript, move this
-  // into native cgscript
-
   def toOutput: StyledTextOutput = {
 
     val sto = new StyledTextOutput
-    sto.append(onside.toOutput)
-    sto.appendMath(" & ")
-    sto.append(offside.toOutput)
+    if (onside == on && offside == off) {
+      sto appendMath "dud"
+    } else {
+      sto append onside.toOutput
+      sto appendMath " & "
+      sto append offside.toOutput
+    }
     sto
 
   }

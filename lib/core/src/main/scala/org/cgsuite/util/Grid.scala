@@ -38,7 +38,7 @@ object Grid {
 
 }
 
-class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] {
+class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] {
 
   def get(row: Int, col: Int): Byte = values((row-1)*colCount+(col-1))
 
@@ -95,7 +95,7 @@ class Grid private (val rowCount: Int, val colCount: Int, val values: Array[Byte
     rowInt >= 1 && rowInt <= rowCount && colInt >= 1 && colInt <= colCount
   }
 
-  def findAll(value: Integer): Seq[Coordinates] = {
+  def findAll(value: Integer): Seq[Any] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0

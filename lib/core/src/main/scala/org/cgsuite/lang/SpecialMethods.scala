@@ -2,7 +2,7 @@ package org.cgsuite.lang
 
 import org.cgsuite.core._
 import org.cgsuite.exception.InputException
-import org.cgsuite.util.Symmetry
+import org.cgsuite.util.{Strip, Symmetry}
 
 import scala.collection.mutable
 

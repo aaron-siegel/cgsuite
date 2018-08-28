@@ -5,6 +5,8 @@ system class Game
   external def CanonicalForm;
   external def GameValue;
   def OutcomeClass := GameValue.OutcomeClass;
+  external def SensibleLines(player as Player);
+  external def SensibleOptions(player as Player);
 
   def DepthHint := error("Loopy games must override the `DepthHint` method. For more information, see the Loopy Games section in Help.");
 

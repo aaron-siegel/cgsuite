@@ -174,10 +174,12 @@ trait Game extends OutputTarget {
   def sensibleLines(player: Player): Iterable[Vector[Game]] = {
     val canonicalOptions = canonicalForm options player
     canonicalOptions map { k =>
-      val line = mutable.MutableList(this)
+      val thisCanonicalForm = canonicalForm
+      val line = mutable.MutableList[Game]()
       var done = false
+      var current = this
       while (!done) {
-        val options = line.last options player
+        val options = current options player
         val sensibleOption = {
           if (player == Left)
             options find { _.canonicalForm >= k }
@@ -191,11 +193,12 @@ trait Game extends OutputTarget {
           val options = line.last options player.opponent
           val revertingOption = {
             if (player == Left)
-              options find { _.canonicalForm <= k }
+              options find { _.canonicalForm <= thisCanonicalForm }
             else
-              options find { _.canonicalForm >= k }
+              options find { _.canonicalForm >= thisCanonicalForm }
           }
           line += (revertingOption getOrElse { sys error "unable to find reverting continuation" })
+          current = line.last
         }
       }
       line.toVector

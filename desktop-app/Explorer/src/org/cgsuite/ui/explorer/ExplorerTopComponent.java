@@ -148,7 +148,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         commandPanel.add(inputPanel);
 
         commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
-        commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.Thermograph.Plot()", "Selection.AtomicWeight" }));
+        commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.CanonicalForm.Thermograph.Plot()", "Selection.CanonicalForm.AtomicWeight" }));
         commandComboBox.setAlignmentX(0.0F);
         commandComboBox.setMinimumSize(new java.awt.Dimension(90, 27));
         commandComboBox.addActionListener(new java.awt.event.ActionListener() {

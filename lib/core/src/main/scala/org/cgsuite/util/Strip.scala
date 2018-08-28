@@ -23,7 +23,7 @@ object Strip {
 
 }
 
-class Strip private (val values: Array[Byte]) extends Ordered[Strip] {
+class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, values) {
 
   def length = values.length
 
@@ -46,7 +46,7 @@ class Strip private (val values: Array[Byte]) extends Ordered[Strip] {
     new Strip(newValues)
   }
 
-  def findAll(value: Integer): Seq[Integer] = {
+  override def findAll(value: Integer): Seq[Integer] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0
@@ -73,25 +73,8 @@ class Strip private (val values: Array[Byte]) extends Ordered[Strip] {
     substrip
   }
 
-  override def hashCode(): Int = util.Arrays.hashCode(values)
-
-  override def equals(that: Any): Boolean = that match {
-    case other: Strip => java.util.Arrays.equals(values, other.values)
-    case _ => false
-  }
-
-  def toString(charMap: String): String = {
+  override def toString(charMap: String): String = {
     SeqCharSequence(values map { charMap(_) }).toString()
-  }
-
-  def compare(that: Strip) = {
-    var cmp = values.length - that.values.length
-    var i = 0
-    while (cmp == 0 && i < values.length) {
-      cmp = values(i) - that.values(i)
-      i += 1
-    }
-    cmp
   }
 
 }

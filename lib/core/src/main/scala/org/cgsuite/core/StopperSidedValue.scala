@@ -2,6 +2,7 @@ package org.cgsuite.core
 
 import org.cgsuite.core.Values._
 import org.cgsuite.exception.InputException
+import org.cgsuite.output.StyledTextOutput
 
 
 object StopperSidedValue {
