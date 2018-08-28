@@ -45,6 +45,7 @@ class CanonicalShortGameTest extends FlatSpec with Matchers {
       'birthday (Integer(4)),
       'leftStop (Integer(3)),
       'mean (DyadicRationalNumber(9, 4)),
+      'outcomeClass (OutcomeClass.L),
       'rightStop (Integer(2)),
       'stopCount (Integer(3)),
       'temperature (DyadicRationalNumber(3, 4))

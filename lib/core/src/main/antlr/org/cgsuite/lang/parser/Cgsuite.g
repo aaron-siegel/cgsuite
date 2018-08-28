@@ -493,7 +493,7 @@ unaryExpr
     ;
 
 expExpr
-    : postfixExpr (CARET^ postfixExpr { $CARET.setType(EXP); })?
+    : postfixExpr (CARET^ expExpr { $CARET.setType(EXP); })?
     ;
 
 postfixExpr

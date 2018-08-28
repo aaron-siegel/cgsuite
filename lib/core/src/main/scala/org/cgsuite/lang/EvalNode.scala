@@ -194,18 +194,6 @@ trait EvalNode extends Node {
     }
   }
 
-  def evaluateAsGame(domain: Domain): Iterable[Game] = {
-    evaluate(domain) match {
-      case g: Game => Iterable(g)
-      case sublist: Iterable[_] =>
-        sublist map {
-          case g: Game => g
-          case _ => sys.error("must be a list of games")
-        }
-      case _ => sys.error("must be a list of games")
-    }
-  }
-
   def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
     evaluate(domain) match {
       case g: CanonicalShortGame => Iterable(new LoopyGame.Node(g))
@@ -449,14 +437,49 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
   override val children = lo ++ ro
   override def evaluate(domain: Domain) = {
-    val gl = lo flatMap { _.evaluateAsGame(domain) }
-    val gr = ro flatMap { _.evaluateAsGame(domain) }
-    if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
-      CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
-    } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopper] }) {
-      CanonicalStopper(gl map { _.asInstanceOf[CanonicalStopper] }, gr map { _.asInstanceOf[CanonicalStopper] })
+    val leval = lo map { _.evaluate(domain) }
+    val reval = ro map { _.evaluate(domain) }
+    if (isListOf[Game](leval) && isListOf[Game](reval)) {
+      val gl = castAs[Game](leval)
+      val gr = castAs[Game](reval)
+      if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
+        CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
+      } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopper] }) {
+        CanonicalStopper(gl map { _.asInstanceOf[CanonicalStopper] }, gr map { _.asInstanceOf[CanonicalStopper] })
+      } else {
+        ExplicitGame(gl, gr)
+      }
+    } else if (isListOf[SidedValue](leval) && isListOf[SidedValue](reval)) {
+      if (forceExplicit) {
+        sys error "can't be force explicit - need better error msg here"
+      } else {
+        val gl = castAs[SidedValue](leval)
+        val gr = castAs[SidedValue](reval)
+        val glonside = gl map { _.onside }
+        val gronside = gr map { _.onside }
+        val gloffside = gl map { _.offside }
+        val groffside = gr map { _.offside }
+        SidedValue(SimplifiedLoopyGame.constructLoopyGame(glonside, gronside), SimplifiedLoopyGame.constructLoopyGame(gloffside, groffside))
+      }
     } else {
-      ExplicitGame(gl, gr)
+      throw InputException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
+    }
+  }
+  def isListOf[T](objects: Iterable[_])(implicit mf: Manifest[T]): Boolean = {
+    objects forall {
+      case _: T => true
+      case sublist: Iterable[_] => sublist forall {
+        case _: T => true
+        case _ => false
+      }
+      case _ => false
+    }
+  }
+  def castAs[T](objects: Iterable[_])(implicit mf: Manifest[T]): Iterable[T] = {
+    objects flatMap {
+      case g: T => Iterable(g)
+      case sublist: Iterable[_] => sublist map { _.asInstanceOf[T] }
+      case _ => sys error "cannot be cast (this should never happen due to prior call to isListOf)"
     }
   }
   def toNodeString = {

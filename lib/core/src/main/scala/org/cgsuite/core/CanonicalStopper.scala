@@ -34,15 +34,8 @@ object CanonicalStopper {
   }
 
   def apply(lo: Iterable[CanonicalStopper], ro: Iterable[CanonicalStopper], withPass: Option[Player] = None): CanonicalStopper = {
-    val thisNode = new LoopyGame.Node()
-    lo foreach { gl => thisNode.addLeftEdge(gl.loopyGame) }
-    ro foreach { gr => thisNode.addRightEdge(gr.loopyGame) }
-    withPass match {
-      case None =>
-      case Some(Left) => thisNode.addLeftEdge(thisNode)
-      case Some(Right) => thisNode.addRightEdge(thisNode)
-    }
-    CanonicalStopper(new LoopyGame(thisNode))
+    val loopyGame = SimplifiedLoopyGame.constructLoopyGame(lo, ro, withPass.toSet)
+    CanonicalStopper(loopyGame)
   }
 
   def apply(lo: CanonicalStopper*)(ro: CanonicalStopper*): CanonicalStopper = apply(lo, ro)

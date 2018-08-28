@@ -15,6 +15,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{on}",
       leftStop = "on",
+      outcomeClass = "L",
       rightOptions = "{}",
       rightStop = "on",
       variety = "on"
@@ -31,6 +32,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{}",
       leftStop = "off",
+      outcomeClass = "R",
       rightOptions = "{off}",
       rightStop = "off",
       variety = "off"
@@ -47,6 +49,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{0}",
       leftStop = "over",
+      outcomeClass = "L",
       rightOptions = "{over}",
       rightStop = "over",
       variety = "over"
@@ -63,6 +66,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{3/2under}",
       leftStop = "3/2under",
+      outcomeClass = "L",
       rightOptions = "{3/2}",
       rightStop = "3/2under",
       variety = "under"
@@ -79,6 +83,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{-1/4*}",
       leftStop = "-1/4",
+      outcomeClass = "R",
       rightOptions = "{-1/4v[on]}",
       rightStop = "-1/4",
       variety = "^<on>"
@@ -95,6 +100,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{{0|^<on>}}",
       leftStop = "0",
+      outcomeClass = "N",
       rightOptions = "{v<on>}",
       rightStop = "0",
       variety = "{^[on]*,^<on>||v<on>|0}"
@@ -111,6 +117,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{0}",
       leftStop = "0",
+      outcomeClass = "L",
       rightOptions = "{Tiny(on)}",
       rightStop = "0",
       variety = "!!Degree must be an idempotent."
@@ -127,6 +134,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{{on|0}}",
       leftStop = "0",
+      outcomeClass = "R",
       rightOptions = "{0}",
       rightStop = "0",
       variety = "Miny(on)"
@@ -143,6 +151,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{0}",
       leftStop = "0",
+      outcomeClass = "L",
       rightOptions = "{{0|under}}",
       rightStop = "0",
       variety = "Tiny(over)"
@@ -159,6 +168,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{over}",
       leftStop = "over",
+      outcomeClass = "N",
       rightOptions = "{under}",
       rightStop = "under",
       variety = "+-over"
@@ -175,6 +185,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "true",
       leftOptions = "{5over}",
       leftStop = "5over",
+      outcomeClass = "N",
       rightOptions = "{-5under}",
       rightStop = "-5under",
       variety = "+-{10over|over}"
@@ -191,6 +202,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "false",
       leftOptions = "{0}",
       leftStop = "0",
+      outcomeClass = "L",
       rightOptions = "{a{0||||0|a||*|||*}}",
       rightStop = "0",
       variety = "{a{0,{0||0|a|||0}|0}|0}"
@@ -207,6 +219,7 @@ object CanonicalStopperTestCase {
       isPlumtree = "false",
       leftOptions = "{0}",
       leftStop = "0",
+      outcomeClass = "L",
       rightOptions = "{{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}",
       rightStop = "0",
       variety = "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}"
@@ -229,6 +242,7 @@ case class CanonicalStopperTestCase(
   isPlumtree: String,
   leftOptions: String,
   leftStop: String,
+  outcomeClass: String,
   rightOptions: String,
   rightStop: String,
   variety: String
@@ -248,6 +262,7 @@ case class CanonicalStopperTestCase(
       (s"($x).IsNumber", "false"),
       (s"($x).IsNumberish", isNumberish),
       (s"($x).IsNumberTiny", isNumberTiny),
+      (s"($x).IsOrdinal", "false"),
       (s"($x).IsPlumtree", isPlumtree),
       (s"($x).IsPseudonumber", (cls == "Pseudonumber").toString),
       (s"($x).IsStopper", "true"),
@@ -260,6 +275,7 @@ case class CanonicalStopperTestCase(
       (s"($x).Onside", xOut),
       (s"($x).Options(Left)", leftOptions),
       (s"($x).Options(Right)", rightOptions),
+      (s"($x).OutcomeClass", outcomeClass),
       (s"($x).RightOptions", rightOptions),
       (s"($x).RightStop", rightStop),
       (s"($x).Stop(Left)", leftStop),

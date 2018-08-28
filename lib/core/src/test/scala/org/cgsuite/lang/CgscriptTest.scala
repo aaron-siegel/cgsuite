@@ -1,9 +1,9 @@
 package org.cgsuite.lang
 
-import org.cgsuite.exception.{CgsuiteException, InputException}
+import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.Output
-import org.scalatest.prop.{TableFor3, PropertyChecks}
+import org.scalatest.prop.{PropertyChecks, TableFor3}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable
@@ -46,6 +46,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Rational exponentiation", "(1/2)^4", "1/16"),
       ("Negative power", "2^(-4)", "1/16"),
       ("Negative power of rational", "(2/3)^(-3)", "27/8"),
+      ("Chained exponentiation", "3^2^2^2", "43046721"),
       ("Integer modulus", "17 % 5", "2"),
       ("Rational modulus", "(17/6) % (1/3)", "1/6"),
       ("Nimber addition", "*3+*5", "*6"),
@@ -61,7 +62,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Integer minus ordinal", "5 - omega", "-\u03C9+5"),
       ("Multiple ordinal expression", "omega*3 + omega^(omega^2+omega) - omega^19*9*omega", "\u03C9^(\u03C9^2+\u03C9)-9\u03C9^20+3\u03C9"),
       ("Ordinal cancellation", "(omega + 5)-omega", "5"),
-      ("Ordinal exponentiation", "(omega^(omega^2)+1)^6", "\u03C9^(6\u03C9^2)+6\u03C9^(5\u03C9^2)+15\u03C9^(4\u03C9^2)+20\u03C9^(3\u03C9^2)+15\u03C9^(2\u03C9^2)+6\u03C9^\u03C9^2+1"),
+      ("Ordinal exponentiation", "(omega^omega^2+1)^6", "\u03C9^(6\u03C9^2)+6\u03C9^(5\u03C9^2)+15\u03C9^(4\u03C9^2)+20\u03C9^(3\u03C9^2)+15\u03C9^(2\u03C9^2)+6\u03C9^\u03C9^2+1"),
       ("Surreal number", "1/omega", "1/\u03C9"),
       ("Surreal number plus surreal number", "omega^omega + 1/(omega+1)", "(\u03C9^(\u03C9+1)+\u03C9^\u03C9+1)/(\u03C9+1)"),
       ("Surreal number simplification", "(omega^(omega+1)-omega^omega-omega+1)/(omega-1)", "\u03C9^\u03C9-1")
@@ -78,7 +79,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
-  it should "correctly interpret canonical forms" in {
+  it should "correctly interpret game specifiers" in {
     executeTests(Table(
       header,
       ("Composition", "{0|^*5}", "^^*4"),
@@ -99,7 +100,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Pow*", "{0,*|v}", "^<2>*"),
       ("PowTo", "{^|*}", "^[2]"),
       ("PowTo*", "{0,^*|0}", "^[2]*"),
-      ("Explicit game", "'{*|*}'", "'{*|*}'")
+      ("Explicit game", "'{*|*}'", "'{*|*}'"),
+      ("Game specifier containing non-value game", "{game.grid.Domineering(\"..|..\")|-1}", "'{Domineering.Position(\"..|..\")|-1}'"),
+      ("Illegal object in game specifier", "{0|false}", "!!Invalid game specifier: objects must be of type `Game` or `SidedValue`")
       //("Explicit game ordinal sum", "'{*|*}':1", "^")
     ))
   }
@@ -129,7 +132,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
-  it should "correctly interpret loopy game specs" in {
+  it should "correctly interpret loopy game specifiers" in {
     executeTests(Table(
       header,
       ("on", "on", "on"),
@@ -155,7 +158,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("+- loopy game", "uponth := {0||0|0,pass}; +-{0|uponth}", "+-{0|^<on>}"),
       ("multiple +- loopy game", "+-{{0|uponth},{0|uponth+*}}", "+-{{0|^<on>},{0|^<on>*}}"),
       ("stopper-sided", "a{1||a|0}", "2 & +-1"),
-      ("not stopper-sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "a{1|1,{1*|a||*}||0} & a{0,{1|||1*|a||*}|0}")
+      ("not stopper-sided", "a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}", "a{1|1,{1*|a||*}||0} & a{0,{1|||1*|a||*}|0}"),
+      ("explicit specifier of sided values", "{2&-2|1&-2}", "{2|1} & -2*")
     ))
   }
 
@@ -540,23 +544,24 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.GeneralizedOrdinal" should "implement methods correctly" in {
 
     val unaryInstances = Seq(
-      ("omega", "\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "1", "true"),
-      ("-omega", "-\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "-1", "false"),
-      ("omega+5", "\u03C9+5", "GeneralizedOrdinal", "\u03C9+5", "\u03C9+5", "1", "true"),
-      ("omega-5", "\u03C9-5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "1", "false"),
-      ("-omega+5", "-\u03C9+5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "-1", "false"),
-      ("omega*5", "5\u03C9", "GeneralizedOrdinal", "5\u03C9", "5\u03C9", "1", "true"),
-      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "\u03C9^\u03C9+5\u03C9^19+\u03C9^2+1", "1", "false")
+      ("omega", "\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "1", "true", "L"),
+      ("-omega", "-\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "-1", "false", "R"),
+      ("omega+5", "\u03C9+5", "GeneralizedOrdinal", "\u03C9+5", "\u03C9+5", "1", "true", "L"),
+      ("omega-5", "\u03C9-5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "1", "false", "L"),
+      ("-omega+5", "-\u03C9+5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "-1", "false", "R"),
+      ("omega*5", "5\u03C9", "GeneralizedOrdinal", "5\u03C9", "5\u03C9", "1", "true", "L"),
+      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "\u03C9^\u03C9+5\u03C9^19+\u03C9^2+1", "1", "false", "L")
     )
 
-    val unaryTests = unaryInstances flatMap { case (x, xOut, cls, abs, birthday, sign, isOrdinal) =>
+    val unaryTests = unaryInstances flatMap { case (x, xOut, cls, abs, birthday, sign, isOrdinal, outcomeClass) =>
       Seq(
         (x, xOut),
         (s"($x).Class", s"<<game.$cls>>"),
         (s"($x).Abs", abs),
         (s"($x).Birthday", birthday),
         (s"($x).Sign", sign),
-        (s"($x).IsOrdinal", isOrdinal)
+        (s"($x).IsOrdinal", isOrdinal),
+        (s"($x).OutcomeClass", outcomeClass)
       )
     } map { case (expr, result) => (expr, expr, result) }
 
@@ -568,20 +573,20 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
     // x, class, numerator, denominator, isDyadic, abs, floor, ceiling, reciprocal
     val unaryInstances = Seq(
-      ("0/7", "0", "Zero", "0", "1", "true", "0", "0", "0", "inf", "0"),
-      ("19/1", "19", "Integer", "19", "1", "true", "19", "19", "19", "1/19", "19"),
-      ("-19/1", "-19", "Integer", "-19", "1", "true", "19", "-19", "-19", "-1/19", "19"),
-      ("3/16", "3/16", "DyadicRational", "3", "16", "true", "3/16", "0", "1", "16/3", "5"),
-      ("-3/16", "-3/16", "DyadicRational", "-3", "16", "true", "3/16", "-1", "0", "-16/3", "5"),
-      ("3^22/2^72", "31381059609/4722366482869645213696", "DyadicRational", "31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "0", "1", "4722366482869645213696/31381059609", "73"),
-      ("-3^22/2^72", "-31381059609/4722366482869645213696", "DyadicRational", "-31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "-1", "0", "-4722366482869645213696/31381059609", "73"),
-      ("6/23", "6/23", "Rational", "6", "23", "false", "6/23", "0", "1", "23/6", "\u03C9"),
-      ("-6/23", "-6/23", "Rational", "-6", "23", "false", "6/23", "-1", "0", "-23/6", "\u03C9"),
-      ("17/0", "inf", "Rational", "1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0", "!!Error in call to `game.Rational.Birthday`: inf has no birthday"),
-      ("-17/0", "-inf", "Rational", "-1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0", "!!Error in call to `game.Rational.Birthday`: inf has no birthday")
+      ("0/7", "0", "Zero", "0", "1", "true", "0", "0", "0", "inf", "0", "P"),
+      ("19/1", "19", "Integer", "19", "1", "true", "19", "19", "19", "1/19", "19", "L"),
+      ("-19/1", "-19", "Integer", "-19", "1", "true", "19", "-19", "-19", "-1/19", "19", "R"),
+      ("3/16", "3/16", "DyadicRational", "3", "16", "true", "3/16", "0", "1", "16/3", "5", "L"),
+      ("-3/16", "-3/16", "DyadicRational", "-3", "16", "true", "3/16", "-1", "0", "-16/3", "5", "R"),
+      ("3^22/2^72", "31381059609/4722366482869645213696", "DyadicRational", "31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "0", "1", "4722366482869645213696/31381059609", "73", "L"),
+      ("-3^22/2^72", "-31381059609/4722366482869645213696", "DyadicRational", "-31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "-1", "0", "-4722366482869645213696/31381059609", "73", "R"),
+      ("6/23", "6/23", "Rational", "6", "23", "false", "6/23", "0", "1", "23/6", "\u03C9", "L"),
+      ("-6/23", "-6/23", "Rational", "-6", "23", "false", "6/23", "-1", "0", "-23/6", "\u03C9", "R"),
+      ("17/0", "inf", "Rational", "1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0", "!!Error in call to `game.Rational.Birthday`: inf has no birthday", "L"),
+      ("-17/0", "-inf", "Rational", "-1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0", "!!Error in call to `game.Rational.Birthday`: inf has no birthday", "R")
     )
 
-    val unaryTests = unaryInstances flatMap { case (x, xOut, cls, num, den, isDyadic, abs, floor, ceiling, reciprocal, birthday) =>
+    val unaryTests = unaryInstances flatMap { case (x, xOut, cls, num, den, isDyadic, abs, floor, ceiling, reciprocal, birthday, outcomeClass) =>
       Seq(
         (x, xOut),
         (s"($x).Class", s"<<game.$cls>>"),
@@ -592,7 +597,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
         (s"($x).Floor", floor),
         (s"($x).Ceiling", ceiling),
         (s"($x).Reciprocal", reciprocal),
-        (s"($x).Birthday", birthday)
+        (s"($x).Birthday", birthday),
+        (s"($x).OutcomeClass", outcomeClass)
       )
     } map { case (expr, result) => (expr, expr, result) }
 
@@ -720,16 +726,27 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   "game.StopperSidedValue" should "implement methods correctly" in {
 
-    val instances = Seq(
-      ("g := ^.Pow(on) + {0|upon}", "{0||0|^<on>*} & {0|^[on]}"),
-      ("g.Onside", "{0||0|^<on>*}"),
-      ("g.Offside", "{0|^[on]}")
+    val tests = SidedValueTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests : _*))
+
+    /*
+    val unaryInstances = Seq(
+      ("^.Pow(on) + {0|upon}", "{0||0|^<on>*} & {0|^[on]}", "StopperSidedValue", "{0||0|^<on>*}", "{0|^[on]}", "L")
     )
 
-    executeTests(Table(
-      header,
-      instances map { case (expr, result) => (expr, expr, result) } : _*
-    ))
+    val unaryTests = unaryInstances flatMap { case (x, xOut, cls, onside, offside, outcomeClass) =>
+      Seq(
+        (x, xOut),
+        (s"($x).Class", s"<<game.$cls>>"),
+        (s"($x).Onside", onside),
+        (s"($x).Offside", offside),
+        (s"($x).OutcomeClass", outcomeClass)
+      )
+    } map { case (expr, result) => (expr, expr, result) }
+
+    executeTests(Table(header, unaryTests : _*))
+    */
 
   }
 

@@ -34,6 +34,12 @@ trait StopperSidedValue extends SidedValue {
     this.side(side).outcomeClass
   }
 
+  override def isIdempotent = this + this == this
+
+  override def isInfinitesimal = onside.isInfinitesimal && offside.isInfinitesimal
+
+  override def isNumberish = onside.strongStop(Left) == offside.strongStop(Right)
+
   override def isStopper = onside == offside
 
   override def isStopperSided = true

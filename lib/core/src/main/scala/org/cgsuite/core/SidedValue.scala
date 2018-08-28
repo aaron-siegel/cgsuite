@@ -8,11 +8,7 @@ object SidedValue {
   def apply(onside: LoopyGame.Node, offside: LoopyGame.Node) = {
     val simplifiedOnside = LoopyGame.constructSimplifiedGame(onside, Onside.jConst)
     val simplifiedOffside = LoopyGame.constructSimplifiedGame(offside, Offside.jConst)
-    if (simplifiedOnside.isStopper && simplifiedOffside.isStopper) {
-      StopperSidedValue(CanonicalStopper(simplifiedOnside), CanonicalStopper(simplifiedOffside))
-    } else {
-      SidedValueImpl(SimplifiedLoopyGame(simplifiedOnside, Onside), SimplifiedLoopyGame(simplifiedOffside, Offside))
-    }
+    applyToSimplified(simplifiedOnside, simplifiedOffside)
   }
 
   def apply(g: LoopyGame): SidedValue = {
@@ -30,6 +26,10 @@ object SidedValue {
     val simplifiedOffside = new LoopyGame
     simplifiedOffside.graph = LoopyGame.simplifyGraph(offside.graph, null, LoopyGame.OFFSIDE, offside.startVertex)
     simplifiedOffside.startVertex = 0
+    applyToSimplified(simplifiedOnside, simplifiedOffside)
+  }
+
+  private[cgsuite] def applyToSimplified(simplifiedOnside: LoopyGame, simplifiedOffside: LoopyGame) = {
     if (simplifiedOnside.isStopper && simplifiedOffside.isStopper) {
       StopperSidedValue(CanonicalStopper(simplifiedOnside), CanonicalStopper(simplifiedOffside))
     } else {
@@ -100,6 +100,8 @@ trait SidedValue extends NormalValue {
   }
 
   override def isFinite = true
+
+  override def isIdempotent = this + this == this
 
   override def isStopperSided = onside.loopyGame.isStopper && offside.loopyGame.isStopper
 

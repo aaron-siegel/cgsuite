@@ -23,12 +23,39 @@ object SimplifiedLoopyGame {
     def compare(g: SimplifiedLoopyGame, h: SimplifiedLoopyGame): Int = {
       (g, h) match {
         case (a: CanonicalShortGame, b: CanonicalShortGame) => CanonicalShortGame.DeterministicOrdering.compare(a, b)
-        case (a: CanonicalShortGame, _) => -1
-        case (_, b: CanonicalShortGame) => 1
+        case (_: CanonicalShortGame, _) => -1
+        case (_, _: CanonicalShortGame) => 1
         case (_, _) => g.hashCode - h.hashCode      // At least these are isomorphism-invariant.
       }
     }
 
+  }
+
+  def apply(lo: Iterable[SimplifiedLoopyGame], ro: Iterable[SimplifiedLoopyGame], withPass: Set[Player] = Set.empty): SimplifiedLoopyGame = {
+    val options = lo ++ ro
+    val side = {
+      if (options.isEmpty)
+        Onside
+      else
+        options.head.simplifiedSide
+    }
+    // All must be on the same side
+    if (options exists { _.simplifiedSide != side })
+      sys error "args contain options on different sides - illegal simplification"
+
+    val loopyGame = constructLoopyGame(lo, ro, withPass)
+    SimplifiedLoopyGame(loopyGame, side)
+  }
+
+  def constructLoopyGame(lo: Iterable[SimplifiedLoopyGame], ro: Iterable[SimplifiedLoopyGame], withPass: Set[Player] = Set.empty) = {
+    val thisNode = new LoopyGame.Node()
+    lo foreach { gl => thisNode.addLeftEdge(gl.loopyGame) }
+    ro foreach { gr => thisNode.addRightEdge(gr.loopyGame) }
+    withPass foreach {
+      case Left => thisNode.addLeftEdge(thisNode)
+      case Right => thisNode.addRightEdge(thisNode)
+    }
+    new LoopyGame(thisNode)
   }
 
 }

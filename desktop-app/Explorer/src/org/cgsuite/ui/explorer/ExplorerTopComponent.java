@@ -4,38 +4,35 @@
  */
 package org.cgsuite.ui.explorer;
 
-import java.awt.event.KeyEvent;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import org.cgsuite.lang.CgscriptPackage;
-import org.cgsuite.lang.Domain;
 import org.cgsuite.core.Game;
 import org.cgsuite.core.Left$;
 import org.cgsuite.core.Right$;
-import org.cgsuite.core.Player;
 import org.cgsuite.lang.CgscriptClass;
+import org.cgsuite.lang.CgscriptPackage;
 import org.cgsuite.lang.StandardObject;
 import org.cgsuite.output.GridOutput;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
 import org.cgsuite.ui.worksheet.InputPane;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.NbBundle;
+import org.openide.util.RequestProcessor;
 import org.openide.util.Task;
+import org.openide.util.TaskListener;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
-//import org.openide.util.ImageUtilities;
-import org.netbeans.api.settings.ConvertAsProperties;
-import org.openide.util.RequestProcessor;
-import org.openide.util.TaskListener;
 import scala.Symbol;
 import scala.Symbol$;
 import scala.collection.JavaConverters;
-import scala.collection.Seq;
+import scala.collection.immutable.Vector;
 import scala.collection.mutable.AnyRefMap;
 
 /**
@@ -211,7 +208,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     }// </editor-fold>//GEN-END:initComponents
 
     private Collection<Game> leftOptions, rightOptions;
-    private Collection<Seq<Game>> leftLines, rightLines;
+    private Collection<Vector<Game>> leftLines, rightLines;
 
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
@@ -295,7 +292,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         task.schedule(0);
         task.waitFinished();
 
-        for (Seq<Game> line : leftLines)
+        for (Vector<Game> line : leftLines)
         {
             ExplorerNode curNode = node;
             boolean left = true;
@@ -305,7 +302,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
                 left = !left;
             }
         }
-        for (Seq<Game> line : rightLines)
+        for (Vector<Game> line : rightLines)
         {
             ExplorerNode curNode = node;
             boolean left = false;
