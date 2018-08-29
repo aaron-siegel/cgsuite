@@ -40,6 +40,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "1",
       temperature = "-1",
+      thermograph = "Thermograph(0,[],[0],0,[],[0])",
       uptimalExpansion = "0.0"
     ),
 
@@ -77,6 +78,7 @@ object CanonicalShortGameTestCase {
       rightStop = "5",
       stopCount = "1",
       temperature = "-1",
+      thermograph = "Thermograph(5,[],[0],5,[],[0])",
       uptimalExpansion = "5.0"
     ),
 
@@ -114,6 +116,7 @@ object CanonicalShortGameTestCase {
       rightStop = "-1823437481924",
       stopCount = "1",
       temperature = "-1",
+      thermograph = "!!Error in call to `game.CanonicalShortGame.Thermograph`: Integer out of bounds (must be between -2147483648 and 2147483647)",   // TODO This isn't the behavior we want!
       uptimalExpansion = "-1823437481924.0"
       ),
 
@@ -151,6 +154,7 @@ object CanonicalShortGameTestCase {
       rightStop = "-1/2",
       stopCount = "1",
       temperature = "-1/2",
+      thermograph = "Thermograph(-1/2,[-1/2],[0,-1],-1/2,[-1/2],[0,1])",
       uptimalExpansion = "-1/2.0"
     ),
 
@@ -188,6 +192,7 @@ object CanonicalShortGameTestCase {
       rightStop = "25/16",
       stopCount = "1",
       temperature = "-1/16",
+      thermograph = "Thermograph(25/16,[-1/16,-1/2],[0,-1,0],25/16,[-1/16,-1/8,-1/2],[0,1,0,1])",
       uptimalExpansion = "25/16.0"
     ),
 
@@ -227,6 +232,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "4374",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[0],[0,1])",
       uptimalExpansion = "*8.0"
     ),
 
@@ -264,6 +270,7 @@ object CanonicalShortGameTestCase {
       rightStop = "9/8",
       stopCount = "2",
       temperature = "0",
+      thermograph = "Thermograph(9/8,[0,-1/8,-1/4],[0,-1,0,-1],9/8,[0,-1/8],[0,1,0])",
       uptimalExpansion = "9/8*.0"
     ),
 
@@ -303,6 +310,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "3",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "0.1"
     ),
 
@@ -340,6 +348,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "4",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[0],[0,1])",
       uptimalExpansion = "*.1-"
     ),
 
@@ -378,6 +387,7 @@ object CanonicalShortGameTestCase {
       rightStop = "6",
       stopCount = "4",
       temperature = "0",
+      thermograph = "Thermograph(6,[0],[0,-1],6,[0],[0,1])",
       uptimalExpansion = "6*.1"
     ),
 
@@ -415,6 +425,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "1459",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "*6.1"
     ),
 
@@ -452,6 +463,7 @@ object CanonicalShortGameTestCase {
       rightStop = "73/16",
       stopCount = "13131",
       temperature = "0",
+      thermograph = "Thermograph(73/16,[-1/16,-1/2],[0,-1,0],73/16,[0,-1/16,-1/2],[0,1,0,1])",    // TODO This takes wayyyy too long!
       uptimalExpansion = "73/16*8.9-"
     ),
 
@@ -491,6 +503,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "9",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "0.1111"
     ),
 
@@ -528,6 +541,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "6",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "*.12"
     ),
 
@@ -567,6 +581,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "79",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "0.0202"
     ),
 
@@ -613,6 +628,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "1509",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[0],[0,1])",
       uptimalExpansion = "*4.0202"
     ),
 
@@ -652,6 +668,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "7",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -689,6 +706,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "10",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[0],[0,1])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -726,6 +744,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "3",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -763,6 +782,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "4",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -800,6 +820,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "5",
       temperature = "0",
+      thermograph = "Thermograph(0,[],[0],0,[0],[0,1])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -837,6 +858,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "9",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -874,6 +896,7 @@ object CanonicalShortGameTestCase {
       rightStop = "0",
       stopCount = "9",
       temperature = "0",
+      thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -913,6 +936,7 @@ object CanonicalShortGameTestCase {
       rightStop = "2",
       stopCount = "5",
       temperature = "3/4",
+      thermograph = "Thermograph(9/4,[3/4],[0,-1],9/4,[3/4,1/2,0],[0,1,0,1])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     ),
 
@@ -950,6 +974,7 @@ object CanonicalShortGameTestCase {
       rightStop = "-1",
       stopCount = "11",
       temperature = "21/16",
+      thermograph = "Thermograph(-5/16,[21/16,1/2,-1/2],[0,-1,0,-1],-5/16,[21/16,7/8,1/4,0],[0,1,0,1,0])",
       uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
     )
 
@@ -993,6 +1018,7 @@ case class CanonicalShortGameTestCase(
   rightStop: String,
   stopCount: String,
   temperature: String,
+  thermograph: String,
   uptimalExpansion: String
   ) {
 
@@ -1044,6 +1070,7 @@ case class CanonicalShortGameTestCase(
     (s"($x).Stop(Right)", rightStop),
     (s"($x).StopCount", stopCount),
     (s"($x).Temperature", temperature),
+    (s"($x).Thermograph", thermograph),
     (s"($x).UptimalExpansion", uptimalExpansion),
     (s"($x).Variety", "0")
   ) map { case (expr, result) => (expr, expr, result) }

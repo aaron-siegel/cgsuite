@@ -770,6 +770,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     ))
   }
 
+  "cgsuite.util.Thermograph" should "implement methods properly" in {
+    executeTests(Table(
+      header,
+      ("Thermograph.Wall(Left)", "{3||2|1}.Thermograph.Wall(Left)", "Trajectory(9/4,[3/4],[0,-1])"),
+      ("Thermograph.Wall(Right)", "{3||2|1}.Thermograph.Wall(Right)", "Trajectory(9/4,[3/4,1/2],[0,1,0])")
+    ))
+  }
+
   "game.grid" should "define Amazons properly" in {
     executeTests(Table(
       header,

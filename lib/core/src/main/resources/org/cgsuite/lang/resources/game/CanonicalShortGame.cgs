@@ -37,6 +37,7 @@ system class CanonicalShortGame extends CanonicalStopper
   external override def RightStop;
   external def StopCount;
   external def Temperature;
+  external def Thermograph;
 
   external override def ToOutput;
 

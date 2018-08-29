@@ -280,6 +280,8 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def thermograph: Thermograph = ops.thermograph(gameId)
 
+  def trajectory(player: Player): Trajectory = if (player == Left) thermograph.getLeftWall else thermograph.getRightWall
+
   override def variety = zero
 
   override def toOutput: StyledTextOutput = {

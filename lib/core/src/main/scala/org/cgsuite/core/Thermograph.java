@@ -30,6 +30,12 @@
 package org.cgsuite.core;
 
 
+import org.cgsuite.output.OutputTarget;
+import org.cgsuite.output.PlotOutput;
+import org.cgsuite.output.StyledTextOutput;
+
+import java.awt.*;
+
 /**
  * A thermograph.  Thermographs are represented internally as pairs of
  * trajectories.  As of 0.6 this class supports generalized thermography.
@@ -37,7 +43,7 @@ package org.cgsuite.core;
  * @author  Aaron Siegel
  * @version $Revision: 1.20 $ $Date: 2007/02/13 22:39:46 $
  */
-public class Thermograph
+public class Thermograph implements OutputTarget
 {
     /** A <code>Thermograph</code> that is equal to a mast at 0. */
     public final static Thermograph ZERO =
@@ -123,6 +129,11 @@ public class Thermograph
     public Trajectory getRightWall()
     {
         return rightWall;
+    }
+
+    public Trajectory wall(Player player)
+    {
+        return player == Left$.MODULE$ ? getLeftWall() : getRightWall();
     }
 
     /**
@@ -292,5 +303,24 @@ public class Thermograph
         compound.leftWall = leftWall.add(t.leftWall);
         compound.rightWall = rightWall.add(t.leftWall).min(t.rightWall.add(leftWall));
         return compound;
+    }
+
+    @Override
+    public StyledTextOutput toOutput()
+    {
+        StyledTextOutput output = new StyledTextOutput();
+        output.appendMath("Thermograph(");
+        output.appendOutput(leftWall.toOutput2());
+        output.appendMath(",");
+        output.appendOutput(rightWall.toOutput2());
+        output.appendMath(")");
+        return output;
+    }
+
+    public PlotOutput plot()
+    {
+        PlotOutput plotOutput = new PlotOutput();
+        plotOutput.addThermograph(this, Color.black, 0);
+        return plotOutput;
     }
 }

@@ -1,0 +1,10 @@
+/*${cgsuite.banner}*/
+
+system class Thermograph
+
+  external def Plot();
+  external def Wall(player as Player);
+
+  external override def ToOutput;
+
+end

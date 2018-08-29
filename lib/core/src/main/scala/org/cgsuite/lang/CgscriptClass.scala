@@ -65,6 +65,8 @@ object CgscriptClass {
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
+    "cgsuite.util.Thermograph" -> classOf[Thermograph],
+    "cgsuite.util.Trajectory" -> classOf[Trajectory],
     "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
 
     // The order is extremely important in the following hierarchies (most specific first)
