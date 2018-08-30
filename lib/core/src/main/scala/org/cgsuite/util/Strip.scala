@@ -27,12 +27,12 @@ class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, v
 
   def length = values.length
 
-  def get(pos: Integer): Any = {
+  def get(pos: Integer): SmallInteger = {
     val n = pos.intValue
     if (n >= 1 && n <= values.length)
       SmallInteger(values(n-1))
     else
-      Nil
+      null
   }
 
   def updated(positions: scala.collection.Map[Integer, Integer]): Strip = {

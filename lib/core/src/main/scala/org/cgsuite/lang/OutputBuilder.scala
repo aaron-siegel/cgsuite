@@ -14,6 +14,7 @@ object OutputBuilder {
   implicit def iterableToRichIterable(collection: Iterable[_]): RichIterable = new RichIterable(collection)
 
   def toOutput(x: Any): Output = x match {
+    case null => new StyledTextOutput
     case ot: OutputTarget => ot.toOutput
     case range: NumericRange[_] =>
       val sto = new StyledTextOutput()
@@ -25,7 +26,6 @@ object OutputBuilder {
         sto.appendMath(range.step.toString)
       }
       sto
-    case Nil => new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), "nil")
     case list: Seq[_] => list mkOutput ("[", ",", "]")
     case set: Set[_] => set.toSeq sorted UniversalOrdering mkOutput ("{", ",", "}")
     case map: Map[_,_] if map.isEmpty =>
@@ -44,11 +44,6 @@ object OutputBuilder {
       sto.appendOutput(toOutput(value))
       sto
     case str: String => new StyledTextOutput("\"" + str + "\"")
-  }
-
-  def toOutputHideNil(x: Any): Output = x match {
-    case Nil => new StyledTextOutput
-    case _ => toOutput(x)
   }
 
   class RichIterable(collection: Iterable[_]) {

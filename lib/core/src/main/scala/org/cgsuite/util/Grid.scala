@@ -46,7 +46,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     if (isInBounds(coord))
       SmallInteger(get(coord.row, coord.col))
     else
-      Nil
+      null
   }
 
   def updated(row: Int, col: Int, newValue: Byte): Grid = {

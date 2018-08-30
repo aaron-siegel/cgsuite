@@ -5,26 +5,13 @@
 
 package org.cgsuite.ui.worksheet;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.Token;
-import org.antlr.runtime.tree.Tree;
-import org.cgsuite.exception.InputException;
-import org.cgsuite.exception.SyntaxException;
 import org.cgsuite.lang.CgscriptClasspath;
-import org.cgsuite.lang.Domain;
 import org.cgsuite.lang.EvalUtil;
-import org.cgsuite.lang.parser.ParserUtil;
 import org.cgsuite.output.Output;
-import org.cgsuite.output.StyledTextOutput;
 import org.openide.util.RequestProcessor;
 import scala.Symbol;
 import scala.collection.JavaConverters;
@@ -44,7 +31,6 @@ public class CalculationCapsule implements Runnable
     private AnyRefMap<Symbol,Object> varMap;
     private String text;
     private List<Output> output;
-    private boolean isErrorOutput;
 
     public CalculationCapsule(AnyRefMap<Symbol,Object> varMap, String text)
     {

@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Nothing
+
+  external override def ToOutput;
+
+end

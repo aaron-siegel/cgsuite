@@ -82,7 +82,6 @@ tokens
     LISTOF      = 'listof';
     MUTABLE     = 'mutable';
     NEG         = 'neg';
-    NIL         = 'nil';
     NOT         = 'not';
     OP          = 'op';
     OR          = 'or';
@@ -554,8 +553,7 @@ options
     ;
     
 primaryExpr
-    : NIL
-    | THIS
+    : THIS
     | TRUE
     | FALSE
     | INTEGER

@@ -160,7 +160,7 @@ object ClassVarNode {
     val modifiers = Modifiers(tree.head, EXTERNAL, MUTABLE, STATIC)
     val nodes = tree.children.tail map { t =>
       t.getType match {
-        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), AssignmentDeclType.ClassVarDecl)
+        case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, null), AssignmentDeclType.ClassVarDecl)
         case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), AssignmentDeclType.ClassVarDecl)
       }
     }

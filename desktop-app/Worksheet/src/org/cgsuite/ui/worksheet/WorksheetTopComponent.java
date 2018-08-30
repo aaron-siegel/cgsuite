@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.logging.Logger;
 import org.cgsuite.lang.CgscriptClass$;
 import org.cgsuite.output.Output;
-import org.cgsuite.output.OutputTarget;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;

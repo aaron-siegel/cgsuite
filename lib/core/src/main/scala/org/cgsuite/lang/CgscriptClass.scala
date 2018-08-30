@@ -42,7 +42,6 @@ object CgscriptClass {
 
     "cgsuite.lang.Class" -> classOf[ClassObject],
     "cgsuite.lang.Script" -> classOf[Script],
-    "cgsuite.lang.Nil" -> Nil.getClass,
 
     "cgsuite.util.MutableList" -> classOf[mutable.ArrayBuffer[_]],
     "cgsuite.util.MutableSet" -> classOf[mutable.HashSet[_]],
@@ -107,6 +106,8 @@ object CgscriptClass {
 
   private val otherSystemClasses: Seq[String] = Seq(
 
+    "cgsuite.lang.Nothing",
+
     "cgsuite.util.Icon",
 
     "game.constants",
@@ -168,15 +169,15 @@ object CgscriptClass {
   val Game = CgscriptPackage.lookupClassByName("Game").get
   val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
   val List = CgscriptPackage.lookupClassByName("List").get
-  val NilClass = CgscriptPackage.lookupClassByName("Nil").get
+  val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
 
   private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
 
   Object.ensureLoaded()
 
   def of(x: Any): CgscriptClass = {
-    assert(x != null)
     x match {
+      case null => NothingClass
       case so: StandardObject => so.cls
       case _ => classLookupCache.getOrElseUpdate(x.getClass, toCgscriptClass(x))
     }
@@ -197,7 +198,6 @@ object CgscriptClass {
   def internalize(obj: AnyRef) = {
     obj match {
       case x: java.lang.Integer => SmallInteger(x.intValue)
-      case null => Nil
       case _ => obj
     }
   }

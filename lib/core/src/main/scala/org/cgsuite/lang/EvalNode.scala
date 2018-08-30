@@ -24,7 +24,6 @@ object EvalNode {
       case FALSE => ConstantNode(tree, false)
       case INTEGER => ConstantNode(tree, Integer.parseInteger(tree.getText))
       case STRING => ConstantNode(tree, tree.getText.drop(1).dropRight(1).replaceAll("\\\\\"", "\""))
-      case NIL => ConstantNode(tree, Nil)
 
       // This
 
@@ -127,7 +126,7 @@ object EvalNode {
 
       // Suppressor
 
-      case SEMI => ConstantNode(tree, Nil)
+      case SEMI => ConstantNode(tree, null)
 
       // Statement sequence
 
@@ -220,8 +219,8 @@ case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = constantValue
   def toNodeString = {
-    if (constantValue == Nil)
-      "nil"
+    if (constantValue == null)
+      "null"
     else
       constantValue.toString
   }
@@ -292,8 +291,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       classResolution
     } else if (localVariableReference != null) {
       // Local var
-      val x = domain backref localVariableReference.domainHops localScope localVariableReference.index
-      if (x == null) Nil else x
+      domain backref localVariableReference.domainHops localScope localVariableReference.index
     } else {
       lookupLocally(domain) match {
         case Some(x) => x     // Member/Worksheet var
@@ -369,10 +367,7 @@ case class ListNode(tree: Tree, elements: List[EvalNode]) extends EvalNode {
     }
   }
   def toNodeString = {
-    if (elements.isEmpty)
-      "nil"
-    else
-      "[" + (elements map {  _.toNodeString } mkString ",") + "]"
+    "[" + (elements map {  _.toNodeString } mkString ",") + "]"
   }
 }
 
@@ -554,7 +549,7 @@ case class LoopyGameSpecNode(
     if (roPass)
       thisNode.addRightEdge(thisNode)
     if (nodeLabel.isDefined)
-      domain.localScope(nodeLabel.get.localVariableReference.index) = Nil
+      domain.localScope(nodeLabel.get.localVariableReference.index) = null
     Iterable(thisNode)
   }
 
@@ -572,7 +567,7 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     if (condition.evaluateAsBoolean(domain))
       ifNode.evaluate(domain)
     else
-      elseNode.map { _.evaluate(domain) }.getOrElse(Nil)
+      elseNode.map { _.evaluate(domain) }.getOrElse(null)
   }
   def toNodeString = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
     (elseNode map { " " + _.toNodeString } getOrElse "") + " end"
@@ -673,14 +668,14 @@ case class LoopNode(
     }
     val r = evaluate(domain, yieldResult)
     loopType match {
-      case LoopNode.Do => Nil
+      case LoopNode.Do => null
       case LoopNode.YieldList => if (yieldResult.isEmpty) Nil else yieldResult.toSeq
       case LoopNode.YieldSet => yieldResult.toSet
       case LoopNode.YieldTable => Table { yieldResult.toSeq map {
-        case list: Seq[_] => if (list.isEmpty) Nil else list
+        case list: Seq[_] => list
         case _ => throw InputException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
-      } } (OutputBuilder.toOutputHideNil)
-      case LoopNode.YieldSum => if (r == null) Nil else r
+      } } (OutputBuilder.toOutput)
+      case LoopNode.YieldSum => r
     }
 
   }
@@ -1014,7 +1009,7 @@ object VarNode {
     assert(tree.getType == VAR && tree.children.size == 1)
     val t = tree.children.head
     t.getType match {
-      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, Nil), AssignmentDeclType.VarDecl)
+      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, null), AssignmentDeclType.VarDecl)
       case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), AssignmentDeclType.VarDecl)
     }
   }
@@ -1078,7 +1073,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends 
     scope.popScope()
   }
   override def evaluate(domain: Domain) = {
-    var result: Any = Nil
+    var result: Any = null
     val iterator = statements.iterator
     while (iterator.hasNext) {
       result = iterator.next().evaluate(domain)

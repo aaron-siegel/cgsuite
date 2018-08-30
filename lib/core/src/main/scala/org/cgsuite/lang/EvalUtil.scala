@@ -23,8 +23,11 @@ object EvalUtil {
       val domain = new Domain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
       val result = node.evaluate(domain)
       val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
-      assert(output.isInstanceOf[Output], output.getClass)
-      Vector(output.asInstanceOf[Output])
+      output match {
+        case null => Vector.empty
+        case o: Output => Vector(o)
+        case _ => sys error output.getClass.toString      // TODO Better exception here (ToOutput didn't return output...)
+      }
     } catch {
       case exc: SyntaxException => syntaxExceptionToOutput(input, exc, false)
       case exc: InputException => evalExceptionToOutput(input, exc)

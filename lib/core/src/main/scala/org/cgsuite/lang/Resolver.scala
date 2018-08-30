@@ -98,8 +98,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
 
   def evaluateFor(x: Any): Any = {
     if (classScopeIndex >= 0) {
-      val y = x.asInstanceOf[StandardObject].vars(classScopeIndex)
-      if (y == null) Nil else y
+      x.asInstanceOf[StandardObject].vars(classScopeIndex)
     } else if (method.isDefined) {
       if (method.get.autoinvoke)
         method.get.call(x, Array.empty)

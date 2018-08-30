@@ -5,7 +5,7 @@ object CollectionTestCase {
   val instances = Seq(
 
     CollectionTestCase(
-      "[]", "nil",
+      "[]", "[]",
       exists = "false",
       forall = "true",
       head = "!!That `Collection` is empty.",
@@ -15,7 +15,7 @@ object CollectionTestCase {
       min = "!!That `Collection` is empty.",
       size = "0",
       tail = "!!That `Collection` is empty.",
-      toList = "nil",
+      toList = "[]",
       toSet = "{}"
     ),
 
