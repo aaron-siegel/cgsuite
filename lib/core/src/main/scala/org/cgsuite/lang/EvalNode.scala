@@ -842,14 +842,15 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       constantResolution evaluateFor constantResolution.cls.singletonInstance
     } else {
       val x = obj.evaluate(domain)
-      val y = idNode.resolver.resolve(x)
-      if (y == null)
+      val resolution = idNode.resolver.findResolution(x)
+      if (resolution.isResolvable) {
+        resolution.evaluateFor(x)
+      } else {
         throw InputException(
           s"Not a method or member variable: `${idNode.id.name}` (in object of class `${(CgscriptClass of x).qualifiedName}`)",
           token = Some(token)
         )
-      else
-        y
+      }
     }
   }
   def toNodeString = {

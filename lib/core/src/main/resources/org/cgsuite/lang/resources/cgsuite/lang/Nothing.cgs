@@ -2,6 +2,6 @@
 
 singleton system class Nothing
 
-  external override def ToOutput;
+  override def ToOutput := this;
 
 end

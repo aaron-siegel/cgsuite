@@ -78,7 +78,7 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
       elseif (row + col) % 2 == 0 then
         Position(geese, (row,col)).GameValue
       else
-        [""]
+        [Nothing]
       end
       for col from 1 to boardWidth
     ) for row from maxGooseRow to 1 by -1)

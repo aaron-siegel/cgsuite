@@ -805,15 +805,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("FoxAndGeese", "game.grid.FoxAndGeese({(4,2),(4,4),(4,6),(4,8)}, (1,1)).GameValue", "{4*|7/2}"),
       ("CeyloneseFoxAndGeese", "game.grid.CeyloneseFoxAndGeese({(4,2),(4,4),(4,6),(4,8)}, (1,1)).GameValue", "{9||4v[on]*|5/2*|||3|5/2*,5/2v||5/2}"),
       ("GenFoxAndGeese", "game.grid.GenFoxAndGeese(boardWidth => 10)({(3,1),(3,3),(3,5),(3,7),(3,9)}, (1,9)).GameValue", "{6over|5*}"),
-      // TODO Gotta fix this
-      /*
       ("FoxAndGeese.Table", "game.grid.FoxAndGeese.Table({(3,1),(3,3),(3,5),(3,7)})",
         """|      "X" |       |       "X" |   |      "X" |    |        "X" |      @
            |----------+-------+-----------+---+----------+----+------------+------@
            |          | 2over |           | 2 |          | 3* |            | 4over@
            |----------+-------+-----------+---+----------+----+------------+------@
            |{6|2over} |       | {2over|2} |   | {4|3||2} |    | {4over|3*} |      @""".filterNot{ _ == '@' }.stripMargin),
-           */
       ("FoxAndGeese Validation", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,6))", "!!`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
     ))
   }

@@ -29,7 +29,6 @@ object SpecialMethods {
     "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSeq },
     "cgsuite.lang.MapEntry.Key" -> { (entry: (_,_), _: Unit) => entry._1 },
     "cgsuite.lang.MapEntry.Value" -> { (entry: (_,_), _: Unit) => entry._2 },
-    "cgsuite.lang.Nothing.ToOutput" -> { (_: Null, _: Unit) => null },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },

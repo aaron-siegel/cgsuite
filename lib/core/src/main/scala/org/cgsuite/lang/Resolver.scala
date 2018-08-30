@@ -94,7 +94,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
 
   assert(classScopeIndex == -1 || method.isEmpty)
 
-  val isResolvable = classScopeIndex >= 0 || method.isDefined
+  val isResolvable = classScopeIndex >= 0 || method.isDefined || nestedClass.isDefined
 
   def evaluateFor(x: Any): Any = {
     if (classScopeIndex >= 0) {
@@ -107,7 +107,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
     } else if (nestedClass.isDefined) {
       InstanceClass(x, nestedClass.get)
     } else {
-      null
+      sys error "not resolvable"
     }
   }
 
