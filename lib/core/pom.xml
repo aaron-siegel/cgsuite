@@ -50,9 +50,9 @@
       <version>2.5.1</version>
     </dependency>
     <dependency>
-      <groupId>com.github.pathikrit</groupId>
-      <artifactId>better-files_${scala.tools.version}</artifactId>
-      <version>3.6.0</version>
+      <groupId>io.methvin</groupId>
+      <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
+      <version>0.7.0</version>
     </dependency>
 
     <!-- Test -->

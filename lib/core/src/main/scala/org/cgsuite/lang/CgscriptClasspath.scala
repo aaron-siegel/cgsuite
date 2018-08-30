@@ -1,14 +1,13 @@
 package org.cgsuite.lang
 
 import better.files._
-import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
+import io.methvin.better.files.RecursiveFileMonitor
+import org.cgsuite.lang.CgscriptClass.logger
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object CgscriptClasspath {
-
-  private val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
 
   private[lang] val homeDir = java.lang.System.getProperty("user.home")
 
@@ -25,7 +24,7 @@ object CgscriptClasspath {
   }
 
   private[lang] def declareFolder(folder: File): Unit = {
-    //new Monitor(folder).start()
+    new Monitor(folder).start()
     declareFolderR(CgscriptPackage.root, folder)
   }
 
@@ -41,13 +40,30 @@ object CgscriptClasspath {
   }
 
   def markAsModified(file: File): Unit = {
-    println(s"Modified: $file")
-    modifiedFiles.synchronized {
+    modifiedFiles synchronized {
+      logger debug s"Detected modified file: $file"
       modifiedFiles += file
     }
   }
 
-  class Monitor(folder: File) extends FileMonitor(folder, recursive = true) {
+  def reloadModifiedFiles(): Unit = {
+    modifiedFiles synchronized {
+      modifiedFiles foreach { file =>
+        val classOpt = CgscriptPackage lookupClass file.url
+        classOpt match {
+          case Some(cls) =>
+            logger debug s"Unloading ${cls.qualifiedName} at location $file"
+            cls.unload()
+          case None =>
+            logger debug s"New class at location $file"
+            // TODO
+        }
+      }
+      modifiedFiles.clear()
+    }
+  }
+
+  class Monitor(folder: File) extends RecursiveFileMonitor(folder) {
 
     override def onCreate(file: File, count: Int): Unit = markAsModified(file)
 

@@ -22,7 +22,7 @@ import scala.language.{existentials, postfixOps}
 
 object CgscriptClass {
 
-  private val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
+  private[lang] val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
 
   private var nextClassOrdinal = 0
   private[lang] def newClassOrdinal = {
@@ -296,7 +296,7 @@ class CgscriptClass(
 
   }
 
-  private var url: URL = _
+  private var urlRef: URL = _
   private var definition: String = _
   private var classInfoRef: ClassInfo = _
   private var scriptObjectRef: Script = _
@@ -307,6 +307,8 @@ class CgscriptClass(
   val transpositionTable = new TranspositionTable()
 
   def isLoaded = classInfoRef != null
+
+  def url = urlRef
 
   def classInfo = {
     ensureLoaded()
@@ -571,19 +573,21 @@ class CgscriptClass(
   }
 
   def setURL(url: URL): Unit = {
+    // TODO This shouldn't be a setter, but should just be part of the class
     logger debug s"$logPrefix Setting URL: $url"
-    this.url = url
+    this.urlRef = url
     this.definition = null
     unload()
   }
 
   def setExplicitDefinition(definition: String): Unit = {
     logger debug s"$logPrefix Setting explicit definition"
-    this.url = null
+    this.urlRef = null
     this.definition = definition
     unload()
   }
 
+  // TODO Unload derived classes?
   def unload() {
     logger.debug(s"$logPrefix Unloading.")
     if (classInfoRef != null) {
@@ -614,9 +618,9 @@ class CgscriptClass(
   private def load() {
 
     val (in, source) = {
-      if (url != null) {
-        logger debug s"$logPrefix Loading class from URL: $url"
-        (url.openStream(), new File(url.getFile).getName)
+      if (urlRef != null) {
+        logger debug s"$logPrefix Loading class from URL: $urlRef"
+        (urlRef.openStream(), new File(urlRef.getFile).getName)
       } else if (definition != null) {
         logger debug s"$logPrefix Loading class from explicit definition"
         (new ByteArrayInputStream(definition.getBytes(StandardCharsets.UTF_8)), qualifiedName)
@@ -649,7 +653,7 @@ class CgscriptClass(
         declareClass(node)
     }
 
-    logger.debug(s"$logPrefix Done loading class from URL: $url")
+    logger.debug(s"$logPrefix Done loading class from URL: $urlRef")
 
   }
 
