@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Nothing
+singleton system class Nothing
 
   external override def ToOutput;
 

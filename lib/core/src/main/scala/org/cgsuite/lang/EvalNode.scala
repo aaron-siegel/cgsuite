@@ -243,7 +243,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   var resolver: Resolver = Resolver.forId(id)
   var constantResolution: Resolution = _
-  var classResolution: Any = _
+  var classResolution: Option[Any] = None
 
   // We cache these separately - that provides for faster resolution than
   // using a matcher.
@@ -256,7 +256,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
     scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
       case Some(cls) => classResolution = {
-        if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject
+        Some(if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject)
       }
       case None =>
     }
@@ -273,7 +273,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     }
     // If there's no possible resolution and we're inside a package (i.e., not at Worksheet scope),
     // we can throw an exception now
-    if (classResolution == null && localVariableReference == null && classVariableReference == null &&
+    if (classResolution.isEmpty && localVariableReference == null && classVariableReference == null &&
       constantResolution == null && scope.pkg.isDefined) {
       throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
     }
@@ -286,9 +286,9 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     // (3) [Inside a package] As a member variable of the context object or
     //     [Worksheet scope] As a global (Worksheet) variable;
     // (4) As a package constant
-    if (classResolution != null) {
+    if (classResolution.isDefined) {
       // Class name
-      classResolution
+      classResolution.get
     } else if (localVariableReference != null) {
       // Local var
       domain backref localVariableReference.domainHops localScope localVariableReference.index
@@ -1028,7 +1028,7 @@ case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, declType
   }
   override def evaluate(domain: Domain) = {
     val newValue = expr.evaluate(domain)
-    if (id.classResolution != null) {
+    if (id.classResolution.isDefined) {
       throw InputException(s"Cannot assign to class name as variable: `${id.id.name}`", token = Some(token))
     } else if (id.localVariableReference != null) {
       val refDomain = domain backref id.localVariableReference.domainHops

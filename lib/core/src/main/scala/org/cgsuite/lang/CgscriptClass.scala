@@ -341,6 +341,8 @@ class CgscriptClass(
       }
       if (qualifiedName == "game.Zero") {
         singletonInstanceRef = ZeroImpl
+      } else if (qualifiedName == "cgsuite.lang.Nothing") {
+        singletonInstanceRef = null
       } else {
         singletonInstanceRef = new StandardObject(this, Array.empty)
         logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
