@@ -19,6 +19,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.Box;
@@ -69,14 +70,14 @@ public class WorksheetPanel extends JPanel
     
     private CommandHistoryBuffer buffer;
     
-    private Queue<Output[]> outputQueue;
+    private Queue<List<Output>> outputQueue;
     private OutputBox calculatingOutputBox;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
     {
         initComponents();
-        outputQueue = new LinkedBlockingQueue<Output[]>();
+        outputQueue = new LinkedBlockingQueue<List<Output>>();
         strut = (Box.Filler) Box.createHorizontalStrut(0);
         strut.setAlignmentX(LEFT_ALIGNMENT);
         add(strut);
@@ -292,9 +293,10 @@ public class WorksheetPanel extends JPanel
         
         if (finished)
         {
+            /*
             if (capsule.isErrorOutput())
                 getToolkit().beep();
-            
+            */
             assert capsule.getOutput() != null;
             
             postOutput(capsule.getOutput());
@@ -317,7 +319,7 @@ public class WorksheetPanel extends JPanel
         }
     }
 
-    public synchronized void postOutput(Output ... output)
+    public synchronized void postOutput(List<Output> output)
     {
         outputQueue.add(output);
         
@@ -339,7 +341,7 @@ public class WorksheetPanel extends JPanel
         
         while (!outputQueue.isEmpty())
         {
-            Output[] outputs = outputQueue.remove();
+            List<Output> outputs = outputQueue.remove();
             for (Output output : outputs)
             {
                 add(makeOutputBox(output), calculatingOutputBox == null ? getComponentCount() : getComponentCount()-1);
@@ -394,12 +396,12 @@ public class WorksheetPanel extends JPanel
             @Override
             public void run()
             {
-                Output[] output = currentCapsule.getOutput();
+                List<Output> output = currentCapsule.getOutput();
                 assert output != null;
-
+                /*
                 if (currentCapsule.isErrorOutput())
                     getToolkit().beep();
-
+                */
                 currentCapsule = null;
                 currentTask = null;
 

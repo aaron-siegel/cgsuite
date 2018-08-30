@@ -5,6 +5,7 @@
 package org.cgsuite.ui.worksheet;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.logging.Logger;
 import org.cgsuite.lang.CgscriptClass$;
 import org.cgsuite.output.Output;
@@ -193,6 +194,6 @@ public final class WorksheetTopComponent extends TopComponent
     
     public void postOutput(final Output output)
     {
-        worksheetPanel1.postOutput(output);
+        worksheetPanel1.postOutput(Collections.singletonList(output));
     }
 }

@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import org.cgsuite.core.Game;
@@ -531,7 +532,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             {
             }
 
-            Output[] output;
+            List<Output> output;
 
             if (finished)
             {
@@ -541,7 +542,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             }
             else
             {
-                output = new Output[] { new StyledTextOutput("Calculating ...") };
+                output = Collections.<Output>singletonList(new StyledTextOutput("Calculating ..."));
                 this.currentCapsule = capsule;
             }
 
@@ -570,14 +571,12 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             return;
 
         analysisWorksheetPanel.clear();
-        Output[] output = currentCapsule.getOutput();
+        List<Output> output = currentCapsule.getOutput();
         assert output != null;
         currentCapsule = null;
         
         analysisWorksheetPanel.postOutput(output);
         analysisScrollPane.validate();
-        
-        //reeval();   // In case things have changed since we started this calc.
     }
 
     @Override

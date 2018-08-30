@@ -3,7 +3,6 @@ package org.cgsuite.lang
 import java.io.{PrintWriter, StringWriter}
 import java.util
 
-import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.{InputException, SyntaxException}
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.lang.parser.ParserUtil
@@ -109,7 +108,7 @@ object EvalUtil {
     }
   }
 
-  private def errorOutput(msg: String): Output = {
+  def errorOutput(msg: String): Output = {
     new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MONOSPACED, StyledTextOutput.Style.COLOR_RED), msg)
   }
 
