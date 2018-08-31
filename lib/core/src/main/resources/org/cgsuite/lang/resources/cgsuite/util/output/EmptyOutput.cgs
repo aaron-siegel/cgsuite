@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+singleton system class EmptyOutput extends Output
+end

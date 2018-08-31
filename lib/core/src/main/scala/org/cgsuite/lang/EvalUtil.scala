@@ -6,7 +6,7 @@ import java.util
 import org.cgsuite.exception.{InputException, SyntaxException}
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.lang.parser.ParserUtil
-import org.cgsuite.output.{Output, StyledTextOutput}
+import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 
 import scala.collection.mutable
 
@@ -24,7 +24,7 @@ object EvalUtil {
       val result = node.evaluate(domain)
       val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
       output match {
-        case null => Vector.empty
+        case EmptyOutput => Vector.empty
         case o: Output => Vector(o)
         case _ => sys error output.getClass.toString      // TODO Better exception here (ToOutput didn't return output...)
       }

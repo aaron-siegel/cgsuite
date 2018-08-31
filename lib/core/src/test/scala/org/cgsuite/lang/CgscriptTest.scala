@@ -25,7 +25,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     executeTests(Table(
       header,
       ("Simple echo", "0", "0"),
-      ("Semicolon suppress output", "0;", null),
+      ("Semicolon suppress output", "0;", "Nothing"),
       ("Variable assignment", "g := 7", "7"),
       ("Variable retrieval", "g", "7"),
       ("Multivee/identifier parse check", "vvvvx := vvvvv", "v5"),
@@ -244,7 +244,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", Some("1,4,9"), "18"),
       ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", None, "4"),
       ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", None, "1"),
-      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), null)
+      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "Nothing")
     )
 
     val listofLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
@@ -524,7 +524,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
           |  if n < isqrt^2 or n >= (isqrt+1)^2 then
           |    error("Isqrt failed at " + n.ToString);
           |  end
-          |end""".stripMargin, null)
+          |end""".stripMargin, "Nothing")
     ))
 
   }
@@ -834,11 +834,11 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.heap" should "define TakeAndBreak properly" in {
 
     val instances = Seq(
-      ("game.heap.Nim", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", null),
-      ("game.heap.GrundysGame", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", null),
+      ("game.heap.Nim", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "Nothing"),
+      ("game.heap.GrundysGame", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "Nothing"),
       ("game.heap.Kayles", "20", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]", "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)"),
       ("game.heap.DawsonsKayles", "10", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]", "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)"),
-      ("game.heap.TakeAndBreak(\"0.3f\")", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", null)
+      ("game.heap.TakeAndBreak(\"0.3f\")", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "Nothing")
     )
 
     val tests = instances flatMap { case (rs, optionCount, nimSequence, periodicity) =>

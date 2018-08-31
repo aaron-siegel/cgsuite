@@ -70,6 +70,7 @@ object CgscriptClass {
 
     // The order is extremely important in the following hierarchies (most specific first)
 
+    "cgsuite.util.output.EmptyOutput" -> classOf[EmptyOutput],
     "cgsuite.util.output.GridOutput" -> classOf[GridOutput],
     "cgsuite.util.output.TextOutput" -> classOf[StyledTextOutput],
     "cgsuite.lang.Output" -> classOf[Output],
@@ -339,13 +340,15 @@ class CgscriptClass(
       if (enclosingClass.isDefined) {
         sys.error("Nested singleton classes are not yet supported.")
       }
-      if (qualifiedName == "game.Zero") {
-        singletonInstanceRef = ZeroImpl
-      } else if (qualifiedName == "cgsuite.lang.Nothing") {
-        singletonInstanceRef = null
-      } else {
-        singletonInstanceRef = new StandardObject(this, Array.empty)
-        logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
+      singletonInstanceRef = {
+        qualifiedName match {
+          case "game.Zero" => ZeroImpl
+          case "cgsuite.lang.Nothing" => null
+          case "cgsuite.util.output.EmptyOutput" => EmptyOutput
+          case _ =>
+            logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
+            new StandardObject(this, Array.empty)
+        }
       }
     } else {
       sys.error("Not a singleton")
