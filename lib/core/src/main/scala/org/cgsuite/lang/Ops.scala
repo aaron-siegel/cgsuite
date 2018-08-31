@@ -257,11 +257,16 @@ class CachingBinOp(val name: String)(resolver: PartialFunction[(Any, Any), (_, _
 
   override def apply(tree: Tree, x: Any, y: Any): Any = {
     try {
-      val fn = classLookupCache.getOrElseUpdate((x.getClass, y.getClass), resolver(x, y).asInstanceOf[(Any, Any) => Any])
+      val classPair: (Class[_], Class[_]) = (classOfOrNull(x), classOfOrNull(y))
+      val fn = classLookupCache.getOrElseUpdate(classPair, resolver(x, y).asInstanceOf[(Any, Any) => Any])
       fn(x, y)
     } catch {
       case err: MatchError => throwInputException(tree, x, y)
     }
+  }
+
+  private def classOfOrNull(x: Any): Class[_] = {
+    if (x == null) classOf[Null] else x.getClass
   }
 
 }

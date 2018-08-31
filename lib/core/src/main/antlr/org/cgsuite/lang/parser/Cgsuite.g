@@ -144,6 +144,8 @@ tokens
 
 @lexer::members
 {
+    public static final int DOC_COMMENT_CHANNEL = 1;
+
     private List<SyntaxError> errors = new ArrayList<SyntaxError>();
 
     @Override
@@ -737,6 +739,8 @@ SLASHES        : SLASH+;
 
 // 00A0 = non-breaking space
 WHITESPACE  : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
+
+DOC_COMMENT : '/**' ( ~('*') | '*' ~('/') )* '*/'? { $channel = DOC_COMMENT_CHANNEL; };
 
 SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
 

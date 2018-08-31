@@ -74,7 +74,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
     executeTests(Table(
       header,
-      ("Nil plus number", "[] + 5", "!!No operation `+` for arguments of types `cgsuite.lang.List`, `game.Integer`")
+      ("Nil plus number", "[] + 5", "!!No operation `+` for arguments of types `cgsuite.lang.List`, `game.Integer`"),
+      ("Number plus Nothing", "5 + Nothing", "!!No operation `+` for arguments of types `game.Integer`, `cgsuite.lang.Nothing`")
     ))
 
   }
@@ -204,7 +205,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("List", "[3,5,3,1]", "[3,5,3,1]"),
       ("Empty Set", "{}", "{}"),
       ("Set", "{3,5,3,1}", "{1,3,5}"),
-      ("Heterogeneous set", """{3,"foo",[],true,[3,5,3,1],+-6,*2,"bar"}""", """{3,*2,+-6,true,"bar","foo",[],[3,5,3,1]}"""),
+      ("Heterogeneous set", """{3,"foo",[],true,Nothing,[3,5,3,1],+-6,*2,"bar"}""", """{Nothing,3,*2,+-6,true,"bar","foo",[],[3,5,3,1]}"""),
       ("Empty Map", "{=>}", "{=>}"),
       ("Map", """{"foo" => 1, "bar" => *2, 16 => 22}""", """{16 => 22, "bar" => *2, "foo" => 1}"""),
       ("Range", "3..12", "3..12"),

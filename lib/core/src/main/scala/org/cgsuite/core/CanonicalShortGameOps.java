@@ -1891,6 +1891,34 @@ public final class CanonicalShortGameOps
             return new Thermograph(getNumberPart(id));
         }
 
+        // We special case number-up-stars to avoid long recursive computations in the case
+        // of values like ^9*8. Any value of the form x+^n*m will have a thermograph identical
+        // to one of the four basic cases: x, x+*, x+^, x+v. So, we compute the thermograph of the
+        // corresponding basic case instead.
+        if (isNumberUpStar(id) && !isNumber(id))
+        {
+            DyadicRationalNumber numberPart = getNumberPart(id);
+            int nimberPart = getNimberPart(id);
+            int upMultiplePart = getUpMultiplePart(id);
+            if (upMultiplePart == 0 || (nimberPart == 1 && Math.abs(upMultiplePart) == 1))
+            {
+                // This looks like 0 or * (depending on whether nimberPart is 0 or 1).
+                return thermograph2(constructNus(numberPart, 0, java.lang.Integer.signum(nimberPart)));
+            }
+            else
+            {
+                // This looks like ^ or v (depending on the sign of upMultiplePart).
+                return thermograph2(constructNus(numberPart, java.lang.Integer.signum(upMultiplePart), 0));
+            }
+        }
+        else
+        {
+            return thermograph2(id);
+        }
+    }
+
+    private static Thermograph thermograph2(int id)
+    {
         Trajectory leftScaffold = Trajectory.NEGATIVE_INFINITY;
         Trajectory rightScaffold = Trajectory.POSITIVE_INFINITY;
 

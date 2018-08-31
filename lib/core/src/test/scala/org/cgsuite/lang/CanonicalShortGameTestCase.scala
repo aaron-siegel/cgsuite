@@ -463,7 +463,7 @@ object CanonicalShortGameTestCase {
       rightStop = "73/16",
       stopCount = "13131",
       temperature = "0",
-      thermograph = "Thermograph(73/16,[-1/16,-1/2],[0,-1,0],73/16,[0,-1/16,-1/2],[0,1,0,1])",    // TODO This takes wayyyy too long!
+      thermograph = "Thermograph(73/16,[-1/16,-1/2],[0,-1,0],73/16,[0,-1/16,-1/2],[0,1,0,1])",
       uptimalExpansion = "73/16*8.9-"
     ),
 
