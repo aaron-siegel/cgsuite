@@ -1794,7 +1794,7 @@ public final class MisereCanonicalGameOps
 
     static int[] parts(int id, boolean proper, boolean prime)
     {
-        List<Integer> parts = new ArrayList<Integer>();
+        List<Integer> parts = new ArrayList<>();
         int[] partitions = get2Partitions(id & ~1);
         for (int i = (proper ? 2 : 0); i < partitions.length; i += 2)
         {

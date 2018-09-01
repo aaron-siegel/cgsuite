@@ -65,6 +65,8 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def genus = ops.genus(misereGameId)
 
+  def isEven = ops.isEven(misereGameId)
+
   def isExtraverted = ops.isExtraverted(misereGameId)
 
   def isHalfTame = (this + this).isTame
@@ -85,7 +87,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def distinguisher(that: MisereCanonicalGame) = MisereCanonicalGame(ops.discriminatorPN(misereGameId, that.misereGameId))
 
-  def parts = ops.parts(misereGameId).toIndexedSeq map { MisereCanonicalGame(_) }
+  def parts = ops.properParts(misereGameId).toIndexedSeq map { MisereCanonicalGame(_) }
 
   def partitions = {
     ops.partitions(misereGameId, true).toIndexedSeq map {

@@ -753,6 +753,14 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "game.misere.MisereCanonicalGame" should "implement unary methods correctly" in {
+
+    val tests = MisereCanonicalGameTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests : _*))
+
+  }
+
   "game.Game" should "behave correctly" in {
     executeTests(Table(
       header,

@@ -4,6 +4,7 @@ system class MisereCanonicalGame extends ImpartialGame
 
   external def Birthday;
   external def Genus;
+  external def IsEven;
   external def IsExtraverted;
   external def IsHalfTame;
   external def IsIntroverted;
