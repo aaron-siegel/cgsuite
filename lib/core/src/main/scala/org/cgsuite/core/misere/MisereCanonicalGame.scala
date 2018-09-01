@@ -35,7 +35,7 @@ object MisereCanonicalGame {
   }
 
   def nimHeap(size: Int): MisereCanonicalGame = {
-    MisereCanonicalGame(ops.findNimber(size))
+    MisereCanonicalGame(ops.constructFromNimber(size))
   }
 
 }
@@ -69,7 +69,9 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def isHalfTame = (this + this).isTame
 
-  def isIntroverted = misereGameId < 2
+  def isIntroverted = ops.isIntroverted(misereGameId)
+
+  def isNimHeap = ops.isNimHeap(misereGameId)
 
   def isPrime = ops.isPrime(misereGameId)
 
@@ -82,6 +84,14 @@ trait MisereCanonicalGame extends ImpartialGame {
   def isRestive = ops.isRestive(misereGameId)
 
   def distinguisher(that: MisereCanonicalGame) = MisereCanonicalGame(ops.discriminatorPN(misereGameId, that.misereGameId))
+
+  def parts = ops.parts(misereGameId).toIndexedSeq map { MisereCanonicalGame(_) }
+
+  def partitions = {
+    ops.partitions(misereGameId, true).toIndexedSeq map {
+      _.toIndexedSeq map { MisereCanonicalGame(_) }
+    }
+  }
 
   def isLinkedTo(that: MisereCanonicalGame) = ops.isLinked(misereGameId, that.misereGameId)
 
@@ -99,7 +109,7 @@ trait MisereCanonicalGame extends ImpartialGame {
   override def toOutput = {
     val output = new StyledTextOutput
     output.appendMath("*[")
-    output.appendMath(ops.appendMidToStringBuilder(misereGameId, new java.lang.StringBuilder).toString)
+    output.appendMath(ops.midToString(misereGameId))
     output.appendMath("]")
     output
   }

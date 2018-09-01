@@ -34,27 +34,7 @@ import java.util.*;
 import org.cgsuite.core.impartial.CodeDigit;
 import org.cgsuite.core.impartial.Traversal;
 
-/**
- * A short impartial combinatorial game in misere canonical form.
- * Every option of a <code>MisereCanonicalGameOps</code> is a
- * <code>CanonicalMisrereGame</code>.  In addition, it is guaranteed
- * that there are no reversible options, unless all options are
- * reversible N- positions.
- *
- * @author Aaron Siegel
- * @author Dan Hoey
- * @version $Revision: 1.21 $ $Date: 2007/04/09 23:51:51 $
- *
- */
-
-/*
- * <p>
- * The only nonstatic field of a MisereCanonicalGameOps object is an
- * integer <code>mid</code> that identifies the game
- * <code>createFromId(mid)</code> in the array of actual game data.
- * <p>
- * The data will remain in memory even if no references remain to any
- * <code>MisereCanonicalGameOps</code> objects.  All data about canonical
+/** All data about canonical
  * games can be destroyed by calling {@link #reinit() reinit}, which
  * restores the <code>MisereCanonicalGameOps</code> class to its initial
  * settings.
@@ -111,7 +91,7 @@ import org.cgsuite.core.impartial.Traversal;
  * will contain <code>NOT_A_HASH</code>, to allow traversal of the
  * entire list of games (e.g., for rehashing).
  */
-public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalGameOps>
+public final class MisereCanonicalGameOps
 {
     ////////////////////////////////////////////////////////////////
     // Private constants for the game table
@@ -133,13 +113,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     private final static int GMINUS_OFFSET = WINDATA_OFFSET;
     private final static int GMINUS_SHIFT = BIRTHDAY_SHIFT+BIRTHDAY_BITS;
     private final static int GMINUS_BITS = N_OPTIONS_BITS;
-    
-    /*
-    private final static int TAME_OFFSET = WINDATA_OFFSET;
-    private final static int TAME_SHIFT = GMINUS_SHIFT + GMINUS_BITS;
-    private final static int TAME_BIT = 1<<TAME_SHIFT;
-    */
-    
+
     private final static int NONCOMPOSITE_OFFSET = WINDATA_OFFSET;
     private final static int NONCOMPOSITE_SHIFT = GMINUS_SHIFT + GMINUS_BITS;//TAME_SHIFT + 1;
     private final static int NONCOMPOSITE_BIT = 1<<NONCOMPOSITE_SHIFT;
@@ -247,167 +221,29 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      * Maximum supported birthday
      */
     private final static int MAX_BIRTHDAY = BIRTHDAY_MASK;
-    /**
-     * The endgame, <code>0</code>.
-     */
-    public final static MisereCanonicalGameOps ZERO =
-        new MisereCanonicalGameOps(0,true);
-    /**
-     * The penultimate game, <code>* = {0}</code>.
-     */
-    public final static MisereCanonicalGameOps ONE =
-        new MisereCanonicalGameOps(1,true);
-    /**
-     * A nim-heap of size two, <code>*2 = {0,*}</code>.
-     */
-    public final static MisereCanonicalGameOps TWO =
-        new MisereCanonicalGameOps(4,true);
-    /**
-     * A nim-heap of size three, <code>*3 = {0,*,*2}</code>.
-     */
-    public final static MisereCanonicalGameOps THREE =
-        new MisereCanonicalGameOps(5,true);
-    /**
-     * The game <code>*2<sub>/</sub> = {*2}</code>.
-     */
-    public final static MisereCanonicalGameOps TWO_SHARP =
-        new MisereCanonicalGameOps(10,true);
-    /**
-     * The game <code>*2+2 = {*2,*3}</code>.
-     */
-    public final static MisereCanonicalGameOps TWO_PLUS_TWO =
-        new MisereCanonicalGameOps(22,true);
-    /**
-     * The game <code>*3<sub>/</sub> = {*3}</code>.
-     */
-    public final static MisereCanonicalGameOps THREE_SHARP =
-        new MisereCanonicalGameOps(18,true);
-    
-    ////////////////////////////////////////////////////////////////
-    // Member data.
 
-    /**
-     * The low bit of the <code>mid</code> specifies whether the
-     * game is even or odd.  Data is stored only for even games.
-     * The options for odd <code>mid</code> are <code>opt^1<code> for
-     * all options of <code>mid&amp;~1</code>, and
-     * <code>mid&amp;~1</code> itself. 
-     */
-    private int mid;
+    final static int ZERO_ID = 0;
+    final static int ONE_ID = 1;
+    final static int TWO_ID = 4;
+    final static int THREE_ID = 5;
+    final static int TWO_SHARP_ID = 10;
+    final static int THREE_SHARP_ID = 18;
+    final static int TWO_PLUS_TWO_ID = 22;
 
-    static {
-        assert Phylum.values().length <= PHYLUM_MASK+1:
-            "Phylum ordinals do not fit in PHYLUM_MASK";
-    }
     ////////////////////////////////////////////////////////////////
     // Initialization
+
+    private MisereCanonicalGameOps() {}
+
     static
     {
+        assert Phylum.values().length <= PHYLUM_MASK+1:
+                "Phylum ordinals do not fit in PHYLUM_MASK";
         DEBUG=0;
         init();
     }
 
-    ////////////////////////////////////////////////////////////////
-    // Constructors.
-
-    /**
-     * Returns <code>this</code>.
-     *
-     * @return  <code>this</code>
-     */
-    public MisereCanonicalGameOps misereCanonicalForm()
-    {
-        return this;
-    }
-    
-    /**
-     * Constructs a <code>MisereCanonicalGameOps</code> with the
-     * specified options.
-     *
-     * @param   options A collection containing the options of this
-     *                  <code>MisereCanonicalGameOps</code>.  */
-    public MisereCanonicalGameOps(Collection<MisereCanonicalGameOps> options)
-    {
-        int[] opts = tempArrayStack.getArray(options.size());
-
-        int nOpts = 0;
-        for (MisereCanonicalGameOps g : options)
-        {
-            opts[nOpts++] = g.mid;
-        }
-        this.mid = constructFromOptions(opts, nOpts);
-        
-        opts=tempArrayStack.putAway(opts);
-    }
-    
-    /**
-     * Constructs a <code>MisereCanonicalGameOps</code> with the
-     * specified options.
-     *
-     * @param   g The options of this
-     *               <code>MisereCanonicalGameOps</code>
-     */
-    public MisereCanonicalGameOps(MisereCanonicalGameOps... g)
-    {
-        int[] opts = tempArrayStack.getArray(g.length);
-
-        if (DEBUG > 0)
-        {
-            String sep= "CMG(";
-        
-            for ( MisereCanonicalGameOps gi : g ) {
-                if (gi == null) {
-                    System.out.print(sep+"null");
-                }else{
-                    System.out.print(sep+gi.toString());
-                }
-                sep=",";
-            }
-            System.out.println(")");
-        }
-        
-        for (int i = 0; i < g.length; i++)
-        {
-            opts[i] = g[i].mid;
-        }
-        this.mid = constructFromOptions(opts, g.length);
-
-        opts=tempArrayStack.putAway(opts);
-    }
-    
-    /**
-     * Constructs a <code>MisereCanonicalGameOps</code> equivalent to a
-     * nim heap.
-     *
-     * @param   nimber  Size of the nim heap
-     */
-    public MisereCanonicalGameOps(int nimber)
-    {
-        this.mid = findNimber(nimber);
-    }
-    
-    /**
-     *  Comparison imposing a fixed order on canonical misere games.
-     *  The order is defined by the following keys:
-     *     <ol>
-     *     <li><code>g.evenPart().birthday()</code>,</li>
-     *     <li><code>g.evenPart().numOptions()</code></li>
-     *     <li><code>g.evenPart().gPlusValue()</code></li>
-     *     <li><code>g.evenPart().gMinusValue()</code></li>
-     *     <li><code>g.evenPart().getOptions()</code> lexicographically</li>
-     *     <li><code>g.isEven()</code> (<code>true</code> first)</li>
-     *     </ol>
-     * @param h Another canonical misere game.
-     * @return -1 if this game is precedes <code>h</code>, 0 if this
-     *         game is equal to <code>h</code>, or 1 if <code>h</code>
-     *         precedes this game.
-     */
-    public int compareTo(MisereCanonicalGameOps h)
-    {
-        return midComparator.compare(mid, h.mid);
-    }
-
-    public static int findNimber (int nimber)
+    static int constructFromNimber(int nimber)
     {
         if (nimber >= nimberCache.data.length)
         {
@@ -435,42 +271,12 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         }
     }
 
-    /**
-     * Private utility constructor.  <code>mid</code> is the intended
-     * game id.  <code>flag<code> is present to distinguish from the
-     * public nim-pile constructor.
-     */
-    private MisereCanonicalGameOps(int mid, boolean flag)
-    {
-        this.mid=mid;
-    }
-
-    /**
-     * Create a CanonicalMisereObject given the <code>id</code>.
-     */
-    private static MisereCanonicalGameOps createFromId(int id)
-    {
-        if (id < 0 || id >= (nextSectorNum << SECTOR_BITS)+nextIx)
-        {
-            throw new IllegalArgumentException
-                ("createFromId(" + id + ") out of range");
-        }
-
-        return new MisereCanonicalGameOps(id, true);
-    }
-
-    /**
-     * Create a <code>mid</code> from
-     * <code>options[0..numOptions-1]</code> subject
-     * to removal of duplicate and reversible options.  The
-     * <code>options</code> array may get rewritten.
-     */
     static int constructFromOptions(int options[], int numOptions)
     {
         // Box <code>options</code> into <code>Integer</code>s, sort
         // them, and unbox.
 
-        if(tempIntegers.length < options.length)
+        if (tempIntegers.length < options.length)
         {
             tempIntegers = new Integer[options.length];
         }
@@ -932,7 +738,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         if (DEBUG > 0 && birthday < 3)
         {
             System.out.println("hello "+ans);
-            dumpGame(ans&IXMASK, (ans>>SECTOR_BITS)&SECTOR_MASK, -1);
+            //dumpGame(ans&IXMASK, (ans>>SECTOR_BITS)&SECTOR_MASK, -1);
         }
 
         if(KEEPSTATS > 0)
@@ -999,7 +805,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     /**
      * True if game <code>id</code> has option <code>opt</code>.
      */
-    private static boolean hasOption (int id, int opt)
+    private static boolean hasOption(int id, int opt)
     {
         int[] sector = sectors[(id >> SECTOR_BITS)&SECTOR_MASK];
         int isOdd = id&1;
@@ -1032,8 +838,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      * True if the canonical options of game <code>id</code> are
      * <code>options[0..numOptions-1]</code>.
      */
-    private static boolean sameOptions(int id, int options[],
-                                       int numOptions)
+    private static boolean sameOptions(int id, int options[], int numOptions)
     {
         int[] sector = sectors[(id >> SECTOR_BITS)&SECTOR_MASK];
         int isOdd = id&1;
@@ -1296,64 +1101,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     private final static MidComparator midComparator =
         new MidComparator();
 
-    private static final class GameComparator
-        implements Comparator<MisereCanonicalGameOps>
-    {
-        public int compare(MisereCanonicalGameOps g1,
-                           MisereCanonicalGameOps g2)
-        {
-            return midComparator.compare(g1.mid, g2.mid);
-        }
-    }
-    
-    private final static GameComparator gameComparator =
-        new GameComparator();
-    
-    ////////////////////////////////////////////////////////////////
-    // Standard methods
-
-    /**
-     * Test two games for equality
-     * @param   obj    object to compare to
-     * @return  true if <code>obj</code> represents the same misere
-     *          canonical form. 
-     */
-    public @Override boolean equals(Object obj)
-    {
-        return obj instanceof MisereCanonicalGameOps &&
-            ((MisereCanonicalGameOps) obj).mid == mid;
-    }
-    
-    /**
-     * Returns a hash code for this game.
-     *
-     * @return Hash code unique over all CanonicalMisereGames.
-     */
-    public @Override int hashCode()
-    {
-        return mid;
-    }
-
-    /**
-     * Append textual version of this game to a StringBuilder
-     *
-     * @param sb {@link java.lang.#StringBuilder} object to append to.
-     *
-     * @return <code>sb</code> with appended text.
-     */
-    private StringBuilder appendToStringBuilder(StringBuilder sb)
-    {
-        return appendMidToStringBuilder(mid,sb);
-    }
-    
-    /**
-     * String version of this game
-     */
-    public String toString()
-    {
-        return appendToStringBuilder(new StringBuilder()).toString();
-    }
-
     /**
      * Append string version with part separation
      */
@@ -1403,7 +1150,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
 
         int b = birthday(id);
 
-        if (id == findNimber(b))
+        if (id == constructFromNimber(b))
         {
             (new CodeDigit(b, CodeDigit.decimalOptions)
              ).appendToStringBuilder(sb);
@@ -1418,9 +1165,9 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         {
             for(int i = (id&1)+2; i<b; i+=2)
             {
-                int bdiff=subtract(id, findNimber(i));
+                int bdiff=subtract(id, constructFromNimber(i));
                 assert bdiff !=0:
-                ""+id+"-"+findNimber(i)+"="+bdiff;
+                ""+id+"-"+ constructFromNimber(i)+"="+bdiff;
                 if(bdiff != -1 && birthday(bdiff) < birthday(id)) {
                     subscripted[0]=1;
                     rAppendMidToStringBuilder(bdiff,sb,tryParts,
@@ -1430,9 +1177,9 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
                     return sb;
                 }
 
-                int bsum=add(id, findNimber(i));
+                int bsum=add(id, constructFromNimber(i));
                 assert bsum != 0:
-                id+"+"+findNimber(i)+"="+bsum;
+                id+"+"+ constructFromNimber(i)+"="+bsum;
                 if(birthday(bsum) < birthday(id)) {
                     subscripted[0]=1;
                     rAppendMidToStringBuilder(bsum,sb,tryParts,
@@ -1490,7 +1237,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         }
     }
  
-    private static String midToString(int id)
+    static String midToString(int id)
     {
         return midToString(id,true);
     }
@@ -1498,21 +1245,11 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     private static String midToString
         (int id, boolean tryParts)
     {
-        return appendMidToStringBuilder(id, new StringBuilder(),
-                                        tryParts).toString();
+        return appendMidToStringBuilder(id, new StringBuilder(), tryParts).toString();
     }
 
     ////////////////////////////////////////////////////////////////
     // Game operations
-
-    /**
-     * Gets the number of distinct options of this game.
-     * @return  The number of options of this game.
-     */
-    public int getNumOptions()
-    {
-        return numOptions(mid);
-    }
 
     private static int numOptions(int id)
     {
@@ -1527,31 +1264,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     private static int numOptions(int[] sector, int ix) {
         return N_OPTIONS_MASK &
             (sector[ix + N_OPTIONS_OFFSET]>>N_OPTIONS_SHIFT);
-    }
-    /**
-     * Creates a list of the options of this canonical misere game.
-     * 
-     * @return  <code>List</code> of game options, which are
-     *          themselves CanonicalMisereGames.
-     */
-    public List<MisereCanonicalGameOps> getOptions()
-    {
-        int nOpts = numOptions(mid);
-        int[] opts = tempArrayStack.getArray(nOpts);
-
-        fillOptions(mid, opts);
-
-        MisereCanonicalGameOps[] ans = new MisereCanonicalGameOps[nOpts];
-
-        for(int i=0; i<nOpts; ++i)
-        {
-            ans[i] = createFromId(opts[i]);
-        }
-        
-        opts=tempArrayStack.putAway(opts);
-
-        return Arrays.asList(ans);
-
     }
 
     static int[] getOptions(int id)
@@ -1619,17 +1331,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         }
     }
 
-    /**
-     * Calculates the disjunctive sum or two <code>MisereCanonicalGameOps</code>s.
-     *
-     * @param   g    MisereCanonicalGameOps object to add to <code>this</code>.
-     * @return  disjunctive sum of <code>g</code> and <code>this</code>.
-     */
-    public MisereCanonicalGameOps add(MisereCanonicalGameOps g)
-    {
-        return createFromId(add(mid,g.mid));
-    }
-    
     static int add(int id1, int id2)
     {
         int isOdd = (id1^id2)&1;
@@ -1676,52 +1377,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
             opCache.storeCommutative(OPERATION_ADD,id1,id2,ans);
     }
 
-    /**
-     * Controls whether {@link #subtract(MisereCanonicalGameOps)}
-     * operates by looking at options or by looking at parts.
-     * <p>
-     * By default, subtraction is done by recursively subtracting
-     * options using the lightweight cache.  If
-     * <code>subtractByParts</code> is called with <code>true</code>,
-     * then subtraction is performed by examining the parts as
-     * returned by {@link #properParts()}.
-     *
-     * @param flag <code>true</code> for subtraction by parts,
-     *        <code>false</code> for subtraction by options.
-     * @return the previous value of the flag, <code>true</code> if
-     *         subtraction was by parts, <code>false</code> if
-     *         subtraction was by options.
-     *//*
-    private boolean subtractByParts(boolean flag) {
-        boolean prev=subtractByParts;
-        subtractByParts = flag;
-        return prev;
-    }*/
-
-    /**
-     * Calculates the formal misere difference of this game and <code>g</code>, if
-     * it exists.  The formal difference <code>G - H</code> is defined to be the
-     * unique game <code>X</code> such that <code>G = H + X</code>, if it exists.
-     * <p>
-     * By a theorem of Conway, either
-     * <ul>
-     * <li><code>G - H = G' - H'</code>, for some options <code>G'</code> and
-     * <code>H'</code>, or
-     * <li><code>G - H = { G' - H | G - H' }</code>.
-     * </ul>
-     *
-     * @param   g    The game to subtract from <code>this</code>. 
-     * @return  The difference of this game and <code>g</code>, if it exists;
-     *          otherwise <code>null</code>.
-     */
-    public MisereCanonicalGameOps subtract(MisereCanonicalGameOps g)
-    {
-        int ans = subtract(mid,g.mid);
-        if (ans == -1) return null;
-        return createFromId(ans);
-    }
-    
-    public static int subtract(int id1, int id2)
+    static int subtract(int id1, int id2)
     {
         int[] partitions = get2Partitions(id1);
         int index = indexOf(partitions, id2 & ~1);
@@ -1734,112 +1390,8 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
             return partitions[index ^ 1] | ((id1 ^ id2) & 1);
         }
     }
-    /*
-    private static int subtract(int id1, int id2)
-    {
-        int isOdd = (id1 ^ id2)&1;
-        id1 &= ~1;
-        id2 &= ~1;
-        if (id2 == 0) return id1 ^ isOdd;
-        if (id1 == id2) return isOdd;
-        int ans = opCache.lookup(OPERATION_SUB, id1, id2);
-        
-        if (ans != -1)
-        {
-            if (ans==-2) return -1;
-            return ans^isOdd;
-        }
-        ans = subtractByParts
-             ? subtractByParts(id1,id2)
-             : subtractByOptions(id1,id2);
-        
-        if (ans == -1)
-        {
-            opCache.store(OPERATION_SUB,id1,id2,-2);
-            return -1;
-        }
-        else
-        {
-            return isOdd ^ opCache.store(OPERATION_SUB,id1,id2,ans);
-        }
-    }
-    */
-    /**
-     * Just the subtraction here; id1 and id2 are even and unequal; id2 is not zero.
-     */
-     /*
-    private static int subtractByOptions (int id1, int id2)
-    {
-        int nOpts1 = numOptions(id1);
-        int nOpts2 = numOptions(id2);
-        int [] o1 = tempArrayStack.getArray(nOpts1 + nOpts2);
-        int [] o2 = tempArrayStack.getArray(nOpts2);
 
-        fillOptions(id1,o1);
-        fillOptions(id2,o2);
-
-        // Try to find options g', h' with g'-h' = g-h
-        for (int i=0; i<nOpts1; ++i)
-        {
-            for (int j=0; j<nOpts2; ++j)
-            {
-                int diffo = subtract(o1[i], o2[j]);
-                if (diffo != -1 && add(diffo, id2) == id1)
-                {
-                    o2 = tempArrayStack.putAway(o2);
-                    o1 = tempArrayStack.putAway(o1);
-                    return diffo;
-                }
-            }
-        }
-
-        for (int i=0; i<nOpts1+nOpts2; ++i)
-        {
-            int diffo;
-            if (i < nOpts1)
-            {
-                diffo=subtract(o1[i],id2);
-            }
-            else
-            {
-                diffo=subtract(id1,o2[i-nOpts1]);
-            }
-            if (diffo == -1)
-            {
-                o1[0]=-1;
-                break;
-            }
-            o1[i] = diffo;
-        }
-
-        int ans =
-            o1[0]==-1
-            ? -1
-            : constructFromOptions(o1, nOpts1+nOpts2);
-
-        o2 = tempArrayStack.putAway(o2);
-        o1 = tempArrayStack.putAway(o1);
-
-        return ans != -1 && id1 == add(ans, id2)
-            ? ans : -1;
-    }
-    */
-
-    /**
-     * Calculates the mate of this game.  The mate of <code>G</code> is
-     * defined by
-     * <p>
-     * <code>0<sup>-</sup> = *</code>
-     * <br><code>G<sup>-</sup> = { (G')<sup>-</sup> }</code>
-     * 
-     * @return The mate of this game.
-     */
-    public MisereCanonicalGameOps mate()
-    {
-        return createFromId(mate(mid));
-    }
-
-    public static int mate(int id)
+    static int mate(int id)
     {
         if (id < 2) return id ^ 1;
         int ans=opCache.lookupUnary(OPERATION_MATE,id);
@@ -1854,64 +1406,22 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         opts = tempArrayStack.putAway(opts);
         return opCache.storeUnary(OPERATION_MATE, id, ans);
     }
-    /**
-     * Returns <code>true</code> if this game is a (misere) P-position.
-     * @return <code>true</code> if the player to move from this
-     *         position cannot win against correct play.
-     */
-    public boolean isPPosition()
-    {
-        return gMinusValue(mid) == 0;
-    }
-    
+
     static boolean isPPosition(int id)
     {
         return gMinusValue(id) == 0;
     }
-    
-    /**
-     * Returns <code>true</code> if this game is a Nim heap.
-     *
-     * @return <code>true</code> if this game is a nim heap.
-     */
-    public boolean isNimber()
+
+    static boolean isNimHeap(int mid)
     {
-        return isNimber(mid);
+        return mid == constructFromNimber(birthday(mid));
     }
-    
-    private static boolean isNimber(int mid)
-    {
-        return mid == findNimber(birthday(mid));
-    }
-    
-    /**
-     * Returns <code>true</code> if this game is tame.
-     * @return <code>true</code> if this game is tame.
-     */
-    public boolean isTame()
-    {
-        return isTame(mid);
-    }
-    
+
     static boolean isTame(int id)
     {
         return getPhylum(id).isTame();
-        /*
-        (0 !=
-                (TAME_BIT &
-                 sectors[(id>>SECTOR_BITS) & SECTOR_MASK]
-                 [TAME_OFFSET+ (id&IXMASK)]));
-        */
     }
 
-    /**
-     * Returns the {@link Phylum} of this game.
-     */
-    public Phylum getPhylum()
-    {
-        return getPhylum(mid);
-    }
-    
     private static Phylum getPhylum(int id)
     {
         int[] sector = sectors[(id>>SECTOR_BITS) & SECTOR_MASK];
@@ -1923,90 +1433,37 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     {
         return Phylum.values()[(i>>PHYLUM_SHIFT)&PHYLUM_MASK];
     }
-            
-    /**
-     * Returns <code>true</code> if this game is restive.
-     *
-     * @return <code>true</code> if this game is restive.
-     */
-    public boolean isRestive()
-    {
-        return isRestive(mid);
-    }
+
     static boolean isRestive(int id)
     {
         return getPhylum(id).isRestive();
     }
-    /**
-     * Returns <code>true</code> if this game is restless.
-     *
-     * @return <code>true</code> if this game is restless.
-     */
-    public boolean isRestless()
-    {
-        return isRestless(mid);
-    }
+
     static boolean isRestless(int id)
     {
         return getPhylum(id)==Phylum.RESTLESS;
     }
-    
-    /**
-     * Returns <code>true</code> if this game is half-tame.  According to WW
-     * p435, "We call a wild animal H half-tame if H+H is tame of
-     * genus 0^0".
-     *
-     * <p>It is not clear whether the statement about the genus is
-     * intended to be descriptive or restrictive.  For any game G,
-     * gPlus(G+G)=0, but it is not clear whether there could exist a
-     * game H such that H+H is tame with genus 0^1.  If such an H
-     * exists, this code will not consider it half-tame.
-     *
-     * @return <code>true</code> if this game is half-tame.
-     */
-    public boolean isHalfTame()
-    {
-        return isHalfTame(mid);
-    }
-    private static boolean isHalfTame(int id)
+
+    static boolean isHalfTame(int id)
     {
         if (isTame(id)) return false;
         int doubleGame = add(id,id);
         return isTame(doubleGame) && gMinusValue(doubleGame)==0;
     }
-    /**
-     * Returns <code>true</code> if this game is wild but tameable.
-     * @return <code>true</code> if this game is wild but tameable.
-     */
+
     static boolean isTameable(int id)
     {
         return getPhylum(id)==Phylum.TAMEABLE;
     }
-    
-    /**
-     * Returns <code>true</code> if this game is even.  <code>G</code> is
-     * <i>even</i> if it is an option of (the canonical form of)
-     * <code>G+*</code>.  Every game is either even or odd, but not both.
-     *
-     * @return  <code>true</code> if this game is even.
-     * @see     #isOdd() isOdd
-     */
-    public boolean isEven()
+
+    static boolean isEven(int id)
     {
-        return (mid&1)==0;
+        return (id&1)==0;
     }
-    
-    /**
-     * Returns <code>true</code> if this game is odd.  <code>G</code> is
-     * <i>odd</i> if (the canonical form of) <code>G+*</code> is an option of
-     * <code>G</code>.  Every game is either even or odd, but not both.
-     *
-     * @return  <code>true</code> if this game is odd.
-     * @see     #isEven() isEven
-     */
-    public boolean isOdd()
+
+    static boolean isOdd(int id)
     {
-        return (mid&1)==1;
+        return (id&1)==1;
     }
     
     /**
@@ -2016,19 +1473,9 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      *
      * @return The even part of this game.
      */
-    public MisereCanonicalGameOps evenPart()
+    static int evenPart(int id)
     {
-        return (mid&1)==0 ? this : createFromId(mid&~1);
-    }
-
-    /**
-     * Returns the maximum length of a sequence of moves in this game.
-     *
-     * @return The birthday of this game.
-     */
-    public int birthday()
-    {
-        return birthday(mid);
+        return (id & 1) == 0 ? id : (id & ~1);
     }
 
     /**
@@ -2048,6 +1495,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
             birthday(sectors[(id>>SECTOR_BITS) & SECTOR_MASK],
                      id&IXMASK);
     }
+
     private static int birthday(int[]sector, int ix)
     {
         return BIRTHDAY_MASK &
@@ -2055,24 +1503,15 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     }
 
     /**
-     * Returns the normal Grundy value of this game.
-     *
-     * @return The normal Grundy value of this game.
-     */
-    public int grundyValue()
-    {
-        return gPlusValue(mid);
-    }
-    
-    /**
      * Internal gPlusValue calculation
      */
-    private static int gPlusValue(int id)
+    static int gPlusValue(int id)
     {
         return (id&1) ^
             gPlusValue(sectors[(id>>SECTOR_BITS) & SECTOR_MASK],
                        id&IXMASK);
     }
+
     private static int gPlusValue(int[]sector, int ix)
     {
         return BIRTHDAY_MASK &
@@ -2080,19 +1519,9 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     }
 
     /**
-     * Returns the misere Grundy value of this game.
-     *
-     * @return The misere Grundy value of this game.
-     */
-    public int misereGrundyValue()
-    {
-        return gMinusValue(mid);
-    }
-    
-    /**
      * Internal gMinusValue calculation
      */
-    private static int gMinusValue(int id)
+    static int gMinusValue(int id)
     {
         return (id&1) ^
             gMinusValue(sectors[(id>>SECTOR_BITS) & SECTOR_MASK],
@@ -2104,27 +1533,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
             (sector[ix+GMINUS_OFFSET] >> GMINUS_SHIFT);
     }
 
-    /**
-     * Calculates the genus of this game.
-     *
-     * @return The genus of this game.
-     */
-    public Genus genus()
-    {
-        return genus(mid);
-
-        /*
-        List<Integer> gS = genusSequence();
-        int[] ans = new int[gS.size()];
-        for (int i = 0; i < ans.length; ++i)
-        {
-            ans[i]=gS.get(i);
-            
-        }
-        return ans;
-        */
-    }
-    
     static Genus genus(int id)
     {
         Phylum p =getPhylum(id);
@@ -2151,151 +1559,14 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     }
 
     /**
-     * Return the genus sequence as defined in WW p422.
-     *
-     * [ GPlus(g) ] for nim heaps.
-     * [ GPlus(g), GMinus(g) ] for tame or restless games.
-     * [ Gplus(g), GMinus(g), GMinus(g+2), ...] for restless or wild games.
-     */
-    /*
-    public List<Integer> genusSequence()
-    {
-        List<Integer>ans = new ArrayList<Integer>();
-        Phylum p = getPhylum(mid);
-        ans.add(gPlusValue(mid));
-        if (p == Phylum.NIMHEAP) return ans;
-        ans.add(gMinusValue(mid));
-        if (p.isTame() || p.isRestive()) return ans;
-        for(int i : getGenusExtension(mid)) ans.add(i);
-        ans.add((ans.get(ans.size()-1))^2);
-        return ans;
-    }
-    */
-
-    /*
-     * Get the part of the genus that extends beyond GPlus,Gminus and
-     * satisfies
-     * x[x.length-1]!= 2^(x.length==1 ? Gminus : x[x.length-2])
-     *
-     * This may result in an empty vector, which is returned as the
-     * constant NO_GENUS_EXTENSION.
-     */
-    /*
-    private static int[] getGenusExtension(int id)
-    {
-        int[] genusExtension = genusExtensions.get(id);
-        if (genusExtension != null) return genusExtension;
-        Phylum ph = getPhylum(id);
-        if (ph.isTame())
-        {
-            int gP = gPlusValue(id);
-            return (gP > 1 || gP == gMinusValue(id)
-                    ? NO_GENUS_EXTENSION
-                    : (gP==0
-                       ? FICKLE_ZERO_EXTENSION
-                       : FICKLE_ONE_EXTENSION));
-        }
-        if (ph.isRestive()) 
-        {
-            int gM = gMinusValue(id);
-            return (gM > 3
-                    ? ((gM&1)==0
-                       ? FICKLE_ZERO_EXTENSION
-                       : FICKLE_ONE_EXTENSION)
-                    : NO_GENUS_EXTENSION);
-        }
-        int nOpts = numOptions(id);
-        int[] opts = tempArrayStack.getArray(nOpts);
-        int[] optStarts = tempArrayStack.getArray(nOpts+1);
-        // Just a guess; may have to resize
-        int[] optGSs = tempArrayStack.getArray(3*nOpts);
-
-        fillOptions(id,opts);
-        int maxLength=0;
-        optStarts[0]=0;
-        
-        for(int i=0; i<nOpts;++i)
-        {
-            int[] gE = getGenusExtension(opts[i]);
-            optStarts[i+1] = optStarts[i] + gE.length + 1;
-            optGSs = tempArrayStack.ensureSize(optGSs,optStarts[i+1]);
-            if(gE == NO_GENUS_EXTENSION)
-            {
-                optGSs[optStarts[i]] = gMinusValue(opts[i]);
-            }
-            System.arraycopy(gE,0,optGSs,optStarts[i]+1,gE.length);
-            if (maxLength < gE.length) maxLength = gE.length;
-        }
-
-        maxLength = maxLength + 3;
-        int[] genusSequence = tempArrayStack.getArray(maxLength);
-        genusSequence[0] = gMinusValue(id);
-        for(int pos=1; pos<maxLength; ++pos)
-        {
-            genusMexBitSet.clear();
-            genusMexBitSet.set(genusSequence[pos-1]);
-            genusMexBitSet.set(genusSequence[pos-1]^1);
-            for (int i=0; i<nOpts; ++i)
-            {
-                int optSeqLen = optStarts[i+1] - optStarts[i];
-                if (pos < optSeqLen)
-                {
-                    genusMexBitSet.set(optGSs[optStarts[i]+pos]);
-                }
-                else
-                {
-                    int sPos = optSeqLen - ((optSeqLen^pos)&1);
-                    // sPos is optSeqLen or optSeqlen-1 and has the same
-                    // parity as pos.
-                    genusMexBitSet.set(sPos < optSeqLen
-                                       ? optGSs[optStarts[i]+sPos]
-                                       : 2 ^ optGSs[optStarts[i]+sPos-1]);
-                }
-            }
-            genusSequence[pos] = genusMexBitSet.nextClearBit(0);
-        }
-        while (maxLength > 1
-               && (genusSequence[maxLength-1]^genusSequence[maxLength-2])==2)
-        {
-            maxLength--;
-        }
-        if (maxLength == 1)
-        {
-            genusExtension = NO_GENUS_EXTENSION;
-        }
-        else
-        {
-            genusExtension = new int[maxLength-1];
-            System.arraycopy(genusSequence,1,genusExtension,0,maxLength-1);
-        }
-        genusSequence = tempArrayStack.putAway(genusSequence);
-        optGSs = tempArrayStack.putAway(optGSs);
-        optStarts = tempArrayStack.putAway(optStarts);
-        opts = tempArrayStack.putAway(opts);
-
-        genusExtensions.put(id, genusExtension);
-        return genusExtension;
-    }
-    */
-    /**
      * Finds a P-N discriminator between this game and <code>g</code>.
      * A P-N discriminator between <code>G</code> and <code>H</code> is a
      * game <code>T</code> such that <code>G+T</code> is a P-position, but
      * <code>H+T</code> is an N-position.
      *
-     * @param  g     The game to discriminate.
      * @return A P-N discriminator between this game and <code>g</code>.
      * @throws IllegalArgumentException if <code>this.equals(g)</code>.
      */
-    public MisereCanonicalGameOps discriminatorPN(MisereCanonicalGameOps g)
-    {
-        if (mid == g.mid)
-        {
-            throw new IllegalArgumentException("this.equals(g)");
-        }
-        return createFromId(discriminatorPN(mid,g.mid));
-    }
-
     static int discriminatorPN(int id1, int id2)
     {
         int ans = discriminator(id1,id2);
@@ -2321,23 +1592,13 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      * have distinct outcomes.
      * <p>
      * This method will in general be faster than
-     * {@link #discriminatorPN(MisereCanonicalGameOps) discriminatorPN}, at the
+     * {@link #discriminatorPN(int, int) discriminatorPN}, at the
      * cost of a slightly more vague result.
      *
-     * @param  g     The game to discriminate.
      * @return A discriminator between this game and <code>g</code>.
      * @throws IllegalArgumentException if <code>this.equals(g)</code>.
      */
-    public MisereCanonicalGameOps discriminator(MisereCanonicalGameOps g)
-    {
-        int ans=discriminator(mid,g.mid);
-        if(ans==-1)
-        {
-            throw new IllegalArgumentException("this.equals(g)");
-        }
-        return createFromId(ans);
-    }
-    private static int discriminator(int id1,int id2)
+    static int discriminator(int id1,int id2)
     {
         if(id1==id2) return -1;
         if(id1==0 && isPPosition(id2)) return 0;
@@ -2372,17 +1633,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         return 0;
     }
 
-    /**
-     * Returns <code>true</code> if this game is linked to <code>g</code>.
-     *
-     * @param g The game to test against this game.
-     *
-     * @return <code>true</code> if this game is linked to <code>g</code>.
-     */
-    public boolean isLinked(MisereCanonicalGameOps g)
-    {
-        return isLinked(mid,g.mid);
-    }
+
     static boolean isLinked(int id1,int id2)
     {
         if (opCache.lookupCommutative(OPERATION_LINK, id1, id2)
@@ -2393,24 +1644,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         if (hasOption(id2,id1)) return false;
         return true;
     }
-    /**
-     * Finds a link between this game and <code>g</code>.  A <i>link</i>
-     * between <code>G</code> and <code>H</code> is a game <code>T</code>
-     * such that <code>G+T</code> and <code>H+T</code> are both P-positions.
-     * <p>
-     * @param g The game to test against this game.
-     * @return A link between this game and <code>g</code>, or
-     *         <code>null</code> if the games are not linked.
-     */
-    public MisereCanonicalGameOps findLink(MisereCanonicalGameOps g)
-    {
-        int ans=findLink(mid,g.mid);
-        if(ans==-1)return null;
-        return createFromId(ans);
-    }
-    /**
-     * Private version returns -1 for no link.
-     */
+
     static int findLink(int id1,int id2)
     {
         int ans = opCache.lookupCommutative(OPERATION_LINK, id1, id2);
@@ -2456,10 +1690,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      *
      * @return <code>true</code> if this game is extraverted (equivalently, divine).
      */
-    public boolean isExtraverted()
-    {
-        return isExtraverted(mid);
-    }
     static boolean isExtraverted(int id)
     {
         int[] opt = {id};
@@ -2476,10 +1706,11 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      *
      * @return <code>true</code> if this game is introverted.
      */
-    public boolean isIntroverted()
+    static boolean isIntroverted(int id)
     {
-        return mid < 2;
+        return id < 2;
     }
+
     /**
      * Returns <code>true</code> if this game is prime.
      * <p>
@@ -2488,24 +1719,20 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      *
      * @return <code>true</code> if <code>G</code> is prime.
      */
-    public boolean isPrime()
-    {
-        return isPrime(mid);
-    }
     static boolean isPrime(int id)
     {
         return id > 1 && isNoncomposite(id);
     }
-    
+
     /**
      * Returns <code>true</code> if this game is composite.  A game
      * is composite if it has at least two prime parts.
-     * 
+     *
      * @return <code>true</code> if <code>G</code> is composite.
      */
-    public boolean isComposite()
+    static boolean isComposite(int id)
     {
-        return ! isNoncomposite(mid);
+        return !isNoncomposite(id);
     }
     private static boolean isNoncomposite(int id)
     {
@@ -2513,25 +1740,11 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
                 & NONCOMPOSITE_BIT) !=0
             || get2Partitions(id & ~1).length == 2;
     }
-    
-    /**
-     * Gets the nonzero even parts of this game, including this game itself.
-     *
-     * @return A <code>List</code> of all nonzero even parts of this game.
-     * @see #properParts() properParts
-     * @see #primeParts() primeParts
-     */
-    public List<MisereCanonicalGameOps> parts()
-    {
-        return parts(false, false);
-    }
-    
+
     /**
      * Gets the nonzero even proper parts of this game.
      *
      * @return A <code>List</code> of all nonzero even proper parts of this game.
-     * @see #parts() parts
-     * @see #primeParts() primeParts
      */
      /*
      * <ul><li>If 0 or 1 is an option of <code>G</code>, then
@@ -2563,42 +1776,46 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      * <p><code>G</code> has no other even proper parts.
      *
      */
-    public List<MisereCanonicalGameOps> properParts()
+
+    static int[] parts(int id)
     {
-        return parts(true, false);
+        return parts(id, false, false);
     }
-    
-    /**
-     * Gets the prime parts of this game.
-     *
-     * @return A <code>List</code> of all prime parts of this game.
-     * @see #parts() parts
-     * @see #properParts() properParts
-     */
-    public List<MisereCanonicalGameOps> primeParts()
+
+    static int[] primeParts(int id)
     {
-        return parts(false, true);
+        return parts(id, false, true);
     }
-    
-    List<MisereCanonicalGameOps> parts(boolean proper, boolean prime)
+
+    static int[] properParts(int id)
     {
-        List<MisereCanonicalGameOps> parts = new ArrayList<MisereCanonicalGameOps>();
-        int[] partitions = get2Partitions(mid & ~1);
+        return parts(id, true, false);
+    }
+
+    static int[] parts(int id, boolean proper, boolean prime)
+    {
+        List<Integer> parts = new ArrayList<Integer>();
+        int[] partitions = get2Partitions(id & ~1);
         for (int i = (proper ? 2 : 0); i < partitions.length; i += 2)
         {
             if (!prime || isPrime(partitions[i]))
             {
-                parts.add(createFromId(partitions[i]));
+                parts.add(partitions[i]);
             }
             if (partitions[i+1] != partitions[i])
             {
                 if (!prime || isPrime(partitions[i+1]))
                 {
-                    parts.add(createFromId(partitions[i+1]));
+                    parts.add(partitions[i+1]);
                 }
             }
         }
-        return parts;
+        int[] partsArray = new int[parts.size()];
+        for (int i = 0; i < partsArray.length; i++)
+        {
+            partsArray[i] = parts.get(i);
+        }
+        return partsArray;
     }
     
     private static int[] get2Partitions(int id)
@@ -2612,7 +1829,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         }
         
         List<Integer> partitions = new ArrayList<Integer>();
-        partitions.add(ZERO.mid);
+        partitions.add(ZERO_ID);
         partitions.add(id);
         
         int nOpts = numOptions(id);
@@ -2857,283 +2074,73 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         return -1;
     }
 
-    public List<MisereCanonicalGameOps> getPartsOld()
-    {
-        List<MisereCanonicalGameOps> ans = new ArrayList<MisereCanonicalGameOps>();
-        if (mid > 1) {
-            MisereCanonicalGameOps evenPart = evenPart();
-            for (int i : getProperPartsOld(mid))
-            {
-                if (evenPart != null && midComparator.compare(mid,i) < 0) 
-                {
-                    ans.add(evenPart);
-                    evenPart = null;
-                }
-                ans.add(createFromId(i));
-            }
-            if (evenPart != null) ans.add(evenPart);
-        }
-        return ans;
-    }
-    
-    /**
-     * Get the nonzero even <em>proper</em> parts of a game.  If the
-     * game is prime or zero, the constant NOPARTS is returned.  This
-     * is the workhorse method, to avoid having to cons an array in
-     * the common case that the game is prime.
-     */
-    private static int[] getProperPartsOld(int id)
-    {
-        id &= ~1;
-        int[] sector = sectors[(id>>SECTOR_BITS) & SECTOR_MASK];
-        int ix = id&IXMASK;
-
-        if ((sector[ix+NONCOMPOSITE_OFFSET]&NONCOMPOSITE_BIT) != 0)
-        {
-            return NOPARTS;
-        }
-
-        int[] ans=properParts.get(id);
-        if (ans != null) return ans;
-        
-        int nOpts = numOptions(sector,ix);
-        if (nOpts == 0)
-        {
-            sector[ix+NONCOMPOSITE_OFFSET] |= NONCOMPOSITE_BIT;
-            return NOPARTS;
-        }
-        
-        int opts[] = tempArrayStack.getArray(nOpts);
-        fillOptions(id,sector,ix,opts);
-
-        Set<Integer> unionOptParts = new HashSet<Integer>();
-        Set<Integer> intersectOptParts = new HashSet<Integer>();
-        Set<Integer> newIntersect = new HashSet<Integer>();
-        int nPrimeOpts = 0;
-        int nOptEvenParts = 0;
-
-        for (int oi=0; oi<nOpts; ++oi)
-        {
-            int opt = opts[oi]&~1;
-            if (oi == 0)
-            {
-                if (opt == 0)
-                {
-                    // Game is a prime by Conway's criterion; assert
-                    // Siegel's criterion.
-                    nPrimeOpts = 3; 
-                    break;
-                }
-                // First option initializes union and intersect
-                ++nOptEvenParts;
-                int[] optProperParts = getProperPartsOld(opt);
-                if (optProperParts == NOPARTS)
-                {
-                    if (++nPrimeOpts > 2) break;
-                }
-                else
-                {
-                    for (int p : optProperParts)
-                    {
-                        intersectOptParts.add(p);
-                        unionOptParts.add(p);
-                    }
-                }
-                intersectOptParts.add(opt);
-                unionOptParts.add(opt);
-            }
-            else if (opt != opts[oi-1])
-            {
-                // remaining options add to union and move intersect to newIntersect
-                ++nOptEvenParts;
-                int[] optProperParts = getProperPartsOld(opt);
-                if (optProperParts == NOPARTS)
-                {
-                    if (++nPrimeOpts > 2) break;
-                }
-                else
-                {
-                    for (int p : optProperParts)
-                    {
-                        unionOptParts.add(p);
-                        if (intersectOptParts.contains(p)) newIntersect.add(p);
-                    }
-                }
-                unionOptParts.add(opt);
-                if (intersectOptParts.contains(opt)) newIntersect.add(opt);
-
-                if (newIntersect.isEmpty()) {
-                    // If intersection becomes empty, we stop
-                    // computing intersections
-                    intersectOptParts = newIntersect;
-                    for (int oj = oi+1; oj < nOpts; oj++)
-                    {
-                        opt = opts[oj]&~1;
-                        if (opt != opts[oj-1])
-                        {
-                            ++nOptEvenParts;
-                            optProperParts = getProperPartsOld(opt);
-                            if (optProperParts == NOPARTS)
-                            {
-                                if (++nPrimeOpts > 2) break;
-                            }
-                            else
-                            {
-                                for (int p : optProperParts) unionOptParts.add(p);
-                            }
-                            unionOptParts.add(opt);
-                        }
-                    }
-                    break;
-                }
-                // Move newIntersect back to intersect and clear the old
-                {
-                    Set<Integer> tempIntersect = intersectOptParts;
-                    intersectOptParts = newIntersect;
-                    newIntersect = tempIntersect;
-                    newIntersect.clear();
-                }
-            }
-        }
-        opts=tempArrayStack.putAway(opts);
-
-        if (nPrimeOpts > 2 ||
-            (nPrimeOpts == nOptEvenParts &&
-             id != TWO_PLUS_TWO.mid &&
-             id != TWO_SHARP.mid &&
-             id != THREE_SHARP.mid))
-        {
-            // An option of zero or one,
-            // or more than two different prime options,
-            // or all prime options (except for 2+2, 2/, 3/),
-            // implies noncomposite.
-            sector[ix+NONCOMPOSITE_OFFSET] |= NONCOMPOSITE_BIT;
-            return NOPARTS;
-        }
-
-        List<Integer> partsFound = new ArrayList<Integer>();
-        FindPairs:
-        while (!unionOptParts.isEmpty()) 
-        {
-            Integer part1 = null;
-            for (Integer p : unionOptParts)
-            {
-                part1 = p;
-                break;
-            }
-            assert part1 != null:
-            "How do we get an element of a nonempty set?";
-            for (Integer part2 : unionOptParts)
-            {
-                if (add(part1,part2) == id)
-                {
-                    partsFound.add(part1);
-                    unionOptParts.remove(part1);
-                    intersectOptParts.remove(part1);
-                    if (part1 != part2) 
-                    {
-                        partsFound.add(part2);
-                        unionOptParts.remove(part2);
-                        intersectOptParts.remove(part2);
-                    }
-                    continue FindPairs;
-                }
-            }
-            unionOptParts.remove(part1);
-        }
-        // Find exceptional parts by subtracting by options
-
-        boolean prevSubtractByParts = subtractByParts;
-        subtractByParts = false;
-        for (Integer part1 : intersectOptParts)
-        {
-            int part2 = subtract(id,part1);
-            if (part2 != -1)
-            {
-                partsFound.add(part1);
-                partsFound.add(part2);
-            }
-        }
-        subtractByParts = prevSubtractByParts;
-        if (partsFound.size()==0)
-        {
-            sector[ix+NONCOMPOSITE_OFFSET] |= NONCOMPOSITE_BIT;
-            return NOPARTS;
-        }
-
-        Integer partsArray[] = partsFound.toArray(INTEGER_ARRAY);
-        Arrays.sort(partsArray,0,partsArray.length,midComparator);
-        ans = new int[partsArray.length];
-        for (int i = 0; i < partsArray.length; ++i) 
-        {
-            ans[i] = partsArray[i];
-        }
-        properParts.put(new Integer(id),ans);
-        return ans;
-    }
-
-    /**
-     * Gets all possible factorizations of this game into even primes.
-     * Equivalent to <code>partitions(false)</code>.
-     *
-     * @return All possible partitions of this game into even primes.
-     */
-    public List<List<MisereCanonicalGameOps>> partitions()
-    {
-        return partitions(false);
-    }
-    
     /**
      * Gets all possible partitions of this game into even primes,
-     * optionally including references to {@link #ONE} if this game is odd.
+     * optionally including references to {@link #ONE_ID} if this game is odd.
      * <p>
      * If <code>includeUnit</code> is <code>true</code> and this game is
      * odd, then each partition will also include a reference to
-     * {@link #ONE}.  This guarantees that each partition actually
+     * {@link #ONE_ID}.  This guarantees that each partition actually
      * sums to this game.  If <code>includeUnit</code> is
      * <code>false</code>, then only even primes will be included in the
      * partitions.
      *
      * @param includeUnit <code>true</code> if a reference to
-     *        {@link #ONE} should be included in each odd partition.
+     *        {@link #ONE_ID} should be included in each odd partition.
      *
      * @return All possible partitions of this game into even primes.
      */
-    public List<List<MisereCanonicalGameOps>> partitions(boolean includeUnit)
+    static int[][] partitions(int id, boolean includeUnit)
     {
-        List<List<MisereCanonicalGameOps>> partitions = new ArrayList<List<MisereCanonicalGameOps>>();
+        List<List<Integer>> partitions = new ArrayList<>();
         buildPartitions(
+            id,
             partitions,
-            new LinkedList<MisereCanonicalGameOps>(),
+            new LinkedList<>(),
             includeUnit
             );
-        return partitions;
+        int[][] partitionsArray = new int[partitions.size()][];
+        for (int i = 0; i < partitions.size(); i++)
+        {
+            partitionsArray[i] = new int[partitions.get(i).size()];
+            for (int j = 0; j < partitions.get(i).size(); j++)
+            {
+                partitionsArray[i][j] = partitions.get(i).get(j);
+            }
+        }
+        return partitionsArray;
     }
     
-    private void buildPartitions(
-        List<List<MisereCanonicalGameOps>> partitions,
-        LinkedList<MisereCanonicalGameOps> partial,
+    private static void buildPartitions(
+        int id,
+        List<List<Integer>> partitions,
+        LinkedList<Integer> partial,
         boolean includeUnit
         )
     {
-        if (mid <= 1)
+        if (id <= 1)
         {
-            List<MisereCanonicalGameOps> copy = new ArrayList<MisereCanonicalGameOps>();
+            List<Integer> copy = new ArrayList<>();
             copy.addAll(partial);
-            if (includeUnit && mid == 1)
+            if (includeUnit && id == 1)
             {
-                copy.add(ONE);
+                copy.add(ONE_ID);
             }
             partitions.add(copy);
         }
         else
         {
-            for (MisereCanonicalGameOps prime : primeParts())
+            for (int prime : primeParts(id))
             {
-                if (partial.isEmpty() || midComparator.compare(partial.getLast().mid, prime.mid) <= 0)
+                if (partial.isEmpty() || midComparator.compare(partial.getLast(), prime) <= 0)
                 {
                     partial.add(prime);
-                    subtract(prime).buildPartitions(partitions, partial, includeUnit);
+                    buildPartitions(
+                        subtract(id, prime),
+                        partitions,
+                        partial,
+                        includeUnit
+                    );
                     partial.removeLast();
                 }
             }
@@ -3275,15 +2282,8 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         nimberCache = new ResizableIntArray();
         calculateNimber(0,nimberCache.data.length-1);
 
-        ZERO.mid=nimberCache.data[0];
-        ONE.mid=nimberCache.data[1];
-        TWO.mid=nimberCache.data[2];
-        THREE.mid=nimberCache.data[3];
-        TWO_PLUS_TWO.mid=add(TWO.mid,TWO.mid);
-        earlyOpts[0]=TWO.mid;
-        TWO_SHARP.mid=constructFromOptions(earlyOpts,1);
-        earlyOpts[0]=THREE.mid;
-        THREE_SHARP.mid=constructFromOptions(earlyOpts,1);
+        earlyOpts[0]=nimberCache.data[2];
+        earlyOpts[0]=nimberCache.data[3];
     }
 
     /**
@@ -3709,7 +2709,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
          * @param maxSubsets maximum number of subsets of games to be
          *                 considered as options, or -1 for no limit.
          * @param filters set of
-         * {@link org.cgsuite.impartial.CanonicalMisereGame.GameFilter} 
+         * {@link org.cgsuite.core.misere.MisereCanonicalGameOps.GameFilter} 
          *                 conditions that must be satisfied in order
          *                 to return games from this traversal, or
          *                 <code>null<code> to return even canonical
@@ -3801,7 +2801,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
          * @param maxSubsets maximum number of subsets of games to be
          *                 considered as options, or -1 for no limit.
          * @param filters set of
-         * {@link org.cgsuite.impartial.CanonicalMisereGame.GameFilter}
+         * {@link org.cgsuite.core.misere.MisereCanonicalGameOps.GameFilter}
          *                 conditions that must be satisfied in order
          *                 to return games from this traversal, or
          *                 null to leave the filter conditions
@@ -3952,18 +2952,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
             return false;
         }
 
-        /**
-         * Return the canonical misere game associated with the current
-         * set of options.
-         *
-         * @return canonical misere game associated with the current
-         *         set of options.
-         */
-        public MisereCanonicalGameOps currentGame()
-        {
-            return createFromId(currentId());
-        }
-        
         public int currentId()
         {
             currentLength(); // ensure current is valid.
@@ -3994,29 +2982,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
     }
 
     /**
-     * Creates an array of even games with low birthday.  The games are ordered by
-     * birthday, then by number of options, then by "other stuff".
-     * This method allows control of the maximum number of games, the
-     * maximum birthday, and the maximum number of options for games
-     * with the maximum birthday.
-     *
-     * @param maxGames  The maximum number of games to be returned.
-     * @param maxBirthday  The maximum birthday of the games returned.
-     * @param lastMaxOptions  For games of birthday
-     *         <code>maxBirthday</code>, the maximum number of options
-     *         of each game returned.
-     * @return Largest array of <code>MisereCanonicalGameOps</code>s consistent with
-     *         the paramaters.
-     */
-    public static MisereCanonicalGameOps[] getEarlyGames(int maxGames,
-                                                         int maxBirthday,
-                                                         int lastMaxOptions)
-    {
-        return getEarlyGames(maxGames, maxBirthday, lastMaxOptions,
-                             MAX_OPTIONS, true);
-    }
-
-    /**
      * Creates an array of even games with low birthday.  This method allows control of the
      * maximum number of games, the maximum birthday, the maximum
      * number of options for games with the maximum birthday, and the
@@ -4025,7 +2990,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      *
      * @param maxGames     The maximum number of games to be returned.
      * @param maxBirthday  The maximum birthday of a game returned.
-     * @param lastMaxOptions   For games of birthday
+     * @param lastMaxOpts   For games of birthday
      *         <code>maxBirthday</code>, the maximum number of options
      *         to of the games returned.
      * @param hereditaryMaxOptions    The maximum number of options of
@@ -4034,23 +2999,6 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
      * @return Largest array of CanonicalMisereGames consistent with
      *         the paramaters.
      */
-    public static MisereCanonicalGameOps[] getEarlyGames(int maxGames,
-                                                         int maxBirthday,
-                                                         int lastMaxOptions,
-                                                         int hereditaryMaxOptions,
-                                                         boolean sorted)
-    {
-        Integer[] earlyIDs =
-            getEarlyVals(maxGames, maxBirthday, lastMaxOptions,
-                         hereditaryMaxOptions,sorted);
-        MisereCanonicalGameOps[] earlyGames =
-            new MisereCanonicalGameOps[earlyIDs.length];
-        for (int i=0; i<earlyIDs.length; ++i)
-        {
-            earlyGames[i] = createFromId(earlyIDs[i]);
-        }
-        return earlyGames;
-    }
 
     private static Integer[] getEarlyVals (int maxGames,
                                            int maxBirthday,
@@ -4476,7 +3424,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
             System.out.println("       FACTORSEARCH maxbday maxopts heredmaxopts skip chunksize (searches for multiple factorizations)");
         }
         System.out.println(getStats());
-    }*/
+    }
 
     private static void testLink(int link, int i, int j)
     {
@@ -4548,11 +3496,11 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
                         oldId);
     }
 
-    private static int dumpGame(int ixp, int sectn, int oldId) 
+    private static int dumpGame(int ixp, int sectn, int oldId)
     {
         int id = ixp + (sectn << SECTOR_BITS);
         String comparison = new String();
-        if (oldId >= 0) 
+        if (oldId >= 0)
         {
             if (0 <=
                 Math.min(1,Math.max(-1,midComparator.compare(id, oldId))) *
@@ -4575,7 +3523,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         }
 
         int nOpts=numOptions(id);
-        
+
         System.out.println("Game " + midToString(id) +
                            "@"+ sectn + "." + ixp +
                            " Bday " + birthday(id) +
@@ -4591,10 +3539,10 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         StringBuilder optsStr = new StringBuilder("Opts ");
 
         appendGameListToStringBuilder(opts, nOpts, optsStr, false);
-        
+
         opts=tempArrayStack.putAway(opts);
 
-        if (isNoncomposite(id)) 
+        if (isNoncomposite(id))
         {
             optsStr.append(" Prime");
             int[] pp = getProperPartsOld(id);
@@ -4652,22 +3600,12 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
         s.append("]");
         return s;
     }
-
+    */
     private static int earlyIndex(Integer[] earlyArr, int id) 
     {
         int ans = Arrays.binarySearch(earlyArr,
                                       id,
                                       midComparator);
-        if (ans >= 0) return ans * 2;
-        return -3 - ans * 2;
-    }
-
-    private static int earlyIndex(MisereCanonicalGameOps[] earlyGames,
-                                  MisereCanonicalGameOps g)
-    {
-        int ans = Arrays.binarySearch(earlyGames,
-                                      g,
-                                      gameComparator);
         if (ans >= 0) return ans * 2;
         return -3 - ans * 2;
     }
@@ -4678,7 +3616,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
                                           nEarlyGames > 4171780 ? 6 : 5,
                                           22, 22, true);
 
-        findNimber(nNimHeaps);
+        constructFromNimber(nNimHeaps);
 
         int[] ans = new int[nEarlyGames + nNimHeaps];
 
@@ -4689,7 +3627,7 @@ public final class MisereCanonicalGameOps implements Comparable<MisereCanonicalG
 
         for (int i=0; i<nNimHeaps; ++i)
         {
-            ans[i+nEarlyGames] = findNimber(i);
+            ans[i+nEarlyGames] = constructFromNimber(i);
         }
         
         return ans;
