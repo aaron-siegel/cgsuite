@@ -476,7 +476,7 @@ public final class MisereCanonicalGameOps
             gMinus.set(optGM^isOdd);
             gPlus.set(optGP^isOdd);
 
-            if (wildestOptionPhylum.isTame())
+            if (wildestOptionPhylum.isGenerallyTame())
             {
                 Phylum optPhylum = getPhylumFromInt(winData);
                 if (optPhylum.ordinal() > wildestOptionPhylum.ordinal()) {
@@ -578,7 +578,7 @@ public final class MisereCanonicalGameOps
                 assert GPLUS_OFFSET==PHYLUM_OFFSET && GPLUS_OFFSET==N_OPTIONS_OFFSET;
                 int optGP = (winData>>GPLUS_SHIFT)&N_OPTIONS_MASK;
                 Phylum optPhylum = getPhylumFromInt(winData);
-                if (optPhylum.isTame())
+                if (optPhylum.isGenerallyTame())
                 {
                     gPlus.set(optGP^isOdd);
                     gMinus.set(optGM^isOdd);
@@ -616,15 +616,15 @@ public final class MisereCanonicalGameOps
                     for (int j=0; j<nSecondOptions; j++)
                     {
                         Phylum secondOptionPhylum=getPhylum(secondOptions[j]);
-                        if (secondOptionPhylum.isTame()
+                        if (secondOptionPhylum.isGenerallyTame()
                             || (possiblePhyla.contains(Phylum.REVERSIBLY_RESTIVE)
                                 && secondOptionPhylum.isRestiveOrTame())
                             || (possiblePhyla.contains(Phylum.TAMEABLE)
-                                && secondOptionPhylum.isTameableOrTame()))
+                                && secondOptionPhylum.isTameable()))
                         {
                             int secondGM = gMinusValue(secondOptions[j]);
                             int secondGP = gPlusValue(secondOptions[j]);
-                            if (secondOptionPhylum.isTame()
+                            if (secondOptionPhylum.isGenerallyTame()
                                 && myPhylum == Phylum.WILD_OF_TAME_GENUS)
                             {
                                 gMFound |= (gM == secondGM);
@@ -1047,7 +1047,7 @@ public final class MisereCanonicalGameOps
      *     <li><code>g.isEven()</code> (<code>true</code> first)</li>
      *     </ol>
      */
-    private static final class MidComparator implements Comparator<Integer>
+    static final class MidComparator implements Comparator<Integer>
     {
         public int compare(Integer iMid1, Integer iMid2)
         {
@@ -1098,8 +1098,7 @@ public final class MisereCanonicalGameOps
         }
     }
 
-    private final static MidComparator midComparator =
-        new MidComparator();
+    final static MidComparator midComparator = new MidComparator();
 
     /**
      * Append string version with part separation
@@ -1419,7 +1418,12 @@ public final class MisereCanonicalGameOps
 
     static boolean isTame(int id)
     {
-        return getPhylum(id).isTame();
+        return getPhylum(id).isHereditarilyTame();
+    }
+
+    static boolean isGenerallyTame(int id)
+    {
+        return getPhylum(id).isGenerallyTame();
     }
 
     private static Phylum getPhylum(int id)
@@ -1436,7 +1440,12 @@ public final class MisereCanonicalGameOps
 
     static boolean isRestive(int id)
     {
-        return getPhylum(id).isRestive();
+        return getPhylum(id).isHereditarilyRestive();
+    }
+
+    static boolean isGenerallyRestive(int id)
+    {
+        return getPhylum(id).isGenerallyRestive();
     }
 
     static boolean isRestless(int id)
@@ -1446,14 +1455,15 @@ public final class MisereCanonicalGameOps
 
     static boolean isHalfTame(int id)
     {
-        if (isTame(id)) return false;
-        int doubleGame = add(id,id);
-        return isTame(doubleGame) && gMinusValue(doubleGame)==0;
+        if (isGenerallyTame(id))
+            return false;
+        int doubleGame = add(id, id);
+        return isGenerallyTame(doubleGame) && gPlusValue(doubleGame) == 0 && gMinusValue(doubleGame) == 0;
     }
 
     static boolean isTameable(int id)
     {
-        return getPhylum(id)==Phylum.TAMEABLE;
+        return getPhylum(id).isTameable();
     }
 
     static boolean isEven(int id)
@@ -3000,7 +3010,7 @@ public final class MisereCanonicalGameOps
      *         the paramaters.
      */
 
-    private static Integer[] getEarlyVals (int maxGames,
+    static Integer[] getEarlyVals (int maxGames,
                                            int maxBirthday,
                                            int lastMaxOpts,
                                            int hereditaryMaxOptions,

@@ -6,6 +6,8 @@ system class MisereCanonicalGame extends ImpartialGame
   external def Genus;
   external def IsEven;
   external def IsExtraverted;
+  external def IsGenerallyRestive;
+  external def IsGenerallyTame;
   external def IsHalfTame;
   external def IsIntroverted;
   external def IsNimHeap;
@@ -25,5 +27,7 @@ system class MisereCanonicalGame extends ImpartialGame
   external def IsLinkedTo(h as MisereCanonicalGame);
   external def Link(h as MisereCanonicalGame);
   external def MisereMinus(h as MisereCanonicalGame);
+
+  external static def DayN(n as Integer);
 
 end

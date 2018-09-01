@@ -38,6 +38,18 @@ object MisereCanonicalGame {
     MisereCanonicalGame(ops.constructFromNimber(size))
   }
 
+  def dayN(n: Integer): Iterable[MisereCanonicalGame] = {
+    ops.getEarlyVals(Int.MaxValue, n.intValue, Int.MaxValue, Int.MaxValue, true) map { MisereCanonicalGame(_) }
+  }
+
+  object DeterministicOrdering extends Ordering[MisereCanonicalGame] {
+
+    def compare(g: MisereCanonicalGame, h: MisereCanonicalGame): Int = {
+      ops.midComparator.compare(g.misereGameId, h.misereGameId)
+    }
+
+  }
+
 }
 
 trait MisereCanonicalGame extends ImpartialGame {
@@ -69,7 +81,11 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def isExtraverted = ops.isExtraverted(misereGameId)
 
-  def isHalfTame = (this + this).isTame
+  def isGenerallyRestive = ops.isGenerallyRestive(misereGameId)
+
+  def isGenerallyTame = ops.isGenerallyTame(misereGameId)
+
+  def isHalfTame = ops.isHalfTame(misereGameId)
 
   def isIntroverted = ops.isIntroverted(misereGameId)
 

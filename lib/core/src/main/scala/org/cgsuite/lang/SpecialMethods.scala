@@ -41,6 +41,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.exists { x => proc.call(Array(x)).asInstanceOf[Boolean] }
     },
+    "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], proc: Procedure) =>
+      collection.asInstanceOf[Iterable[Any]].find { x => proc.call(Array(x)).asInstanceOf[Boolean] }.orNull
+    },
     "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.forall { x => proc.call(Array(x)).asInstanceOf[Boolean] }
     },

@@ -1,6 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.core.CanonicalShortGame
+import org.cgsuite.core.misere.MisereCanonicalGame
 
 
 object UniversalOrdering extends Ordering[Any] {
@@ -13,6 +14,7 @@ object UniversalOrdering extends Ordering[Any] {
       case (g: CanonicalShortGame, h: CanonicalShortGame) => CanonicalShortGame.DeterministicOrdering.compare(g, h)
       case (_: CanonicalShortGame, _) => -1
       case (_, _: CanonicalShortGame) => 1
+      case (g: MisereCanonicalGame, h: MisereCanonicalGame) => MisereCanonicalGame.DeterministicOrdering.compare(g, h)
       case (a: ClassObject, b: ClassObject) => a.forClass.classOrdinal - b.forClass.classOrdinal
       case (a: StandardObject, b: StandardObject) =>
         var cmp = a.cls.classOrdinal - b.cls.classOrdinal

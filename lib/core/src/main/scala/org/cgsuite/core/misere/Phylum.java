@@ -119,7 +119,7 @@ enum Phylum
     /**
      * Phyla of games that are tameable or tame.
      */
-    public static final EnumSet<Phylum> TAMEABLE_OR_TAME_PHYLA = EnumSet.of
+    public static final EnumSet<Phylum> TAMEABLE_PHYLA = EnumSet.of
     (NIMHEAP, HEREDITARILY_TAME, REVERSIBLY_TAME, TAMEABLE);
 
     /**
@@ -156,7 +156,7 @@ enum Phylum
      *
      * @return true if the phylum is tame.
      */
-    public boolean isTame()
+    public boolean isGenerallyTame()
     {
         return TAME_PHYLA.contains(this);
     }
@@ -166,9 +166,14 @@ enum Phylum
      *
      * @return true if the phylum is tameable or tame.
      */
-    public boolean isTameableOrTame()
+    public boolean isTameable()
     {
-        return TAMEABLE_OR_TAME_PHYLA.contains(this);
+        return TAMEABLE_PHYLA.contains(this);
+    }
+
+    public boolean isHereditarilyRestive()
+    {
+        return this == HEREDITARILY_RESTIVE;
     }
 
     /**
@@ -176,7 +181,7 @@ enum Phylum
      *
      * @return true if the phylum is restive.
      */
-    public boolean isRestive()
+    public boolean isGenerallyRestive()
     {
         return RESTIVE_PHYLA.contains(this);
     }

@@ -161,6 +161,11 @@ public final class Genus implements OutputTarget
     {
         return new StyledTextOutput(appendToStringBuilder(new StringBuilder()).toString());
     }
+
+    public String toString()
+    {
+        return toOutput().toString();
+    }
     /**
      * Get the G+ value of a genus.
      * @return G+ value of the genus.
@@ -185,12 +190,12 @@ public final class Genus implements OutputTarget
      */
     private int maxDiffer()
     {
-        if (phylum.isTame())
+        if (phylum.isGenerallyTame())
         {
             return gBase < 2 && (gSup.length == 0 || gSup[0] != gBase)
                 ? 2 : 1;
         }
-        if (phylum.isRestive())
+        if (phylum.isGenerallyRestive())
         {
             return gSup[0] < 4 ? 1 : 2;
         }
@@ -211,12 +216,12 @@ public final class Genus implements OutputTarget
         {
             return gSup[i];
         }
-        if (phylum.isTame())
+        if (phylum.isGenerallyTame())
         {
             if (i==0 && gBase < 2) return 1-gBase;
             return gBase ^ ((i&1)<<1);
         }
-        if (phylum.isRestive())
+        if (phylum.isGenerallyRestive())
         {
             return (gSup[0]<4 ? gSup[0] : gBase) ^ ((i&1)<<1);
         }

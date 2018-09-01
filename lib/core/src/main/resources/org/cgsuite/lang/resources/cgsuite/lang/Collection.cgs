@@ -4,6 +4,8 @@ system class Collection
 
   external def Exists(proc as Procedure);
 
+  external def Find(proc as Procedure);
+
   external def ForAll(proc as Procedure);
 
   external def Head;
