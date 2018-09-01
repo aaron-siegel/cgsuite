@@ -52,5 +52,5 @@ case class NimberImpl(intNimValue: Int) extends Nimber {
   assert(intNimValue > 0)
 
   override def nimValue = SmallInteger(intNimValue)
-  
+
 }

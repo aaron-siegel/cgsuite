@@ -8,18 +8,18 @@ import org.cgsuite.lang.parser.CgsuiteLexer._
 
 object DeclarationNode {
 
-  def apply(tree: Tree): Iterable[Node] = {
+  def apply(tree: Tree, pkg: CgscriptPackage): Iterable[Node] = {
 
     tree.getType match {
 
-      case CLASS => Iterable(ClassDeclarationNode(tree))
+      case CLASS => Iterable(ClassDeclarationNode(tree, pkg))
 
       case DEF =>
         Iterable(MethodDeclarationNode(
           tree,
           IdentifierNode(tree.children(1)),
           Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC),
-          tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) },
+          tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) },
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
@@ -47,7 +47,7 @@ object DeclarationNode {
 }
 
 object ClassDeclarationNode {
-  def apply(tree: Tree): ClassDeclarationNode = {
+  def apply(tree: Tree, pkg: CgscriptPackage): ClassDeclarationNode = {
     val isEnum = tree.getType == ENUM
     val modifiers = Modifiers(tree.head, MUTABLE, SINGLETON, SYSTEM)
     val id = IdentifierNode(tree.children(1))
@@ -55,8 +55,8 @@ object ClassDeclarationNode {
       case Some(t) => t.children map { EvalNode(_) }
       case None => Seq.empty
     }
-    val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_) }
-    val declarations = tree.children filter { _.getType == DECLARATIONS } flatMap { _.children flatMap { DeclarationNode(_) } }
+    val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) }
+    val declarations = tree.children filter { _.getType == DECLARATIONS } flatMap { _.children flatMap { DeclarationNode(_, pkg) } }
     val nestedClassDeclarations = declarations collect {
       case x: ClassDeclarationNode => x
     }
@@ -108,7 +108,7 @@ case class ClassDeclarationNode(
 }
 
 object ParametersNode {
-  def apply(tree: Tree): ParametersNode = {
+  def apply(tree: Tree, pkg: Option[CgscriptPackage]): ParametersNode = {
     assert(tree.getType == METHOD_PARAMETER_LIST)
     val parameters = tree.children map { t =>
       assert(t.getType == METHOD_PARAMETER)
@@ -120,11 +120,11 @@ object ParametersNode {
         t.children exists { _.getType == DOTDOTDOT }
       )
     }
-    ParametersNode(tree, parameters)
+    ParametersNode(tree, pkg, parameters)
   }
 }
 
-case class ParametersNode(tree: Tree, parameterNodes: Seq[ParameterNode]) extends Node {
+case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNodes: Seq[ParameterNode]) extends Node {
 
   override val children = parameterNodes
 
@@ -133,8 +133,8 @@ case class ParametersNode(tree: Tree, parameterNodes: Seq[ParameterNode]) extend
     parameterNodes.map { n =>
       val ttype = n.classId match {
         case None => CgscriptClass.Object
-        case Some(idNode) => CgscriptPackage.lookupClass(idNode.id) getOrElse {
-          sys.error("unknown symbol")
+        case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
+          throw InputException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
         }
       }
       Parameter(n.id.id, ttype, n.defaultValue)

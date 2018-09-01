@@ -5,6 +5,7 @@ import java.util
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
+import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.dsl.IntegerIsIntegral
 import org.cgsuite.exception.InputException
 import org.cgsuite.output.{Output, StyledTextOutput}
@@ -18,25 +19,25 @@ object Ops {
   type MultiOp = Iterable[Any] => Any
 
   val Pos = UnOp("pos") {
-    case (x: Game) => +x
-    case (x: SidedValue) => +x
-    case (x: SurrealNumber) => +x
+    case x: Game => +x
+    case x: SidedValue => +x
+    case x: SurrealNumber => +x
   }
 
   val Neg = UnOp("neg") {
-    case (x: Game) => -x
-    case (x: SidedValue) => -x
-    case (x: SurrealNumber) => -x
+    case x: Game => -x
+    case x: SidedValue => -x
+    case x: SurrealNumber => -x
   }
 
   val PlusMinus = UnOp("+-") {
-    case (x: CanonicalShortGame) => CanonicalShortGame(x)(-x)
-    case (x: CanonicalStopper) => CanonicalStopper(x)(-x)
-    case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalShortGame] } =>
+    case x: CanonicalShortGame => CanonicalShortGame(x)(-x)
+    case x: CanonicalStopper => CanonicalStopper(x)(-x)
+    case x: Set[_] if x forall { _.isInstanceOf[CanonicalShortGame] } =>
       CanonicalShortGame(x.asInstanceOf[Set[CanonicalShortGame]], x.asInstanceOf[Set[CanonicalShortGame]] map { -_ })
-    case (x: Set[_]) if x forall { _.isInstanceOf[CanonicalStopper] } =>
+    case x: Set[_] if x forall { _.isInstanceOf[CanonicalStopper] } =>
       CanonicalStopper(x.asInstanceOf[Set[CanonicalStopper]], x.asInstanceOf[Set[CanonicalStopper]] map { -_ })
-    case (x: Game) => ExplicitGame(x)(-x)
+    case x: Game => ExplicitGame(x)(-x)
   }
 
   val Plus = CachingBinOp("+") {
@@ -51,6 +52,7 @@ object Ops {
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x + y
     case (_: StopperSidedValue, _: StopperSidedValue) => (x: StopperSidedValue, y: StopperSidedValue) => x + y
     case (_: SidedValue, _: SidedValue) => (x: SidedValue, y: SidedValue) => x + y
+    case (_: MisereCanonicalGame, _: MisereCanonicalGame) => (x: MisereCanonicalGame, y: MisereCanonicalGame) => x + y
     case (_: ImpartialGame, _: ImpartialGame) => (x: ImpartialGame, y: ImpartialGame) => x + y
     case (_: Game, _: Game) => (x: Game, y: Game) => x + y
     case (_: Coordinates, _: Coordinates) => (x: Coordinates, y: Coordinates) => x + y
@@ -167,6 +169,8 @@ object Ops {
 
   val MakeNimber = UnOp("nim") {
     case x: SmallInteger => Nimber(x)
+    case collection: Iterable[_] => MisereCanonicalGame(collection)
+    // TODO Better error message on match fail
   }
 
   val MakeUpMultiple = BinOp("up") {

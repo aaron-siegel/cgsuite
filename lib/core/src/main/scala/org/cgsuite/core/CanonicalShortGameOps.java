@@ -30,8 +30,6 @@
 package org.cgsuite.core;
 
 
-import org.cgsuite.exception.InputException;
-
 import java.math.BigInteger;
 import java.util.*;
 

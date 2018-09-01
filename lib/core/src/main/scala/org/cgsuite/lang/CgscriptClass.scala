@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
+import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.exception.{CgsuiteException, InputException}
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -62,6 +63,7 @@ object CgscriptClass {
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
 
     "cgsuite.util.Strip" -> classOf[Strip],
+    "cgsuite.util.Genus" -> classOf[Genus],
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.Thermograph" -> classOf[Thermograph],
@@ -89,6 +91,8 @@ object CgscriptClass {
     "game.StopperSidedValue" -> classOf[StopperSidedValue],
     "game.SidedValue" -> classOf[SidedValue],
     "game.NormalValue" -> classOf[NormalValue],
+
+    "game.misere.MisereCanonicalGame" -> classOf[MisereCanonicalGame],
 
     "game.ExplicitGame" -> classOf[ExplicitGame],
 
@@ -653,7 +657,7 @@ class CgscriptClass(
         logger debug s"$logPrefix Script Node: $node"
         declareScript(node)
       case EOF =>
-        val node = ClassDeclarationNode(tree.children(1))
+        val node = ClassDeclarationNode(tree.children(1), pkg)
         logger debug s"$logPrefix Class Node: $node"
         declareClass(node)
     }

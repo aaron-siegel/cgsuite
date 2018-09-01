@@ -108,7 +108,7 @@ object EvalNode {
 
       // Procedures
 
-      case RARROW => ProcedureNode(tree)
+      case RARROW => ProcedureNode(tree, None)
 
       // Resolvers
 
@@ -775,8 +775,8 @@ case class LoopNode(
 }
 
 object ProcedureNode {
-  def apply(tree: Tree): ProcedureNode = {
-    val parameters = ParametersNode(tree.head).toParameters
+  def apply(tree: Tree, pkg: Option[CgscriptPackage]): ProcedureNode = {
+    val parameters = ParametersNode(tree.head, pkg).toParameters
     ProcedureNode(tree, parameters, EvalNode(tree.children(1)))
   }
 }

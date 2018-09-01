@@ -19,6 +19,7 @@ object CgscriptPackage {
   val grid = game.declareSubpackage("grid")
   val strip = game.declareSubpackage("strip")
   val heap = game.declareSubpackage("heap")
+  val misere = game.declareSubpackage("misere")
 
   def lookupClass(id: Symbol): Option[CgscriptClass] = classDictionary.get(id)
 

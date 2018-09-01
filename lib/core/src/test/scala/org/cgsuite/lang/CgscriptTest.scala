@@ -387,6 +387,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     decl("test.classdef.ImmutableNestedClassOfMutable", "mutable class ImmutableNestedClassOfMutable class Nested end end")
     decl("test.classdef.MutableVarOfImmutable", "class MutableVarOfImmutable mutable var x := 4; end")
     decl("test.classdef.ImmutableVarWithNoInitializer", "class ImmutableVarWithNoInitializer var x; end")
+    decl("test.classdef.UnknownClassInParameterDeclaration",
+      "class UnknownClassInParameterDeclaration def Method(parameter as UnknownClass) := 3; end")
 
     executeTests(Table(
       header,
@@ -421,7 +423,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Mutable var of immutable class", "test.classdef.MutableVarOfImmutable.X",
         "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`"),
       ("Immutable var with no initializer", "test.classdef.ImmutableVarWithNoInitializer.X",
-        "!!Immutable variable `x` must be assigned a value (or else declared `mutable`)")
+        "!!Immutable variable `x` must be assigned a value (or else declared `mutable`)"),
+      ("Unknown class in parameter declaration", "test.classdef.UnknownClassInParameterDeclaration",
+        "!!Unknown class in parameter declaration: `UnknownClass`")
     ))
 
   }

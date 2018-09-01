@@ -1,0 +1,25 @@
+/*${cgsuite.banner}*/
+
+system class MisereCanonicalGame extends ImpartialGame
+
+  external def Birthday;
+  external def Genus;
+  external def IsExtraverted;
+  external def IsHalfTame;
+  external def IsIntroverted;
+  external def IsPrime;
+  external def IsRestive;
+  external def IsRestless;
+  external def IsTame;
+  external def IsTameable;
+  external def Mate;
+  external def MisereOutcomeClass;
+  external override def Options;
+  external override def ToOutput;
+
+  external def Distinguisher(h as MisereCanonicalGame);
+  external def IsLinkedTo(h as MisereCanonicalGame);
+  external def Link(h as MisereCanonicalGame);
+  external def MisereMinus(h as MisereCanonicalGame);
+
+end
