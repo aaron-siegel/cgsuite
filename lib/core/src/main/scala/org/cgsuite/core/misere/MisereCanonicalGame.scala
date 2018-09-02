@@ -38,8 +38,9 @@ object MisereCanonicalGame {
     MisereCanonicalGame(ops.constructFromNimber(size))
   }
 
-  def dayN(n: Integer): Iterable[MisereCanonicalGame] = {
-    ops.getEarlyVals(Int.MaxValue, n.intValue, Int.MaxValue, Int.MaxValue, true) map { MisereCanonicalGame(_) }
+  def dayN(birthday: Integer, maxGames: Integer, maxOptions: Integer): Iterable[MisereCanonicalGame] = {
+    ops.getEarlyVals(maxGames.intValue, birthday.intValue, maxOptions.intValue, maxOptions.intValue, true)
+      .map { MisereCanonicalGame(_) }
   }
 
   object DeterministicOrdering extends Ordering[MisereCanonicalGame] {
@@ -62,7 +63,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def misereMinus(that: MisereCanonicalGame) = {
     ops.subtract(misereGameId, that.misereGameId) match {
-      case -1 => throw InputException(s"Misere canonical forms are not subtractable: $this MisereMinus $that")
+      case -1 => throw InputException(s"Those misere games are not subtractable: $this, $that")
       case id => MisereCanonicalGame(id)
     }
   }
@@ -75,7 +76,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def mate = MisereCanonicalGame(ops.mate(misereGameId))
 
-  def genus = ops.genus(misereGameId)
+  override def genus: Genus = ops.genus(misereGameId)
 
   def isEven = ops.isEven(misereGameId)
 
@@ -101,6 +102,12 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def isRestive = ops.isRestive(misereGameId)
 
+  override def misereCanonicalForm = this
+
+  override def misereNimValue = Integer(ops.gMinusValue(misereGameId))
+
+  override def nimValue = Integer(ops.gPlusValue(misereGameId))
+
   def distinguisher(that: MisereCanonicalGame) = MisereCanonicalGame(ops.discriminatorPN(misereGameId, that.misereGameId))
 
   def parts = ops.properParts(misereGameId).toIndexedSeq map { MisereCanonicalGame(_) }
@@ -115,7 +122,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def link(that: MisereCanonicalGame) = {
     ops.findLink(misereGameId, that.misereGameId) match {
-      case -1 => throw InputException("not linked")     // TODO Improve
+      case -1 => throw InputException(s"Those misere games are not linked: $this, $that")
       case id => MisereCanonicalGame(id)
     }
   }

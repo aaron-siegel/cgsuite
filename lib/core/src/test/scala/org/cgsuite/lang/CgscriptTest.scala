@@ -761,6 +761,20 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  it should "implement >= 2-ary methods correctly" in {
+
+    val instances = Seq(
+      ("*[[2]] Distinguisher *[2]+*[2]", "*[(2#1)21]"),
+      ("*[[[2]]] IsLinkedTo *[2]+*[2]", "true"),
+      ("*[[[2]]] IsLinkedTo *[[2]]", "false"),
+      ("*[[[2]]] Link *[2]+*[2]", "*[((2#1)21)32]"),
+      ("*[[[2]]] Link *[[2]]", "!!Those misere games are not linked: *[2##], *[2#]"),
+      ("*[[[2]]] MisereMinus *[[2]]", "*[2[##-2]0]"),
+      ("*[[[2]]] MisereMinus *[[4]]", "!!Those misere games are not subtractable: *[2##], *[4#]")
+    )
+
+  }
+
   "game.Game" should "behave correctly" in {
     executeTests(Table(
       header,
@@ -847,23 +861,38 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.heap" should "define TakeAndBreak properly" in {
 
     val instances = Seq(
-      ("game.heap.Nim", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "Nothing"),
-      ("game.heap.GrundysGame", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "Nothing"),
-      ("game.heap.Kayles", "20", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]", "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)"),
-      ("game.heap.DawsonsKayles", "10", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]", "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)"),
-      ("game.heap.TakeAndBreak(\"0.3f\")", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "Nothing")
+      ("game.heap.Nim", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "Nothing",
+        "[1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]"),
+      ("game.heap.GrundysGame", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "Nothing",
+        "[1,1,1,0,1,2,0,1,2,0,1,2,0,1,2,0,1,2,0,1,2]", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3^1431,2,1,3^1431,2,4^0564,3^1431,0^20]"),
+      ("game.heap.Kayles", "20", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]",
+        "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)",
+        "[1,0,2,3,0,1,3,2,1,0,2,4,0,1,2,5,1,6,3,2,0]",
+        "[0,1,2,3,1,4^146,3,2^2,1^1,4^046,2^2,6^46,4^046,1^1,2^2,7^57,1^13,4^64,3^31,2^20,1^031]"),
+      ("game.heap.DawsonsKayles", "10", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]",
+        "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)",
+        "[1,1,0,0,2,1,3,0,0,1,1,3,0,2,1,1,0,0,2,1,3]", "[0,0,1,1,2,0,3,1,1,0,3^1431,3,2^0520,2,4^146,0,5^057,2^0520,2,3^1431,3]"),
+      ("game.heap.TakeAndBreak(\"0.3f\")", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "Nothing",
+        "[1,0,2,1,0,2,1,0,4,1,0,4,1,0,6,1,0,6,1,0,6]",
+        "[0,1,2,0,1,2,3^1431,4^0564,5^46,3^1431,4^0564,5^4875,6^(1,9,10,8),7^075,8^6875,6^(1,9,10,8),7^075,8^(6,10,8),9^(1,9,12,11,9),10^(0,11,13,9,11),11^(6,10,8)]")
     )
 
-    val tests = instances flatMap { case (rs, optionCount, nimSequence, periodicity) =>
+    val tests = instances flatMap { case (rs, optionCount, nimSequence, periodicity, misereNimValue, genus) =>
       Seq(
         (s"$rs.NimValue", s"listof($rs(n).NimValue for n from 0 to 20)", nimSequence),
         (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
         (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence),
-        (s"$rs.CheckPeriodicity(2000)", s"$rs.CheckPeriodicity(2000)", periodicity)
+        (s"$rs.CheckPeriodicity(2000)", s"$rs.CheckPeriodicity(2000)", periodicity),
+        (s"$rs.MisereNimValue", s"listof($rs(n).MisereNimValue for n from 0 to 20)", misereNimValue),
+        (s"$rs.Genus", s"listof($rs(n).Genus for n from 0 to 20)", genus)
       )
     }
 
-    executeTests(Table(header, tests : _*))
+    val moreTests = Seq(
+      ("game.heap.GrundysGame.MisereCanonicalForm", "game.heap.GrundysGame(20).MisereCanonicalForm", "*[((2[2]21)[2](2[2]21)20)(2[2]21)3]")
+    )
+
+    executeTests(Table(header, tests ++ moreTests : _*))
   }
 
   def executeTests(tests: TableFor3[String, String, String], preamble: String = ""): Unit = {

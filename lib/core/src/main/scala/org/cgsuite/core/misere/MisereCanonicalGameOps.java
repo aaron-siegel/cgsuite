@@ -1569,7 +1569,6 @@ public final class MisereCanonicalGameOps
     }
 
     /**
-     * Finds a P-N discriminator between this game and <code>g</code>.
      * A P-N discriminator between <code>G</code> and <code>H</code> is a
      * game <code>T</code> such that <code>G+T</code> is a P-position, but
      * <code>H+T</code> is an N-position.

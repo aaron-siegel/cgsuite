@@ -7,7 +7,7 @@ object MisereCanonicalGameTestCase {
     MisereCanonicalGameTestCase(
       "*[0]", "*[0]", "MisereCanonicalGame",
       birthday = "0",
-      genus = "0^",
+      genus = "0",
       isEven = "true",
       isExtraverted = "true",
       isGenerallyRestive = "false",
@@ -21,7 +21,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[1]",
+      misereNimValue = "1",
       misereOutcomeClass = "N",
+      nimValue = "0",
       options = "[]",
       partitions = "[[]]",
       parts = "[]"
@@ -30,7 +32,7 @@ object MisereCanonicalGameTestCase {
     MisereCanonicalGameTestCase(
       "*[1]", "*[1]", "MisereCanonicalGame",
       birthday = "1",
-      genus = "1^",
+      genus = "1",
       isEven = "false",
       isExtraverted = "true",
       isGenerallyRestive = "false",
@@ -44,7 +46,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[0]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "1",
       options = "[*[0]]",
       partitions = "[[*[1]]]",
       parts = "[]"
@@ -53,7 +57,7 @@ object MisereCanonicalGameTestCase {
     MisereCanonicalGameTestCase(
       "*[2]", "*[2]", "MisereCanonicalGame",
       birthday = "2",
-      genus = "2^",
+      genus = "2",
       isEven = "true",
       isExtraverted = "true",
       isGenerallyRestive = "false",
@@ -67,7 +71,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[2]",
+      misereNimValue = "2",
       misereOutcomeClass = "N",
+      nimValue = "2",
       options = "[*[0],*[1]]",
       partitions = "[[*[2]]]",
       parts = "[]"
@@ -90,7 +96,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[2#]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "0",
       options = "[*[2]]",
       partitions = "[[*[2],*[2[#-2]]]]",
       parts = "[*[2],*[2[#-2]]]"
@@ -113,7 +121,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[2##]",
+      misereNimValue = "1",
       misereOutcomeClass = "N",
+      nimValue = "1",
       options = "[*[2#]]",
       partitions = "[[*[2],*[2[#-2]],*[2[##-2]0]]]",
       parts = "[*[2],*[2[##-2]],*[2#],*[2[##-2]0],*[2[#-2]],*[(2[##-2]0)[2]]]"
@@ -136,7 +146,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[2[2]]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "0",
       options = "[*[2],*[3]]",
       partitions = "[[*[2],*[2]]]",
       parts = "[*[2]]"
@@ -159,7 +171,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[2[#2#]]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "0",
       options = "[*[2[#2]]]",
       partitions = "[[*[2],*[2],*[2[#-2]],*[2[#-2]]]]",
       parts = "[*[2],*[2[#2#-2]],*[2#],*[2[2]],*[2[#2#-2-2]],*[2[#-2]],*[2[#2]]]"
@@ -182,7 +196,9 @@ object MisereCanonicalGameTestCase {
       isTame = "false",
       isTameable = "false",
       mate = "*[2#1]",
+      misereNimValue = "2",
       misereOutcomeClass = "N",
+      nimValue = "1",
       options = "[*[0],*[2#]]",
       partitions = "[[*[2#0]]]",
       parts = "[]"
@@ -206,7 +222,9 @@ object MisereCanonicalGameTestCase {
       isTame = "false",
       isTameable = "false",
       mate = "*[2#1]",
+      misereNimValue = "2",
       misereOutcomeClass = "N",
+      nimValue = "1",
       options = "[*[0],*[2#]]",
       partitions = "[[*[2#0]]]",
       parts = "[]"
@@ -230,7 +248,9 @@ object MisereCanonicalGameTestCase {
       isTame = "false",
       isTameable = "false",
       mate = "*[2#0]",
+      misereNimValue = "1",
       misereOutcomeClass = "N",
+      nimValue = "2",
       options = "[*[1],*[2#]]",
       partitions = "[[*[2#1]]]",
       parts = "[]"
@@ -254,7 +274,9 @@ object MisereCanonicalGameTestCase {
       isTame = "true",
       isTameable = "true",
       mate = "*[4[2#]]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "0",
       options = "[*[4[2]]]",
       partitions = "[[*[2],*[4[2#-2]]],[*[4],*[4[2#-4]]]]",
       parts = "[*[2],*[4[2#-2]],*[4],*[4[2#-4]]]"
@@ -278,7 +300,9 @@ object MisereCanonicalGameTestCase {
       isTame = "false",
       isTameable = "true",
       mate = "*[(2#0)2##]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "0",
       options = "[*[2##],*[2#1]]",
       partitions = "[[*[(2#1)2##]]]",
       parts = "[]"
@@ -302,14 +326,65 @@ object MisereCanonicalGameTestCase {
       isTame = "false",
       isTameable = "true",
       mate = "*[((2#1)10)2##]",
+      misereNimValue = "0",
       misereOutcomeClass = "P",
+      nimValue = "0",
       options = "[*[2##],*[(2#0)10]]",
       partitions = "[[*[((2#0)10)2##]]]",
       parts = "[]"
-    )
+    ),
 
-    // TODO: Generally restive, but not restive
-    // TODO: Tameable, but not generally tame
+    // Tameable, but not generally tame
+    MisereCanonicalGameTestCase(
+      "*[*[[2],1]+*[1],[[2],*[[2]]+*[1],[[2],0]]]", "*[((2#0)2[#1]2#)(2#1)[1]]", "MisereCanonicalGame",
+      birthday = "6",
+      genus = "0^120",
+      isEven = "true",
+      isExtraverted = "false",
+      isGenerallyRestive = "false",
+      isGenerallyTame = "false",
+      isHalfTame = "false",
+      isIntroverted = "false",
+      isNimHeap = "false",
+      isPrime = "true",
+      isRestive = "false",
+      isRestless = "false",
+      isTame = "false",
+      isTameable = "true",
+      mate = "*[((2#1)2[#1]2#)(2#0)[1]]",
+      misereNimValue = "1",
+      misereOutcomeClass = "N",
+      nimValue = "0",
+      options = "[*[(2#1)[1]],*[(2#0)2[#1]2#]]",
+      partitions = "[[*[((2#0)2[#1]2#)(2#1)[1]]]]",
+      parts = "[]"
+    ),
+
+    // Restive, but not generally restive
+    MisereCanonicalGameTestCase(
+      "*[[[2],2,0],[[2],3],1]", "*[(2#20)2[#1]1]", "MisereCanonicalGame",
+      birthday = "5",
+      genus = "0^2",
+      isEven = "true",
+      isExtraverted = "false",
+      isGenerallyRestive = "true",
+      isGenerallyTame = "false",
+      isHalfTame = "true",
+      isIntroverted = "false",
+      isNimHeap = "false",
+      isPrime = "true",
+      isRestive = "false",
+      isRestless = "false",
+      isTame = "false",
+      isTameable = "false",
+      mate = "*[(2#21)2[#1]0]",
+      misereNimValue = "2",
+      misereOutcomeClass = "N",
+      nimValue = "0",
+      options = "[*[1],*[2[#1]],*[2#20]]",
+      partitions = "[[*[(2#20)2[#1]1]]]",
+      parts = "[]"
+    )
 
   )
 
@@ -334,7 +409,9 @@ case class MisereCanonicalGameTestCase(
   isTame: String,
   isTameable: String,
   mate: String,
+  misereNimValue: String,
   misereOutcomeClass: String,
+  nimValue: String,
   options: String,
   partitions: String,
   parts: String
@@ -358,7 +435,9 @@ case class MisereCanonicalGameTestCase(
     (s"($x).IsTame", isTame),
     (s"($x).IsTameable", isTameable),
     (s"($x).Mate", mate),
+    (s"($x).MisereNimValue", misereNimValue),
     (s"($x).MisereOutcomeClass", misereOutcomeClass),
+    (s"($x).NimValue", nimValue),
     (s"($x).Options", options),
     (s"($x).Partitions", partitions),
     (s"($x).Parts", parts)

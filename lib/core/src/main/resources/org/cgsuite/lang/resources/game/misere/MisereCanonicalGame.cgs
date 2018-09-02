@@ -3,7 +3,6 @@
 system class MisereCanonicalGame extends ImpartialGame
 
   external def Birthday;
-  external def Genus;
   external def IsEven;
   external def IsExtraverted;
   external def IsGenerallyRestive;
@@ -28,6 +27,6 @@ system class MisereCanonicalGame extends ImpartialGame
   external def Link(h as MisereCanonicalGame);
   external def MisereMinus(h as MisereCanonicalGame);
 
-  external static def DayN(n as Integer);
+  external static def DayN(maxBirthday as Integer, maxGames as Integer ? 1000000, maxOptions as Integer ? 1000000);
 
 end

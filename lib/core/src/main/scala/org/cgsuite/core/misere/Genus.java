@@ -29,6 +29,7 @@
 
 package org.cgsuite.core.misere;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.BitSet;
 import org.cgsuite.core.impartial.CodeDigit;
@@ -148,18 +149,30 @@ public final class Genus implements OutputTarget
     /**
      * Output
      */
-    public StringBuilder appendToStringBuilder(StringBuilder sb)
-    {
-        sb.append(""+gBase+"^");
-        for(int i = 0; i<gSup.length; ++i)
-        {
-            (new CodeDigit(gSup[i],CodeDigit.decimalOptions)).appendToStringBuilder(sb);
-        }
-        return sb;
-    }
     public Output toOutput()
     {
-        return new StyledTextOutput(appendToStringBuilder(new StringBuilder()).toString());
+        StyledTextOutput sto = new StyledTextOutput();
+        sto.appendMath(String.valueOf(gBase));
+        if (gSup.length > 0)
+            sto.appendText(EnumSet.of(StyledTextOutput.Style.FACE_MATH), EnumSet.of(Output.Mode.PLAIN_TEXT), "^");
+        boolean hasBigSup = false;
+        for (int i = 0; i < gSup.length; i++)
+            if (gSup[i] >= 10)
+                hasBigSup = true;
+        if (hasBigSup)
+            sto.appendText(EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_SUPERSCRIPT), "(");
+        for (int i = 0; i < gSup.length; i++)
+        {
+            sto.appendText(
+                EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_SUPERSCRIPT),
+                String.valueOf(gSup[i])
+            );
+            if (hasBigSup && i < gSup.length - 1)
+                sto.appendText(EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_SUPERSCRIPT), ",");
+        }
+        if (hasBigSup)
+            sto.appendText(EnumSet.of(StyledTextOutput.Style.FACE_MATH, StyledTextOutput.Style.LOCATION_SUPERSCRIPT), ")");
+        return sto;
     }
 
     public String toString()
@@ -173,6 +186,14 @@ public final class Genus implements OutputTarget
     public int gBase()
     {
         return gBase;
+    }
+
+    public int misereNimValue()
+    {
+        if (phylum == Phylum.NIMHEAP)
+            return gBase < 2 ? 1 - gBase : gBase;
+        else
+            return gSup[0];
     }
 
     /**

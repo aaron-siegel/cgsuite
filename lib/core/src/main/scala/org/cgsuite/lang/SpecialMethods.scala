@@ -47,6 +47,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.forall { x => proc.call(Array(x)).asInstanceOf[Boolean] }
     },
+    "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], proc: Procedure) =>
+      collection.foreach { x => proc.call(Array(x)) }; null
+    },
     "cgsuite.lang.List.Grouped" -> { (list: Seq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
     },

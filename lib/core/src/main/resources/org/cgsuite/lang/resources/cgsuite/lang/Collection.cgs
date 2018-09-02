@@ -8,6 +8,8 @@ system class Collection
 
   external def ForAll(proc as Procedure);
 
+  external def ForEach(proc as Procedure);
+
   external def Head;
 
   external def IsEmpty;

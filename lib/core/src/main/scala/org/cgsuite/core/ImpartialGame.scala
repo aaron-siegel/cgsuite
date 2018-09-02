@@ -3,7 +3,7 @@ package org.cgsuite.core
 import org.cgsuite.lang.NotShortGameException
 import org.cgsuite.util.TranspositionTable
 import org.cgsuite.core.ImpartialGame.mex
-import org.cgsuite.core.misere.{MisereCanonicalGame, MisereValues}
+import org.cgsuite.core.misere.{Genus, MisereCanonicalGame, MisereValues}
 
 import scala.collection.{BitSet, mutable}
 
@@ -81,6 +81,11 @@ trait ImpartialGame extends Game {
         throw NotShortGameException(s"That is not a short game. If that is intentional, try `GameValue` in place of `NimValue`.")
     }
   }
+
+  // TODO Improve this for tame genera
+  def genus: Genus = misereCanonicalForm.genus
+
+  def misereNimValue: Integer = Integer(genus.misereNimValue());
 
   def misereCanonicalForm: MisereCanonicalGame = {
     misereCanonicalForm(new TranspositionTable())
