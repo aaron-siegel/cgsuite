@@ -205,7 +205,11 @@ object Ops {
 
 trait UnOp {
   def name: String
-  def apply(x: Any): Any
+  def apply(tree: Tree, x: Any): Any
+  def throwEvalException(tree: Tree, x: Any): Unit = {
+    val xClass = CgscriptClass.of(x).qualifiedName
+    throw EvalException(s"No operation `$name` for argument of type `$xClass`", tree)
+  }
 }
 
 object UnOp {
@@ -213,16 +217,26 @@ object UnOp {
 }
 
 class SimpleUnOp(val name: String)(resolver: Any => Any) extends UnOp {
-  def apply(x: Any): Any = resolver(x)
+  def apply(tree: Tree, x: Any): Any = {
+    try {
+      resolver(x)
+    } catch {
+      case err: MatchError => throwEvalException(tree, x)
+    }
+  }
 }
 
 class CachingUnOp(val name: String)(resolver: Any => _ => Any) extends UnOp {
 
   val classLookupCache = mutable.AnyRefMap[Class[_], Any => Any]()
 
-  def apply(x: Any): Any = {
-    val fn = classLookupCache.getOrElseUpdate(x.getClass, resolver(x).asInstanceOf[Any => Any])
-    fn(x)
+  def apply(tree: Tree, x: Any): Any = {
+    try {
+      val fn = classLookupCache.getOrElseUpdate(x.getClass, resolver(x).asInstanceOf[Any => Any])
+      fn(x)
+    } catch {
+      case err: MatchError => throwEvalException(tree, x)
+    }
   }
 
 }
@@ -230,7 +244,7 @@ class CachingUnOp(val name: String)(resolver: Any => _ => Any) extends UnOp {
 trait BinOp {
   def name: String
   def apply(tree: Tree, x: Any, y: Any): Any
-  def throwInputException(tree: Tree, x: Any, y: Any): Unit = {
+  def throwEvalException(tree: Tree, x: Any, y: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
     val yClass = CgscriptClass.of(y).qualifiedName
     throw EvalException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`", tree)
@@ -246,7 +260,7 @@ class SimpleBinOp(val name: String)(resolver: PartialFunction[(Any, Any), Any]) 
     try {
       resolver(x, y)
     } catch {
-      case err: MatchError => throwInputException(tree, x, y)
+      case err: MatchError => throwEvalException(tree, x, y)
     }
   }
 }
@@ -265,7 +279,7 @@ class CachingBinOp(val name: String)(resolver: PartialFunction[(Any, Any), (_, _
       val fn = classLookupCache.getOrElseUpdate(classPair, resolver(x, y).asInstanceOf[(Any, Any) => Any])
       fn(x, y)
     } catch {
-      case err: MatchError => throwInputException(tree, x, y)
+      case err: MatchError => throwEvalException(tree, x, y)
     }
   }
 

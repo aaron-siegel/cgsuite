@@ -330,7 +330,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override val children = Seq(operand)
   override def evaluate(domain: Domain) = {
     try {
-      op(operand.evaluate(domain))
+      op(tree, operand.evaluate(domain))
     } catch {
       case exc: CgsuiteException =>
         // We only add a token for ops if no subexpression has generated a token.

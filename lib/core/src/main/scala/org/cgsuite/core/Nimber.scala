@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.exception.InvalidArgumentException
+
 import scala.language.postfixOps
 
 object Nimber {
@@ -14,7 +16,7 @@ object Nimber {
 
   def apply(nimValue: Int): Nimber = nimValue match {
     case 0 => ZeroImpl
-    case m if m < 0 => sys.error("nim value must be a positive integer")
+    case m if m < 0 => throw InvalidArgumentException(s"Nim value is negative: $m")
     case _ => NimberImpl(nimValue)
   }
   

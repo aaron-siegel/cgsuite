@@ -7,7 +7,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{ArithmeticException, InvalidArgumentException}
 
 object DyadicRationalNumber {
   
@@ -35,7 +35,7 @@ object DyadicRationalNumber {
 
   private def fromSection(left: DyadicRationalNumber, right: DyadicRationalNumber): DyadicRationalNumber = {
     if (left >= right) {
-      throw EvalException("Left section must be < Right section")
+      throw ArithmeticException("Left section must be < Right section")
     } else {
       var ls = left.step(1)
       if (ls < right) {
@@ -129,7 +129,7 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
 
   def blowup: DyadicRationalNumber = {
     if (this <= zero) {
-      throw EvalException("Exponent must be a nonnegative pseudonumber.")
+      throw InvalidArgumentException("Exponent must be a nonnegative pseudonumber.")
     } else if (isInteger) {
       this - one
     } else if (step(-1) == zero) {

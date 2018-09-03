@@ -2,7 +2,7 @@ package org.cgsuite.core
 
 import java.util
 
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{EvalException, NotAtomicException}
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.output.StyledTextOutput.Style._
 import org.cgsuite.output.StyledTextOutput.Symbol._
@@ -57,7 +57,7 @@ trait Uptimal extends CanonicalShortGame {
     if (numberPart.isZero)
       SmallInteger(uptimalCoefficient(1))
     else
-      throw EvalException("That game is not atomic.")
+      throw NotAtomicException("That game is not atomic.")
   }
   override def companion = {
     if (numberPart.isZero && nimberPart <= 1)
