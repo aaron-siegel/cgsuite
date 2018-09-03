@@ -9,6 +9,7 @@ package org.cgsuite.core
 import java.util
 
 import org.cgsuite.core.Values._
+import org.cgsuite.exception.ArithmeticException
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 object RationalNumber {
@@ -18,7 +19,7 @@ object RationalNumber {
     (numerator, denominator) match {
       case (_, ZeroImpl) =>
         if (numerator == zero)   // 0/0
-          throw new ArithmeticException("/ by zero")
+          throw ArithmeticException("/ by zero")
         else
           RationalNumberImpl(numerator.sign, denominator)
       case (ZeroImpl, _) => ZeroImpl
@@ -109,7 +110,7 @@ trait RationalNumber extends SurrealNumber with OutputTarget {
   override def birthday: GeneralizedOrdinal = {
     assert(!isDyadic)
     if (denominator == zero)
-      sys.error("inf has no birthday")
+      throw ArithmeticException("inf has no birthday")
     else
       omega
   }

@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable
 
@@ -39,11 +39,11 @@ object CallSite {
       while (i < args.length) {
         val cls = CgscriptClass of args(i)
         if (!(cls.ancestors contains parameters(i).paramType)) {
-          throw InputException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
+          throw EvalException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
             s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
         }
         if (ensureImmutable && cls.isMutable) {
-          throw InputException(s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class")
+          throw EvalException(s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class")
         }
         i += 1
       }

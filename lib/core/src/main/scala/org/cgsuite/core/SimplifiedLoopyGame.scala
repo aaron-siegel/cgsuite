@@ -1,6 +1,6 @@
 package org.cgsuite.core
 
-import org.cgsuite.lang.NotShortGameException
+import org.cgsuite.exception.NotShortGameException
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.util.TranspositionTable
 

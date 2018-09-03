@@ -2,7 +2,7 @@ package org.cgsuite.lang
 
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
 
@@ -134,10 +134,10 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
       val ttype = n.classId match {
         case None => CgscriptClass.Object
         case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
-          throw InputException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
+          throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
         }
       }
-      Parameter(n.id.id, ttype, n.defaultValue)
+      Parameter(n.id, ttype, n.defaultValue)
     }
 
   }
@@ -202,7 +202,7 @@ object Modifiers {
     val tokens = tree.children map { _.token }
     tokens foreach { token =>
       if (!(allowed contains token.getType))
-        throw InputException(s"Modifier `${token.getText}` not permitted here", token = Some(token))
+        throw EvalException(s"Modifier `${token.getText}` not permitted here", token = Some(token))
     }
     Modifiers(
       external = tokens find { _.getType == EXTERNAL },

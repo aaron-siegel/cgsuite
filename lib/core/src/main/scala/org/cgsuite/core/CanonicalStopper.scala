@@ -4,7 +4,7 @@ import java.util
 
 import org.cgsuite.core.CanonicalStopper._
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import org.cgsuite.util.TranspositionTable
@@ -29,7 +29,7 @@ object CanonicalStopper {
         }
       }
     } else {
-      throw InputException(s"not a stopper: $loopyGame")
+      throw EvalException(s"not a stopper: $loopyGame")
     }
   }
 
@@ -140,7 +140,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (deg.isIdempotent)
       downsum((-this).upsum(deg))
     else
-      throw InputException("Degree must be an idempotent.")
+      throw EvalException("Degree must be an idempotent.")
   }
 
   def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
@@ -209,7 +209,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (deg.isIdempotent)
       upsum((-this).downsum(-deg))
     else
-      throw InputException("Degree must be an idempotent.")
+      throw EvalException("Degree must be an idempotent.")
   }
 
   def variety: CanonicalStopper = {
@@ -218,7 +218,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (v == downsumVariety(deg))
       v
     else
-      throw InputException("Congratulations!  You've found a counterexample to the Stability Conjecture.  Please report this finding to asiegel@users.sourceforge.net.")
+      throw EvalException("Congratulations!  You've found a counterexample to the Stability Conjecture.  Please report this finding to asiegel@users.sourceforge.net.")
   }
 
   def stop(player: Player): Pseudonumber = {

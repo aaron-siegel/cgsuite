@@ -7,7 +7,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.dsl.IntegerIsIntegral
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.{Coordinates, Grid, Strip}
 
@@ -233,7 +233,7 @@ trait BinOp {
   def throwInputException(tree: Tree, x: Any, y: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
     val yClass = CgscriptClass.of(y).qualifiedName
-    throw InputException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`", tree)
+    throw EvalException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`", tree)
   }
 }
 

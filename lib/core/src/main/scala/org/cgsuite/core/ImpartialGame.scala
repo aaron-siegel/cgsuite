@@ -1,9 +1,9 @@
 package org.cgsuite.core
 
-import org.cgsuite.lang.NotShortGameException
-import org.cgsuite.util.TranspositionTable
 import org.cgsuite.core.ImpartialGame.mex
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame, MisereValues}
+import org.cgsuite.exception.NotShortGameException
+import org.cgsuite.util.TranspositionTable
 
 import scala.collection.{BitSet, mutable}
 
@@ -126,7 +126,7 @@ trait ImpartialGame extends Game {
           visited -= this
         }
       case _ =>
-        throw NotShortGameException(s"That is not a short game; loopy misere values are not implemented.")
+        throw NotShortGameException(s"That is not a short game.")
     }
   }
 

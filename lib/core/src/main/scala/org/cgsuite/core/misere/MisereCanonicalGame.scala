@@ -2,7 +2,7 @@ package org.cgsuite.core.misere
 
 import org.cgsuite.core.{ImpartialGame, Integer, OutcomeClass, SmallInteger}
 import org.cgsuite.core.misere.{MisereCanonicalGameOps => ops}
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
 
 object MisereCanonicalGame {
@@ -63,7 +63,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def misereMinus(that: MisereCanonicalGame) = {
     ops.subtract(misereGameId, that.misereGameId) match {
-      case -1 => throw InputException(s"Those misere games are not subtractable: $this, $that")
+      case -1 => throw EvalException(s"Those misere games are not subtractable: $this, $that")
       case id => MisereCanonicalGame(id)
     }
   }
@@ -122,7 +122,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def link(that: MisereCanonicalGame) = {
     ops.findLink(misereGameId, that.misereGameId) match {
-      case -1 => throw InputException(s"Those misere games are not linked: $this, $that")
+      case -1 => throw EvalException(s"Those misere games are not linked: $this, $that")
       case id => MisereCanonicalGame(id)
     }
   }

@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -93,7 +93,7 @@ object EvalNode {
       case SQUOTE => GameSpecNode(tree, gameOptions(tree.head.head), gameOptions(tree.head.children(1)), forceExplicit = true)
       case NODE_LABEL => LoopyGameSpecNode(tree)
       case AMPERSAND => BinOpNode(tree, MakeSides)
-      case PASS => throw InputException("Unexpected `pass`.", tree)
+      case PASS => throw EvalException("Unexpected `pass`.", tree)
 
       // Control flow
 
@@ -120,7 +120,7 @@ object EvalNode {
 
       case ASSIGN =>
         if (tree.head.getType != IDENTIFIER)
-          throw InputException("Syntax error.", tree)
+          throw EvalException("Syntax error.", tree)
         AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), AssignmentDeclType.Ordinary)
       case VAR => VarNode(tree)
 
@@ -275,7 +275,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     // we can throw an exception now
     if (classResolution.isEmpty && localVariableReference == null && classVariableReference == null &&
       constantResolution == null && scope.pkg.isDefined) {
-      throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
+      throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
     }
   }
 
@@ -298,9 +298,9 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
         case None =>
           if (constantResolution != null) {
             // Constant
-            constantResolution evaluateFor constantResolution.cls.singletonInstance
+            constantResolution evaluateFor (constantResolution.cls.singletonInstance, token)
           } else {
-            throw InputException(s"That variable is not defined: `${id.name}`", token = Some(token))
+            throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
           }
       }
     }
@@ -310,7 +310,8 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     if (domain.isOuterDomain) {
       domain getDynamicVar id
     } else if (classVariableReference != null) {
-      Some(classVariableReference.resolver resolve domain.nestingBackrefContextObject(classVariableReference.nestingHops))
+      val backrefObject = domain nestingBackrefContextObject classVariableReference.nestingHops
+      Some(classVariableReference.resolver resolve (backrefObject, token))
     } else {
       None
     }
@@ -326,7 +327,17 @@ object UnOpNode {
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override val children = Seq(operand)
-  override def evaluate(domain: Domain) = op(operand.evaluate(domain))
+  override def evaluate(domain: Domain) = {
+    try {
+      op(operand.evaluate(domain))
+    } catch {
+      case exc: CgsuiteException =>
+        // We only add a token for ops if no subexpression has generated a token.
+        if (exc.tokenStack.isEmpty)
+          exc addToken token
+        throw exc
+    }
+  }
   def toNodeString = op.name + operand.toNodeString
 }
 
@@ -340,7 +351,11 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
     try {
       op(tree, operand1.evaluate(domain), operand2.evaluate(domain))
     } catch {
-      case exc: ArithmeticException => throw InputException(exc.getMessage, tree)
+      case exc: CgsuiteException =>
+        // We only add a token for ops if no subexpression has generated a token.
+        if (exc.tokenStack.isEmpty)
+          exc addToken token
+        throw exc
     }
   }
   def toNodeString = s"(${operand1.toNodeString} ${op.name} ${operand2.toNodeString})"
@@ -457,7 +472,7 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
         SidedValue(SimplifiedLoopyGame.constructLoopyGame(glonside, gronside), SimplifiedLoopyGame.constructLoopyGame(gloffside, groffside))
       }
     } else {
-      throw InputException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
+      throw EvalException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
     }
   }
   def isListOf[T](objects: Iterable[_])(implicit mf: Manifest[T]): Boolean = {
@@ -526,7 +541,7 @@ case class LoopyGameSpecNode(
   override def elaborate(scope: ElaborationDomain): Unit = {
     nodeLabel foreach { idNode =>
       scope.pushScope()
-      scope.insertId(idNode.id)
+      scope.insertId(idNode)
     }
     super.elaborate(scope)
     nodeLabel foreach { _ => scope.popScope() }
@@ -650,7 +665,7 @@ case class LoopNode(
     forId match {
       case Some(idNode) =>
         scope.pushScope()
-        scope.insertId(idNode.id)
+        scope.insertId(idNode)
       case None =>
     }
     super.elaborate(scope)
@@ -673,7 +688,7 @@ case class LoopNode(
       case LoopNode.YieldSet => yieldResult.toSet
       case LoopNode.YieldTable => Table { yieldResult.toSeq map {
         case list: Seq[_] => list
-        case _ => throw InputException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
+        case _ => throw EvalException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
       } } (OutputBuilder.toOutput)
       case LoopNode.YieldSum => r
     }
@@ -786,7 +801,7 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
   override def elaborate(scope: ElaborationDomain) = {
     val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
     parameters foreach { param =>
-      param.methodScopeIndex = newScope.insertId(param.id)
+      param.methodScopeIndex = newScope.insertId(param.idNode)
       param.defaultValue foreach { _.elaborate(newScope) }
     }
     body.elaborate(newScope)
@@ -810,7 +825,7 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
   override def evaluate(domain: Domain) = {
-    throw InputException(msg.evaluate(domain).toString)
+    throw EvalException(msg.evaluate(domain).toString)
   }
   def toNodeString = s"error(${msg.toNodeString})"
 }
@@ -839,14 +854,14 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     if (classResolution != null) {
       if (classResolution.isSingleton) classResolution.singletonInstance else classResolution.classObject
     } else if (constantResolution != null) {
-      constantResolution evaluateFor constantResolution.cls.singletonInstance
+      constantResolution evaluateFor (constantResolution.cls.singletonInstance, token)
     } else {
       val x = obj.evaluate(domain)
       val resolution = idNode.resolver.findResolution(x)
       if (resolution.isResolvable) {
-        resolution.evaluateFor(x)
+        resolution.evaluateFor(x, token)
       } else {
-        throw InputException(
+        throw EvalException(
           s"Not a method or member variable: `${idNode.id.name}` (in object of class `${(CgscriptClass of x).qualifiedName}`)",
           token = Some(token)
         )
@@ -911,7 +926,7 @@ case class FunctionCallNode(
       case cs: CallSite => cs
       case co: ClassObject => co.forClass.constructor match {
         case Some(ctor) => ctor
-        case None => throw InputException(
+        case None => throw EvalException(
           s"The class `${co.forClass.qualifiedName}` has no constructor and cannot be directly instantiated.",
           token = Some(token)
         )
@@ -933,8 +948,8 @@ case class FunctionCallNode(
     try {
       callSite.call(args)
     } catch {
-      case exc: InputException =>
-        exc.tokenStack += token
+      case exc: CgsuiteException =>
+        exc addToken token
         throw exc
     }
 
@@ -974,14 +989,14 @@ object FunctionCallResolution {
   def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
     val params = callSite.parameters
     if (argNames.length > params.length)
-      throw InputException(s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})")
+      throw EvalException(s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})")
     val parameterToArgsMapping = new Array[Int](params.length)
     java.util.Arrays.fill(parameterToArgsMapping, -1)
     // Check for named args in earlier position than ordinary args.
     val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
     argNames take (lastOrdinaryArgIndex+1) foreach {
       case None =>
-      case Some(idNode) => throw InputException(s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
+      case Some(idNode) => throw EvalException(s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
         "appears in earlier position than an ordinary argument")
     }
     argNames.zipWithIndex foreach {
@@ -989,15 +1004,15 @@ object FunctionCallResolution {
       case (Some(idNode), index) =>
         val namedIndex = params indexWhere { _.id == idNode.id }
         if (namedIndex == -1)
-          throw InputException(s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`")
+          throw EvalException(s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`")
         if (parameterToArgsMapping(namedIndex) != -1)
-          throw InputException(s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`")
+          throw EvalException(s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`")
         parameterToArgsMapping(namedIndex) = index
     }
     // Validation
     params zip parameterToArgsMapping foreach { case (param, index) =>
       if (param.defaultValue.isEmpty && index == -1)
-        throw InputException(s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`")
+        throw EvalException(s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`")
     }
     FunctionCallResolution(parameterToArgsMapping)
   }
@@ -1016,44 +1031,44 @@ object VarNode {
   }
 }
 
-case class AssignToNode(tree: Tree, id: IdentifierNode, expr: EvalNode, declType: AssignmentDeclType.Value) extends EvalNode {
+case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, declType: AssignmentDeclType.Value) extends EvalNode {
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   // TODO Catch illegal assignment to constant
-  override val children = Seq(id, expr)
+  override val children = Seq(idNode, expr)
   override def elaborate(scope: ElaborationDomain) {
     if (declType == AssignmentDeclType.VarDecl) {
-      scope.insertId(id.id)
+      scope.insertId(idNode)
     }
     super.elaborate(scope)
   }
   override def evaluate(domain: Domain) = {
     val newValue = expr.evaluate(domain)
-    if (id.classResolution.isDefined) {
-      throw InputException(s"Cannot assign to class name as variable: `${id.id.name}`", token = Some(token))
-    } else if (id.localVariableReference != null) {
-      val refDomain = domain backref id.localVariableReference.domainHops
-      refDomain.localScope(id.localVariableReference.index) = newValue
+    if (idNode.classResolution.isDefined) {
+      throw EvalException(s"Cannot assign to class name as variable: `${idNode.id.name}`", token = Some(token))
+    } else if (idNode.localVariableReference != null) {
+      val refDomain = domain backref idNode.localVariableReference.domainHops
+      refDomain.localScope(idNode.localVariableReference.index) = newValue
     } else if (domain.isOuterDomain) {
-      domain.putDynamicVar(id.id, newValue)
+      domain.putDynamicVar(idNode.id, newValue)
     } else {
       // TODO Nested classes
-      val res = id.resolver.findResolution(domain.contextObject.get)
+      val res = idNode.resolver.findResolution(domain.contextObject.get)
       if (res.classScopeIndex >= 0) {
         if (declType == AssignmentDeclType.Ordinary && !res.isMutableVar)
-          throw InputException(s"Cannot reassign to immutable var: `${id.id.name}`", token = Some(token))
+          throw EvalException(s"Cannot reassign to immutable var: `${idNode.id.name}`", token = Some(token))
         val stdObj = domain.contextObject.get.asInstanceOf[StandardObject]
         if (!stdObj.cls.isMutable && (CgscriptClass of newValue).isMutable)
-          throw InputException(s"Cannot assign mutable object to var `${id.id.name}` of immutable class `${stdObj.cls.qualifiedName}`")
+          throw EvalException(s"Cannot assign mutable object to var `${idNode.id.name}` of immutable class `${stdObj.cls.qualifiedName}`")
         stdObj.vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
       } else
-        throw InputException(s"Unknown variable for assignment: `${id.id.name}`", token = Some(token))
+        throw EvalException(s"Unknown variable for assignment: `${idNode.id.name}`", token = Some(token))
     }
     newValue
   }
   def toNodeString = {
     val varStr = if (declType != AssignmentDeclType.Ordinary) "var " else ""
-    varStr + id.toNodeString + " := " + expr.toNodeString
+    varStr + idNode.toNodeString + " := " + expr.toNodeString
   }
 }
 

@@ -201,6 +201,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "construct collections properly" in {
     executeTests(Table(
       header,
+      ("Coordinates", "(1,3)", "(1,3)"),
+      ("Invalid coordinates", """("foo","bar")""", "!!No operation `(,)` for arguments of types `cgsuite.lang.String`, `cgsuite.lang.String`"),
       ("Empty List", "[]", "[]"),
       ("List", "[3,5,3,1]", "[3,5,3,1]"),
       ("Empty Set", "{}", "{}"),
@@ -517,10 +519,11 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("NimSum", "3.NimSum(5)", "6"),
       ("NimProduct", "8.NimProduct(8)", "13"),
       ("Div", "17.Div(4)", "4"),
+      ("Div by 0", "17.Div(0)", "!!/ by zero"),
       ("IsTwoPower", "[32.IsTwoPower,48.IsTwoPower]", "[true,false]"),
       ("IsSmallInteger", "[2^31,-2^31,2^31-1,-2^31-1].Apply(x -> x.IsSmallInteger)", "[false,true,true,false]"),
       ("Lb", "[15,16,17,31,2^31-1,2^31].Apply(x -> x.Lb)", "[3,4,4,4,30,31]"),
-      ("Lb(0)", "0.Lb", "!!Error in call to `game.Integer.Lb`: Logarithm of 0"),
+      ("Lb(0)", "0.Lb", "!!Logarithm of 0"),
       //("Random", "Integer.SetSeed(0); listof(Integer.Random(100) from 1 to 5)", "[61,49,30,48,16]"),
       ("Isqrt",
         """
@@ -585,8 +588,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("-3^22/2^72", "-31381059609/4722366482869645213696", "DyadicRational", "-31381059609", "4722366482869645213696", "true", "31381059609/4722366482869645213696", "-1", "0", "-4722366482869645213696/31381059609", "73", "R"),
       ("6/23", "6/23", "Rational", "6", "23", "false", "6/23", "0", "1", "23/6", "\u03C9", "L"),
       ("-6/23", "-6/23", "Rational", "-6", "23", "false", "6/23", "-1", "0", "-23/6", "\u03C9", "R"),
-      ("17/0", "inf", "Rational", "1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0", "!!Error in call to `game.Rational.Birthday`: inf has no birthday", "L"),
-      ("-17/0", "-inf", "Rational", "-1", "0", "false", "inf", "!!Error in call to `game.Rational.Floor`: / by zero", "!!Error in call to `game.Rational.Ceiling`: / by zero", "0", "!!Error in call to `game.Rational.Birthday`: inf has no birthday", "R")
+      ("17/0", "inf", "Rational", "1", "0", "false", "inf", "!!/ by zero", "!!/ by zero", "0", "!!inf has no birthday", "L"),
+      ("-17/0", "-inf", "Rational", "-1", "0", "false", "inf", "!!/ by zero", "!!/ by zero", "0", "!!inf has no birthday", "R")
     )
 
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, num, den, isDyadic, abs, floor, ceiling, reciprocal, birthday, outcomeClass) =>
@@ -908,6 +911,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       if (expectedOutput != null && (expectedOutput startsWith "!!")) {
         val thrown = the [CgsuiteException] thrownBy parseResult(input, varMap)
         thrown.getMessage shouldBe (expectedOutput stripPrefix "!!")
+        // TODO Uncomment this line
+        //thrown.tokenStack should not be empty
       } else {
         val result = parseResult(input, varMap)
         val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)

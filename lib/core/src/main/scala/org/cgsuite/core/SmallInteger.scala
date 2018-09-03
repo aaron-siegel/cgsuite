@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.exception.ArithmeticException
+
 object SmallInteger {
 
   def apply(x: Int): SmallInteger = x match {
@@ -71,8 +73,12 @@ trait SmallInteger extends Integer {
     
   override def abs: SmallInteger = SmallInteger(intValue.abs)
   
-  override def div(other: Integer) = other match {
-    case small: SmallInteger => SmallInteger(intValue / small.intValue)
+  override def div(other: Integer): Integer = other match {
+    case small: SmallInteger =>
+      if (small.intValue == 0)
+        throw ArithmeticException("/ by zero")
+      else
+        SmallInteger(intValue / small.intValue)
     case _ => super.div(other)
   }
   
@@ -86,7 +92,7 @@ trait SmallInteger extends Integer {
   override def nimSum(other: Integer) = other match {
     case small: SmallInteger =>
       if (intValue < 0 || other.intValue < 0)
-        throw new ArithmeticException("NimSum applies only to nonnegative integers.")
+        throw ArithmeticException("NimSum applies only to nonnegative integers.")
       SmallInteger(intValue ^ other.intValue)
     case _ => super.nimSum(other)
   }

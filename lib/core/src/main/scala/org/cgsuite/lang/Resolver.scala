@@ -1,5 +1,8 @@
 package org.cgsuite.lang
 
+import org.antlr.runtime.Token
+import org.cgsuite.exception.CgsuiteException
+
 import scala.collection.mutable
 
 object Resolver {
@@ -55,7 +58,7 @@ case class Resolver(id: Symbol) {
     res
   }
 
-  def resolve(x: Any): Any = findResolution(x).evaluateFor(x)
+  def resolve(x: Any, referenceToken: Token): Any = findResolution(x).evaluateFor(x, referenceToken)
 
 }
 
@@ -96,19 +99,36 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
 
   val isResolvable = classScopeIndex >= 0 || method.isDefined || nestedClass.isDefined
 
-  def evaluateFor(x: Any): Any = {
+  def evaluateFor(x: Any, referenceToken: Token): Any = {
+
     if (classScopeIndex >= 0) {
+
       x.asInstanceOf[StandardObject].vars(classScopeIndex)
+
     } else if (method.isDefined) {
-      if (method.get.autoinvoke)
-        method.get.call(x, Array.empty)
-      else
+
+      if (method.get.autoinvoke) {
+        try {
+          method.get.call(x, Array.empty)
+        } catch {
+          case exc: CgsuiteException =>
+            exc addToken referenceToken
+            throw exc
+        }
+      } else {
         InstanceMethod(x, method.get)
+      }
+
     } else if (nestedClass.isDefined) {
+
       InstanceClass(x, nestedClass.get)
+
     } else {
+
       sys error "not resolvable"
+
     }
+
   }
 
 }

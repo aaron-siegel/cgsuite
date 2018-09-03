@@ -1,7 +1,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.dsl._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.scalatest.{FlatSpec, Matchers}
 
 class UptimalTest extends FlatSpec with Matchers {
@@ -33,13 +33,7 @@ class UptimalTest extends FlatSpec with Matchers {
 
       val g = number.asInstanceOf[CanonicalShortGame] + nimber + a1 * up + a2 * up2 + a3 * up3 + a4 * up4
       val expected = new UptimalExpansion(number, nimber.intNimValue, a1.intValue, a2.intValue, a3.intValue, a4.intValue)
-      try {
-        (g, g.asInstanceOf[Uptimal].uptimalExpansion) shouldBe (g, expected)
-      } catch {
-        case exc: InputException =>
-          println("Got exception on " + expected)
-          throw exc
-      }
+      (g, g.asInstanceOf[Uptimal].uptimalExpansion) shouldBe (g, expected)
 
     }
 

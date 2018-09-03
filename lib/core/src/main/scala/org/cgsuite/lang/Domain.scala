@@ -1,6 +1,7 @@
 package org.cgsuite.lang
 
-import org.cgsuite.exception.InputException
+import org.antlr.runtime.Token
+import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable
 
@@ -78,9 +79,10 @@ class ElaborationDomain private (
 
   def localVariableCount = varMap.size
 
-  def insertId(id: Symbol): Int = {
+  def insertId(idNode: IdentifierNode): Int = {
+    val id = idNode.id
     if (contains(id)) {
-      throw InputException(s"Duplicate var: `${id.name}`")
+      throw EvalException(s"Duplicate var: `${id.name}`", token = Some(idNode.token))
     } else {
       scopeStack.top += id
       varMap getOrElseUpdate (id, varMap.size)

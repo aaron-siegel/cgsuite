@@ -1,7 +1,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
 
 
@@ -13,7 +13,7 @@ object StopperSidedValue {
     } else if (offside <= onside) {
       StopperSidedValueImpl(onside, offside)
     } else {
-      throw InputException("offside is not <= onside.")
+      throw EvalException("offside is not <= onside.")
     }
   }
 

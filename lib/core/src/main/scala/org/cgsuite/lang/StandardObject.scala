@@ -101,5 +101,3 @@ class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj:
   override def nimValue: Integer = nimValue(cls.transpositionTable)
 
 }
-
-case class NotShortGameException(msg: String, cause: Throwable = null) extends CgsuiteException(msg, cause)

@@ -3,7 +3,7 @@ package org.cgsuite.util
 import java.util
 
 import org.cgsuite.core._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -19,13 +19,13 @@ object Grid {
     val rowCount = strings.length
     val colCount = if (rowCount == 0) 0 else strings(0).length
     if (strings exists { _.length != colCount }) {
-      throw InputException("All rows of the position must have equal length.")
+      throw EvalException("All rows of the position must have equal length.")
     }
 
     val compressed = str filterNot { _ == '|' }
     val bytes = compressed map { ch =>
       charMap.indexOf(ch.toLower) match {
-        case -1 => throw InputException("The position may only contain the following characters: " + charMap)
+        case -1 => throw EvalException("The position may only contain the following characters: " + charMap)
         case n => n.toByte
       }
     }

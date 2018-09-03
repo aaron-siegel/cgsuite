@@ -3,7 +3,7 @@ package org.cgsuite.util
 import java.util
 
 import org.cgsuite.core.{SmallInteger, Integer}
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -14,7 +14,7 @@ object Strip {
   def parse(str: String, charMap: String): Strip = {
     val bytes = str map { ch =>
       charMap.indexOf(ch.toLower) match {
-        case -1 => throw InputException("The position may only contain the following characters: " + charMap)
+        case -1 => throw EvalException("The position may only contain the following characters: " + charMap)
         case n => n.toByte
       }
     }

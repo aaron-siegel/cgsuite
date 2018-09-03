@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import java.io.{PrintWriter, StringWriter}
 import java.util
 
-import org.cgsuite.exception.{InputException, SyntaxException}
+import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
@@ -30,7 +30,7 @@ object EvalUtil {
       }
     } catch {
       case exc: SyntaxException => syntaxExceptionToOutput(input, exc, false)
-      case exc: InputException => evalExceptionToOutput(input, exc)
+      case exc: CgsuiteException => cgsuiteExceptionToOutput(input, exc)
       case exc: Throwable => throwableToOutput(input, exc)
     }
   }
@@ -48,7 +48,7 @@ object EvalUtil {
 
   }
 
-  private def evalExceptionToOutput(input: String, exc: InputException): Vector[Output] = {
+  private def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
 
     val message = errorOutput(exc.getMessage)
     val cause: Vector[Output] = {
@@ -116,7 +116,7 @@ object EvalUtil {
   }
 
   private def exceptionToMessage(exc: Throwable) = {
-    if (exc.isInstanceOf[InputException])
+    if (exc.isInstanceOf[EvalException])
       exc.getMessage
     else
       "Syntax error."

@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import ch.qos.logback.classic.{Level, Logger}
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.output.Output
@@ -43,7 +43,6 @@ object Repl {
             val output = EvalUtil.evaluate(str, replVarMap)
             output foreach println
           } catch {
-            case exc: InputException => println(exc.msgWithLocation); exc.printStackTrace()
             case exc: Throwable => exc.printStackTrace()
           }
           val totalDuration = JSystem.nanoTime - start

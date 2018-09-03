@@ -1,7 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.core._
-import org.cgsuite.exception.InputException
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.util.{Strip, Symmetry}
 
@@ -14,7 +14,7 @@ object SpecialMethods {
     "cgsuite.lang.Object.Class" -> { (obj: Any, _: Unit) => CgscriptClass.of(obj).classObject },
     "cgsuite.lang.Object.JavaClass" -> { (obj: Any, _: Unit) => obj.getClass.getName },
     "cgsuite.lang.Collection.Head" -> { (collection: Iterable[_], _: Unit) =>
-      if (collection.isEmpty) throw InputException("That `Collection` is empty.") else collection.head
+      if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.head
     },
     "cgsuite.lang.Collection.Mex" -> { (collection: Iterable[_], _: Unit) =>
       val intCollection = collection collect {
@@ -23,7 +23,7 @@ object SpecialMethods {
       Integer(ImpartialGame.mex(intCollection))
     },
     "cgsuite.lang.Collection.Tail" -> { (collection: Iterable[_], _: Unit) =>
-      if (collection.isEmpty) throw InputException("That `Collection` is empty.") else collection.tail
+      if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.tail
     },
     "cgsuite.lang.List.Sorted" -> { (list: Seq[_], _: Unit) => list.sorted(UniversalOrdering) },
     "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSeq },

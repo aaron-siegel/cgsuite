@@ -563,7 +563,7 @@ primaryExpr
     | PASS
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! expression RPAREN!
-    | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES expression*)
+    | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES[$COMMA] expression*)
     | LPAREN! expression RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
     | (LBRACE expression? BIGRARROW) => explicitMap

@@ -6,10 +6,11 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
+import org.antlr.runtime.Token
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
-import org.cgsuite.exception.{CgsuiteException, InputException}
+import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
@@ -291,13 +292,13 @@ class CgscriptClass(
     }
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = lookupMethod('Eval) getOrElse { throw InputException("Method not found: `Eval`") }
-    lazy val optionsMethod = lookupMethod('Options) getOrElse { throw InputException("Method not found: `Options`") }
-    lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw InputException("Method not found: `Decomposition`") }
-    lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw InputException("Method not found: `CanonicalForm`") }
-    lazy val gameValueMethod = lookupMethod('GameValue) getOrElse { throw InputException("Method not found: `GameValue`") }
-    lazy val depthHintMethod = lookupMethod('DepthHint) getOrElse { throw InputException("Method not found: `DepthHint`") }
-    lazy val toOutputMethod = lookupMethod('ToOutput) getOrElse { throw InputException("Method not found: `ToOutput`") }
+    lazy val evalMethod = lookupMethod('Eval) getOrElse { throw EvalException("Method not found: `Eval`") }
+    lazy val optionsMethod = lookupMethod('Options) getOrElse { throw EvalException("Method not found: `Options`") }
+    lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw EvalException("Method not found: `Decomposition`") }
+    lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw EvalException("Method not found: `CanonicalForm`") }
+    lazy val gameValueMethod = lookupMethod('GameValue) getOrElse { throw EvalException("Method not found: `GameValue`") }
+    lazy val depthHintMethod = lookupMethod('DepthHint) getOrElse { throw EvalException("Method not found: `DepthHint`") }
+    lazy val toOutputMethod = lookupMethod('ToOutput) getOrElse { throw EvalException("Method not found: `ToOutput`") }
 
   }
 
@@ -430,7 +431,7 @@ class CgscriptClass(
     override def elaborate(): Unit = {
       val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
-        param.methodScopeIndex = scope.insertId(param.id)
+        param.methodScopeIndex = scope.insertId(param.idNode)
         param.defaultValue foreach { _.elaborate(scope) }
       }
       body.elaborate(scope)
@@ -480,15 +481,15 @@ class CgscriptClass(
         validateArguments(args)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
-        case exc: IllegalArgumentException => throw InputException(
+        case exc: IllegalArgumentException => throw EvalException(
           s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)"
         )
-        case exc: InvocationTargetException => throw InputException(
+        case exc: InvocationTargetException => throw EvalException(
           exc.getTargetException match {
             case nestedExc: CgsuiteException =>
               // TODO nestedExc.setInvocationTarget(qualifiedName)
               throw nestedExc
-            case nestedExc => throw InputException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
+            case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
           }
         )
       } finally {
@@ -573,7 +574,7 @@ class CgscriptClass(
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
-          throw InputException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
+          throw EvalException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
       } finally {
         Profiler.stop(reflect)
       }
@@ -697,7 +698,7 @@ class CgscriptClass(
                 enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
                   pkg lookupClass superId getOrElse {
                     CgscriptPackage lookupClass superId getOrElse {
-                      throw InputException(s"Unknown superclass: `${superId.name}`", tree)
+                      throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
                     }
                   }
                 }
@@ -730,7 +731,7 @@ class CgscriptClass(
         // Check for duplicate methods.
 
         localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
-          throw InputException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
+          throw EvalException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
         }
 
         val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
@@ -751,7 +752,7 @@ class CgscriptClass(
           // and this method isn't redeclared by the loading class, that's an error
           if (mostSpecificInstances.size > 1 && !localMembers.exists { case (localId, _) => localId == superId }) {
             val superclassNames = mostSpecificInstances map { case (_, superMember) => s"`${superMember.declaringClass.qualifiedName}`" }
-            throw InputException(
+            throw EvalException(
               s"Member `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
                 s"because it is defined in multiple superclasses (${superclassNames mkString ", "})"
             )
@@ -775,13 +776,13 @@ class CgscriptClass(
         localMethods foreach { case (methodId, method) =>
           if (method.isOverride) {
             if (!superMethods.exists { case (superId, _) => superId == methodId }) {
-              throw InputException(s"Method `${method.qualifiedName}` overrides nothing")
+              throw EvalException(s"Method `${method.qualifiedName}` overrides nothing")
             }
           } else {
             superMethods find { case (superId, _) => superId == methodId } match {
               case None =>
               case Some((_, superMethod)) =>
-                throw InputException(s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`")
+                throw EvalException(s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`")
             }
           }
         }
@@ -825,11 +826,11 @@ class CgscriptClass(
         val class1 = vars.head.declaringClass
         val class2 = vars(1).declaringClass
         if (class1 == thisClass && class2 == thisClass)
-          throw InputException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", node.tree)
+          throw EvalException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", node.tree)
         else if (class2 == thisClass)
-          throw InputException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
+          throw EvalException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
         else
-          throw InputException(s"Variable `${varId.name}` is defined in multiple superclasses: `${class1.qualifiedName}`, `${class2.qualifiedName}`")
+          throw EvalException(s"Variable `${varId.name}` is defined in multiple superclasses: `${class1.qualifiedName}`, `${class2.qualifiedName}`")
       }
     }
 
@@ -840,39 +841,39 @@ class CgscriptClass(
 
     methods ++ nestedClasses foreach { case (memberId, _) =>
       if (classInfoRef.classVarLookup contains memberId)
-        throw InputException(s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`")
+        throw EvalException(s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`")
     }
 
     // Check that singleton => no constructor
     if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton)
-      throw InputException(s"Class `$qualifiedName` must not have a constructor if declared `singleton`")
+      throw EvalException(s"Class `$qualifiedName` must not have a constructor if declared `singleton`")
 
     // Check that no superclass is a singleton
     classInfoRef.supers foreach { ancestor =>
       if (ancestor.isSingleton)
-        throw InputException(s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`")
+        throw EvalException(s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`")
     }
 
     // Check that constants classes must be singletons
     if (name == "constants" && !node.modifiers.hasSingleton)
-      throw InputException(s"Constants class `$qualifiedName` must be declared `singleton`")
+      throw EvalException(s"Constants class `$qualifiedName` must be declared `singleton`")
 
     if (node.modifiers.hasMutable) {
       // If we're mutable, check that no nested class is immutable
       node.nestedClassDeclarations foreach { nested =>
         if (!nested.modifiers.hasMutable)
-          throw InputException(s"Nested class `${nested.id.id.name}` of mutable class `$qualifiedName` is not declared `mutable`")
+          throw EvalException(s"Nested class `${nested.id.id.name}` of mutable class `$qualifiedName` is not declared `mutable`")
       }
     } else {
       // If we're immutable, check that no superclass is mutable
       classInfoRef.supers foreach { spr =>
         if (spr.isMutable)
-          throw InputException(s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`")
+          throw EvalException(s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`")
       }
       // ... and that there are no mutable vars
       classInfoRef.initializers foreach {
         case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic && modifiers.hasMutable =>
-          throw InputException(s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`")
+          throw EvalException(s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`")
         case _ =>
       }
     }
@@ -883,7 +884,7 @@ class CgscriptClass(
       // a "default" nil value. This could be refactored to be a bit more elegant.
       case InitializerNode(_, AssignToNode(_, assignId, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), true, modifiers)
         if !modifiers.hasMutable =>
-        throw InputException(s"Immutable variable `${assignId.id.name}` must be assigned a value (or else declared `mutable`)")
+        throw EvalException(s"Immutable variable `${assignId.id.name}` must be assigned a value (or else declared `mutable`)")
     }
 
     // Create the class object
@@ -966,9 +967,9 @@ class CgscriptClass(
     val newMethod = {
       if (node.modifiers.hasExternal) {
         if (!classModifiers.hasSystem)
-          throw InputException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
+          throw EvalException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
         if (node.body.isDefined)
-          throw InputException(s"Method is declared `external` but has a method body", node.tree)
+          throw EvalException(s"Method is declared `external` but has a method body", node.tree)
         logger.debug(s"$logPrefix Declaring external method: $name")
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
@@ -996,7 +997,8 @@ class CgscriptClass(
 
 }
 
-case class Parameter(id: Symbol, paramType: CgscriptClass, defaultValue: Option[EvalNode]) {
+case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode]) {
+  val id = idNode.id
   val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "")
   var methodScopeIndex = -1
 }

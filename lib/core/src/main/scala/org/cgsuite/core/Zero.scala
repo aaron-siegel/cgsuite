@@ -6,6 +6,8 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.exception.ArithmeticException
+
 object Zero {
   
   def apply(): Zero = ZeroImpl
@@ -31,8 +33,8 @@ trait Zero extends SmallInteger with Nimber {
   override def options(player: Player): Iterable[Nothing] = Set.empty
   override def options: Iterable[Nothing] = Set.empty
 
-  override def lb = throw new ArithmeticException("Logarithm of 0")
-  
+  override def lb = throw ArithmeticException("Logarithm of 0")
+
 }
 
 case object ZeroImpl extends Zero

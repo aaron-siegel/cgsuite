@@ -7,6 +7,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
+import org.cgsuite.exception.ArithmeticException
 
 object Integer {
   
@@ -131,7 +132,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def nimProduct(other: Integer): Integer = {
     if (bigIntValue < 0 || other.bigIntValue < 0)
-      throw new ArithmeticException("NimProduct applies only to nonnegative integers.")
+      throw ArithmeticException("NimProduct applies only to nonnegative integers.")
     var m = 0
     var result: Integer = Values.zero
     while (m < bigIntValue.bitLength) {
@@ -151,7 +152,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def nimSum(other: Integer) = {
     if (bigIntValue < 0 || other.bigIntValue < 0)
-      throw new ArithmeticException("NimSum applies only to nonnegative integers.")
+      throw ArithmeticException("NimSum applies only to nonnegative integers.")
     Integer(bigIntValue ^ other.bigIntValue)
   }
 
