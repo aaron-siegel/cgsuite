@@ -2,7 +2,7 @@ package org.cgsuite.core.misere
 
 import org.cgsuite.core.{ImpartialGame, Integer, OutcomeClass, SmallInteger}
 import org.cgsuite.core.misere.{MisereCanonicalGameOps => ops}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{InvalidArgumentException, InvalidOperationException}
 import org.cgsuite.output.StyledTextOutput
 
 object MisereCanonicalGame {
@@ -25,7 +25,9 @@ object MisereCanonicalGame {
       case g: MisereCanonicalGame => g
       case n: SmallInteger => nimHeap(n.intValue)
       case collection: Iterable[_] => MisereCanonicalGame(collection.toSeq map recursiveApply: _*)
-      case _ => sys.error("not a valid specifier")     // TODO better error message
+      case _ => throw InvalidArgumentException(
+        "Invalid misere game specifier: must be a `List` of `Integer`s or `MisereCanonicalGame`s"
+      )
     }
   }
 
@@ -63,7 +65,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def misereMinus(that: MisereCanonicalGame) = {
     ops.subtract(misereGameId, that.misereGameId) match {
-      case -1 => throw EvalException(s"Those misere games are not subtractable: $this, $that")
+      case -1 => throw InvalidOperationException(s"Those misere games are not subtractable: $this, $that")
       case id => MisereCanonicalGame(id)
     }
   }
@@ -122,7 +124,7 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def link(that: MisereCanonicalGame) = {
     ops.findLink(misereGameId, that.misereGameId) match {
-      case -1 => throw EvalException(s"Those misere games are not linked: $this, $that")
+      case -1 => throw InvalidOperationException(s"Those misere games are not linked: $this, $that")
       case id => MisereCanonicalGame(id)
     }
   }

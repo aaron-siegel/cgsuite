@@ -1,7 +1,6 @@
 package org.cgsuite.core
 
 import org.cgsuite.dsl._
-import org.cgsuite.exception.EvalException
 import org.scalatest.{FlatSpec, Matchers}
 
 class UptimalTest extends FlatSpec with Matchers {

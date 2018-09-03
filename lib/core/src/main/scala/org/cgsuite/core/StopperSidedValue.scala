@@ -1,8 +1,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.EvalException
-import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.exception.InvalidArgumentException
 
 
 object StopperSidedValue {
@@ -13,7 +12,7 @@ object StopperSidedValue {
     } else if (offside <= onside) {
       StopperSidedValueImpl(onside, offside)
     } else {
-      throw EvalException("offside is not <= onside.")
+      throw InvalidArgumentException(s"offside is not <= onside: $offside |> $onside")
     }
   }
 

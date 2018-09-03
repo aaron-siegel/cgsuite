@@ -1,9 +1,8 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.InvalidOperationException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.TranspositionTable
 
 import scala.collection.mutable
 
@@ -94,7 +93,7 @@ case object OffImpl extends Pseudonumber {
     }
   }
 
-  def blowup = throw EvalException("Exponent must be nonnegative.")
+  def blowup = throw InvalidOperationException(s"Invalid exponent: $this")
 
   override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     output.appendMath("off"); 0
@@ -133,7 +132,7 @@ case class OverNumberImpl private[core] (x: DyadicRationalNumber, overSign: Int)
     } else if (x > zero) {
       OverNumberImpl(x.blowup, overSign)
     } else {
-      throw EvalException("Exponent must be nonnegative.")
+      throw InvalidOperationException(s"Invalid exponent: $this")
     }
   }
 

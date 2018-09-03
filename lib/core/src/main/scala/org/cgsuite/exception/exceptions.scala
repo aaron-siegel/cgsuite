@@ -8,6 +8,9 @@ case class ArithmeticException(msg: String, e: Throwable = null, token: Option[T
 case class InvalidArgumentException(msg: String, e: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, e, token)
 
+case class InvalidOperationException(msg: String, cause: Throwable = null, token: Option[Token] = None)
+  extends CgsuiteException(msg, cause, token)
+
 case class NotAtomicException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
