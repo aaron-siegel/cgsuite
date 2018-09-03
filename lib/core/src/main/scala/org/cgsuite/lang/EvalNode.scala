@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
@@ -966,12 +967,14 @@ case class FunctionCallNode(
 
     override def ordinal: Int = -1
 
+    override def referenceToken = None
+
     override def locationMessage: String = ???
 
   }
 
   private def makeNewResolution(callSite: CallSite) = {
-    FunctionCallResolution(callSite, argNames)
+    FunctionCallResolution(callSite, argNames, token)
   }
 
   def toNodeString = {
@@ -986,33 +989,48 @@ case class FunctionCallNode(
 }
 
 object FunctionCallResolution {
-  def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]]): FunctionCallResolution = {
+  def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]], referenceToken: Token): FunctionCallResolution = {
     val params = callSite.parameters
     if (argNames.length > params.length)
-      throw EvalException(s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})")
+      throw EvalException(
+        s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})",
+        token = Some(referenceToken)
+      )
     val parameterToArgsMapping = new Array[Int](params.length)
     java.util.Arrays.fill(parameterToArgsMapping, -1)
     // Check for named args in earlier position than ordinary args.
     val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
     argNames take (lastOrdinaryArgIndex+1) foreach {
       case None =>
-      case Some(idNode) => throw EvalException(s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
-        "appears in earlier position than an ordinary argument")
+      case Some(idNode) => throw EvalException(
+        s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
+        "appears in earlier position than an ordinary argument",
+        token = Some(referenceToken)
+      )
     }
     argNames.zipWithIndex foreach {
       case (None, index) => parameterToArgsMapping(index) = index
       case (Some(idNode), index) =>
         val namedIndex = params indexWhere { _.id == idNode.id }
         if (namedIndex == -1)
-          throw EvalException(s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`")
+          throw EvalException(
+            s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`",
+            token = Some(referenceToken)
+          )
         if (parameterToArgsMapping(namedIndex) != -1)
-          throw EvalException(s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`")
+          throw EvalException(
+            s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`",
+            token = Some(referenceToken)
+          )
         parameterToArgsMapping(namedIndex) = index
     }
     // Validation
     params zip parameterToArgsMapping foreach { case (param, index) =>
       if (param.defaultValue.isEmpty && index == -1)
-        throw EvalException(s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`")
+        throw EvalException(
+          s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`",
+          token = Some(referenceToken)
+        )
     }
     FunctionCallResolution(parameterToArgsMapping)
   }
@@ -1059,7 +1077,10 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
           throw EvalException(s"Cannot reassign to immutable var: `${idNode.id.name}`", token = Some(token))
         val stdObj = domain.contextObject.get.asInstanceOf[StandardObject]
         if (!stdObj.cls.isMutable && (CgscriptClass of newValue).isMutable)
-          throw EvalException(s"Cannot assign mutable object to var `${idNode.id.name}` of immutable class `${stdObj.cls.qualifiedName}`")
+          throw EvalException(
+            s"Cannot assign mutable object to var `${idNode.id.name}` of immutable class `${stdObj.cls.qualifiedName}`",
+            token = Some(token)
+          )
         stdObj.vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
       } else
         throw EvalException(s"Unknown variable for assignment: `${idNode.id.name}`", token = Some(token))

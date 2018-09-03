@@ -219,6 +219,7 @@ object CgscriptClass {
 
 trait Member {
   def declaringClass: CgscriptClass
+  def idNode: IdentifierNode
 }
 
 class CgscriptClass(
@@ -250,6 +251,7 @@ class CgscriptClass(
   val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
   class ClassInfo(
+    val idNode: IdentifierNode,
     val modifiers: Modifiers,
     val supers: Seq[CgscriptClass],
     val nestedClasses: Map[Symbol, CgscriptClass],
@@ -264,11 +266,11 @@ class CgscriptClass(
     val ancestors = properAncestors :+ CgscriptClass.this
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
-      case Some(ctor) => ctor.parameters map { param => Var(param.id, Modifiers.none, isConstructorParam = true) }
+      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Modifiers.none, isConstructorParam = true) }
       case None => Seq.empty
     }
     val localClassVars = initializers collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic => Var(assignId.id, modifiers)
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic => Var(assignId, modifiers)
     }
     val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
     val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
@@ -360,6 +362,8 @@ class CgscriptClass(
     }
   }
 
+  def idNode = classInfo.idNode
+
   def isScript = scriptObject != null
 
   def isMutable = classInfo.modifiers.hasMutable
@@ -376,14 +380,15 @@ class CgscriptClass(
 
   def initializers = classInfo.initializers
 
-  case class Var(id: Symbol, modifiers: Modifiers, isConstructorParam: Boolean = false) extends Member() {
+  case class Var(idNode: IdentifierNode, modifiers: Modifiers, isConstructorParam: Boolean = false) extends Member() {
     def declaringClass = thisClass
     def isMutable = modifiers.hasMutable
+    def id = idNode.id
   }
 
   trait Method extends Member {
 
-    def id: Symbol
+    def idNode: IdentifierNode
     def parameters: Seq[Parameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
@@ -391,7 +396,7 @@ class CgscriptClass(
     def call(obj: Any, args: Array[Any]): Any
 
     val declaringClass = thisClass
-    val qualifiedName = declaringClass.qualifiedName + "." + id.name
+    val qualifiedName = declaringClass.qualifiedName + "." + idNode.id.name
     val qualifiedId = Symbol(qualifiedName)
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
@@ -417,7 +422,7 @@ class CgscriptClass(
   }
 
   case class UserMethod(
-    id: Symbol,
+    idNode: IdentifierNode,
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -460,7 +465,7 @@ class CgscriptClass(
   }
 
   case class SystemMethod(
-    id: Symbol,
+    idNode: IdentifierNode,
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -500,7 +505,7 @@ class CgscriptClass(
   }
 
   case class ExplicitMethod(
-    id: Symbol,
+    idNode: IdentifierNode,
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -528,12 +533,14 @@ class CgscriptClass(
 
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
+    override def referenceToken = Some(idNode.token)
+
     override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
   }
 
   case class UserConstructor(
-    id: Symbol,
+    idNode: IdentifierNode,
     parameters: Seq[Parameter]
   ) extends Constructor {
 
@@ -560,7 +567,7 @@ class CgscriptClass(
   }
 
   case class SystemConstructor(
-    id: Symbol,
+    idNode: IdentifierNode,
     parameters: Seq[Parameter],
     javaConstructor: java.lang.reflect.Constructor[_]
   ) extends Constructor {
@@ -720,10 +727,10 @@ class CgscriptClass(
         val constructor = node.constructorParams map { t =>
           val parameters = t.toParameters
           systemClass match {
-            case None => UserConstructor(id, parameters)
+            case None => UserConstructor(node.id, parameters)
             case Some(cls) =>
               val externalParameterTypes = parameters map { _.paramType.javaClass }
-              SystemConstructor(id, parameters, cls.getConstructor(externalParameterTypes : _*))
+              SystemConstructor(node.id, parameters, cls.getConstructor(externalParameterTypes : _*))
           }
         }
         val localMembers = localMethods ++ localNestedClasses
@@ -776,13 +783,19 @@ class CgscriptClass(
         localMethods foreach { case (methodId, method) =>
           if (method.isOverride) {
             if (!superMethods.exists { case (superId, _) => superId == methodId }) {
-              throw EvalException(s"Method `${method.qualifiedName}` overrides nothing")
+              throw EvalException(
+                s"Method `${method.qualifiedName}` overrides nothing",
+                token = Some(method.idNode.token)
+              )
             }
           } else {
             superMethods find { case (superId, _) => superId == methodId } match {
               case None =>
               case Some((_, superMethod)) =>
-                throw EvalException(s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`")
+                throw EvalException(
+                  s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`",
+                  token = Some(method.idNode.token)
+                )
             }
           }
         }
@@ -807,6 +820,7 @@ class CgscriptClass(
     }
 
     classInfoRef = new ClassInfo(
+      node.id,
       node.modifiers,
       supers,
       nestedClasses,
@@ -839,41 +853,67 @@ class CgscriptClass(
     // TODO We may want to allow defs to override vars in the future - then the vars become private to the
     // superclass. For now, we prohibit it.
 
-    methods ++ nestedClasses foreach { case (memberId, _) =>
+    methods ++ nestedClasses foreach { case (memberId, member) =>
       if (classInfoRef.classVarLookup contains memberId)
-        throw EvalException(s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`")
+        throw EvalException(
+          s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`",
+          token = Some(idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
+        )
     }
 
     // Check that singleton => no constructor
-    if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton)
-      throw EvalException(s"Class `$qualifiedName` must not have a constructor if declared `singleton`")
+    if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton) {
+      throw EvalException(
+        s"Class `$qualifiedName` must not have a constructor if declared `singleton`",
+        token = Some(idNode.token)
+      )
+    }
 
     // Check that no superclass is a singleton
     classInfoRef.supers foreach { ancestor =>
-      if (ancestor.isSingleton)
-        throw EvalException(s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`")
+      if (ancestor.isSingleton) {
+        throw EvalException(
+          s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`",
+          token = Some(idNode.token)
+        )
+      }
     }
 
     // Check that constants classes must be singletons
-    if (name == "constants" && !node.modifiers.hasSingleton)
-      throw EvalException(s"Constants class `$qualifiedName` must be declared `singleton`")
+    if (name == "constants" && !node.modifiers.hasSingleton) {
+      throw EvalException(
+        s"Constants class `$qualifiedName` must be declared `singleton`",
+        token = Some(idNode.token)
+      )
+    }
 
     if (node.modifiers.hasMutable) {
       // If we're mutable, check that no nested class is immutable
       node.nestedClassDeclarations foreach { nested =>
-        if (!nested.modifiers.hasMutable)
-          throw EvalException(s"Nested class `${nested.id.id.name}` of mutable class `$qualifiedName` is not declared `mutable`")
+        if (!nested.modifiers.hasMutable) {
+          throw EvalException(
+            s"Nested class `${nested.id.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
+            token = Some(nested.id.token)
+          )
+        }
       }
     } else {
       // If we're immutable, check that no superclass is mutable
       classInfoRef.supers foreach { spr =>
-        if (spr.isMutable)
-          throw EvalException(s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`")
+        if (spr.isMutable) {
+          throw EvalException(
+            s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
+            token = Some(idNode.token)
+          )
+        }
       }
       // ... and that there are no mutable vars
       classInfoRef.initializers foreach {
         case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic && modifiers.hasMutable =>
-          throw EvalException(s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`")
+          throw EvalException(
+            s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`",
+            token = Some(idNode.token)    // TODO Use token of mutable var instead?
+          )
         case _ =>
       }
     }
@@ -884,7 +924,10 @@ class CgscriptClass(
       // a "default" nil value. This could be refactored to be a bit more elegant.
       case InitializerNode(_, AssignToNode(_, assignId, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), true, modifiers)
         if !modifiers.hasMutable =>
-        throw EvalException(s"Immutable variable `${assignId.id.name}` must be assigned a value (or else declared `mutable`)")
+        throw EvalException(
+          s"Immutable variable `${assignId.id.name}` must be assigned a value (or else declared `mutable`)",
+          token = Some(assignId.token)
+        )
     }
 
     // Create the class object
@@ -974,18 +1017,18 @@ class CgscriptClass(
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
             logger.debug(s"$logPrefix   It's a special method.")
-            new ExplicitMethod(node.idNode.id, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
+            ExplicitMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
             val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
             logger.debug(s"$logPrefix   It's a Java method via reflection: $externalMethod")
-            new SystemMethod(node.idNode.id, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
+            SystemMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
         }
       } else {
         logger.debug(s"$logPrefix Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
-        new UserMethod(node.idNode.id, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
+        UserMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
       }
     }
 

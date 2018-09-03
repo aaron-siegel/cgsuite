@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.antlr.runtime.Token
 import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable
@@ -61,6 +62,7 @@ trait CallSite {
   def parameters: Seq[Parameter]
   def call(args: Array[Any]): Any
   def ordinal: Int
+  def referenceToken: Option[Token]
   def locationMessage: String
 
 }

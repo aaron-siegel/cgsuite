@@ -16,6 +16,8 @@ case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with 
     }
     node.body.evaluate(newDomain)
   }
+
+  def referenceToken = Some(node.token)
   def locationMessage = "in procedure call"
 
   def toOutput: StyledTextOutput = new StyledTextOutput(node.toNodeString)

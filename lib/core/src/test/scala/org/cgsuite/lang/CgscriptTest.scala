@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.exception.CgsuiteException
+import org.cgsuite.exception.{CgsuiteException, SyntaxException}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.Output
 import org.scalatest.prop.{PropertyChecks, TableFor3}
@@ -911,8 +911,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       if (expectedOutput != null && (expectedOutput startsWith "!!")) {
         val thrown = the [CgsuiteException] thrownBy parseResult(input, varMap)
         thrown.getMessage shouldBe (expectedOutput stripPrefix "!!")
-        // TODO Uncomment this line
-        //thrown.tokenStack should not be empty
+        if (!thrown.isInstanceOf[SyntaxException])
+          thrown.tokenStack should not be empty
       } else {
         val result = parseResult(input, varMap)
         val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
