@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- Example of how to vary the style:
+    <fontcolor name="Keyword" foreColor="blue" default="default">
+        <font style="bold italic"/>
+    </fontcolor>
+-->
+
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 <fontscolors>
 
-    <fontcolor name="Keyword"           foreColor="blue" default="default"/>
-    <fontcolor name="Number"            foreColor="black" default="default"/>
-    <fontcolor name="String"            foreColor="ffce7b00" default="default"/>
-    <fontcolor name="Comment"           foreColor="ff969696" default="default"/>
+    <fontcolor name="Keyword" foreColor="blue" default="default"/>
+    <fontcolor name="String"  foreColor="ffce7b00" default="default"/>
+    <fontcolor name="Comment" foreColor="ff969696" default="default"/>
 
 </fontscolors>

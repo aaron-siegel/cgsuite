@@ -33,6 +33,7 @@ import java.util.*;
 
 import org.cgsuite.core.impartial.CodeDigit;
 import org.cgsuite.core.impartial.Traversal;
+import org.cgsuite.output.StyledTextOutput;
 
 /** All data about canonical
  * games can be destroyed by calling {@link #reinit() reinit}, which
@@ -1103,22 +1104,22 @@ public final class MisereCanonicalGameOps
     /**
      * Append string version with part separation
      */
-    static StringBuilder appendMidToStringBuilder(int id, StringBuilder sb)
+    static void appendMidToOutput(int id, StyledTextOutput out)
     {
-        return appendMidToStringBuilder(id, sb, true);
+        appendMidToOutput(id, out, true);
     }
 
     /**
      * Append string version with part separation optional
      */
-    private static StringBuilder appendMidToStringBuilder
-        (int id, StringBuilder sb, boolean tryParts)
+    private static void appendMidToOutput(int id, StyledTextOutput out, boolean tryParts)
     {
+        /*
         if (DEBUG>0) {
             System.out.println  (midToString(id, false));
         }
-        return rAppendMidToStringBuilder(id, sb, tryParts,
-                                         false, null);
+        */
+        rAppendMidToOutput(id, out, tryParts, false, null);
     }
 
     /**
@@ -1129,122 +1130,100 @@ public final class MisereCanonicalGameOps
      *     <li>null if a subscript is not required but must be
      *         closed</li></ul>
      */
-    private static StringBuilder rAppendMidToStringBuilder
-        (int id, StringBuilder sb, boolean tryParts,
-         boolean parenthesize, int[] subscripted)
+    private static void rAppendMidToOutput
+        (int id, StyledTextOutput out, boolean tryParts, boolean parenthesize, int[] subscripted)
     {
-        if (subscripted==null) 
+        if (subscripted == null)
         {
-            subscripted = new int[]{0};
-            rAppendMidToStringBuilder(id,sb,tryParts,parenthesize,subscripted);
-            if(subscripted[0]>0) sb.append("]");
-            return sb;
+            subscripted = new int[] {0};
+            rAppendMidToOutput(id, out, tryParts, parenthesize, subscripted);
+            if (subscripted[0] > 0) out.appendMath("]");
+            return;
         }
 
         if (nimberCache == null)
         {
             // For printing before nimberCache is ready;
-            return sb.append("MisereCanonicalGameOps@").append(id);
+            out.appendText("MisereCanonicalGameOps@");
+            out.appendText(String.valueOf(id));
+            return;
         }
 
         int b = birthday(id);
 
         if (id == constructFromNimber(b))
         {
-            (new CodeDigit(b, CodeDigit.decimalOptions)
-             ).appendToStringBuilder(sb);
-            if (subscripted[0]>0)
+            out.appendMath(new CodeDigit(b, CodeDigit.decimalOptions).toString());
+            if (subscripted[0] > 0)
             {
-                sb.append("[");
+                out.appendMath("[");
             }
-            return sb;
+            return;
         }
 
         if (tryParts)
         {
-            for(int i = (id&1)+2; i<b; i+=2)
+            for (int i = (id & 1) + 2; i < b; i += 2)
             {
-                int bdiff=subtract(id, constructFromNimber(i));
-                assert bdiff !=0:
-                ""+id+"-"+ constructFromNimber(i)+"="+bdiff;
-                if(bdiff != -1 && birthday(bdiff) < birthday(id)) {
-                    subscripted[0]=1;
-                    rAppendMidToStringBuilder(bdiff,sb,tryParts,
-                                              true,subscripted);
-                    (new CodeDigit(i, CodeDigit.decimalOptions)
-                     ).appendToStringBuilder(sb);
-                    return sb;
+                int bdiff = subtract(id, constructFromNimber(i));
+                assert bdiff != 0 : "" + id + "-" + constructFromNimber(i) + "=" + bdiff;
+                if (bdiff != -1 && birthday(bdiff) < birthday(id)) {
+                    subscripted[0] = 1;
+                    rAppendMidToOutput(bdiff, out, tryParts, true, subscripted);
+                    out.appendMath(new CodeDigit(i, CodeDigit.decimalOptions).toString());
+                    return;
                 }
-
-                int bsum=add(id, constructFromNimber(i));
-                assert bsum != 0:
-                id+"+"+ constructFromNimber(i)+"="+bsum;
-                if(birthday(bsum) < birthday(id)) {
-                    subscripted[0]=1;
-                    rAppendMidToStringBuilder(bsum,sb,tryParts,
-                                              true,subscripted);
-                    sb.append("-");
-                    (new CodeDigit(i, CodeDigit.decimalOptions)
-                     ).appendToStringBuilder(sb);
-                    return sb;
+                int bsum = add(id, constructFromNimber(i));
+                assert bsum != 0: id + "+" + constructFromNimber(i) + "=" + bsum;
+                if (birthday(bsum) < birthday(id)) {
+                    subscripted[0] = 1;
+                    rAppendMidToOutput(bsum, out, tryParts, true, subscripted);
+                    out.appendMath("-");
+                    out.appendMath(new CodeDigit(i, CodeDigit.decimalOptions).toString());
+                    return;
                 }
             }
             
-            if((id&1)>0)
+            if ((id & 1) > 0)
             {
-                subscripted[0]=1;
-                rAppendMidToStringBuilder(id&~1,sb,tryParts,true,subscripted);
-                sb.append("1");
-                return sb;
+                subscripted[0] = 1;
+                rAppendMidToOutput(id & ~1, out, tryParts, true, subscripted);
+                out.appendMath("1");
+                return;
             }
         }
-        
-        int isOdd = id&1;
-        int[] s = sectors[(id >> SECTOR_BITS)&SECTOR_MASK];
-        int nOpts = isOdd + numOptions(s,id&IXMASK);
+
+        int isOdd = id & 1;
+        int[] s = sectors[(id >> SECTOR_BITS) & SECTOR_MASK];
+        int nOpts = isOdd + numOptions(s, id & IXMASK);
         int[] opts = tempArrayStack.getArray(nOpts);
-        fillOptions(id, s, id&IXMASK, opts);
+        fillOptions(id, s, id & IXMASK, opts);
 
         if (nOpts < 2) 
         {
-            assert isOdd==0 && nOpts > 0:
-            "Odd singleton > 1 at "+id;
+            assert isOdd == 0 && nOpts > 0 : "Odd singleton > 1 at " + id;
 
-            rAppendMidToStringBuilder(opts[0],sb,tryParts,true,subscripted);
-            sb.append("#");
-            opts = tempArrayStack.putAway(opts);
-            return sb;
+            rAppendMidToOutput(opts[0], out, tryParts, true, subscripted);
+            out.appendMath("#");
+            tempArrayStack.putAway(opts);
+            return;
         }
 
+        int oSub = subscripted[0];
+        if (parenthesize) out.appendMath("(");
+        for (int i = nOpts - 1; i >= 0; i--)
         {
-            int oSub = subscripted[0];
-            if (parenthesize) sb.append("(");
-            for(int i=nOpts-1;i>=0;--i)
-            {
-                subscripted[0]=0;
-                rAppendMidToStringBuilder(opts[i],sb,tryParts,true,subscripted);
-                if (subscripted[0]>0) sb.append("]");
-            }
-            opts=tempArrayStack.putAway(opts);
-            if (parenthesize) sb.append(")");
-            subscripted[0]=oSub;
-            if (subscripted[0]>0)
-            {
-                sb.append("[");
-            }
-            return sb;
+            subscripted[0] = 0;
+            rAppendMidToOutput(opts[i], out, tryParts, true, subscripted);
+            if (subscripted[0] > 0) out.appendMath("]");
         }
-    }
- 
-    static String midToString(int id)
-    {
-        return midToString(id,true);
-    }
-
-    private static String midToString
-        (int id, boolean tryParts)
-    {
-        return appendMidToStringBuilder(id, new StringBuilder(), tryParts).toString();
+        tempArrayStack.putAway(opts);
+        if (parenthesize) out.appendMath(")");
+        subscripted[0] = oSub;
+        if (subscripted[0] > 0)
+        {
+            out.appendMath("[");
+        }
     }
 
     ////////////////////////////////////////////////////////////////

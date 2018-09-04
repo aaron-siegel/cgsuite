@@ -135,8 +135,9 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   override def toOutput = {
     val output = new StyledTextOutput
-    output.appendMath("*[")
-    output.appendMath(ops.midToString(misereGameId))
+    output.appendSymbol(StyledTextOutput.Symbol.STAR)
+    output.appendMath("[")
+    ops.appendMidToOutput(misereGameId, output)
     output.appendMath("]")
     output
   }

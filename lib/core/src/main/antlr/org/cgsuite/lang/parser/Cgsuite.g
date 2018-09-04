@@ -459,7 +459,7 @@ standardRelationalToken
 // `^.Heat(2)`, whereas `^ Heat` should parse as `^(Heat)` (where `Heat` is a variable).
 infixExpr
     : (nonterminalUpstarExpr IDENTIFIER rangeExpr) => nonterminalUpstarExpr IDENTIFIER^ rangeExpr { $IDENTIFIER.setType(INFIX_OP); }
-    | rangeExpr (IDENTIFIER^ rangeExpr { $IDENTIFIER.setType(INFIX_OP); })?
+    | rangeExpr (IDENTIFIER^ rangeExpr { $IDENTIFIER.setType(INFIX_OP); })*
     ;
 
 rangeExpr
