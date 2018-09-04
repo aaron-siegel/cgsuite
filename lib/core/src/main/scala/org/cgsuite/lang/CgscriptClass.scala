@@ -6,7 +6,6 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
-import org.antlr.runtime.Token
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
@@ -131,7 +130,8 @@ object CgscriptClass {
     "game.strip.GenToadsAndFrogs",
     "game.strip.StripRuleset",
 
-    "game.heap.constants"
+    "game.heap.constants",
+    "game.heap.PartizanHeapRuleset"
 
   )
 
@@ -1021,8 +1021,14 @@ class CgscriptClass(
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
-            val externalMethod = javaClass.getMethod(externalName, externalParameterTypes: _*)
-            logger.debug(s"$logPrefix   It's a Java method via reflection: $externalMethod")
+            logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
+            val externalMethod = try {
+              javaClass.getMethod(externalName, externalParameterTypes: _*)
+            } catch {
+              case exc: NoSuchMethodException =>
+                throw EvalException(s"Method is declared `external`, but has no corresponding Java method: `$qualifiedName`", node.tree)
+            }
+            logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
             SystemMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
         }
       } else {

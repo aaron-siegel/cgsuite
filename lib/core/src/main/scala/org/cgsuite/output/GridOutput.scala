@@ -3,10 +3,10 @@ package org.cgsuite.output
 
 import java.awt.{Color, Dimension, Graphics2D}
 import java.io.PrintWriter
-import javax.swing.{Icon, ImageIcon}
 
-import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.{EnumObject, StandardObject}
+import javax.swing.{Icon, ImageIcon}
+import org.cgsuite.exception.SystemException
+import org.cgsuite.lang.EnumObject
 import org.cgsuite.util.Grid
 
 import scala.collection.mutable
@@ -43,7 +43,7 @@ object GridOutput {
       val url =
         Option(classOf[GridOutput].getResource("resources/" + name + ".png")) orElse
         Option(classOf[GridOutput].getResource("resources/" + name + ".gif")) getOrElse {
-          throw EvalException(s"System error loading icon: `$name`")
+          throw SystemException(s"System error loading icon: `$name`")
         }
       new ImageIcon(url)
     })

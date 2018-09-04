@@ -14,6 +14,7 @@ object EvalUtil {
 
   def evaluate(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
     try {
+      // TODO We need to ignore local-moding of "var" declarations
       val tree = ParserUtil.parseScript(input)
       logger debug s"Parse Tree: ${tree.toStringTree}"
       val node = EvalNode(tree.getChild(0))
@@ -51,6 +52,10 @@ object EvalUtil {
   private def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
 
     val message = errorOutput(exc.getMessage)
+    val stack = exc.tokenStack.toVector flatMap { token =>
+      assert(token.getInputStream != null, s"Input stream is null: $token (${exc.getMessage})")
+      getLineColOutput(token.getInputStream.getSourceName, input, token.getLine, token.getCharPositionInLine)
+    }
     val cause: Vector[Output] = {
       if (exc.getCause == null)
         Vector.empty
@@ -58,24 +63,20 @@ object EvalUtil {
         val causeClass = errorOutput(s"  caused by ${exc.getCause.getClass.getName}")
         val causeStack = {
           exc.getCause.getStackTrace.toVector.take(6).map { element =>
-            errorOutput(s"  at ${element.getClassName} line ${element.getLineNumber}")
+            errorOutput(s"    at ${element.getClassName} line ${element.getLineNumber}")
           }
         }
         val causeDotDotDot = {
           if (exc.getCause.getStackTrace.length > 6)
-            Vector(errorOutput("  ......"))
+            Vector(errorOutput("    ......"))
           else
             Vector.empty
         }
         causeClass +: (causeStack ++ causeDotDotDot)
       }
     }
-    val stack = exc.tokenStack flatMap { token =>
-      assert(token.getInputStream != null, s"Input stream is null: $token (${exc.getMessage})")
-      getLineColOutput(token.getInputStream.getSourceName, input, token.getLine, token.getCharPositionInLine)
-    }
 
-    message +: (cause ++ stack)
+    message +: (stack ++ cause)
 
   }
 

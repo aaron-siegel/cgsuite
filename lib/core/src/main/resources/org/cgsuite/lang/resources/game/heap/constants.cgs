@@ -2,9 +2,20 @@
 
 singleton class constants
 
-  var Nim := TakeAndBreak("0.[3]");
-  var GrundysGame := TakeAndBreak("4!.0");
-  var Kayles := TakeAndBreak("0.77");
   var DawsonsKayles := TakeAndBreak("0.07");
+
+  var GrundysGame := TakeAndBreak("4!.0");
+
+  var Kayles := TakeAndBreak("0.77");
+
+  var Nim := TakeAndBreak("0.[3]");
+
+  def PartizanSubtraction(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
+    PartizanHeapRuleset(Subtraction(leftSet, allbut), Subtraction(rightSet, allbut));
+
+  def PartizanTakeAndBreak(leftCode as String, rightCode as String) :=
+    PartizanHeapRuleset(TakeAndBreak(leftCode), TakeAndBreak(rightCode));
+
+  def Subtraction := TakeAndBreak.FromSubtractionSet;
 
 end

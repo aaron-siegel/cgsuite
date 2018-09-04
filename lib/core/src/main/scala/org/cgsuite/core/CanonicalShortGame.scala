@@ -10,13 +10,13 @@ import java.util
 
 import org.cgsuite.core.Values._
 import org.cgsuite.core.{CanonicalShortGameOps => ops}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{CalculationCanceledException, InvalidOperationException, NotAtomicException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.TranspositionTable
 
-import scala.collection.mutable
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.language.postfixOps
 
 object CanonicalShortGame {
@@ -128,7 +128,11 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def canonicalForm(tt: TranspositionTable) = this
 
-  def atomicWeight = atomicWeightOpt getOrElse { throw EvalException("That game is not atomic.") }
+  def atomicWeight = {
+    atomicWeightOpt getOrElse {
+      throw NotAtomicException(s"That game is not atomic.")
+    }
+  }
 
   private[cgsuite] lazy val atomicWeightOpt: Option[CanonicalShortGame] = {
     if (!isInfinitesimal)
@@ -160,7 +164,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def cool(t: DyadicRationalNumber): CanonicalShortGame = {
     if (t <= Values.negativeOne) {
-      throw EvalException(s"Invalid cooling temperature (must be > -1): $t")
+      throw InvalidOperationException(s"Invalid cooling temperature (must be > -1): $t")
     }
     CanonicalShortGame(ops.cool(gameId, t, t.gameId))
   }
@@ -253,7 +257,7 @@ trait CanonicalShortGame extends CanonicalStopper {
         case _ => CanonicalStopper(zero)(-powTo((x - one).asInstanceOf[Pseudonumber]) + ro.head)
       }
     } else {
-      throw EvalException("Base must be of the form {0|H}.")
+      throw InvalidOperationException(s"Invalid base for `Pow` operation (base must be of the form {0|H}).")
     }
   }
 
@@ -293,7 +297,7 @@ trait CanonicalShortGame extends CanonicalStopper {
   override private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
 
     if (Thread.interrupted()) {
-      throw EvalException("Calculation canceled by user.")
+      throw CalculationCanceledException("Calculation canceled by user.")
     }
 
     val negative = -this

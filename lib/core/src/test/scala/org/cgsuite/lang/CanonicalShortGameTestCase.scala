@@ -46,7 +46,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "5", "5", "Integer",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: 5",
       birthday = "5",
       companion = "5",
       followerCount = "6",
@@ -84,7 +84,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "-1823437481924", "-1823437481924", "Integer",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: -1823437481924",
       birthday = "1823437481924",
       companion = "-1823437481924",
       followerCount = "1823437481925",
@@ -122,7 +122,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "-1/2", "-1/2", "DyadicRational",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: -1/2",
       birthday = "2",
       companion = "-1/2",
       followerCount = "3",
@@ -160,7 +160,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "25/16", "25/16", "DyadicRational",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: 25/16",
       birthday = "6",
       companion = "25/16",
       followerCount = "7",
@@ -238,7 +238,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "9/8+*", "9/8*", "Uptimal",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: 9/8*",
       birthday = "6",
       companion = "9/8*",
       followerCount = "7",
@@ -355,7 +355,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "6+^*", "6^*", "Uptimal",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: 6^*",
       birthday = "8",
       companion = "6^*",
       followerCount = "9",
@@ -431,7 +431,7 @@ object CanonicalShortGameTestCase {
 
     CanonicalShortGameTestCase(
       "73/16+v9*8", "73/16v9*8", "Uptimal",
-      atomicWeight = "!!That game is not atomic.",
+      atomicWeight = "!!That game is not atomic: 73/16v9*8",
       birthday = "27",
       companion = "73/16v9*8",
       followerCount = "28",

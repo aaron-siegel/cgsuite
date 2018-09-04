@@ -16,7 +16,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   val testPackage = CgscriptPackage.root declareSubpackage "test"
 
-  def decl(name: String, explicitDefinition: String) = {
+  def decl(name: String, explicitDefinition: String): Unit = {
     CgscriptClass declareSystemClass (name, explicitDefinition = Some(explicitDefinition))
   }
 
@@ -704,7 +704,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("{0||0|-2}.PowTo({5|pass})", "{{Tiny(2)||0|-2|||0|-2||||0|-2}||0|-2|||{0|-2},pass}"),
       ("{0||0|-2}.PowTo(on)", "{pass||0|-2}"),
       ("(+-1).PowTo(3)", "{1,{1,+-1|-1}|-1}"),
-      ("(+-1).Pow(3)", "!!Base must be of the form {0|H}.")
+      ("(+-1).Pow(3)", "!!Invalid base for `Pow` operation (base must be of the form {0|H}).")
     )
 
     executeTests(Table(
@@ -872,20 +872,33 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   "game.heap" should "define TakeAndBreak properly" in {
 
     val instances = Seq(
+
       ("game.heap.Nim", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "Nothing",
         "[1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]"),
+
       ("game.heap.GrundysGame", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "Nothing",
         "[1,1,1,0,1,2,0,1,2,0,1,2,0,1,2,0,1,2,0,1,2]", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3^1431,2,1,3^1431,2,4^0564,3^1431,0^20]"),
+
       ("game.heap.Kayles", "20", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]",
         "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)",
         "[1,0,2,3,0,1,3,2,1,0,2,4,0,1,2,5,1,6,3,2,0]",
         "[0,1,2,3,1,4^146,3,2^2,1^1,4^046,2^2,6^46,4^046,1^1,2^2,7^57,1^13,4^64,3^31,2^20,1^031]"),
+
       ("game.heap.DawsonsKayles", "10", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]",
         "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)",
         "[1,1,0,0,2,1,3,0,0,1,1,3,0,2,1,1,0,0,2,1,3]", "[0,0,1,1,2,0,3,1,1,0,3^1431,3,2^0520,2,4^146,0,5^057,2^0520,2,3^1431,3]"),
+
+      ("game.heap.Subtraction([2,3,7])", "3", "[0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0]",
+        "Periodicity(Period => 5, Preperiod => 0, Saltus => 0)",
+        "[1,1,0,0,2,1,1,0,0,2,1,1,0,0,2,1,1,0,0,2,1]", "[0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0]"),
+
+      ("game.heap.Subtraction([2,3,7], allbut => true)", "17", "[0,1,0,1,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]", "Nothing",
+        "[1,0,1,0,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]", "[0,1,0,1,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]"),
+
       ("game.heap.TakeAndBreak(\"0.3f\")", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "Nothing",
         "[1,0,2,1,0,2,1,0,4,1,0,4,1,0,6,1,0,6,1,0,6]",
         "[0,1,2,0,1,2,3^1431,4^0564,5^46,3^1431,4^0564,5^4875,6^(1,9,10,8),7^075,8^6875,6^(1,9,10,8),7^075,8^(6,10,8),9^(1,9,12,11,9),10^(0,11,13,9,11),11^(6,10,8)]")
+
     )
 
     val tests = instances flatMap { case (rs, optionCount, nimSequence, periodicity, misereNimValue, genus) =>
@@ -904,6 +917,16 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     )
 
     executeTests(Table(header, tests ++ moreTests : _*))
+  }
+
+  it should "define partizan heap games properly" in {
+
+    executeTests(Table(
+      header,
+      ("PartizanSubtraction(1,3|2,3)", "game.heap.PartizanSubtraction([1,3],[2,3])(6).CanonicalForm",
+        "{1|1,{1|0}||0,{1|0}|0|||0,{1|0}|0}")
+    ))
+
   }
 
   def executeTests(tests: TableFor3[String, String, String], preamble: String = ""): Unit = {

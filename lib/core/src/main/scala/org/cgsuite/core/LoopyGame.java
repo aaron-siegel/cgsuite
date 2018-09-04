@@ -2236,7 +2236,7 @@ public class LoopyGame
      *          to a stopper.
      * @see     #sidle() sidle
      * @see     #offside() offside
-     */
+     *
     public CanonicalStopper onside() throws NotStopperException
     {
         LoopyGame onside = new LoopyGame();
@@ -2251,6 +2251,7 @@ public class LoopyGame
             throw new NotStopperException();
         }
     }
+    */
     
     /**
      * Calculates the offside of this game.  Not all loopy games have offsides
@@ -2266,7 +2267,7 @@ public class LoopyGame
      *          to a stopper.
      * @see     #sidle() sidle
      * @see     #onside() onside
-     */
+     *
     public CanonicalStopper offside() throws NotStopperException
     {
         LoopyGame offside = new LoopyGame();
@@ -2281,6 +2282,7 @@ public class LoopyGame
             throw new NotStopperException();
         }
     }
+    */
     
     ////////////////////////////////////////////////////////////////////////
     // Nested classes.

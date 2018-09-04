@@ -1,9 +1,7 @@
 package org.cgsuite.util
 
-import java.util
-
-import org.cgsuite.core.{SmallInteger, Integer}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.core.{Integer, SmallInteger}
+import org.cgsuite.exception.GridParseException
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -14,7 +12,7 @@ object Strip {
   def parse(str: String, charMap: String): Strip = {
     val bytes = str map { ch =>
       charMap.indexOf(ch.toLower) match {
-        case -1 => throw EvalException("The position may only contain the following characters: " + charMap)
+        case -1 => throw GridParseException("The position may only contain the following characters: " + charMap)
         case n => n.toByte
       }
     }

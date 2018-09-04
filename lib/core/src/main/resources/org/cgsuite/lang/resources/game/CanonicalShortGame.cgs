@@ -32,7 +32,7 @@ system class CanonicalShortGame extends CanonicalStopper
   external def Overheat(s as CanonicalShortGame, t as CanonicalShortGame);
   external def Pow(x as Pseudonumber);
   external def PowTo(x as Pseudonumber);
-  external def ReducedCanonicalForm;
+  external override def ReducedCanonicalForm;
   external def RightIncentives;
   external override def RightStop;
   external def StopCount;

@@ -120,7 +120,7 @@ object CanonicalStopperTestCase {
       outcomeClass = "L",
       rightOptions = "{Tiny(on)}",
       rightStop = "0",
-      variety = "!!Degree must be an idempotent."
+      variety = "!!Variety degree must be an idempotent."
     ),
 
     CanonicalStopperTestCase(

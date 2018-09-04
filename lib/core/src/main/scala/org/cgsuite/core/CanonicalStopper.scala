@@ -4,7 +4,7 @@ import java.util
 
 import org.cgsuite.core.CanonicalStopper._
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{CounterexampleException, InvalidOperationException, NotStopperException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import org.cgsuite.util.TranspositionTable
@@ -29,7 +29,7 @@ object CanonicalStopper {
         }
       }
     } else {
-      throw EvalException(s"not a stopper: $loopyGame")
+      throw NotStopperException(s"Not a stopper: $loopyGame")
     }
   }
 
@@ -95,7 +95,13 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (sum.isStopper) {
       CanonicalStopper(sum)
     } else {
-      StopperSidedValue(sum.onside, sum.offside)
+      SidedValue(sum) match {
+        case ssv: StopperSidedValue => ssv
+        case _ => throw CounterexampleException(
+          "Congratulations! You've found a counterexample to the Finite Sides Conjecture. " +
+            "Please report this finding to asiegel@users.sourceforge.net."
+        )
+      }
     }
   }
 
@@ -134,13 +140,13 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def degree: CanonicalStopper = if (isLoopfree) zero else upsum(-this)
 
-  def downsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).offside()
+  def downsum(that: CanonicalStopper): CanonicalStopper = (this + that).offside
 
   def downsumVariety(deg: CanonicalStopper): CanonicalStopper = {
     if (deg.isIdempotent)
       downsum((-this).upsum(deg))
     else
-      throw EvalException("Degree must be an idempotent.")
+      throw InvalidOperationException("Variety degree must be an idempotent.")
   }
 
   def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
@@ -203,13 +209,13 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def ordinalSum(that: CanonicalStopper): CanonicalStopper = CanonicalStopper(loopyGame.ordinalSum(that.loopyGame))
 
-  def upsum(that: CanonicalStopper): CanonicalStopper = loopyGame.add(that.loopyGame).onside()
+  def upsum(that: CanonicalStopper): CanonicalStopper = (this + that).onside
 
   def upsumVariety(deg: CanonicalStopper): CanonicalStopper = {
     if (deg.isIdempotent)
       upsum((-this).downsum(-deg))
     else
-      throw EvalException("Degree must be an idempotent.")
+      throw InvalidOperationException("Variety degree must be an idempotent.")
   }
 
   def variety: CanonicalStopper = {
@@ -218,7 +224,10 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (v == downsumVariety(deg))
       v
     else
-      throw EvalException("Congratulations!  You've found a counterexample to the Stability Conjecture.  Please report this finding to asiegel@users.sourceforge.net.")
+      throw CounterexampleException(
+        "Congratulations! You've found a counterexample to the Stability Conjecture. " +
+          "Please report this finding to asiegel@users.sourceforge.net."
+      )
   }
 
   def stop(player: Player): Pseudonumber = {
