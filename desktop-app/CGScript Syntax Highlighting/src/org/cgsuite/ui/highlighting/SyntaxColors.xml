@@ -10,7 +10,16 @@
 <fontscolors>
 
     <fontcolor name="Keyword" foreColor="blue" default="default"/>
+    <fontcolor name="DeclKeyword" foreColor="ff009900" default="default">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="String"  foreColor="ffce7b00" default="default"/>
     <fontcolor name="Comment" foreColor="ff969696" default="default"/>
+    <fontcolor name="DeclId"  foreColor="black" default="default">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="InfixOp"  foreColor="black" default="default">
+        <font style="italic"/>
+    </fontcolor>
 
 </fontscolors>
