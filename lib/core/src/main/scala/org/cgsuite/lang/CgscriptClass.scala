@@ -653,6 +653,11 @@ class CgscriptClass(
 
   private def load() {
 
+    // Force constants to load first
+    pkg lookupClass 'constants foreach { constantsCls =>
+      if (constantsCls != this) constantsCls.ensureLoaded()
+    }
+
     val (in, source) = {
       if (urlRef != null) {
         logger debug s"$logPrefix Loading class from URL: $urlRef"

@@ -802,7 +802,7 @@ object ProcedureNode {
 
 case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
-  override def elaborate(scope: ElaborationDomain) = {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
     parameters foreach { param =>
       param.methodScopeIndex = newScope.insertId(param.idNode)
