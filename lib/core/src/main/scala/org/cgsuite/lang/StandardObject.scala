@@ -3,11 +3,7 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import org.cgsuite.core._
-import org.cgsuite.exception.CgsuiteException
-import org.cgsuite.output.{Output, OutputTarget}
-import org.cgsuite.util.TranspositionTable
-
-import scala.collection.mutable
+import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: Any = null)
   extends OutputTarget {
@@ -52,6 +48,43 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
 
   def toOutput: Output = {
     cls.classInfo.toOutputMethod.call(this, Array.empty).asInstanceOf[Output]
+  }
+
+  def toDefaultOutput: StyledTextOutput = {
+    if (cls.isMutable) {
+      new StyledTextOutput(s"${cls.name}.instance")
+    } else {
+      val sto = new StyledTextOutput
+      enclosingObj match {
+        case null =>
+        case stdObj: StandardObject =>
+          sto append stdObj.toDefaultOutput
+          sto appendText "."
+        case _ =>
+          sto appendText CgscriptClass.of(enclosingObj).name
+          // TODO Append .instance for nonsingletons?
+          sto appendText "."
+      }
+      sto appendText cls.fullyScopedName
+      cls.constructor foreach { ctor =>
+        sto appendText "("
+        val params = ctor.parameters
+        params.indices foreach { idx =>
+          params(idx).defaultValue match {
+            case None =>
+            case Some(_) =>
+              sto appendText params(idx).id.name
+              sto appendText " => "
+          }
+          val argOutput = CgscriptClass instanceToOutput objArgs(idx)
+          sto append argOutput
+          if (idx < params.size - 1)
+            sto appendText ", "
+        }
+        sto appendText ")"
+      }
+      sto
+    }
   }
 
   def lookupInstanceMethod(id: Symbol): Option[Any] = {

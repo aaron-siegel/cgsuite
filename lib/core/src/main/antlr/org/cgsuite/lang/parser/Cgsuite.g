@@ -111,6 +111,9 @@ tokens
     ASN_ANTECEDENT;
     CLASS_VAR;
     COORDINATES;
+    DECL_BEGIN;
+    DECL_END;
+    DECL_ID;
     DECLARATIONS;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
@@ -257,8 +260,10 @@ importClause
 
 classDeclaration
     : (classModifiers CLASS IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END!
-    | classModifiers CLASS^ IDENTIFIER extendsClause? declarations END!
+      classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END
+      { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
+    | classModifiers CLASS^ IDENTIFIER extendsClause? declarations END
+      { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
     ;
 
 classModifiers
@@ -296,22 +301,24 @@ staticDeclaration
     ;
     
 classVarDeclaration
-    : modifiers VAR varInitializer (COMMA varInitializer)* -> ^(CLASS_VAR[$VAR] modifiers varInitializer*)
+    : modifiers VAR classVarInitializer (COMMA classVarInitializer)* -> ^(CLASS_VAR[$VAR] modifiers classVarInitializer*)
     ;
 
-varInitializer
-    : IDENTIFIER (ASSIGN^ functionExpression)?
+classVarInitializer
+    : IDENTIFIER (ASSIGN^ functionExpression)? { $IDENTIFIER.setType(DECL_ID); }
     ;
 
 defDeclaration
-    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) => modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
-    | modifiers DEF^ IDENTIFIER defInitializer
+    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) =>
+      modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
+      { $IDENTIFIER.setType(DECL_ID); }
+    | modifiers DEF^ IDENTIFIER defInitializer { $IDENTIFIER.setType(DECL_ID); }
     ;
 
 defInitializer
     : SEMI!
     | ASSIGN expression SEMI -> ^(STATEMENT_SEQUENCE expression)
-    | BEGIN! statementSequence END!
+    | BEGIN statementSequence END { $BEGIN.setType(DECL_BEGIN); $END.setType(DECL_END); }
     ;
 
 modifiers
@@ -348,7 +355,8 @@ scope
 {
     String name;
 }
-    : classModifiers ENUM^ IDENTIFIER {$enumDeclaration::name = $IDENTIFIER.text;} enumElementList declarations END!
+    : classModifiers ENUM^ IDENTIFIER { $enumDeclaration::name = $IDENTIFIER.text; }
+      enumElementList declarations END { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
     ;
 
 enumElementList
@@ -390,6 +398,10 @@ tryStatement
 
 localVarDeclaration
     : VAR^ varInitializer
+    ;
+
+varInitializer
+    : IDENTIFIER (ASSIGN^ functionExpression)?
     ;
 
 expression

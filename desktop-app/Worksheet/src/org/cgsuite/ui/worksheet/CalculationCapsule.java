@@ -13,6 +13,7 @@ import org.cgsuite.lang.CgscriptClasspath;
 import org.cgsuite.lang.EvalUtil;
 import org.cgsuite.output.Output;
 import org.openide.util.RequestProcessor;
+import org.slf4j.LoggerFactory;
 import scala.Symbol;
 import scala.collection.JavaConverters;
 import scala.collection.mutable.AnyRefMap;
@@ -53,15 +54,30 @@ public class CalculationCapsule implements Runnable
     @Override
     public void run()
     {
-        CgscriptClasspath.reloadModifiedFiles();
-        try
+        if (":debug".equals(text))
         {
-            output = JavaConverters.seqAsJavaList(EvalUtil.evaluate(text, varMap));
+            ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME))
+                .setLevel(ch.qos.logback.classic.Level.DEBUG);
+            output = Collections.<Output>emptyList();
         }
-        catch (Throwable exc)
+        else if (":info".equals(text))
         {
-            log.log(Level.WARNING, "Exception thrown extracting error output!", exc);
-            output = Collections.singletonList(EvalUtil.errorOutput("An unexpected error occurred."));
+            ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME))
+                .setLevel(ch.qos.logback.classic.Level.INFO);
+            output = Collections.<Output>emptyList();
+        }
+        else
+        {
+            CgscriptClasspath.reloadModifiedFiles();
+            try
+            {
+                output = JavaConverters.seqAsJavaList(EvalUtil.evaluate(text, varMap));
+            }
+            catch (Throwable exc)
+            {
+                log.log(Level.WARNING, "Exception thrown extracting error output!", exc);
+                output = Collections.singletonList(EvalUtil.errorOutput("An unexpected error occurred."));
+            }
         }
     }
     

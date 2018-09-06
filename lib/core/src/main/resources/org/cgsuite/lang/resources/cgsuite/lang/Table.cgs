@@ -2,6 +2,8 @@
 
 system class Table
 
+  external def IntensityPlot(unitSize as Integer ? 8);
+
   override external def ToOutput;
 
 end

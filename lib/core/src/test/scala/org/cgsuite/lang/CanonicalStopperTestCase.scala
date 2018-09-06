@@ -251,7 +251,7 @@ case class CanonicalStopperTestCase(
   def toTests = {
     Seq(
       (x, xOut),
-      (s"($x).Class", s"<<game.$cls>>"),
+      (s"($x).Class", s"\u27eagame.$cls\u27eb"),
       (s"($x).Degree", degree),
       (s"($x).FollowerCount", followerCount),
       (s"($x).IsIdempotent", isIdempotent),

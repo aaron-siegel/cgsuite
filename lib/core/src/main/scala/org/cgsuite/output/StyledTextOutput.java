@@ -630,7 +630,12 @@ public class StyledTextOutput extends AbstractOutput
      */
     public void appendMath(String text)
     {
-        appendText(EnumSet.of(Style.FACE_MATH), EnumSet.allOf(Mode.class), text);
+        appendMath(EnumSet.allOf(Mode.class), text);
+    }
+
+    public void appendMath(EnumSet<Mode> modes, String text)
+    {
+        appendText(EnumSet.of(Style.FACE_MATH), modes, text);
     }
     
     /**

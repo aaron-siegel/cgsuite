@@ -61,6 +61,7 @@ object CgscriptClass {
     "cgsuite.lang.Table" -> classOf[Table],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
+    "cgsuite.lang.InstanceMethod" -> classOf[InstanceMethod],
 
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Genus" -> classOf[Genus],
@@ -189,6 +190,22 @@ object CgscriptClass {
     }
   }
 
+  def instanceToOutput(x: Any): Output = {
+    CgscriptClass.of(x).classInfo.toOutputMethod.call(x, Array.empty).asInstanceOf[Output]   // TODO Error msg if not Output
+  }
+
+  def instanceToDefaultOutput(x: Any): StyledTextOutput = {
+    val sto = new StyledTextOutput
+    x match {
+      case stdObj: StandardObject =>
+        sto append stdObj.toDefaultOutput
+      case _ =>
+        val cls = CgscriptClass of x
+        sto appendText s"${cls.name}.instance"
+    }
+    sto
+  }
+
   private def toCgscriptClass(x: Any): CgscriptClass = {
     // This is slow, but we cache the results so that it only happens once
     // per distinct (Java) type witnessed.
@@ -237,9 +254,10 @@ class CgscriptClass(
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
+  val fullyScopedName: String = id.name
   val name: String = enclosingClass match {
-    case Some(encl) => encl.name + "." + id.name
-    case None => id.name
+    case Some(encl) => encl.name + "." + fullyScopedName
+    case None => fullyScopedName
   }
   val qualifiedName: String = {
     if (pkg.isRoot)
@@ -294,7 +312,7 @@ class CgscriptClass(
     }
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = lookupMethod('Eval) getOrElse { throw EvalException("Method not found: `Eval`") }
+    lazy val evalMethod = lookupMethod('Eval) getOrElse { throw EvalException(s"No method `Eval` for class: `$qualifiedName`") }
     lazy val optionsMethod = lookupMethod('Options) getOrElse { throw EvalException("Method not found: `Options`") }
     lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw EvalException("Method not found: `Decomposition`") }
     lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw EvalException("Method not found: `CanonicalForm`") }
@@ -395,8 +413,9 @@ class CgscriptClass(
     def isOverride: Boolean
     def call(obj: Any, args: Array[Any]): Any
 
+    val methodName = idNode.id.name
     val declaringClass = thisClass
-    val qualifiedName = declaringClass.qualifiedName + "." + idNode.id.name
+    val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
@@ -1026,7 +1045,7 @@ class CgscriptClass(
               javaClass.getMethod(externalName, externalParameterTypes: _*)
             } catch {
               case exc: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method: `$qualifiedName`", node.tree)
+                throw EvalException(s"Method is declared `external`, but has no corresponding Java method: `$qualifiedName.$name`", node.tree)
             }
             logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
             SystemMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)

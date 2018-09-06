@@ -7,7 +7,7 @@ import java.io.PrintWriter
 
 import org.cgsuite.output.Output.Mode
 
-case class IntensityPlotOutput(array: Seq[Seq[Int]]) extends AbstractOutput {
+case class IntensityPlotOutput(array: Seq[Seq[Int]], unitSize: Int = 8) extends AbstractOutput {
 
   val rowCount = array.length
   val colCount = array.map { _.length }.max
@@ -17,14 +17,14 @@ case class IntensityPlotOutput(array: Seq[Seq[Int]]) extends AbstractOutput {
     throw new UnsupportedOperationException("Not supported yet.")
   }
 
-  def getSize(preferredWidth: Int): Dimension = new Dimension(colCount * 8, rowCount * 8)
+  def getSize(preferredWidth: Int): Dimension = new Dimension(colCount * unitSize, rowCount * unitSize)
 
   def paint(graphics: Graphics2D, preferredWidth: Int) {
 
-    for (i <- 0 to rowCount; j <- 0 to array(i).length) {
+    for (i <- array.indices; j <- array(i).indices) {
       val color: Float = array(i)(j).toFloat / maxValue.toFloat
       graphics.setColor(new Color(color, color, color))
-      graphics.fillRect(j * 8, i * 8, 8, 8)
+      graphics.fillRect(j * unitSize, i * unitSize, unitSize, unitSize)
     }
 
   }

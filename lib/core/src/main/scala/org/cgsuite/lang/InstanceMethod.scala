@@ -1,14 +1,22 @@
 package org.cgsuite.lang
 
-case class InstanceMethod(obj: Any, method: CgscriptClass#Method) extends CallSite {
+import org.cgsuite.output.{OutputTarget, StyledTextOutput}
+
+case class InstanceMethod(enclosingObject: Any, method: CgscriptClass#Method) extends OutputTarget with CallSite {
 
   def parameters = method.parameters
   def ordinal = method.ordinal
   def call(args: Array[Any]): Any = {
-    method.call(obj, args)
+    method.call(enclosingObject, args)
   }
   def referenceToken = Some(method.idNode.token)
   def locationMessage = s"in call to `${method.qualifiedName}`"
+
+  override def toOutput: StyledTextOutput = {
+    val sto = new StyledTextOutput
+    sto appendMath s"\u27ea${CgscriptClass.instanceToDefaultOutput(enclosingObject)}.${method.methodName}\u27eb"
+    sto
+  }
 
 }
 

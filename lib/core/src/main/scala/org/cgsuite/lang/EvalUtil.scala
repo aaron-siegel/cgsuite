@@ -3,14 +3,14 @@ package org.cgsuite.lang
 import java.io.{PrintWriter, StringWriter}
 import java.util
 
+import com.typesafe.scalalogging.LazyLogging
 import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
-import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 
 import scala.collection.mutable
 
-object EvalUtil {
+object EvalUtil extends LazyLogging {
 
   def evaluate(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
     try {
@@ -26,6 +26,7 @@ object EvalUtil {
       val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
       output match {
         case EmptyOutput => Vector.empty
+        case str: String => Vector(new StyledTextOutput(str))
         case o: Output => Vector(o)
         case _ => sys error output.getClass.toString      // TODO Better exception here (ToOutput didn't return output...)
       }

@@ -314,7 +314,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
           |pair1 := f(); set1 := pair1[1]; get1 := pair1[2]; pair2 := f(); set2 := pair2[1]; get2 := pair2[2];
           |set1("foo"); set2("bar"); [get1(), get2()]
         """.stripMargin, """["foo","bar"]"""),
-      ("Procedure involving assignment - syntax error", "x -> y := x", "!!Syntax error.")
+      ("Procedure involving assignment - syntax error", "x -> y := x", "!!Syntax error."),
+      ("False eval", "5(3)", "!!No method `Eval` for class: `game.Integer`")
     ))
 
   }
@@ -343,8 +344,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     val instances = Seq(
       ("3-param method", "test.validation.Inner.Method3", "3", 3, "in call to `test.validation.Inner.Method3`"),
       ("5-param method", "test.validation.Inner.Method5", "3", 5, "in call to `test.validation.Inner.Method5`"),
-      ("Outer constructor", "test.validation.Outer", "<Object of Class Outer>", 3, "in call to `test.validation.Outer` constructor"),
-      ("Nested constructor", "test.validation.Inner.Nested", "<Object of Class Inner.Nested>", 3, "in call to `test.validation.Inner.Nested` constructor"),
+      ("Outer constructor", "test.validation.Outer", "Outer(1, 2, c => \"bell\")", 3, "in call to `test.validation.Outer` constructor"),
+      ("Nested constructor", "test.validation.Inner.Nested", "Inner.Nested(1, 2, c => \"bell\")", 3, "in call to `test.validation.Inner.Nested` constructor"),
       ("Procedure", "f", "3", 3, "in procedure call")
     )
 
@@ -569,7 +570,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, abs, birthday, sign, isOrdinal, outcomeClass) =>
       Seq(
         (x, xOut),
-        (s"($x).Class", s"<<game.$cls>>"),
+        (s"($x).Class", s"\u27eagame.$cls\u27eb"),
         (s"($x).Abs", abs),
         (s"($x).Birthday", birthday),
         (s"($x).Sign", sign),
@@ -602,7 +603,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, num, den, isDyadic, abs, floor, ceiling, reciprocal, birthday, outcomeClass) =>
       Seq(
         (x, xOut),
-        (s"($x).Class", s"<<game.$cls>>"),
+        (s"($x).Class", s"\u27eagame.$cls\u27eb"),
         (s"($x).Numerator", num),
         (s"($x).Denominator", den),
         (s"($x).IsDyadic", isDyadic),
@@ -752,7 +753,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, onside, offside, outcomeClass) =>
       Seq(
         (x, xOut),
-        (s"($x).Class", s"<<game.$cls>>"),
+        (s"($x).Class", s"\u27eagame.$cls\u27eb"),
         (s"($x).Onside", onside),
         (s"($x).Offside", offside),
         (s"($x).OutcomeClass", outcomeClass)
@@ -865,7 +866,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "avoid a weird class load order bug" in {
     executeTests(Table(
       header,
-      ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(2).Class""", "<<game.strip.GenToadsAndFrogs>>")
+      ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(2).Class""", "\u27eagame.strip.GenToadsAndFrogs\u27eb")
     ))
   }
 
@@ -913,7 +914,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     }
 
     val moreTests = Seq(
-      ("game.heap.GrundysGame.MisereCanonicalForm", "game.heap.GrundysGame(20).MisereCanonicalForm", "*[((2[2]21)[2](2[2]21)20)(2[2]21)3]")
+      ("game.heap.GrundysGame.MisereCanonicalForm", "game.heap.GrundysGame(22).MisereCanonicalForm", "*[(((2[2]21)[2](2[2]21)20)(2[2]21)3)((2[2]21)[2](2[2]21)20)(2[2]21)[1]2[2]1]")
     )
 
     executeTests(Table(header, tests ++ moreTests : _*))

@@ -4,7 +4,7 @@ import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
-import org.cgsuite.exception.{CgsuiteException, EvalException}
+import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, EvalException}
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -235,7 +235,7 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object IdentifierNode {
   def apply(tree: Tree): IdentifierNode = {
-    assert(tree.getType == IDENTIFIER || tree.getType == INFIX_OP, tree.toStringTree)
+    assert(tree.getType == IDENTIFIER || tree.getType == DECL_ID || tree.getType == INFIX_OP, tree.toStringTree)
     IdentifierNode(tree, Symbol(tree.getText))
   }
 }
@@ -583,7 +583,7 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     if (condition.evaluateAsBoolean(domain))
       ifNode.evaluate(domain)
     else
-      elseNode.map { _.evaluate(domain) }.getOrElse(null)
+      elseNode.map { _.evaluate(domain) }.orNull
   }
   def toNodeString = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
     (elseNode map { " " + _.toNodeString } getOrElse "") + " end"
@@ -739,6 +739,9 @@ case class LoopNode(
     var continue = true
 
     while (continue) {
+
+      if (Thread.interrupted())
+        throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
 
       if (iterator == null) {
         if (forIndex >= 0)
@@ -922,6 +925,9 @@ case class FunctionCallNode(
 
   override def evaluate(domain: Domain) = {
 
+    if (Thread.interrupted())
+      throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
+
     val obj = this.callSite.evaluate(domain)
     val callSite: CallSite = obj match {
       case cs: CallSite => cs
@@ -933,7 +939,15 @@ case class FunctionCallNode(
         )
       }
       case scr: Script => ScriptCaller(domain, scr)   // TODO We could eliminate this obj creation by passing Domain to every CallSite, and having Script implement CallSite
-      case x => InstanceMethod(x, (CgscriptClass of x).classInfo.evalMethod)   // TODO attach token to `Eval` not found
+      case x =>
+        val evalMethod = try {
+          CgscriptClass.of(x).classInfo.evalMethod
+        } catch {
+          case exc: CgsuiteException =>
+            exc addToken token
+            throw exc
+        }
+        InstanceMethod(x, evalMethod)
     }
 
     val res = resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
@@ -1104,7 +1118,7 @@ object StatementSequenceNode {
 case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends EvalNode {
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
-  override def elaborate(scope: ElaborationDomain) = {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     scope.pushScope()
     statements.foreach { _.elaborate(scope) }
     scope.popScope()

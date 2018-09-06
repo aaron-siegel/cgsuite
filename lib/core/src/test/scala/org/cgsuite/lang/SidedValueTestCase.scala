@@ -67,7 +67,7 @@ object SidedValueTestCase {
     def toTests = {
       Seq(
         (x, xOut),
-        (s"($x).Class", s"<<game.$cls>>"),
+        (s"($x).Class", s"\u27eagame.$cls\u27eb"),
         (s"($x).IsIdempotent", isIdempotent),
         (s"($x).IsInfinitesimal", isInfinitesimal),
         (s"($x).IsInteger", "false"),

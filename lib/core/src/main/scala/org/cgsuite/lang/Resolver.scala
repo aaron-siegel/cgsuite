@@ -103,7 +103,10 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
 
     if (classScopeIndex >= 0) {
 
-      x.asInstanceOf[StandardObject].vars(classScopeIndex)
+      x match {
+        case obj: StandardObject => obj.vars(classScopeIndex)
+        case _ => sys error s"This shouldn't happen: ${cls.qualifiedName}.${id.name}"
+      }
 
     } else if (method.isDefined) {
 

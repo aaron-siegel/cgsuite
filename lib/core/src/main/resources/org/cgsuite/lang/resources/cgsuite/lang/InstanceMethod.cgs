@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+system class InstanceMethod
+
+  external def EnclosingObject;
+
+  external override def ToOutput;
+
+end

@@ -5,6 +5,6 @@ system class Object
   external def Class;
   external def JavaClass;
 
-  def ToOutput := cgsuite.util.output.TextOutput("<Object of Class " + this.Class.Name + ">");
+  external def ToOutput;
 
 end

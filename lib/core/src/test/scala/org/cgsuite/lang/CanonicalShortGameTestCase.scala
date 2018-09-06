@@ -1024,7 +1024,7 @@ case class CanonicalShortGameTestCase(
 
   def toTests = Seq(
     (x, xOut),
-    (s"($x).Class", s"<<game.$cls>>"),
+    (s"($x).Class", s"\u27eagame.$cls\u27eb"),
     (s"($x).AtomicWeight", atomicWeight),
     (s"($x).Birthday", birthday),
     (s"($x).Companion", companion),

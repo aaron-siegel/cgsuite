@@ -7,4 +7,6 @@ system class TakeAndBreak(code as String) extends HeapRuleset
 
   external static def FromSubtractionSet(subtset as Collection, allbut as Boolean ? false);
 
+  override def ToOutput := "TakeAndBreak(\"" + Code + "\")";
+
 end

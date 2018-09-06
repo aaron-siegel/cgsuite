@@ -29,6 +29,7 @@ trait ImpartialGame extends Game {
   override def unary_- : ImpartialGame = this
 
   def +(other: ImpartialGame): ImpartialGame = CompoundImpartialGame(CompoundType.Disjunctive, this, other)
+
   def -(other: ImpartialGame): ImpartialGame = this + this
 
   override def options(player: Player): Iterable[ImpartialGame] = options

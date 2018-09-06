@@ -13,6 +13,7 @@ object SpecialMethods {
 
     "cgsuite.lang.Object.Class" -> { (obj: Any, _: Unit) => CgscriptClass.of(obj).classObject },
     "cgsuite.lang.Object.JavaClass" -> { (obj: Any, _: Unit) => obj.getClass.getName },
+    "cgsuite.lang.Object.ToOutput" -> { (obj: Any, _: Unit) => CgscriptClass instanceToDefaultOutput obj },
     "cgsuite.lang.Collection.Head" -> { (collection: Iterable[_], _: Unit) =>
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.head
     },
@@ -53,8 +54,14 @@ object SpecialMethods {
     "cgsuite.lang.List.Grouped" -> { (list: Seq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
     },
+    "cgsuite.lang.Set.Intersection" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
+      set intersect that
+    },
     "cgsuite.lang.Set.Replaced" -> { (set: scala.collection.Set[Any], replacements: scala.collection.Map[_,_]) =>
       set -- replacements.keys ++ replacements.values
+    },
+    "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
+      set ++ that
     },
     "cgsuite.util.MutableList.Add" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list += x; null },
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },

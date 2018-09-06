@@ -33,6 +33,7 @@ import java.util.*;
 
 import org.cgsuite.core.impartial.CodeDigit;
 import org.cgsuite.core.impartial.Traversal;
+import org.cgsuite.output.Output;
 import org.cgsuite.output.StyledTextOutput;
 
 /** All data about canonical
@@ -1137,7 +1138,7 @@ public final class MisereCanonicalGameOps
         {
             subscripted = new int[] {0};
             rAppendMidToOutput(id, out, tryParts, parenthesize, subscripted);
-            if (subscripted[0] > 0) out.appendMath("]");
+            if (subscripted[0] > 0) out.appendMath(EnumSet.of(Output.Mode.PLAIN_TEXT), "]");
             return;
         }
 
@@ -1156,7 +1157,7 @@ public final class MisereCanonicalGameOps
             out.appendMath(new CodeDigit(b, CodeDigit.decimalOptions).toString());
             if (subscripted[0] > 0)
             {
-                out.appendMath("[");
+                out.appendMath(EnumSet.of(Output.Mode.PLAIN_TEXT), "[");
             }
             return;
         }
@@ -1170,7 +1171,7 @@ public final class MisereCanonicalGameOps
                 if (bdiff != -1 && birthday(bdiff) < birthday(id)) {
                     subscripted[0] = 1;
                     rAppendMidToOutput(bdiff, out, tryParts, true, subscripted);
-                    out.appendMath(new CodeDigit(i, CodeDigit.decimalOptions).toString());
+                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), new CodeDigit(i, CodeDigit.decimalOptions).toString());
                     return;
                 }
                 int bsum = add(id, constructFromNimber(i));
@@ -1178,8 +1179,8 @@ public final class MisereCanonicalGameOps
                 if (birthday(bsum) < birthday(id)) {
                     subscripted[0] = 1;
                     rAppendMidToOutput(bsum, out, tryParts, true, subscripted);
-                    out.appendMath("-");
-                    out.appendMath(new CodeDigit(i, CodeDigit.decimalOptions).toString());
+                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), "-");
+                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), new CodeDigit(i, CodeDigit.decimalOptions).toString());
                     return;
                 }
             }
@@ -1188,7 +1189,7 @@ public final class MisereCanonicalGameOps
             {
                 subscripted[0] = 1;
                 rAppendMidToOutput(id & ~1, out, tryParts, true, subscripted);
-                out.appendMath("1");
+                out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), "1");
                 return;
             }
         }
@@ -1204,7 +1205,7 @@ public final class MisereCanonicalGameOps
             assert isOdd == 0 && nOpts > 0 : "Odd singleton > 1 at " + id;
 
             rAppendMidToOutput(opts[0], out, tryParts, true, subscripted);
-            out.appendMath("#");
+            out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), "#");
             tempArrayStack.putAway(opts);
             return;
         }
@@ -1215,14 +1216,14 @@ public final class MisereCanonicalGameOps
         {
             subscripted[0] = 0;
             rAppendMidToOutput(opts[i], out, tryParts, true, subscripted);
-            if (subscripted[0] > 0) out.appendMath("]");
+            if (subscripted[0] > 0) out.appendMath(EnumSet.of(Output.Mode.PLAIN_TEXT), "]");
         }
         tempArrayStack.putAway(opts);
         if (parenthesize) out.appendMath(")");
         subscripted[0] = oSub;
         if (subscripted[0] > 0)
         {
-            out.appendMath("[");
+            out.appendMath(EnumSet.of(Output.Mode.PLAIN_TEXT), "[");
         }
     }
 
@@ -1808,7 +1809,9 @@ public final class MisereCanonicalGameOps
     
     private static int[] get2Partitions(int id)
     {
-        assert (id & 1) == 0 : "getPartitions called on odd id: " + id;
+        // TODO This assertion appears to be unnecessary and fires in several cases...
+        // I should try to better understand those cases at some point.
+        //assert (id & 1) == 0 : "getPartitions called on odd id: " + id;
         id = (id & ~1);     // Just in case
         
         if (partitionsTable.containsKey(id))

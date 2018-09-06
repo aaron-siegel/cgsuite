@@ -31,25 +31,8 @@ import org.cgsuite.core.Integer
 import org.cgsuite.lang.Table.Format
 import org.cgsuite.output.{IntensityPlotOutput, Output, OutputTarget, TableOutput}
 
-/**
- * A table whose entries may be any objects.  This is primarily useful for
- * plug-ins that want to display information in tabular form.  When output is
- * requested for a <code>Table</code>, it is displayed in a nicely arranged
- * grid format.
- *
- * @author  Aaron Siegel
- * @author  Dan Hoey
- * @version $Revision: 1.19 $ $Date: 2008/01/11 02:53:05 $
- */
 object Table {
 
-  /**
-   * A format specifier for a <code>Table</code>.
-   *
-   * @author  Aaron Siegel
-   * @version $Revision: 1.19 $ $Date: 2008/01/11 02:53:05 $
-   * @since   0.7
-   */
   object Format extends Enumeration {
     type Format = Value
     val HorizontalGridLines, VerticalGridLines = Value
@@ -68,11 +51,11 @@ case class Table (
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
   }
 
-  def intensityPlot: IntensityPlotOutput = {
+  def intensityPlot(unitSize: Integer): IntensityPlotOutput = {
     val ints = rows map { _ map { entry =>
       entry.asInstanceOf[Integer].intValue
     } }
-    IntensityPlotOutput(ints)
+    IntensityPlotOutput(ints, unitSize.intValue)
   }
 
 }

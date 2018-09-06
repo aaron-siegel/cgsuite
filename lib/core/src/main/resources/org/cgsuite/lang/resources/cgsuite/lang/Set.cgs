@@ -5,8 +5,12 @@ system class Set extends Collection
   external def Contains(x);
 
   def Apply(fn as Procedure) := setof(fn(x) for x in this);
+  
+  external def Intersection(that as Set);
 
   external def Replaced(replacements as Map);
+  
+  external def Union(that as Set);
 
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 
