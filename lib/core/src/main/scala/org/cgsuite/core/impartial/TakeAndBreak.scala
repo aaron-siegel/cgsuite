@@ -7,10 +7,11 @@ import scala.collection.mutable
 
 object TakeAndBreak {
 
-  def fromSubtractionSet(subtset: Iterable[_], allbut: java.lang.Boolean): TakeAndBreak = {
+  def fromSubtractionSet(subtset: Iterable[_], codeDigit: String, allbut: java.lang.Boolean): TakeAndBreak = {
     val mapped = subtset map {
+      case n: Int => n
       case n: Integer => n.intValue
-      case _ => throw InvalidArgumentException("Argument to `SubtractionSet` must be a set of `Integer`s.")
+      case _ => throw InvalidArgumentException("Subtraction set must be a set of `Integer`s.")
     }
     val set = mapped.toSet
     val prefix = {
@@ -18,8 +19,8 @@ object TakeAndBreak {
       if (min < 1) {
         if (allbut)
           throw InvalidArgumentException("If `allbut` == true, then subtraction set must contain strictly positive `Integer`s.")
-        val chars = (min to 0) map { n => if (set contains n) '3' else '0' }
-        SeqCharSequence(chars).toString
+        val digits = (min to 0) map { n => if (set contains n) codeDigit else "0" }
+        digits mkString ""
       } else {
         "0"
       }
@@ -27,13 +28,13 @@ object TakeAndBreak {
     val suffix = {
       val max = set.max
       if (max >= 1) {
-        val chars = (1 to max) map { n => if ((set contains n) != allbut) '3' else '0' }
-        SeqCharSequence(chars).toString
+        val digits = (1 to max) map { n => if ((set contains n) != allbut) codeDigit else "0" }
+        digits mkString ""
       } else {
         if (allbut) "" else "0"
       }
     }
-    val allbutSuffix = if (allbut) "[3]" else ""
+    val allbutSuffix = if (allbut) s"[$codeDigit]" else ""
     TakeAndBreak(s"$prefix.$suffix$allbutSuffix")
   }
 

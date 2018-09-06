@@ -29,6 +29,8 @@
 
 package org.cgsuite.core.impartial;
 
+import org.cgsuite.exception.CalculationCanceledException$;
+import scala.None$;
 import scala.Option;
 
 import java.util.Arrays;
@@ -107,7 +109,7 @@ public class NimValueSequence
         {
             if (Thread.interrupted())
             {
-                throw new RuntimeException("Calculation canceled by user.");
+                throw CalculationCanceledException$.MODULE$.apply("Calculation canceled by user.", null, (Option) None$.MODULE$);
             }
             nCalcs=0;
         }

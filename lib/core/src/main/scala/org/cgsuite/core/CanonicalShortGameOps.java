@@ -30,6 +30,10 @@
 package org.cgsuite.core;
 
 
+import org.cgsuite.exception.CalculationCanceledException$;
+import scala.None$;
+import scala.Option;
+
 import java.math.BigInteger;
 import java.util.*;
 
@@ -993,7 +997,7 @@ public final class CanonicalShortGameOps
         
         if (Thread.interrupted())
         {
-            throw new RuntimeException("Calculation canceled by user.");
+            throw CalculationCanceledException$.MODULE$.apply("Calculation canceled by user.", null, (Option) None$.MODULE$);
         }
 
         int[] gSector = data[gId >> SECTOR_BITS], hSector = data[hId >> SECTOR_BITS];
@@ -2502,7 +2506,7 @@ public final class CanonicalShortGameOps
     {
         if (Thread.interrupted())
         {
-            throw new RuntimeException("Calculation canceled by user.");
+            throw CalculationCanceledException$.MODULE$.apply("Calculation canceled by user.", null, (Option) None$.MODULE$);
         }
         
         // Return false if H <= GL for some left option GL of G

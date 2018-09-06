@@ -10,12 +10,17 @@ singleton class constants
 
   var Nim := TakeAndBreak("0.[3]");
 
+  def PartizanSplittles(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
+    PartizanHeapRuleset(Splittles(leftSet, allbut), Splittles(rightSet, allbut));
+
   def PartizanSubtraction(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Subtraction(leftSet, allbut), Subtraction(rightSet, allbut));
 
   def PartizanTakeAndBreak(leftCode as String, rightCode as String) :=
     PartizanHeapRuleset(TakeAndBreak(leftCode), TakeAndBreak(rightCode));
 
-  def Subtraction := TakeAndBreak.FromSubtractionSet;
+  def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
+
+  def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
 
 end

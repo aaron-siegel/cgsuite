@@ -170,7 +170,6 @@ object Ops {
   val MakeNimber = UnOp("nim") {
     case x: SmallInteger => Nimber(x)
     case collection: Iterable[_] => MisereCanonicalGame(collection)
-    // TODO Better error message on match fail
   }
 
   val MakeUpMultiple = BinOp("up") {

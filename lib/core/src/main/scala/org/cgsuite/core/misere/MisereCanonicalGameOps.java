@@ -33,8 +33,11 @@ import java.util.*;
 
 import org.cgsuite.core.impartial.CodeDigit;
 import org.cgsuite.core.impartial.Traversal;
+import org.cgsuite.exception.CalculationCanceledException$;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.StyledTextOutput;
+import scala.None$;
+import scala.Option;
 
 /** All data about canonical
  * games can be destroyed by calling {@link #reinit() reinit}, which
@@ -275,6 +278,11 @@ public final class MisereCanonicalGameOps
 
     static int constructFromOptions(int options[], int numOptions)
     {
+        if (Thread.interrupted())
+        {
+            throw CalculationCanceledException$.MODULE$.apply("Calculation canceled by user.", null, (Option) None$.MODULE$);
+        }
+
         // Box <code>options</code> into <code>Integer</code>s, sort
         // them, and unbox.
 
@@ -1134,6 +1142,11 @@ public final class MisereCanonicalGameOps
     private static void rAppendMidToOutput
         (int id, StyledTextOutput out, boolean tryParts, boolean parenthesize, int[] subscripted)
     {
+        if (Thread.interrupted())
+        {
+            throw CalculationCanceledException$.MODULE$.apply("Calculation canceled by user.", null, (Option) None$.MODULE$);
+        }
+
         if (subscripted == null)
         {
             subscripted = new int[] {0};
@@ -1312,6 +1325,11 @@ public final class MisereCanonicalGameOps
 
     static int add(int id1, int id2)
     {
+        if (Thread.interrupted())
+        {
+            throw CalculationCanceledException$.MODULE$.apply("Calculation canceled by user.", null, (Option) None$.MODULE$);
+        }
+
         int isOdd = (id1^id2)&1;
         id1 &= ~1;
         id2 &= ~1;

@@ -5,7 +5,7 @@ import org.antlr.runtime.Token
 import scala.collection.mutable
 
 class CgsuiteException(msg: String, cause: Throwable = null, token: Option[Token] = None)
-  extends Exception(msg, cause) {
+  extends RuntimeException(msg, cause) {
 
   var invocationTarget: Option[String] = None
   val tokenStack = mutable.MutableList[Token]()
