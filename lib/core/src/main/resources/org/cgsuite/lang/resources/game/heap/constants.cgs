@@ -22,5 +22,7 @@ singleton class constants
   def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
 
   def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
+  
+  var Wythoff := GenWythoff(1);
 
 end

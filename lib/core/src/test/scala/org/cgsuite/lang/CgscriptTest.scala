@@ -440,6 +440,18 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  it should "handle class initializers correctly" in {
+
+    testPackage declareSubpackage "init"
+    decl("test.init.InitializerLocalScope", "singleton class InitializerLocalScope var x := for n from 1 to 3 yield n end; end")
+
+    executeTests(Table(
+      header,
+      ("Nested initializer", "test.init.InitializerLocalScope.x", "[1,2,3]")
+    ))
+
+  }
+
   it should "handle mutables correctly" in {
 
     testPackage declareSubpackage "mutables"

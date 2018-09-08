@@ -44,6 +44,7 @@ object OutputBuilder {
       sto.appendOutput(toOutput(value))
       sto
     case str: String => new StyledTextOutput("\"" + str + "\"")
+    case _ => CgscriptClass instanceToOutput x
   }
 
   class RichIterable(collection: Iterable[_]) {

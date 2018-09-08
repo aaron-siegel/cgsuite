@@ -25,6 +25,6 @@ singleton class Amazons extends GridRuleset
 
   override def CharMap := ".xo#";
 
-  override def Icons := [Icon.Blank, Icon.BlackQueen, Icon.WhiteQueen, Icon.GraySquare];
+  override def Icons := [Icon.Blank, Icon.BlackQueen, Icon.WhiteQueen, Icon.BlackStone];
 
 end

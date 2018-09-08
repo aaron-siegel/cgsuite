@@ -685,7 +685,7 @@ case class LoopNode(
     val r = evaluate(domain, yieldResult)
     loopType match {
       case LoopNode.Do => null
-      case LoopNode.YieldList => if (yieldResult.isEmpty) Nil else yieldResult.toSeq
+      case LoopNode.YieldList => if (yieldResult.isEmpty) Nil else yieldResult.toVector
       case LoopNode.YieldSet => yieldResult.toSet
       case LoopNode.YieldTable => Table { yieldResult.toSeq map {
         case list: Seq[_] => list

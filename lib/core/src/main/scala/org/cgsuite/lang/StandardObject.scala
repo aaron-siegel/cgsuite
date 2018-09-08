@@ -14,8 +14,8 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
   def init() {
     vars = new Array[Any](cls.classInfo.classVarLookup.size)
     JSystem.arraycopy(objArgs, 0, vars, 0, objArgs.length)
-    val domain = new Domain(null, Some(this))
     cls.ancestors foreach { ancestor =>
+      val domain = new Domain(new Array(ancestor.initializerLocalVariableCount), Some(this))
       ancestor.initializers foreach { node => node.body evaluate domain }
     }
   }

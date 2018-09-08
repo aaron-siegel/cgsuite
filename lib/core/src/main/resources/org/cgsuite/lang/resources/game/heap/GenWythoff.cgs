@@ -1,0 +1,16 @@
+/*${cgsuite.banner}*/
+
+class GenWythoff(r as Integer) extends Ruleset
+
+    class Position(m as Integer, n as Integer) extends ImpartialGame
+    
+        override def Options begin
+          var mOpts := setof(Position(m-a, n) for a from 1 to m);
+          var nOpts := setof(Position(m, n-b) for b from 1 to n);
+          var dOpts := setof(Position(m-d, n-e) for d from 1 to m Min n for e from d-r+1 to d+r-1);
+          mOpts Union nOpts Union dOpts
+        end
+        
+    end
+
+end

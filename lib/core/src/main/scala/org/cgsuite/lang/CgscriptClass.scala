@@ -109,37 +109,10 @@ object CgscriptClass {
     "game.heap.Periodicity" -> classOf[Periodicity]
 
   )
-
-  private val otherSystemClasses: Seq[String] = Seq(
-
-    "cgsuite.lang.Nothing",
-
-    "cgsuite.util.Icon",
-
-    "game.constants",
-    "game.Ruleset",
-
-    "game.grid.Amazons",
-    "game.grid.constants",
-    "game.grid.Domineering",
-    "game.grid.Fission",
-    "game.grid.GenClobber",
-    "game.grid.GenFoxAndGeese",
-    "game.grid.GridRuleset",
-
-    "game.strip.constants",
-    "game.strip.GenToadsAndFrogs",
-    "game.strip.StripRuleset",
-
-    "game.heap.constants",
-    "game.heap.PartizanHeapRuleset"
-
-  )
-
+  
   private val additionalSystemClasses: mutable.MutableList[(String, Class[_])] = new mutable.MutableList()
 
-  val systemClasses = ((baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }) ++
-    (otherSystemClasses map { (_, None) })
+  val systemClasses = (baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }
 
   systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
 
@@ -147,7 +120,7 @@ object CgscriptClass {
 
   def registerExplorer(cls: Class[_]): Unit = {
     if (additionalSystemClasses exists { _._1 == "cgsuite.util.Explorer" }) {
-      sys.error("Duplicate registration for cgsuite.util.Explorer")
+      sys error "Duplicate registration for cgsuite.util.Explorer"
     }
     additionalSystemClasses += (("cgsuite.util.Explorer", cls))
     declareSystemClass("cgsuite.util.Explorer", Some(cls))
@@ -176,7 +149,7 @@ object CgscriptClass {
   val Game = CgscriptPackage.lookupClassByName("Game").get
   val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
   val List = CgscriptPackage.lookupClassByName("List").get
-  val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
+  lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
 
   private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
 
@@ -329,6 +302,7 @@ class CgscriptClass(
   private var loading = false
   private var classObjectRef: ClassObject = _
   private var singletonInstanceRef: Any = _
+  var initializerLocalVariableCount: Int = 0
 
   val transpositionTable = new TranspositionTable()
 
@@ -371,7 +345,6 @@ class CgscriptClass(
           case "cgsuite.lang.Nothing" => null
           case "cgsuite.util.output.EmptyOutput" => EmptyOutput
           case _ =>
-            logger debug s"$logPrefix Singleton instance: $singletonInstanceRef with vars ${singletonInstanceRef.asInstanceOf[StandardObject].vars.toSeq}"
             new StandardObject(this, Array.empty)
         }
       }
@@ -1018,7 +991,9 @@ class CgscriptClass(
       }
     }
 
-    node.ordinaryInitializers.foreach { _.body elaborate ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None) }
+    val initializerElaborationDomain = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+    node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
+    initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
 
   }
 
@@ -1050,7 +1025,7 @@ class CgscriptClass(
               javaClass.getMethod(externalName, externalParameterTypes: _*)
             } catch {
               case exc: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method: `$qualifiedName.$name`", node.tree)
+                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (in Java class `$javaClass`): `$qualifiedName.$name`", node.tree)
             }
             logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
             SystemMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)

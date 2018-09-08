@@ -71,7 +71,10 @@ public class CalculationCapsule implements Runnable
             CgscriptClasspath.reloadModifiedFiles();
             try
             {
+                long startTime = System.nanoTime();
                 output = JavaConverters.seqAsJavaList(EvalUtil.evaluate(text, varMap));
+                long duration = System.nanoTime() - startTime;
+                log.info(String.format("Calculation finished in %d.%03d seconds.", duration / 1000000000L, (duration % 1000000000L) / 1000000L));
             }
             catch (Throwable exc)
             {

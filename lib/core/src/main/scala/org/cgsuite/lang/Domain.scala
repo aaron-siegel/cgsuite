@@ -1,6 +1,5 @@
 package org.cgsuite.lang
 
-import org.antlr.runtime.Token
 import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable
