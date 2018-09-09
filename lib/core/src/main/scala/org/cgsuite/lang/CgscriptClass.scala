@@ -109,7 +109,7 @@ object CgscriptClass {
     "game.heap.Periodicity" -> classOf[Periodicity]
 
   )
-  
+
   private val additionalSystemClasses: mutable.MutableList[(String, Class[_])] = new mutable.MutableList()
 
   val systemClasses = (baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }
@@ -1045,8 +1045,8 @@ class CgscriptClass(
 
 }
 
-case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode]) {
+case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode], isExpandable: Boolean) {
   val id = idNode.id
-  val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "")
+  val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "") + (if (isExpandable) "..." else "")
   var methodScopeIndex = -1
 }

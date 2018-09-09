@@ -440,13 +440,26 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
-  it should "handle class initializers correctly" in {
+  it should "handle methods and initializers correctly" in {
 
     testPackage declareSubpackage "init"
+    decl("test.init.ExpandableParameter", "singleton class ExpandableParameter def expandableParameter(args...) := args; end")
+    decl("test.init.TypedExpandableParameter", "singleton class TypedExpandableParameter def expandableParameter(bool as Boolean, args as Integer...) := [bool, args]; end")
+    decl("test.init.IllegalExpandableParameter", "singleton class IllegalExpandableParameter def expandableParameter(args..., after) := args; end")
+    decl("test.init.NonExpandableParameter", "singleton class NonExpandableParameter def nonExpandableParameter(bool as Boolean, int as Integer) := [bool, int]; end")
     decl("test.init.InitializerLocalScope", "singleton class InitializerLocalScope var x := for n from 1 to 3 yield n end; end")
 
     executeTests(Table(
       header,
+      ("Var args - 0 arguments", "test.init.ExpandableParameter.expandableParameter()", "[]"),
+      ("Var args - 1 argument", "test.init.ExpandableParameter.expandableParameter(3)", "[3]"),
+      ("Var args - multiple arguments", "test.init.ExpandableParameter.expandableParameter(1, 7, 10)", "[1,7,10]"),
+      ("Typed var args - 0 arguments", "test.init.TypedExpandableParameter.expandableParameter(true)", "[true,[]]"),
+      ("Typed var args - 1 argument", "test.init.TypedExpandableParameter.expandableParameter(true, 3)", "[true,[3]]"),
+      ("Typed var args - multiple arguments", "test.init.TypedExpandableParameter.expandableParameter(true, 1, 7, 10)", "[true,[1,7,10]]"),
+      ("Typed var args - type mismatch (1)", "test.init.TypedExpandableParameter.expandableParameter(1, 7, 10)", "!!Argument `bool` (in call to `test.init.TypedExpandableParameter.expandableParameter`) has type `game.Integer`, which does not match expected type `cgsuite.lang.Boolean`"),
+      //("Typed var args - type mismatch (2)", "test.init.TypedExpandableParameter.expandableParameter(true, 1, false, 10)", "!!askdjfasfe"),
+      ("Illegal var args", "test.init.IllegalExpandableParameter.expandableParameter(1, 2, 3)", "!!Invalid expansion for parameter `args`: must be in last position"),
       ("Nested initializer", "test.init.InitializerLocalScope.x", "[1,2,3]")
     ))
 

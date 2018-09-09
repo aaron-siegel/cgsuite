@@ -23,7 +23,6 @@ object CallSite {
     ensureImmutable: Boolean = false
     ): Unit = {
 
-    assert(args.length == parameters.length)
     var classcode: Long = 0
     if (parameters.size <= 4 && {
       var i = 0
@@ -39,7 +38,14 @@ object CallSite {
       var i = 0
       while (i < args.length) {
         val cls = CgscriptClass of args(i)
-        if (!(cls.ancestors contains parameters(i).paramType)) {
+        val expectedType = {
+          if (i == args.length - 1 && parameters.last.isExpandable) {
+            CgscriptClass.List   // TODO Validate elements of the list as well? Ideally we should do this only if explicitly specified
+          } else {
+            parameters(i).paramType
+          }
+        }
+        if (!(cls.ancestors contains expectedType)) {
           throw EvalException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
             s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
         }

@@ -120,6 +120,13 @@ object ParametersNode {
         t.children exists { _.getType == DOTDOTDOT }
       )
     }
+    val invalidExpandedParameter = parameters.dropRight(1).find { _.isExpandable }
+    invalidExpandedParameter foreach { paramNode =>
+      throw EvalException(
+        s"Invalid expansion for parameter `${paramNode.id.id.name}`: must be in last position",
+        paramNode.tree
+      )
+    }
     ParametersNode(tree, pkg, parameters)
   }
 }
@@ -137,7 +144,7 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
           throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
         }
       }
-      Parameter(n.id, ttype, n.defaultValue)
+      Parameter(n.id, ttype, n.defaultValue, n.isExpandable)
     }
 
   }

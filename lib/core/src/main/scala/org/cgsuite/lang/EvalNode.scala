@@ -904,8 +904,8 @@ object FunctionCallNode {
 
 case class FunctionCallNode(
   tree: Tree,
-  callSite: EvalNode,
-  args: IndexedSeq[EvalNode],
+  callSiteNode: EvalNode,
+  argNodes: IndexedSeq[EvalNode],
   argNames: IndexedSeq[Option[IdentifierNode]]
   ) extends EvalNode {
 
@@ -916,11 +916,11 @@ case class FunctionCallNode(
   val prepareCallArgs = Symbol(s"PrepareCallArgs [${tree.location}]")
   val functionCall = Symbol(s"FunctionCall [${tree.location}]")
 
-  override val children = (callSite +: args) ++ argNames.flatten
+  override val children = (callSiteNode +: argNodes) ++ argNames.flatten
 
   override def elaborate(scope: ElaborationDomain): Unit = {
-    callSite elaborate scope
-    args foreach { _ elaborate scope }
+    callSiteNode elaborate scope
+    argNodes foreach { _ elaborate scope }
   }
 
   override def evaluate(domain: Domain) = {
@@ -928,7 +928,7 @@ case class FunctionCallNode(
     if (Thread.interrupted())
       throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
 
-    val obj = this.callSite.evaluate(domain)
+    val obj = callSiteNode.evaluate(domain)
     val callSite: CallSite = obj match {
       case cs: CallSite => cs
       case co: ClassObject => co.forClass.constructor match {
@@ -938,7 +938,7 @@ case class FunctionCallNode(
           token = Some(token)
         )
       }
-      case scr: Script => ScriptCaller(domain, scr)   // TODO We could eliminate this obj creation by passing Domain to every CallSite, and having Script implement CallSite
+      case scr: Script => ScriptCaller(domain, scr)
       case x =>
         val evalMethod = try {
           CgscriptClass.of(x).classInfo.evalMethod
@@ -951,17 +951,21 @@ case class FunctionCallNode(
     }
 
     val res = resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
-    val args = new Array[Any](res.parameterToArgsMapping.length)
+    val args = new Array[Any](callSite.parameters.length)
     var i = 0
-    while (i < res.parameterToArgsMapping.length) {
-      if (res.parameterToArgsMapping(i) >= 0)
-        args(i) = this.args(res.parameterToArgsMapping(i)).evaluate(domain)
-      else
-        args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
+    while (i < args.length) {
+      if (res.expandedLastParameter && i == args.length - 1) {
+        args(i) = argNodes.slice(i, argNodes.length) map { _.evaluate(domain) }
+      } else {
+        if (res.parameterToArgsMapping(i) >= 0)
+          args(i) = argNodes(res.parameterToArgsMapping(i)).evaluate(domain)
+        else
+          args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
+      }
       i += 1
     }
     try {
-      callSite.call(args)
+      callSite call args
     } catch {
       case exc: CgsuiteException =>
         exc addToken token
@@ -992,38 +996,50 @@ case class FunctionCallNode(
   }
 
   def toNodeString = {
-    val argStr = args map { _.toNodeString } mkString ", "
-    callSite match {
+    val argStr = argNodes map { _.toNodeString } mkString ", "
+    callSiteNode match {
       case _: ConstantNode | _: IdentifierNode | _: DotNode | _: ListNode | _: SetNode | _: FunctionCallNode |
-           _: GameSpecNode | _: MapNode | _: ThisNode => s"${callSite.toNodeString}($argStr)"
-      case _ => s"(${callSite.toNodeString})($argStr)"
+           _: GameSpecNode | _: MapNode | _: ThisNode => s"${callSiteNode.toNodeString}($argStr)"
+      case _ => s"(${callSiteNode.toNodeString})($argStr)"
     }
   }
 
 }
 
 object FunctionCallResolution {
+
   def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]], referenceToken: Token): FunctionCallResolution = {
+
     val params = callSite.parameters
-    if (argNames.length > params.length)
+
+    // Last parameter is expandable only if there are no named args
+    val expandedLastParameter = params.nonEmpty && params.last.isExpandable && argNames.forall { _.isEmpty }
+
+    // Check for too many arguments
+    if (!expandedLastParameter && argNames.length > params.length) {
       throw EvalException(
         s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})",
         token = Some(referenceToken)
       )
-    val parameterToArgsMapping = new Array[Int](params.length)
-    java.util.Arrays.fill(parameterToArgsMapping, -1)
-    // Check for named args in earlier position than ordinary args.
+    }
+
+    // Check for named args in earlier position than ordinary args
     val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
     argNames take (lastOrdinaryArgIndex+1) foreach {
       case None =>
       case Some(idNode) => throw EvalException(
         s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
-        "appears in earlier position than an ordinary argument",
+          "appears in earlier position than an ordinary argument",
         token = Some(referenceToken)
       )
     }
+
+    val parameterToArgsMapping = new Array[Int](if (expandedLastParameter) params.length - 1 else params.length)
+    java.util.Arrays.fill(parameterToArgsMapping, -1)
     argNames.zipWithIndex foreach {
-      case (None, index) => parameterToArgsMapping(index) = index
+      case (None, index) =>
+        if (index < parameterToArgsMapping.length)
+          parameterToArgsMapping(index) = index
       case (Some(idNode), index) =>
         val namedIndex = params indexWhere { _.id == idNode.id }
         if (namedIndex == -1)
@@ -1038,7 +1054,8 @@ object FunctionCallResolution {
           )
         parameterToArgsMapping(namedIndex) = index
     }
-    // Validation
+
+    // Check that all required args are present
     params zip parameterToArgsMapping foreach { case (param, index) =>
       if (param.defaultValue.isEmpty && index == -1)
         throw EvalException(
@@ -1046,11 +1063,13 @@ object FunctionCallResolution {
           token = Some(referenceToken)
         )
     }
-    FunctionCallResolution(parameterToArgsMapping)
+
+    FunctionCallResolution(parameterToArgsMapping, expandedLastParameter)
+
   }
 }
 
-case class FunctionCallResolution(parameterToArgsMapping: Array[Int])
+case class FunctionCallResolution(parameterToArgsMapping: Array[Int], expandedLastParameter: Boolean)
 
 object VarNode {
   def apply(tree: Tree): AssignToNode = {

@@ -2,6 +2,8 @@
 
 class PartizanHeapRuleset(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset) extends Ruleset
 
+  override def Eval(heapSize as Integer) := Position(heapSize);
+
   class Position(heapSize as Integer) extends Game
 
     override def Options(player as Player) begin

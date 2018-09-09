@@ -527,7 +527,8 @@ functionCall
     ;
         
 functionArgument
-    : (IDENTIFIER BIGRARROW^)? expression
+    : IDENTIFIER BIGRARROW^ expression
+    | expression
     ;
     
 upstarExpr
