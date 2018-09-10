@@ -63,27 +63,28 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   def lookupClass(id: Symbol): Option[CgscriptClass] = classes.get(id)
 
-  def declareClass(id: Symbol, url: Option[URL], explicitDefinition: Option[String], scalaClass: Option[Class[_]]): CgscriptClass = {
-    if (classes.contains(id)) {
-      val cls = classes(id)
-      if (cls.url != url.get && !CgscriptClass.systemClasses.exists { _._1 == cls.qualifiedName }) {
-        sys error s"Class conflict in package $name: ${id.name}"    // TODO Better error message
-      }
-      cls
-    } else {
-      val cls = new CgscriptClass(this, None, id, scalaClass)
-      (url, explicitDefinition) match {
-        case (Some(u), None) => cls setURL u
-        case (None, Some(d)) => cls setExplicitDefinition d
-        case _ => sys.error("Invalid arguments")
-      }
-      classes.put(id, cls)
-      CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
-      if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game) {
-        CgscriptPackage.classDictionary.put(id, cls)
-      }
-      cls
+  def declareClass(id: Symbol, classdef: CgscriptClassDef, scalaClass: Option[Class[_]]): CgscriptClass = {
+
+    classes.get(id) map { _.classdef } match {
+
+      case Some(UrlClassDef(url)) =>
+        val cls = classes(id)
+        if (classdef != cls.classdef && !CgscriptClass.systemClasses.exists { _._1 == cls.qualifiedName }) {
+          sys error s"Class conflict in package $name: ${id.name}"    // TODO Better error message
+        }
+        cls
+
+      case _ =>
+        val cls = new CgscriptClass(this, classdef, id, scalaClass)
+        classes.put(id, cls)
+        CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
+        if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game) {
+          CgscriptPackage.classDictionary.put(id, cls)
+        }
+        cls
+
     }
+
   }
 
   def lookupConstant(id: Symbol): Option[Resolution] = {

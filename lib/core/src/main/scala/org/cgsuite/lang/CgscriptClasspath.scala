@@ -40,7 +40,7 @@ object CgscriptClasspath {
       if (file.isDirectory) {
         declareFolderR(pkg.declareSubpackage(file.name), file)
       } else if (file.extension exists { _.toLowerCase == ".cgs" }) {
-        pkg.declareClass(Symbol(file.nameWithoutExtension), Some(file.url), None, None)
+        pkg.declareClass(Symbol(file.nameWithoutExtension), UrlClassDef(file.url), None)
       }
     }
   }

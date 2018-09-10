@@ -1,9 +1,12 @@
 /*${cgsuite.banner}*/
 
+// Benchmark: game.grid.Clobber("xox.|oxox|xoxo|oxox").CanonicalForm in 12.96 s
+
 class GenClobber(
   directions ? Coordinates.Orthogonal,
   clobbered ? {Left => {2}, Right => {1}},
-  leftBehind ? {Left => 0, Right => 0}
+  leftBehind ? {Left => 0, Right => 0},
+  maxDistance ? 1
   ) extends GridRuleset
 
   var clobberedAsList := [clobbered[Left], clobbered[Right]];
@@ -19,14 +22,26 @@ class GenClobber(
       var lb := leftBehindAsList[us];
 
       for c in grid FindAll us
-      for d in directions where clob Contains grid[c+d]
+      for d in directions
+      for p in [NextClobberablePoint(c, d, clob)]
+      where p != Nothing
       yield
-        Position(grid Updated {c => lb, c+d => us})
+        Position(grid Updated {c => lb, p => us})
       end
 
     end
 
     override def Decomposition := listof(Position(component) for component in grid.Decomposition(0, directions));
+  
+    def NextClobberablePoint(c as Coordinates, d as Coordinates, clob as Collection) begin
+      var p;
+      for n from 1 to maxDistance
+      while p == Nothing and grid[c+n*d] != Nothing and grid[c+n*d] != 3
+      do
+        if clob Contains grid[c+n*d] then p := c+n*d end
+      end
+      p 
+    end
 
   end
 

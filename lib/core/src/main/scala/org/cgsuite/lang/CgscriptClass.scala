@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
-import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
+import org.cgsuite.core.misere.{Genus, MisereCanonicalGame, MisereCanonicalGameOps}
 import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -129,17 +129,17 @@ object CgscriptClass {
   private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
     val path = name.replace('.', '/')
-    val url = {
-      if (explicitDefinition.isDefined)
-        None
-      else
-        Some(getClass.getResource(s"resources/$path.cgs"))
+    val classdef: CgscriptClassDef = {
+      explicitDefinition match {
+        case Some(text) => ExplicitClassDef(text)
+        case None => UrlClassDef(getClass.getResource(s"resources/$path.cgs"))
+      }
     }
     val components = name.split("\\.").toSeq
     val pkg = CgscriptPackage.root lookupSubpackage (components dropRight 1) getOrElse {
       sys.error("Cannot find package: " + (components dropRight 1))
     }
-    pkg.declareClass(Symbol(components.last), url, explicitDefinition, scalaClass)
+    pkg.declareClass(Symbol(components.last), classdef, scalaClass)
 
   }
 
@@ -200,6 +200,7 @@ object CgscriptClass {
 
   def clearAll() {
     CanonicalShortGameOps.reinit()
+    MisereCanonicalGameOps.reinit()
     Resolver.clearAll()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
     Object.ensureLoaded()
@@ -212,18 +213,27 @@ trait Member {
   def idNode: IdentifierNode
 }
 
+sealed trait CgscriptClassDef
+case class UrlClassDef(url: URL) extends CgscriptClassDef
+case class ExplicitClassDef(text: String) extends CgscriptClassDef
+case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
+
 class CgscriptClass(
   val pkg: CgscriptPackage,
-  val enclosingClass: Option[CgscriptClass],
+  val classdef: CgscriptClassDef,
   val id: Symbol,
   val systemClass: Option[Class[_]] = None
   ) extends Member with LazyLogging { thisClass =>
 
   import CgscriptClass._
 
-  val classOrdinal = newClassOrdinal        // TODO How to handle for nested classes??
-  val declaringClass = enclosingClass orNull
-  val javaClass = systemClass match {
+  val classOrdinal: Int = newClassOrdinal        // TODO How to handle for nested classes??
+  val enclosingClass: Option[CgscriptClass] = classdef match {
+    case NestedClassDef(cls) => Some(cls)
+    case _ => None
+  }
+  override val declaringClass = enclosingClass.orNull
+  val javaClass: Class[_] = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
@@ -240,6 +250,8 @@ class CgscriptClass(
   }
   val qualifiedId: Symbol = Symbol(qualifiedName)
   val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
+
+  logger.debug(s"$logPrefix Formed new class with classdef: $classdef")
 
   class ClassInfo(
     val idNode: IdentifierNode,
@@ -295,8 +307,6 @@ class CgscriptClass(
 
   }
 
-  private var urlRef: URL = _
-  private var definition: String = _
   private var classInfoRef: ClassInfo = _
   private var scriptObjectRef: Script = _
   private var loading = false
@@ -308,7 +318,10 @@ class CgscriptClass(
 
   def isLoaded = classInfoRef != null
 
-  def url = urlRef
+  val url = classdef match {
+    case UrlClassDef(x) => x
+    case _ => null
+  }
 
   def classInfo = {
     ensureLoaded()
@@ -328,7 +341,7 @@ class CgscriptClass(
   // Singleton instance is instantiated lazily
   def singletonInstance = {
     ensureLoaded()
-    if (singletonInstanceRef == null)
+    if (singletonInstanceRef == null)   // TODO This doesn't work for Nothing.
       constructSingletonInstance()
     singletonInstanceRef
   }
@@ -581,27 +594,14 @@ class CgscriptClass(
 
   }
 
-  def setURL(url: URL): Unit = {
-    // TODO This shouldn't be a setter, but should just be part of the class
-    logger debug s"$logPrefix Setting URL: $url"
-    this.urlRef = url
-    this.definition = null
-    unload()
-  }
-
-  def setExplicitDefinition(definition: String): Unit = {
-    logger debug s"$logPrefix Setting explicit definition"
-    this.urlRef = null
-    this.definition = definition
-    unload()
-  }
-
-  // TODO Unload derived classes?
   def unload() {
-    logger.debug(s"$logPrefix Unloading.")
-    if (classInfoRef != null) {
-      classInfoRef.nestedClasses.values foreach { _.unload() }
+    // Unload any derived classes.
+    // TODO Unload any classes that have nested classes as derived classes?
+    val derivedClasses = CgscriptPackage.classDictionary.values filter { cls =>
+      cls.classInfoRef != null && cls.classInfoRef.supers.contains(this)
     }
+    derivedClasses foreach { _.unload() }
+    logger.debug(s"$logPrefix Unloading.")
     classInfoRef = null
     scriptObjectRef = null
     this.loading = false
@@ -632,14 +632,15 @@ class CgscriptClass(
     }
 
     val (in, source) = {
-      if (urlRef != null) {
-        logger debug s"$logPrefix Loading class from URL: $urlRef"
-        (urlRef.openStream(), new File(urlRef.getFile).getName)
-      } else if (definition != null) {
-        logger debug s"$logPrefix Loading class from explicit definition"
-        (new ByteArrayInputStream(definition.getBytes(StandardCharsets.UTF_8)), qualifiedName)
-      } else {
-        sys.error("URL not set: " + logPrefix)
+      classdef match {
+        case UrlClassDef(url) =>
+          logger debug s"$logPrefix Loading class from URL: $url"
+          (url.openStream(), new File(url.getFile).getName)
+        case ExplicitClassDef(text) =>
+          logger debug s"$logPrefix Loading class from explicit definition"
+          (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
+        case NestedClassDef(_) =>
+          sys.error(s"Unexpected load() on nested class: $qualifiedName")
       }
     }
 
@@ -667,7 +668,7 @@ class CgscriptClass(
         declareClass(node)
     }
 
-    logger.debug(s"$logPrefix Done loading class from URL: $urlRef")
+    logger.debug(s"$logPrefix Done loading class.")
 
   }
 
@@ -718,7 +719,7 @@ class CgscriptClass(
 
         val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
-          val newClass = new CgscriptClass(pkg, Some(this), decl.id.id)
+          val newClass = new CgscriptClass(pkg, NestedClassDef(this), decl.id.id)
           (decl.id.id, newClass)
         } toMap
         val constructor = node.constructorParams map { t =>
@@ -938,7 +939,10 @@ class CgscriptClass(
 
     // Elaborate methods
     constructor foreach { _.elaborate() }
-    methods foreach { case (_, method) => method.elaborate() }
+    methods foreach { case (_, method) =>
+      if (method.declaringClass == this)
+        method.elaborate()
+    }
 
     // Enum construction
     node.enumElements foreach { element =>
