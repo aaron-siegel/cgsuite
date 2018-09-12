@@ -27,7 +27,9 @@ object SpecialMethods {
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.tail
     },
     "cgsuite.lang.List.Sorted" -> { (list: Seq[_], _: Unit) => list.sorted(UniversalOrdering) },
-    "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSeq },
+    "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
+    "cgsuite.lang.Map.Keys" -> { (map: scala.collection.Map[_,_], _: Unit) => map.keySet },
+    "cgsuite.lang.Map.Values" -> { (map: scala.collection.Map[_,_], _: Unit) => map.values.toSet },
     "cgsuite.lang.MapEntry.Key" -> { (entry: (_,_), _: Unit) => entry._1 },
     "cgsuite.lang.MapEntry.Value" -> { (entry: (_,_), _: Unit) => entry._2 },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
@@ -53,6 +55,9 @@ object SpecialMethods {
     },
     "cgsuite.lang.List.Grouped" -> { (list: Seq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
+    },
+    "cgsuite.lang.Map.ContainsKey" -> { (map: scala.collection.Map[Any,_], key: Any) =>
+      map contains key
     },
     "cgsuite.lang.Set.Intersection" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
       set intersect that

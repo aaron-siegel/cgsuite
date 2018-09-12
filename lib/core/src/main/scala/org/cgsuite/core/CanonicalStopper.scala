@@ -319,8 +319,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       output.appendSymbol(PLUS_MINUS)
       if (lo.size > 1)
         output.appendMath("{")
-      lo.head.appendTo(output, true, lo.size == 1)
-      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, true, false) }
+      lo.head.appendTo(output, forceBrackets = true, forceParens = lo.size == 1)
+      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, forceBrackets = true, forceParens = false) }
       if (lo.size > 1)
         output.appendMath("}")
       0
@@ -336,9 +336,9 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       if (forceParens)
         output.appendMath("(")
       if (translate != zero)
-        translate.appendTo(output, false, false)
+        translate.appendTo(output, forceBrackets = false, forceParens = false)
       val sub = new StyledTextOutput()
-      subscript.appendTo(sub, true, false)
+      subscript.appendTo(sub, forceBrackets = true, forceParens = false)
       val styles = sub.allStyles()
       styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS)
       if (styles.isEmpty) {
@@ -382,9 +382,15 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
         )
         uponType match {
           case UponType.Upon => output.appendText(exponentStyle, "[on]")
-          case UponType.Uponth => output.appendText(exponentStyle, "<on>")
+          case UponType.Uponth =>
+            output.appendText(exponentStyle, util.EnumSet.of(Output.Mode.PLAIN_TEXT), "<")
+            output.appendText(exponentStyle, "on")
+            output.appendText(exponentStyle, util.EnumSet.of(Output.Mode.PLAIN_TEXT), ">")
           case UponType.Upover => output.appendText(exponentStyle, "[over]")
-          case UponType.Upoverth => output.appendText(exponentStyle, "<over>")
+          case UponType.Upoverth =>
+            output.appendText(exponentStyle, util.EnumSet.of(Output.Mode.PLAIN_TEXT), "<")
+            output.appendText(exponentStyle, "over")
+            output.appendText(exponentStyle, util.EnumSet.of(Output.Mode.PLAIN_TEXT), ">")
         }
         if (nimberPart >= 1) {
           output.appendSymbol(StyledTextOutput.Symbol.STAR)

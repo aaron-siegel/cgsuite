@@ -2,14 +2,20 @@
 
 system class Map extends Collection
 
+  external def ContainsKey(key);
+
   external def Entries;
+
+  external def Keys;
+
+  external def Values;
 
   override def ToOutput begin
     var entries := Entries;
     if entries.IsEmpty then
       cgsuite.util.output.TextOutput("{=>}")
     else
-      "{" + Entries.Sorted.MkOutput(", ") + "}"
+      "{" + Entries.ToList.Sorted.MkOutput(", ") + "}"
     end
   end
 

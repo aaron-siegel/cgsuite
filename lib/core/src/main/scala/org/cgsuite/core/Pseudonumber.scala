@@ -74,7 +74,7 @@ case object OnImpl extends Pseudonumber {
 
   def blowup = this
 
-  override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
+  private[core] override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     output.appendMath("on"); 0
   }
 
@@ -93,9 +93,9 @@ case object OffImpl extends Pseudonumber {
     }
   }
 
-  def blowup = throw InvalidOperationException(s"Invalid exponent: $this")
+  def blowup = throw InvalidOperationException(s"Invalid exponent.")
 
-  override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
+  private[core] override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     output.appendMath("off"); 0
   }
 
@@ -132,11 +132,11 @@ case class OverNumberImpl private[core] (x: DyadicRationalNumber, overSign: Int)
     } else if (x > zero) {
       OverNumberImpl(x.blowup, overSign)
     } else {
-      throw InvalidOperationException(s"Invalid exponent: $this")
+      throw InvalidOperationException(s"Invalid exponent.")
     }
   }
 
-  override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
+  private[core] override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     if (!x.isZero) {
       if (forceParens)
         output.appendMath("(")

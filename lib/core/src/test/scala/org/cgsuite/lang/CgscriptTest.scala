@@ -528,6 +528,18 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
+  "cgsuite.lang.Map" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("Map: ContainsKey", "{7 => true, 1/2 => ^^*} ContainsKey 7", "true"),
+      ("Map: Entries", "{7 => true, 1/2 => ^^*}.Entries", "{1/2 => ^^*,7 => true}"),
+      ("Map: Keys", "{7 => true, 1/2 => ^^*}.Keys", "{1/2,7}"),
+      ("Map: Values", "{7 => true, 1/2 => ^^*}.Values", "{^^*,true}")
+    ))
+
+  }
+
   "cgsuite.lang.Range" should "implement Collection faithfully" in {
 
     executeTests(Table(
@@ -706,8 +718,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Tiny(2).NortonMultiply(^)", "{^^*||0|v6}"),
       ("{3||2+*|1+*}.Overheat(*,1+*)", "{1||+-(1*)|-1,{-1|-3}}"),
       ("(7/16).Overheat(0,0)", "^[3]"),
-      ("^.Pow({pass|1})", "!!Invalid exponent: under"),
-      ("^.Pow(off)", "!!Invalid exponent: off"),
+      ("^.Pow({pass|1})", "!!Invalid exponent."),
+      ("^.Pow(off)", "!!Invalid exponent."),
       ("^.Pow({1|pass})", "{0||0,pass|0,*}"),
       ("^.Pow(7/4)", "{0||0,v*|0,{0,v*|0,*}}"),
       ("^.Pow(3)", "^<3>"),

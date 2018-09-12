@@ -87,7 +87,7 @@ trait SimplifiedLoopyGame extends Game {
 
   override def toOutput: StyledTextOutput = {
     val output: StyledTextOutput = new StyledTextOutput
-    appendTo(output, true, false)
+    appendTo(output, forceBrackets = true, forceParens = false)
     output
   }
 
@@ -133,7 +133,7 @@ trait SimplifiedLoopyGame extends Game {
         if (gl == this)
           leftOutput.appendMath("pass")
         else
-          numSlashes = numSlashes max gl.appendTo(leftOutput, lo.size > 1, false, nodeStack, numNamedNodes)
+          numSlashes = numSlashes max gl.appendTo(leftOutput, forceBrackets = lo.size > 1, forceParens = false, nodeStack, numNamedNodes)
       }
       val rightOutput = new StyledTextOutput
       first = true
@@ -145,7 +145,7 @@ trait SimplifiedLoopyGame extends Game {
         if (gr == this)
           rightOutput.appendMath("pass")
         else
-          numSlashes = numSlashes max gr.appendTo(rightOutput, ro.size > 1, false, nodeStack, numNamedNodes)
+          numSlashes = numSlashes max gr.appendTo(rightOutput, forceBrackets = ro.size > 1, forceParens = false, nodeStack, numNamedNodes)
       }
       val isNamed = nodeStack.remove(this) match {
         case Some(Some(name)) => output.appendMath(name); true

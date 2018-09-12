@@ -128,7 +128,7 @@ trait Uptimal extends CanonicalShortGame {
       } else if (uptimalLength > 1 && (isUnit || isUnitSum)) {
         val (upSymbol, location) = {
           if (uptimalCoefficient(uptimalLength) > 0)
-            (UP, LOCATION_SUBSCRIPT)
+            (UP, LOCATION_SUPERSCRIPT)
           else
             (DOWN, LOCATION_SUBSCRIPT)
         }

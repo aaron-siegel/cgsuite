@@ -23,8 +23,7 @@ class GenClobber(
 
       for c in grid FindAll us
       for d in directions
-      for p in [NextClobberablePoint(c, d, clob)]
-      where p != Nothing
+      for p in ClobberablePoints(c, d, clob)
       yield
         Position(grid Updated {c => lb, p => us})
       end
@@ -33,20 +32,39 @@ class GenClobber(
 
     override def Decomposition := listof(Position(component) for component in grid.Decomposition(0, directions));
   
-    def NextClobberablePoint(c as Coordinates, d as Coordinates, clob as Collection) begin
-      var p;
-      for n from 1 to maxDistance
-      while p == Nothing and grid[c+n*d] != Nothing and grid[c+n*d] != 3
-      do
-        if clob Contains grid[c+n*d] then p := c+n*d end
+    def ClobberablePoints(c as Coordinates, d as Coordinates, clob as Collection) begin
+      var n := 1;
+      while n < maxDistance and grid[c+n*d] == 0 do
+        n := n + 1;
       end
-      p 
+      if clob Contains grid[c+n*d] then [c+n*d] else [] end
     end
 
   end
 
-  override def CharMap := ".xo#";
+  override def CharMap := if clobbered.Values Contains 0 then ".xo#" else ".xo" end;
 
-  override def Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone, Icon.GraySquare];
+  override def Icons begin
+  
+    var bwIcons := [Icon.BlackStone, Icon.WhiteStone];
+    if maxDistance == inf then
+      if directions == Coordinates.Orthogonal then
+        bwIcons := [Icon.BlackRook, Icon.WhiteRook];
+      elseif directions == Coordinates.Compass then
+        bwIcons := [Icon.BlackQueen, Icon.WhiteQueen];
+      end
+    elseif maxDistance == 1 then
+      if directions == Coordinates.Compass then
+        bwIcons := [Icon.BlackKing, Icon.WhiteKing];
+      end
+    end
+    
+    if clobbered.Values Contains 0 then
+      [Icon.Blank, bwIcons[1], bwIcons[2], Icon.GraySquare]
+    else
+      [Icon.Blank, bwIcons[1], bwIcons[2]]
+    end
+        
+  end
 
 end

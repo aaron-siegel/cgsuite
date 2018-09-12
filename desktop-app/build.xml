@@ -7,7 +7,7 @@
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-init" depends="suite.-init">
-        <copy file="../lib/core/target/cgsuite-core-${app.version}-jar-with-dependencies.jar" tofile="cgsuite-core-lib/release/modules/ext/cgsuite-core.jar"/>
+        <copy file="../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" tofile="cgsuite-core-lib/release/modules/ext/cgsuite-core.jar"/>
     </target>
     
     <target name="branding" depends="-init,-pre-branding" if="run.branding">
@@ -58,7 +58,7 @@
             </filterset>
         </copy>
         
-        <copy file="${basedir}/../lib/core/target/cgsuite-core-${app.version}-jar-with-dependencies.jar" todir="${cluster}/modules/ext"/>
+        <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" todir="${cluster}/modules/ext"/>
         
         <!-- Generate svn info -->
         <exec executable="svn" output="${cluster}/svninfo.txt" failifexecutionfails="false">
