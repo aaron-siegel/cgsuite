@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import org.cgsuite.core._
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Strip, Symmetry}
+import org.cgsuite.util.{Strip, Symmetry, UiHarness}
 
 import scala.collection.mutable
 
@@ -31,6 +31,7 @@ object SpecialMethods {
     "cgsuite.lang.Map.Keys" -> { (map: scala.collection.Map[_,_], _: Unit) => map.keySet },
     "cgsuite.lang.Map.Values" -> { (map: scala.collection.Map[_,_], _: Unit) => map.values.toSet },
     "cgsuite.lang.MapEntry.Key" -> { (entry: (_,_), _: Unit) => entry._1 },
+    "cgsuite.lang.MapEntry.ToOutput" -> { (entry: (_,_), _: Unit) => OutputBuilder.toOutput(entry) },
     "cgsuite.lang.MapEntry.Value" -> { (entry: (_,_), _: Unit) => entry._2 },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
@@ -68,6 +69,7 @@ object SpecialMethods {
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
       set ++ that
     },
+    "cgsuite.ui.Explorer" -> { (_: Any, g: Game) => UiHarness.uiHarness.createExplorer(g) },
     "cgsuite.util.MutableList.Add" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list += x; null },
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },

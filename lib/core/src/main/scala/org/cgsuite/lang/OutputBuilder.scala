@@ -1,7 +1,5 @@
 package org.cgsuite.lang
 
-import java.util
-
 import org.cgsuite.core.Values
 import org.cgsuite.output.{StyledTextOutput, Output, OutputTarget}
 

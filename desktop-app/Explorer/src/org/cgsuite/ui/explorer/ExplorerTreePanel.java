@@ -46,7 +46,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
     private int nodeRadius;
 
-    private Explorer explorer;
+    private ExplorerImpl explorer;
 
     private LinkedList<ExplorerNode> selectionPath;
     private NodeLayout selectedLayout;
@@ -119,7 +119,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }});
     }
 
-    public void setExplorer(Explorer explorer)
+    public void setExplorer(ExplorerImpl explorer)
     {
         this.explorer = explorer;
         this.explorer.addListener(this);

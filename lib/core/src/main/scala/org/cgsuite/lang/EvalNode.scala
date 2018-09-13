@@ -446,36 +446,46 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
 }
 
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
+
   override val children = lo ++ ro
+
   override def evaluate(domain: Domain) = {
-    val leval = lo map { _.evaluate(domain) }
-    val reval = ro map { _.evaluate(domain) }
-    if (isListOf[Game](leval) && isListOf[Game](reval)) {
-      val gl = castAs[Game](leval)
-      val gr = castAs[Game](reval)
-      if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
-        CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
-      } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopper] }) {
-        CanonicalStopper(gl map { _.asInstanceOf[CanonicalStopper] }, gr map { _.asInstanceOf[CanonicalStopper] })
+    try {
+      val leval = lo map { _.evaluate(domain) }
+      val reval = ro map { _.evaluate(domain) }
+      if (isListOf[Game](leval) && isListOf[Game](reval)) {
+        val gl = castAs[Game](leval)
+        val gr = castAs[Game](reval)
+        if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
+          CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
+        } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopper] }) {
+          CanonicalStopper(gl map { _.asInstanceOf[CanonicalStopper] }, gr map { _.asInstanceOf[CanonicalStopper] })
+        } else {
+          ExplicitGame(gl, gr)
+        }
+      } else if (isListOf[SidedValue](leval) && isListOf[SidedValue](reval)) {
+        if (forceExplicit) {
+          sys error "can't be force explicit - need better error msg here"
+        } else {
+          val gl = castAs[SidedValue](leval)
+          val gr = castAs[SidedValue](reval)
+          val glonside = gl map { _.onside }
+          val gronside = gr map { _.onside }
+          val gloffside = gl map { _.offside }
+          val groffside = gr map { _.offside }
+          SidedValue(SimplifiedLoopyGame.constructLoopyGame(glonside, gronside), SimplifiedLoopyGame.constructLoopyGame(gloffside, groffside))
+        }
       } else {
-        ExplicitGame(gl, gr)
+        throw EvalException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
       }
-    } else if (isListOf[SidedValue](leval) && isListOf[SidedValue](reval)) {
-      if (forceExplicit) {
-        sys error "can't be force explicit - need better error msg here"
-      } else {
-        val gl = castAs[SidedValue](leval)
-        val gr = castAs[SidedValue](reval)
-        val glonside = gl map { _.onside }
-        val gronside = gr map { _.onside }
-        val gloffside = gl map { _.offside }
-        val groffside = gr map { _.offside }
-        SidedValue(SimplifiedLoopyGame.constructLoopyGame(glonside, gronside), SimplifiedLoopyGame.constructLoopyGame(gloffside, groffside))
-      }
-    } else {
-      throw EvalException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
+    } catch {
+      case exc: CgsuiteException =>
+        if (exc.tokenStack.isEmpty)
+          exc.addToken(tree.token)
+        throw exc
     }
   }
+
   def isListOf[T](objects: Iterable[_])(implicit mf: Manifest[T]): Boolean = {
     objects forall {
       case _: T => true
@@ -486,6 +496,7 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
       case _ => false
     }
   }
+
   def castAs[T](objects: Iterable[_])(implicit mf: Manifest[T]): Iterable[T] = {
     objects flatMap {
       case g: T => Iterable(g)
@@ -493,11 +504,13 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
       case _ => sys error "cannot be cast (this should never happen due to prior call to isListOf)"
     }
   }
+
   def toNodeString = {
     val loStr = lo map { _.toNodeString } mkString ","
     val roStr = ro map { _.toNodeString } mkString ","
     s"{$loStr | $roStr}"
   }
+
 }
 
 object LoopyGameSpecNode {

@@ -31,6 +31,8 @@ package org.cgsuite.core;
 
 
 import org.cgsuite.exception.CalculationCanceledException$;
+import org.cgsuite.exception.OutOfBoundsException;
+import org.cgsuite.exception.OutOfBoundsException$;
 import scala.None$;
 import scala.Option;
 
@@ -1993,8 +1995,9 @@ public final class CanonicalShortGameOps
             }
             else
             {
-                throw new IllegalArgumentException
-                    ("Integer out of bounds (must be between " + java.lang.Integer.MIN_VALUE + " and " + java.lang.Integer.MAX_VALUE + ")");
+                throw OutOfBoundsException$.MODULE$.apply
+                    ("Integer out of bounds in game specifier (must satisfy " +
+                            java.lang.Integer.MIN_VALUE + " <= n <= " + java.lang.Integer.MAX_VALUE + ")", null, (Option) None$.MODULE$);
             }
         }
 
@@ -2140,9 +2143,8 @@ public final class CanonicalShortGameOps
 
         if (numLO >= 16384 || numRO >= 16384)
         {
-            throw new IllegalArgumentException
-                ("Combinatorial game suite does not support games with more than 16383 options for one player.  " +
-                 "(If anyone really needs this capability, let me know and I'll try to add it.)");
+            throw OutOfBoundsException$.MODULE$.apply(
+                "Too many options for `CanonicalShortGame` (must have at most 16383 Left options and 16383 Right options)", null, (Option) None$.MODULE$);
         }
         else if (isSmallNus(number, upMultiple, nimber))
         {

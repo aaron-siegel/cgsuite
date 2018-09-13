@@ -50,7 +50,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     
     private String enterCommandHint;
 
-    private Explorer explorer;
+    private ExplorerImpl explorer;
     private EditorPanel editorPanel;
     
     private AnyRefMap<Symbol,Object> varMap = new AnyRefMap<Symbol,Object>();
@@ -78,7 +78,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         commandComboBox.setSelectedIndex(0);
     }
 
-    public void setExplorer(Explorer explorer)
+    public void setExplorer(ExplorerImpl explorer)
     {
         this.explorer = explorer;
         tree.setExplorer(explorer);

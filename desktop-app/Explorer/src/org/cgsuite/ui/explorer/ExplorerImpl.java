@@ -12,24 +12,25 @@ import scala.collection.Seq;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.SwingUtilities;
+import org.cgsuite.util.Explorer;
 
 /**
  *
  * @author asiegel
  */
-public class Explorer
+public class ExplorerImpl implements Explorer
 {
     private ExplorerWindow window;
     private List<ExplorerNode> roots;
     private List<ExplorerListener> listeners;
     private List<ExplorerNode> allNodes;
 
-    public Explorer()
+    public ExplorerImpl()
     {
         this(null);
     }
 
-    public Explorer(Game g)
+    public ExplorerImpl(Game g)
     {
         this.roots = new ArrayList<ExplorerNode>();
         this.listeners = new ArrayList<ExplorerListener>();
@@ -43,12 +44,12 @@ public class Explorer
             @Override
             public void run()
             {
-                window = createWindow(Explorer.this);
+                window = createWindow(ExplorerImpl.this);
             }
         });
     }
    
-    public ExplorerWindow createWindow(Explorer client)
+    public ExplorerWindow createWindow(ExplorerImpl client)
     {
         ExplorerTopComponent component = new ExplorerTopComponent();
         component.setExplorer(client);

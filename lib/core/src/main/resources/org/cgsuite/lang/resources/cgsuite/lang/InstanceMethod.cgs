@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class InstanceMethod
+system class InstanceMethod extends Procedure
 
   external def EnclosingObject;
 

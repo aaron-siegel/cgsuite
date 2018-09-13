@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Explorer(g as Game)
+
+  external def Selection;
+
+end

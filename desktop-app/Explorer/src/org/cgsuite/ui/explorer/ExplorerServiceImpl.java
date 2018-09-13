@@ -5,7 +5,9 @@
  */
 package org.cgsuite.ui.explorer;
 
+import org.cgsuite.core.Game;
 import org.cgsuite.ui.worksheet.ExplorerService;
+import org.cgsuite.util.Explorer;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -15,10 +17,11 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service=ExplorerService.class)
 public class ExplorerServiceImpl implements ExplorerService
 {
+
     @Override
-    public Class<?> getExplorerClass()
+    public Explorer newExplorer(Game g)
     {
-        return Explorer.class;
+        return new ExplorerImpl(g);
     }
     
 }

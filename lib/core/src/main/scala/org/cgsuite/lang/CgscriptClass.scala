@@ -71,6 +71,8 @@ object CgscriptClass {
     "cgsuite.util.Trajectory" -> classOf[Trajectory],
     "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
 
+    "cgsuite.ui.Explorer" -> classOf[Explorer],
+
     // The order is extremely important in the following hierarchies (most specific first)
 
     "cgsuite.util.output.EmptyOutput" -> classOf[EmptyOutput],
@@ -110,21 +112,11 @@ object CgscriptClass {
 
   )
 
-  private val additionalSystemClasses: mutable.MutableList[(String, Class[_])] = new mutable.MutableList()
-
   val systemClasses = (baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }
 
   systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
 
   CgscriptClasspath.declareFolders()
-
-  def registerExplorer(cls: Class[_]): Unit = {
-    if (additionalSystemClasses exists { _._1 == "cgsuite.util.Explorer" }) {
-      sys error "Duplicate registration for cgsuite.util.Explorer"
-    }
-    additionalSystemClasses += (("cgsuite.util.Explorer", cls))
-    declareSystemClass("cgsuite.util.Explorer", Some(cls))
-  }
 
   private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
@@ -182,7 +174,7 @@ object CgscriptClass {
   private def toCgscriptClass(x: Any): CgscriptClass = {
     // This is slow, but we cache the results so that it only happens once
     // per distinct (Java) type witnessed.
-    val systemClass = (typedSystemClasses ++ additionalSystemClasses) find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
+    val systemClass = typedSystemClasses find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
     systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
       sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
     }
@@ -594,6 +586,24 @@ class CgscriptClass(
 
   }
 
+  case class ExplicitConstructor(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter]
+    )
+    (fn: (Any, Any) => Any) extends Constructor {
+
+    override def call(args: Array[Any]) = {
+      validateArguments(args, ensureImmutable = !isMutable)
+      val argsTuple = parameters.size match {
+        case 0 => ()
+        case 1 => args(0)
+        case 2 => (args(0), args(1))
+      }
+      fn(classObject, argsTuple)
+    }
+
+  }
+
   def unload() {
     // Unload any derived classes.
     // TODO Unload any classes that have nested classes as derived classes?
@@ -728,7 +738,12 @@ class CgscriptClass(
             case None => UserConstructor(node.id, parameters)
             case Some(cls) =>
               val externalParameterTypes = parameters map { _.paramType.javaClass }
-              SystemConstructor(node.id, parameters, cls.getConstructor(externalParameterTypes : _*))
+              SpecialMethods.specialMethods get qualifiedName match {
+                case Some(fn) =>
+                  ExplicitConstructor(node.id, parameters)(fn)
+                case None =>
+                  SystemConstructor(node.id, parameters, cls.getConstructor(externalParameterTypes : _*))
+              }
           }
         }
         val localMembers = localMethods ++ localNestedClasses

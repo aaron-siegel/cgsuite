@@ -3,10 +3,10 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import ch.qos.logback.classic.{Level, Logger}
+import org.cgsuite.core.Game
 import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.CgscriptClass.logger
-import org.cgsuite.output.Output
+import org.cgsuite.util.{Explorer, UiHarness}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -18,6 +18,7 @@ object Repl {
 
     println("Welcome to the CGSuite REPL, Version 2.0.")
 
+    UiHarness.setUiHarness(ReplUiHarness)
     CgscriptClass.Object.ensureLoaded()
     val replVarMap = mutable.AnyRefMap[Symbol, Any]()
     var done = false
@@ -51,6 +52,19 @@ object Repl {
 
     }
 
+  }
+
+}
+
+object ReplUiHarness extends UiHarness {
+
+  override def createExplorer(g: Game): Explorer = {
+    throw EvalException("The Explorer is not available in the CGSuite REPL.")
+  }
+
+  override def print(obj: AnyRef): Unit = {
+    val output = EvalUtil.objectToOutput(obj)
+    output foreach { out => println(out.toString) }
   }
 
 }

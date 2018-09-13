@@ -44,11 +44,11 @@ public class ExplorerNode
     private final static BasicStroke SINGLE_STROKE = new BasicStroke(1.0f);
     private final static BasicStroke DOUBLE_STROKE = new BasicStroke(2.0f);
 
-    private final Explorer explorer;
+    private final ExplorerImpl explorer;
     private final Game g;
     private List<ExplorerNode> leftChildren, rightChildren;
     
-    public ExplorerNode(Explorer explorer, Game g)
+    public ExplorerNode(ExplorerImpl explorer, Game g)
     {
         this.explorer = explorer;
         this.g = g;

@@ -5,11 +5,14 @@
  */
 package org.cgsuite.ui.worksheet;
 
+import org.cgsuite.core.Game;
+import org.cgsuite.util.Explorer;
+
 /**
  *
  * @author asiegel
  */
 public interface ExplorerService
 {
-    Class<?> getExplorerClass();
+    Explorer newExplorer(Game g);
 }

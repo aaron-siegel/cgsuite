@@ -116,7 +116,7 @@ object CanonicalShortGameTestCase {
       rightStop = "-1823437481924",
       stopCount = "1",
       temperature = "-1",
-      thermograph = "!!Error in call to `game.CanonicalShortGame.Thermograph`: Integer out of bounds (must be between -2147483648 and 2147483647)",   // TODO This isn't the behavior we want!
+      thermograph = "!!Integer out of bounds in game specifier (must satisfy -2147483648 <= n <= 2147483647)",
       uptimalExpansion = "-1823437481924.0"
       ),
 

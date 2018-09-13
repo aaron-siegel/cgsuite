@@ -11,5 +11,5 @@ package org.cgsuite.ui.explorer;
  */
 public interface ExplorerWindowFactory
 {
-    ExplorerWindow createWindow(Explorer client);
+    ExplorerWindow createWindow(ExplorerImpl client);
 }

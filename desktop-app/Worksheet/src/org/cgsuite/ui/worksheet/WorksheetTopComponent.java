@@ -5,16 +5,21 @@
 package org.cgsuite.ui.worksheet;
 
 import java.awt.Color;
-import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
-import org.cgsuite.lang.CgscriptClass$;
+import org.cgsuite.core.Game;
+import org.cgsuite.lang.EvalUtil;
 import org.cgsuite.output.Output;
+import org.cgsuite.util.Explorer;
+import org.cgsuite.util.UiHarness;
+import org.cgsuite.util.UiHarness$;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
+import scala.collection.JavaConverters;
 
 /**
  * Top component which displays something.
@@ -42,8 +47,7 @@ public final class WorksheetTopComponent extends TopComponent
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         
-        ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
-        CgscriptClass$.MODULE$.registerExplorer(explorerService.getExplorerClass());
+        UiHarness$.MODULE$.setUiHarness(new WorksheetUiHarness());
     }
 
     /** This method is called from within the constructor to
@@ -191,8 +195,28 @@ public final class WorksheetTopComponent extends TopComponent
         return PREFERRED_ID;
     }
     
-    public void postOutput(final Output output)
+    public void postOutput(List<Output> output)
     {
-        worksheetPanel1.postOutput(Collections.singletonList(output));
+        worksheetPanel1.postOutput(output);
     }
+    
+    class WorksheetUiHarness implements UiHarness {
+        
+        private ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+
+        @Override
+        public Explorer createExplorer(Game g)
+        {
+            return explorerService.newExplorer(g);
+        }
+
+        @Override
+        public void print(Object obj)
+        {
+            List<Output> output = JavaConverters.seqAsJavaList(EvalUtil.objectToOutput(obj));
+            postOutput(output);
+        }
+
+    }
+
 }

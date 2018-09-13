@@ -2,6 +2,8 @@
 
 system class System
 
+  external static def Error(msg as String);
+
   external static def Print(obj);
 
 end

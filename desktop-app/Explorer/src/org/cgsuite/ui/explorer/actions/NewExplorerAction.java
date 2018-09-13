@@ -6,7 +6,7 @@ package org.cgsuite.ui.explorer.actions;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.cgsuite.ui.explorer.Explorer;
+import org.cgsuite.ui.explorer.ExplorerImpl;
 import org.cgsuite.ui.explorer.ExplorerTopComponent;
 import org.cgsuite.ui.explorer.ExplorerWindow;
 import org.cgsuite.ui.explorer.ExplorerWindowFactory;
@@ -24,7 +24,7 @@ public final class NewExplorerAction implements ActionListener, ExplorerWindowFa
     }
 
     @Override
-    public ExplorerWindow createWindow(Explorer client)
+    public ExplorerWindow createWindow(ExplorerImpl client)
     {
         ExplorerTopComponent component = new ExplorerTopComponent();
         component.setExplorer(client);
