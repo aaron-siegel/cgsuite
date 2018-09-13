@@ -132,29 +132,43 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
     }
   }
 
-  override def toOutput: StyledTextOutput = toOutput(inExponent = false)
+  override def toOutput: StyledTextOutput = toOutput(exponentSpot = 0)
 
-  def toOutput(inExponent: Boolean): StyledTextOutput = {
+  // exponentSpot
+  // 0 = base
+  // 1 = first exponent
+  // 2 = second exponent
+  // -1 = don't use exponents
+  def toOutput(exponentSpot: Int): StyledTextOutput = {
 
     val output = new StyledTextOutput()
-    appendToOutput(output, inExponent = inExponent)
+    appendToOutput(output, exponentSpot)
     output
 
   }
 
-  private[cgsuite] def appendToOutput(output: StyledTextOutput, inExponent: Boolean) = {
+  private[cgsuite] def appendToOutput(output: StyledTextOutput, exponentSpot: Int): Unit = {
     assert(terms.nonEmpty)
-    appendTermToOutput(output, terms.head, head = true, inExponent)
-    terms.tail foreach { appendTermToOutput(output, _, head = false, inExponent) }
+    appendTermToOutput(output, terms.head, head = true, exponentSpot)
+    terms.tail foreach { appendTermToOutput(output, _, head = false, exponentSpot) }
   }
 
-  private[cgsuite] def appendTermToOutput(output: StyledTextOutput, term: Term, head: Boolean, inExponent: Boolean): Unit = {
+  private[cgsuite] def appendTermToOutput(output: StyledTextOutput, term: Term, head: Boolean, exponentSpot: Int): Unit = {
 
-    val baseStyles = {
-      if (inExponent)
-        util.EnumSet.of(Style.FACE_MATH, Style.LOCATION_SUPERSCRIPT)
-      else
-        util.EnumSet.of(Style.FACE_MATH)
+    val baseStyles = exponentSpot match {
+      case 1 => util.EnumSet.of(Style.FACE_MATH, Style.LOCATION_SUPERSCRIPT)
+      case 2 => util.EnumSet.of(Style.FACE_MATH, Style.LOCATION_SUPERSUPERSCRIPT)
+      case _ => util.EnumSet.of(Style.FACE_MATH)
+    }
+
+    val caretModes = exponentSpot match {
+      case -1 | 2 => util.EnumSet.of(Output.Mode.PLAIN_TEXT, Output.Mode.GRAPHICAL)
+      case _ => util.EnumSet.of(Output.Mode.PLAIN_TEXT)
+    }
+
+    val nextExponent = exponentSpot match {
+      case 0 | 1 => exponentSpot + 1
+      case _ => exponentSpot
     }
 
     (head, term.coefficient.sign.intValue) match {
@@ -172,22 +186,16 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
       output appendSymbol (baseStyles, StyledTextOutput.Symbol.OMEGA)
 
       if (term.exponent != one) {
-        val exponentModes = {
-          if (inExponent)
-            util.EnumSet.of(Output.Mode.PLAIN_TEXT, Output.Mode.GRAPHICAL)
-          else
-            util.EnumSet.of(Output.Mode.PLAIN_TEXT)
-        }
-        output appendText (util.EnumSet.of(Style.FACE_MATH, Style.LOCATION_SUPERSCRIPT), exponentModes, "^")
+        output appendText (baseStyles, caretModes, "^")
         val requireParensForExponent = {
           term.exponent.terms.size > 1 ||
             (term.exponent.terms.head.coefficient != one && term.exponent.terms.head.exponent != zero)
         }
         if (requireParensForExponent)
-          output appendText (util.EnumSet.of(Style.FACE_MATH), exponentModes, "(")
-        term.exponent.appendToOutput(output, inExponent = true)
+          output appendText (baseStyles, caretModes, "(")
+        term.exponent.appendToOutput(output, nextExponent)
         if (requireParensForExponent)
-          output appendText (util.EnumSet.of(Style.FACE_MATH), exponentModes, ")")
+          output appendText (baseStyles, caretModes, ")")
       }
 
     }

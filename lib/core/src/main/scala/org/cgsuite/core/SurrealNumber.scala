@@ -156,8 +156,8 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
   override def toOutput: StyledTextOutput = {
 
     val output = new StyledTextOutput()
-    val numeratorOutput = numerator.toOutput(inExponent = true)
-    val denominatorOutput = denominator.toOutput(inExponent = true)
+    val numeratorOutput = numerator.toOutput(exponentSpot = -1)
+    val denominatorOutput = denominator.toOutput(exponentSpot = -1)
     if (numerator.terms.size > 1)
       output.appendText(EnumSet.of(StyledTextOutput.Style.FACE_MATH), EnumSet.of(Output.Mode.PLAIN_TEXT), "(")
     output.appendOutput(EnumSet.of(StyledTextOutput.Style.LOCATION_SUPERSCRIPT), numeratorOutput)

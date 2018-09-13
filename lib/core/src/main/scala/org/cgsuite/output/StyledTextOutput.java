@@ -156,6 +156,8 @@ public class StyledTextOutput extends AbstractOutput
         LOCATION_SUBSCRIPT,
         /** Standard superscript. */
         LOCATION_SUPERSCRIPT,
+        /** Second superscript. */
+        LOCATION_SUPERSUPERSCRIPT,
         /** The upper limit of an integral symbol. */
         LOCATION_UPPER_LIMIT,
         /** The lower limit of an integral symbol. */
@@ -1401,22 +1403,27 @@ public class StyledTextOutput extends AbstractOutput
         else if (styles.contains(Style.LOCATION_SUPERSCRIPT))
         {
             affineTransform.translate(0.0, -8.0);
+            affineTransform.scale(0.6, 0.6);
+        }
+        else if (styles.contains(Style.LOCATION_SUPERSUPERSCRIPT))
+        {
+            affineTransform.translate(0.0, -11.5);
             affineTransform.scale(0.5, 0.5);
         }
         else if (styles.contains(Style.LOCATION_SUBSCRIPT))
         {
             affineTransform.translate(0.0, 0.5);
-            affineTransform.scale(0.5, 0.5);
+            affineTransform.scale(0.6, 0.6);
         }
         else if (styles.contains(Style.LOCATION_NUMERATOR))
         {
             affineTransform.translate(0.0, -8.0);
-            affineTransform.scale(0.5, 0.5);
+            affineTransform.scale(0.6, 0.6);
         }
         else if (styles.contains(Style.LOCATION_DENOMINATOR))
         {
             affineTransform.translate(0.0, 0.5);
-            affineTransform.scale(0.5, 0.5);
+            affineTransform.scale(0.6, 0.6);
         }
         
         if (symbol == null && styles.contains(Style.SIZE_HUGE) || symbol == Symbol.INTEGRAL)
