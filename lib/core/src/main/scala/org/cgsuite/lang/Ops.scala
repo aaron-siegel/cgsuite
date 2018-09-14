@@ -91,6 +91,8 @@ object Ops {
     case (_: Nimber, _: Nimber) => (x: Nimber, y: Nimber) => x ordinalSum y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x ordinalSum y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x ordinalSum y
+    case (_: ImpartialGame, _: ImpartialGame) => (x: ImpartialGame, y: ImpartialGame) => CompoundImpartialGame(CompoundType.Ordinal, x, y)
+    case (_: Game, _: Game) => (x: Game, y: Game) => CompoundGame(CompoundType.Ordinal, x, y)
   }
 
   val Times = CachingBinOp("*") {

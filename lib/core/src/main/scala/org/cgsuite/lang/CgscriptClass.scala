@@ -306,7 +306,7 @@ class CgscriptClass(
   private var singletonInstanceRef: Any = _
   var initializerLocalVariableCount: Int = 0
 
-  val transpositionTable = new TranspositionTable()
+  private[cgsuite] val transpositionCache = new TranspositionCache()
 
   def isLoaded = classInfoRef != null
 
@@ -615,7 +615,7 @@ class CgscriptClass(
     classInfoRef = null
     scriptObjectRef = null
     this.loading = false
-    this.transpositionTable.clear()
+    this.transpositionCache.clear()
   }
 
   def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {

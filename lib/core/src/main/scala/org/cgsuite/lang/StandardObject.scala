@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import org.cgsuite.core._
+import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: Any = null)
@@ -108,9 +109,9 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
     cls.classInfo.optionsMethod.call(this, Array(player)).asInstanceOf[Iterable[Game]]
   }
 
-  override def canonicalForm: CanonicalShortGame = canonicalForm(cls.transpositionTable)
+  override def canonicalForm: CanonicalShortGame = canonicalForm(cls.transpositionCache)
 
-  override def gameValue: SidedValue = gameValue(cls.transpositionTable)
+  override def gameValue: SidedValue = gameValue(cls.transpositionCache)
 
   override def decomposition: Iterable[_] = {
     cls.classInfo.decompositionMethod.call(this, Array.empty).asInstanceOf[Iterable[_]]
@@ -131,6 +132,8 @@ class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj:
     cls.classInfo.optionsMethod.call(this, Array.empty).asInstanceOf[Iterable[ImpartialGame]]
   }
 
-  override def nimValue: Integer = nimValue(cls.transpositionTable)
+  override def misereCanonicalForm: MisereCanonicalGame = misereCanonicalForm(cls.transpositionCache)
+
+  override def nimValue: Integer = nimValue(cls.transpositionCache)
 
 }

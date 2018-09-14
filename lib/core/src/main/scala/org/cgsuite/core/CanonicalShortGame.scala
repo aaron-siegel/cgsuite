@@ -13,7 +13,7 @@ import org.cgsuite.core.{CanonicalShortGameOps => ops}
 import org.cgsuite.exception.{CalculationCanceledException, InvalidOperationException, NotAtomicException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
-import org.cgsuite.util.TranspositionTable
+import org.cgsuite.util.TranspositionCache
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -126,7 +126,7 @@ trait CanonicalShortGame extends CanonicalStopper {
     options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
-  override def canonicalForm(tt: TranspositionTable) = this
+  override def canonicalForm(tc: TranspositionCache) = this
 
   def atomicWeight = {
     atomicWeightOpt getOrElse {

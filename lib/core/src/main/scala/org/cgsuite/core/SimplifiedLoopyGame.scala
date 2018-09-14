@@ -2,7 +2,7 @@ package org.cgsuite.core
 
 import org.cgsuite.exception.NotShortGameException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.TranspositionTable
+import org.cgsuite.util.TranspositionCache
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -67,11 +67,11 @@ trait SimplifiedLoopyGame extends Game {
 
   override def unary_- : SimplifiedLoopyGame = SimplifiedLoopyGameImpl(loopyGame.negative(), -simplifiedSide)
 
-  override def canonicalForm(tt: TranspositionTable): CanonicalShortGame = {
+  override def canonicalForm(tc: TranspositionCache): CanonicalShortGame = {
     throw NotShortGameException("That is a loopy game.")
   }
 
-  override def gameValue(tt: TranspositionTable): SidedValue = SidedValue(loopyGame)
+  override def gameValue(tc: TranspositionCache): SidedValue = SidedValue(loopyGame)
 
   def options(player: Player): Iterable[SimplifiedLoopyGame] = {
     val lgOpts = player match {

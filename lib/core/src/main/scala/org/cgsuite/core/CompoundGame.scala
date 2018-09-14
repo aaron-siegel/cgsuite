@@ -1,7 +1,8 @@
 package org.cgsuite.core
 
+import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.TranspositionTable
+import org.cgsuite.util.TranspositionCache
 
 case class CompoundGame(compoundType: CompoundType.Value, g: Game, h: Game) extends Game {
 
@@ -20,17 +21,17 @@ case class CompoundGame(compoundType: CompoundType.Value, g: Game, h: Game) exte
 
   }
 
-  override def canonicalForm(tt: TranspositionTable) = {
+  override def canonicalForm(tc: TranspositionCache) = {
     compoundType match {
-      case Disjunctive => g.canonicalForm(tt) + h.canonicalForm(tt)
-      case _ => super.canonicalForm(tt)
+      case Disjunctive => g.canonicalForm(tc) + h.canonicalForm(tc)
+      case _ => super.canonicalForm(tc)
     }
   }
 
-  override def gameValue(tt: TranspositionTable) = {
+  override def gameValue(tc: TranspositionCache) = {
     compoundType match {
-      case Disjunctive => g.gameValue(tt) + h.gameValue(tt)
-      case _ => super.gameValue(tt)
+      case Disjunctive => g.gameValue(tc) + h.gameValue(tc)
+      case _ => super.gameValue(tc)
     }
   }
 
@@ -81,7 +82,19 @@ class CompoundImpartialGame(compoundType: CompoundType.Value, g: ImpartialGame, 
 
   }
 
-  override def nimValue(tt: TranspositionTable): Integer = g.nimValue(tt) ^ h.nimValue(tt)
+  override def nimValue(tc: TranspositionCache): Integer = {
+    compoundType match {
+      case Disjunctive => g.nimValue(tc) ^ h.nimValue(tc)
+      case _ => super.nimValue(tc)
+    }
+  }
+
+  override def misereCanonicalForm(tc: TranspositionCache): MisereCanonicalGame = {
+    compoundType match {
+      case Disjunctive => g.misereCanonicalForm(tc) + h.misereCanonicalForm(tc)
+      case _ => super.misereCanonicalForm(tc)
+    }
+  }
 
 }
 

@@ -80,7 +80,6 @@ public final class Genus implements OutputTarget
         default: throw new IllegalArgumentException
                      ("Phylum "+p+" requires fancy genus constructor");
         }
-        return;
     }
 
     public Genus(List<Genus> gL)

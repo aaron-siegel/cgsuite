@@ -8,7 +8,7 @@ package org.cgsuite.core
 
 import org.cgsuite.exception.NotShortGameException
 import org.cgsuite.output.OutputTarget
-import org.cgsuite.util.TranspositionTable
+import org.cgsuite.util.{TranspositionCache, TranspositionTable}
 
 import scala.collection.mutable
 
@@ -23,63 +23,26 @@ trait Game extends OutputTarget {
   def options(player: Player): Iterable[Game]
 
   def canonicalForm: CanonicalShortGame = {
-    canonicalForm(new TranspositionTable())   // TODO Cache in class obj??
+    canonicalForm(new TranspositionCache())
   }
 
-  def canonicalForm(tt: TranspositionTable): CanonicalShortGame = {
-    canonicalForm(tt, mutable.HashSet[Game]())
+  def canonicalForm(tc: TranspositionCache): CanonicalShortGame = {
+    CanonicalShortGameReducer.reduce(this, tc.tableFor[CanonicalShortGame]('CanonicalShortGame))
   }
 
-  private def canonicalForm(tt: TranspositionTable, visited: mutable.Set[Game]): CanonicalShortGame = {
-    val decomp = decomposition
-    if (decomp.size == 1 && decomp.head == this) {
-      canonicalFormR(tt, visited)
-    } else {
-      var result: CanonicalShortGame = Values.zero
-      val it = decomp.iterator
-      while (it.hasNext) {
-        val component = it.next() match {
-          case g: Game => g.canonicalFormR(tt, visited)
-        }
-        result += component
-      }
-      result
-    }
-  }
+  def gameValue: SidedValue = gameValue(new TranspositionCache())
 
-  private def canonicalFormR(tt: TranspositionTable, visited: mutable.Set[Game]): CanonicalShortGame = {
-    tt.get(this) match {
-      case Some(x: CanonicalShortGame) => x
-      case None if !visited.contains(this) =>
-        visited += this
-        try {
-          val lo = options(Left ) map { _.canonicalForm(tt, visited) }
-          val ro = options(Right) map { _.canonicalForm(tt, visited) }
-          val canonicalForm = CanonicalShortGame(lo, ro)
-          tt.put(this, canonicalForm)
-          canonicalForm
-        } finally {
-          visited -= this
-        }
-      case _ =>
-        throw NotShortGameException(s"That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`.")
-    }
-  }
-
-  def gameValue: SidedValue = gameValue(new TranspositionTable())
-
-  def gameValue(tt: TranspositionTable): SidedValue = {
+  def gameValue(tc: TranspositionCache): SidedValue = {
     try {
-      canonicalForm(tt)
+      canonicalForm(tc)
     } catch {
-      case _: NotShortGameException => loopyGameValue(tt)
+      case _: NotShortGameException => loopyGameValue(tc.tableFor[SidedValue]('SidedValue))
     }
   }
 
-  final def loopyGameValue(tt: TranspositionTable): SidedValue = {
+  final def loopyGameValue(tt: TranspositionTable[SidedValue]): SidedValue = {
     tt.get(this) match {
-      case Some(x: SidedValue) => x
-      case Some(x) => sys.error("this should never happen")
+      case Some(x) => x
       case _ =>
         val nodeMap = mutable.AnyRefMap[Game, (LoopyGame.Node, LoopyGame.Node)]()
         buildNodeMap(tt, nodeMap)
@@ -89,11 +52,11 @@ trait Game extends OutputTarget {
             tt.put(g, value)
           }
         }
-        tt(this).asInstanceOf[SidedValue]
+        tt(this)
     }
   }
 
-  private def buildNodeMap(tt: TranspositionTable, nodeMap: mutable.AnyRefMap[Game, (LoopyGame.Node, LoopyGame.Node)])
+  private def buildNodeMap(tt: TranspositionTable[SidedValue], nodeMap: mutable.AnyRefMap[Game, (LoopyGame.Node, LoopyGame.Node)])
     : (LoopyGame.Node, LoopyGame.Node) = {
     nodeMap.get(this) match {
       case Some(nodes) => nodes
@@ -117,7 +80,7 @@ trait Game extends OutputTarget {
     }
   }
 
-  private def buildNodeMapR(tt: TranspositionTable, nodeMap: mutable.AnyRefMap[Game, (LoopyGame.Node, LoopyGame.Node)])
+  private def buildNodeMapR(tt: TranspositionTable[SidedValue], nodeMap: mutable.AnyRefMap[Game, (LoopyGame.Node, LoopyGame.Node)])
     : (LoopyGame.Node, LoopyGame.Node) = {
 
     val onsideNode = new LoopyGame.Node()

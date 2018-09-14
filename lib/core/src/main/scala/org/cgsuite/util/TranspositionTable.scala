@@ -2,11 +2,11 @@ package org.cgsuite.util
 
 import scala.collection.mutable
 
-class TranspositionTable {
+class TranspositionTable[T] {
 
-  val map = mutable.AnyRefMap[AnyRef, Any]()
+  private val map = mutable.AnyRefMap[AnyRef, T]()
 
-  def put(k: AnyRef, v: Any) {
+  def put(k: AnyRef, v: T) {
     map.put(k, v)
   }
 
@@ -16,6 +16,19 @@ class TranspositionTable {
 
   def apply(k: AnyRef) = map(k)
 
-  def clear() = map.clear()
+  def clear(): Unit = map.clear()
+
+}
+
+class TranspositionCache {
+
+  private val tables = mutable.AnyRefMap[Symbol, TranspositionTable[_]]()
+
+  def tableFor[T](symbol: Symbol): TranspositionTable[T] = {
+    val table = tables.getOrElseUpdate(symbol, new TranspositionTable[T]())
+    table.asInstanceOf[TranspositionTable[T]]
+  }
+
+  def clear(): Unit = tables.clear()
 
 }
