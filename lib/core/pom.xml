@@ -50,6 +50,16 @@
       <version>2.5.1</version>
     </dependency>
     <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>3.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline-terminal-jansi</artifactId>
+      <version>3.9.0</version>
+    </dependency>
+    <dependency>
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
       <version>0.7.0</version>

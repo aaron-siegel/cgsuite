@@ -7,6 +7,8 @@ import org.cgsuite.core.Game
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.util.{Explorer, UiHarness}
+import org.jline.reader.{Expander, History, LineReaderBuilder}
+import org.jline.terminal.TerminalBuilder
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -18,14 +20,16 @@ object Repl {
 
     println("Welcome to the CGSuite REPL, Version 2.0.")
 
+    val terminal = TerminalBuilder.builder().jansi(true).dumb(true).build()
+    val lineReader = LineReaderBuilder.builder().expander(NullExpander).terminal(terminal).build()
+
     UiHarness.setUiHarness(ReplUiHarness)
     CgscriptClass.Object.ensureLoaded()
     val replVarMap = mutable.AnyRefMap[Symbol, Any]()
     var done = false
 
     while (!done) {
-      print("> ")
-      val str = Console.in.readLine
+      val str = lineReader.readLine("> ")
       str.trim match {
         case "" =>
         case ":clear" =>
@@ -51,6 +55,14 @@ object Repl {
       }
 
     }
+
+  }
+
+  object NullExpander extends Expander {
+
+    override def expandHistory(history: History, line: String) = line
+
+    override def expandVar(word: String) = word
 
   }
 

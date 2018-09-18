@@ -1,9 +1,13 @@
 package org.cgsuite.lang
 
+import java.nio.file.spi.FileSystemProvider
+import java.util.Collections
+
 import better.files._
 import io.methvin.better.files.RecursiveFileMonitor
 import org.cgsuite.lang.CgscriptClass.logger
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -14,10 +18,17 @@ object CgscriptClasspath {
   private[lang] val cgsuiteDir = java.lang.System.getProperty("user.home")/"CGSuite"
 
   private[lang] val systemDir = {
-    if (isDevBuild)
+    if (isDevBuild) {
       ".."/"lib/core/src/main/resources/org/cgsuite/lang/resources"
-    else
+    } else {
+      val uri = getClass.getResource("resources").toURI
+      if (uri.getScheme == "jar") {
+        FileSystemProvider.installedProviders find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+          provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+        }
+      }
       File(getClass.getResource("resources").toURI)
+    }
   }
 
   private[lang] val classpath: Vector[File] = Vector(systemDir, cgsuiteDir)
@@ -30,7 +41,8 @@ object CgscriptClasspath {
   }
 
   private[lang] def declareFolder(folder: File): Unit = {
-    new Monitor(folder).start()
+    if (folder.fileSystem.provider.getScheme != "jar")
+      new Monitor(folder).start()
     declareFolderR(CgscriptPackage.root, folder)
   }
 
@@ -38,7 +50,7 @@ object CgscriptClasspath {
     logger debug s"Declaring folder: $folder as package ${pkg.name}"
     folder.children foreach { file =>
       if (file.isDirectory) {
-        declareFolderR(pkg.declareSubpackage(file.name), file)
+        declareFolderR(pkg.declareSubpackage(file.name stripSuffix "/"), file)
       } else if (file.extension exists { _.toLowerCase == ".cgs" }) {
         pkg.declareClass(Symbol(file.nameWithoutExtension), UrlClassDef(file.url), None)
       }
