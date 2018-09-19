@@ -67,10 +67,10 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
   private def appendSubOutput(sto: StyledTextOutput, x: Game): Unit = {
     x match {
       case CompoundGame(thatType, _, _) =>
-        if (thatType.precedence < compoundType.precedence)
+        if (thatType.precedence > compoundType.precedence)
           sto.appendMath("(")
         sto.append(x.toOutput)
-        if (thatType.precedence < compoundType.precedence)
+        if (thatType.precedence > compoundType.precedence)
           sto.appendMath(")")
       case _ =>
         sto.append(x.toOutput)

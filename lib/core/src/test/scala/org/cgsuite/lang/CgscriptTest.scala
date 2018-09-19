@@ -218,6 +218,13 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Explicit multiple - eval", "(-2 * '{|-1}').CanonicalForm", "4"),
       ("Explicit Conway product", "*6 ConwayProduct '{0,*|0,*}'", "*6 ConwayProduct '{0,*|0,*}'"),
       ("Explicit Conway product - eval", "(*6 ConwayProduct '{0,*|0,*}').CanonicalForm", "*11"),
+      ("Explicit game eval - 1", "g := '{*|*}':1", "'{*|*}' : 1"),
+      ("Explicit game eval - 2", "-g", "'{*|*}' : -1"),
+      ("Explicit game eval - 3", "g-g", "'{*|*}' : 1 + '{*|*}' : -1"),
+      ("Explicit game eval - 4", "{g|-1}", "'{'{*|*}' : 1|-1}'"),
+      ("Explicit game eval - 5", "2*g", "2 * ('{*|*}' : 1)"),
+      ("Explicit game eval - 6", "(2*g).CanonicalForm", "^^"),
+      ("Explicit game eval - 7", "(g*2).CanonicalForm", "^^")
     ))
   }
 

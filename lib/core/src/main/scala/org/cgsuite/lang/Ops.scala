@@ -102,7 +102,9 @@ object Ops {
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x * y
     case (_: SurrealNumber, _: SurrealNumber) => (x: SurrealNumber, y: SurrealNumber) => x * y
     case (_: Integer, _: SidedValue) => (x: Integer, y: SidedValue) => x * y
+    case (_: SidedValue, _: Integer) => (x: SidedValue, y: Integer) => y * x
     case (_: Integer, _: Game) => (x: Integer, y: Game) => CompoundGame(ConwayProduct, x, y)
+    case (_: Game, _: Integer) => (x: Game, y: Integer) => CompoundGame(ConwayProduct, x, y)
     case (_: Coordinates, _: Integer) => (x: Coordinates, y: Integer) => x * y
     case (_: Integer, _: Coordinates) => (x: Integer, y: Coordinates) => y * x
   }
