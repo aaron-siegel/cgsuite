@@ -46,6 +46,8 @@ object CanonicalShortGame {
     (1 to n) map { _ => "|" } mkString ""
   }
 
+  def gameCount = CanonicalShortGameOps.getNumGames
+
   object DeterministicOrdering extends Ordering[CanonicalShortGame] {
 
     def compare(g: CanonicalShortGame, h: CanonicalShortGame): Int = {
