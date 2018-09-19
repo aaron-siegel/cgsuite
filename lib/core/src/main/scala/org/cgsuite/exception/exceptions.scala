@@ -23,6 +23,9 @@ case class InvalidOperationException(msg: String, cause: Throwable = null, token
 case class NotAtomicException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
+case class NotImplementedException(msg: String, cause: Throwable = null, token: Option[Token] = None)
+  extends CgsuiteException(msg, cause, token)
+
 case class NotShortGameException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 

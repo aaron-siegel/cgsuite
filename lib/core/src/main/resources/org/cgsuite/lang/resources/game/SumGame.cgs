@@ -1,4 +1,0 @@
-/*${cgsuite.banner}*/
-
-system class SumGame(g as Game, h as Game) extends Game
-end

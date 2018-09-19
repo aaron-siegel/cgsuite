@@ -28,9 +28,9 @@ trait ImpartialGame extends Game {
 
   override def unary_- : ImpartialGame = this
 
-  def +(other: ImpartialGame): ImpartialGame = CompoundImpartialGame(CompoundType.Disjunctive, this, other)
+  def +(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(DisjunctiveSum, this, that)
 
-  def -(other: ImpartialGame): ImpartialGame = this + this
+  def -(that: ImpartialGame): ImpartialGame = this + this
 
   override def options(player: Player): Iterable[ImpartialGame] = options
 
@@ -39,6 +39,15 @@ trait ImpartialGame extends Game {
   override def canonicalForm: CanonicalShortGame = Nimber(nimValue)
 
   override def canonicalForm(tc: TranspositionCache): CanonicalShortGame = Nimber(nimValue(tc))
+
+  def conwayProduct(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(ConwayProduct, this, that)
+
+  override def conwayProduct(that: Game): Game = {
+    that match {
+      case thatImpartialGame: ImpartialGame => conwayProduct(thatImpartialGame)
+      case _ => super.conwayProduct(that)
+    }
+  }
 
   def nimValue: Integer = {
     nimValue(new TranspositionCache())

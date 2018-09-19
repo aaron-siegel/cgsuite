@@ -6,7 +6,7 @@
 
 package org.cgsuite.core
 
-import org.cgsuite.exception.NotShortGameException
+import org.cgsuite.exception.{NotImplementedException, NotShortGameException}
 import org.cgsuite.output.OutputTarget
 import org.cgsuite.util.{TranspositionCache, TranspositionTable}
 
@@ -15,10 +15,12 @@ import scala.collection.mutable
 trait Game extends OutputTarget {
 
   def unary_+ : Game = this
+
   def unary_- : Game = NegativeGame(this)
 
-  def +(other: Game): Game = CompoundGame(CompoundType.Disjunctive, this, other)
-  def -(other: Game): Game = this + (-other)
+  def +(that: Game): Game = CompoundGame(DisjunctiveSum, this, that)
+
+  def -(that: Game): Game = this + (-that)
 
   def options(player: Player): Iterable[Game]
 
@@ -29,6 +31,8 @@ trait Game extends OutputTarget {
   def canonicalForm(tc: TranspositionCache): CanonicalShortGame = {
     CanonicalShortGameReducer.reduce(this, tc.tableFor[CanonicalShortGame]('CanonicalShortGame))
   }
+
+  def conwayProduct(that: Game): Game = CompoundGame(ConwayProduct, this, that)
 
   def gameValue: SidedValue = gameValue(new TranspositionCache())
 
@@ -113,7 +117,11 @@ trait Game extends OutputTarget {
 
   }
 
-  def depthHint: Int = sys.error("Loopy games must override `depthHint`.")
+  def depthHint: Int = {
+    throw NotImplementedException(
+      "That game is loopy (not a short game). If that is intentional, it must implement the `depthHint` method. See the CGSuite documentation for more details."
+    )
+  }
 
   def outcomeClass: LoopyOutcomeClass = gameValue.outcomeClass
 

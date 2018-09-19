@@ -3,10 +3,12 @@ package org.cgsuite.lang
 import java.io.{PrintWriter, StringWriter}
 import java.util
 
+import ch.qos.logback.classic.{Level, Logger}
 import com.typesafe.scalalogging.LazyLogging
 import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
@@ -56,6 +58,13 @@ object EvalUtil extends LazyLogging {
 
   private def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
 
+    val exceptionLimit = {
+      if (LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].getLevel == Level.DEBUG)
+        Int.MaxValue
+      else
+        6
+    }
+
     val message = errorOutput(exc.getMessage)
     val stack = exc.tokenStack.toVector flatMap { token =>
       assert(token.getInputStream != null, s"Input stream is null: $token (${exc.getMessage})")
@@ -67,12 +76,12 @@ object EvalUtil extends LazyLogging {
       else {
         val causeClass = errorOutput(s"  caused by ${exc.getCause.getClass.getName}")
         val causeStack = {
-          exc.getCause.getStackTrace.toVector.take(6).map { element =>
+          exc.getCause.getStackTrace.toVector.take(exceptionLimit).map { element =>
             errorOutput(s"    at ${element.getClassName} line ${element.getLineNumber}")
           }
         }
         val causeDotDotDot = {
-          if (exc.getCause.getStackTrace.length > 6)
+          if (exc.getCause.getStackTrace.length > exceptionLimit)
             Vector(errorOutput("    ......"))
           else
             Vector.empty

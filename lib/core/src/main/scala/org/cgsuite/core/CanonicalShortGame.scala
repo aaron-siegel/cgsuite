@@ -160,7 +160,14 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def companion: CanonicalShortGame = CanonicalShortGame(ops.companion(gameId))
 
-  def conwayMultiply(h: CanonicalShortGame) = CanonicalShortGame(ops.conwayMultiply(gameId, h.gameId))
+  def conwayProduct(that: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.conwayMultiply(gameId, that.gameId))
+
+  override def conwayProduct(that: Game): Game = {
+    that match {
+      case thatCanonicalShortGame: CanonicalShortGame => conwayProduct(thatCanonicalShortGame)
+      case _ => super.conwayProduct(that)
+    }
+  }
 
   def cool(t: DyadicRationalNumber): CanonicalShortGame = {
     if (t <= Values.negativeOne) {

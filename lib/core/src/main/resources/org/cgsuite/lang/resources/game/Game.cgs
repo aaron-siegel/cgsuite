@@ -3,13 +3,14 @@
 system class Game
 
   external def CanonicalForm;
+  external def ConwayProduct(h as Game);
   external def GameValue;
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
   def OutcomeClass := GameValue.OutcomeClass;
   external def SensibleLines(player as Player);
   external def SensibleOptions(player as Player);
 
-  def DepthHint := error("Loopy games must override the `DepthHint` method. For more information, see the Loopy Games section in Help.");
+  def DepthHint := error("That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.");
 
   def Options(player as Player) := error("Subclasses of `Game` must override the `Options` method.");
 

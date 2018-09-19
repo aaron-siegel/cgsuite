@@ -94,9 +94,9 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
   def ^(other: Integer) = Integer(bigIntValue ^ other.bigIntValue)
 
-  def *(other: SidedValue): SidedValue = other.nCopies(this)
-  def *(other: StopperSidedValue): StopperSidedValue = other.nCopies(this)
   def *(other: CanonicalShortGame): CanonicalShortGame = other.nCopies(this)
+  def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
+  def *(other: SidedValue): SidedValue = other.nCopies(this)
 
   override def abs: Integer = Integer(bigIntValue.abs)
 

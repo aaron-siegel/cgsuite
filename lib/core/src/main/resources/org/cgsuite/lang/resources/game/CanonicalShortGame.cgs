@@ -7,7 +7,6 @@ system class CanonicalShortGame extends CanonicalStopper
   external def AtomicWeight;
   external def Birthday;
   external def Companion;
-  external def ConwayMultiply(h as CanonicalShortGame);
   external def Cool(t as DyadicRational);
   external def Freeze;
   external def Heat(t as CanonicalShortGame);

@@ -108,7 +108,6 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Pow*", "{0,*|v}", "^<2>*"),
       ("PowTo", "{^|*}", "^[2]"),
       ("PowTo*", "{0,^*|0}", "^[2]*"),
-      ("Explicit game", "'{*|*}'", "'{*|*}'"),
       ("Game specifier containing non-value game", "{game.grid.Domineering(\"..|..\")|-1}", "'{Domineering.Position(\"..|..\")|-1}'"),
       ("Illegal object in game specifier", "{0|false}", "!!Invalid game specifier: objects must be of type `Game` or `SidedValue`"),
       ("Integer out of bounds", "{2^100|0}", "!!Integer out of bounds in game specifier (must satisfy -2147483648 <= n <= 2147483647)"),
@@ -204,6 +203,21 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Ordinal comparison 2", "-omega < 1", "true"),
       ("Confused", "3 <> 3+*", "true"),
       ("Heterogeneous compare", "3 == []", "false")
+    ))
+  }
+
+  it should "handle explicit and compound games" in {
+    executeTests(Table(
+      header,
+      ("Explicit game", "'{*|*}'", "'{*|*}'"),
+      ("Explicit sum", "'{0|}' + 1", "'{0|}' + 1"),
+      ("Explicit ordinal sum", "'{-1|1}':1", "'{-1|1}' : 1"),
+      ("Explicit ordinal sum - eval", "('{-1|1}':1).CanonicalForm", "1/2"),
+      ("Explicit ordinal sum - eval with loopy", "('{-1|1}':on).GameValue", "1under"),
+      ("Explicit multiple", "-2 * '{|-1}'", "-2 * '{|-1}'"),
+      ("Explicit multiple - eval", "(-2 * '{|-1}').CanonicalForm", "4"),
+      ("Explicit Conway product", "*6 ConwayProduct '{0,*|0,*}'", "*6 ConwayProduct '{0,*|0,*}'"),
+      ("Explicit Conway product - eval", "(*6 ConwayProduct '{0,*|0,*}').CanonicalForm", "*11"),
     ))
   }
 
@@ -687,11 +701,11 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "implement >=2-ary methods correctly" in {
 
     val instances = Seq(
-      ("*4.ConwayMultiply(*4)", "*6"),
-      ("*19.ConwayMultiply(*23)", "*86"),
-      ("15.ConwayMultiply(^^*2)", "^30*2"),
-      ("{3|1}.ConwayMultiply(^^)", "{^6|^^}"),
-      ("^^.ConwayMultiply(^^)", "{0||0,*|0,{0,*|0,*2}}"),
+      ("*4.ConwayProduct(*4)", "*6"),
+      ("*19.ConwayProduct(*23)", "*86"),
+      ("15.ConwayProduct(^^*2)", "^30*2"),
+      ("{3|1}.ConwayProduct(^^)", "{^6|^^}"),
+      ("^^.ConwayProduct(^^)", "{0||0,*|0,{0,*|0,*2}}"),
       ("{3||2+*|1+*}.Cool(0)", "{3||2*|1*}"),
       ("{3||2+*|1+*}.Cool(1/4)", "{11/4||2|3/2}"),
       ("{3||2+*|1+*}.Cool(1/2)", "{5/2|2*}"),
@@ -827,11 +841,18 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   }
 
   "game.Game" should "behave correctly" in {
+
+    val classdefPackage = testPackage declareSubpackage "game"
+    decl("test.game.NoDepthHint", "singleton class NoDepthHint extends Game override def Options(player as Player) := [this]; end")
+
     executeTests(Table(
       header,
       ("CanonicalForm on loopy game", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,1)).CanonicalForm",
-        "!!That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`.")
+        "!!That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."),
+      ("DepthHint not implemented", "test.game.NoDepthHint.GameValue",
+        "!!That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.")
     ))
+
   }
 
   "game.Player" should "behave correctly" in {

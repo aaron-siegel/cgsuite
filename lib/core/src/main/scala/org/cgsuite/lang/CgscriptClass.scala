@@ -97,7 +97,9 @@ object CgscriptClass {
 
     "game.misere.MisereCanonicalGame" -> classOf[MisereCanonicalGame],
 
+    "game.CompoundGame" -> classOf[CompoundGame],
     "game.ExplicitGame" -> classOf[ExplicitGame],
+    "game.NegativeGame" -> classOf[NegativeGame],
 
     "game.ImpartialGame" -> classOf[ImpartialGame],
     "game.Game" -> classOf[Game],
@@ -349,8 +351,10 @@ class CgscriptClass(
           case "game.Zero" => ZeroImpl
           case "cgsuite.lang.Nothing" => null
           case "cgsuite.util.output.EmptyOutput" => EmptyOutput
-          case _ =>
-            new StandardObject(this, Array.empty)
+          // TODO There is some code duplication here with general object instantiation (search for "GameObject")
+          case _ if ancestors contains ImpartialGame => new ImpartialGameObject(this, Array.empty)
+          case _ if ancestors contains Game => new GameObject(this, Array.empty)
+          case _ => new StandardObject(this, Array.empty)
         }
       }
     } else {

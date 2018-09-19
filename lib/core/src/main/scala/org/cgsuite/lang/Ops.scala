@@ -91,8 +91,8 @@ object Ops {
     case (_: Nimber, _: Nimber) => (x: Nimber, y: Nimber) => x ordinalSum y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x ordinalSum y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x ordinalSum y
-    case (_: ImpartialGame, _: ImpartialGame) => (x: ImpartialGame, y: ImpartialGame) => CompoundImpartialGame(CompoundType.Ordinal, x, y)
-    case (_: Game, _: Game) => (x: Game, y: Game) => CompoundGame(CompoundType.Ordinal, x, y)
+    case (_: ImpartialGame, _: ImpartialGame) => (x: ImpartialGame, y: ImpartialGame) => CompoundImpartialGame(OrdinalSum, x, y)
+    case (_: Game, _: Game) => (x: Game, y: Game) => CompoundGame(OrdinalSum, x, y)
   }
 
   val Times = CachingBinOp("*") {
@@ -101,8 +101,8 @@ object Ops {
     case (_: GeneralizedOrdinal, _: GeneralizedOrdinal) => (x: GeneralizedOrdinal, y: GeneralizedOrdinal) => x * y
     case (_: RationalNumber, _: RationalNumber) => (x: RationalNumber, y: RationalNumber) => x * y
     case (_: SurrealNumber, _: SurrealNumber) => (x: SurrealNumber, y: SurrealNumber) => x * y
-    case (_: Integer, _: SidedValue) => (x: Integer, y: SidedValue) => y.nCopies(x)
-    case (_: Integer, _: Game) => (x: Integer, y: Game) => MultipleGame(x, y)
+    case (_: Integer, _: SidedValue) => (x: Integer, y: SidedValue) => x * y
+    case (_: Integer, _: Game) => (x: Integer, y: Game) => CompoundGame(ConwayProduct, x, y)
     case (_: Coordinates, _: Integer) => (x: Coordinates, y: Integer) => x * y
     case (_: Integer, _: Coordinates) => (x: Integer, y: Coordinates) => y * x
   }
