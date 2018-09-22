@@ -203,6 +203,12 @@ public final class WorksheetTopComponent extends TopComponent
     class WorksheetUiHarness implements UiHarness {
         
         private ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+        
+        @Override
+        public void clearUiVars()
+        {
+            WorksheetPanel.WORKSPACE_VAR_MAP.clear();
+        }
 
         @Override
         public Explorer createExplorer(Game g)

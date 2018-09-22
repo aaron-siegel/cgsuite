@@ -97,6 +97,7 @@ object CgscriptClass {
 
     "game.misere.MisereCanonicalGame" -> classOf[MisereCanonicalGame],
 
+    "game.CompoundImpartialGame" -> classOf[CompoundImpartialGame],
     "game.CompoundGame" -> classOf[CompoundGame],
     "game.ExplicitGame" -> classOf[ExplicitGame],
     "game.NegativeGame" -> classOf[NegativeGame],

@@ -54,7 +54,7 @@ import scala.collection.mutable.AnyRefMap;
 public class WorksheetPanel extends JPanel
     implements Scrollable, KeyListener, TaskListener, DocumentListener, CommandListener
 {
-    private final static AnyRefMap<Symbol,Object> WORKSPACE_VAR_MAP = new AnyRefMap<Symbol,Object>();
+    final static AnyRefMap<Symbol,Object> WORKSPACE_VAR_MAP = new AnyRefMap<Symbol,Object>();
     
     private boolean deferredAdvance;
     

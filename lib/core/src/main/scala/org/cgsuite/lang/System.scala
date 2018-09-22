@@ -6,9 +6,14 @@ import org.cgsuite.util.UiHarness
 
 object System {
 
-  def print(obj: AnyRef): Unit = UiHarness.uiHarness.print(obj)
+  def clearAll(): Unit = {
+    UiHarness.uiHarness.clearUiVars()
+    CgscriptClass.clearAll()
+  }
 
   def error(str: String): Unit = throw EvalException(str)
+
+  def print(obj: AnyRef): Unit = UiHarness.uiHarness.print(obj)
 
 }
 

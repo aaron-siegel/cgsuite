@@ -1,0 +1,16 @@
+/*${cgsuite.banner}*/
+
+class PartizanCoordinateRuleset(leftRuleset as CoordinateRuleset, rightRuleset as CoordinateRuleset) extends Ruleset
+
+  override def Eval(coord as Coordinates) := Position(coord);
+
+  class Position(coord as Coordinates) extends Game
+
+    override def Options(player as Player) begin
+      var ruleset := if player == Left then leftRuleset else rightRuleset end;
+      ruleset CoordinateOptions coord Apply (c -> Position(c))
+    end
+
+  end
+
+end

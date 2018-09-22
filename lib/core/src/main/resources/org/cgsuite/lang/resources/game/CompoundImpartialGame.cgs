@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class CompoundImpartialGame extends CompoundGame, ImpartialGame
+
+  external override def Options;
+
+end

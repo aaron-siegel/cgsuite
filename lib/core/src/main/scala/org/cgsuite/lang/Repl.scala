@@ -122,6 +122,10 @@ object Repl {
 
 object ReplUiHarness extends UiHarness {
 
+  override def clearUiVars(): Unit = {
+    Repl.replVarMap.clear()
+  }
+
   override def createExplorer(g: Game): Explorer = {
     throw EvalException("The Explorer is not available in the CGSuite REPL.")
   }
