@@ -66,7 +66,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
           // TODO Append .instance for nonsingletons?
           sto appendText "."
       }
-      sto appendText cls.fullyScopedName
+      sto appendText cls.nameAsFullyScopedMember
       cls.constructor foreach { ctor =>
         sto appendText "("
         val params = ctor.parameters

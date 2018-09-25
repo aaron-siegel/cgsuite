@@ -27,9 +27,13 @@ singleton class constants
 
   def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
   
-  def TakeAway(alpha as DyadicRational) := GenMem((memory, j) -> j <= memory * alpha);//(maxHeaps as Procedure) := GenMem((memory, j) -> j <= maxHeaps(memory));
-  
+  def TakeAway(arg) begin
+    if arg is DyadicRational then GenMem((memory, j) -> j <= memory * arg)
+    elseif arg is Procedure then GenMem((memory, j) -> j <= arg(memory))
+    else System.Error("Argument to `TakeAway` must be a `DyadicRational` or a `Procedure`.")
+    end
+  end
+
   var Wythoff := GenWythoff(1);
 
 end
-

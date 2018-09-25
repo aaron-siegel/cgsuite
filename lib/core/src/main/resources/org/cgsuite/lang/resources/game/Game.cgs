@@ -6,7 +6,6 @@ system class Game
   external def ConwayProduct(h as Game);
   external def GameValue;
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
-  def OutcomeClass := GameValue.OutcomeClass;
   external def SensibleLines(player as Player);
   external def SensibleOptions(player as Player);
 

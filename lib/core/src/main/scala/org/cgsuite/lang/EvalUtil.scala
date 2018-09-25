@@ -27,7 +27,7 @@ object EvalUtil extends LazyLogging {
       val result = node.evaluate(domain)
       objectToOutput(result)
     } catch {
-      case exc: SyntaxException => syntaxExceptionToOutput(input, exc, false)
+      case exc: SyntaxException => syntaxExceptionToOutput(input, exc, includeLine = false)
       case exc: CgsuiteException => cgsuiteExceptionToOutput(input, exc)
       case exc: Throwable => throwableToOutput(input, exc)
     }

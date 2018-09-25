@@ -7,8 +7,7 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.cgsuite.core._
-import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
-import org.cgsuite.core.misere.{Genus, MisereCanonicalGame, MisereCanonicalGameOps}
+import org.cgsuite.core.misere.MisereCanonicalGameOps
 import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -17,7 +16,6 @@ import org.cgsuite.output._
 import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
-import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 import scala.language.{existentials, postfixOps}
 
@@ -32,111 +30,11 @@ object CgscriptClass {
     ord
   }
 
-  private val baseSystemClasses: Seq[(String, Class[_])] = Seq(
-
-    "cgsuite.lang.Object" -> classOf[AnyRef],
-    "cgsuite.lang.Enum" -> classOf[EnumObject]
-
-  )
-
-  private val typedSystemClasses: Seq[(String, Class[_])] = Seq(
-
-    "cgsuite.lang.Class" -> classOf[ClassObject],
-    "cgsuite.lang.Script" -> classOf[Script],
-
-    "cgsuite.util.MutableList" -> classOf[mutable.ArrayBuffer[_]],
-    "cgsuite.util.MutableSet" -> classOf[mutable.HashSet[_]],
-    "cgsuite.util.MutableMap" -> classOf[mutable.HashMap[_,_]],
-
-    "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
-    "cgsuite.lang.String" -> classOf[String],
-    "cgsuite.lang.Coordinates" -> classOf[Coordinates],
-    "cgsuite.lang.Range" -> classOf[NumericRange[_]],
-    "cgsuite.lang.List" -> classOf[Seq[_]],
-    "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
-    "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
-    "cgsuite.lang.MapEntry" -> classOf[(_,_)],
-    "cgsuite.lang.Procedure" -> classOf[Procedure],
-    "cgsuite.lang.System" -> classOf[System],
-    "cgsuite.lang.Table" -> classOf[Table],
-    "cgsuite.lang.Collection" -> classOf[Iterable[_]],
-    "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
-    "cgsuite.lang.InstanceMethod" -> classOf[InstanceMethod],
-
-    "cgsuite.util.Strip" -> classOf[Strip],
-    "cgsuite.util.Genus" -> classOf[Genus],
-    "cgsuite.util.Grid" -> classOf[Grid],
-    "cgsuite.util.Symmetry" -> classOf[Symmetry],
-    "cgsuite.util.Thermograph" -> classOf[Thermograph],
-    "cgsuite.util.Trajectory" -> classOf[Trajectory],
-    "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
-
-    "cgsuite.ui.Explorer" -> classOf[Explorer],
-
-    // The order is extremely important in the following hierarchies (most specific first)
-
-    "cgsuite.util.output.EmptyOutput" -> classOf[EmptyOutput],
-    "cgsuite.util.output.GridOutput" -> classOf[GridOutput],
-    "cgsuite.util.output.TextOutput" -> classOf[StyledTextOutput],
-    "cgsuite.lang.Output" -> classOf[Output],
-
-    "game.Zero" -> classOf[Zero],
-    "game.Integer" -> classOf[Integer],
-    "game.GeneralizedOrdinal" -> classOf[GeneralizedOrdinal],
-    "game.DyadicRational" -> classOf[DyadicRationalNumber],
-    "game.Rational" -> classOf[RationalNumber],
-    "game.SurrealNumber" -> classOf[SurrealNumber],
-    "game.Nimber" -> classOf[Nimber],
-    "game.Uptimal" -> classOf[Uptimal],
-    "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
-    "game.Pseudonumber" -> classOf[Pseudonumber],
-    "game.CanonicalStopper" -> classOf[CanonicalStopper],
-    "game.StopperSidedValue" -> classOf[StopperSidedValue],
-    "game.SidedValue" -> classOf[SidedValue],
-    "game.NormalValue" -> classOf[NormalValue],
-
-    "game.misere.MisereCanonicalGame" -> classOf[MisereCanonicalGame],
-
-    "game.CompoundImpartialGame" -> classOf[CompoundImpartialGame],
-    "game.CompoundGame" -> classOf[CompoundGame],
-    "game.ExplicitGame" -> classOf[ExplicitGame],
-    "game.NegativeGame" -> classOf[NegativeGame],
-
-    "game.ImpartialGame" -> classOf[ImpartialGame],
-    "game.Game" -> classOf[Game],
-
-    "game.Player" -> classOf[Player],
-    "game.Side" -> classOf[Side],
-    "game.OutcomeClass" -> classOf[LoopyOutcomeClass],
-
-    "game.heap.TakeAndBreak" -> classOf[TakeAndBreak],
-    "game.heap.HeapRuleset" -> classOf[HeapRuleset],
-    "game.heap.Periodicity" -> classOf[Periodicity]
-
-  )
-
-  val systemClasses = (baseSystemClasses ++ typedSystemClasses) map { case (name, cls) => (name, Some(cls)) }
-
-  systemClasses foreach { case (name, scalaClass) => declareSystemClass(name, scalaClass) }
+  SystemClassRegistry.allSystemClasses foreach { case (name, scalaClass) =>
+    declareSystemClass(name, Some(scalaClass))
+  }
 
   CgscriptClasspath.declareFolders()
-
-  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
-
-    val path = name.replace('.', '/')
-    val classdef: CgscriptClassDef = {
-      explicitDefinition match {
-        case Some(text) => ExplicitClassDef(text)
-        case None => UrlClassDef(getClass.getResource(s"resources/$path.cgs"))
-      }
-    }
-    val components = name.split("\\.").toSeq
-    val pkg = CgscriptPackage.root lookupSubpackage (components dropRight 1) getOrElse {
-      sys.error("Cannot find package: " + (components dropRight 1))
-    }
-    pkg.declareClass(Symbol(components.last), classdef, scalaClass)
-
-  }
 
   val Object = CgscriptPackage.lookupClassByName("Object").get
   val Class = CgscriptPackage.lookupClassByName("Class").get
@@ -146,40 +44,13 @@ object CgscriptClass {
   val List = CgscriptPackage.lookupClassByName("List").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
 
-  private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
-
   Object.ensureLoaded()
 
   def of(x: Any): CgscriptClass = {
     x match {
       case null => NothingClass
       case so: StandardObject => so.cls
-      case _ => classLookupCache.getOrElseUpdate(x.getClass, toCgscriptClass(x))
-    }
-  }
-
-  def instanceToOutput(x: Any): Output = {
-    CgscriptClass.of(x).classInfo.toOutputMethod.call(x, Array.empty).asInstanceOf[Output]   // TODO Error msg if not Output
-  }
-
-  def instanceToDefaultOutput(x: Any): StyledTextOutput = {
-    val sto = new StyledTextOutput
-    x match {
-      case stdObj: StandardObject =>
-        sto append stdObj.toDefaultOutput
-      case _ =>
-        val cls = CgscriptClass of x
-        sto appendText s"${cls.name}.instance"
-    }
-    sto
-  }
-
-  private def toCgscriptClass(x: Any): CgscriptClass = {
-    // This is slow, but we cache the results so that it only happens once
-    // per distinct (Java) type witnessed.
-    val systemClass = typedSystemClasses find { case (_, cls) => cls.isAssignableFrom(x.getClass) }
-    systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
-      sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
+      case _ => classLookupCache.getOrElseUpdate(x.getClass, resolveToSystemClass(x))
     }
   }
 
@@ -201,17 +72,51 @@ object CgscriptClass {
     Object.ensureLoaded()
   }
 
-}
+  def instanceToOutput(x: Any): Output = {
+    CgscriptClass.of(x).classInfo.toOutputMethod.call(x, Array.empty).asInstanceOf[Output]   // TODO Error msg if not Output
+  }
 
-trait Member {
-  def declaringClass: CgscriptClass
-  def idNode: IdentifierNode
-}
+  def instanceToDefaultOutput(x: Any): StyledTextOutput = {
+    val sto = new StyledTextOutput
+    x match {
+      case stdObj: StandardObject =>
+        sto append stdObj.toDefaultOutput
+      case _ =>
+        val cls = CgscriptClass of x
+        sto appendText s"${cls.name}.instance"
+    }
+    sto
+  }
 
-sealed trait CgscriptClassDef
-case class UrlClassDef(url: URL) extends CgscriptClassDef
-case class ExplicitClassDef(text: String) extends CgscriptClassDef
-case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
+  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
+
+    val path = name.replace('.', '/')
+    val classdef: CgscriptClassDef = {
+      explicitDefinition match {
+        case Some(text) => ExplicitClassDef(text)
+        case None => UrlClassDef(getClass.getResource(s"resources/$path.cgs"))
+      }
+    }
+    val components = name.split("\\.").toSeq
+    val pkg = CgscriptPackage.root lookupSubpackage (components dropRight 1) getOrElse {
+      sys.error("Cannot find package: " + (components dropRight 1))
+    }
+    pkg.declareClass(Symbol(components.last), classdef, scalaClass)
+
+  }
+
+  private[lang] def resolveToSystemClass(x: Any): CgscriptClass = {
+    // This is slow, but we cache the results so that it only happens once
+    // per distinct (Java) type witnessed.
+    val systemClass = SystemClassRegistry.typedSystemClasses find { case (_, cls) => cls isAssignableFrom x.getClass }
+    systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
+      sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
+    }
+  }
+
+  private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
+
+}
 
 class CgscriptClass(
   val pkg: CgscriptPackage,
@@ -223,84 +128,43 @@ class CgscriptClass(
   import CgscriptClass._
 
   val classOrdinal: Int = newClassOrdinal        // TODO How to handle for nested classes??
-  val enclosingClass: Option[CgscriptClass] = classdef match {
-    case NestedClassDef(cls) => Some(cls)
-    case _ => None
+
+  val url = classdef match {
+    case UrlClassDef(x) => x
+    case _ => null
   }
-  override val declaringClass = enclosingClass.orNull
+
   val javaClass: Class[_] = systemClass match {
     case Some(cls) => cls
     case None => classOf[StandardObject]
   }
-  val fullyScopedName: String = id.name
-  val name: String = enclosingClass match {
-    case Some(encl) => encl.name + "." + fullyScopedName
-    case None => fullyScopedName
+
+  val enclosingClass: Option[CgscriptClass] = classdef match {
+    case NestedClassDef(cls) => Some(cls)
+    case _ => None
   }
+
+  override val declaringClass = enclosingClass.orNull
+
+  val nameAsFullyScopedMember: String = id.name
+
+  val name: String = enclosingClass match {
+    case Some(encl) => encl.name + "." + nameAsFullyScopedMember
+    case None => nameAsFullyScopedMember
+  }
+
   val qualifiedName: String = {
     if (pkg.isRoot)
       name
     else
       s"${pkg.qualifiedName}.$name"
   }
+
   val qualifiedId: Symbol = Symbol(qualifiedName)
-  val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
-  logger.debug(s"$logPrefix Formed new class with classdef: $classdef")
+  private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
-  class ClassInfo(
-    val idNode: IdentifierNode,
-    val modifiers: Modifiers,
-    val supers: Seq[CgscriptClass],
-    val nestedClasses: Map[Symbol, CgscriptClass],
-    val methods: Map[Symbol, CgscriptClass#Method],
-    val constructor: Option[CgscriptClass#Constructor],
-    val initializers: Seq[InitializerNode],
-    val staticInitializers: Seq[InitializerNode],
-    val enumElements: Seq[EnumElementNode]
-    ) {
-
-    val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
-    val ancestors = properAncestors :+ CgscriptClass.this
-    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
-    val constructorParamVars = constructor match {
-      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Modifiers.none, isConstructorParam = true) }
-      case None => Seq.empty
-    }
-    val localClassVars = initializers collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic => Var(assignId, modifiers)
-    }
-    val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
-    val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
-    val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
-    val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
-    val staticVars = enumElements.map { _.id.id } ++ staticInitializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if modifiers.hasStatic => assignId.id
-    }
-    val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
-    val allSymbolsInThisClass: Set[Symbol] = {
-      classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
-    }
-    lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
-      allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
-    }
-    val allMethodsInScope: Map[Symbol, CgscriptClass#Method] = {
-      (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
-    }
-    val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
-      (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
-    }
-
-    // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = lookupMethod('Eval) getOrElse { throw EvalException(s"No method `Eval` for class: `$qualifiedName`") }
-    lazy val optionsMethod = lookupMethod('Options) getOrElse { throw EvalException("Method not found: `Options`") }
-    lazy val decompositionMethod = lookupMethod('Decomposition) getOrElse { throw EvalException("Method not found: `Decomposition`") }
-    lazy val canonicalFormMethod = lookupMethod('CanonicalForm) getOrElse { throw EvalException("Method not found: `CanonicalForm`") }
-    lazy val gameValueMethod = lookupMethod('GameValue) getOrElse { throw EvalException("Method not found: `GameValue`") }
-    lazy val depthHintMethod = lookupMethod('DepthHint) getOrElse { throw EvalException("Method not found: `DepthHint`") }
-    lazy val toOutputMethod = lookupMethod('ToOutput) getOrElse { throw EvalException("Method not found: `ToOutput`") }
-
-  }
+  logger debug s"$logPrefix Formed new class with classdef: $classdef"
 
   private var classInfoRef: ClassInfo = _
   private var scriptObjectRef: Script = _
@@ -313,17 +177,12 @@ class CgscriptClass(
 
   def isLoaded = classInfoRef != null
 
-  val url = classdef match {
-    case UrlClassDef(x) => x
-    case _ => null
-  }
-
-  def classInfo = {
+  def classInfo: ClassInfo = {
     ensureLoaded()
     classInfoRef
   }
 
-  def classObject = {
+  def classObject: ClassObject = {
     ensureLoaded()
     classObjectRef
   }
@@ -375,239 +234,11 @@ class CgscriptClass(
 
   def constructor = classInfo.constructor
 
-  def evalMethod = lookupMethod('Eval)
+  def evalMethodOpt = lookupMethod('Eval)
 
   def ancestors = classInfo.ancestors
 
   def initializers = classInfo.initializers
-
-  case class Var(idNode: IdentifierNode, modifiers: Modifiers, isConstructorParam: Boolean = false) extends Member() {
-    def declaringClass = thisClass
-    def isMutable = modifiers.hasMutable
-    def id = idNode.id
-  }
-
-  trait Method extends Member {
-
-    def idNode: IdentifierNode
-    def parameters: Seq[Parameter]
-    def autoinvoke: Boolean
-    def isStatic: Boolean
-    def isOverride: Boolean
-    def call(obj: Any, args: Array[Any]): Any
-
-    val methodName = idNode.id.name
-    val declaringClass = thisClass
-    val qualifiedName = declaringClass.qualifiedName + "." + methodName
-    val qualifiedId = Symbol(qualifiedName)
-    val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
-    val ordinal = CallSite.newCallSiteOrdinal
-    val locationMessage = s"in call to `$qualifiedName`"
-
-    var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
-
-    def elaborate(): Unit = {
-      logger.debug(s"$logPrefix Elaborating method: $qualifiedName")
-      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-      parameters foreach { param =>
-        param.defaultValue foreach { _.elaborate(scope) }
-      }
-      logger.debug(s"$logPrefix Done elaborating method: $qualifiedName")
-    }
-
-    // This is optimized to be really fast for methods with <= 4 parameters.
-    // TODO Optimize for more than 4 parameters?
-    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
-      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
-    }
-
-  }
-
-  case class UserMethod(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter],
-    autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean,
-    body: StatementSequenceNode
-  ) extends Method {
-
-    private val invokeUserMethod = Symbol(s"InvokeUserMethod [$qualifiedName]")
-    private var localVariableCount: Int = 0
-
-    override def elaborate(): Unit = {
-      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-      parameters foreach { param =>
-        param.methodScopeIndex = scope.insertId(param.idNode)
-        param.defaultValue foreach { _.elaborate(scope) }
-      }
-      body.elaborate(scope)
-      localVariableCount = scope.localVariableCount
-    }
-
-    def call(obj: Any, args: Array[Any]): Any = {
-      Profiler.start(invokeUserMethod)
-      val target = if (isStatic) classObject else obj
-      try {
-        // Construct a new domain with local scope for this method.
-        val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
-        val domain = new Domain(array, Some(target))
-        validateArguments(args)
-        var i = 0
-        while (i < parameters.length) {
-          domain.localScope(parameters(i).methodScopeIndex) = args(i)
-          i += 1
-        }
-        body.evaluate(domain)
-      } finally {
-        Profiler.stop(invokeUserMethod)
-      }
-    }
-
-  }
-
-  case class SystemMethod(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter],
-    autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean,
-    javaMethod: java.lang.reflect.Method
-  ) extends Method {
-
-    private val reflect = Symbol(s"Reflect [$javaMethod]")
-
-    def call(obj: Any, args: Array[Any]): Any = {
-      val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
-      assert(
-        target == null || of(target).ancestors.contains(declaringClass),
-        (of(target), declaringClass)
-      )
-      try {
-        Profiler.start(reflect)
-        validateArguments(args)
-        internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
-      } catch {
-        case exc: IllegalArgumentException => throw EvalException(
-          s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)"
-        )
-        case exc: InvocationTargetException => throw EvalException(
-          exc.getTargetException match {
-            case nestedExc: CgsuiteException =>
-              // TODO nestedExc.setInvocationTarget(qualifiedName)
-              throw nestedExc
-            case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
-          }
-        )
-      } finally {
-        Profiler.stop(reflect)
-      }
-    }
-
-  }
-
-  case class ExplicitMethod(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter],
-    autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean
-    )
-    (fn: (Any, Any) => Any) extends Method {
-
-    def call(obj: Any, args: Array[Any]): Any = {
-      validateArguments(args)
-      val argsTuple = parameters.size match {
-        case 0 => ()
-        case 1 => args(0)
-        case 2 => (args(0), args(1))
-      }
-      fn(if (isStatic) classObject else obj, argsTuple)
-    }
-
-  }
-
-  trait Constructor extends Method with CallSite {
-
-    val autoinvoke = false
-    val isStatic = false
-    val isOverride = false
-
-    def call(obj: Any, args: Array[Any]): Any = call(args)
-
-    override def referenceToken = Some(idNode.token)
-
-    override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
-
-  }
-
-  case class UserConstructor(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter]
-  ) extends Constructor {
-
-    private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
-
-    lazy val instantiator: (Array[Any], Any) => StandardObject = {
-      if (ancestors.contains(ImpartialGame)) {
-        (args: Array[Any], enclosingObject: Any) => new ImpartialGameObject(thisClass, args, enclosingObject)
-      } else if (ancestors.contains(Game)) {
-        (args: Array[Any], enclosingObject: Any) => new GameObject(thisClass, args, enclosingObject)
-      } else {
-        (args: Array[Any], enclosingObject: Any) => new StandardObject(thisClass, args, enclosingObject)
-      }
-    }
-
-    def call(args: Array[Any]): Any = call(args, null)
-
-    def call(args: Array[Any], enclosingObject: Any): Any = {
-      // TODO Superconstructor
-      validateArguments(args, ensureImmutable = !isMutable)
-      instantiator(args, enclosingObject)
-    }
-
-  }
-
-  case class SystemConstructor(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter],
-    javaConstructor: java.lang.reflect.Constructor[_]
-  ) extends Constructor {
-
-    private val reflect = Symbol(s"Reflect [$javaConstructor]")
-
-    def call(args: Array[Any]): Any = {
-      try {
-        Profiler.start(reflect)
-        validateArguments(args, ensureImmutable = !isMutable)
-        javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
-      } catch {
-        case exc: IllegalArgumentException =>
-          throw EvalException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
-      } finally {
-        Profiler.stop(reflect)
-      }
-    }
-
-  }
-
-  case class ExplicitConstructor(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter]
-    )
-    (fn: (Any, Any) => Any) extends Constructor {
-
-    override def call(args: Array[Any]) = {
-      validateArguments(args, ensureImmutable = !isMutable)
-      val argsTuple = parameters.size match {
-        case 0 => ()
-        case 1 => args(0)
-        case 2 => (args(0), args(1))
-      }
-      fn(classObject, argsTuple)
-    }
-
-  }
 
   def unload() {
     // Unload any derived classes.
@@ -624,12 +255,10 @@ class CgscriptClass(
   }
 
   def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
-    ensureLoaded()
     classInfo.allMethodsInScope.get(id)
   }
 
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
-    ensureLoaded()
     classInfo.allNestedClassesInScope.get(id)
   }
 
@@ -979,7 +608,7 @@ class CgscriptClass(
       classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
     }
     if (qualifiedName == "game.OutcomeClass") {
-      import OutcomeClass._
+      import org.cgsuite.core.OutcomeClass._
       classObjectRef.vars(classInfoRef.staticVarOrdinals('P)) = P
       classObjectRef.vars(classInfoRef.staticVarOrdinals('N)) = N
       classObjectRef.vars(classInfoRef.staticVarOrdinals('L)) = L
@@ -1067,10 +696,312 @@ class CgscriptClass(
 
   override def toString = s"<<$qualifiedName>>"
 
+  class ClassInfo(
+    val idNode: IdentifierNode,
+    val modifiers: Modifiers,
+    val supers: Seq[CgscriptClass],
+    val nestedClasses: Map[Symbol, CgscriptClass],
+    val methods: Map[Symbol, CgscriptClass#Method],
+    val constructor: Option[CgscriptClass#Constructor],
+    val initializers: Seq[InitializerNode],
+    val staticInitializers: Seq[InitializerNode],
+    val enumElements: Seq[EnumElementNode]
+    ) {
+
+    val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
+    val ancestors = properAncestors :+ CgscriptClass.this
+    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
+    val constructorParamVars = constructor match {
+      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Modifiers.none, isConstructorParam = true) }
+      case None => Seq.empty
+    }
+    val localClassVars = initializers collect {
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, mod) if !mod.hasStatic => Var(assignId, mod)
+    }
+    val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
+    val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
+    val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
+    val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
+    val staticVars = enumElements.map { _.id.id } ++ staticInitializers.collect {
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, mod) if mod.hasStatic => assignId.id
+    }
+    val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
+    val allSymbolsInThisClass: Set[Symbol] = {
+      classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
+    }
+    lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
+      allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
+    }
+    val allMethodsInScope: Map[Symbol, CgscriptClass#Method] = {
+      (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
+    }
+    val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
+      (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
+    }
+
+    // For efficiency, we cache lookups for some methods that get called in hardcoded locations
+    lazy val evalMethod = lookupMethodOrEvalException('Eval)
+    lazy val optionsMethod = lookupMethodOrEvalException('Options)
+    lazy val decompositionMethod = lookupMethodOrEvalException('Decomposition)
+    lazy val canonicalFormMethod = lookupMethodOrEvalException('CanonicalForm)
+    lazy val gameValueMethod = lookupMethodOrEvalException('GameValue)
+    lazy val depthHintMethod = lookupMethodOrEvalException('DepthHint)
+    lazy val toOutputMethod = lookupMethodOrEvalException('ToOutput)
+
+    private def lookupMethodOrEvalException(id: Symbol): CgscriptClass#Method = {
+      lookupMethod(id) getOrElse {
+        throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
+      }
+    }
+
+  }
+
+  case class Var(idNode: IdentifierNode, modifiers: Modifiers, isConstructorParam: Boolean = false) extends Member() {
+    def declaringClass = thisClass
+    def isMutable = modifiers.hasMutable
+    def id = idNode.id
+  }
+
+  trait Method extends Member {
+
+    def idNode: IdentifierNode
+    def parameters: Seq[Parameter]
+    def autoinvoke: Boolean
+    def isStatic: Boolean
+    def isOverride: Boolean
+    def call(obj: Any, args: Array[Any]): Any
+
+    val methodName = idNode.id.name
+    val declaringClass = thisClass
+    val qualifiedName = declaringClass.qualifiedName + "." + methodName
+    val qualifiedId = Symbol(qualifiedName)
+    val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
+    val ordinal = CallSite.newCallSiteOrdinal
+    val locationMessage = s"in call to `$qualifiedName`"
+
+    var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
+
+    def elaborate(): Unit = {
+      logger.debug(s"$logPrefix Elaborating method: $qualifiedName")
+      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+      parameters foreach { param =>
+        param.defaultValue foreach { _.elaborate(scope) }
+      }
+      logger.debug(s"$logPrefix Done elaborating method: $qualifiedName")
+    }
+
+    // This is optimized to be really fast for methods with <= 4 parameters.
+    // TODO Optimize for more than 4 parameters?
+    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
+      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
+    }
+
+  }
+
+  case class UserMethod(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter],
+    autoinvoke: Boolean,
+    isStatic: Boolean,
+    isOverride: Boolean,
+    body: StatementSequenceNode
+  ) extends Method {
+
+    private val invokeUserMethod = Symbol(s"InvokeUserMethod [$qualifiedName]")
+    private var localVariableCount: Int = 0
+
+    override def elaborate(): Unit = {
+      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+      parameters foreach { param =>
+        param.methodScopeIndex = scope.insertId(param.idNode)
+        param.defaultValue foreach { _.elaborate(scope) }
+      }
+      body.elaborate(scope)
+      localVariableCount = scope.localVariableCount
+    }
+
+    def call(obj: Any, args: Array[Any]): Any = {
+      Profiler.start(invokeUserMethod)
+      val target = if (isStatic) classObject else obj
+      try {
+        // Construct a new domain with local scope for this method.
+        val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
+        val domain = new Domain(array, Some(target))
+        validateArguments(args)
+        var i = 0
+        while (i < parameters.length) {
+          domain.localScope(parameters(i).methodScopeIndex) = args(i)
+          i += 1
+        }
+        body.evaluate(domain)
+      } finally {
+        Profiler.stop(invokeUserMethod)
+      }
+    }
+
+  }
+
+  case class SystemMethod(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter],
+    autoinvoke: Boolean,
+    isStatic: Boolean,
+    isOverride: Boolean,
+    javaMethod: java.lang.reflect.Method
+  ) extends Method {
+
+    private val reflect = Symbol(s"Reflect [$javaMethod]")
+
+    def call(obj: Any, args: Array[Any]): Any = {
+      val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
+      assert(
+        target == null || of(target).ancestors.contains(declaringClass),
+        (of(target), declaringClass)
+      )
+      try {
+        Profiler.start(reflect)
+        validateArguments(args)
+        internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
+      } catch {
+        case exc: IllegalArgumentException => throw EvalException(
+          s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)"
+        )
+        case exc: InvocationTargetException => throw EvalException(
+          exc.getTargetException match {
+            case nestedExc: CgsuiteException =>
+              // TODO nestedExc.setInvocationTarget(qualifiedName)
+              throw nestedExc
+            case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
+          }
+        )
+      } finally {
+        Profiler.stop(reflect)
+      }
+    }
+
+  }
+
+  case class ExplicitMethod(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter],
+    autoinvoke: Boolean,
+    isStatic: Boolean,
+    isOverride: Boolean
+    )
+    (fn: (Any, Any) => Any) extends Method {
+
+    def call(obj: Any, args: Array[Any]): Any = {
+      validateArguments(args)
+      val argsTuple = parameters.size match {
+        case 0 => ()
+        case 1 => args(0)
+        case 2 => (args(0), args(1))
+      }
+      fn(if (isStatic) classObject else obj, argsTuple)
+    }
+
+  }
+
+  trait Constructor extends Method with CallSite {
+
+    val autoinvoke = false
+    val isStatic = false
+    val isOverride = false
+
+    def call(obj: Any, args: Array[Any]): Any = call(args)
+
+    override def referenceToken = Some(idNode.token)
+
+    override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
+
+  }
+
+  case class UserConstructor(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter]
+  ) extends Constructor {
+
+    private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
+
+    lazy val instantiator: (Array[Any], Any) => StandardObject = {
+      if (ancestors.contains(ImpartialGame)) {
+        (args: Array[Any], enclosingObject: Any) => new ImpartialGameObject(thisClass, args, enclosingObject)
+      } else if (ancestors.contains(Game)) {
+        (args: Array[Any], enclosingObject: Any) => new GameObject(thisClass, args, enclosingObject)
+      } else {
+        (args: Array[Any], enclosingObject: Any) => new StandardObject(thisClass, args, enclosingObject)
+      }
+    }
+
+    def call(args: Array[Any]): Any = call(args, null)
+
+    def call(args: Array[Any], enclosingObject: Any): Any = {
+      // TODO Superconstructor
+      validateArguments(args, ensureImmutable = !isMutable)
+      instantiator(args, enclosingObject)
+    }
+
+  }
+
+  case class SystemConstructor(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter],
+    javaConstructor: java.lang.reflect.Constructor[_]
+  ) extends Constructor {
+
+    private val reflect = Symbol(s"Reflect [$javaConstructor]")
+
+    def call(args: Array[Any]): Any = {
+      try {
+        Profiler.start(reflect)
+        validateArguments(args, ensureImmutable = !isMutable)
+        javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
+      } catch {
+        case exc: IllegalArgumentException =>
+          throw EvalException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
+      } finally {
+        Profiler.stop(reflect)
+      }
+    }
+
+  }
+
+  case class ExplicitConstructor(
+    idNode: IdentifierNode,
+    parameters: Seq[Parameter]
+    )
+    (fn: (Any, Any) => Any) extends Constructor {
+
+    override def call(args: Array[Any]) = {
+      validateArguments(args, ensureImmutable = !isMutable)
+      val argsTuple = parameters.size match {
+        case 0 => ()
+        case 1 => args(0)
+        case 2 => (args(0), args(1))
+      }
+      fn(classObject, argsTuple)
+    }
+
+  }
+
+}
+
+sealed trait CgscriptClassDef
+case class UrlClassDef(url: URL) extends CgscriptClassDef
+case class ExplicitClassDef(text: String) extends CgscriptClassDef
+case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
+
+trait Member {
+  def declaringClass: CgscriptClass
+  def idNode: IdentifierNode
 }
 
 case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode], isExpandable: Boolean) {
   val id = idNode.id
   val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "") + (if (isExpandable) "..." else "")
   var methodScopeIndex = -1
+}
+
+object LifecycleStage extends Enumeration {
+  val New, Loading, Initializing, Ready, Unloaded = Value
 }
