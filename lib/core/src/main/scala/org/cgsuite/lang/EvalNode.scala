@@ -855,6 +855,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     case _ => None
   }
   val antecedentAsPackage: Option[CgscriptPackage] = antecedentAsPackagePath flatMap { CgscriptPackage.root.lookupSubpackage }
+  var isElaborated = false
   var classResolution: CgscriptClass = _
   var constantResolution: Resolution = _
   override def elaborate(scope: ElaborationDomain) {
@@ -866,8 +867,12 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
           case None => obj.elaborate(scope)     // Deliberately bypass idNode
         }
     }
+    isElaborated = true
   }
   override def evaluate(domain: Domain): Any = {
+    if (!isElaborated) {
+      sys error s"Node has not been elaborated: $this"
+    }
     if (classResolution != null) {
       if (classResolution.isSingleton) classResolution.singletonInstance else classResolution.classObject
     } else if (constantResolution != null) {

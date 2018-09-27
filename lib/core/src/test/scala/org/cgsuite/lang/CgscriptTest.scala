@@ -1000,7 +1000,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   def executeTests(tests: TableFor3[String, String, String], preamble: String = ""): Unit = {
 
     CgscriptClass.clearAll()
-    CgscriptClass.Object.ensureLoaded()
+    CgscriptClass.Object.ensureInitialized()
 
     val varMap = mutable.AnyRefMap[Symbol, Any]()
 

@@ -13,21 +13,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object CgscriptClasspath {
 
-  private[lang] val isDevBuild = java.lang.System.getProperty("org.cgsuite.devbuild") != null
+  private[lang] val devBuildHome = Option(java.lang.System.getProperty("org.cgsuite.devbuild")) map { File(_) }
 
   private[lang] val cgsuiteDir = java.lang.System.getProperty("user.home")/"CGSuite"
 
   private[lang] val systemDir = {
-    if (isDevBuild) {
-      ".."/"lib/core/src/main/resources/org/cgsuite/lang/resources"
-    } else {
-      val uri = getClass.getResource("resources").toURI
-      if (uri.getScheme == "jar") {
-        FileSystemProvider.installedProviders find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
-          provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+    devBuildHome match {
+      case Some(home) => home/"../lib/core/src/main/resources/org/cgsuite/lang/resources"
+      case None =>
+        // Search in the production jar.
+        val uri = getClass.getResource("resources").toURI
+        if (uri.getScheme == "jar") {
+          FileSystemProvider.installedProviders find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+            provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+          }
         }
-      }
-      File(getClass.getResource("resources").toURI)
+        File(getClass.getResource("resources").toURI)
     }
   }
 
@@ -37,6 +38,10 @@ object CgscriptClasspath {
 
   private[lang] def declareFolders(): Unit = {
     logger debug "Declaring folders."
+    if (devBuildHome.isDefined)
+      logger debug "This is a CGSuite developer build."
+    logger debug s"System dir: $systemDir"
+    logger debug s"User dir: $cgsuiteDir"
     classpath foreach declareFolder
   }
 

@@ -6,6 +6,7 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
+import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
 import org.cgsuite.exception.{CgsuiteException, EvalException}
@@ -30,9 +31,13 @@ object CgscriptClass {
     ord
   }
 
+  logger debug "Declaring system classes."
+
   SystemClassRegistry.allSystemClasses foreach { case (name, scalaClass) =>
     declareSystemClass(name, Some(scalaClass))
   }
+
+  logger debug "Declaring folders."
 
   CgscriptClasspath.declareFolders()
 
@@ -44,7 +49,7 @@ object CgscriptClass {
   val List = CgscriptPackage.lookupClassByName("List").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
 
-  Object.ensureLoaded()
+  Object.ensureInitialized()
 
   def of(x: Any): CgscriptClass = {
     x match {
@@ -69,7 +74,7 @@ object CgscriptClass {
     MisereCanonicalGameOps.reinit()
     Resolver.clearAll()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
-    Object.ensureLoaded()
+    Object.ensureInitialized()
   }
 
   def instanceToOutput(x: Any): Output = {
@@ -166,9 +171,11 @@ class CgscriptClass(
 
   logger debug s"$logPrefix Formed new class with classdef: $classdef"
 
+  private var stage: LifecycleStage.Value = LifecycleStage.New
+
+  private var classDeclarationNode: ClassDeclarationNode = _
   private var classInfoRef: ClassInfo = _
   private var scriptObjectRef: Script = _
-  private var loading = false
   private var classObjectRef: ClassObject = _
   private var singletonInstanceRef: Any = _
   var initializerLocalVariableCount: Int = 0
@@ -178,48 +185,24 @@ class CgscriptClass(
   def isLoaded = classInfoRef != null
 
   def classInfo: ClassInfo = {
-    ensureLoaded()
+    ensureDeclared()
     classInfoRef
   }
 
   def classObject: ClassObject = {
-    ensureLoaded()
+    ensureInitialized()
     classObjectRef
   }
 
   def scriptObject: Script = {
-    ensureLoaded()
+    ensureInitialized()
     scriptObjectRef
   }
 
   // Singleton instance is instantiated lazily
-  def singletonInstance = {
-    ensureLoaded()
-    if (singletonInstanceRef == null)   // TODO This doesn't work for Nothing.
-      constructSingletonInstance()
+  def singletonInstance: Any = {
+    ensureSingletonInstance()
     singletonInstanceRef
-  }
-
-  private[this] def constructSingletonInstance(): Unit = {
-    if (isSingleton) {
-      logger debug s"$logPrefix Constructing singleton instance"
-      if (enclosingClass.isDefined) {
-        sys.error("Nested singleton classes are not yet supported.")
-      }
-      singletonInstanceRef = {
-        qualifiedName match {
-          case "game.Zero" => ZeroImpl
-          case "cgsuite.lang.Nothing" => null
-          case "cgsuite.util.output.EmptyOutput" => EmptyOutput
-          // TODO There is some code duplication here with general object instantiation (search for "GameObject")
-          case _ if ancestors contains ImpartialGame => new ImpartialGameObject(this, Array.empty)
-          case _ if ancestors contains Game => new GameObject(this, Array.empty)
-          case _ => new StandardObject(this, Array.empty)
-        }
-      }
-    } else {
-      sys.error("Not a singleton")
-    }
   }
 
   def idNode = classInfo.idNode
@@ -250,69 +233,126 @@ class CgscriptClass(
     logger.debug(s"$logPrefix Unloading.")
     classInfoRef = null
     scriptObjectRef = null
-    this.loading = false
+    singletonInstanceRef = null
     this.transpositionCache.clear()
+    this.stage = LifecycleStage.Unloaded
   }
 
   def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
+    ensureInitialized()
     classInfo.allMethodsInScope.get(id)
   }
 
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
+    ensureInitialized()
     classInfo.allNestedClassesInScope.get(id)
   }
 
-  def ensureLoaded() {
-    if (classInfoRef == null && scriptObjectRef == null) {
-      load()
+  def ensureDeclared(): Unit = {
+    if (stage != LifecycleStage.Declared && stage != LifecycleStage.Initialized && stage != LifecycleStage.Initializing) {
+      declare()
     }
   }
 
-  private def load() {
-
-    // Force constants to load first
-    pkg lookupClass 'constants foreach { constantsCls =>
-      if (constantsCls != this) constantsCls.ensureLoaded()
+  def ensureInitialized(): Unit = {
+    ensureDeclared()
+    if (stage != LifecycleStage.Initialized) {
+      initialize()
     }
+  }
 
-    val (in, source) = {
-      classdef match {
-        case UrlClassDef(url) =>
-          logger debug s"$logPrefix Loading class from URL: $url"
-          (url.openStream(), new File(url.getFile).getName)
-        case ExplicitClassDef(text) =>
-          logger debug s"$logPrefix Loading class from explicit definition"
-          (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
-        case NestedClassDef(_) =>
-          sys.error(s"Unexpected load() on nested class: $qualifiedName")
+  def ensureSingletonInstance(): Unit = {
+    ensureInitialized()
+    if (singletonInstanceRef == null)   // TODO This doesn't work for Nothing.
+      constructSingletonInstance()
+  }
+
+  private[this] def constructSingletonInstance(): Unit = {
+    if (isSingleton) {
+      logger debug s"$logPrefix Constructing singleton instance."
+      if (enclosingClass.isDefined) {
+        sys.error("Nested singleton classes are not yet supported.")
       }
-    }
-
-    val tree = {
-      try {
-        ParserUtil.parseCU(in, source)
-      } finally {
-        in.close()
+      singletonInstanceRef = {
+        qualifiedName match {
+          case "game.Zero" => ZeroImpl
+          case "cgsuite.lang.Nothing" => null
+          case "cgsuite.util.output.EmptyOutput" => EmptyOutput
+          // TODO There is some code duplication here with general object instantiation (search for "GameObject")
+          case _ if ancestors contains ImpartialGame => new ImpartialGameObject(this, Array.empty)
+          case _ if ancestors contains Game => new GameObject(this, Array.empty)
+          case _ => new StandardObject(this, Array.empty)
+        }
       }
+    } else {
+      sys.error("Not a singleton")
     }
+  }
 
-    if (loading)
+  private def declare() {
+
+    logger debug s"$logPrefix Declaring."
+
+    if (stage == LifecycleStage.Declaring) {
+      // TODO Better error message/handling here?
       sys.error("circular class definition?: " + qualifiedName)
-
-    logger.debug(s"$logPrefix Parse tree: ${tree.toStringTree}")
-
-    tree.getType match {
-      case SCRIPT =>
-        val node = StatementSequenceNode(tree.children.head)
-        logger debug s"$logPrefix Script Node: $node"
-        declareScript(node)
-      case EOF =>
-        val node = ClassDeclarationNode(tree.children(1), pkg)
-        logger debug s"$logPrefix Class Node: $node"
-        declareClass(node)
     }
 
-    logger.debug(s"$logPrefix Done loading class.")
+    // Force constants to declare first
+    pkg lookupClass 'constants foreach { constantsCls =>
+      if (constantsCls != this) constantsCls.ensureDeclared()
+    }
+
+    val tree = parseTree()
+
+    logger debug s"$logPrefix Parsed class: ${tree.toStringTree}"
+
+    try {
+      tree.getType match {
+
+        case SCRIPT =>
+          val node = StatementSequenceNode(tree.children.head)
+          logger debug s"$logPrefix Script Node: $node"
+          declareScript(node)
+
+        case EOF =>
+          val node = ClassDeclarationNode(tree.children(1), pkg)
+          logger debug s"$logPrefix Class Node: $node"
+          declareClass(node)
+
+      }
+    } finally {
+      stage = LifecycleStage.Unloaded
+    }
+
+    stage = LifecycleStage.Declared
+
+    logger debug s"$logPrefix Done declaring."
+
+  }
+
+  private def parseTree(): Tree = {
+
+    val (in, source) = classdef match {
+
+      case UrlClassDef(url) =>
+        logger debug s"$logPrefix Parsing from URL: $url"
+        (url.openStream(), new File(url.getFile).getName)
+
+      case ExplicitClassDef(text) =>
+        logger debug s"$logPrefix Parsing from explicit definition"
+        (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
+
+      case NestedClassDef(_) =>
+        sys.error(s"Unexpected load() on nested class: $qualifiedName")
+
+    }
+
+    try {
+      ParserUtil.parseCU(in, source)
+    } finally {
+      in.close()
+    }
 
   }
 
@@ -320,7 +360,9 @@ class CgscriptClass(
 
     val domain = ElaborationDomain.empty()
     node.elaborate(domain)
+    classDeclarationNode = null
     classInfoRef = null
+    classObjectRef = null
     scriptObjectRef = Script(this, node, domain)
     singletonInstanceRef = null
 
@@ -328,7 +370,11 @@ class CgscriptClass(
 
   private def declareClass(node: ClassDeclarationNode): Unit = {
 
-    loading = true
+    stage = LifecycleStage.Declaring
+
+    logger debug s"$logPrefix Declaring class."
+
+    classDeclarationNode = node
 
     val (supers, nestedClasses, methods, constructor) = {
 
@@ -359,7 +405,7 @@ class CgscriptClass(
             }
           }
         }
-        supers foreach { _.ensureLoaded() }
+        supers foreach { _.ensureDeclared() }
 
         val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
@@ -478,7 +524,17 @@ class CgscriptClass(
       node.enumElements
     )
 
-    loading = false
+    logger debug s"$logPrefix Validating class."
+
+    validateDeclaredClass(node)
+
+    logger debug s"$logPrefix Done declaring class."
+
+    stage = LifecycleStage.Declared
+
+  }
+
+  private def validateDeclaredClass(node: ClassDeclarationNode): Unit = {
 
     // Check for duplicate vars (we make an exception for the constructor)
 
@@ -500,11 +556,11 @@ class CgscriptClass(
     // TODO We may want to allow defs to override vars in the future - then the vars become private to the
     // superclass. For now, we prohibit it.
 
-    methods ++ nestedClasses foreach { case (memberId, member) =>
+    classInfoRef.methods ++ classInfoRef.nestedClasses foreach { case (memberId, member) =>
       if (classInfoRef.classVarLookup contains memberId)
         throw EvalException(
           s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`",
-          token = Some(idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
+          token = Some(classInfoRef.idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
         )
     }
 
@@ -512,7 +568,7 @@ class CgscriptClass(
     if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton) {
       throw EvalException(
         s"Class `$qualifiedName` must not have a constructor if declared `singleton`",
-        token = Some(idNode.token)
+        token = Some(classInfoRef.idNode.token)
       )
     }
 
@@ -521,7 +577,7 @@ class CgscriptClass(
       if (ancestor.isSingleton) {
         throw EvalException(
           s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`",
-          token = Some(idNode.token)
+          token = Some(classInfoRef.idNode.token)
         )
       }
     }
@@ -530,7 +586,7 @@ class CgscriptClass(
     if (name == "constants" && !node.modifiers.hasSingleton) {
       throw EvalException(
         s"Constants class `$qualifiedName` must be declared `singleton`",
-        token = Some(idNode.token)
+        token = Some(classInfoRef.idNode.token)
       )
     }
 
@@ -550,7 +606,7 @@ class CgscriptClass(
         if (spr.isMutable) {
           throw EvalException(
             s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
-            token = Some(idNode.token)
+            token = Some(classInfoRef.idNode.token)
           )
         }
       }
@@ -559,14 +615,14 @@ class CgscriptClass(
         case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic && modifiers.hasMutable =>
           throw EvalException(
             s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`",
-            token = Some(idNode.token)    // TODO Use token of mutable var instead?
+            token = Some(classInfoRef.idNode.token)    // TODO Use token of mutable var instead?
           )
         case _ =>
       }
     }
 
     // Check that immutable class vars are assigned at declaration time
-    initializers collect {
+    classInfoRef.initializers collect {
       // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
       // a "default" nil value. This could be refactored to be a bit more elegant.
       case InitializerNode(_, AssignToNode(_, assignId, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), true, modifiers)
@@ -576,6 +632,35 @@ class CgscriptClass(
           token = Some(assignId.token)
         )
     }
+
+  }
+
+  private def initialize(): Unit = {
+
+    try {
+      if (classDeclarationNode != null)
+        initializeClass(classDeclarationNode)
+    } finally {
+      stage = LifecycleStage.Unloaded
+    }
+
+    stage = LifecycleStage.Initialized
+
+  }
+
+  private def initializeClass(node: ClassDeclarationNode): Unit = {
+
+    if (stage == LifecycleStage.Initializing) {
+      return
+    }
+
+    assert(classInfoRef != null)
+
+    classInfoRef.supers foreach { _.ensureInitialized() }
+
+    stage = LifecycleStage.Initializing
+
+    logger debug s"$logPrefix Initializing class."
 
     // Create the class object
     classObjectRef = new ClassObject(CgscriptClass.this)
@@ -588,7 +673,7 @@ class CgscriptClass(
 
     // Elaborate methods
     constructor foreach { _.elaborate() }
-    methods foreach { case (_, method) =>
+    classInfoRef.methods foreach { case (_, method) =>
       if (method.declaringClass == this)
         method.elaborate()
     }
@@ -629,7 +714,7 @@ class CgscriptClass(
     }
 
     // Static declarations - create a domain whose context is the class object
-    val initializerDomain = new Domain(null, Some(classObject))
+    val initializerDomain = new Domain(null, Some(classObjectRef))
     node.staticInitializers.foreach { node =>
       if (!node.modifiers.hasExternal) {
         val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
@@ -647,6 +732,16 @@ class CgscriptClass(
     val initializerElaborationDomain = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
     node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
     initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
+
+    logger debug s"$logPrefix Done initializing class."
+
+    stage = LifecycleStage.Initialized
+
+    // Initialize nested classes
+    node.nestedClassDeclarations foreach { decl =>
+      val id = decl.id.id
+      classInfo.nestedClasses(id).initializeClass(decl)
+    }
 
   }
 
@@ -1003,5 +1098,5 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultVa
 }
 
 object LifecycleStage extends Enumeration {
-  val New, Loading, Initializing, Ready, Unloaded = Value
+  val New, Declaring, Declared, Initializing, Initialized, Unloaded = Value
 }

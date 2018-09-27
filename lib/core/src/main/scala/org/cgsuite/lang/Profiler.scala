@@ -9,7 +9,7 @@ import scala.collection.mutable
 object Profiler {
 
   def main(args: Array[String]) {
-    CgscriptClass.Object.ensureLoaded()
+    CgscriptClass.Object.ensureInitialized()
     val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
     // Warm-up
     evalForProfiler(statement, profile = false)

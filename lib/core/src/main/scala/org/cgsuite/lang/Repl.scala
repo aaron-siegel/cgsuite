@@ -33,7 +33,6 @@ object Repl {
     val lineReader = LineReaderBuilder.builder().expander(NullExpander).terminal(terminal).build()
 
     UiHarness.setUiHarness(ReplUiHarness)
-    CgscriptClass.Object.ensureLoaded()
     var done = false
 
     while (!done) {
@@ -96,6 +95,8 @@ object Repl {
 
     if (str == "")
       return
+
+    CgscriptClass.Object.ensureInitialized()
 
     val start = JSystem.nanoTime
     try {
