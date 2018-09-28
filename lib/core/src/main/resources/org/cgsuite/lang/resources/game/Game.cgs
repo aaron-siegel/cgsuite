@@ -5,6 +5,7 @@ system class Game
   external def CanonicalForm;
   external def ConwayProduct(h as Game);
   external def GameValue;
+  external def OrdinalProduct(h as Game);
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
   external def SensibleLines(player as Player);
   external def SensibleOptions(player as Player);
@@ -16,5 +17,27 @@ system class Game
   def Decomposition := [this];
   def LeftOptions := Options(Left);
   def RightOptions := Options(Right);
+
+  // TODO DicotVariant and ImpartialVariant should override Decomposition
+  class DicotVariant() extends Game
+  
+    override def Options(player as Player) begin
+      var otherOptions := EnclosingObject Options player.Opponent;
+      if otherOptions.IsEmpty then
+        []
+      else
+        setof(g.DicotVariant() for g in EnclosingObject Options player)
+      end
+    end
+    
+  end
+
+  class ImpartialVariant() extends ImpartialGame
+  
+    override def Options begin
+      setof(g.ImpartialVariant() for g in EnclosingObject.LeftOptions) Union
+      setof(g.ImpartialVariant() for g in EnclosingObject.RightOptions)
+    end
+  end
 
 end

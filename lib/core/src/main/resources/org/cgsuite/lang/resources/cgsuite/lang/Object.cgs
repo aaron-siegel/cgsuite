@@ -3,6 +3,7 @@
 system class Object
 
   external def Class;
+  external def EnclosingObject;
   external def JavaClass;
 
   external def ToOutput;

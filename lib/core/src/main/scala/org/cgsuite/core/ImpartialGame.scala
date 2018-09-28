@@ -42,6 +42,10 @@ trait ImpartialGame extends Game {
 
   def conwayProduct(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(ConwayProduct, this, that)
 
+  def ordinalProduct(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(OrdinalProduct, this, that)
+
+  def ordinalSum(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(OrdinalSum, this, that)
+
   override def conwayProduct(that: Game): Game = {
     that match {
       case thatImpartialGame: ImpartialGame => conwayProduct(thatImpartialGame)

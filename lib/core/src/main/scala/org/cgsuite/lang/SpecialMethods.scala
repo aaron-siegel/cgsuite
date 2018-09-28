@@ -12,6 +12,12 @@ object SpecialMethods {
   private val specialMethods0: Map[String, (_, Unit) => Any] = Map(
 
     "cgsuite.lang.Object.Class" -> { (obj: Any, _: Unit) => CgscriptClass.of(obj).classObject },
+    "cgsuite.lang.Object.EnclosingObject" -> { (obj: Any, _: Unit) =>
+      obj match {
+        case x: StandardObject => x.enclosingObj
+        case _ => null
+      }
+    },
     "cgsuite.lang.Object.JavaClass" -> { (obj: Any, _: Unit) => obj.getClass.getName },
     "cgsuite.lang.Object.ToOutput" -> { (obj: Any, _: Unit) => CgscriptClass instanceToDefaultOutput obj },
     "cgsuite.lang.Collection.Head" -> { (collection: Iterable[_], _: Unit) =>

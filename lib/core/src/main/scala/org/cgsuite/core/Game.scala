@@ -34,6 +34,10 @@ trait Game extends OutputTarget {
 
   def conwayProduct(that: Game): Game = CompoundGame(ConwayProduct, this, that)
 
+  def ordinalProduct(that: Game): Game = CompoundGame(OrdinalProduct, this, that)
+
+  def ordinalSum(that: Game): Game = CompoundGame(OrdinalSum, this, that)
+
   def gameValue: SidedValue = gameValue(new TranspositionCache())
 
   def gameValue(tc: TranspositionCache): SidedValue = {
