@@ -800,7 +800,10 @@ case class LoopNode(
 
     Profiler.stop(loop)
 
-    sum
+    if (loopType == LoopNode.YieldSum && sum == null)
+      zero
+    else
+      sum
 
   }
 
@@ -996,6 +999,8 @@ case class FunctionCallNode(
       case exc: CgsuiteException =>
         exc addToken token
         throw exc
+      case err: StackOverflowError =>
+        throw EvalException("Possible infinite recursion.", token = Some(token))
     }
 
   }

@@ -1,7 +1,7 @@
 package org.cgsuite.lang
 
 import org.antlr.runtime.Token
-import org.cgsuite.exception.CgsuiteException
+import org.cgsuite.exception.{CgsuiteException, EvalException}
 
 import scala.collection.mutable
 
@@ -117,6 +117,8 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
           case exc: CgsuiteException =>
             exc addToken referenceToken
             throw exc
+          case err: StackOverflowError =>
+            throw EvalException("Possible infinite recursion.")
         }
       } else {
         InstanceMethod(x, method.get)

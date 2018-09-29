@@ -277,7 +277,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", Some("1,4,9"), "18"),
       ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", None, "4"),
       ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", None, "1"),
-      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "Nothing")
+      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "0")
     )
 
     val listofLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
@@ -338,7 +338,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
           |set1("foo"); set2("bar"); [get1(), get2()]
         """.stripMargin, """["foo","bar"]"""),
       ("Procedure involving assignment - syntax error", "x -> y := x", "!!Syntax error."),
-      ("False eval", "5(3)", "!!No method `Eval` for class: `game.Integer`")
+      ("False eval", "5(3)", "!!No method `Eval` for class: `game.Integer`"),
+      ("Procedure eval - infinite recursion", "j := n -> j(n); j(5)", "!!Possible infinite recursion.")
     ))
 
   }
@@ -473,6 +474,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     decl("test.init.InitializerLocalScope", "singleton class InitializerLocalScope var x := for n from 1 to 3 yield n end; end")
     decl("test.init.NoConstructor", "class NoConstructor end")
     decl("test.init.NestedNoConstructor", "singleton class NestedNoConstructor class Nested end end")
+    decl("test.init.InfiniteRecursion", "singleton class InfiniteRecursion def Infinite() := Infinite(); def InfiniteAuto := InfiniteAuto; end")
 
     executeTests(Table(
       header,
@@ -490,7 +492,9 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
         "!!The class `test.init.NoConstructor` has no constructor and cannot be directly instantiated."),
       ("Instantiate InstanceClass", "test.init.NestedNoConstructor.Nested", "InstanceClass.instance"),
       ("Attempt to instantiate nested class with no constructor", "test.init.NestedNoConstructor.Nested()",
-        "!!The class `test.init.NestedNoConstructor.Nested` has no constructor and cannot be directly instantiated.")
+        "!!The class `test.init.NestedNoConstructor.Nested` has no constructor and cannot be directly instantiated."),
+      ("Infinite recursion (method call)", "test.init.InfiniteRecursion.Infinite()", "!!Possible infinite recursion."),
+      ("Infinite recursion (autoinvoke)", "test.init.InfiniteRecursion.InfiniteAuto", "!!Possible infinite recursion.")
     ))
 
   }
@@ -528,37 +532,37 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
   it should "handle malformed Game classes correctly" in {
 
     testPackage declareSubpackage "game"
-    decl("test.game.ImpartialGameWithPartizanOption",
-      """class ImpartialGameWithPartizanOption() extends ImpartialGame
-        |  override def Options := [0,*5,3];
+    decl("test.game.GameWithHackedOptions",
+      """class GameWithHackedOptions(args) extends Game
+        |  override def Options(player as Player) := args;
         |end
       """.stripMargin)
-    decl("test.game.GameWithStringOption",
-      """class GameWithStringOption() extends Game
-        |  override def Options(player as Player) := [19,^,"foo"];
-        |end
-      """.stripMargin)
-    decl("test.game.GameWithNothingOption",
-      """class GameWithNothingOption() extends Game
-        |  override def Options(player as Player) := [19,^,Nothing];
-        |end
-      """.stripMargin)
-    decl("test.game.GameWithInvalidOptions",
-      """class GameWithInvalidOptions() extends Game
-        |  override def Options(player as Player) := "foo";
+    decl("test.game.ImpartialGameWithHackedOptions",
+      """class ImpartialGameWithHackedOptions(args) extends ImpartialGame
+        |  override def Options := args;
         |end
       """.stripMargin)
 
     executeTests(Table(
       header,
-      ("Impartial game with partizan option", "test.game.ImpartialGameWithPartizanOption().NimValue",
-        "!!Class `test.game.ImpartialGameWithPartizanOption` is an `ImpartialGame`, but its `Options` include a partizan `Game`."),
-      ("Game with String option", "test.game.GameWithStringOption().CanonicalForm",
-        "!!The `Options` returned by class `test.game.GameWithStringOption` include an object of type `cgsuite.lang.String`, which is not a `Game`."),
-      ("Game with Nothing option", "test.game.GameWithNothingOption().CanonicalForm",
-        "!!The `Options` returned by class `test.game.GameWithNothingOption` include an object of type `cgsuite.lang.Nothing`, which is not a `Game`."),
-      ("Game with invalid options", "test.game.GameWithInvalidOptions().CanonicalForm",
-        "!!The `Options` method in class `test.game.GameWithInvalidOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `Collection`).")
+      ("Game with String option", "test.game.GameWithHackedOptions([19,^,\"foo\"]).CanonicalForm",
+        "!!The `Options` returned by class `test.game.GameWithHackedOptions` include an object of type `cgsuite.lang.String`, which is not a `Game`."),
+      ("Game with Nothing option", "test.game.GameWithHackedOptions([19,^,Nothing]).CanonicalForm",
+        "!!The `Options` returned by class `test.game.GameWithHackedOptions` include an object of type `cgsuite.lang.Nothing`, which is not a `Game`."),
+      ("Game with invalid options", "test.game.GameWithHackedOptions(\"foo\").CanonicalForm",
+        "!!The `Options` method in class `test.game.GameWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `Collection`)."),
+      ("Game with null options", "test.game.GameWithHackedOptions(Nothing).CanonicalForm",
+        "!!The `Options` method in class `test.game.GameWithHackedOptions` returned an invalid value of type `cgsuite.lang.Nothing` (expected a `Collection`)."),
+      ("Impartial game with String option", "test.game.ImpartialGameWithHackedOptions([0,*2,\"foo\"]).CanonicalForm",
+        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` include an object of type `cgsuite.lang.String`, which is not a `Game`."),
+      ("Impartial game with Nothing option", "test.game.ImpartialGameWithHackedOptions([0,*2,Nothing]).CanonicalForm",
+        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` include an object of type `cgsuite.lang.Nothing`, which is not a `Game`."),
+      ("Impartial game with invalid options", "test.game.ImpartialGameWithHackedOptions(\"foo\").CanonicalForm",
+        "!!The `Options` method in class `test.game.ImpartialGameWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `Collection`)."),
+      ("Impartial game with null options", "test.game.ImpartialGameWithHackedOptions(Nothing).CanonicalForm",
+        "!!The `Options` method in class `test.game.ImpartialGameWithHackedOptions` returned an invalid value of type `cgsuite.lang.Nothing` (expected a `Collection`)."),
+      ("Impartial game with partizan option", "test.game.ImpartialGameWithHackedOptions([0,*2,9]).NimValue",
+        "!!Class `test.game.ImpartialGameWithHackedOptions` is an `ImpartialGame`, but its `Options` include a partizan `Game`.")
     ))
 
   }

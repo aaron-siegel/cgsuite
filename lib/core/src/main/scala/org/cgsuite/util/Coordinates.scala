@@ -29,6 +29,7 @@ case class Coordinates(row: Int, col: Int) extends OutputTarget {
   def <=(other: Coordinates) = row <= other.row && col <= other.col
   def *(other: Integer) = Coordinates(row * other.intValue, col * other.intValue)
   def isUnit = row >= -1 && row <= 1 && col >= -1 && col <= 1
+  def swap = Coordinates(col, row)
 
   override def toOutput = new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), s"($row,$col)")
 

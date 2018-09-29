@@ -149,7 +149,7 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
 class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends GameObject(cls, objArgs, enclosingObj) with ImpartialGame {
 
-  override def options = {
+  override def options: Iterable[ImpartialGame] = {
 
     val collection = optionsToCollection(cls.classInfo.optionsMethod.call(this, Array.empty))
 

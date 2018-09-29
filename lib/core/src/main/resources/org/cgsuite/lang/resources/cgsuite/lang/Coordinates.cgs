@@ -17,6 +17,9 @@ system class Coordinates
 
   external def Col;
   external def Row;
+  
+  external def IsUnit;
+  external def Swap;
 
   override def ToOutput := "(" + Row.ToOutput + "," + Col.ToOutput + ")";
 

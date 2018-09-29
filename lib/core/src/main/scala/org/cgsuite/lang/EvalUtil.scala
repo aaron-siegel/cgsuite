@@ -5,6 +5,7 @@ import java.util
 
 import ch.qos.logback.classic.{Level, Logger}
 import com.typesafe.scalalogging.LazyLogging
+import org.antlr.runtime.Token
 import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
@@ -52,24 +53,31 @@ object EvalUtil extends LazyLogging {
     if (line <= 0)
       Vector(new StyledTextOutput(message))
     else
-      errorOutput(exc.getMessage) +: getLineColOutput(exc.source, input, line, col)
+      errorOutput(exc.getMessage) +: toLineColOutput(exc.source, input, line, col)
 
   }
 
   private def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
 
-    val exceptionLimit = {
+    val exceptionLimit: Int = {
       if (LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].getLevel == Level.DEBUG)
         Int.MaxValue
       else
         6
     }
 
-    val message = errorOutput(exc.getMessage)
-    val stack = exc.tokenStack.toVector flatMap { token =>
-      assert(token.getInputStream != null, s"Input stream is null: $token (${exc.getMessage})")
-      getLineColOutput(token.getInputStream.getSourceName, input, token.getLine, token.getCharPositionInLine)
-    }
+    val message: Output = errorOutput(exc.getMessage)
+
+    val stack: Vector[Output] = {
+      if (exc.tokenStack.length <= 30)
+        exc.tokenStack flatMap { toLineColOutput(_, input) }
+      else {
+        (exc.tokenStack take 15 flatMap { toLineColOutput(_, input) }) ++
+          Vector(errorOutput("  ......")) ++
+          (exc.tokenStack takeRight 15 flatMap { toLineColOutput(_, input) })
+      }
+    }.toVector
+
     val cause: Vector[Output] = {
       if (exc.getCause == null)
         Vector.empty
@@ -103,19 +111,27 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def getLineColOutput(source: String, input: String, line: Int, col: Int): Vector[Output] = {
+  private def toLineColOutput(token: Token, input: String): Vector[Output] = {
+    assert(token.getInputStream != null, s"Input stream is null: $token")
+    toLineColOutput(token.getInputStream.getSourceName, input, token.getLine, token.getCharPositionInLine)
+  }
+
+  private def toLineColOutput(source: String, input: String, line: Int, col: Int): Vector[Output] = {
 
     if (source == "Worksheet") {
       var lineStartIndex = 0
       // Determine the point in the input string where the exceptional line begins.
       (1 until line) foreach { _ => lineStartIndex = input.indexOf('\n', lineStartIndex) + 1 }
-      val lineEndIndex = input.indexOf('\n', lineStartIndex)
+      val lineEndIndex = input.indexOf('\n', lineStartIndex) match {
+        case -1 => input.length
+        case n => n
+      }
       // Next get the part of the input string that has the error.
       val snippet = input.substring(
         Math.max(lineStartIndex, lineStartIndex + col - 24),
-        Math.min(if (lineEndIndex == -1) input.length else lineEndIndex, lineStartIndex + col + 25)
+        Math.min(lineEndIndex, lineStartIndex + col + 25)
       )
-      val pointer = (" " * Math.min(col - 1, 22)) + (if (col == 0) "^^" else "^^^")
+      val pointer = (" " * Math.min(col - 1, 23)) + (if (col == 0) "^^" else "^^^")
       Vector(
         errorOutput("  at worksheet input:"),
         errorOutput(s"  $snippet"),

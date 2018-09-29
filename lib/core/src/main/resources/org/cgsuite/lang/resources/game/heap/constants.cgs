@@ -2,6 +2,10 @@
 
 singleton class constants
 
+  var BynumsGame := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"));
+
+  var Cutcake := GenCutcake(TakeAndBreak("4."), TakeAndBreak("4."));
+
   var DawsonsKayles := TakeAndBreak("0.07");
   
   var FibonacciNim := TakeAway(2);
@@ -9,7 +13,7 @@ singleton class constants
   var GrundysGame := TakeAndBreak("4!.0");
 
   var Kayles := TakeAndBreak("0.77");
-  
+
   var Mem := GenMem((memory, j) -> j >= memory);
 
   var Nim := TakeAndBreak("0.[3]");
@@ -33,6 +37,8 @@ singleton class constants
     else System.Error("Argument to `TakeAway` must be a `DyadicRational` or a `Procedure`.")
     end
   end
+  
+  var TwistedBynumsGame := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
   var Wythoff := GenWythoff(1);
 
