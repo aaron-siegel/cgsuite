@@ -463,7 +463,7 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
-  it should "handle methods and initializers correctly" in {
+  it should "handle methods, constructors, and initializers correctly" in {
 
     testPackage declareSubpackage "init"
     decl("test.init.ExpandableParameter", "singleton class ExpandableParameter def expandableParameter(args...) := args; end")
@@ -471,6 +471,8 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
     decl("test.init.IllegalExpandableParameter", "singleton class IllegalExpandableParameter def expandableParameter(args..., after) := args; end")
     decl("test.init.NonExpandableParameter", "singleton class NonExpandableParameter def nonExpandableParameter(bool as Boolean, int as Integer) := [bool, int]; end")
     decl("test.init.InitializerLocalScope", "singleton class InitializerLocalScope var x := for n from 1 to 3 yield n end; end")
+    decl("test.init.NoConstructor", "class NoConstructor end")
+    decl("test.init.NestedNoConstructor", "singleton class NestedNoConstructor class Nested end end")
 
     executeTests(Table(
       header,
@@ -483,7 +485,12 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Typed var args - type mismatch (1)", "test.init.TypedExpandableParameter.expandableParameter(1, 7, 10)", "!!Argument `bool` (in call to `test.init.TypedExpandableParameter.expandableParameter`) has type `game.Integer`, which does not match expected type `cgsuite.lang.Boolean`"),
       //("Typed var args - type mismatch (2)", "test.init.TypedExpandableParameter.expandableParameter(true, 1, false, 10)", "!!askdjfasfe"),
       ("Illegal var args", "test.init.IllegalExpandableParameter.expandableParameter(1, 2, 3)", "!!Invalid expansion for parameter `args`: must be in last position"),
-      ("Nested initializer", "test.init.InitializerLocalScope.x", "[1,2,3]")
+      ("Nested initializer", "test.init.InitializerLocalScope.x", "[1,2,3]"),
+      ("Attempt to instantiate with no constructor", "test.init.NoConstructor()",
+        "!!The class `test.init.NoConstructor` has no constructor and cannot be directly instantiated."),
+      ("Instantiate InstanceClass", "test.init.NestedNoConstructor.Nested", "InstanceClass.instance"),
+      ("Attempt to instantiate nested class with no constructor", "test.init.NestedNoConstructor.Nested()",
+        "!!The class `test.init.NestedNoConstructor.Nested` has no constructor and cannot be directly instantiated.")
     ))
 
   }
@@ -514,6 +521,44 @@ class CgscriptTest extends FlatSpec with Matchers with PropertyChecks {
       ("Cannot pass mutable object to constructor of immutable class",
         "x := test.mutables.MutableClass(); test.mutables.ImmutableClass2(x)",
         "!!Cannot assign mutable object to var `cparam` of immutable class")
+    ))
+
+  }
+
+  it should "handle malformed Game classes correctly" in {
+
+    testPackage declareSubpackage "game"
+    decl("test.game.ImpartialGameWithPartizanOption",
+      """class ImpartialGameWithPartizanOption() extends ImpartialGame
+        |  override def Options := [0,*5,3];
+        |end
+      """.stripMargin)
+    decl("test.game.GameWithStringOption",
+      """class GameWithStringOption() extends Game
+        |  override def Options(player as Player) := [19,^,"foo"];
+        |end
+      """.stripMargin)
+    decl("test.game.GameWithNothingOption",
+      """class GameWithNothingOption() extends Game
+        |  override def Options(player as Player) := [19,^,Nothing];
+        |end
+      """.stripMargin)
+    decl("test.game.GameWithInvalidOptions",
+      """class GameWithInvalidOptions() extends Game
+        |  override def Options(player as Player) := "foo";
+        |end
+      """.stripMargin)
+
+    executeTests(Table(
+      header,
+      ("Impartial game with partizan option", "test.game.ImpartialGameWithPartizanOption().NimValue",
+        "!!Class `test.game.ImpartialGameWithPartizanOption` is an `ImpartialGame`, but its `Options` include a partizan `Game`."),
+      ("Game with String option", "test.game.GameWithStringOption().CanonicalForm",
+        "!!The `Options` returned by class `test.game.GameWithStringOption` include an object of type `cgsuite.lang.String`, which is not a `Game`."),
+      ("Game with Nothing option", "test.game.GameWithNothingOption().CanonicalForm",
+        "!!The `Options` returned by class `test.game.GameWithNothingOption` include an object of type `cgsuite.lang.Nothing`, which is not a `Game`."),
+      ("Game with invalid options", "test.game.GameWithInvalidOptions().CanonicalForm",
+        "!!The `Options` method in class `test.game.GameWithInvalidOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `Collection`).")
     ))
 
   }

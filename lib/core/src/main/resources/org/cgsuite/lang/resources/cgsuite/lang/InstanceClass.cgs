@@ -2,7 +2,7 @@
 
 system class InstanceClass
 
-  external def EnclosingObject;
+  override external def EnclosingObject;
   external def NestedClass;
 
 end

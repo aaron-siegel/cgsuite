@@ -2,7 +2,7 @@
 
 system class InstanceMethod extends Procedure
 
-  external def EnclosingObject;
+  external override def EnclosingObject;
 
   external override def ToOutput;
 

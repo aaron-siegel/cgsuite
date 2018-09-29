@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 case class InstanceMethod(enclosingObject: Any, method: CgscriptClass#Method) extends OutputTarget with CallSite {
@@ -22,7 +23,9 @@ case class InstanceMethod(enclosingObject: Any, method: CgscriptClass#Method) ex
 
 case class InstanceClass(enclosingObject: Any, cls: CgscriptClass) extends CallSite {
 
-  val ctor = cls.constructor.get.asInstanceOf[cls.UserConstructor]
+  lazy val ctor = cls.constructor map { _.asInstanceOf[CgscriptClass#UserConstructor] } getOrElse {
+    throw EvalException(s"The class `${cls.qualifiedName}` has no constructor and cannot be directly instantiated.")
+  }
   def parameters = ctor.parameters
   def ordinal = ctor.ordinal
   def call(args: Array[Any]): Any = ctor.call(args, enclosingObject)

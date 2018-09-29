@@ -1,11 +1,9 @@
 package org.cgsuite.core
 
-import org.cgsuite.core.ImpartialGame.mex
-import org.cgsuite.core.misere.{Genus, MisereCanonicalGame, MisereValues}
-import org.cgsuite.exception.NotShortGameException
-import org.cgsuite.util.{TranspositionCache, TranspositionTable}
+import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
+import org.cgsuite.util.TranspositionCache
 
-import scala.collection.{BitSet, mutable}
+import scala.collection.BitSet
 
 object ImpartialGame {
 

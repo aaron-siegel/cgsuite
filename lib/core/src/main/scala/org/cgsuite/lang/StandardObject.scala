@@ -4,6 +4,7 @@ import java.lang.{System => JSystem}
 
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGame
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: Any = null)
@@ -90,7 +91,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
 
   def lookupInstanceMethod(id: Symbol): Option[Any] = {
     cls.lookupMethod(id).map { method =>
-      if (method.isStatic) sys.error("foo")
+      if (method.isStatic) sys.error("foo") // TODO Better error message. Also, corresponding issue for system classes doesn't short-circuit at all
       if (method.autoinvoke)
         method.call(this, Array.empty)
       else
@@ -105,8 +106,18 @@ class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject
 class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends StandardObject(cls, objArgs, enclosingObj) with Game {
 
-  def options(player: Player) = {
-    cls.classInfo.optionsMethod.call(this, Array(player)).asInstanceOf[Iterable[Game]]
+  def options(player: Player): Iterable[Game] = {
+
+    val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsMethod.call(this, Array(player)))
+
+    collection map {
+      case g: Game => g
+      case x =>
+        throw EvalException(
+          s"The `Options` returned by class `${cls.qualifiedName}` include an object of type `${CgscriptClass.of(x).qualifiedName}`, which is not a `Game`."
+        )
+    }
+
   }
 
   override def canonicalForm: CanonicalShortGame = canonicalForm(cls.transpositionCache)
@@ -123,13 +134,37 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
 
   override def gameName: String = cls.qualifiedName
 
+  private[lang] def optionsToCollection(obj: Any): Iterable[_] = {
+    obj match {
+      case it: Iterable[_] => it
+      case x =>
+        throw EvalException(
+          s"The `Options` method in class `${cls.qualifiedName}` returned an invalid value of type `${CgscriptClass.of(x).qualifiedName}` (expected a `Collection`)."
+        )
+    }
+  }
+
 }
 
 class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends GameObject(cls, objArgs, enclosingObj) with ImpartialGame {
 
   override def options = {
-    cls.classInfo.optionsMethod.call(this, Array.empty).asInstanceOf[Iterable[ImpartialGame]]
+
+    val collection = optionsToCollection(cls.classInfo.optionsMethod.call(this, Array.empty))
+
+    collection map {
+      case g: ImpartialGame => g
+      case g: Game =>
+        throw EvalException(
+          s"Class `${cls.qualifiedName}` is an `ImpartialGame`, but its `Options` include a partizan `Game`."
+        )
+      case x =>
+        throw EvalException(
+          s"The `Options` returned by class `${cls.qualifiedName}` include an object of type `${CgscriptClass.of(x).qualifiedName}`, which is not a `Game`."
+        )
+    }
+
   }
 
   override def misereCanonicalForm: MisereCanonicalGame = misereCanonicalForm(cls.transpositionCache)

@@ -968,7 +968,15 @@ case class FunctionCallNode(
         InstanceMethod(x, evalMethod)
     }
 
-    val res = resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
+    val res = {
+      try {
+        resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
+      } catch {
+        case exc: CgsuiteException =>
+          exc addToken token
+          throw exc
+      }
+    }
     val args = new Array[Any](callSite.parameters.length)
     var i = 0
     while (i < args.length) {
