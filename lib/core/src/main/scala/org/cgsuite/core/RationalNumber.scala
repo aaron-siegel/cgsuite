@@ -141,6 +141,10 @@ trait RationalNumber extends SurrealNumber with OutputTarget {
   def step(n: Int): RationalNumber = step(SmallInteger(n))
   def step(n: Integer): RationalNumber = RationalNumber(numerator + n, denominator)
 
+  def toFloat: Float = numerator.bigIntValue.toFloat / denominator.bigIntValue.toFloat
+
+  def toDouble: Double = numerator.bigIntValue.toDouble / denominator.bigIntValue.toDouble
+
   override def toOutput: StyledTextOutput = {
 
     val output = new StyledTextOutput()

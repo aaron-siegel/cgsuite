@@ -118,16 +118,17 @@ object EvalUtil extends LazyLogging {
 
   private def toLineColOutput(source: String, input: String, line: Int, col: Int): Vector[Output] = {
 
-    if (source == "Worksheet") {
+    if (source startsWith ":Input:") {
+      val sourceInput = source stripPrefix ":Input:"
       var lineStartIndex = 0
       // Determine the point in the input string where the exceptional line begins.
-      (1 until line) foreach { _ => lineStartIndex = input.indexOf('\n', lineStartIndex) + 1 }
-      val lineEndIndex = input.indexOf('\n', lineStartIndex) match {
-        case -1 => input.length
+      (1 until line) foreach { _ => lineStartIndex = sourceInput.indexOf('\n', lineStartIndex) + 1 }
+      val lineEndIndex = sourceInput.indexOf('\n', lineStartIndex) match {
+        case -1 => sourceInput.length
         case n => n
       }
       // Next get the part of the input string that has the error.
-      val snippet = input.substring(
+      val snippet = sourceInput.substring(
         Math.max(lineStartIndex, lineStartIndex + col - 24),
         Math.min(lineEndIndex, lineStartIndex + col + 25)
       )

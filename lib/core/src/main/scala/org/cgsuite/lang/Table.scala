@@ -27,7 +27,8 @@
 **************************************************************************** */
 package org.cgsuite.lang
 
-import org.cgsuite.core.Integer
+import org.cgsuite.core.{Integer, RationalNumber}
+import org.cgsuite.exception.NotNumberException
 import org.cgsuite.lang.Table.Format
 import org.cgsuite.output.{IntensityPlotOutput, Output, OutputTarget, TableOutput}
 
@@ -52,10 +53,13 @@ case class Table (
   }
 
   def intensityPlot(unitSize: Integer): IntensityPlotOutput = {
-    val ints = rows map { _ map { entry =>
-      entry.asInstanceOf[Integer].intValue
-    } }
-    IntensityPlotOutput(ints, unitSize.intValue)
+    val numbers = rows map {
+      _ map {
+        case x: RationalNumber => x
+        case obj => throw NotNumberException(s"Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
+      }
+    }
+    IntensityPlotOutput(numbers, unitSize.intValue)
   }
 
 }

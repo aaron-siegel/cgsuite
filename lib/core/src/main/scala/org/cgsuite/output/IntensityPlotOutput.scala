@@ -5,13 +5,17 @@ import java.awt.Dimension
 import java.awt.Graphics2D
 import java.io.PrintWriter
 
+import org.cgsuite.core.{RationalNumber, SurrealNumber}
 import org.cgsuite.output.Output.Mode
 
-case class IntensityPlotOutput(array: Seq[Seq[Int]], unitSize: Int = 8) extends AbstractOutput {
+case class IntensityPlotOutput(array: Seq[Seq[RationalNumber]], unitSize: Int = 8) extends AbstractOutput {
 
+  val ord = implicitly[Ordering[SurrealNumber]]
   val rowCount = array.length
   val colCount = array.map { _.length }.max
-  val maxValue = array.map { _.max }.max
+  val minValue = array.map { _.min(ord) }.min(ord)
+  val maxValue = array.map { _.max(ord) }.max(ord)
+  val span = (maxValue - minValue).toFloat
 
   def write(out: PrintWriter, mode: Mode) {
     throw new UnsupportedOperationException("Not supported yet.")
@@ -22,7 +26,7 @@ case class IntensityPlotOutput(array: Seq[Seq[Int]], unitSize: Int = 8) extends 
   def paint(graphics: Graphics2D, preferredWidth: Int) {
 
     for (i <- array.indices; j <- array(i).indices) {
-      val color: Float = array(i)(j).toFloat / maxValue.toFloat
+      val color: Float = (array(i)(j) - minValue).toFloat / span
       graphics.setColor(new Color(color, color, color))
       graphics.fillRect(j * unitSize, i * unitSize, unitSize, unitSize)
     }

@@ -11,9 +11,9 @@ import scala.language.reflectiveCalls
 
 object ParserUtil {
 
-  def parseExpression(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.expression }
-  def parseStatement(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.statement }
-  def parseScript(str: String) = parse(new ByteArrayInputStream(str.getBytes), "Worksheet") { _.script }
+  def parseExpression(str: String) = parse(new ByteArrayInputStream(str.getBytes), s":Input:$str") { _.expression }
+  def parseStatement(str: String) = parse(new ByteArrayInputStream(str.getBytes), s":Input:$str") { _.statement }
+  def parseScript(str: String) = parse(new ByteArrayInputStream(str.getBytes), s":Input:$str") { _.script }
   def parseCU(in: InputStream, source: String) = parse(in, source) { _.compilationUnit }
 
   def charStreamToParser(input: CharStream) = {
