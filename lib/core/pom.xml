@@ -189,6 +189,7 @@
           <filereports>WDF TestSuite.txt</filereports>
           <forkMode>once</forkMode>
           <argLine>-XX:MaxPermSize=256m</argLine>
+          <parallel>false</parallel>
         </configuration>
         <executions>
           <execution>

@@ -420,6 +420,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
 case class CanonicalShortGameImpl(gameId: Int) extends CanonicalShortGame {
 
+  assert(gameId >= 0, gameId)
   assert(!isNumberUpStar)
 
 }

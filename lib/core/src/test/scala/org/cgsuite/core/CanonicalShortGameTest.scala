@@ -11,7 +11,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class CanonicalShortGameTest extends FlatSpec with Matchers {
 
-  val switch = CanonicalShortGame(Integer(3))(CanonicalShortGame(Integer(2))(Integer(1)))
+  lazy val switch = CanonicalShortGame(Integer(3))(CanonicalShortGame(Integer(2))(Integer(1)))
 
   "CanonicalShortGame" should "return the correct options" in {
 
