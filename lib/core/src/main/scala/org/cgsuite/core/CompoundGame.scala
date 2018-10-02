@@ -42,25 +42,11 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
 
   }
 
-  override def canonicalForm(tc: TranspositionCache) = {
-    compoundType match {
-      case DisjunctiveSum => g.canonicalForm(tc) + h.canonicalForm(tc)
-      case _ => super.canonicalForm(tc)
-    }
-  }
-
-  override def gameValue(tc: TranspositionCache) = {
-    compoundType match {
-      case DisjunctiveSum => g.gameValue(tc) + h.gameValue(tc)
-      case _ => super.gameValue(tc)
-    }
-  }
-
   override def depthHint: Int = g.depthHint + h.depthHint
 
   override def decomposition: Iterable[_] = {
     compoundType match {
-      case DisjunctiveSum => Seq(g, h)
+      case DisjunctiveSum => g.decomposition ++ h.decomposition
       case _ => super.decomposition
     }
   }

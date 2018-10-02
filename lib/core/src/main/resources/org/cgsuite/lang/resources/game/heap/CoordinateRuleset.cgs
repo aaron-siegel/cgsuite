@@ -12,6 +12,8 @@ class CoordinateRuleset extends Ruleset
   
   class Position(coord as Coordinates) extends ImpartialGame
 
+    def Coord := coord;
+
     override def Options := CoordinateOptions(coord) Apply (c -> Position(c));
 
   end

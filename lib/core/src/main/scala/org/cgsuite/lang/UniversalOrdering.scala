@@ -2,6 +2,7 @@ package org.cgsuite.lang
 
 import org.cgsuite.core.CanonicalShortGame
 import org.cgsuite.core.misere.MisereCanonicalGame
+import org.cgsuite.util.Coordinates
 
 
 object UniversalOrdering extends Ordering[Any] {
@@ -24,6 +25,9 @@ object UniversalOrdering extends Ordering[Any] {
           i += 1
         }
         cmp
+      case (a: Coordinates, b: Coordinates) =>
+        val cmp = a.row - b.row
+        if (cmp == 0) a.col - b.col else cmp
       case (a: (_,_), b: (_,_)) =>
         val cmp = compare(a._1, b._1)
         if (cmp == 0) compare(a._2, b._2) else cmp

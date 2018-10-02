@@ -1061,6 +1061,11 @@ class CgscriptClass(
       } catch {
         case exc: IllegalArgumentException =>
           throw EvalException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
+        case exc: InvocationTargetException =>
+          exc.getCause match {
+            case exc2: CgsuiteException => throw exc2
+            case _ => throw exc
+          }
       } finally {
         Profiler.stop(reflect)
       }

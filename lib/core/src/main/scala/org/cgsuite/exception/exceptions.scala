@@ -20,6 +20,9 @@ case class InvalidArgumentException(msg: String, cause: Throwable = null, token:
 case class InvalidOperationException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
+case class MalformedCodeException(codeString: String, cause: Throwable = null, token: Option[Token] = None)
+  extends CgsuiteException(s"Malformed Take-and-Break Code: $codeString", cause, token)
+
 case class NotAtomicException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 

@@ -42,7 +42,7 @@ object TakeAndBreak {
 
 case class TakeAndBreak(code: String) extends HeapRuleset {
 
-  val tbCode = new TBCode(code)
+  val tbCode = TBCode2(code)
 
   override def traversal(heapSize: Int): Traversal = tbCode traversal heapSize
 
@@ -55,6 +55,6 @@ case class TakeAndBreak(code: String) extends HeapRuleset {
     result
   }
 
-  override def periodicityChecker: Option[PeriodicityChecker] = Some(tbCode.getAPChecker)
+  override def periodicityChecker: Option[PeriodicityChecker] = Some(tbCode.periodicityChecker)
 
 }
