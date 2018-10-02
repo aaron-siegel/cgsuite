@@ -4,24 +4,24 @@ import org.cgsuite.exception.MalformedCodeException
 
 import scala.collection.mutable
 
-object TBCode2 {
+object TBCode {
 
   val base32Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV"
 
-  def apply(str: String): TBCode2 = parse(str)
+  def apply(str: String): TBCode = parse(str)
 
-  def parse(str: String): TBCode2 = {
+  def parse(str: String): TBCode = {
 
     var index = 0
     var inAdditivePart = true
     var inPeriodPart = false
-    val digits = mutable.MutableList[Digit2]()
-    val additiveDigits = mutable.MutableList[Digit2]()
+    val digits = mutable.MutableList[Digit]()
+    val additiveDigits = mutable.MutableList[Digit]()
     var preperiod = -1
 
     while (index < str.length) {
 
-      var digit: Digit2 = null
+      var digit: Digit = null
 
       str.charAt(index) match {
 
@@ -40,7 +40,7 @@ object TBCode2 {
 
         case '*' =>
           val (constraint, incr) = parseConstraint(str, index + 1)
-          digit = Digit2(Vector(constraint), allowMore = true)
+          digit = Digit(Vector(constraint), allowMore = true)
           index += incr
 
         case '{' =>
@@ -61,14 +61,14 @@ object TBCode2 {
             case exc: NumberFormatException => throw MalformedCodeException(str)
           }
           val (constraint, incr) = parseConstraint(str, endIndex + 1)
-          digit = Digit2(base, constraint)
+          digit = Digit(base, constraint)
           index = endIndex + incr
 
         case ch =>
           val base = base32Chars indexOf ch.toUpper
           if (base == -1) throw MalformedCodeException(str)
           val (constraint, incr) = parseConstraint(str, index + 1)
-          digit = Digit2(base, constraint)
+          digit = Digit(base, constraint)
           index += incr
 
       }
@@ -87,7 +87,7 @@ object TBCode2 {
     if (additiveDigits.isEmpty || inAdditivePart || inPeriodPart)
       throw MalformedCodeException(str)
 
-    TBCode2(
+    TBCode(
       additiveDigits.last +: digits.toVector,
       additiveDigits.toVector.reverse.tail,
       if (preperiod == -1) 0 else digits.length - preperiod
@@ -110,7 +110,7 @@ object TBCode2 {
 
   }
 
-  def parseConstraintList(codeString: String, digitString: String, defaultConstraint: DigitConstraint.Value): Digit2 = {
+  def parseConstraintList(codeString: String, digitString: String, defaultConstraint: DigitConstraint.Value): Digit = {
 
     val (allowMore, baseStr) = {
       if (digitString endsWith "+")
@@ -139,11 +139,11 @@ object TBCode2 {
 
     val constraintArray = Array.fill(maxExplicitHeaps + 1)(DigitConstraint.Disallowed)
     indicesWithConstraints foreach { case (index, constraint) => constraintArray(index) = constraint }
-    Digit2(constraintArray.toVector, allowMore)
+    Digit(constraintArray.toVector, allowMore)
 
   }
 
-  def apply(digits: IndexedSeq[Digit2], additiveDigits: IndexedSeq[Digit2], period: Int = 0): TBCode2 = {
+  def apply(digits: IndexedSeq[Digit], additiveDigits: IndexedSeq[Digit], period: Int = 0): TBCode = {
 
     if (period < 0) throw new IllegalArgumentException("period < 0")
     if (period > digits.length) throw new IllegalArgumentException("period > digits.length")
@@ -164,15 +164,15 @@ object TBCode2 {
     }
     val digitsNormalized3 = {
       if (digitsNormalized2.isEmpty)
-        Vector(Digit2.zero)
+        Vector(Digit.zero)
       else
         digitsNormalized2
     }
-    new TBCode2(digitsNormalized3, additiveDigitsNormalized, periodNormalized)
+    new TBCode(digitsNormalized3, additiveDigitsNormalized, periodNormalized)
 
   }
 
-  private def removeTrailingZeroes(digits: IndexedSeq[Digit2]): IndexedSeq[Digit2] = {
+  private def removeTrailingZeroes(digits: IndexedSeq[Digit]): IndexedSeq[Digit] = {
 
     val lastNonzero = digits lastIndexWhere { !_.isZero }
     digits take (lastNonzero + 1)
@@ -181,10 +181,10 @@ object TBCode2 {
 
 }
 
-case class TBCode2(
-  digits: IndexedSeq[Digit2],
-  additiveDigits: IndexedSeq[Digit2] = Vector.empty,
-  period: Int = 0
+case class TBCode(
+                   digits: IndexedSeq[Digit],
+                   additiveDigits: IndexedSeq[Digit] = Vector.empty,
+                   period: Int = 0
   ) {
 
   assert(digits.nonEmpty)
@@ -201,12 +201,12 @@ case class TBCode2(
       digits.length - 1
   }
 
-  def digit(tokensRemoved: Int): Digit2 = {
+  def digit(tokensRemoved: Int): Digit = {
     if (tokensRemoved < 0) {
       if (-tokensRemoved - 1 < additiveDigits.length) {
         additiveDigits(-tokensRemoved - 1)
       } else {
-        Digit2.zero
+        Digit.zero
       }
     } else {
       if (tokensRemoved < digits.length) {
@@ -215,7 +215,7 @@ case class TBCode2(
         val index = (tokensRemoved - preperiod) % period + preperiod
         digits(index)
       } else {
-        Digit2.zero
+        Digit.zero
       }
     }
   }
@@ -410,11 +410,11 @@ case class TBCode2(
 
 }
 
-object Digit2 {
+object Digit {
 
-  val zero = Digit2(Vector.empty)
+  val zero = Digit(Vector.empty)
 
-  def apply(splitmask: Long, constraint: DigitConstraint.Value): Digit2 = {
+  def apply(splitmask: Long, constraint: DigitConstraint.Value): Digit = {
 
     val last = 63 - java.lang.Long.numberOfLeadingZeros(splitmask)
     val constraints = {
@@ -425,11 +425,11 @@ object Digit2 {
           constraint
       }
     }
-    Digit2(constraints)
+    Digit(constraints)
 
   }
 
-  def apply(constraints: Vector[DigitConstraint.Value], allowMore: Boolean = false): Digit2 = {
+  def apply(constraints: Vector[DigitConstraint.Value], allowMore: Boolean = false): Digit = {
 
     if (allowMore) assert(constraints.nonEmpty && constraints.last != DigitConstraint.Disallowed)
 
@@ -473,13 +473,13 @@ object Digit2 {
       }
     }
 
-    new Digit2(trimmedConstraints, allowMore)
+    new Digit(trimmedConstraints, allowMore)
 
   }
 
 }
 
-case class Digit2(constraints: Vector[DigitConstraint.Value], allowMore: Boolean = false) {
+case class Digit(constraints: Vector[DigitConstraint.Value], allowMore: Boolean = false) {
 
   assert(constraints.isEmpty || constraints.last != DigitConstraint.Disallowed)
 
@@ -525,7 +525,7 @@ case class Digit2(constraints: Vector[DigitConstraint.Value], allowMore: Boolean
 
         case (true, false) =>
           val base = constraints.zipWithIndex.map { case (c, index) => if (c == DigitConstraint.Disallowed) 0L else 1L << index }.sum
-          val baseStr = if (base < 32) TBCode2.base32Chars.charAt(base.toInt).toString else s"&$base;"
+          val baseStr = if (base < 32) TBCode.base32Chars.charAt(base.toInt).toString else s"&$base;"
           baseStr + toConstraintString(lastConstraint)
 
         case (true, true) =>

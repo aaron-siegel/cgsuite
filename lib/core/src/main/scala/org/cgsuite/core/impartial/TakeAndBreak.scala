@@ -42,7 +42,7 @@ object TakeAndBreak {
 
 case class TakeAndBreak(code: String) extends HeapRuleset {
 
-  val tbCode = TBCode2(code)
+  val tbCode = TBCode(code)
 
   override def traversal(heapSize: Int): Traversal = tbCode traversal heapSize
 

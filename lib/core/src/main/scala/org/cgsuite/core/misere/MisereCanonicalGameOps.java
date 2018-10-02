@@ -31,7 +31,6 @@ package org.cgsuite.core.misere;
 
 import java.util.*;
 
-import org.cgsuite.core.impartial.CodeDigit;
 import org.cgsuite.core.impartial.Traversal;
 import org.cgsuite.exception.CalculationCanceledException$;
 import org.cgsuite.output.Output;
@@ -1167,7 +1166,7 @@ public final class MisereCanonicalGameOps
 
         if (id == constructFromNimber(b))
         {
-            out.appendMath(new CodeDigit(b, CodeDigit.decimalOptions).toString());
+            out.appendMath(digitToString(b));
             if (subscripted[0] > 0)
             {
                 out.appendMath(EnumSet.of(Output.Mode.PLAIN_TEXT), "[");
@@ -1184,7 +1183,7 @@ public final class MisereCanonicalGameOps
                 if (bdiff != -1 && birthday(bdiff) < birthday(id)) {
                     subscripted[0] = 1;
                     rAppendMidToOutput(bdiff, out, tryParts, true, subscripted);
-                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), new CodeDigit(i, CodeDigit.decimalOptions).toString());
+                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), digitToString(i));
                     return;
                 }
                 int bsum = add(id, constructFromNimber(i));
@@ -1193,7 +1192,7 @@ public final class MisereCanonicalGameOps
                     subscripted[0] = 1;
                     rAppendMidToOutput(bsum, out, tryParts, true, subscripted);
                     out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), "-");
-                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), new CodeDigit(i, CodeDigit.decimalOptions).toString());
+                    out.appendText(EnumSet.of(StyledTextOutput.Style.LOCATION_SUBSCRIPT, StyledTextOutput.Style.FACE_MATH), digitToString(i));
                     return;
                 }
             }
@@ -1238,6 +1237,14 @@ public final class MisereCanonicalGameOps
         {
             out.appendMath(EnumSet.of(Output.Mode.PLAIN_TEXT), "[");
         }
+    }
+
+    private static String digitToString(int digit)
+    {
+        if (digit < 10)
+            return String.valueOf(digit);
+        else
+            return "&" + digit + ";";
     }
 
     ////////////////////////////////////////////////////////////////

@@ -32,7 +32,7 @@ package org.cgsuite.core.misere;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.BitSet;
-import org.cgsuite.core.impartial.CodeDigit;
+
 import org.cgsuite.output.Output;
 import org.cgsuite.output.OutputTarget;
 import org.cgsuite.output.StyledTextOutput;

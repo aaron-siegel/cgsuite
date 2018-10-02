@@ -65,7 +65,7 @@ class TBCodeTest extends FlatSpec with Matchers {
 
     normalizations foreach { case (orig, normal) =>
 
-      TBCode2(orig).toString shouldBe normal
+      TBCode(orig).toString shouldBe normal
 
     }
 
@@ -75,7 +75,7 @@ class TBCodeTest extends FlatSpec with Matchers {
 
     traversals foreach { case ((code, heapSize), expectedResultString) =>
 
-      val traversal = TBCode2(code).traversal(heapSize)
+      val traversal = TBCode(code).traversal(heapSize)
       val result = mutable.MutableList[IndexedSeq[Int]]()
       while (traversal.advance()) {
         result += (0 until traversal.currentLength) map traversal.currentPart
