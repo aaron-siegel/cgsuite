@@ -177,7 +177,8 @@ trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
   def evaluate(domain: Domain): Any
-  def toNodeString: String
+  final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
+  def toNodeStringPrec(enclosingPrecedence: Int): String
 
   def evaluateAsBoolean(domain: Domain): Boolean = {
     evaluate(domain) match {
@@ -219,18 +220,15 @@ trait EvalNode extends Node {
 case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = constantValue
-  def toNodeString = {
-    if (constantValue == null)
-      "null"
-    else
-      constantValue.toString
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    CgscriptClass.instanceToOutput(constantValue).toString
   }
 }
 
 case class ThisNode(tree: Tree) extends EvalNode {
   override val children = Seq.empty
   override def evaluate(domain: Domain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
-  def toNodeString = "this"
+  def toNodeStringPrec(enclosingPrecedence: Int) = "this"
 }
 
 object IdentifierNode {
@@ -318,7 +316,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     }
   }
 
-  def toNodeString = id.name
+  def toNodeStringPrec(enclosingPrecedence: Int) = id.name
 
 }
 
@@ -339,7 +337,12 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
         throw exc
     }
   }
-  def toNodeString = op.name + operand.toNodeString
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    if (op.precedence <= enclosingPrecedence)
+      s"${op.name} ${operand.toNodeStringPrec(op.precedence)}"
+    else
+      s"(${op.name} ${operand.toNodeStringPrec(op.precedence)})"
+  }
 }
 
 object BinOpNode {
@@ -359,7 +362,15 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
         throw exc
     }
   }
-  def toNodeString = s"(${operand1.toNodeString} ${op.name} ${operand2.toNodeString})"
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    val op1str = operand1.toNodeStringPrec(op.precedence)
+    val op2str = operand2.toNodeStringPrec(op.precedence)
+    if (op.precedence <= enclosingPrecedence) {
+      s"$op1str ${op.name} $op2str"
+    } else {
+      s"($op1str ${op.name} $op2str)"
+    }
+  }
 }
 
 object ListNode {
@@ -382,8 +393,8 @@ case class ListNode(tree: Tree, elements: List[EvalNode]) extends EvalNode {
       case _ => elements.map { _.evaluate(domain) }
     }
   }
-  def toNodeString = {
-    "[" + (elements map {  _.toNodeString } mkString ",") + "]"
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    "[" + (elements map {  _.toNodeString } mkString ", ") + "]"
   }
 }
 
@@ -407,7 +418,9 @@ case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode 
       case _ => elements.map { _.evaluate(domain) }.toSet
     }
   }
-  def toNodeString = "{" + (elements map { _.toNodeString } mkString ", ") + "}"
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    "{" + (elements map { _.toNodeString } mkString ", ") + "}"
+  }
 }
 
 object MapNode {
@@ -431,18 +444,18 @@ case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNo
       case _ => elements.map { _.evaluate(domain) }.toMap
     }
   }
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (elements.isEmpty)
       "{=>}"
     else
-      "{" + (elements map { _.toNodeString } mkString ",") + "}"
+      "{" + (elements map { _.toNodeString } mkString ", ") + "}"
   }
 }
 
 case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
   override val children = Seq(from, to)
   override def evaluate(domain: Domain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
-  def toNodeString = s"${from.toNodeString} => ${to.toNodeString}"
+  def toNodeStringPrec(enclosingPrecedence: Int) = s"${from.toNodeString} => ${to.toNodeString}"
 }
 
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
@@ -505,7 +518,7 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
     }
   }
 
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     val loStr = lo map { _.toNodeString } mkString ","
     val roStr = ro map { _.toNodeString } mkString ","
     s"{$loStr | $roStr}"
@@ -582,7 +595,7 @@ case class LoopyGameSpecNode(
     Iterable(thisNode)
   }
 
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     val loStr = (lo map { _.toNodeString }) ++ (if (loPass) Some("pass") else None) mkString ","
     val roStr = (ro map { _.toNodeString }) ++ (if (roPass) Some("pass") else None) mkString ","
     s"{$loStr | $roStr}"
@@ -598,8 +611,8 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     else
       elseNode.map { _.evaluate(domain) }.orNull
   }
-  def toNodeString = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
-    (elseNode map { " " + _.toNodeString } getOrElse "") + " end"
+  def toNodeStringPrec(enclosingPrecedence: Int) = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
+    (elseNode map { " else " + _.toNodeString } getOrElse "") + " end"
 }
 
 object LoopNode {
@@ -709,7 +722,7 @@ case class LoopNode(
 
   }
 
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     val loopTypeStr = loopType match {
       case LoopNode.Do => "do"
       case LoopNode.YieldList => "yield"
@@ -831,14 +844,17 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
   override def evaluate(domain: Domain) = Procedure(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
   var localVariableCount: Int = 0
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     val paramStr = {
       if (parameters.length == 1)
         parameters.head.id.name
       else
         "(" + (parameters map { _.id.name } mkString ", ") + ")"
     }
-    paramStr + " -> " + body.toNodeString
+    if (OperatorPrecedence.FunctionDef <= enclosingPrecedence)
+      s"$paramStr -> ${body.toNodeStringPrec(OperatorPrecedence.FunctionDef)}"
+    else
+      s"($paramStr -> ${body.toNodeStringPrec(OperatorPrecedence.FunctionDef)})"
   }
 }
 
@@ -847,7 +863,7 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override def evaluate(domain: Domain) = {
     throw EvalException(msg.evaluate(domain).toString)
   }
-  def toNodeString = s"error(${msg.toNodeString})"
+  def toNodeStringPrec(enclosingPrecedence: Int) = s"error(${msg.toNodeString})"
 }
 
 case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
@@ -893,12 +909,11 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       }
     }
   }
-  def toNodeString = {
-    obj match {
-      case _: ConstantNode | _: IdentifierNode | _: DotNode | _: ListNode | _: SetNode | _: FunctionCallNode |
-        _: GameSpecNode | _: MapNode | _: ThisNode => s"${obj.toNodeString}.${idNode.toNodeString}"
-      case _ => s"(${obj.toNodeString}).${idNode.toNodeString})"
-    }
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    if (OperatorPrecedence.Postfix <= enclosingPrecedence)
+      s"${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString}"
+    else
+      s"(${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString})"
   }
 }
 
@@ -1026,13 +1041,12 @@ case class FunctionCallNode(
     FunctionCallResolution(callSite, argNames, token)
   }
 
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     val argStr = argNodes map { _.toNodeString } mkString ", "
-    callSiteNode match {
-      case _: ConstantNode | _: IdentifierNode | _: DotNode | _: ListNode | _: SetNode | _: FunctionCallNode |
-           _: GameSpecNode | _: MapNode | _: ThisNode => s"${callSiteNode.toNodeString}($argStr)"
-      case _ => s"(${callSiteNode.toNodeString})($argStr)"
-    }
+    if (OperatorPrecedence.Postfix <= enclosingPrecedence)
+      s"${callSiteNode.toNodeStringPrec(OperatorPrecedence.Postfix)}($argStr)"
+    else
+      s"(${callSiteNode.toNodeStringPrec(OperatorPrecedence.Postfix)}($argStr))"
   }
 
 }
@@ -1151,9 +1165,13 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
     }
     newValue
   }
-  def toNodeString = {
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
     val varStr = if (declType != AssignmentDeclType.Ordinary) "var " else ""
-    varStr + idNode.toNodeString + " := " + expr.toNodeString
+    val assignStr = s"$varStr${idNode.toNodeString} := ${expr.toNodeStringPrec(OperatorPrecedence.Assign)}"
+    if (OperatorPrecedence.Assign <= enclosingPrecedence)
+      assignStr
+    else
+      s"($assignStr)"
   }
 }
 
@@ -1181,7 +1199,11 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends 
     }
     result
   }
-  def toNodeString = {
-    "begin " + (statements map { _.toNodeString } mkString "; ") + " end"
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    val seqStr = statements map { _.toNodeStringPrec(OperatorPrecedence.StatementSeq) } mkString "; "
+    if (OperatorPrecedence.StatementSeq <= enclosingPrecedence)
+      seqStr
+    else
+      s"begin $seqStr end"
   }
 }

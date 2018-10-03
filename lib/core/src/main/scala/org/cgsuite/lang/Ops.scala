@@ -14,23 +14,37 @@ import org.cgsuite.util.{Coordinates, Grid, Strip}
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
+object OperatorPrecedence {
+
+  val Primary, Nim, Postfix, Exp, Neg, Mult, OrdinalSum, Sidle, Plus, Range, Infix, Relational,
+      Is, Not, And, Or, FunctionDef, Assign, StatementSeq = next
+
+  private var prec = 0
+
+  private def next = {
+    prec += 1
+    prec
+  }
+
+}
+
 object Ops {
 
   type MultiOp = Iterable[Any] => Any
 
-  val Pos = UnOp("pos") {
+  val Pos = UnOp("pos", OperatorPrecedence.Neg) {
     case x: Game => +x
     case x: SidedValue => +x
     case x: SurrealNumber => +x
   }
 
-  val Neg = UnOp("neg") {
+  val Neg = UnOp("neg", OperatorPrecedence.Neg) {
     case x: Game => -x
     case x: SidedValue => -x
     case x: SurrealNumber => -x
   }
 
-  val PlusMinus = UnOp("+-") {
+  val PlusMinus = UnOp("+-", OperatorPrecedence.Neg) {
     case x: CanonicalShortGame => CanonicalShortGame(x)(-x)
     case x: CanonicalStopper => CanonicalStopper(x)(-x)
     case x: Set[_] if x forall { _.isInstanceOf[CanonicalShortGame] } =>
@@ -40,7 +54,7 @@ object Ops {
     case x: Game => ExplicitGame(x)(-x)
   }
 
-  val Plus = CachingBinOp("+") {
+  val Plus = CachingBinOp("+", OperatorPrecedence.Plus) {
     case (_: Game, _: Zero) => (x: Game, _: Zero) => x
     case (_: Zero, _: Game) => (_: Zero, y: Game) => y
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x + y
@@ -71,7 +85,7 @@ object Ops {
     result
   }
 
-  val Minus = CachingBinOp("-") {
+  val Minus = CachingBinOp("-", OperatorPrecedence.Plus) {
     case (_: Game, _:Zero) => (x: Game, _: Zero) => x
     case (_: Zero, _:Game) => (_: Zero, y: Game) => y
     case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x - y
@@ -87,7 +101,7 @@ object Ops {
     case (_: Coordinates, _:Coordinates) => (x: Coordinates, y: Coordinates) => x - y
   }
 
-  val OrdinalPlus = CachingBinOp(":") {
+  val OrdinalPlus = CachingBinOp(":", OperatorPrecedence.OrdinalSum) {
     case (_: Nimber, _: Nimber) => (x: Nimber, y: Nimber) => x ordinalSum y
     case (_: CanonicalShortGame, _: CanonicalShortGame) => (x: CanonicalShortGame, y: CanonicalShortGame) => x ordinalSum y
     case (_: CanonicalStopper, _: CanonicalStopper) => (x: CanonicalStopper, y: CanonicalStopper) => x ordinalSum y
@@ -95,7 +109,7 @@ object Ops {
     case (_: Game, _: Game) => (x: Game, y: Game) => CompoundGame(OrdinalSum, x, y)
   }
 
-  val Times = CachingBinOp("*") {
+  val Times = CachingBinOp("*", OperatorPrecedence.Mult) {
     case (_: Zero, _: Game) => (_: Zero, _: Game) => zero
     case (_: Integer, _: Integer) => (x: Integer, y: Integer) => x * y
     case (_: GeneralizedOrdinal, _: GeneralizedOrdinal) => (x: GeneralizedOrdinal, y: GeneralizedOrdinal) => x * y
@@ -109,17 +123,17 @@ object Ops {
     case (_: Integer, _: Coordinates) => (x: Integer, y: Coordinates) => y * x
   }
 
-  val Div = BinOp("/") {
+  val Div = BinOp("/", OperatorPrecedence.Mult) {
     case (x: RationalNumber, y: RationalNumber) => x / y
     case (x: SurrealNumber, y: SurrealNumber) => x / y
   }
 
-  val Mod = BinOp("%") {
+  val Mod = BinOp("%", OperatorPrecedence.Mult) {
     case (x: Integer, y: Integer) => x % y
     case (x: RationalNumber, y: RationalNumber) => x % y
   }
 
-  val Exp = BinOp("^") {
+  val Exp = BinOp("^", OperatorPrecedence.Exp) {
     case (x: RationalNumber, y: Integer) => x pow y
     case (x: GeneralizedOrdinal, y: GeneralizedOrdinal) if x.isOmega => y.omegaPower
     case (x: SurrealNumber, y: Integer) => x pow y
@@ -135,69 +149,69 @@ object Ops {
     case (x: Coordinates, y: Coordinates) => x <= y
   }
 
-  val Equals = BinOp("==") {
+  val Equals = BinOp("==", OperatorPrecedence.Relational) {
     case (x: StopperSidedValue, y: StopperSidedValue) => x == y
     case (x: Game, y: Game) => leq(x, y) && leq(y, x)
     case (x, y) => x == y
   }
 
-  val Neq = BinOp("!=") {
+  val Neq = BinOp("!=", OperatorPrecedence.Relational) {
     case (x: StopperSidedValue, y: StopperSidedValue) => x != y
     case (x: Game, y: Game) => !leq(x, y) || !leq(y, x)
     case (x, y) => x != y
   }
 
-  val RefEquals = BinOp("===") { case (a, b) => a == b }
-  val RefNeq = BinOp("!==") { case (a, b) => a != b }
-  val Leq = BinOp("<=") { case (a, b) => leq(a, b) }
-  val Geq = BinOp(">=") { case (a, b) => leq(b, a) }
-  val Lt = BinOp("<") { case (a, b) => leq(a, b) && !leq(b, a) }
-  val Gt = BinOp(">") { case (a, b) => !leq(a, b) && leq(b, a) }
-  val Confused = BinOp("<>") { case (a, b) => !leq(a, b) && !leq(b, a) }
-  val LConfused = BinOp("<|") { case (a, b) => !leq(b, a) }
-  val GConfused = BinOp("|>") { case (a, b) => !leq(a, b) }
-  val Compare = BinOp("<=>") { case (a, b) => (leq(a, b), leq(b, a)) match {
+  val RefEquals = BinOp("===", OperatorPrecedence.Relational) { case (a, b) => a == b }
+  val RefNeq = BinOp("!==", OperatorPrecedence.Relational) { case (a, b) => a != b }
+  val Leq = BinOp("<=", OperatorPrecedence.Relational) { case (a, b) => leq(a, b) }
+  val Geq = BinOp(">=", OperatorPrecedence.Relational) { case (a, b) => leq(b, a) }
+  val Lt = BinOp("<", OperatorPrecedence.Relational) { case (a, b) => leq(a, b) && !leq(b, a) }
+  val Gt = BinOp(">", OperatorPrecedence.Relational) { case (a, b) => !leq(a, b) && leq(b, a) }
+  val Confused = BinOp("<>", OperatorPrecedence.Relational) { case (a, b) => !leq(a, b) && !leq(b, a) }
+  val LConfused = BinOp("<|", OperatorPrecedence.Relational) { case (a, b) => !leq(b, a) }
+  val GConfused = BinOp("|>", OperatorPrecedence.Relational) { case (a, b) => !leq(a, b) }
+  val Compare = BinOp("<=>", OperatorPrecedence.Relational) { case (a, b) => (leq(a, b), leq(b, a)) match {
     case (true, true) => zero
     case (true, false) => negativeOne
     case (false, true) => one
     case (false, false) => star
   }}
 
-  val Not = UnOp("not") { case x: Boolean => !x }
-  val And = BinOp("and") { case (x: Boolean, y: Boolean) => x && y }
-  val Or = BinOp("or") { case (x: Boolean, y: Boolean) => x || y }
+  val Not = UnOp("not", OperatorPrecedence.Not) { case x: Boolean => !x }
+  val And = BinOp("and", OperatorPrecedence.And) { case (x: Boolean, y: Boolean) => x && y }
+  val Or = BinOp("or", OperatorPrecedence.Or) { case (x: Boolean, y: Boolean) => x || y }
 
-  val Is = BinOp("is") { case (x: Any, y: ClassObject) =>
+  val Is = BinOp("is", OperatorPrecedence.Is) { case (x: Any, y: ClassObject) =>
     CgscriptClass.of(x).ancestors.contains(y.forClass)
   }
 
-  val MakeNimber = UnOp("nim") {
+  val MakeNimber = UnOp("nim", OperatorPrecedence.Nim) {
     case x: SmallInteger => Nimber(x)
     case collection: Iterable[_] => MisereCanonicalGame(collection)
   }
 
-  val MakeUpMultiple = BinOp("up") {
+  val MakeUpMultiple = BinOp("upstar", OperatorPrecedence.Nim) {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, x.intValue, y.intValue)
   }
 
-  val MakeDownMultiple = BinOp("down") {
+  val MakeDownMultiple = BinOp("downstar", OperatorPrecedence.Nim) {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, -x.intValue, y.intValue)
   }
 
-  val MakeSides = BinOp("&") {
+  val MakeSides = BinOp("&", OperatorPrecedence.Sidle) {
     case (x: CanonicalStopper, y: CanonicalStopper) => StopperSidedValue(x, y)
   }
 
-  val MakeCoordinates = BinOp("(,)") {
+  val MakeCoordinates = BinOp("(,)", OperatorPrecedence.Primary) {
     case (x: Integer, y: Integer) => Coordinates(x.intValue, y.intValue)
   }
 
-  val Range = BinOp("..") {
+  val Range = BinOp("..", OperatorPrecedence.Range) {
     case (x: Integer, y: Integer) => NumericRange.inclusive(x, y, Values.one)
     case (x: NumericRange[_], y: Integer) => x.asInstanceOf[NumericRange[Integer]] by y
   }
 
-  val ArrayReference = BinOp("[]") {
+  val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix) {
     case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
     case (map: Map[Any @unchecked, _], key: Any) => map(key)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
@@ -208,6 +222,7 @@ object Ops {
 
 trait UnOp {
   def name: String
+  def precedence: Int
   def apply(tree: Tree, x: Any): Any
   def throwEvalException(tree: Tree, x: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
@@ -216,10 +231,10 @@ trait UnOp {
 }
 
 object UnOp {
-  def apply(name: String)(resolver: Any => Any) = new SimpleUnOp(name)(resolver)
+  def apply(name: String, precedence: Int)(resolver: Any => Any) = new SimpleUnOp(name, precedence)(resolver)
 }
 
-class SimpleUnOp(val name: String)(resolver: Any => Any) extends UnOp {
+class SimpleUnOp(val name: String, val precedence: Int)(resolver: Any => Any) extends UnOp {
   def apply(tree: Tree, x: Any): Any = {
     try {
       resolver(x)
@@ -229,7 +244,7 @@ class SimpleUnOp(val name: String)(resolver: Any => Any) extends UnOp {
   }
 }
 
-class CachingUnOp(val name: String)(resolver: Any => _ => Any) extends UnOp {
+class CachingUnOp(val name: String, val precedence: Int)(resolver: Any => _ => Any) extends UnOp {
 
   val classLookupCache = mutable.AnyRefMap[Class[_], Any => Any]()
 
@@ -246,6 +261,7 @@ class CachingUnOp(val name: String)(resolver: Any => _ => Any) extends UnOp {
 
 trait BinOp {
   def name: String
+  def precedence: Int
   def apply(tree: Tree, x: Any, y: Any): Any
   def throwEvalException(tree: Tree, x: Any, y: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
@@ -255,10 +271,10 @@ trait BinOp {
 }
 
 object BinOp {
-  def apply(name: String)(resolver: PartialFunction[(Any, Any), Any]) = new SimpleBinOp(name)(resolver)
+  def apply(name: String, precedence: Int)(resolver: PartialFunction[(Any, Any), Any]) = new SimpleBinOp(name, precedence)(resolver)
 }
 
-class SimpleBinOp(val name: String)(resolver: PartialFunction[(Any, Any), Any]) extends BinOp {
+class SimpleBinOp(val name: String, val precedence: Int)(resolver: PartialFunction[(Any, Any), Any]) extends BinOp {
   override def apply(tree: Tree, x: Any, y: Any) = {
     try {
       resolver(x, y)
@@ -269,10 +285,10 @@ class SimpleBinOp(val name: String)(resolver: PartialFunction[(Any, Any), Any]) 
 }
 
 object CachingBinOp {
-  def apply(name: String)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) = new CachingBinOp(name)(resolver)
+  def apply(name: String, precedence: Int)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) = new CachingBinOp(name, precedence)(resolver)
 }
 
-class CachingBinOp(val name: String)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) extends BinOp {
+class CachingBinOp(val name: String, val precedence: Int)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) extends BinOp {
 
   val classLookupCache = mutable.AnyRefMap[(Class[_], Class[_]), (Any, Any) => Any]()
 

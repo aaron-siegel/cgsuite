@@ -1,5 +1,8 @@
 package org.cgsuite.lang
 
+import java.util
+
+import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with OutputTarget {
@@ -20,6 +23,6 @@ case class Procedure(node: ProcedureNode, domain: Domain) extends CallSite with 
   def referenceToken = Some(node.token)
   def locationMessage = "in procedure call"
 
-  def toOutput: StyledTextOutput = new StyledTextOutput(node.toNodeString)
+  def toOutput: StyledTextOutput = new StyledTextOutput(util.EnumSet.of(Style.FACE_MONOSPACED), node.toNodeString)
 
 }
