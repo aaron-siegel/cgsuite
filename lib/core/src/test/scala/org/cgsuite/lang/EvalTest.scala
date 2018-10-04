@@ -7,11 +7,15 @@ class EvalTest extends CgscriptSpec{
     executeTests(Table(
       header,
       ("Simple echo", "0", "0"),
-      ("Semicolon suppress output", "0;", "Nothing"),
+      ("Semicolon suppress output", "0;", null),
+      ("Semicolon doesn't suppress inside complex block", "begin 0; end", "0"),
+      ("More complex semicolon suppression", "begin 0; end;", null),
       ("Variable assignment", "g := 7", "7"),
       ("Variable retrieval", "g", "7"),
       ("Multivee/identifier parse check", "vvvvx := vvvvv", "v5"),
-      ("Assign to name of class", "Integer := 5", "!!Cannot assign to class name as variable: `Integer`")
+      ("Assign to name of class", "Integer := 5", "!!Cannot assign to class name as variable: `Integer`"),
+      ("Empty script", "// This is an empty script.", null),
+      ("Blank (but nonempty) expression", "begin end", "Nothing")
     ))
 
   }
@@ -290,7 +294,7 @@ class EvalTest extends CgscriptSpec{
 
     executeTests(Table(
       header,
-      ("Procedure definition", "f := x -> x+1", "x -> (x + 1)"),
+      ("Procedure definition", "f := x -> x+1", "x -> x + 1"),
       ("Procedure definition - duplicate var", "(x, x) -> x", "!!Duplicate var: `x`"),
       ("Procedure evaluation", "f(8)", "9"),
       ("Procedure scope 1", "y := 3; f := x -> x+y; f(5)", "8"),
@@ -299,7 +303,7 @@ class EvalTest extends CgscriptSpec{
       ("Procedure scope 4", "f := temp -> temp+1; f(5); temp", "!!That variable is not defined: `temp`"),
       ("No-parameter procedure", "f := () -> 3", "() -> 3"),
       ("No-parameter procedure evaluation", "f()", "3"),
-      ("Multiparameter procedure", "f := (x,y) -> (x-y)/2", "(x, y) -> ((x - y) / 2)"),
+      ("Multiparameter procedure", "f := (x,y) -> (x-y)/2", "(x, y) -> (x - y) / 2"),
       ("Multiparameter procedure evaluation", "f(3,4)", "-1/2"),
       ("Procedure eval - too few args", "f(3)", "!!Missing required parameter (in procedure call): `y`"),
       ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments (in procedure call): 3 (expecting at most 2)"),
@@ -308,9 +312,9 @@ class EvalTest extends CgscriptSpec{
       ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate named parameter (in procedure call): `x`"),
       ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter (in procedure call): `y`"),
       ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name (in procedure call): `foo`"),
-      ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> (x + y)"),
-      ("Curried procedure evaluation - 1", "g := f(3)", "y -> (x + y)"),
-      ("Curried procedure evaluation - 2", "h := f(5)", "y -> (x + y)"),
+      ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> x + y"),
+      ("Curried procedure evaluation - 1", "g := f(3)", "y -> x + y"),
+      ("Curried procedure evaluation - 2", "h := f(5)", "y -> x + y"),
       ("Curried procedure evaluation - 3", "[g(7),h(7)]", "[10,12]"),
       ("Curried procedure definition - duplicate var", "x -> x -> (x + 3)", "!!Duplicate var: `x`"),
       ("Recursive procedure", "fact := n -> if n == 0 then 1 else n * fact(n-1) end; fact(6)", "720"),

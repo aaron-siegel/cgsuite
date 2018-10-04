@@ -190,11 +190,11 @@ object Ops {
     case collection: Iterable[_] => MisereCanonicalGame(collection)
   }
 
-  val MakeUpMultiple = BinOp("upstar", OperatorPrecedence.Nim, Some { "^" + _ + "*" + _ }) {
+  val MakeUpMultiple = BinOp("up", OperatorPrecedence.Nim, Some { "^" + _ + "*" + _ }) {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, x.intValue, y.intValue)
   }
 
-  val MakeDownMultiple = BinOp("downstar", OperatorPrecedence.Nim, Some { "v" + _ + "*" + _ }) {
+  val MakeDownMultiple = BinOp("down", OperatorPrecedence.Nim, Some { "v" + _ + "*" + _ }) {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, -x.intValue, y.intValue)
   }
 

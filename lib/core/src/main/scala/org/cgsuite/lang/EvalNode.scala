@@ -8,6 +8,7 @@ import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, Ev
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.output.{EmptyOutput, StyledTextOutput}
 
 import scala.collection.generic.Growable
 import scala.collection.mutable
@@ -124,10 +125,6 @@ object EvalNode {
           throw EvalException("Syntax error.", tree)
         AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), AssignmentDeclType.Ordinary)
       case VAR => VarNode(tree)
-
-      // Suppressor
-
-      case SEMI => ConstantNode(tree, null)
 
       // Statement sequence
 
@@ -1027,7 +1024,11 @@ case class FunctionCallNode(
 
     override def call(args: Array[Any]): Any = {
       val scriptDomain = new Domain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
-      script.node evaluate scriptDomain
+      val result = script.node evaluate scriptDomain
+      if (script.node.suppressOutput)
+        EmptyOutput
+      else
+        result
     }
 
     override def ordinal: Int = -1
@@ -1181,10 +1182,15 @@ object AssignmentDeclType extends Enumeration {
 }
 
 object StatementSequenceNode {
-  def apply(tree: Tree): StatementSequenceNode = StatementSequenceNode(tree, tree.children.map { EvalNode(_) })
+  def apply(tree: Tree): StatementSequenceNode = {
+    // Filter out the semicolons (we only care about the last one)
+    val filteredChildren = tree.children filterNot { _.getType == SEMI }
+    val suppressOutput = tree.children.isEmpty || tree.children.last.getType == SEMI
+    StatementSequenceNode(tree, filteredChildren map { EvalNode(_) }, suppressOutput)
+  }
 }
 
-case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode]) extends EvalNode {
+case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean) extends EvalNode {
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
   override def elaborate(scope: ElaborationDomain): Unit = {

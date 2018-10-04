@@ -31,18 +31,17 @@ trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
 
     forAll(tests) { (_, input: String, expectedOutput: String) =>
       if (expectedOutput != null && (expectedOutput startsWith "!!")) {
-        val thrown = the [CgsuiteException] thrownBy parseResult(input, varMap)
+        val thrown = the [CgsuiteException] thrownBy EvalUtil.evaluateScript(input, varMap)
         thrown.getMessage shouldBe (expectedOutput stripPrefix "!!")
         if (!thrown.isInstanceOf[SyntaxException])
           thrown.tokenStack should not be empty
       } else {
-        val result = parseResult(input, varMap)
-        val output = CgscriptClass.of(result).classInfo.toOutputMethod.call(result, Array.empty)
+        val output = EvalUtil.evaluate(input, varMap)
         if (expectedOutput == null) {
-          output.asInstanceOf[AnyRef].shouldEqual(null)
+          output shouldBe empty
         } else {
-          output shouldBe an[Output]
-          output.toString shouldBe expectedOutput
+          output.length shouldBe 1
+          output.head.toString shouldBe expectedOutput
         }
       }
     }
