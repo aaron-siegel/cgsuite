@@ -338,10 +338,11 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
     }
   }
   def toNodeStringPrec(enclosingPrecedence: Int) = {
+    val opStr = operand.toNodeStringPrec(op.precedence)
     if (op.precedence <= enclosingPrecedence)
-      s"${op.name} ${operand.toNodeStringPrec(op.precedence)}"
+      op.toOpString(opStr)
     else
-      s"(${op.name} ${operand.toNodeStringPrec(op.precedence)})"
+      s"(${op.toOpString(opStr)})"
   }
 }
 
@@ -366,9 +367,9 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
     val op1str = operand1.toNodeStringPrec(op.precedence)
     val op2str = operand2.toNodeStringPrec(op.precedence)
     if (op.precedence <= enclosingPrecedence) {
-      s"$op1str ${op.name} $op2str"
+      op.toOpString(op1str, op2str)
     } else {
-      s"($op1str ${op.name} $op2str)"
+      s"(${op.toOpString(op1str, op2str)})"
     }
   }
 }

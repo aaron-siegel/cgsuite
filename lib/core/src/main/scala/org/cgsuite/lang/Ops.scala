@@ -32,19 +32,19 @@ object Ops {
 
   type MultiOp = Iterable[Any] => Any
 
-  val Pos = UnOp("pos", OperatorPrecedence.Neg) {
+  val Pos = UnOp("pos", OperatorPrecedence.Neg, Some { "+" + _ }) {
     case x: Game => +x
     case x: SidedValue => +x
     case x: SurrealNumber => +x
   }
 
-  val Neg = UnOp("neg", OperatorPrecedence.Neg) {
+  val Neg = UnOp("neg", OperatorPrecedence.Neg, Some { "-" + _ }) {
     case x: Game => -x
     case x: SidedValue => -x
     case x: SurrealNumber => -x
   }
 
-  val PlusMinus = UnOp("+-", OperatorPrecedence.Neg) {
+  val PlusMinus = UnOp("+-", OperatorPrecedence.Neg, Some { "+-" + _ }) {
     case x: CanonicalShortGame => CanonicalShortGame(x)(-x)
     case x: CanonicalStopper => CanonicalStopper(x)(-x)
     case x: Set[_] if x forall { _.isInstanceOf[CanonicalShortGame] } =>
@@ -185,16 +185,16 @@ object Ops {
     CgscriptClass.of(x).ancestors.contains(y.forClass)
   }
 
-  val MakeNimber = UnOp("nim", OperatorPrecedence.Nim) {
+  val MakeNimber = UnOp("nim", OperatorPrecedence.Nim, Some { "*" + _ }) {
     case x: SmallInteger => Nimber(x)
     case collection: Iterable[_] => MisereCanonicalGame(collection)
   }
 
-  val MakeUpMultiple = BinOp("upstar", OperatorPrecedence.Nim) {
+  val MakeUpMultiple = BinOp("upstar", OperatorPrecedence.Nim, Some { "^" + _ + "*" + _ }) {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, x.intValue, y.intValue)
   }
 
-  val MakeDownMultiple = BinOp("downstar", OperatorPrecedence.Nim) {
+  val MakeDownMultiple = BinOp("downstar", OperatorPrecedence.Nim, Some { "v" + _ + "*" + _ }) {
     case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, -x.intValue, y.intValue)
   }
 
@@ -202,7 +202,7 @@ object Ops {
     case (x: CanonicalStopper, y: CanonicalStopper) => StopperSidedValue(x, y)
   }
 
-  val MakeCoordinates = BinOp("(,)", OperatorPrecedence.Primary) {
+  val MakeCoordinates = BinOp("(,)", OperatorPrecedence.Primary, Some { "(" + _ + ", " + _ + ")" }) {
     case (x: Integer, y: Integer) => Coordinates(x.intValue, y.intValue)
   }
 
@@ -211,7 +211,7 @@ object Ops {
     case (x: NumericRange[_], y: Integer) => x.asInstanceOf[NumericRange[Integer]] by y
   }
 
-  val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix) {
+  val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) {
     case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
     case (map: Map[Any @unchecked, _], key: Any) => map(key)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
@@ -221,20 +221,40 @@ object Ops {
 }
 
 trait UnOp {
+
   def name: String
+
   def precedence: Int
+
   def apply(tree: Tree, x: Any): Any
+
+  private[lang] def toOpStringOpt: Option[String => String]
+
+  val toOpString: String => String = { op =>
+    toOpStringOpt match {
+      case Some(fn) => fn(op)
+      case None => s"$name $op"
+    }
+  }
+
   def throwEvalException(tree: Tree, x: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
     throw EvalException(s"No operation `$name` for argument of type `$xClass`", tree)
   }
+
 }
 
 object UnOp {
-  def apply(name: String, precedence: Int)(resolver: Any => Any) = new SimpleUnOp(name, precedence)(resolver)
+
+  def apply(name: String, precedence: Int, toOpStringOpt: Option[String => String] = None)
+           (resolver: Any => Any) = new SimpleUnOp(name, precedence, toOpStringOpt)(resolver)
+
 }
 
-class SimpleUnOp(val name: String, val precedence: Int)(resolver: Any => Any) extends UnOp {
+class SimpleUnOp(val name: String, val precedence: Int,
+                 val toOpStringOpt: Option[String => String] = None)
+                (resolver: Any => Any) extends UnOp {
+
   def apply(tree: Tree, x: Any): Any = {
     try {
       resolver(x)
@@ -242,9 +262,12 @@ class SimpleUnOp(val name: String, val precedence: Int)(resolver: Any => Any) ex
       case err: MatchError => throwEvalException(tree, x)
     }
   }
+
 }
 
-class CachingUnOp(val name: String, val precedence: Int)(resolver: Any => _ => Any) extends UnOp {
+class CachingUnOp(val name: String, val precedence: Int,
+                  val toOpStringOpt: Option[String => String] = None)
+                 (resolver: Any => _ => Any) extends UnOp {
 
   val classLookupCache = mutable.AnyRefMap[Class[_], Any => Any]()
 
@@ -260,21 +283,41 @@ class CachingUnOp(val name: String, val precedence: Int)(resolver: Any => _ => A
 }
 
 trait BinOp {
+
   def name: String
+
   def precedence: Int
+
   def apply(tree: Tree, x: Any, y: Any): Any
+
+  private[lang] def toOpStringOpt: Option[(String, String) => String]
+
+  val toOpString: (String, String) => String = { (op1, op2) =>
+    toOpStringOpt match {
+      case Some(fn) => fn(op1, op2)
+      case None => s"$op1 $name $op2"
+    }
+  }
+
   def throwEvalException(tree: Tree, x: Any, y: Any): Unit = {
     val xClass = CgscriptClass.of(x).qualifiedName
     val yClass = CgscriptClass.of(y).qualifiedName
     throw EvalException(s"No operation `$name` for arguments of types `$xClass`, `$yClass`", tree)
   }
+
 }
 
 object BinOp {
-  def apply(name: String, precedence: Int)(resolver: PartialFunction[(Any, Any), Any]) = new SimpleBinOp(name, precedence)(resolver)
+  def apply(name: String, precedence: Int, toOpStringOpt: Option[(String, String) => String] = None)
+           (resolver: PartialFunction[(Any, Any), Any]) = {
+    new SimpleBinOp(name, precedence, toOpStringOpt)(resolver)
+  }
 }
 
-class SimpleBinOp(val name: String, val precedence: Int)(resolver: PartialFunction[(Any, Any), Any]) extends BinOp {
+class SimpleBinOp(val name: String, val precedence: Int,
+                  val toOpStringOpt: Option[(String, String) => String] = None)
+                 (resolver: PartialFunction[(Any, Any), Any]) extends BinOp {
+
   override def apply(tree: Tree, x: Any, y: Any) = {
     try {
       resolver(x, y)
@@ -282,13 +325,19 @@ class SimpleBinOp(val name: String, val precedence: Int)(resolver: PartialFuncti
       case err: MatchError => throwEvalException(tree, x, y)
     }
   }
+
 }
 
 object CachingBinOp {
-  def apply(name: String, precedence: Int)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) = new CachingBinOp(name, precedence)(resolver)
+  def apply(name: String, precedence: Int, toOpStringOpt: Option[(String, String) => String] = None)
+           (resolver: PartialFunction[(Any, Any), (_, _) => Any]) = {
+    new CachingBinOp(name, precedence, toOpStringOpt)(resolver)
+  }
 }
 
-class CachingBinOp(val name: String, val precedence: Int)(resolver: PartialFunction[(Any, Any), (_, _) => Any]) extends BinOp {
+class CachingBinOp(val name: String, val precedence: Int,
+                   val toOpStringOpt: Option[(String, String) => String] = None)
+                  (resolver: PartialFunction[(Any, Any), (_, _) => Any]) extends BinOp {
 
   val classLookupCache = mutable.AnyRefMap[(Class[_], Class[_]), (Any, Any) => Any]()
 
