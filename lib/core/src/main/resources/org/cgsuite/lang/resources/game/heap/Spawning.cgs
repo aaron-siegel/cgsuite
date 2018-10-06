@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Spawning(code as String) extends HeapRuleset
+
+  external override def HeapOptions(heapSize as Integer);
+
+end

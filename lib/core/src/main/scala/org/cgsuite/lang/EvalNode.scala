@@ -106,11 +106,15 @@ object EvalNode {
         if (tree.children.size > 2) Some(EvalNode(tree.children(2))) else None
       )
       case ERROR => ErrorNode(tree, EvalNode(tree.head))
-      case DO | YIELD | LISTOF | SETOF | TABLEOF | SUMOF => LoopNode(tree)
+      case DO | YIELD | LISTOF | MAPOF | SETOF | TABLEOF | SUMOF => LoopNode(tree)
 
       // Procedures
 
       case RARROW => ProcedureNode(tree, None)
+
+      // Map entry
+
+      case BIGRARROW => MapPairNode(tree)
 
       // Resolvers
 
@@ -424,7 +428,7 @@ case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode 
 object MapNode {
   def apply(tree: Tree): MapNode = {
     assert(tree.getType == EXPLICIT_MAP)
-    val mapPairNodes = tree.children.map { t => MapPairNode(t, EvalNode(t.head), EvalNode(t.children(1))) }
+    val mapPairNodes = tree.children map { MapPairNode(_) }
     MapNode(tree, mapPairNodes.toIndexedSeq)
   }
 }
@@ -447,6 +451,12 @@ case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNo
       "{=>}"
     else
       "{" + (elements map { _.toNodeString } mkString ", ") + "}"
+  }
+}
+
+object MapPairNode {
+  def apply(tree: Tree): MapPairNode = {
+    MapPairNode(tree, EvalNode(tree.head), EvalNode(tree.children(1)))
   }
 }
 
@@ -620,6 +630,7 @@ object LoopNode {
     val loopType = tree.getType match {
       case DO => Do
       case YIELD | LISTOF => YieldList
+      case MAPOF => YieldMap
       case SETOF => YieldSet
       case TABLEOF => YieldTable
       case SUMOF => YieldSum
@@ -650,6 +661,7 @@ object LoopNode {
   sealed trait LoopType
   case object Do extends LoopType
   case object YieldList extends LoopType
+  case object YieldMap extends LoopType
   case object YieldSet extends LoopType
   case object YieldTable extends LoopType
   case object YieldSum extends LoopType
@@ -677,7 +689,7 @@ case class LoopNode(
 
   private val isYield: Boolean = loopType match {
     case LoopNode.Do | LoopNode.YieldSum => false
-    case LoopNode.YieldList | LoopNode.YieldSet | LoopNode.YieldTable => true
+    case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldSet | LoopNode.YieldTable => true
   }
   private val pushDownYield: Option[LoopNode] = (isYield, body) match {
     case (true, loopBody: LoopNode) =>
@@ -703,6 +715,7 @@ case class LoopNode(
 
     val yieldResult: Iterable[Any] with Growable[Any] = loopType match {
       case LoopNode.YieldList | LoopNode.YieldTable => ArrayBuffer[Any]()
+      case LoopNode.YieldMap => mutable.HashMap[Any,Any]().asInstanceOf[Iterable[Any] with Growable[Any]]
       case LoopNode.YieldSet => mutable.HashSet[Any]()
       case LoopNode.YieldSum | LoopNode.Do => null
     }
@@ -710,6 +723,7 @@ case class LoopNode(
     loopType match {
       case LoopNode.Do => null
       case LoopNode.YieldList => if (yieldResult.isEmpty) Nil else yieldResult.toVector
+      case LoopNode.YieldMap => yieldResult.asInstanceOf[mutable.HashMap[Any,Any]].toMap
       case LoopNode.YieldSet => yieldResult.toSet
       case LoopNode.YieldTable => Table { yieldResult.toSeq map {
         case list: Seq[_] => list
@@ -724,6 +738,7 @@ case class LoopNode(
     val loopTypeStr = loopType match {
       case LoopNode.Do => "do"
       case LoopNode.YieldList => "yield"
+      case LoopNode.YieldMap => "mapof"
       case LoopNode.YieldSet => "setof"
       case LoopNode.YieldTable => "tableof"
       case LoopNode.YieldSum => "sumof"
@@ -741,7 +756,7 @@ case class LoopNode(
     antecedent + " " + body.toNodeString + " end"
   }
 
-  def evaluate(domain: Domain, yieldResult: Growable[Any]): Any = {
+  private def evaluate(domain: Domain, yieldResult: Growable[Any]): Any = {
 
     Profiler.start(prepareLoop)
 
@@ -796,7 +811,7 @@ case class LoopNode(
                     case it: Iterable[_] => yieldResult ++= it
                     case x => yieldResult += x
                   }
-                case LoopNode.YieldTable => yieldResult += r
+                case LoopNode.YieldMap | LoopNode.YieldTable => yieldResult += r
                 case LoopNode.YieldSum => sum = if (sum == null) r else Ops.Plus(tree, sum, r)
                 case LoopNode.Do => // Nothing
               }

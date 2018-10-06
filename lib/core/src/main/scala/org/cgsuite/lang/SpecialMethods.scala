@@ -1,6 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.core._
+import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.util.{Strip, Symmetry, UiHarness}
@@ -86,7 +87,8 @@ object SpecialMethods {
     "cgsuite.util.MutableSet.RemoveAll" -> { (set: mutable.Set[Any], x: Iterable[_]) => set --= x; null },
     "cgsuite.util.MutableMap.PutAll" -> { (map: mutable.Map[Any,Any], x: scala.collection.Map[_,_]) => map ++= x; null },
     "cgsuite.util.MutableMap.Remove" -> { (map: mutable.Map[Any,Any], x: Any) => map -= x; null },
-    "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null }
+    "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null },
+    "game.heap.Spawning" -> { (_: Any, str: String) => Spawning(str) }
 
   )
 

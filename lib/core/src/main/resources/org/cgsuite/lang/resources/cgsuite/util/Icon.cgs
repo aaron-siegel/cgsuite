@@ -44,6 +44,11 @@ enum Icon
   Frog,
   Toad,
 
+  // Coins
+
+  PennyHeads,
+  PennyTails,
+
   // Arrows
 
   DownArrow,

@@ -1,0 +1,40 @@
+/*${cgsuite.banner}*/
+
+class Turning(code as String) extends StripRuleset
+
+  var spawning := game.heap.Spawning(code);
+
+  class Position(strip as Strip) extends StripGame, ImpartialGame
+  
+    override def Options begin
+    
+      for n from 1 to strip.Length where strip[n] == 1
+      for heaps in spawning HeapOptions n
+      yield
+        var updates := mapof(j => 1-strip[j] for j in heaps);
+        Position(strip Updated updates Updated { n => 0 })
+      end
+    
+    end
+    
+    override def NimValue begin
+    
+      // It's much more efficient to do nim value computations on
+      // the corresponding heap game (Spawning).
+
+      var value := 0;
+      var seq := spawning.NimValueSequence(strip.Length);
+      for n from 1 to strip.Length where strip[n] == 1 do
+        value := value NimSum seq[n+1];     // TODO Somewhat counterintuitive to have nim value seq start with 0
+      end
+      value
+      
+    end
+  
+  end
+  
+  override def CharMap := "th";
+  
+  override def Icons := [Icon.PennyTails, Icon.PennyHeads];
+
+end

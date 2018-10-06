@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, TakeAndBreak}
+import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.core._
 import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput}
@@ -89,6 +89,7 @@ private[lang] object SystemClassRegistry {
     "game.OutcomeClass" -> classOf[LoopyOutcomeClass],
 
     "game.heap.TakeAndBreak" -> classOf[TakeAndBreak],
+    "game.heap.Spawning" -> classOf[Spawning],
     "game.heap.HeapRuleset" -> classOf[HeapRuleset],
     "game.heap.Periodicity" -> classOf[Periodicity]
 

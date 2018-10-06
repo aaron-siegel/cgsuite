@@ -48,6 +48,7 @@ object CgscriptClass {
   val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
   val List = CgscriptPackage.lookupClassByName("List").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
+  lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
 
   Object.ensureInitialized()
 
@@ -288,6 +289,7 @@ class CgscriptClass(
           // TODO There is some code duplication here with general object instantiation (search for "GameObject")
           case _ if ancestors contains ImpartialGame => new ImpartialGameObject(this, Array.empty)
           case _ if ancestors contains Game => new GameObject(this, Array.empty)
+          case _ if ancestors contains HeapRuleset => new HeapRulesetObject(this, Array.empty)
           case _ => new StandardObject(this, Array.empty)
         }
       }
@@ -849,6 +851,7 @@ class CgscriptClass(
     lazy val gameValueMethod = lookupMethodOrEvalException('GameValue)
     lazy val depthHintMethod = lookupMethodOrEvalException('DepthHint)
     lazy val toOutputMethod = lookupMethodOrEvalException('ToOutput)
+    lazy val heapOptionsMethod = lookupMethodOrEvalException('HeapOptions)
 
     private def lookupMethodOrEvalException(id: Symbol): CgscriptClass#Method = {
       lookupMethod(id) getOrElse {
@@ -966,7 +969,7 @@ class CgscriptClass(
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
-          s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)"
+          s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)", exc
         )
         case exc: InvocationTargetException => throw EvalException(
           exc.getTargetException match {
@@ -1030,6 +1033,8 @@ class CgscriptClass(
         (args: Array[Any], enclosingObject: Any) => new ImpartialGameObject(thisClass, args, enclosingObject)
       } else if (ancestors.contains(Game)) {
         (args: Array[Any], enclosingObject: Any) => new GameObject(thisClass, args, enclosingObject)
+      } else if (ancestors.contains(HeapRuleset)) {
+        (args: Array[Any], enclosingObject: Any) => new HeapRulesetObject(thisClass, args, enclosingObject)
       } else {
         (args: Array[Any], enclosingObject: Any) => new StandardObject(thisClass, args, enclosingObject)
       }

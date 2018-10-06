@@ -80,6 +80,7 @@ tokens
     IN          = 'in';
     IS          = 'is';
     LISTOF      = 'listof';
+    MAPOF       = 'mapof';
     MUTABLE     = 'mutable';
     NEG         = 'neg';
     NOT         = 'not';
@@ -659,6 +660,8 @@ explicitList
 of
     : ofToken LPAREN expression forLoopAntecedent+ RPAREN
       -> ^(ofToken forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
+    | MAPOF LPAREN expression BIGRARROW expression forLoopAntecedent+ RPAREN
+      -> ^(MAPOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE ^(BIGRARROW expression expression)))
     ;
 
 ofToken

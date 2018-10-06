@@ -44,11 +44,11 @@ import java.util.BitSet;
  */
 public class NimValueSequence
 {
-    private static final short UNDEFINED_VALUE = -1;
+    private static final int UNDEFINED_VALUE = -1;
     private static final int DEFAULT_SIZE = 100;
     private static int nCalcs = 0;
     private HeapRuleset rules;
-    private short[] nimValues;
+    private int[] nimValues;
     private int maxKnown;
     
     private NimValueSequence()
@@ -75,7 +75,7 @@ public class NimValueSequence
     public NimValueSequence(HeapRuleset rules, int capacity)
     {
         this.rules = rules;
-        this.nimValues = new short[capacity];
+        this.nimValues = new int[capacity];
         nimValues[0] = 0;
         Arrays.fill(nimValues, 1, nimValues.length, UNDEFINED_VALUE);
         maxKnown = 1;
@@ -157,14 +157,14 @@ public class NimValueSequence
             mexSet.set(result);
         }
         
-        nimValues[position] = (short) mexSet.nextClearBit(0);
+        nimValues[position] = (int) mexSet.nextClearBit(0);
     }
 
     private void ensureCapacity(int heapSize)
     {
         if (nimValues.length <= heapSize)
         {
-            short[] newValues = Arrays.copyOfRange(nimValues, 0, 1 + (3*heapSize) / 2);
+            int[] newValues = Arrays.copyOfRange(nimValues, 0, 1 + (3*heapSize) / 2);
             Arrays.fill(newValues, nimValues.length, newValues.length, UNDEFINED_VALUE);
             nimValues = newValues;
         }
@@ -177,13 +177,13 @@ public class NimValueSequence
      * @param heapSize The heap size.
      * @return The Grundy value for the specified heap size.
      */
-    public short nimValue(int heapSize)
+    public int nimValue(int heapSize)
     {
         calculateNimValues(heapSize);
         return nimValues[heapSize];
     }
     
-    public short[] nimValues(int maxHeapSize)
+    public int[] nimValues(int maxHeapSize)
     {
         calculateNimValues(maxHeapSize+1);
         return Arrays.copyOfRange(nimValues, 0, maxHeapSize+1);

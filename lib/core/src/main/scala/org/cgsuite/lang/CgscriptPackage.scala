@@ -78,7 +78,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
         val cls = new CgscriptClass(this, classdef, id, scalaClass)
         classes.put(id, cls)
         CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
-        if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game) {
+        if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game || this == CgscriptPackage.ui) {
           CgscriptPackage.classDictionary.put(id, cls)
         }
         cls

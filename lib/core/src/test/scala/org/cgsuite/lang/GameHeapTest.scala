@@ -50,6 +50,46 @@ class GameHeapTest extends CgscriptSpec {
     )
 
     executeTests(Table(header, tests ++ moreTests : _*))
+
+  }
+
+  it should "define Spawning properly" in {
+
+    val instances = Seq(
+
+      // Turning Turtles
+      ("game.heap.Spawning(\"1,2,3\")", "191", "[0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37,38]"),
+      // Moidores
+      ("game.heap.Spawning(\"1,2,3,4,5,6,7,8,9\")", "169766", "[0,1,2,4,8,16,32,64,128,256,511,512,1024,2048,4096,7711,8192,16384,26215,32768,43691]"),
+      // Triplets
+      ("game.heap.Spawning(\"3\")", "171", "[0,0,0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35]"),
+      // Ruler
+      ("game.heap.Spawning(\"1+(C)\")", "20", "[0,1,2,1,4,1,2,1,8,1,2,1,4,1,2,1,16,1,2,1,4]"),
+      // Mock Turtle Fives
+      ("game.heap.Spawning(\"1,2,3(5)\")", "11", "[0,1,2,4,7,8,1,2,4,7,8,1,2,4,7,8,1,2,4,7,8]"),
+      // Triplet Fives
+      ("game.heap.Spawning(\"3(5)\")", "6", "[0,0,0,1,2,4,0,0,1,2,4,0,0,1,2,4,0,0,1,2,4]"),
+      // Ruler Fives
+      ("game.heap.Spawning(\"1,2,3,4,5(C)\")", "5", "[0,1,2,1,4,1,2,1,4,1,2,1,4,1,2,1,4,1,2,1,4]"),
+      // Turnips
+      ("game.heap.Spawning(\"3(E)\")", "9", "[0,0,0,1,0,0,1,2,2,1,0,0,1,0,0,1,2,2,1,4,4]"),
+      // Grunt
+      ("game.heap.Spawning(\"4(FS)\")", "9", "[0,0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3]"),
+      // Sym
+      ("game.heap.Spawning(\"1+(S)\")", "2046", "[0,1,2,4,3,6,7,8,16,18,25,32,11,64,31,128,10,256,5,512,28]")
+
+    )
+
+    val tests = instances flatMap { case (rs, optionCount, nimSequence) =>
+      Seq(
+        (s"$rs.NimValue", s"listof($rs(n).NimValue for n from 0 to 20)", nimSequence),
+        (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
+        (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence)
+      )
+    }
+
+    executeTests(Table(header, tests : _*))
+
   }
 
   it should "define coordinate games properly" in {

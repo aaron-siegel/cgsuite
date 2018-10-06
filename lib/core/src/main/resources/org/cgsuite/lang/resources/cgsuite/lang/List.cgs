@@ -3,11 +3,17 @@
 system class List extends Collection
 
   def Apply(fn as Procedure) := listof(fn(x) for x in this);
+
   external def Contains(x);
+
   external def Grouped(n as Integer);
+
   external def Length;
+
   def PeriodicTable(period as Integer) := tableof(row for row in Grouped(period));
+
   external def Sorted;
+
   external def Updated(index as Integer, value);
 
   def MkOutput(sep) begin

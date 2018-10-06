@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import java.lang.{System => JSystem}
 
 import org.cgsuite.core._
+import org.cgsuite.core.impartial.HeapRuleset
 import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
@@ -170,5 +171,14 @@ class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj:
   override def misereCanonicalForm: MisereCanonicalGame = misereCanonicalForm(cls.transpositionCache)
 
   override def nimValue: Integer = nimValue(cls.transpositionCache)
+
+}
+
+class HeapRulesetObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
+  extends StandardObject(cls, objArgs, enclosingObj) with HeapRuleset {
+
+  override def heapOptions(heapSize: Integer) = {
+    cls.classInfo.heapOptionsMethod.call(this, Array(heapSize)).asInstanceOf[Iterable[Iterable[Integer]]]   // TODO Better error handling
+  }
 
 }
