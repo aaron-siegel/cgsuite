@@ -36,7 +36,7 @@ trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
         if (!thrown.isInstanceOf[SyntaxException])
           thrown.tokenStack should not be empty
       } else {
-        val output = EvalUtil.evaluate(input, varMap)
+        val output = EvalUtil.evaluateScript(input, varMap)
         if (expectedOutput == null) {
           output shouldBe empty
         } else {

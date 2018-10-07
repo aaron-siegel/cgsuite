@@ -389,6 +389,9 @@ class CgscriptClass(
 
       if (Object.isLoaded) { // Hack to bootstrap Object
 
+        if (node.id.id.name != nameAsFullyScopedMember)
+          throw EvalException(s"Class name does not match filename: `${node.id.id.name}` (was expecting `$nameAsFullyScopedMember`)", node.id.tree)
+
         val supers = {
           if (node.extendsClause.isEmpty) {
             Seq(if (node.isEnum) Enum else Object)

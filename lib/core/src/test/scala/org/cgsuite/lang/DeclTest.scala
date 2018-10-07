@@ -6,6 +6,8 @@ class DeclTest extends CgscriptSpec {
 
     val classdefPackage = testPackage declareSubpackage "classdef"
     classdefPackage declareSubpackage "invalidconstants"
+    decl("test.classdef.WrongName", "class RightName end")
+    decl("test.classdef.WrongNameEnum", "enum RightNameEnum EnumValue; end")
     decl("test.classdef.BaseClass", "class BaseClass def Method := 3; end")
     decl("test.classdef.SingletonClass", "singleton class SingletonClass end")
     decl("test.classdef.MutableClass", "mutable class MutableClass end")
@@ -30,6 +32,10 @@ class DeclTest extends CgscriptSpec {
 
     executeTests(Table(
       header,
+      ("Wrong name", "test.classdef.WrongName",
+        "!!Class name does not match filename: `RightName` (was expecting `WrongName`)"),
+      ("Wrong name (enum)", "test.classdef.WrongNameEnum",
+        "!!Class name does not match filename: `RightNameEnum` (was expecting `WrongNameEnum`)"),
       ("Missing override", "test.classdef.MissingOverride.X",
         "!!Method `test.classdef.MissingOverride.Method` must be declared with `override`, since it overrides `test.classdef.BaseClass.Method`"),
       ("Extraneous override", "test.classdef.ExtraneousOverride.X",
@@ -115,7 +121,7 @@ class DeclTest extends CgscriptSpec {
         |end""".stripMargin)
     decl("test.mutables.ImmutableClass1", "class ImmutableClass1() var immutableVar := MutableClass(); end")
     decl("test.mutables.SingletonImmutableClass", "singleton class SingletonImmutableClass var immutableVar := MutableClass(); end")
-    decl("test.mutables.ImmutableClass2", "class ImmutableClass(cparam) end")
+    decl("test.mutables.ImmutableClass2", "class ImmutableClass2(cparam) end")
 
     executeTests(Table(
       header,

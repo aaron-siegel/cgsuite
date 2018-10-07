@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class EnumValue
+system class Enum
 
   external def Literal;
 
