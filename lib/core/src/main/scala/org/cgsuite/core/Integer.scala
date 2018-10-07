@@ -7,6 +7,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
+import org.cgsuite.core.Values._
 import org.cgsuite.exception.ArithmeticException
 
 object Integer {
@@ -149,7 +150,27 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def isTwoPower = bigIntValue >= Integer.oneAsBigInt && bigIntValue.bitCount == 1
 
-  def lb = SmallInteger(bigIntValue.bitLength - 1)
+  def isqrt: Integer = {
+    if (this < zero)
+      throw ArithmeticException(s"Argument to Isqrt is negative: $bigIntValue")
+    else if (this < two)
+      this
+    else {
+      val small = (this div four).isqrt * two
+      val large = small + one
+      if (large * large > this)
+        small
+      else
+        large
+    }
+  }
+
+  def lb = {
+    if (bigIntValue <= 0)
+      throw ArithmeticException(s"Argument to Lb is not strictly positive: $bigIntValue")
+    else
+      SmallInteger(bigIntValue.bitLength - 1)
+  }
 
   def min(other: Integer) = if (this < other) this else other
 

@@ -18,8 +18,10 @@ class GameTest extends CgscriptSpec {
       ("IsOdious","[11.IsOdious, 23.IsOdious]", "[true,false]"),
       ("IsTwoPower", "[32.IsTwoPower,48.IsTwoPower]", "[true,false]"),
       ("IsSmallInteger", "[2^31,-2^31,2^31-1,-2^31-1].Apply(x -> x.IsSmallInteger)", "[false,true,true,false]"),
-      ("Lb", "[15,16,17,31,2^31-1,2^31].Apply(x -> x.Lb)", "[3,4,4,4,30,31]"),
-      ("Lb(0)", "0.Lb", "!!Logarithm of 0"),
+      ("Lb", "[15,16,17,31,2^30-1,2^30,2^30+1,2^31-1,2^31,2^31+1,2^32-1,2^32,2^32+1].Apply(x -> x.Lb)", "[3,4,4,4,29,30,30,30,31,31,31,32,32]"),
+      ("Lb(0)", "0.Lb", "!!Argument to Lb is not strictly positive: 0"),
+      ("Lb(-32)", "(-32).Lb", "!!Argument to Lb is not strictly positive: -32"),
+      ("Lb(-2^40)", "(-2^40).Lb", "!!Argument to Lb is not strictly positive: -1099511627776"),
       //("Random", "Integer.SetSeed(0); listof(Integer.Random(100) from 1 to 5)", "[61,49,30,48,16]"),
       ("Isqrt",
         """
@@ -28,7 +30,8 @@ class GameTest extends CgscriptSpec {
           |  if n < isqrt^2 or n >= (isqrt+1)^2 then
           |    error("Isqrt failed at " + n.ToString);
           |  end
-          |end""".stripMargin, "Nothing")
+          |end""".stripMargin, "Nothing"),
+      ("Isqrt(-1)", "(-1).Isqrt", "!!Argument to Isqrt is negative: -1")
     ))
 
   }

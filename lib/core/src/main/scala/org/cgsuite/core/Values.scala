@@ -18,6 +18,7 @@ private[cgsuite] trait ValuesTrait {
   val negativeOne = SmallInteger(-1)
   val two = SmallInteger(2)
   val three = SmallInteger(3)
+  val four = SmallInteger(4)
   val omega = GeneralizedOrdinal(Term(one, one))
 
   val star = Nimber(1)

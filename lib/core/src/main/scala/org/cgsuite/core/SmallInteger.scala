@@ -87,7 +87,12 @@ trait SmallInteger extends Integer {
     case _ => super.gcd(other)
   }
 
-  override def lb = SmallInteger(31 - java.lang.Integer.numberOfLeadingZeros(intValue))
+  override def lb = {
+    if (intValue <= 0)
+      throw ArithmeticException(s"Argument to Lb is not strictly positive: $intValue")
+    else
+      SmallInteger(31 - java.lang.Integer.numberOfLeadingZeros(intValue))
+  }
 
   override def nimSum(other: Integer) = other match {
     case small: SmallInteger =>
