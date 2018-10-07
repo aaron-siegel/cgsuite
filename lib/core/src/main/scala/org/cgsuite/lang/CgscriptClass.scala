@@ -723,7 +723,7 @@ class CgscriptClass(
     }
 
     // Static declarations - create a domain whose context is the class object
-    val initializerDomain = new Domain(null, Some(classObjectRef))
+    val initializerDomain = new EvaluationDomain(null, Some(classObjectRef))
     node.staticInitializers.foreach { node =>
       if (!node.modifiers.hasExternal) {
         val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
@@ -931,7 +931,7 @@ class CgscriptClass(
       try {
         // Construct a new domain with local scope for this method.
         val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
-        val domain = new Domain(array, Some(target))
+        val domain = new EvaluationDomain(array, Some(target))
         validateArguments(args)
         var i = 0
         while (i < parameters.length) {

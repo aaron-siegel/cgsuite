@@ -4,11 +4,11 @@ import org.cgsuite.exception.EvalException
 
 import scala.collection.mutable
 
-class Domain(
+class EvaluationDomain(
   val localScope: Array[Any],
   val contextObject: Option[Any] = None,
   val dynamicVarMap: Option[mutable.AnyRefMap[Symbol, Any]] = None,
-  val enclosingDomain: Option[Domain] = None
+  val enclosingDomain: Option[EvaluationDomain] = None
   ) {
 
   def isOuterDomain = contextObject.isEmpty
@@ -23,7 +23,7 @@ class Domain(
     dynamicVarMap.get.get(id)
   }
 
-  def backref(n: Int): Domain = {
+  def backref(n: Int): EvaluationDomain = {
     n match {
       case 0 => this
       case 1 => enclosingDomain.get
@@ -68,6 +68,12 @@ class ElaborationDomain private (
 
   def popScope(): Unit = {
     scopeStack.pop()
+  }
+
+  def scopeDepth: Int = scopeStack.size
+
+  def isToplevelWorksheet: Boolean = {
+    pkg.isEmpty && enclosingDomain.isEmpty && scopeDepth <= 2   // It's 2 instead of 1 because of the enclosing StatementSequence
   }
 
   def contains(id: Symbol): Boolean = {

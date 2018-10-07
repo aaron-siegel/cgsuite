@@ -24,7 +24,7 @@ object Profiler {
 
   def evalForProfiler(str: String, profile: Boolean): Long = {
     println(s"Evaluating with profile = $profile: $str")
-    val domain = new Domain(null, None, Some(mutable.AnyRefMap()))
+    val domain = new EvaluationDomain(null, None, Some(mutable.AnyRefMap()))
     val tree = ParserUtil.parseStatement(str)
     println(tree.toStringTree)
     val node = EvalNode(tree)

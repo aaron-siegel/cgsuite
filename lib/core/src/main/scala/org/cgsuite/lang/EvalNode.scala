@@ -177,18 +177,18 @@ object EvalNode {
 trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
-  def evaluate(domain: Domain): Any
+  def evaluate(domain: EvaluationDomain): Any
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
   def toNodeStringPrec(enclosingPrecedence: Int): String
 
-  def evaluateAsBoolean(domain: Domain): Boolean = {
+  def evaluateAsBoolean(domain: EvaluationDomain): Boolean = {
     evaluate(domain) match {
       case x: Boolean => x
       case _ => sys.error("not a bool")
     }
   }
 
-  def evaluateAsIterator(domain: Domain): Iterator[_] = {
+  def evaluateAsIterator(domain: EvaluationDomain): Iterator[_] = {
     val result = evaluate(domain)
     result match {
       case x: Iterable[_] => x.iterator
@@ -196,7 +196,7 @@ trait EvalNode extends Node {
     }
   }
 
-  def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
+  def evaluateLoopy(domain: EvaluationDomain): Iterable[LoopyGame.Node] = {
     evaluate(domain) match {
       case g: CanonicalShortGame => Iterable(new LoopyGame.Node(g))
       case g: CanonicalStopper => Iterable(new LoopyGame.Node(g.loopyGame))   // TODO Refactor LoopyGame to consolidate w/ above
@@ -220,7 +220,7 @@ trait EvalNode extends Node {
 
 case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
   override val children = Seq.empty
-  override def evaluate(domain: Domain) = constantValue
+  override def evaluate(domain: EvaluationDomain) = constantValue
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     CgscriptClass.instanceToOutput(constantValue).toString
   }
@@ -228,7 +228,7 @@ case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
 
 case class ThisNode(tree: Tree) extends EvalNode {
   override val children = Seq.empty
-  override def evaluate(domain: Domain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
+  override def evaluate(domain: EvaluationDomain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
   def toNodeStringPrec(enclosingPrecedence: Int) = "this"
 }
 
@@ -279,7 +279,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     }
   }
 
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     // Try resolving in the following precedence order:
     // (1) As a class name;
     // (2) As a local (method-scope) variable;
@@ -306,7 +306,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
     }
   }
 
-  private[this] def lookupLocally(domain: Domain): Option[Any] = {
+  private[this] def lookupLocally(domain: EvaluationDomain): Option[Any] = {
     if (domain.isOuterDomain) {
       domain getDynamicVar id
     } else if (classVariableReference != null) {
@@ -327,7 +327,7 @@ object UnOpNode {
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override val children = Seq(operand)
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     try {
       op(tree, operand.evaluate(domain))
     } catch {
@@ -353,7 +353,7 @@ object BinOpNode {
 
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
   override val children = Seq(operand1, operand2)
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     try {
       op(tree, operand1.evaluate(domain), operand2.evaluate(domain))
     } catch {
@@ -384,7 +384,7 @@ object ListNode {
 
 case class ListNode(tree: Tree, elements: List[EvalNode]) extends EvalNode {
   override val children = elements
-  override def evaluate(domain: Domain): List[_] = {
+  override def evaluate(domain: EvaluationDomain): List[_] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
       case 0 => Nil
@@ -409,7 +409,7 @@ object SetNode {
 
 case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
-  override def evaluate(domain: Domain): Set[_] = {
+  override def evaluate(domain: EvaluationDomain): Set[_] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
       case 0 => Set.empty
@@ -435,7 +435,7 @@ object MapNode {
 
 case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
   override val children = elements
-  override def evaluate(domain: Domain): Map[_, _] = {
+  override def evaluate(domain: EvaluationDomain): Map[_, _] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
       case 0 => Map.empty
@@ -462,7 +462,7 @@ object MapPairNode {
 
 case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
   override val children = Seq(from, to)
-  override def evaluate(domain: Domain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
+  override def evaluate(domain: EvaluationDomain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
   def toNodeStringPrec(enclosingPrecedence: Int) = s"${from.toNodeString} => ${to.toNodeString}"
 }
 
@@ -470,7 +470,7 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
 
   override val children = lo ++ ro
 
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     try {
       val leval = lo map { _.evaluate(domain) }
       val reval = ro map { _.evaluate(domain) }
@@ -582,13 +582,13 @@ case class LoopyGameSpecNode(
     nodeLabel foreach { _ => scope.popScope() }
   }
 
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     val thisNode = evaluateLoopy(domain).head
     val loopyGame = new LoopyGame(thisNode)
     SidedValue(loopyGame)
   }
 
-  override def evaluateLoopy(domain: Domain): Iterable[LoopyGame.Node] = {
+  override def evaluateLoopy(domain: EvaluationDomain): Iterable[LoopyGame.Node] = {
     val thisNode = new LoopyGame.Node()
     if (nodeLabel.isDefined)
       domain.localScope(nodeLabel.get.localVariableReference.index) = thisNode
@@ -613,7 +613,7 @@ case class LoopyGameSpecNode(
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
   override val children = Seq(condition, ifNode) ++ elseNode
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     if (condition.evaluateAsBoolean(domain))
       ifNode.evaluate(domain)
     else
@@ -711,7 +711,7 @@ case class LoopNode(
     }
   }
 
-  override def evaluate(domain: Domain): Any = {
+  override def evaluate(domain: EvaluationDomain): Any = {
 
     val yieldResult: Iterable[Any] with Growable[Any] = loopType match {
       case LoopNode.YieldList | LoopNode.YieldTable => ArrayBuffer[Any]()
@@ -756,7 +756,7 @@ case class LoopNode(
     antecedent + " " + body.toNodeString + " end"
   }
 
-  private def evaluate(domain: Domain, yieldResult: Growable[Any]): Any = {
+  private def evaluate(domain: EvaluationDomain, yieldResult: Growable[Any]): Any = {
 
     Profiler.start(prepareLoop)
 
@@ -854,7 +854,7 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
     localVariableCount = newScope.localVariableCount
   }
   private[lang] val knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
-  override def evaluate(domain: Domain) = Procedure(this, domain)
+  override def evaluate(domain: EvaluationDomain) = Procedure(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
   var localVariableCount: Int = 0
   def toNodeStringPrec(enclosingPrecedence: Int) = {
@@ -873,7 +873,7 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
 
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     throw EvalException(msg.evaluate(domain).toString)
   }
   def toNodeStringPrec(enclosingPrecedence: Int) = s"error(${msg.toNodeString})"
@@ -901,7 +901,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     }
     isElaborated = true
   }
-  override def evaluate(domain: Domain): Any = {
+  override def evaluate(domain: EvaluationDomain): Any = {
     if (!isElaborated) {
       sys error s"Node has not been elaborated: $this"
     }
@@ -972,7 +972,7 @@ case class FunctionCallNode(
     argNodes foreach { _ elaborate scope }
   }
 
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
 
     if (Thread.interrupted())
       throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
@@ -1033,12 +1033,12 @@ case class FunctionCallNode(
 
   }
 
-  case class ScriptCaller(domain: Domain, script: Script) extends CallSite {
+  case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
 
     override def parameters: Seq[Parameter] = Seq.empty
 
     override def call(args: Array[Any]): Any = {
-      val scriptDomain = new Domain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
+      val scriptDomain = new EvaluationDomain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
       val result = script.node evaluate scriptDomain
       if (script.node.suppressOutput)
         EmptyOutput
@@ -1150,12 +1150,14 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
   // TODO Catch illegal assignment to constant
   override val children = Seq(idNode, expr)
   override def elaborate(scope: ElaborationDomain) {
-    if (declType == AssignmentDeclType.VarDecl) {
+    // If we're package-external (Worksheet/REPL scope) and scopeStack has size one (we're not
+    // in any nested subscope), then we treat idNode as a dynamic var.
+    if (declType == AssignmentDeclType.VarDecl && !scope.isToplevelWorksheet) {
       scope.insertId(idNode)
     }
     super.elaborate(scope)
   }
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     val newValue = expr.evaluate(domain)
     if (idNode.classResolution.isDefined) {
       throw EvalException(s"Cannot assign to class name as variable: `${idNode.id.name}`", token = Some(token))
@@ -1213,7 +1215,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
     statements.foreach { _.elaborate(scope) }
     scope.popScope()
   }
-  override def evaluate(domain: Domain) = {
+  override def evaluate(domain: EvaluationDomain) = {
     var result: Any = null
     val iterator = statements.iterator
     while (iterator.hasNext) {

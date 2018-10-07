@@ -53,7 +53,7 @@ trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
     val node = EvalNode(tree.getChild(0))
     val scope = ElaborationDomain(None, Seq.empty, None)
     node.elaborate(scope)
-    val domain = new Domain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
+    val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
     node.evaluate(domain)
   }
 

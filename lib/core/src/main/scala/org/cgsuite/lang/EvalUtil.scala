@@ -33,7 +33,7 @@ object EvalUtil extends LazyLogging {
     val scope = ElaborationDomain(None, Seq.empty, None)
     node.elaborate(scope)
     logger debug s"EvalNode: $node"
-    val domain = new Domain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
+    val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
     val result = node.evaluate(domain)
     if (node.suppressOutput)
       Vector.empty
