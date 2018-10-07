@@ -5,6 +5,10 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
   external def Div(that as Integer);
   
   external def Gcd(that as Integer);
+
+  external def IsEvil;
+
+  external def IsOdious;
   
   external def IsSmallInteger;
   
@@ -17,6 +21,8 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
   external def NimSum(that as Integer);
 
   override external def ToOutput;
+
+  external def UglyProduct(that as Integer);
 
   def Isqrt begin
     if this == 0 then 0 else

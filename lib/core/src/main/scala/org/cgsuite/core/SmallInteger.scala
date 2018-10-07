@@ -31,7 +31,7 @@ trait SmallInteger extends Integer {
   override def longValue: Long = intValue.toLong
   override def floatValue: Float = intValue.toFloat
   override def doubleValue: Double = intValue.toDouble
-  def bigIntValue = BigInt(intValue)
+  lazy val bigIntValue = BigInt(intValue)
   
   override def options(player: Player): Iterable[SmallInteger] = (player, intValue.signum) match {
     case (Left, 1) => Set(SmallInteger(intValue-1))

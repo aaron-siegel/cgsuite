@@ -40,17 +40,38 @@ object Integer {
   }
 
   def pow2NimProduct(xExp: Int, yExp: Int): Integer = {
-    var x = Values.two integerPow SmallInteger(xExp ^ yExp)
+    var x = twoPower(xExp ^ yExp)
     val dup = xExp & yExp
     val bitLength = 32 - java.lang.Integer.numberOfLeadingZeros(dup)
     var n = 0
     while (n < bitLength) {
-      val twoPow = dup & (1 << n)
-      if (twoPow != 0)
-        x = x.nimProduct(Values.three * Values.two.integerPow(SmallInteger(twoPow)) div Values.two)
+      val exponent = dup & (1 << n)
+      if (exponent != 0)
+        x = x.nimProduct(Values.three * twoPower(exponent) div Values.two)
       n += 1
     }
     x
+  }
+
+  def pow2UglyProduct(xExp: Int, yExp: Int): Integer = {
+    if (xExp == 0)
+      twoPower(yExp)
+    else if (yExp == 0)
+      twoPower(xExp)
+    else if (xExp > yExp)
+      twoPower(xExp) + twoPower(yExp - 1)
+    else if (xExp < yExp)
+      twoPower(yExp) + twoPower(xExp - 1)
+    else // xExp == yExp
+      twoPower(xExp - 1)
+  }
+
+  private[Integer] def twoPower(exponent: Int): Integer = {
+    assert(exponent >= 0)
+    if (exponent <= 30)
+      SmallInteger(1 << exponent)
+    else
+      Integer(oneAsBigInt << exponent)
   }
   
 }
@@ -114,7 +135,11 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   override def isEven = !bigIntValue.testBit(0)
 
+  def isEvil = bigIntValue.bitCount % 2 == 0
+
   override def isInteger = true
+
+  def isOdious = bigIntValue.bitCount % 2 == 1
 
   override def isOrdinal = this >= Values.zero
 
@@ -133,8 +158,8 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def nimProduct(other: Integer): Integer = {
     if (bigIntValue < 0 || other.bigIntValue < 0)
       throw ArithmeticException("NimProduct applies only to nonnegative integers.")
-    var m = 0
     var result: Integer = Values.zero
+    var m = 0
     while (m < bigIntValue.bitLength) {
       if (bigIntValue.testBit(m)) {
         var n = 0
@@ -157,6 +182,33 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   }
 
   override def sign = Integer(bigIntValue.signum)
+
+  def uglyProduct(that: Integer) = {
+
+    val a = this.bigIntValue
+    val b = that.bigIntValue
+    val thatIsOdious = that.isOdious
+
+    if (a < 0 || b < 0)
+      throw ArithmeticException("UglyProduct applies only to nonnegative integers.")
+
+    var result: Integer = Values.zero
+    var m = 0
+    while (m < a.bitLength) {
+      if (a testBit m) {
+        var n = 0
+        while (n < b.bitLength) {
+          if (b testBit n) {
+            result = result nimSum Integer.pow2UglyProduct(m, n)
+          }
+          n += 1
+        }
+      }
+      m += 1
+    }
+    result
+
+  }
 
   override def numerator = this
   override def denominator = Values.one
