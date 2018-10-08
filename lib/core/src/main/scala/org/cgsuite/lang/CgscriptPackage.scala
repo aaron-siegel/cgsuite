@@ -75,6 +75,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
         cls
 
       case _ =>
+        assert(!classdef.isInstanceOf[NestedClassDef])
         val cls = new CgscriptClass(this, classdef, id, scalaClass)
         classes.put(id, cls)
         CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)

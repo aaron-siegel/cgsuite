@@ -157,6 +157,11 @@ class CgscriptClass(
     case _ => None
   }
 
+  val topClass: CgscriptClass = enclosingClass match {
+    case Some(cls) => cls.topClass
+    case None => this
+  }
+
   override val declaringClass = enclosingClass.orNull
 
   val nameAsFullyScopedMember: String = id.name
@@ -174,6 +179,8 @@ class CgscriptClass(
   }
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
+
+  private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
 
   private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
@@ -232,18 +239,48 @@ class CgscriptClass(
   def initializers = classInfo.initializers
 
   def unload() {
-    // Unload any derived classes.
-    // TODO Unload any classes that have nested classes as derived classes?
-    val derivedClasses = CgscriptPackage.classDictionary.values filter { cls =>
-      cls.classInfoRef != null && cls.classInfoRef.supers.contains(this)
+    if (this.stage != LifecycleStage.Unloaded) {
+      logger debug s"$logPrefix Building unload list."
+      val unloadList = mutable.HashSet[CgscriptClass]()
+      topClass.buildUnloadList(unloadList)
+      logger debug s"$logPrefix Unloading ${unloadList.size} classes."
+      unloadList foreach { _.doUnload() }
+      Resolver.clearAll()
     }
-    derivedClasses foreach { _.unload() }
-    logger.debug(s"$logPrefix Unloading.")
+  }
+
+  private def doUnload() {
+    logger debug s"$logPrefix Unloading."
     classInfoRef = null
     scriptObjectRef = null
     singletonInstanceRef = null
     this.transpositionCache.clear()
     this.stage = LifecycleStage.Unloaded
+  }
+
+  private def buildUnloadList(list: mutable.HashSet[CgscriptClass]): Unit = {
+
+    if (list contains this)
+      return
+
+    list += this
+
+    // Add the topClass of any derived classes
+    CgscriptPackage.classDictionary.values foreach { cls =>
+      addDerivedClassesToUnloadList(list, cls)
+    }
+
+    // Recursively add nested classes
+    locallyDefinedNestedClasses.values foreach { _.buildUnloadList(list )}
+
+  }
+
+  private def addDerivedClassesToUnloadList(list: mutable.HashSet[CgscriptClass], cls: CgscriptClass): Unit = {
+    if (cls.classInfoRef != null && (cls.classInfoRef.supers contains this)) {
+      cls.topClass.buildUnloadList(list)
+    }
+    // Recurse through nested classes
+    cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
   def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
@@ -258,14 +295,26 @@ class CgscriptClass(
 
   def ensureDeclared(): Unit = {
     if (stage != LifecycleStage.Declared && stage != LifecycleStage.Initialized && stage != LifecycleStage.Initializing) {
-      declare()
+      enclosingClass match {
+        case Some(cls) =>
+          cls.ensureInitialized()
+          if (stage != LifecycleStage.Initialized)
+            throw EvalException(s"Class no longer exists: `$qualifiedName`")
+        case _ => declare()
+      }
     }
   }
 
   def ensureInitialized(): Unit = {
     ensureDeclared()
     if (stage != LifecycleStage.Initialized) {
-      initialize()
+      enclosingClass match {
+        case Some(cls) =>
+          cls.ensureInitialized()
+          if (stage != LifecycleStage.Initialized)
+            throw EvalException(s"Class no longer exists: `$qualifiedName`")
+        case _ => initialize()
+      }
     }
   }
 
@@ -353,7 +402,7 @@ class CgscriptClass(
         (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
 
       case NestedClassDef(_) =>
-        sys.error(s"Unexpected load() on nested class: $qualifiedName")
+        throw EvalException(s"Class no longer exists: `$qualifiedName`")
 
     }
 
@@ -421,8 +470,9 @@ class CgscriptClass(
 
         val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
-          val newClass = new CgscriptClass(pkg, NestedClassDef(this), decl.id.id)
-          (decl.id.id, newClass)
+          val id = decl.id.id
+          val newClass = locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(this), id))
+          (id, newClass)
         } toMap
         val constructor = node.constructorParams map { t =>
           val parameters = t.toParameters

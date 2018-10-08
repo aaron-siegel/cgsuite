@@ -911,14 +911,20 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       constantResolution evaluateFor (constantResolution.cls.singletonInstance, token)
     } else {
       val x = obj.evaluate(domain)
-      val resolution = idNode.resolver.findResolution(x)
-      if (resolution.isResolvable) {
-        resolution.evaluateFor(x, token)
-      } else {
-        throw EvalException(
-          s"Not a method or member variable: `${idNode.id.name}` (in object of class `${(CgscriptClass of x).qualifiedName}`)",
-          token = Some(token)
-        )
+      try {
+        val resolution = idNode.resolver.findResolution(x)
+        if (resolution.isResolvable) {
+          resolution.evaluateFor(x, token)
+        } else {
+          throw EvalException(
+            s"Not a method or member variable: `${idNode.id.name}` (in object of class `${(CgscriptClass of x).qualifiedName}`)",
+            token = Some(token)
+          )
+        }
+      } catch {
+        case exc: CgsuiteException if exc.tokenStack.isEmpty =>
+          exc.tokenStack += token
+          throw exc
       }
     }
   }
