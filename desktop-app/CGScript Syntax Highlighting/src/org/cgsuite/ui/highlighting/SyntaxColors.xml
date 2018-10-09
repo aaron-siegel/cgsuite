@@ -15,6 +15,9 @@
     </fontcolor>
     <fontcolor name="String"  foreColor="ffce7b00" default="default"/>
     <fontcolor name="Comment" foreColor="ff969696" default="default"/>
+    <fontcolor name="DocComment" foreColor="ff969696" default="default">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="DeclId"  foreColor="black" default="default">
         <font style="bold"/>
     </fontcolor>

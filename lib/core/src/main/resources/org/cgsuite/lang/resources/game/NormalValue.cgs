@@ -1,9 +1,9 @@
 /*${cgsuite.banner}*/
 
-/* Base of the hierarchy of normal-play values.
-
-All objects that represent game values in normal play are subclasses of $NormalValue$.
-*/
+/** Base of the hierarchy of normal-play values.
+  *
+  * All objects that represent game values in normal play are subclasses of $NormalValue$.
+  */
 system class NormalValue
 
   external def IsAllSmall;

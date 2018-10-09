@@ -35,7 +35,7 @@ public class CgsuiteEditorParser extends Parser
         cgsuiteLexer = new CgsuiteLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(cgsuiteLexer);
         cgsuiteParser = new CgsuiteParser(tokens);
-        cgsuiteParser.setTreeAdaptor(new CgsuiteTreeAdaptor());
+        cgsuiteParser.setTreeAdaptor(new CgsuiteTreeAdaptor(tokens));
         try
         {
             cgsuiteParser.compilationUnit();

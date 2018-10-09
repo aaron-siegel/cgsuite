@@ -71,7 +71,7 @@ public class CgsuiteEditorLexer implements Lexer<CgsuiteTokenId>
         // aware) tokens, e.g., IDENTIFIER vs. DECL_ID.
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         CgsuiteParser parser = new CgsuiteParser(tokens);
-        parser.setTreeAdaptor(new CgsuiteTreeAdaptor());
+        parser.setTreeAdaptor(new CgsuiteTreeAdaptor(tokens));
         try
         {
             CommonTree tree = parser.compilationUnit().getTree();

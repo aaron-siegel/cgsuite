@@ -45,6 +45,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         tokenTypes.put("Number", new int[] { INTEGER });
         tokenTypes.put("String", new int[] { STRING });
         tokenTypes.put("Comment", new int[] { SL_COMMENT, ML_COMMENT });
+        tokenTypes.put("DocComment", new int[] { DOC_COMMENT });
         tokenTypes.put("Separator", new int[]
         {
             WHITESPACE, PLUS, MINUS, PLUSMINUS, AST, FSLASH, DOT, PERCENT, LPAREN, RPAREN,

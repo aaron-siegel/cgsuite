@@ -8,7 +8,7 @@ import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, Ev
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.output.{EmptyOutput, StyledTextOutput}
+import org.cgsuite.output.EmptyOutput
 
 import scala.collection.generic.Growable
 import scala.collection.mutable

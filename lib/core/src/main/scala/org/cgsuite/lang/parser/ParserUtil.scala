@@ -2,7 +2,7 @@ package org.cgsuite.lang.parser
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-import org.antlr.runtime.tree.Tree
+import org.antlr.runtime.tree.{CommonTree, Tree}
 import org.antlr.runtime.{CharStream, CommonTokenStream}
 import org.cgsuite.exception.SyntaxException
 
@@ -21,7 +21,7 @@ object ParserUtil {
     val lexer = new CgsuiteLexer(input)
     val tokens = new CommonTokenStream(lexer)
     val parser = new CgsuiteParser(tokens)
-    parser.setTreeAdaptor(new CgsuiteTreeAdaptor())
+    parser.setTreeAdaptor(new CgsuiteTreeAdaptor(tokens))
     parser
 
   }
@@ -32,9 +32,9 @@ object ParserUtil {
     val lexer = new CgsuiteLexer(stream)
     val tokens = new CommonTokenStream(lexer)
     val parser = new CgsuiteParser(tokens)
-    parser.setTreeAdaptor(new CgsuiteTreeAdaptor())
+    parser.setTreeAdaptor(new CgsuiteTreeAdaptor(tokens))
 
-    val tree = fn(parser).getTree().asInstanceOf[Tree]
+    val tree = fn(parser).getTree().asInstanceOf[CgsuiteTree]
 
     if (!lexer.getErrors.isEmpty) {
       throw SyntaxException(lexer.getErrors.head.getException, source)
