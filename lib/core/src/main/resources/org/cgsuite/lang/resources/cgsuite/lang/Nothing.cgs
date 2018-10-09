@@ -2,6 +2,6 @@
 
 singleton system class Nothing
 
-  override def ToOutput := cgsuite.util.output.TextOutput("Nothing");
+  override def ToOutput := "Nothing";
 
 end

@@ -6,6 +6,6 @@ system class Script
   external def Ordinal;
   external def QualifiedName;
 
-  override def ToOutput := cgsuite.util.output.TextOutput("<<") + QualifiedName + ">>";
+  external override def ToOutput = Class.ToOutput;
 
 end

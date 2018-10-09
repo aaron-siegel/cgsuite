@@ -76,7 +76,7 @@ object Ops {
     case (_: Output, _: Output) => (x: Output, y: Output) => outputSum(x, y)
   }
 
-  def toOutput(str: String) = new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), str)
+  def toOutput(str: String) = new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
 
   def outputSum(o1: Output, o2: Output) = {
     val result = new StyledTextOutput()

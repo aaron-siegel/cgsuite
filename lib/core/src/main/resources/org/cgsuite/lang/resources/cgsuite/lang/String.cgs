@@ -4,6 +4,6 @@ system class String
 
   external def Length;
 
-  override def ToOutput := "\"" + cgsuite.util.output.TextOutput(this) + "\"";
+  override def ToOutput := "\"" + this + "\"";
 
 end

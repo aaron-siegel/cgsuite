@@ -42,12 +42,9 @@ object EvalUtil extends LazyLogging {
   }
 
   def objectToOutput(obj: Any): Vector[Output] = {
-    val output = CgscriptClass.of(obj).classInfo.toOutputMethod.call(obj, Array.empty)
-    output match {
+    CgscriptClass.instanceToOutput(obj) match {
       case EmptyOutput => Vector.empty
-      case str: String => Vector(new StyledTextOutput(str))
-      case o: Output => Vector(o)
-      case _ => sys error output.getClass.toString      // TODO Better exception here (ToOutput didn't return output...)
+      case output => Vector(output)
     }
   }
 

@@ -597,7 +597,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
                     evt.consume();
                     if (!source.getText().equals(""))
                     {
-                        //setCommand(source.getText());
+                        setCommand(source.getText());
                         source.setText("");
                     }
                 }

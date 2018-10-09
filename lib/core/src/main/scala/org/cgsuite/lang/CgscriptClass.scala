@@ -80,11 +80,11 @@ object CgscriptClass {
 
   def instanceToOutput(x: Any): Output = {
     CgscriptClass.of(x).classInfo.toOutputMethod.call(x, Array.empty) match {
+      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
       case output: Output => output
-      case str: String => new StyledTextOutput(str)     // TODO String as subtype of Output?
       case y =>
         throw EvalException(
-          s"`ToOutput` method of class `${CgscriptClass.of(x).qualifiedName}` returned an object of type `${CgscriptClass.of(y).qualifiedName}` (expecting type `Output`)"
+          s"`ToOutput` method of class `${CgscriptClass.of(x).qualifiedName}` returned an object of type `${CgscriptClass.of(y).qualifiedName}` (expecting type `Output` or `String`)"
         )
     }
   }

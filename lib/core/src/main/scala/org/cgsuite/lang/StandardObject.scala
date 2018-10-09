@@ -23,6 +23,14 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
     }
   }
 
+  def instantiatedClassName: String = {
+    enclosingObj match {
+      case null => cls.name
+      case stdObj: StandardObject => s"${stdObj.instantiatedClassName}.${cls.nameAsFullyScopedMember}"
+      case x => s"${CgscriptClass.of(x).name}.${cls.nameAsFullyScopedMember}"
+    }
+  }
+
   val cachedHashCode: Option[Int] = {
     if (cls.isMutable) {
       None
@@ -55,36 +63,27 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
 
   def toDefaultOutput: StyledTextOutput = {
     if (cls.isMutable) {
-      new StyledTextOutput(s"${cls.name}.instance")
+      new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, s"${cls.name}.instance")
     } else {
-      val sto = new StyledTextOutput
-      enclosingObj match {
-        case null =>
-        case stdObj: StandardObject =>
-          sto append stdObj.toDefaultOutput
-          sto appendText "."
-        case _ =>
-          sto appendText CgscriptClass.of(enclosingObj).name
-          // TODO Append .instance for nonsingletons?
-          sto appendText "."
-      }
-      sto appendText cls.nameAsFullyScopedMember
+      val sto = new StyledTextOutput(instantiatedClassName)
       cls.constructor foreach { ctor =>
-        sto appendText "("
+        sto appendMath "("
         val params = ctor.parameters
         params.indices foreach { idx =>
           params(idx).defaultValue match {
             case None =>
             case Some(_) =>
               sto appendText params(idx).id.name
-              sto appendText " => "
+              sto appendMath " "
+              sto appendSymbol StyledTextOutput.Symbol.BIG_RIGHT_ARROW
+              sto appendMath " "
           }
           val argOutput = CgscriptClass instanceToOutput objArgs(idx)
           sto append argOutput
           if (idx < params.size - 1)
-            sto appendText ", "
+            sto appendMath ", "
         }
-        sto appendText ")"
+        sto appendMath ")"
       }
       sto
     }

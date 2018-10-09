@@ -16,25 +16,7 @@ system class List extends Collection
 
   external def Updated(index as Integer, value);
 
-  def MkOutput(sep) begin
-
-    if sep is String then
-      sep := cgsuite.util.output.TextOutput(sep);
-    end
-
-    var first := true;
-    var output := cgsuite.util.output.TextOutput();
-    for x in this do
-      if first then
-        first := false;
-      else
-        output.Append(sep);
-      end
-      output.Append(x.ToOutput);
-    end
-    output
-
-  end
+  external def MkOutput(sep as String);
 
   override def ToOutput := "[" + MkOutput(",") + "]";
 

@@ -4,7 +4,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Strip, Symmetry, UiHarness}
+import org.cgsuite.util.{Symmetry, UiHarness}
 
 import scala.collection.mutable
 
@@ -63,6 +63,17 @@ object SpecialMethods {
     },
     "cgsuite.lang.List.Grouped" -> { (list: Seq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
+    },
+    "cgsuite.lang.List.MkOutput" -> { (list: Seq[_], sep: String) =>
+      val output = new StyledTextOutput
+      var first = true
+      list foreach { x =>
+        if (!first)
+          output appendMath sep
+        first = false
+        output append CgscriptClass.instanceToOutput(x)
+      }
+      output
     },
     "cgsuite.lang.Map.ContainsKey" -> { (map: scala.collection.Map[Any,_], key: Any) =>
       map contains key
