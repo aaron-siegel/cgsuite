@@ -90,7 +90,7 @@ object ClassDeclarationNode {
 
 case class ClassDeclarationNode(
   tree: Tree,
-  id: IdentifierNode,
+  idNode: IdentifierNode,
   isEnum: Boolean,
   modifiers: Modifiers,
   extendsClause: Seq[Node],
@@ -100,11 +100,15 @@ case class ClassDeclarationNode(
   staticInitializers: Seq[InitializerNode],
   ordinaryInitializers: Seq[InitializerNode],
   enumElements: Seq[EnumElementNode]
-  ) extends Node {
+  ) extends MemberDeclarationNode {
 
-  val children = Seq(id) ++ extendsClause ++ constructorParams ++
+  val children = Seq(idNode) ++ extendsClause ++ constructorParams ++
     nestedClassDeclarations ++ methodDeclarations ++ staticInitializers ++ ordinaryInitializers
 
+}
+
+trait MemberDeclarationNode extends Node {
+  def idNode: IdentifierNode
 }
 
 object ParametersNode {
@@ -193,7 +197,7 @@ case class MethodDeclarationNode(
   modifiers: Modifiers,
   parameters: Option[ParametersNode],
   body: Option[StatementSequenceNode]
-  ) extends Node {
+  ) extends MemberDeclarationNode {
 
   val children = Seq(idNode) ++ parameters ++ body
 
@@ -230,10 +234,14 @@ case class Modifiers(
   static: Option[Token] = None,
   system: Option[Token] = None
   ) {
+
   val hasExternal = external.isDefined
   val hasMutable = mutable.isDefined
   val hasOverride = `override`.isDefined
   val hasSingleton = singleton.isDefined
   val hasStatic = static.isDefined
   val hasSystem = system.isDefined
+
+  def allModifiers = external ++ mutable ++ `override` ++ singleton ++ static ++ system
+
 }

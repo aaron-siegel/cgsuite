@@ -3,6 +3,13 @@
 system class MisereCanonicalGame extends ImpartialGame
 
   external def Birthday;
+  
+  /** `true` if this game is even.
+    * 
+    * A misere game `G` is _even_ if `G` has lower birthday than `G + *`, i.e., if
+    *
+    * `G.Birthday < (G + *).Birthday.`
+    */
   external def IsEven;
   external def IsExtraverted;
   external def IsGenerallyRestive;

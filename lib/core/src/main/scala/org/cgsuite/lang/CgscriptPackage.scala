@@ -33,6 +33,8 @@ object CgscriptPackage {
   // Less efficient!
   def lookupClassByName(name: String): Option[CgscriptClass] = classDictionary.get(Symbol(name))
 
+  def allClasses = classDictionary.values.toVector.distinct sortBy { _.qualifiedName }
+
 }
 
 case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {

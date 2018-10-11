@@ -5,32 +5,31 @@
 
 package org.cgsuite.lang.parser;
 
+import org.antlr.runtime.CommonToken;
+import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.Token;
-import org.antlr.runtime.TokenStream;
-import org.antlr.runtime.tree.CommonTree;
 
 /**
  *
  * @author asiegel
  */
-public class CgsuiteErrorNode extends CommonTree
+public class CgsuiteErrorNode extends CgsuiteTree
 {
-    private TokenStream input;
-    private Token start;
-    private Token stop;
+    private CommonTokenStream input;
+    private CommonToken start;
+    private CommonToken stop;
     private RecognitionException re;
 
-    public CgsuiteErrorNode(TokenStream input, Token start, Token stop, RecognitionException re)
+    public CgsuiteErrorNode(CommonTokenStream input, CommonToken start, CommonToken stop, RecognitionException re)
     {
-        super(start);
+        super(start, input);
         this.input = input;
         this.start = start;
         this.stop = stop;
         this.re = re;
     }
 
-    public TokenStream getInput()
+    public CommonTokenStream getInput()
     {
         return input;
     }
@@ -40,12 +39,12 @@ public class CgsuiteErrorNode extends CommonTree
         return re;
     }
 
-    public Token getStart()
+    public CommonToken getStart()
     {
         return start;
     }
 
-    public Token getStop()
+    public CommonToken getStop()
     {
         return stop;
     }

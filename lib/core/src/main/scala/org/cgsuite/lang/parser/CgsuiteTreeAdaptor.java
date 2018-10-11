@@ -21,6 +21,6 @@ public class CgsuiteTreeAdaptor extends CommonTreeAdaptor
     @Override
     public CgsuiteErrorNode errorNode(TokenStream input, Token start, Token end, RecognitionException re)
     {
-        return new CgsuiteErrorNode(input, start, end, re);
+        return new CgsuiteErrorNode((CommonTokenStream) input, (CommonToken) start, (CommonToken) end, re);
     }
 }

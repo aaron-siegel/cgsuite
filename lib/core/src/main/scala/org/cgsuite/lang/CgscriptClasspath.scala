@@ -13,11 +13,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object CgscriptClasspath {
 
-  private[lang] val devBuildHome = Option(java.lang.System.getProperty("org.cgsuite.devbuild")) map { File(_) }
+  private[cgsuite] val devBuildHome = Option(java.lang.System.getProperty("org.cgsuite.devbuild")) map { File(_) }
 
-  private[lang] val cgsuiteDir = java.lang.System.getProperty("user.home")/"CGSuite"
+  private[cgsuite] val cgsuiteDir = java.lang.System.getProperty("user.home")/"CGSuite"
 
-  private[lang] val systemDir = {
+  private[cgsuite] val systemDir = {
     devBuildHome match {
       case Some(home) => home/"../lib/core/src/main/resources/org/cgsuite/lang/resources"
       case None =>
@@ -32,11 +32,11 @@ object CgscriptClasspath {
     }
   }
 
-  private[lang] val classpath: Vector[File] = Vector(systemDir, cgsuiteDir)
+  private[cgsuite] val classpath: Vector[File] = Vector(systemDir, cgsuiteDir)
 
-  private[lang] val modifiedFiles = mutable.Set[ModifiedFile]()
+  private[cgsuite] val modifiedFiles = mutable.Set[ModifiedFile]()
 
-  private[lang] def declareFolders(): Unit = {
+  private[cgsuite] def declareFolders(): Unit = {
     logger debug "Declaring folders."
     if (devBuildHome.isDefined)
       logger debug "This is a CGSuite developer build."
@@ -45,13 +45,13 @@ object CgscriptClasspath {
     classpath foreach declareFolder
   }
 
-  private[lang] def declareFolder(folder: File): Unit = {
+  private[cgsuite] def declareFolder(folder: File): Unit = {
     if (folder.fileSystem.provider.getScheme != "jar")
       new Monitor(folder).start()
     declareFolderR(CgscriptPackage.root, folder)
   }
 
-  private[lang] def declareFolderR(pkg: CgscriptPackage, folder: File): Unit = {
+  private[cgsuite] def declareFolderR(pkg: CgscriptPackage, folder: File): Unit = {
     logger debug s"Declaring folder: $folder as package ${pkg.name}"
     folder.children foreach { file =>
       if (file.isDirectory) {

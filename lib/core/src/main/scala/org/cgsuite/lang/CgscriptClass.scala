@@ -220,7 +220,12 @@ class CgscriptClass(
     singletonInstanceRef
   }
 
-  def idNode = classInfo.idNode
+  override def idNode = classInfo.idNode
+
+  override def declNode = {
+    ensureDeclared()
+    Option(classDeclarationNode)
+  }
 
   def isScript = scriptObject != null
 
@@ -291,6 +296,16 @@ class CgscriptClass(
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
     ensureInitialized()
     classInfo.allNestedClassesInScope.get(id)
+  }
+
+  def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
+    ensureInitialized()
+    classInfo.classVarLookup.get(id)
+  }
+
+  def lookupMember(id: Symbol): Option[Member] = {
+    ensureInitialized()
+    lookupMethod(id) orElse lookupNestedClass(id) orElse lookupVar(id)
   }
 
   def ensureDeclared(): Unit = {
@@ -438,8 +453,8 @@ class CgscriptClass(
 
       if (Object.isLoaded) { // Hack to bootstrap Object
 
-        if (node.id.id.name != nameAsFullyScopedMember)
-          throw EvalException(s"Class name does not match filename: `${node.id.id.name}` (was expecting `$nameAsFullyScopedMember`)", node.id.tree)
+        if (node.idNode.id.name != nameAsFullyScopedMember)
+          throw EvalException(s"Class name does not match filename: `${node.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", node.idNode.tree)
 
         val supers = {
           if (node.extendsClause.isEmpty) {
@@ -470,21 +485,21 @@ class CgscriptClass(
 
         val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
-          val id = decl.id.id
+          val id = decl.idNode.id
           val newClass = locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(this), id))
           (id, newClass)
         } toMap
         val constructor = node.constructorParams map { t =>
           val parameters = t.toParameters
           systemClass match {
-            case None => UserConstructor(node.id, parameters)
+            case None => UserConstructor(node.idNode, parameters)
             case Some(cls) =>
               val externalParameterTypes = parameters map { _.paramType.javaClass }
               SpecialMethods.specialMethods get qualifiedName match {
                 case Some(fn) =>
-                  ExplicitConstructor(node.id, parameters)(fn)
+                  ExplicitConstructor(node.idNode, parameters)(fn)
                 case None =>
-                  SystemConstructor(node.id, parameters, cls.getConstructor(externalParameterTypes : _*))
+                  SystemConstructor(node.idNode, parameters, cls.getConstructor(externalParameterTypes : _*))
               }
           }
         }
@@ -575,7 +590,8 @@ class CgscriptClass(
     }
 
     classInfoRef = new ClassInfo(
-      node.id,
+      node.idNode,
+      node,
       node.modifiers,
       supers,
       nestedClasses,
@@ -657,8 +673,8 @@ class CgscriptClass(
       node.nestedClassDeclarations foreach { nested =>
         if (!nested.modifiers.hasMutable) {
           throw EvalException(
-            s"Nested class `${nested.id.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
-            token = Some(nested.id.token)
+            s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
+            token = Some(nested.idNode.token)
           )
         }
       }
@@ -729,7 +745,7 @@ class CgscriptClass(
 
     // Declare nested classes
     node.nestedClassDeclarations foreach { decl =>
-      val id = decl.id.id
+      val id = decl.idNode.id
       classInfo.nestedClasses(id).declareClass(decl)
     }
 
@@ -801,7 +817,7 @@ class CgscriptClass(
 
     // Initialize nested classes
     node.nestedClassDeclarations foreach { decl =>
-      val id = decl.id.id
+      val id = decl.idNode.id
       classInfo.nestedClasses(id).initializeClass(decl)
     }
 
@@ -826,7 +842,7 @@ class CgscriptClass(
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
             logger.debug(s"$logPrefix   It's a special method.")
-            ExplicitMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
+            ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
@@ -838,12 +854,12 @@ class CgscriptClass(
                 throw EvalException(s"Method is declared `external`, but has no corresponding Java method (in Java class `$javaClass`): `$qualifiedName.$name`", node.tree)
             }
             logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
-            SystemMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
+            SystemMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
         }
       } else {
         logger.debug(s"$logPrefix Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
-        UserMethod(node.idNode, parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
+        UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
       }
     }
 
@@ -855,6 +871,7 @@ class CgscriptClass(
 
   class ClassInfo(
     val idNode: IdentifierNode,
+    val declNode: ClassDeclarationNode,
     val modifiers: Modifiers,
     val supers: Seq[CgscriptClass],
     val nestedClasses: Map[Symbol, CgscriptClass],
@@ -869,11 +886,11 @@ class CgscriptClass(
     val ancestors = properAncestors :+ CgscriptClass.this
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
-      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Modifiers.none, isConstructorParam = true) }
+      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Some(declNode), Modifiers.none, isConstructorParam = true) }
       case None => Seq.empty
     }
     val localClassVars = initializers collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, mod) if !mod.hasStatic => Var(assignId, mod)
+      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, mod) if !mod.hasStatic => Var(assignId, Some(declNode), mod)
     }
     val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
     val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
@@ -895,6 +912,12 @@ class CgscriptClass(
     val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
       (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
     }
+    lazy val allMembersInScope: Map[Symbol, Member] = {
+      classVarLookup ++ allMethodsInScope ++ allNestedClassesInScope
+    }
+    lazy val allNonSuperMembersInScope: Map[Symbol, Member] = {
+      allMembersInScope filterNot { case (symbol, _) => symbol.name startsWith "super$" }
+    }
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
     lazy val evalMethod = lookupMethodOrEvalException('Eval)
@@ -914,10 +937,17 @@ class CgscriptClass(
 
   }
 
-  case class Var(idNode: IdentifierNode, modifiers: Modifiers, isConstructorParam: Boolean = false) extends Member() {
+  case class Var(
+    idNode: IdentifierNode,
+    declNode: Option[MemberDeclarationNode],
+    modifiers: Modifiers,
+    isConstructorParam: Boolean = false
+  ) extends Member {
+
     def declaringClass = thisClass
     def isMutable = modifiers.hasMutable
     def id = idNode.id
+
   }
 
   trait Method extends Member {
@@ -958,6 +988,7 @@ class CgscriptClass(
 
   case class UserMethod(
     idNode: IdentifierNode,
+    declNode: Option[MemberDeclarationNode],
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -1001,6 +1032,7 @@ class CgscriptClass(
 
   case class SystemMethod(
     idNode: IdentifierNode,
+    declNode: Option[MemberDeclarationNode],
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -1041,6 +1073,7 @@ class CgscriptClass(
 
   case class ExplicitMethod(
     idNode: IdentifierNode,
+    declNode: Option[MemberDeclarationNode],
     parameters: Seq[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -1065,6 +1098,8 @@ class CgscriptClass(
     val autoinvoke = false
     val isStatic = false
     val isOverride = false
+
+    override def declNode = None
 
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
@@ -1158,6 +1193,7 @@ case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDe
 
 trait Member {
   def declaringClass: CgscriptClass
+  def declNode: Option[MemberDeclarationNode]
   def idNode: IdentifierNode
 }
 

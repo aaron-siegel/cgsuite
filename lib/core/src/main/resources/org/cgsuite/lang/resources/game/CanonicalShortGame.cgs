@@ -1,18 +1,64 @@
 /*${cgsuite.banner}*/
 
+/** A short partizan game in normal-play canonical form.
+  *
+  * A `CanonicalShortGame` represents both a (normal-play) game value
+  * and the canonical form of that value, and
+  * therefore extends both the [[Game]] and [[NormalValue]] classes.
+  */
 system class CanonicalShortGame extends CanonicalStopper
 
   external override def Options(player as Player);
 
+  /** The atomic weight of this game.
+    *
+    * The ~atomic weight~ of $G$ is the unique $W$ such that $G \sim W\cdot\^$, where
+    * $\sim$ is the ~atomic weight relation~:
+    *
+    * $G \sim H$ iff $o(G + X + *m) = o(H + X + *m)$
+    *
+    * for all games $X$ and all sufficiently large $m$.
+    *
+    * Such a $W$ is guaranteed to exist whenever $G$ is [[CanonicalShortGame.IsAllSmall][all small]], and
+    * also exists for certain other infinitesimals. If no such $W$ exists, then
+    * `G.AtomicWeight` will raise an error. In cases where this is undesirable,
+    * the [[CanonicalShortGame.IsAtomic]] property can be used to test for existence in advance.
+    *
+    * The theory of atomic weights is discussed in detail in \ww and \cgt.
+    */
   external def AtomicWeight;
+  
+  /** The birthday of this game.
+    *
+    * The ~birthday~ of `G` is the [[Integer]] defined recursively by
+    *
+    * `0.Birthday = 0
+    * G.Birthday = max{G^L^.Birthday, G^R^.Birthday}`.
+    *
+    * It is equal to the height of the complete game tree for `G`.
+    */
   external def Birthday;
   external def Companion;
   external def Cool(t as DyadicRational);
+  
+  /** The `CanonicalShortGame` equal to this game cooled by its temperature.
+    */
   external def Freeze;
   external def Heat(t as CanonicalShortGame);
   external def Incentives;
   external override def IsAllSmall;
   external def IsAtomic;
+  
+  /**
+    * `true` if this `CanonicalShortGame` is even.
+    *
+    * `G` is ~even~ if either: `G` is identically zero; or every option of `G` is odd.
+    *
+    * Likewise, `G` is ~odd~ if both: `G` is not identically zero; and every option of
+    * `G` is even.
+    *
+    * See also [[IsOdd]].
+    */
   external def IsEven;
   external def IsEvenTempered;
   external override def IsInfinitesimal;
