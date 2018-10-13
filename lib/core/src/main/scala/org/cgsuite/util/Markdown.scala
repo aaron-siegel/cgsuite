@@ -21,14 +21,17 @@ object Markdown {
 
   val specials: Map[Char, String] = Map(
     '^' -> "&uarr;",
-    'v' -> "&darr;"
+    'v' -> "&darr;",
+    '\\' -> "<br>"
   )
 
   val specialSeqs: Map[String, String] = Map(
     "leq" -> "&lt;=",
     "geq" -> "&gt;=",
     "sim" -> "~",
-    "cdot" -> "\u00b7"
+    "sp" -> "&nbsp;&nbsp;",
+    "cdot" -> "\u00b7",
+    "Sigma" -> "\u03a3"
   )
 
 }
@@ -42,6 +45,8 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
   private var location = Location.Normal
   private val linksRef = mutable.MutableList[(String, Option[String])]()
   private val result = new StringBuffer()
+
+  emit("  ")
 
   while (!stream.isDone) {
 
@@ -76,11 +81,12 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
 
       case (_, _, '[') if stream.next == '[' => consumeLink()
 
-      case (_, _, '\\') if stream.next.isLetter => specialSeq(stream consumeWhile { _.isLetter })
+      case (_, _, '\\') if stream.next.isLetter => consumeSpecialSeq()
       case (_, _, '\\') => special(stream.consume)
 
-      case (State.Code, _, '\n') => "<br>"
-      case (_, _, '\n') if stream.next == '\n' => stream.consume; "<p>"
+      case (State.Code, _, '\n') => "\n  <br>"
+      case (_, _, '\n') if stream.next == '\n' => stream.consume; "\n  <p>"
+      case (_, _, '\n') => " "
 
       case (_, _, ch) => ch.toString
 
@@ -115,6 +121,12 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
     stream.consume
     str.toString
 
+  }
+
+  def consumeSpecialSeq(): String = {
+    val id = stream consumeWhile { _.isLetter }
+    val resolution = specialSeq(id)
+    resolution
   }
 
   def emit(ch: Char): Unit = result append ch

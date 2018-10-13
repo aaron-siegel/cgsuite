@@ -50,7 +50,9 @@ object HelpBuilder {
         node <- cls.declNode
         comment <- node.docComment
       } yield {
-        processDocComment(cls, comment)
+        s"""<div class="section">
+           |${processDocComment(cls, comment)}
+           |</div>""".stripMargin
       }
     }
 
@@ -67,16 +69,26 @@ object HelpBuilder {
       MemberInfo(member, entityType, declaringLink)
     }
 
-    val memberSummary = makeMemberSummary(cls, memberInfo)
+    val memberSummary = makeMemberSummary(cls, cls, memberInfo filter { _.member.declaringClass == cls })
 
-    val memberDetails = memberInfo map { makeMemberDetail(cls, _) } mkString "\n<p>&nbsp;<p>\n"
+    // TODO Breadth-first order for ancestor tree?
+
+    val allDeclaringClasses = memberInfo.map { _.member.declaringClass }.distinct sortBy { _.qualifiedName }
+
+    val prevMemberSummary = allDeclaringClasses filterNot { _ == cls } map { declaringClass =>
+      val declaredMembers = memberInfo filter { _.member.declaringClass == declaringClass }
+      makeMemberSummary(cls, declaringClass, declaredMembers)
+    }
+
+    val memberDetails = memberInfo map { makeMemberDetail(cls, _) } mkString "\n<p>\n"
 
     packageDir.createDirectories()
-    file overwrite htmlHeader
+    file overwrite htmlHeader(cls)
     file append header
     classComment foreach file.append
     file append memberSummary
-    file append "<h2>Member Details</h2>\n\n"
+    prevMemberSummary foreach file.append
+    file append "\n<h2>Member Details</h2>\n\n"
     file append memberDetails
     file append htmlFooter
 
@@ -101,30 +113,36 @@ object HelpBuilder {
         " extends " + (supers mkString ", ")
     }
 
-    s"""<title>${cls.qualifiedName}</title>
-       |</head><body>
+    s"""  <title>${cls.qualifiedName}</title>
+       |</head>
+       |
+       |<body>
+       |
        |<code>package ${cls.pkg.qualifiedName}</code>
        |<h1>${cls.name}</h1>
-       |<p>
-       |<code>$modifiersStr $classtypeStr <b>${cls.name}</b>$extendsStr</code>
-       |<p>
-     """.stripMargin
+       |
+       |<p><div class="section">
+       |  <code>$modifiersStr $classtypeStr <b>${cls.name}</b>${makeParameters(cls, cls)}$extendsStr</code>
+       |</div></p>
+       |
+       |""".stripMargin
 
   }
 
-  def makeMemberSummary(cls: CgscriptClass, members: Vector[MemberInfo]) = {
+  def makeMemberSummary(cls: CgscriptClass, declaringClass: CgscriptClass, members: Vector[MemberInfo]) = {
 
-    val header =
-      s"""<h2>All Members</h2>
-         |<table>
-         |  <tr>
-         |    <th colspan="2">Member</th>
-         |    <th>Description</th>
-         |    <th>Defined In</th>
-         |  </tr>
-         |""".stripMargin
+    val sectionHeader = {
+      if (cls == declaringClass)
+        "\n<h2>All Members</h2>\n\n"
+      else
+        s"\n<h3>Members inherited from ${hyperlink(cls, declaringClass.qualifiedName, None)}</h3>\n\n"
+    }
 
-    val footer = "</table>"
+    val tableHeader =
+      """<p><div class="section"><table class="members">
+        |""".stripMargin
+
+    val footer = "</table></div>\n"
 
     val rows = members map { info =>
 
@@ -133,20 +151,23 @@ object HelpBuilder {
 
       val description = info.member.declNode flatMap { _.docComment } match {
         case Some(comment) => processDocComment(cls, comment, firstSentenceOnly = true)
-        case None => ""
+        case None => "&nbsp;"
       }
 
       s"""  <tr>
-         |    <td><code>${info.entityType}&nbsp;</code></td>
-         |    <td><code>$memberLink</code></td>
-         |    <td>$description</td>
-         |    <td><code>${info.declarationLink}</code></td>
+         |    <td class="entitytype">
+         |      <code>${info.entityType}${"&nbsp;" * (5 - info.entityType.length)}</code>
+         |    </td>
+         |    <td class="member">
+         |      <code>$memberLink${makeParameters(cls, info.member)}</code>
+         |      <br>$description
+         |    </td>
          |  </tr>
-       """.stripMargin
+         |""".stripMargin
 
     }
 
-    s"$header${rows mkString ""}$footer"
+    s"$sectionHeader$tableHeader${rows mkString ""}$footer"
 
   }
 
@@ -154,37 +175,42 @@ object HelpBuilder {
 
     val name = info.member.idNode.id.name
 
-    val parametersStr = info.member match {
-      case _: CgscriptClass#Var => ""
-      case method: CgscriptClass#Method =>
-        if (method.autoinvoke) "" else makeParameters(cls, method.parameters)
-      case nestedClass: CgscriptClass =>
-        nestedClass.classInfo.constructor map { ctor => makeParameters(cls, ctor.parameters) } getOrElse ""
-    }
-
-    val disclaimer = {
-      if (cls == info.member.declaringClass) {
-        ""
-      } else {
-        val link = hyperlink(cls, info.member.declaringClass.qualifiedName, None)
-        s"<p><em>(description copied from </em>$link<em>)</em>"
-      }
-    }
+    val parametersStr = makeParameters(cls, info.member)
 
     val comment = {
       for {
         node <- info.member.declNode
         comment <- node.docComment
       } yield {
-        "<p>\n" + processDocComment(cls, comment)
+        processDocComment(cls, comment)
       }
     } getOrElse ""
 
-    s"""<a name="$name"/>
-       |<code>${info.entityType} <b>$name</b>$parametersStr</code>
-       |$disclaimer
-       |$comment""".stripMargin
+    val disclaimer = {
+      if (comment == "" || cls == info.member.declaringClass) {
+        ""
+      } else {
+        val link = hyperlink(cls, info.member.declaringClass.qualifiedName, None)
+        s"<p><em>(description copied from </em>$link<em>)</em>\n"
+      }
+    }
 
+    s"""<a name="$name"></a>
+       |<p><div class="section">
+       |  <code>${info.entityType} <b>$name</b>$parametersStr</code>
+       |  $disclaimer<p>$comment
+       |</div>""".stripMargin
+
+  }
+
+  def makeParameters(cls: CgscriptClass, member: Member): String = {
+    member match {
+      case _: CgscriptClass#Var => ""
+      case method: CgscriptClass#Method =>
+        if (method.autoinvoke) "" else makeParameters(cls, method.parameters)
+      case nestedClass: CgscriptClass =>
+        nestedClass.classInfo.constructor map { ctor => makeParameters(cls, ctor.parameters) } getOrElse ""
+    }
   }
 
   def makeParameters(cls: CgscriptClass, parameters: Seq[Parameter]): String = {
@@ -202,14 +228,14 @@ object HelpBuilder {
 
       val defaultString = parameter.defaultValue match {
         case None => ""
-        case Some(default) => default.toNodeString
+        case Some(default) => " ? " + default.toNodeString
       }
 
-      s"(${parameter.id.name}$asString$expandString$defaultString)"
+      s"${parameter.id.name}$asString$expandString$defaultString"
 
     }
 
-    strings mkString ", "
+    s"(${strings mkString ", "})"
 
   }
 
@@ -321,20 +347,18 @@ object HelpBuilder {
 
   def main(args: Array[String]): Unit = run()
 
-  val htmlHeader = {
-    """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-      |<html><head>
-      |<link rel="stylesheet" href="nbdocs:/org/cgsuite/help/docs/cgsuite.css" type="text/css">
-      |<style type="text/css">
-      |code { font-size: 13pt; }
-      |ul { list-style-type: disc; list-style-image: none; list-style-position: outside; }
-      |</style>
-      |<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-      |""".stripMargin
+  def htmlHeader(cls: CgscriptClass) = {
+    s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+       |<html>
+       |<head>
+       |  <link rel="stylesheet" href="${"../" * cls.pkg.path.length}cgsuite.css" type="text/css">
+       |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+       |""".stripMargin
   }
 
   val htmlFooter =
     """</body>
+      |</html>
       |""".stripMargin
 
 }

@@ -15,7 +15,7 @@ system class CanonicalShortGame extends CanonicalStopper
     * The ~atomic weight~ of $G$ is the unique $W$ such that $G \sim W\cdot\^$, where
     * $\sim$ is the ~atomic weight relation~:
     *
-    * $G \sim H$ iff $o(G + X + *m) = o(H + X + *m)$
+    * $G \sim H$ \sp iff \sp $o(G + X + *m) = o(H + X + *m)$
     *
     * for all games $X$ and all sufficiently large $m$.
     *
@@ -39,6 +39,9 @@ system class CanonicalShortGame extends CanonicalStopper
     */
   external def Birthday;
   external def Companion;
+  
+  /** The value of this game cooled by temperature `t`.
+    */
   external def Cool(t as DyadicRational);
   
   /** The `CanonicalShortGame` equal to this game cooled by its temperature.
@@ -80,6 +83,16 @@ system class CanonicalShortGame extends CanonicalStopper
   external override def ReducedCanonicalForm;
   external def RightIncentives;
   external override def RightStop;
+  
+  /** The total number of stopping positions in this game's complete game tree.
+    *
+    * It is defined by
+    *
+    * $SC(x) = x$ \sp if $x$ is a number;\\
+    * $SC(G) = \Sigma SC(G^L^) + \Sigma SC(G^R^)$ \sp otherwise,
+    *
+    * where the sums are understood to range over all Left and Right options of $G$.
+    */
   external def StopCount;
   external def Temperature;
   external def Thermograph;
