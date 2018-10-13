@@ -65,8 +65,7 @@ object HelpBuilder {
         case _: CgscriptClass#Var => "var"
         case _ => sys.error("can't happen")
       }
-      val declaringLink = hyperlink(cls, member.declaringClass.qualifiedName, None)
-      MemberInfo(member, entityType, declaringLink)
+      MemberInfo(member, entityType)
     }
 
     val memberSummary = makeMemberSummary(cls, cls, memberInfo filter { _.member.declaringClass == cls })
@@ -103,7 +102,7 @@ object HelpBuilder {
     }
 
     val supers = cls.classInfo.supers filterNot { _ == CgscriptClass.Object } map { sup =>
-      hyperlink(cls, sup.qualifiedName, None)
+      s"<code>${hyperlink(cls, sup)}</code>"
     }
 
     val extendsStr = {
@@ -135,7 +134,7 @@ object HelpBuilder {
       if (cls == declaringClass)
         "\n<h2>All Members</h2>\n\n"
       else
-        s"\n<h3>Members inherited from ${hyperlink(cls, declaringClass.qualifiedName, None)}</h3>\n\n"
+        s"\n<h3>Members inherited from ${hyperlink(cls, declaringClass)}</h3>\n\n"
     }
 
     val tableHeader =
@@ -147,7 +146,7 @@ object HelpBuilder {
     val rows = members map { info =>
 
       val name = info.member.idNode.id.name
-      val memberLink = hyperlink(cls, s"${info.member.declaringClass.qualifiedName}.$name", Some(name))
+      val memberLink = hyperlink(cls, info.member.declaringClass, Some(info.member), Some(name))
 
       val description = info.member.declNode flatMap { _.docComment } match {
         case Some(comment) => processDocComment(cls, comment, firstSentenceOnly = true)
@@ -190,8 +189,8 @@ object HelpBuilder {
       if (comment == "" || cls == info.member.declaringClass) {
         ""
       } else {
-        val link = hyperlink(cls, info.member.declaringClass.qualifiedName, None)
-        s"<p><em>(description copied from </em>$link<em>)</em>\n"
+        val link = hyperlink(cls, info.member.declaringClass)
+        s"<p><em>(description copied from </em><code>$link</code><em>)</em>\n"
       }
     }
 
@@ -221,7 +220,7 @@ object HelpBuilder {
         if (parameter.paramType == CgscriptClass.Object)
           ""
         else
-          " as " + hyperlink(cls, parameter.paramType.qualifiedName, None)
+          " as " + hyperlink(cls, parameter.paramType)
       }
 
       val expandString = if (parameter.isExpandable) " ..." else ""
@@ -256,11 +255,33 @@ object HelpBuilder {
     markdown.links.zipWithIndex foreach { case ((ref, textOpt), index) =>
 
       val link = hyperlink(cls, ref, textOpt)
-      result = result replaceFirst (f"@@$index%04d", link)
+      result = result replaceFirst (f"@@$index%04d", s"<code>$link</code>")
 
     }
 
     result
+
+  }
+
+  def hyperlink(cls: CgscriptClass, refClass: CgscriptClass, refMember: Option[Member] = None, text: Option[String] = None): String = {
+
+    val classRef = relativeRef(cls, refClass)
+    val memberRef = refMember match {
+      case Some(member) => s"#${member.idNode.id.name}"
+      case None => ""
+    }
+    val refText = {
+      if (cls == refClass && refMember.isDefined)
+        refMember.get.idNode.id.name
+      else if (cls == refClass)
+        cls.name
+      else if (refMember.isDefined)
+        s"${qualifiedRefName(cls, refClass)}.${refMember.get.idNode.id.name}"
+      else
+        qualifiedRefName(cls, refClass)
+    }
+    val linkText = text getOrElse s"$refText"
+    s"""<a href="$classRef$memberRef">$linkText</a>"""
 
   }
 
@@ -270,25 +291,7 @@ object HelpBuilder {
 
     resolution match {
 
-      case (Some(refcls), memberOpt) =>
-        val classRef = relativeRef(cls, refcls)
-        val memberRef = memberOpt match {
-          case Some(member) => s"#${member.idNode.id.name}"
-          case None => ""
-        }
-        val refText = {
-          if (cls == refcls && memberOpt.isDefined)
-            memberOpt.get.idNode.id.name
-          else if (cls == refcls)
-            cls.name
-          else if (memberOpt.isDefined)
-            s"${qualifiedRefName(cls, refcls)}.${memberOpt.get.idNode.id.name}"
-          else
-            qualifiedRefName(cls, refcls)
-        }
-        val linkText = text getOrElse s"<code>$refText</code>"
-        s"""<a href="$classRef$memberRef">$linkText</a>"""
-
+      case (Some(refcls), memberOpt) => hyperlink(cls, refcls, memberOpt, text)
       case (None, _) => text getOrElse ref   // TODO Markup in red?
 
     }
@@ -363,4 +366,4 @@ object HelpBuilder {
 
 }
 
-case class MemberInfo(member: Member, entityType: String, declarationLink: String)
+case class MemberInfo(member: Member, entityType: String)
