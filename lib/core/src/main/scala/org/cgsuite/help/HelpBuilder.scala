@@ -56,7 +56,16 @@ object HelpBuilder {
       }
     }
 
-    val members = cls.classInfo.allNonSuperMembersInScope.values.toVector sortBy { _.idNode.id.name }
+    val regularMembers = {
+      cls.classInfo.allNonSuperMembersInScope.values.toVector
+    }
+
+    val members = {
+      if (cls.isPackageObject)
+        regularMembers.filter { _.declaringClass == cls } ++ cls.pkg.allClasses
+      else
+        regularMembers
+    } sortBy { _.idNode.id.name }
 
     val memberInfo = members map { member =>
       val entityType = member match {
@@ -68,21 +77,24 @@ object HelpBuilder {
       MemberInfo(member, entityType)
     }
 
-    val memberSummary = makeMemberSummary(cls, cls, memberInfo filter { _.member.declaringClass == cls })
+    val memberSummary = makeMemberSummary(cls, cls, memberInfo filter {
+      info => info.member.declaringClass == cls || info.member.declaringClass == null
+    })
 
     // TODO Breadth-first order for ancestor tree?
 
-    val allDeclaringClasses = memberInfo.map { _.member.declaringClass }.distinct sortBy { _.qualifiedName }
+    val allDeclaringClasses = memberInfo.filterNot { info =>
+      info.member.declaringClass == null || info.member.declaringClass == cls
+    }.map { _.member.declaringClass }.distinct sortBy { _.qualifiedName }
 
-    val prevMemberSummary = allDeclaringClasses filterNot { _ == cls } map { declaringClass =>
+    val prevMemberSummary = allDeclaringClasses map { declaringClass =>
       val declaredMembers = memberInfo filter { _.member.declaringClass == declaringClass }
       makeMemberSummary(cls, declaringClass, declaredMembers)
     }
 
-    val memberDetails = memberInfo map { makeMemberDetail(cls, _) } mkString "\n<p>\n"
+    val memberDetails = memberInfo filterNot { _.member.declaringClass == null } map { makeMemberDetail(cls, _) } mkString "\n<p>\n"
 
     packageDir.createDirectories()
-    file overwrite htmlHeader(cls)
     file append header
     classComment foreach file.append
     file append memberSummary
@@ -95,15 +107,32 @@ object HelpBuilder {
 
   def makeHeader(cls: CgscriptClass): String = {
 
-    val modifiersStr = cls.classInfo.modifiers.allModifiers map { _.getText } mkString " "
+    val modifiersStr = {
+      if (cls.isPackageObject)
+        ""
+      else
+        cls.classInfo.modifiers.allModifiers map { _.getText } mkString " "
+    }
+
+    val packageStr = {
+      if (cls.isPackageObject)
+        ""
+      else
+        s"""<p><code>package <a href="constants.html">${cls.pkg.qualifiedName}</a></code>"""
+    }
 
     val classtypeStr = {
-      "class"   // TODO enums
+      if (cls.isPackageObject)
+        "package"
+      else
+        "class"   // TODO enums
     }
 
     val supers = cls.classInfo.supers filterNot { _ == CgscriptClass.Object } map { sup =>
       s"<code>${hyperlink(cls, sup)}</code>"
     }
+
+    assert(supers.isEmpty || !cls.isPackageObject)
 
     val extendsStr = {
       if (supers.isEmpty)
@@ -112,16 +141,21 @@ object HelpBuilder {
         " extends " + (supers mkString ", ")
     }
 
-    s"""  <title>${cls.qualifiedName}</title>
+    s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+       |<html>
+       |<head>
+       |  <link rel="stylesheet" href="${"../" * cls.pkg.path.length}cgsuite.css" type="text/css">
+       |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+       |  <title>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.qualifiedName}</title>
        |</head>
        |
        |<body>
        |
-       |<code>package ${cls.pkg.qualifiedName}</code>
-       |<h1>${cls.name}</h1>
+       |$packageStr
+       |<h1>${if (cls.isPackageObject) "package " + cls.pkg.qualifiedName else cls.name}</h1>
        |
        |<p><div class="section">
-       |  <code>$modifiersStr $classtypeStr <b>${cls.name}</b>${makeParameters(cls, cls)}$extendsStr</code>
+       |  <code>$modifiersStr $classtypeStr <b>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.name}</b>${makeParameters(cls, cls)}$extendsStr</code>
        |</div></p>
        |
        |""".stripMargin
@@ -146,7 +180,12 @@ object HelpBuilder {
     val rows = members map { info =>
 
       val name = info.member.idNode.id.name
-      val memberLink = hyperlink(cls, info.member.declaringClass, Some(info.member), Some(name))
+      val memberLink = {
+        if (info.member.declaringClass == null)
+          hyperlink(cls, info.member.asInstanceOf[CgscriptClass], text = Some(name))
+        else
+          hyperlink(cls, info.member.declaringClass, Some(info.member), Some(name))
+      }
 
       val description = info.member.declNode flatMap { _.docComment } match {
         case Some(comment) => processDocComment(cls, comment, firstSentenceOnly = true)
@@ -189,7 +228,12 @@ object HelpBuilder {
       if (comment == "" || cls == info.member.declaringClass) {
         ""
       } else {
-        val link = hyperlink(cls, info.member.declaringClass)
+        val link = {
+          if (info.member.declaringClass == null)
+            hyperlink(cls, info.member.asInstanceOf[CgscriptClass])
+          else
+            hyperlink(cls, info.member.declaringClass)
+        }
         s"<p><em>(description copied from </em><code>$link</code><em>)</em>\n"
       }
     }
@@ -349,15 +393,6 @@ object HelpBuilder {
   }
 
   def main(args: Array[String]): Unit = run()
-
-  def htmlHeader(cls: CgscriptClass) = {
-    s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-       |<html>
-       |<head>
-       |  <link rel="stylesheet" href="${"../" * cls.pkg.path.length}cgsuite.css" type="text/css">
-       |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-       |""".stripMargin
-  }
 
   val htmlFooter =
     """</body>

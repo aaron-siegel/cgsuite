@@ -40,7 +40,9 @@ object CgscriptPackage {
 case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   private val subpackages = mutable.Map[String, CgscriptPackage]()
-  private val classes = mutable.Map[Symbol, CgscriptClass]()
+  private val classesLookup = mutable.Map[Symbol, CgscriptClass]()
+
+  val allClasses = classesLookup.values
 
   val path: Seq[String] = parent match {
     case None => Seq.empty
@@ -63,14 +65,14 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
     }
   }
 
-  def lookupClass(id: Symbol): Option[CgscriptClass] = classes.get(id)
+  def lookupClass(id: Symbol): Option[CgscriptClass] = classesLookup.get(id)
 
   def declareClass(id: Symbol, classdef: CgscriptClassDef, scalaClass: Option[Class[_]]): CgscriptClass = {
 
-    classes.get(id) map { _.classdef } match {
+    classesLookup.get(id) map { _.classdef } match {
 
       case Some(UrlClassDef(url)) =>
-        val cls = classes(id)
+        val cls = classesLookup(id)
         if (classdef != cls.classdef && !SystemClassRegistry.allSystemClasses.exists { _._1 == cls.qualifiedName }) {
           sys error s"Class conflict in package $name: ${id.name}"    // TODO Better error message
         }
@@ -79,7 +81,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
       case _ =>
         assert(!classdef.isInstanceOf[NestedClassDef])
         val cls = new CgscriptClass(this, classdef, id, scalaClass)
-        classes.put(id, cls)
+        classesLookup.put(id, cls)
         CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
         if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game || this == CgscriptPackage.ui) {
           CgscriptPackage.classDictionary.put(id, cls)

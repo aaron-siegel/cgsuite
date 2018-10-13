@@ -180,6 +180,8 @@ class CgscriptClass(
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
 
+  val isPackageObject = id == 'constants
+
   private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
 
   private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
