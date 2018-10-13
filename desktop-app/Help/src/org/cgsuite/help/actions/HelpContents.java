@@ -28,6 +28,6 @@ public final class HelpContents implements ActionListener
     {
         CgsuiteHelpTopComponent helpComponent = (CgsuiteHelpTopComponent) WindowManager.getDefault().findTopComponent("CgsuiteHelpTopComponent");
         helpComponent.open();
-        helpComponent.getHelpViewer().setCurrentID("Welcome to CGSuite");
+        //helpComponent.getHelpViewer().setCurrentID("Reference Guide");
     }
 }

@@ -12,7 +12,14 @@ body {
     color: Black;
     background-color: #F6F6F6;
     max-width: 960px;
-    line-height: 125% }
+    line-height: 125%;
+    overflow-x: hidden }
+
+div.spacer {
+    background-color: #F6F6F6;
+    padding-left: 12px;
+    padding-right: 36px
+}
 
 div.section {
     background-color: White;

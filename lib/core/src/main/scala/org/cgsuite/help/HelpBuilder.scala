@@ -9,13 +9,25 @@ import org.slf4j.LoggerFactory
 
 object HelpBuilder {
 
-  private[help] val logger = Logger(LoggerFactory.getLogger(getClass))
+  def main(args: Array[String]): Unit = {
+    val buildDir = if (args.isEmpty) "src/main/gen" else args.head
+    HelpBuilder(buildDir).run()
+  }
 
-  private[help] val rootDir = "src"/"main"/"gen"/"org"/"cgsuite"/"help"/"docs"
+}
+
+case class HelpBuilder(buildDir: String) {
+
+  private[help] val logger = Logger(LoggerFactory.getLogger(classOf[HelpBuilder]))
+
+  private[help] val rootDir = buildDir/"org"/"cgsuite"/"help"/"docs"
 
   def run(): Unit = {
 
     CgscriptClass.Object.ensureDeclared()
+
+    renderHelpMap()
+    renderHelpToc()
 
     CgscriptPackage.allClasses foreach { cls =>
 
@@ -27,11 +39,61 @@ object HelpBuilder {
       } catch {
 
         case exc: SyntaxException =>
-          logger.warn(s"Syntax error parsing class: `${cls.qualifiedName}`")
+          logger warn s"Syntax error parsing class: `${cls.qualifiedName}`"
 
       }
 
     }
+
+  }
+
+  def renderHelpMap(): Unit = {
+
+    val file = rootDir/"help-map.xml"
+
+    val header =
+      s"""<?xml version="1.0" encoding="UTF-8"?>
+         |<!DOCTYPE map PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN" "http://java.sun.com/products/javahelp/map_2_0.dtd">
+         |<map version="2.0">
+         |""".stripMargin
+
+    val allTargets = CgscriptPackage.allClasses map { cls =>
+      s"""  <mapID target="${cls.qualifiedName}" url="${pathTo(cls)}"/>\n"""
+    }
+
+    rootDir.createDirectories()
+    file overwrite header
+    allTargets foreach file.append
+    file append "</map>"
+
+  }
+
+  def renderHelpToc(): Unit = {
+
+    val file = rootDir/"help-toc.xml"
+
+    val header =
+      """<?xml version="1.0" encoding="UTF-8"?>
+        |<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+        |<toc version="2.0">
+        |  <tocitem text="Combinatorial Game Suite" target="Combinatorial Game Suite">
+        |    <tocitem text="Reference Guide" target="Reference Guide">
+        |""".stripMargin
+
+    val allTargets = CgscriptPackage.allClasses map { cls =>
+      s"""      <tocitem text="${cls.qualifiedName}" target="${cls.qualifiedName}"/>\n"""
+    }
+
+    val footer =
+      """    </tocitem>
+        |  </tocitem>
+        |</toc>
+      """.stripMargin
+
+    rootDir.createDirectories()
+    file overwrite header
+    allTargets foreach file.append
+    file append footer
 
   }
 
@@ -149,7 +211,7 @@ object HelpBuilder {
        |  <title>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.qualifiedName}</title>
        |</head>
        |
-       |<body>
+       |<body><div class="spacer">
        |
        |$packageStr
        |<h1>${if (cls.isPackageObject) "package " + cls.pkg.qualifiedName else cls.name}</h1>
@@ -349,8 +411,12 @@ object HelpBuilder {
     else if (cls.pkg == refcls.pkg)
       refcls.name + ".html"
     else
-      "../" * cls.pkg.path.length + (refcls.pkg.path mkString "/") + "/" + refcls.name + ".html"
+      "../" * cls.pkg.path.length + pathTo(refcls)
 
+  }
+
+  def pathTo(refcls: CgscriptClass): String = {
+    (refcls.pkg.path mkString "/") + "/" + refcls.name + ".html"
   }
 
   def qualifiedRefName(cls: CgscriptClass, refcls: CgscriptClass): String = {
@@ -392,10 +458,8 @@ object HelpBuilder {
 
   }
 
-  def main(args: Array[String]): Unit = run()
-
   val htmlFooter =
-    """</body>
+    """</div></body>
       |</html>
       |""".stripMargin
 

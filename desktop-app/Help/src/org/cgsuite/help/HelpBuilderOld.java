@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HelpBuilder
+public class HelpBuilderOld
 {
     private final static String[] CONVERT_PATHS =
     {
@@ -70,10 +70,10 @@ public class HelpBuilder
     
     public static void main(String[] args) throws Exception
     {
-        new HelpBuilder(new File(args[0]), new File(args[1])).run();
+        new HelpBuilderOld(new File(args[0]), new File(args[1])).run();
     }
     
-    private HelpBuilder(File srcRoot, File targetRoot)
+    private HelpBuilderOld(File srcRoot, File targetRoot)
     {
         this.srcRoot = srcRoot;
         this.targetRoot = targetRoot;

@@ -13,9 +13,10 @@
     <target name="-post-compile">
         <!-- Generate HTML from .cgsh files -->
         <mkdir dir="${build.dir}/docs-tmp"/>
-        <java classname="org.cgsuite.help.HelpBuilder" classpath="${build.classes.dir}">
-            <arg value="${src.dir}/${cgsuite.docs}/"/>
-            <arg value="${build.dir}/docs-tmp/${cgsuite.docs}/"/>
+        <java classname="org.cgsuite.help.HelpBuilder" classpath="${basedir}/../cgsuite-core-lib/release/modules/ext/cgsuite-core.jar">
+            <arg value="${build.classes.dir}"/>
+            <!--<arg value="${src.dir}/${cgsuite.docs}/"/>-->
+            <!--<arg value="${build.dir}/docs-tmp/${cgsuite.docs}/"/>-->
         </java>
         <!-- Copy HTML and replace properties -->
         <copy todir="${build.classes.dir}">

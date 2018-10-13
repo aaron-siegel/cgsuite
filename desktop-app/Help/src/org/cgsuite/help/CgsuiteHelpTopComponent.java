@@ -5,17 +5,16 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
-import java.util.Enumeration;
-import javax.help.HelpSet;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebView;
 import javax.help.JHelp;
-import javax.help.JHelpIndexNavigator;
-import javax.help.JHelpNavigator;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.openide.util.Lookup;
 
 /**
  * Top component which displays something.
@@ -38,6 +37,35 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
         initComponents();
         setName(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CTL_CgsuiteHelpTopComponent"));
         setToolTipText(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "HINT_CgsuiteHelpTopComponent"));
+        final JFXPanel fxPanel = new JFXPanel();
+        add(fxPanel, BorderLayout.CENTER);
+        Platform.setImplicitExit(false);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                WebView webView = new WebView();
+                webView.getEngine().setUserStyleSheetLocation(HelpBuilder.class.getResource("docs/cgsuite.css").toExternalForm());
+                webView.getEngine().load(getClass().getResource("docs/game/CanonicalShortGame.html").toExternalForm());
+                fxPanel.setScene(new Scene(webView));
+            }
+        });
+
+        //JEditorPane pane = new JEditorPane();
+        //HTMLEditorKit kit = new HTMLEditorKit();
+        //NbEditorKit kit = new NbEditorKit();
+        //NbEditorDocument doc = new NbEditorDocument("text/html");
+        //kit.getStyleSheet().importStyleSheet(getClass().getResource("docs/cgsuite.css"));
+        //pane.setEditorKit(kit);
+        //pane.setDocument(doc);
+        /*try {
+            pane.setContentType("text/html");
+            pane.setPage(getClass().getResource("docs/game/CanonicalShortGame.html"));
+        } catch (IOException exc) {
+            throw new RuntimeException(exc);
+        }
+            ((HTMLDocument) pane.getDocument()).getStyleSheet().importStyleSheet(getClass().getResource("docs/cgsuite.css"));
+        add(pane, BorderLayout.CENTER);*/
+        /*
         HelpSet help = Lookup.getDefault().lookup(HelpSet.class);
         helpViewer = new JHelp(help);
         Enumeration e = helpViewer.getHelpNavigators();
@@ -50,7 +78,8 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
                 break;
             }
         }
-        add(helpViewer, BorderLayout.CENTER);
+        */
+        //add(helpViewer, BorderLayout.CENTER);
     }
     /** This method is called from within the constructor to
      * initialize the form.
