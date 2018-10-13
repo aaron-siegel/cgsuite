@@ -30,7 +30,7 @@ trait Zero extends SmallInteger with Nimber {
 
   override def unary_- = this
 
-  override def options(player: Player): Iterable[Nothing] = Set.empty
+  override def optionsFor(player: Player): Iterable[Nothing] = Set.empty
   override def options: Iterable[Nothing] = Set.empty
 
 }

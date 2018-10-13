@@ -10,7 +10,7 @@ system class Set extends Collection
 
   external def Replaced(replacements as Map);
   
-  external def Union(that as Set);
+  external def Union(that as Collection);
 
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 

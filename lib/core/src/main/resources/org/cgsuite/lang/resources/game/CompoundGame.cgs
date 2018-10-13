@@ -4,7 +4,7 @@ system class CompoundGame extends Game
 
   external def G;
   external def H;
-  external override def Options(player as Player);
+  external override def OptionsFor(player as Player);
   external override def ToOutput;
 
 end

@@ -1,29 +1,105 @@
 /*${cgsuite.banner}*/
 
+/** An ordinary integer.
+  *
+  * Integers in CGSuite are instances of [[CanonicalShortGame]], with
+  * all the usual operations. For example,
+  *
+  * `5.LeftOptions`
+  *
+  * gives the answer `{4}`.
+  *
+  * CGSuite supports arbitrarily large integers with exact precision,
+  * and most integer operations can handle large inputs efficiently.
+  * (Example: $2^400 NimProduct 2^400$.)
+  */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 
+  /** The integer quotient of this [[Integer]] and `that`.
+    * Unlike `a/b`, which will be a noninteger unless `b` divides `a`,
+    * the expression `a.Div(b)` will always be another [[Integer]].
+    *
+    * `a.Div(b)` is equal to the floor of `a/b` when `a/b \geq 0`, and
+    * the ceiling of `a/b` when `a/b \leq 0`.
+    */
   external def Div(that as Integer);
-  
+
+  /** The greatest common divisor of this [[Integer]] and `that`.
+    */
   external def Gcd(that as Integer);
 
+  /** The floor of the (positive) square root of this [[Integer]].
+    *
+    * `Isqrt` will raise an error if this integer is not
+    * strictly positive.
+    */
   external def Isqrt;
 
+  /** `true` if this [[Integer]] has an even number of
+    * ones in its binary representation.
+    */
   external def IsEvil;
 
+  /** `true` if this [[Integer]] has an odd number of
+    * ones in its binary representation.
+    */
   external def IsOdious;
-  
+
+  /** `true` if this [[Integer]] $n$ satisfies
+    * $-2^31^ \leq n \lt 2^31^$.
+    *
+    * CGSuite supports arbitrarily large [[Integer]]s, but small
+    * integers use a different internal representation (native
+    * 32-bit) that is higher performance.
+    */
   external def IsSmallInteger;
-  
+
+  /** `true` if this [[Integer]] $n$ is a power of two
+    * ($n = 2^k^$ for some $k \geq 0$).
+    */
   external def IsTwoPower;
-  
+
+  /** The floor of the base-2 logarithm of this [[Integer]],
+    * equal to the number of digits in its binary representation.
+    *
+    * `Lb` will raise an error if this integer is not strictly
+    * positive.
+    */
   external def Lb;
-  
+
+  /** The nim product of this [[Integer]] and `that`.
+    *
+    * The nim product $a \otimes b$ of two integers $a,b$ is given by
+    *
+    * $a \otimes b = mex{(a' \otimes b) \oplus (a \otimes b') \oplus (a' \otimes b') : a' < a, b' < b}$,
+    *
+    * where $\oplus$ is the usual [[NimSum][nim sum]] operator.
+    *
+    * It is related to the [[CanonicalShortGame.ConwayProduct][Conway product]] of [[Nimber][nimbers]]
+    * in the sense that
+    *
+    * `*(a NimProduct b) == *a ConwayProduct *b$`.
+    */
   external def NimProduct(that as Integer);
-  
+
+  /** The nim sum of this [[Integer]] and `that`.
+    *
+    * The nim sum $a \oplus b$ is given by
+    *
+    * $a \oplus b = mex{a' \oplus b, a \oplus b' : a' < a, b' < b}$.
+    *
+    * It is equal to the ~bitwise xor~ of $a$ and $b$, obtained by writing them in binary
+    * and adding without carrying. Nim sum is related to the ordinary disjunctive sum
+    * of [[Nimber][nimbers]] in the sense that
+    *
+    * `*(a NimSum b) == *a + *b`.
+    */
   external def NimSum(that as Integer);
 
   override external def ToOutput;
 
+  /** The ugly product of this [[Integer]] and `that`.
+    */
   external def UglyProduct(that as Integer);
 
 end

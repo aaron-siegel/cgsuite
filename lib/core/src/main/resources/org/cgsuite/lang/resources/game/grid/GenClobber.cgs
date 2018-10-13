@@ -14,7 +14,7 @@ class GenClobber(
 
   class Position(grid as Grid) extends GridGame
 
-    override def Options(player as Player) begin
+    override def OptionsFor(player as Player) begin
 
       var us := player.Ordinal;
 

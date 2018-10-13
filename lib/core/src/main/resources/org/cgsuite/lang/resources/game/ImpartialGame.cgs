@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** A finite impartial combinatorial game.
+  */
 system class ImpartialGame extends Game
 
   override def CanonicalForm := *NimValue;

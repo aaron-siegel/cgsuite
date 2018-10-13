@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Rational extends GeneralizedOrdinal
+system class Rational extends SurrealNumber
 
   override external def ToOutput;
 

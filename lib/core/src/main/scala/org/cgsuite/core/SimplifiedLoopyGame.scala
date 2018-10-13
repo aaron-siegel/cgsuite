@@ -73,7 +73,7 @@ trait SimplifiedLoopyGame extends Game {
 
   override def gameValue(tc: TranspositionCache): SidedValue = SidedValue(loopyGame)
 
-  def options(player: Player): Iterable[SimplifiedLoopyGame] = {
+  def optionsFor(player: Player): Iterable[SimplifiedLoopyGame] = {
     val lgOpts = player match {
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
@@ -82,7 +82,7 @@ trait SimplifiedLoopyGame extends Game {
   }
 
   def sortedOptions(player: Player): Seq[SimplifiedLoopyGame] = {
-    options(player).toSeq.sorted(SimplifiedLoopyGame.SemideterministicOrdering)
+    optionsFor(player).toSeq.sorted(SimplifiedLoopyGame.SemideterministicOrdering)
   }
 
   override def depthHint = 0

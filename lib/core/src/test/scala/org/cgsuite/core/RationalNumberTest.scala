@@ -50,10 +50,10 @@ class RationalNumberTest extends FlatSpec with Matchers {
 
   it should "should give correct options" in {
 
-    DyadicRationalNumber(1, 2).options(Left) shouldBe Set(Integer(0))
-    DyadicRationalNumber(1, 2).options(Right) shouldBe Set(Integer(1))
-    DyadicRationalNumber(-75, 256).options(Left) shouldBe Set(RationalNumber(-19, 64))
-    DyadicRationalNumber(-75, 256).options(Right) shouldBe Set(RationalNumber(-37, 128))
+    DyadicRationalNumber(1, 2).optionsFor(Left) shouldBe Set(Integer(0))
+    DyadicRationalNumber(1, 2).optionsFor(Right) shouldBe Set(Integer(1))
+    DyadicRationalNumber(-75, 256).optionsFor(Left) shouldBe Set(RationalNumber(-19, 64))
+    DyadicRationalNumber(-75, 256).optionsFor(Right) shouldBe Set(RationalNumber(-37, 128))
 
   }
   

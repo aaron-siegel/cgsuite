@@ -924,6 +924,7 @@ class CgscriptClass(
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
     lazy val evalMethod = lookupMethodOrEvalException('Eval)
     lazy val optionsMethod = lookupMethodOrEvalException('Options)
+    lazy val optionsForMethod = lookupMethodOrEvalException('OptionsFor)
     lazy val decompositionMethod = lookupMethodOrEvalException('Decomposition)
     lazy val canonicalFormMethod = lookupMethodOrEvalException('CanonicalForm)
     lazy val gameValueMethod = lookupMethodOrEvalException('GameValue)
@@ -983,6 +984,7 @@ class CgscriptClass(
     // This is optimized to be really fast for methods with <= 4 parameters.
     // TODO Optimize for more than 4 parameters?
     def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
+      assert(args.isEmpty || parameters.nonEmpty, qualifiedName)
       CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
     }
 

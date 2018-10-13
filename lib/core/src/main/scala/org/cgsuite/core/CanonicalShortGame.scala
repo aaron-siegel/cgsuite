@@ -113,7 +113,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def >(other: CanonicalShortGame) = !(this <= other) && other <= this
 
-  override def options(player: Player): Iterable[CanonicalShortGame] = {
+  override def optionsFor(player: Player): Iterable[CanonicalShortGame] = {
     player match {
       case Left => (0 until ops.getNumLeftOptions(gameId)) map { n =>
         CanonicalShortGame(ops.getLeftOption(gameId, n))
@@ -125,7 +125,7 @@ trait CanonicalShortGame extends CanonicalStopper {
   }
 
   override def sortedOptions(player: Player): Seq[CanonicalShortGame] = {
-    options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
+    optionsFor(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
   override def canonicalForm(tc: TranspositionCache) = this
@@ -217,17 +217,17 @@ trait CanonicalShortGame extends CanonicalStopper {
   override def isNumberish: Boolean = leftStop == rightStop
 
   override def isNumberTiny: Boolean = {
-    val lo = options(Left)
-    val ro = options(Right)
+    val lo = optionsFor(Left)
+    val ro = optionsFor(Right)
     lo.size == 1 && ro.size == 1 && (
       lo.head.isNumber && {
-        val rlo = ro.head.options(Left)
-        val rro = ro.head.options(Right)
+        val rlo = ro.head.optionsFor(Left)
+        val rro = ro.head.optionsFor(Right)
         rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head.mean < lo.head.mean
       } ||
       ro.head.isNumber && {
-        val llo = lo.head.options(Left)
-        val lro = lo.head.options(Right)
+        val llo = lo.head.optionsFor(Left)
+        val lro = lo.head.optionsFor(Right)
         lro.size == 1 && llo.size == 1 && ro.head == lro.head && llo.head.mean > ro.head.mean
       }
     )
@@ -258,8 +258,8 @@ trait CanonicalShortGame extends CanonicalStopper {
   }
 
   def pow(x: Pseudonumber): CanonicalStopper = {
-    val lo = options(Left)
-    val ro = options(Right)
+    val lo = optionsFor(Left)
+    val ro = optionsFor(Right)
     if (lo.size == 1 && ro.size == 1 && lo.head == zero) {
       x match {
         case r: DyadicRationalNumber => CanonicalShortGame(zero)(-powTo(r - one) + ro.head)
@@ -328,9 +328,9 @@ trait CanonicalShortGame extends CanonicalStopper {
 
       val (str, symbol, translate, subscript) = {
         if (lo.head.isNumber)
-          ("Tiny", TINY, lo.head, -ro.head.options(Right).head + lo.head)
+          ("Tiny", TINY, lo.head, -ro.head.optionsFor(Right).head + lo.head)
         else
-          ("Miny", MINY, ro.head, lo.head.options(Left).head - ro.head)
+          ("Miny", MINY, ro.head, lo.head.optionsFor(Left).head - ro.head)
       }
       if (forceParens)
         output.appendMath("(")

@@ -6,7 +6,7 @@ case class NegativeGame(g: Game) extends Game {
 
   override def unary_- = g
 
-  def options(player: Player) = g.options(player.opponent) map { -_ }
+  def optionsFor(player: Player) = g.optionsFor(player.opponent) map { -_ }
 
   override def toOutput = {
     val sto = new StyledTextOutput

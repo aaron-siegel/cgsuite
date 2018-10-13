@@ -281,7 +281,7 @@ class GameTest extends CgscriptSpec {
   "game.Game" should "behave correctly" in {
 
     val classdefPackage = testPackage declareSubpackage "game"
-    decl("test.game.NoDepthHint", "singleton class NoDepthHint extends Game override def Options(player as Player) := [this]; end")
+    decl("test.game.NoDepthHint", "singleton class NoDepthHint extends Game override def OptionsFor(player as Player) := [this]; end")
 
     executeTests(Table(
       header,

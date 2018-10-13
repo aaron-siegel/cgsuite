@@ -78,7 +78,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   override def gameValue(tc: TranspositionCache) = this
 
-  override def options(player: Player): Iterable[CanonicalStopper] = {
+  override def optionsFor(player: Player): Iterable[CanonicalStopper] = {
     val lgOpts = player match {
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
@@ -87,7 +87,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
   }
 
   override def sortedOptions(player: Player): Seq[CanonicalStopper] = {
-    options(player).toSeq.sorted(SimplifiedLoopyGame.SemideterministicOrdering)
+    optionsFor(player).toSeq.sorted(SimplifiedLoopyGame.SemideterministicOrdering)
   }
 
   def +(that: CanonicalStopper): StopperSidedValue = {
@@ -168,18 +168,18 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   override def isNumberTiny: Boolean = {
 
-    val lo = options(Left)
-    val ro = options(Right)
+    val lo = optionsFor(Left)
+    val ro = optionsFor(Right)
 
     lo.size == 1 && ro.size == 1 && (
       lo.head.isNumber && {
-        val rlo = ro.head.options(Left)
-        val rro = ro.head.options(Right)
+        val rlo = ro.head.optionsFor(Left)
+        val rro = ro.head.optionsFor(Right)
         rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head - lo.head.asInstanceOf[DyadicRationalNumber] <= under
       } ||
         ro.head.isNumber && {
-          val llo = lo.head.options(Left)
-          val lro = lo.head.options(Right)
+          val llo = lo.head.optionsFor(Left)
+          val lro = lo.head.optionsFor(Right)
           lro.size == 1 && llo.size == 1 && ro.head == lro.head && ro.head.asInstanceOf[DyadicRationalNumber] - llo.head <= under
         }
       )
@@ -192,8 +192,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   override def isPseudonumber = {
     isNumber || loopyGame.isOn || loopyGame.isOff || isPlumtree && {
-      val lo = options(Left)
-      val ro = options(Right)
+      val lo = optionsFor(Left)
+      val ro = optionsFor(Right)
       (lo == Set(this) && ro.size == 1 && ro.head.isNumber) ||
       (ro == Set(this) && lo.size == 1 && lo.head.isNumber)
     }
@@ -245,11 +245,11 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
   }
 
   def leftStop: Pseudonumber = {
-    options(Left) map { _.rightStop } reduce { _ max _ }
+    optionsFor(Left) map { _.rightStop } reduce { _ max _ }
   }
 
   def rightStop: Pseudonumber = {
-    options(Right) map { _.leftStop } reduce { _ min _ }
+    optionsFor(Right) map { _.leftStop } reduce { _ min _ }
   }
 
   private def uponForm: Option[UponForm] = {
@@ -264,8 +264,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   private def uponForm(checkUponth: Boolean): Option[UponForm] = {
 
-    val lo = options(Left)
-    val ro = options(Right)
+    val lo = optionsFor(Left)
+    val ro = optionsFor(Right)
 
     val x = if (ro.size == 1 && lo.size <= 2) {
       ro.head match {
@@ -329,9 +329,9 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
       val (str, symbol, translate, subscript) = {
         if (lo.head.isNumber)
-          ("Tiny", TINY, lo.head.asInstanceOf[CanonicalShortGame], -ro.head.options(Right).head + lo.head.asInstanceOf[CanonicalShortGame])
+          ("Tiny", TINY, lo.head.asInstanceOf[CanonicalShortGame], -ro.head.optionsFor(Right).head + lo.head.asInstanceOf[CanonicalShortGame])
         else
-          ("Miny", MINY, ro.head.asInstanceOf[CanonicalShortGame], lo.head.options(Left).head - ro.head.asInstanceOf[CanonicalShortGame])
+          ("Miny", MINY, ro.head.asInstanceOf[CanonicalShortGame], lo.head.optionsFor(Left).head - ro.head.asInstanceOf[CanonicalShortGame])
       }
       if (forceParens)
         output.appendMath("(")

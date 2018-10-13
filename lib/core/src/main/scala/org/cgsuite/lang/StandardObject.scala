@@ -106,9 +106,9 @@ class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject
 class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends StandardObject(cls, objArgs, enclosingObj) with Game {
 
-  def options(player: Player): Iterable[Game] = {
+  def optionsFor(player: Player): Iterable[Game] = {
 
-    val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsMethod.call(this, Array(player)))
+    val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsForMethod.call(this, Array(player)))
 
     collection map {
       case g: Game => g

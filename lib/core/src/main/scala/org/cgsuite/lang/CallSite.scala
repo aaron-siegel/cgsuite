@@ -36,6 +36,7 @@ object CallSite {
       // We're known to be ok
     } else {
       var i = 0
+      assert(args.length == 0 || parameters.nonEmpty)
       while (i < args.length) {
         val cls = CgscriptClass of args(i)
         val expectedType = {

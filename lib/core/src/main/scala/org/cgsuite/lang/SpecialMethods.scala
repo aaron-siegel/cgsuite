@@ -84,7 +84,7 @@ object SpecialMethods {
     "cgsuite.lang.Set.Replaced" -> { (set: scala.collection.Set[Any], replacements: scala.collection.Map[_,_]) =>
       set -- replacements.keys ++ replacements.values
     },
-    "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
+    "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>
       set ++ that
     },
     "cgsuite.ui.Explorer" -> { (_: Any, g: Game) => UiHarness.uiHarness.createExplorer(g) },
