@@ -28,6 +28,6 @@ public final class GettingStartedAction implements ActionListener
     {
         CgsuiteHelpTopComponent helpComponent = (CgsuiteHelpTopComponent) WindowManager.getDefault().findTopComponent("CgsuiteHelpTopComponent");
         helpComponent.open();
-        helpComponent.navigateTo("tutorials/getting-started/getting-started.html");
+        helpComponent.navigateTo(CgsuiteHelpTopComponent.GETTING_STARTED_PAGE);
     }
 }

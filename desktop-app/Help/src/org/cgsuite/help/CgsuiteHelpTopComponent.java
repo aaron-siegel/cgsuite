@@ -31,33 +31,58 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 preferredID = "CgsuiteHelpTopComponent")
 public final class CgsuiteHelpTopComponent extends TopComponent {
     
+    public final static String CONTENTS_PAGE = "contents.html";
+    public final static String PACKAGES_PAGE = "reference/overview.html";
+    public final static String INDEX_PAGE = "reference/cgscript-index.html";
+    public final static String GETTING_STARTED_PAGE = "tutorials/getting-started/getting-started.html";
+    
     private WebView webView;
 
     public CgsuiteHelpTopComponent() {
         
         initComponents();
+        // We need to set this explicitly, since it's the default & otherwise
+        // NetBeans won't set it at all:
+        buttonBar.setBackground(new java.awt.Color(238, 238, 238));
         setName(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CTL_CgsuiteHelpTopComponent"));
         setToolTipText(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "HINT_CgsuiteHelpTopComponent"));
         
         final JFXPanel fxPanel = new JFXPanel();
         add(fxPanel, BorderLayout.CENTER);
         Platform.setImplicitExit(false);
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                webView = new WebView();
-                navigateTo("contents.html");
-                fxPanel.setScene(new Scene(webView));
-            }
+        Platform.runLater(() -> {
+            webView = new WebView();
+            navigateTo(CONTENTS_PAGE);
+            fxPanel.setScene(new Scene(webView));
         });
         
     }
     
     public void navigateTo(String path) {
-        URL resource = HelpBuilder.class.getResource("docs/" + path);
-        if (resource == null)
-            throw new RuntimeException("Resource not found: " + path);
-        webView.getEngine().load(resource.toExternalForm());
+        
+        Platform.runLater(() -> {
+            URL resource = HelpBuilder.class.getResource("docs/" + path);
+            if (resource == null)
+                throw new RuntimeException("Resource not found: " + path);
+            webView.getEngine().load(resource.toExternalForm());
+        });
+        
+    }
+    
+    public void navigateBack() {
+        
+        Platform.runLater(() -> {
+            webView.getEngine().executeScript("history.back()");
+        });
+        
+    }
+    
+    public void navigateForward() {
+        
+        Platform.runLater(() -> {
+            webView.getEngine().executeScript("history.forward()");
+        });
+        
     }
     
     /** This method is called from within the constructor to
@@ -68,10 +93,116 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonBar = new javax.swing.JToolBar();
+        backButton = new javax.swing.JButton();
+        forwardButton = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        contentsButton = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        packagesButton = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        indexButton = new javax.swing.JButton();
+
         setLayout(new java.awt.BorderLayout());
+
+        buttonBar.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(211, 211, 211)), javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+        buttonBar.setFloatable(false);
+        buttonBar.setForeground(new java.awt.Color(238, 238, 238));
+        buttonBar.setRollover(true);
+
+        org.openide.awt.Mnemonics.setLocalizedText(backButton, org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.backButton.text")); // NOI18N
+        backButton.setToolTipText(org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.backButton.toolTipText")); // NOI18N
+        backButton.setFocusable(false);
+        backButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        backButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
+        buttonBar.add(backButton);
+
+        org.openide.awt.Mnemonics.setLocalizedText(forwardButton, org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.forwardButton.text")); // NOI18N
+        forwardButton.setFocusable(false);
+        forwardButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        forwardButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        forwardButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                forwardButtonActionPerformed(evt);
+            }
+        });
+        buttonBar.add(forwardButton);
+        buttonBar.add(jSeparator3);
+
+        org.openide.awt.Mnemonics.setLocalizedText(contentsButton, org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.contentsButton.text")); // NOI18N
+        contentsButton.setToolTipText(org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.contentsButton.toolTipText")); // NOI18N
+        contentsButton.setFocusable(false);
+        contentsButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        contentsButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        contentsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                contentsButtonActionPerformed(evt);
+            }
+        });
+        buttonBar.add(contentsButton);
+        buttonBar.add(jSeparator1);
+
+        org.openide.awt.Mnemonics.setLocalizedText(packagesButton, org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.packagesButton.text")); // NOI18N
+        packagesButton.setFocusable(false);
+        packagesButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        packagesButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        packagesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                packagesButtonActionPerformed(evt);
+            }
+        });
+        buttonBar.add(packagesButton);
+        buttonBar.add(jSeparator2);
+
+        org.openide.awt.Mnemonics.setLocalizedText(indexButton, org.openide.util.NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CgsuiteHelpTopComponent.indexButton.text")); // NOI18N
+        indexButton.setFocusable(false);
+        indexButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        indexButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        indexButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                indexButtonActionPerformed(evt);
+            }
+        });
+        buttonBar.add(indexButton);
+
+        add(buttonBar, java.awt.BorderLayout.PAGE_START);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void contentsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contentsButtonActionPerformed
+        navigateTo(CONTENTS_PAGE);
+    }//GEN-LAST:event_contentsButtonActionPerformed
+
+    private void packagesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_packagesButtonActionPerformed
+        navigateTo(PACKAGES_PAGE);
+    }//GEN-LAST:event_packagesButtonActionPerformed
+
+    private void indexButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_indexButtonActionPerformed
+        navigateTo(INDEX_PAGE);
+    }//GEN-LAST:event_indexButtonActionPerformed
+
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        navigateBack();
+    }//GEN-LAST:event_backButtonActionPerformed
+
+    private void forwardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_forwardButtonActionPerformed
+        navigateForward();
+    }//GEN-LAST:event_forwardButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton backButton;
+    private javax.swing.JToolBar buttonBar;
+    private javax.swing.JButton contentsButton;
+    private javax.swing.JButton forwardButton;
+    private javax.swing.JButton indexButton;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JButton packagesButton;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
