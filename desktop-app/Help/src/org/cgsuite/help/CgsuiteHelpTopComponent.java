@@ -5,11 +5,11 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
+import java.net.URL;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
-import javax.help.JHelp;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -30,57 +30,36 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_CgsuiteHelpAction",
 preferredID = "CgsuiteHelpTopComponent")
 public final class CgsuiteHelpTopComponent extends TopComponent {
-
-    private JHelp helpViewer;
+    
+    private WebView webView;
 
     public CgsuiteHelpTopComponent() {
+        
         initComponents();
         setName(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CTL_CgsuiteHelpTopComponent"));
         setToolTipText(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "HINT_CgsuiteHelpTopComponent"));
+        
         final JFXPanel fxPanel = new JFXPanel();
         add(fxPanel, BorderLayout.CENTER);
         Platform.setImplicitExit(false);
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                WebView webView = new WebView();
-                webView.getEngine().setUserStyleSheetLocation(HelpBuilder.class.getResource("docs/cgsuite.css").toExternalForm());
-                webView.getEngine().load(getClass().getResource("docs/game/CanonicalShortGame.html").toExternalForm());
+                webView = new WebView();
+                navigateTo("contents.html");
                 fxPanel.setScene(new Scene(webView));
             }
         });
-
-        //JEditorPane pane = new JEditorPane();
-        //HTMLEditorKit kit = new HTMLEditorKit();
-        //NbEditorKit kit = new NbEditorKit();
-        //NbEditorDocument doc = new NbEditorDocument("text/html");
-        //kit.getStyleSheet().importStyleSheet(getClass().getResource("docs/cgsuite.css"));
-        //pane.setEditorKit(kit);
-        //pane.setDocument(doc);
-        /*try {
-            pane.setContentType("text/html");
-            pane.setPage(getClass().getResource("docs/game/CanonicalShortGame.html"));
-        } catch (IOException exc) {
-            throw new RuntimeException(exc);
-        }
-            ((HTMLDocument) pane.getDocument()).getStyleSheet().importStyleSheet(getClass().getResource("docs/cgsuite.css"));
-        add(pane, BorderLayout.CENTER);*/
-        /*
-        HelpSet help = Lookup.getDefault().lookup(HelpSet.class);
-        helpViewer = new JHelp(help);
-        Enumeration e = helpViewer.getHelpNavigators();
-        while (e.hasMoreElements())
-        {
-            JHelpNavigator navigator = (JHelpNavigator) e.nextElement();
-            if (navigator instanceof JHelpIndexNavigator)
-            {
-                helpViewer.removeHelpNavigator(navigator);
-                break;
-            }
-        }
-        */
-        //add(helpViewer, BorderLayout.CENTER);
+        
     }
+    
+    public void navigateTo(String path) {
+        URL resource = HelpBuilder.class.getResource("docs/" + path);
+        if (resource == null)
+            throw new RuntimeException("Resource not found: " + path);
+        webView.getEngine().load(resource.toExternalForm());
+    }
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -102,11 +81,6 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     public void componentClosed() {
     }
     
-    public JHelp getHelpViewer()
-    {
-        return helpViewer;
-    }
-
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles

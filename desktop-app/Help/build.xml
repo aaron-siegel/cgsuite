@@ -11,21 +11,22 @@
     <target name="compile" depends="projectized-common.compile,-post-compile"/>
 
     <target name="-post-compile">
-        <!-- Generate HTML from .cgsh files -->
+        <!--
+        The following used to generate help from cgsh, but is obsolete since
+        that's now being done in core lib.
+        //Generate HTML from .cgsh files 
         <mkdir dir="${build.dir}/docs-tmp"/>
         <java classname="org.cgsuite.help.HelpBuilder" classpath="${basedir}/../cgsuite-core-lib/release/modules/ext/cgsuite-core.jar">
             <arg value="${build.classes.dir}"/>
-            <!--<arg value="${src.dir}/${cgsuite.docs}/"/>-->
-            <!--<arg value="${build.dir}/docs-tmp/${cgsuite.docs}/"/>-->
         </java>
-        <!-- Copy HTML and replace properties -->
+        //Copy HTML and replace properties 
         <copy todir="${build.classes.dir}">
             <fileset dir="${build.dir}/docs-tmp" includes="**"/>
             <filterset begintoken="${" endtoken="}">
                 <filtersfile file="${basedir}/../nbproject/project.properties"/>
             </filterset>
         </copy>
-        <!-- Reindex to pick up generated files -->
+        //Reindex to pick up generated files 
         <jhindexer basedir="${build.classes.dir}/${cgsuite.docs}/"
                    db="${build.classes.dir}/${cgsuite.docs}/JavaHelpSearch">
             <classpath>
@@ -33,10 +34,11 @@
                 <pathelement location="${harness.dir}/tasks.jar"/>
             </classpath>
             <include name="**/*.html"/>
-            <include name="**/*.htm"/>  <!-- Fix for Issue #160276 -->
+            <include name="**/*.htm"/>  //Fix for Issue #160276 
             <exclude name="${javahelp.search}/"/>
             <exclude name="${javahelp.excludes}"/>
         </jhindexer>
+        -->
     </target>
     
 </project>

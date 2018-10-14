@@ -3,31 +3,133 @@ package org.cgsuite.help
 import better.files._
 import com.typesafe.scalalogging.Logger
 import org.cgsuite.exception.SyntaxException
+import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, Member, Parameter}
 import org.cgsuite.util.Markdown
 import org.slf4j.LoggerFactory
 
 object HelpBuilder {
 
+  private[help] val logger = Logger(LoggerFactory.getLogger(classOf[HelpBuilder]))
+
+  private[help] val packagePath = "org/cgsuite/help/docs"
+
   def main(args: Array[String]): Unit = {
-    val buildDir = if (args.isEmpty) "src/main/gen" else args.head
-    HelpBuilder(buildDir).run()
+    val resourcesDir = if (args.isEmpty) "src/main/resources" else ""
+    val buildDir = if (args.isEmpty) "target/classes" else args.head
+    CgshBuilder(resourcesDir, buildDir).run()
+    ReferenceBuilder(buildDir).run()
+  }
+
+  def standardHeaderBar(backref: String) =
+    s"""<div class="titlebar"><p><div class="section">
+       |  <a href="${backref}contents.html">Contents</a>
+       |  &nbsp;&nbsp;
+       |  <a href="${backref}reference/overview.html">Packages</a>
+       |  &nbsp;&nbsp;
+       |  <a href="${backref}reference/cgscript-index.html">Index</a>
+       |</div></div>
+     """.stripMargin
+
+}
+
+class HelpBuilder
+
+case class CgshBuilder(resourcesDir: String, buildDir: String) {
+
+  private[help] val srcDir = resourcesDir/packagePath
+
+  private[help] val targetRootDir = buildDir/packagePath
+
+  def run(): Unit = {
+
+    allMatchingFiles(srcDir) { _.extension contains ".cgsh" } foreach { cgshFile =>
+
+      val relPath = srcDir relativize cgshFile.parent
+      val targetDir = targetRootDir/relPath.toString
+      val backPath = targetDir relativize targetRootDir
+      val targetFile = targetDir/s"${cgshFile.nameWithoutExtension}.html"
+
+      logger info s"Generating file: $cgshFile -> $targetFile"
+
+      val lines = cgshFile.lines
+      val title = lines.head
+      val markdown = Markdown(lines.tail mkString "\n")
+      var text = markdown.text
+
+      markdown.links.zipWithIndex foreach { case ((ref, textOpt), index) =>
+        val link = hyperlink(cgshFile, ref, textOpt)
+        text = text replaceFirst (f"@@$index%04d", s"$link")
+      }
+
+      val backref = {
+        if (backPath.toString == "")
+          ""
+        else
+          backPath.toString + "/"
+      }
+
+      val header =
+        s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+           |<html>
+           |<head>
+           |  <link rel="stylesheet" href="${backref}cgsuite.css" type="text/css">
+           |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+           |  <title>$title</title>
+           |</head>
+           |
+           |<body><div class="spacer">
+           |<!--<div class="blanksection">&nbsp;</div>
+           |<p>
+           |${standardHeaderBar(backref)}-->
+           |<h1>$title</h1>
+           |<div class="section">
+           |
+           |""".stripMargin
+
+      val footer = "\n\n</div><p></div></body></html>"
+
+      targetFile overwrite header
+      targetFile append text
+      targetFile append footer
+
+    }
+
+  }
+
+  def hyperlink(cgshFile: File, ref: String, textOpt: Option[String]): String = {
+
+    val refPath = cgshFile.parent relativize srcDir / (ref stripPrefix "/")
+    s"""<a href="$refPath.html">${textOpt getOrElse ref}</a>"""
+
+  }
+
+  def allMatchingFiles(path: File)(matcher: File => Boolean): Vector[File] = {
+
+    if (path.isDirectory)
+      path.children.toVector flatMap { allMatchingFiles(_)(matcher) }
+    else if (matcher(path))
+      Vector(path)
+    else
+      Vector.empty
+
   }
 
 }
 
-case class HelpBuilder(buildDir: String) {
+case class ReferenceBuilder(buildDir: String) {
 
-  private[help] val logger = Logger(LoggerFactory.getLogger(classOf[HelpBuilder]))
+  private[help] val rootDir = buildDir/packagePath
 
-  private[help] val rootDir = buildDir/"org"/"cgsuite"/"help"/"docs"
+  private[help] val referenceDir = rootDir/"reference"
 
   def run(): Unit = {
 
     CgscriptClass.Object.ensureDeclared()
 
-    renderHelpMap()
-    renderHelpToc()
+    renderIndex()
+    //renderHelpMap()
+    //renderHelpToc()
 
     CgscriptPackage.allClasses foreach { cls =>
 
@@ -47,59 +149,9 @@ case class HelpBuilder(buildDir: String) {
 
   }
 
-  def renderHelpMap(): Unit = {
-
-    val file = rootDir/"help-map.xml"
-
-    val header =
-      s"""<?xml version="1.0" encoding="UTF-8"?>
-         |<!DOCTYPE map PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN" "http://java.sun.com/products/javahelp/map_2_0.dtd">
-         |<map version="2.0">
-         |""".stripMargin
-
-    val allTargets = CgscriptPackage.allClasses map { cls =>
-      s"""  <mapID target="${cls.qualifiedName}" url="${pathTo(cls)}"/>\n"""
-    }
-
-    rootDir.createDirectories()
-    file overwrite header
-    allTargets foreach file.append
-    file append "</map>"
-
-  }
-
-  def renderHelpToc(): Unit = {
-
-    val file = rootDir/"help-toc.xml"
-
-    val header =
-      """<?xml version="1.0" encoding="UTF-8"?>
-        |<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
-        |<toc version="2.0">
-        |  <tocitem text="Combinatorial Game Suite" target="Combinatorial Game Suite">
-        |    <tocitem text="Reference Guide" target="Reference Guide">
-        |""".stripMargin
-
-    val allTargets = CgscriptPackage.allClasses map { cls =>
-      s"""      <tocitem text="${cls.qualifiedName}" target="${cls.qualifiedName}"/>\n"""
-    }
-
-    val footer =
-      """    </tocitem>
-        |  </tocitem>
-        |</toc>
-      """.stripMargin
-
-    rootDir.createDirectories()
-    file overwrite header
-    allTargets foreach file.append
-    file append footer
-
-  }
-
   def renderClass(cls: CgscriptClass): Unit = {
 
-    val packageDir = cls.pkg.path.foldLeft(rootDir) { (file, pathComponent) => file/pathComponent }
+    val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
 
     val file = packageDir/s"${cls.name}.html"
 
@@ -169,6 +221,8 @@ case class HelpBuilder(buildDir: String) {
 
   def makeHeader(cls: CgscriptClass): String = {
 
+    val backref = "../" * (cls.pkg.path.length + 1)
+
     val modifiersStr = {
       if (cls.isPackageObject)
         ""
@@ -206,12 +260,16 @@ case class HelpBuilder(buildDir: String) {
     s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
        |<html>
        |<head>
-       |  <link rel="stylesheet" href="${"../" * cls.pkg.path.length}cgsuite.css" type="text/css">
+       |  <link rel="stylesheet" href="${"../" * cls.pkg.path.length}../cgsuite.css" type="text/css">
        |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
        |  <title>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.qualifiedName}</title>
        |</head>
        |
        |<body><div class="spacer">
+       |<!--${standardHeaderBar(backref)}
+       |
+       |<div class="blanksection">&nbsp;</div><br>-->
+       |<p>
        |
        |$packageStr
        |<h1>${if (cls.isPackageObject) "package " + cls.pkg.qualifiedName else cls.name}</h1>
@@ -459,9 +517,122 @@ case class HelpBuilder(buildDir: String) {
   }
 
   val htmlFooter =
-    """</div></body>
+    """<p>
+      |</div></body>
       |</html>
       |""".stripMargin
+
+  def renderIndex(): Unit = {
+
+    val file = referenceDir/"cgscript-index.html"
+
+    val header =
+      s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+         |<html>
+         |<head>
+         |  <link rel="stylesheet" href="../cgsuite.css" type="text/css">
+         |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+         |  <title>Index of CGScript Classes</title>
+         |</head>
+         |
+         |<body><div class="spacer">
+         |<!--${standardHeaderBar("")}
+         |<div class="blanksection">&nbsp;</div><p>-->
+         |<h1>Index of CGScript Classes</h1>
+         |<div class="section">
+         |
+         |<table class="members">
+         |""".stripMargin
+
+    // TODO Package constants too
+
+    val classes = CgscriptPackage.allClasses map { cls =>
+
+      val memberLink = s"""<a href="${cls.pkg.path mkString "/"}/${cls.name}.html">${cls.qualifiedName}</a>"""
+
+      val description = {
+        try {
+          cls.declNode flatMap { _.docComment } match {
+            case Some(comment) => processDocComment(cls, comment, firstSentenceOnly = true)
+            case None => "&nbsp;"
+          }
+        } catch {
+          case exc: SyntaxException => ""
+        }
+      }
+
+      s"""  <tr>
+         |    <td class="entitytype">
+         |      $memberLink
+         |    </td>
+         |    <td class="member">
+         |      $description
+         |    </td>
+         |  </tr>
+       """.stripMargin
+
+    }
+
+    val footer = "</table></div></body></html>"
+
+    referenceDir.createDirectories()
+    file overwrite header
+    classes foreach file.append
+    file append footer
+
+  }
+
+  // renderHelpMap and renderHelpToc can be used to generate JavaHelp indices (now obsolete).
+
+  def renderHelpMap(): Unit = {
+
+    val file = referenceDir/"help-map.xml"
+
+    val header =
+      s"""<?xml version="1.0" encoding="UTF-8"?>
+         |<!DOCTYPE map PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN" "http://java.sun.com/products/javahelp/map_2_0.dtd">
+         |<map version="2.0">
+         |""".stripMargin
+
+    val allTargets = CgscriptPackage.allClasses map { cls =>
+      s"""  <mapID target="${cls.qualifiedName}" url="${pathTo(cls)}"/>\n"""
+    }
+
+    referenceDir.createDirectories()
+    file overwrite header
+    allTargets foreach file.append
+    file append "</map>"
+
+  }
+
+  def renderHelpToc(): Unit = {
+
+    val file = referenceDir/"help-toc.xml"
+
+    val header =
+      """<?xml version="1.0" encoding="UTF-8"?>
+        |<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+        |<toc version="2.0">
+        |  <tocitem text="Combinatorial Game Suite" target="Combinatorial Game Suite">
+        |    <tocitem text="Reference Guide" target="Reference Guide">
+        |""".stripMargin
+
+    val allTargets = CgscriptPackage.allClasses map { cls =>
+      s"""      <tocitem text="${cls.qualifiedName}" target="${cls.qualifiedName}"/>\n"""
+    }
+
+    val footer =
+      """    </tocitem>
+        |  </tocitem>
+        |</toc>
+      """.stripMargin
+
+    referenceDir.createDirectories()
+    file overwrite header
+    allTargets foreach file.append
+    file append footer
+
+  }
 
 }
 

@@ -12,7 +12,7 @@ object Markdown {
   }
 
   object State extends Enumeration {
-    val Normal, Code, Emph, Math, Section = Value
+    val Normal, Code, Emph, Math, Section1, Section2, Section3 = Value
   }
 
   object Location extends Enumeration {
@@ -22,7 +22,10 @@ object Markdown {
   val specials: Map[Char, String] = Map(
     '^' -> "&uarr;",
     'v' -> "&darr;",
-    '\\' -> "<br>"
+    '\\' -> "<br>",
+    '<' -> "<",
+    '>' -> ">",
+    '"' -> "\""
   )
 
   val specialSeqs: Map[String, String] = Map(
@@ -61,12 +64,16 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
       case (State.Normal, _, '`') => state = State.Code; "<code>"
       case (State.Normal, _, '~') => state = State.Emph; "<em>"
       case (State.Normal, _, '$') => state = State.Math; "<code>"
-      case (State.Normal, _, '+') if stream.next == '+' => state = State.Section; stream.consume; "<h3>"
+      case (State.Normal, _, '+') if stream.peek(3) == "+++" => state = State.Section3; stream consumeWhile { _ == '+' }; "<h3>"
+      case (State.Normal, _, '+') if stream.peek(2) == "++" => state = State.Section2; stream consumeWhile { _ == '+' }; "<h2>"
+      case (State.Normal, _, '+') if stream.next == '+' => state = State.Section1; stream.consume; "<h1>"
 
       case (State.Code, _, '`') => state = State.Normal; "</code>"
       case (State.Emph, _, '~') => state = State.Normal; "</em>"
       case (State.Math, _, '$') => state = State.Normal; "</code>"
-      case (State.Section, _, '+') if stream.next == '+' => state = State.Normal; stream.consume; "</h3>"
+      case (State.Section3, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h3>"
+      case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h2>"
+      case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h1>"
 
       case (_, Location.Normal, '^') => location = Location.Super; "<sup>"
       case (_, Location.Normal, '_') => location = Location.Sub; "<sub>"
@@ -167,6 +174,11 @@ class MarkdownStream(rawInput: String, stripAsterisks: Boolean = false) {
       (-1).toChar
     else
       input(pointer)
+  }
+
+  def peek(n: Int): String = {
+    val endIndex = (pointer + n) min input.length
+    input substring (pointer, endIndex)
   }
 
   def consume: Char = {
