@@ -21,7 +21,7 @@ class GameGridTest extends CgscriptSpec {
   it should "define Domineering properly" in {
     executeTests(Table(
       header,
-      ("Domineering", """game.grid.Domineering("....|....|....|....").CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}")
+      ("Domineering", """game.grid.Domineering(Grid.Empty(4,4)).CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}")
     ))
   }
 

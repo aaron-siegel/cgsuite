@@ -131,23 +131,23 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
 
-        primarySplitPane.setBackground(new java.awt.Color(255, 255, 255));
+        primarySplitPane.setBackground(new java.awt.Color(238, 238, 237));
         primarySplitPane.setDividerLocation(480);
 
         detailSplitPane.setDividerLocation(480);
         detailSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         detailSplitPane.setLeftComponent(editorScrollPane);
 
-        analysisPanel.setBackground(new java.awt.Color(255, 255, 255));
         analysisPanel.setLayout(new java.awt.BorderLayout());
 
         commandPanel.setBackground(new java.awt.Color(255, 255, 255));
-        commandPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        commandPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED, new java.awt.Color(238, 238, 238), new java.awt.Color(238, 238, 238), new java.awt.Color(238, 238, 238), new java.awt.Color(238, 238, 238)));
         commandPanel.setLayout(new javax.swing.BoxLayout(commandPanel, javax.swing.BoxLayout.Y_AXIS));
 
         inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
         commandPanel.add(inputPanel);
 
+        commandComboBox.setBackground(new java.awt.Color(255, 255, 255));
         commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
         commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.CanonicalForm.Thermograph.Plot()", "Selection.CanonicalForm.AtomicWeight" }));
         commandComboBox.setAlignmentX(0.0F);
@@ -187,7 +187,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
         add(primarySplitPane, java.awt.BorderLayout.CENTER);
 
-        infoPanel.setBackground(new java.awt.Color(255, 255, 255));
+        infoPanel.setBackground(new java.awt.Color(238, 238, 237));
         infoPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
         infoPanel.setLayout(new javax.swing.BoxLayout(infoPanel, javax.swing.BoxLayout.LINE_AXIS));
 

@@ -6,7 +6,7 @@ If you want to enlarge the Help window, try selecting "Undock Window" from the W
 like.  (This is particularly useful on smaller screens.)  If your CGSuite windows ever get stuck in a strange
 configuration, you can always reset them by selecting "Reset Windows" the Window menu.
 
-++Entering Games++
++++Entering Games+++
 
 You can type game values directly into the worksheet. For example, try entering the following:
 
@@ -38,7 +38,7 @@ from this tutorial into the worksheet. Simply highlight the command
 with the mouse and select Copy from the Edit menu.  Then click on the worksheet
 prompt, and select Paste from the Edit menu.
 
-++Operations on Games++
++++Operations on Games+++
 
 You can enter sums and products directly.  `*` is used for multiples.  For example:
 
@@ -75,7 +75,7 @@ You can assign variables as follows:
 This assigns the value of `{2||1|0}` to the variable `g`, for later use in expressions
 such as (say) `g + ^*`.
 
-++Objects++
++++Objects+++
 
 In cgsuite, ~everything~ is an object.  You can access properties of objects with the "dot operator".
 For example, with `g` as above, try typing some of the following commands (remember to type each on
@@ -110,7 +110,7 @@ illustrates.  Output will only be generated for the last command on the line.
 
 `g := {2|*}; h := g + {1|0}; h.Thermograph.Plot()`
 
-++Classes and Canonical Forms++
++++Classes and Canonical Forms+++
 
 Every object in cgsuite belongs to a particular ~class~.  For example, `3` is an `Integer`,
 `5/4` is a `Number` and `{2|*}` is a `CanonicalShortGame`.
@@ -133,7 +133,7 @@ This constructs a 2x3 Clobber position with the layout you see on the worksheet.
 
 `g.CanonicalForm`
 
-++Tips and Tricks++
++++Tips and Tricks+++
 
 A few tricks to help you use the worksheet more effectively:
 \ul
@@ -166,7 +166,7 @@ A few tricks to help you use the worksheet more effectively:
     \li It can also be useful to enter multi-line commands into the worksheet.  You can do this by pressing Shift-Enter.
 \endul
 
-++Exercises++
++++Exercises+++
 \ol
     \li Let `g` be the game `{3||1|*}`. Calculate
     the canonical forms of `g + g` and `g + g + g + g`.
@@ -176,7 +176,7 @@ A few tricks to help you use the worksheet more effectively:
     properties to determine the canonical form of `^5`.
     \li You can construct a 4x4 Domineering position by typing
 
-    `game.grid.Domineering(Grid(4,4))`
+    `game.grid.Domineering(Grid.Empty(4,4))`
 
     Let `h` be the canonical form of this position. Try comparing `h` with
     small positive and negative numbers. Make a conjecture as to whether 

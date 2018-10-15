@@ -13,6 +13,9 @@ object Grid {
     new Grid(rowCount, colCount, new Array[Byte](rowCount * colCount))
   }
 
+  // TODO Better Int <-> Integer conversions?
+  def empty(rowCount: Integer, colCount: Integer) = Grid(rowCount.intValue, colCount.intValue)
+
   def parse(str: String, charMap: String): Grid = {
     // Validate
     val strings = str.split('|').toIndexedSeq

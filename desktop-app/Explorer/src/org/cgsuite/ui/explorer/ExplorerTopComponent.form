@@ -54,7 +54,7 @@
     <Container class="javax.swing.JSplitPane" name="primarySplitPane">
       <Properties>
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="ff" green="ff" red="ff" type="rgb"/>
+          <Color blue="ed" green="ee" red="ee" type="rgb"/>
         </Property>
         <Property name="dividerLocation" type="int" value="480"/>
       </Properties>
@@ -89,11 +89,6 @@
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
             </Container>
             <Container class="javax.swing.JPanel" name="analysisPanel">
-              <Properties>
-                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                </Property>
-              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
                   <JSplitPaneConstraints position="right"/>
@@ -109,7 +104,12 @@
                     </Property>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                       <Border info="org.netbeans.modules.form.compat2.border.BevelBorderInfo">
-                        <BevelBorder bevelType="1"/>
+                        <BevelBorder bevelType="1">
+                          <Color PropertyName="highlightOuter" blue="ee" green="ee" red="ee" type="rgb"/>
+                          <Color PropertyName="highlightInner" blue="ee" green="ee" red="ee" type="rgb"/>
+                          <Color PropertyName="shadowOuter" blue="ee" green="ee" red="ee" type="rgb"/>
+                          <Color PropertyName="shadowInner" blue="ee" green="ee" red="ee" type="rgb"/>
+                        </BevelBorder>
                       </Border>
                     </Property>
                   </Properties>
@@ -134,6 +134,9 @@
                     </Component>
                     <Component class="javax.swing.JComboBox" name="commandComboBox">
                       <Properties>
+                        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                          <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                        </Property>
                         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                           <Font name="Monospaced" size="13" style="0"/>
                         </Property>
@@ -206,7 +209,7 @@
     <Container class="javax.swing.JPanel" name="infoPanel">
       <Properties>
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="ff" green="ff" red="ff" type="rgb"/>
+          <Color blue="ed" green="ee" red="ee" type="rgb"/>
         </Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.BevelBorderInfo">

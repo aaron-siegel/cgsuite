@@ -2,6 +2,8 @@
 
 system class Grid
 
+  external static def Empty(rowCount as Integer, colCount as Integer);
+
   external static def Parse(str as String, charMap as String);
 
   external def ColCount;
