@@ -5,11 +5,16 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.net.URL;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
+import javax.swing.SwingUtilities;
+import org.cgsuite.help.actions.HelpBackAction;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -36,6 +41,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     public final static String INDEX_PAGE = "reference/cgscript-index.html";
     public final static String GETTING_STARTED_PAGE = "tutorials/getting-started/getting-started.html";
     
+    private JFXPanel fxPanel;
     private WebView webView;
 
     public CgsuiteHelpTopComponent() {
@@ -47,7 +53,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
         setName(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CTL_CgsuiteHelpTopComponent"));
         setToolTipText(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "HINT_CgsuiteHelpTopComponent"));
         
-        final JFXPanel fxPanel = new JFXPanel();
+        fxPanel = new JFXPanel();
         add(fxPanel, BorderLayout.CENTER);
         Platform.setImplicitExit(false);
         Platform.runLater(() -> {
@@ -60,6 +66,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     
     public void navigateTo(String path) {
         
+        SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
         Platform.runLater(() -> {
             URL resource = HelpBuilder.class.getResource("docs/" + path);
             if (resource == null)
@@ -70,19 +77,13 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     }
     
     public void navigateBack() {
-        
-        Platform.runLater(() -> {
-            webView.getEngine().executeScript("history.back()");
-        });
-        
+        SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
+        Platform.runLater(() -> webView.getEngine().executeScript("history.back()"));
     }
     
     public void navigateForward() {
-        
-        Platform.runLater(() -> {
-            webView.getEngine().executeScript("history.forward()");
-        });
-        
+        SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
+        Platform.runLater(() -> webView.getEngine().executeScript("history.forward()"));
     }
     
     /** This method is called from within the constructor to

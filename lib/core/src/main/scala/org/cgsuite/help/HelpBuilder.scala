@@ -573,7 +573,7 @@ case class ReferenceBuilder(buildDir: String) {
 
     }
 
-    val footer = "</table></div></body></html>"
+    val footer = "</table></div><p></body></html>"
 
     referenceDir.createDirectories()
     file overwrite header
