@@ -29,6 +29,11 @@ object Markdown {
   )
 
   val specialSeqs: Map[String, String] = Map(
+    "ol" -> "<ol>",
+    "ul" -> "<ul>",
+    "endol" -> "</ol>",
+    "endul" -> "</ul>",
+    "li" -> "<li>",
     "leq" -> "&lt;=",
     "geq" -> "&gt;=",
     "sim" -> "~",
@@ -75,8 +80,8 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
       case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h2>"
       case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h1>"
 
-      case (_, Location.Normal, '^') => location = Location.Super; "<sup>"
-      case (_, Location.Normal, '_') => location = Location.Sub; "<sub>"
+      case (_, Location.Normal, '^') if state != State.Code => location = Location.Super; "<sup>"
+      case (_, Location.Normal, '_') if state != State.Code => location = Location.Sub; "<sub>"
 
       case (_, Location.Super, '^') => location = Location.Normal; "</sup>"
       case (_, Location.Sub, '_') => location = Location.Normal; "</sub>"

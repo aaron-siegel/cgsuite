@@ -1,0 +1,14 @@
+Welcome to Combinatorial Game Suite! This tutorial gives an overview of the
+main features of CGSuite and contains numerous examples and exercises.
+
+It's divided into several sections:
+\<ol\>
+\<li\>[[/tutorials/getting-started/worksheet-basics][Worksheet Basics]] - Fundamentals of using the worksheet.
+\<li\>[[/tutorials/getting-started/using-the-explorer][Using The Explorer]] - Using the explorer to browse and edit game positions.
+\<li\>[[/tutorials/getting-started/cgscript][CGScript]] - Introduction to CGSuite's powerful scripting language.
+\<li\>[[/tutorials/getting-started/impartial-games][Impartial Games]] - Description of CGSuite's specialized impartial games support.
+\<li\>[[/tutorials/getting-started/cgsuite-in-action][CGSuite In Action]] - A case study demonstrating how CGSuite might be used in practice.
+\</ol\>
+
+Once you've worked through ~Getting Started~, return to the [[/contents][Contents]] and check out some of the
+other tutorials that are available.
