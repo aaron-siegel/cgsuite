@@ -1,0 +1,99 @@
+Loopy Games
+
+CGSuite contains powerful tools for working with loopy games. This section assumes
+familiarity with the theory of loopy games; ~Winning Ways~ (see the [[List of References][../../List of References]])
+includes an excellent introduction.
+
+##TOC##
+
+++Plumtrees++
+
+Stoppers with simple pass moves ("plumtrees") can be entered into the Worksheet using the convenient keyword $pass$.
+Here are some familiar examples:
+
+$on := {pass|}
+off := {|pass}
+over := {0|pass}
+upon := {pass|*}
+uponth := {0|-upon+*}
+upover := {0|*,pass}
+tiny := on.Tiny
+ace := {0|on.Tiny}$
+
+Try entering each of these games, and note that CGSuite is pretty good at expressing them in convenient shorthand
+notation.
+
+++Fundamental Operations++
+
+Basic operations on loopy games are all there, just as you'd expect:
+
+$g := upon.Upsum(uponth)
+u := +-g
+u.Degree
+u.Variety$
+
+Ordinal sum works too:
+
+$1:off$
+
+++Sidling++
+
+For games that are not stoppers, CGSuite will sidle automatically.
+
+$over - over
+upon - upon
+on + off$
+
+(Note the shorthand recognition of $dud = on & off$.)
+
+Stopper-sided games can also be entered directly:
+
+$g := over & v$
+
+And manipulated in all the usual ways, just as you'd expect:
+
+$g + 1 + *
+g.Offside$
+
+++Long Cycles++
+
+Games with long cycles (that are not plumtrees) can be entered using the following special notation.
+In any braces-and-slashes expression for a game, the opening brace may be preceded by an identifier. That identifier
+can then be used anywhere inside the expression as a "pointer" back to the initial game. For example,
+
+$a{0|a}$ is equivalent to ${0|pass}$ (it's another name for $over$).
+
+Here's the example from Figure VI.3.2 on page 308 of ~Combinatorial Game Theory~:
+
+$g := a{0||||0|||a|*||*}$
+
+$g$ is a stopper, so all the usual operations apply:
+
+$g.Degree$
+
+and so forth.
+
+++Non-Stopper-Sided Games++
+
+There exist games (such as the famous ~Bach's Carousel~, described in ~Winning Ways~) whose sides are not stoppers.
+The theory of such games is still incomplete, and the CGSuite worksheet will reject them. Try entering Bach's Carousel,
+and you'll get an error:
+
+$bach := a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}$
+
+++Exercises++
+
+<ol>
+<li>Investigate all sums of the four varieties
+
+${1+G | uponth || -uponth | -1+H }$
+
+as $G$ and $H$ range over $uponth$ and $-uponth$. ($uponth$ was defined above.) This is Exercise VI.5.1(a) on page 331
+of ~Combinatorial Game Theory~.
+
+<li>Let $G = {0 | uponth || -uponth}$. Determine its variety $V$. Compute the varieties of
+
+$G, G.Upsum(G), G.Upsum(G.Upsum(G)), ...$
+
+and observe that they are strictly increasing. This is Exercise VI.5.1(b) of ~Combinatorial Game Theory~.
+</ol>

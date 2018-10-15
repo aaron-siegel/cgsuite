@@ -1,0 +1,11 @@
+Programming in CGScript
+
+This tutorial explores the language features of CGScript.  It assumes you've already read through the
+[[/tutorials/getting-started/cgscript][CGScript]] section from the ~Getting Started~ tutorial.
+\ol
+\li [[/tutorials/programming-in-cgscript/three-examples][Three Examples]] - Nim; the Partizan Subtraction Game; and Clobber.
+\li [[/tutorials/programming-in-cgscript/classes-and-packages][Classes and Packages]] - The structure of CGScript classes.
+\li [[/tutorials/programming-in-cgscript/control-flow-and-scope][Control Flow and Scope]] - Conditionals, loops, and variable scope.
+\li [[/tutorials/programming-in-cgscript/grids-and-strips][Grids and Strips]] - Utilities for streamlining game implementation.
+\li [[/tutorials/programming-in-cgscript/advanced-language-features][Advanced Language Features]].
+\ol
