@@ -19,10 +19,10 @@ system class CanonicalShortGame extends CanonicalStopper
     *
     * for all games $X$ and all sufficiently large $m$.
     *
-    * Such a $W$ is guaranteed to exist whenever $G$ is [[CanonicalShortGame.IsAllSmall][all small]], and
+    * Such a $W$ is guaranteed to exist whenever $G$ is [[#IsAllSmall][all small]], and
     * also exists for certain other infinitesimals. If no such $W$ exists, then
     * `G.AtomicWeight` will raise an error. In cases where this is undesirable,
-    * the [[CanonicalShortGame.IsAtomic]] property can be used to test for existence in advance.
+    * the [[#IsAtomic]] property can be used to test for existence in advance.
     *
     * The theory of atomic weights is discussed in detail in \ww and \cgt.
     */
@@ -38,6 +38,13 @@ system class CanonicalShortGame extends CanonicalStopper
     * It is equal to the height of the complete game tree for `G`.
     */
   external def Birthday;
+  
+  /** The lattice companion of this game.
+    *
+    * The mapping `G -> G.Companion` defines the unique lattice automorphism
+    * of games born by day $n \geq 1$. The theory is described in \cgt,
+    * Chapter III.2.
+    */
   external def Companion;
   
   /** The value of this game cooled by temperature `t`.
@@ -49,18 +56,24 @@ system class CanonicalShortGame extends CanonicalStopper
   external def Freeze;
   external def Heat(t as CanonicalShortGame);
   external def Incentives;
+  
   external override def IsAllSmall;
+  
+  /** `true` if the atomic weight of this `CanonicalShortGame` exists.
+    *
+    * See the discussion of the [[#AtomicWeight]] property
+    * for more details.
+    */
   external def IsAtomic;
   
-  /**
-    * `true` if this `CanonicalShortGame` is even.
+  /** `true` if this `CanonicalShortGame` is even.
     *
     * `G` is ~even~ if either: `G` is identically zero; or every option of `G` is odd.
     *
     * Likewise, `G` is ~odd~ if both: `G` is not identically zero; and every option of
     * `G` is even.
     *
-    * See also [[IsOdd]].
+    * See also [[#IsOdd]].
     */
   external def IsEven;
   external def IsEvenTempered;
@@ -75,6 +88,16 @@ system class CanonicalShortGame extends CanonicalStopper
   external override def IsUptimal;
   external def LeftIncentives;
   external override def LeftStop;
+  
+  /** The mean value of this `CanonicalShortGame`, as a [[DyadicRational]].
+    *
+    * The mean value $m(G)$ is defined as the limit:
+    *
+    * $L(n\cdot G)/n \to m(G)$ \sp as \sp $n \to \infty$.
+    *
+    * It is equal to the mast value of the [[#Thermograph]]
+    * of $G$ (the constant value of $G_t_$ for all sufficiently large $t$).
+    */
   external def Mean;
   external def NortonMultiply(h as CanonicalShortGame);
   external def Overheat(s as CanonicalShortGame, t as CanonicalShortGame);

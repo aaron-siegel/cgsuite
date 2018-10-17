@@ -7,10 +7,10 @@
   * every instance of `Game` is actually an instance of some subclass,
   * such as [[CanonicalShortGame]]. The only requirement for
   * subclasses of `Game` is that they ~must~ implement the
-  * [[OptionsFor]] method, specifying how to compute the Left and Right
+  * [[#OptionsFor]] method, specifying how to compute the Left and Right
   * options for that class of game. `Game` provides generic implementations
   * of various other methods and nested classes that are meaningful at this
-  * level of generality. In particular, the [[Game.CanonicalForm]] property
+  * level of generality. In particular, the [[#CanonicalForm]] property
   * can be used to compute canonical forms.
   *
   * Instances of `Game` need not be loopfree; they are permitted to
@@ -33,9 +33,9 @@ system class Game
     * (equivalently, its normal-play game value), as described in \ww.
     * It will always return an instance of [[CanonicalShortGame]].
     *
-    * `CanonicalForm` works only for loopfree games, and will raise an error if this
+    * `CanonicalForm` works only for loopfree games and will raise an error if this
     * `Game` is loopy. To find the values of loopy games, use the
-    * [[GameValue]] property instead.
+    * [[#GameValue]] property instead.
     */
   external def CanonicalForm;
   external def ConwayProduct(h as Game);

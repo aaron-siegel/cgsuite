@@ -6,8 +6,8 @@ import scala.collection.mutable
 
 object Markdown {
 
-  def apply(rawInput: String, stripAsterisks: Boolean = false): Markdown = {
-    val builder = new MarkdownBuilder(rawInput, stripAsterisks)
+  def apply(rawInput: String, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
+    val builder = new MarkdownBuilder(rawInput, stripAsterisks, firstSentenceOnly)
     builder.toMarkdown
   }
 
@@ -34,19 +34,21 @@ object Markdown {
     "endol" -> "</ol>",
     "endul" -> "</ul>",
     "li" -> "<li>",
-    "leq" -> "&lt;=",
-    "geq" -> "&gt;=",
+    "to" -> "&rarr;",
+    "infty" -> "&infin;",
+    "leq" -> "&le;",
+    "geq" -> "&ge;",
     "sim" -> "~",
     "sp" -> "&nbsp;&nbsp;",
-    "cdot" -> "\u00b7",
-    "Sigma" -> "\u03a3"
+    "cdot" -> "&middot;",
+    "Sigma" -> "&Sigma;"
   )
 
 }
 
 case class Markdown(text: String, links: List[(String, Option[String])])
 
-class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
+class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false) {
 
   private val stream = new MarkdownStream(rawInput, stripAsterisks)
   private var state = State.Normal
@@ -99,6 +101,8 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false) {
       case (State.Code, _, '\n') => "\n  <br>"
       case (_, _, '\n') if stream.next == '\n' => stream.consume; "\n  <p>"
       case (_, _, '\n') => " "
+
+      case (_, _, '.') if firstSentenceOnly => stream.exhaust(); "."
 
       case (_, _, ch) => ch.toString
 
@@ -198,6 +202,10 @@ class MarkdownStream(rawInput: String, stripAsterisks: Boolean = false) {
       pointer += 1
     }
     input substring (start, pointer)
+  }
+
+  def exhaust(): Unit = {
+    pointer = input.length
   }
 
 }

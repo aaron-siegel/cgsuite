@@ -54,7 +54,7 @@
     <Container class="javax.swing.JSplitPane" name="primarySplitPane">
       <Properties>
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="ed" green="ee" red="ee" type="rgb"/>
+          <Color type="null"/>
         </Property>
         <Property name="dividerLocation" type="int" value="480"/>
       </Properties>
@@ -68,6 +68,9 @@
       <SubComponents>
         <Container class="javax.swing.JSplitPane" name="detailSplitPane">
           <Properties>
+            <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+              <Color blue="ed" green="ee" red="ee" type="rgb"/>
+            </Property>
             <Property name="dividerLocation" type="int" value="480"/>
             <Property name="orientation" type="int" value="0"/>
           </Properties>
@@ -89,6 +92,11 @@
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
             </Container>
             <Container class="javax.swing.JPanel" name="analysisPanel">
+              <Properties>
+                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="ed" green="ee" red="ee" type="rgb"/>
+                </Property>
+              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
                   <JSplitPaneConstraints position="right"/>
@@ -100,17 +108,17 @@
                 <Container class="javax.swing.JPanel" name="commandPanel">
                   <Properties>
                     <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                      <Color blue="ff" green="ff" id="white" palette="1" red="ff" type="palette"/>
                     </Property>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                      <Border info="org.netbeans.modules.form.compat2.border.BevelBorderInfo">
-                        <BevelBorder bevelType="1">
-                          <Color PropertyName="highlightOuter" blue="ee" green="ee" red="ee" type="rgb"/>
-                          <Color PropertyName="highlightInner" blue="ee" green="ee" red="ee" type="rgb"/>
-                          <Color PropertyName="shadowOuter" blue="ee" green="ee" red="ee" type="rgb"/>
-                          <Color PropertyName="shadowInner" blue="ee" green="ee" red="ee" type="rgb"/>
-                        </BevelBorder>
+                      <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
+                        <LineBorder>
+                          <Color PropertyName="color" blue="a0" green="a0" red="a0" type="rgb"/>
+                        </LineBorder>
                       </Border>
+                    </Property>
+                    <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                      <Color type="null"/>
                     </Property>
                   </Properties>
                   <Constraints>
@@ -212,8 +220,10 @@
           <Color blue="ed" green="ee" red="ee" type="rgb"/>
         </Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.BevelBorderInfo">
-            <BevelBorder bevelType="1"/>
+          <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
+            <LineBorder>
+              <Color PropertyName="color" blue="a0" green="a0" red="a0" type="rgb"/>
+            </LineBorder>
           </Border>
         </Property>
       </Properties>

@@ -11,7 +11,7 @@
   *
   * CGSuite supports arbitrarily large integers with exact precision,
   * and most integer operations can handle large inputs efficiently.
-  * (Example: $2^400 NimProduct 2^400$.)
+  * (Example: $2^400^ NimProduct 2^400^$.)
   */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 
@@ -73,12 +73,12 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     *
     * $a \otimes b = mex{(a' \otimes b) \oplus (a \otimes b') \oplus (a' \otimes b') : a' < a, b' < b}$,
     *
-    * where $\oplus$ is the usual [[NimSum][nim sum]] operator.
+    * where $\oplus$ is the usual [[#NimSum][nim sum]] operator.
     *
-    * It is related to the [[CanonicalShortGame.ConwayProduct][Conway product]] of [[Nimber][nimbers]]
+    * It is related to the [[CanonicalShortGame#ConwayProduct][Conway product]] of [[Nimber][nimbers]]
     * in the sense that
     *
-    * `*(a NimProduct b) == *a ConwayProduct *b$`.
+    * `*(a NimProduct b) == *a ConwayProduct *b`.
     */
   external def NimProduct(that as Integer);
 

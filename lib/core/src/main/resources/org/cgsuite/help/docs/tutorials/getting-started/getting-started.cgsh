@@ -5,12 +5,12 @@ main features of CGSuite and contains numerous examples and exercises.
 
 It's divided into several sections:
 \<ol\>
-\<li\>[[/tutorials/getting-started/worksheet-basics][Worksheet Basics]] - Fundamentals of using the worksheet.
-\<li\>[[/tutorials/getting-started/using-the-explorer][Using the Explorer]] - Using the explorer to browse and edit game positions.
-\<li\>[[/tutorials/getting-started/cgscript][CGScript]] - Introduction to CGSuite's powerful scripting language.
-\<li\>[[/tutorials/getting-started/impartial-games][Impartial Games]] - Description of CGSuite's specialized impartial games support.
-\<li\>[[/tutorials/getting-started/cgsuite-in-action][CGSuite In Action]] - A case study demonstrating how CGSuite might be used in practice.
+\<li\>[[worksheet-basics]] - Fundamentals of using the worksheet.
+\<li\>[[using-the-explorer]] - Using the explorer to browse and edit game positions.
+\<li\>[[cgscript]] - Introduction to CGSuite's powerful scripting language.
+\<li\>[[impartial-games]] - Description of CGSuite's specialized impartial games support.
+\<li\>[[cgsuite-in-action]] - A case study demonstrating how CGSuite might be used in practice.
 \</ol\>
 
-Once you've worked through ~Getting Started~, return to the [[/contents][Contents]] and check out some of the
+Once you've worked through ~Getting Started~, return to the [[/contents]] and check out some of the
 other tutorials that are available.

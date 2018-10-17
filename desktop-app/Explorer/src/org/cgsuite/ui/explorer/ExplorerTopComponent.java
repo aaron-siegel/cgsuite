@@ -131,17 +131,20 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
 
-        primarySplitPane.setBackground(new java.awt.Color(238, 238, 237));
+        primarySplitPane.setBackground(null);
         primarySplitPane.setDividerLocation(480);
 
+        detailSplitPane.setBackground(new java.awt.Color(238, 238, 237));
         detailSplitPane.setDividerLocation(480);
         detailSplitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         detailSplitPane.setLeftComponent(editorScrollPane);
 
+        analysisPanel.setBackground(new java.awt.Color(238, 238, 237));
         analysisPanel.setLayout(new java.awt.BorderLayout());
 
-        commandPanel.setBackground(new java.awt.Color(255, 255, 255));
-        commandPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED, new java.awt.Color(238, 238, 238), new java.awt.Color(238, 238, 238), new java.awt.Color(238, 238, 238), new java.awt.Color(238, 238, 238)));
+        commandPanel.setBackground(java.awt.Color.white);
+        commandPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(160, 160, 160)));
+        commandPanel.setForeground(null);
         commandPanel.setLayout(new javax.swing.BoxLayout(commandPanel, javax.swing.BoxLayout.Y_AXIS));
 
         inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
@@ -188,7 +191,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         add(primarySplitPane, java.awt.BorderLayout.CENTER);
 
         infoPanel.setBackground(new java.awt.Color(238, 238, 237));
-        infoPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
+        infoPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(160, 160, 160)));
         infoPanel.setLayout(new javax.swing.BoxLayout(infoPanel, javax.swing.BoxLayout.LINE_AXIS));
 
         org.openide.awt.Mnemonics.setLocalizedText(addPositionButton, org.openide.util.NbBundle.getMessage(ExplorerTopComponent.class, "ExplorerTopComponent.addPositionButton.text")); // NOI18N

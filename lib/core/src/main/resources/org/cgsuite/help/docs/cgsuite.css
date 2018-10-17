@@ -117,14 +117,26 @@ td.member { width: 100% }
 
 small {font-size: x-small}
 
-a:link {
+a.valid:link {
     color: SteelBlue;
     font-weight: bold;
     text-decoration: none;
 }
 
-a:visited {
+a.valid:visited {
     color: SteelBlue;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a.unknown:link {
+    color: FireBrick;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a.unknown:visited {
+    color: FireBrick;
     font-weight: bold;
     text-decoration: none;
 }
