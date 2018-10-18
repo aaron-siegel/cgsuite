@@ -1,8 +1,0 @@
-/*${cgsuite.banner}*/
-
-class InstanceMethod : java "org.cgsuite.lang.CgsuiteObject$InstanceMethod"
-
-    property MethodGroup.get : java "getMethodGroup";
-    property Object.get : java "getObject";
-
-end

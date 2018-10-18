@@ -1,7 +1,0 @@
-/*${cgsuite.banner}*/
-
-class Worksheet : java "org.cgsuite.lang.output.Utilities"
-
-    static method Print(Object obj) : java "print";
-
-end

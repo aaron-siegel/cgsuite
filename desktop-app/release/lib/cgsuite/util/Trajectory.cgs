@@ -1,5 +1,0 @@
-/*${cgsuite.banner}*/
-
-class Trajectory : java "org.cgsuite.lang.game.Trajectory"
-
-end

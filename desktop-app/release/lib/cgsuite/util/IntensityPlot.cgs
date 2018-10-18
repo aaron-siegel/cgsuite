@@ -1,5 +1,0 @@
-/*${cgsuite.banner}*/
-
-class IntensityPlot : java "org.cgsuite.lang.output.IntensityPlotOutput"
-
-end

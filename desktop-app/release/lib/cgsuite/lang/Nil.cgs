@@ -1,7 +1,0 @@
-/*${cgsuite.banner}*/
-
-class Nil
-
-    override property ToString.get : java "toString";
-    
-end

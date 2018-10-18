@@ -1,5 +1,0 @@
-/*${cgsuite.banner}*/
-
-class UptimalExpansion : java "org.cgsuite.lang.game.UptimalExpansion"
-
-end

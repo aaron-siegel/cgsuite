@@ -1,8 +1,0 @@
-/*${cgsuite.banner}*/
-
-class MethodGroup : java "org.cgsuite.lang.CgsuiteMethodGroup"
-
-    property MethodCount.get : java "getMethodCount";
-    property Methods.get : java "getMethods";
-
-end

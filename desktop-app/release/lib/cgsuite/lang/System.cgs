@@ -1,8 +1,0 @@
-/*${cgsuite.banner}*/
-
-class System : java "org.cgsuite.lang.output.Utilities"
-
-    static property Memory.get : java "memory";
-    static property Version.get : java "version";
-
-end

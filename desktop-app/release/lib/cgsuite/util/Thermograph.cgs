@@ -1,7 +1,0 @@
-/*${cgsuite.banner}*/
-
-class Thermograph : java "org.cgsuite.lang.game.Thermograph"
-
-    method Plot() : java "plot";
-
-end

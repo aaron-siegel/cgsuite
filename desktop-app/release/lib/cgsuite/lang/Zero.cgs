@@ -1,5 +1,0 @@
-/*${cgsuite.banner}*/
-
-class Zero extends Integer, Nimber : java "org.cgsuite.lang.CgsuiteInteger"
-
-end

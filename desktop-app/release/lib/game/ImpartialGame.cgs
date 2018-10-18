@@ -1,9 +1,0 @@
-/*${cgsuite.banner}*/
-
-class ImpartialGame extends Game
-
-    override property IsImpartial.get
-        return true;
-    end
-
-end

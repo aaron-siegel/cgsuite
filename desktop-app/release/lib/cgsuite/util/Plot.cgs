@@ -1,5 +1,0 @@
-/*${cgsuite.banner}*/
-
-class Plot : java "org.cgsuite.lang.output.PlotOutput"
-
-end
