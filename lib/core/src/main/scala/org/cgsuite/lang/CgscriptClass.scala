@@ -107,7 +107,7 @@ object CgscriptClass {
     val classdef: CgscriptClassDef = {
       explicitDefinition match {
         case Some(text) => ExplicitClassDef(text)
-        case None => UrlClassDef(getClass.getResource(s"resources/$path.cgs"))
+        case None => UrlClassDef(CgscriptClasspath.systemDir, getClass.getResource(s"resources/$path.cgs"))
       }
     }
     val components = name.split("\\.").toSeq
@@ -143,7 +143,7 @@ class CgscriptClass(
   val classOrdinal: Int = newClassOrdinal        // TODO How to handle for nested classes??
 
   val url = classdef match {
-    case UrlClassDef(x) => x
+    case UrlClassDef(_, x) => x
     case _ => null
   }
 
@@ -410,7 +410,7 @@ class CgscriptClass(
 
     val (in, source) = classdef match {
 
-      case UrlClassDef(url) =>
+      case UrlClassDef(_, url) =>
         logger debug s"$logPrefix Parsing from URL: $url"
         (url.openStream(), new File(url.getFile).getName)
 
@@ -1191,7 +1191,7 @@ class CgscriptClass(
 }
 
 sealed trait CgscriptClassDef
-case class UrlClassDef(url: URL) extends CgscriptClassDef
+case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
 case class ExplicitClassDef(text: String) extends CgscriptClassDef
 case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
 

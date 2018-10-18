@@ -4,7 +4,7 @@ import better.files._
 import com.typesafe.scalalogging.Logger
 import org.cgsuite.exception.SyntaxException
 import org.cgsuite.help.HelpBuilder._
-import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, Member, Parameter}
+import org.cgsuite.lang._
 import org.cgsuite.util.Markdown
 import org.slf4j.LoggerFactory
 
@@ -43,6 +43,15 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
 
+  CgscriptClass.Object.ensureDeclared()
+
+  private[help] val allClasses = CgscriptPackage.allClasses filter { cls =>
+    cls.classdef match {
+      case UrlClassDef(classpathRoot, _) => classpathRoot == CgscriptClasspath.systemDir
+      case _ => false
+    }
+  }
+
   // First pass to build targets mapping
 
   private[help] val fixedTargets = {
@@ -55,8 +64,6 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
   }
 
   def run(): Unit = {
-
-    CgscriptClass.Object.ensureDeclared()
 
     renderCgshFiles()
     renderIndex()
@@ -137,7 +144,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
     //renderHelpMap()
     //renderHelpToc()
 
-    CgscriptPackage.allClasses foreach { cls =>
+    allClasses foreach { cls =>
 
       try {
 
@@ -255,7 +262,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       }
 
       val supers = cls.classInfo.supers filterNot { _ == CgscriptClass.Object } map { sup =>
-        s"<code>${linkBuilder hyperlinkToClass sup}</code>"
+        s"${linkBuilder hyperlinkToClass sup}"
       }
 
       assert(supers.isEmpty || !cls.isPackageObject)
@@ -364,7 +371,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
             else
               linkBuilder.hyperlinkToClass(info.member.declaringClass)
           }
-          s"<p><em>(description copied from </em><code>$link</code><em>)</em>\n"
+          s"<p><em>(description copied from </em>$link<em>)</em>\n"
         }
       }
 
@@ -432,7 +439,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       markdown.links.zipWithIndex foreach { case ((ref, textOpt), index) =>
 
         val link = linkBuilder.hyperlink(ref, textOpt)
-        result = result replaceFirst (f"@@$index%04d", s"<code>$link</code>")
+        result = result replaceFirst (f"@@$index%04d", s"$link")
 
       }
 
@@ -472,7 +479,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
     // TODO Package constants too
 
-    val classes = CgscriptPackage.allClasses map { cls =>
+    val classes = allClasses map { cls =>
 
       val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html">${cls.qualifiedName}</a>"""
 
@@ -634,8 +641,10 @@ case class LinkBuilder(
         }
       }
     }
+    val codePrefix = if (textOpt.isDefined) "" else "<code>"
     val linkText = textOpt getOrElse s"$refText"
-    s"""<a class="valid" href="$classRef$memberRef">$linkText</a>"""
+    val codeSuffix = if (textOpt.isDefined) "" else "</code>"
+    s"""$codePrefix<a class="valid" href="$classRef$memberRef">$linkText</a>$codeSuffix"""
 
   }
 

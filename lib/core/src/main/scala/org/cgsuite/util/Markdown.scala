@@ -25,7 +25,8 @@ object Markdown {
     '\\' -> "<br>",
     '<' -> "<",
     '>' -> ">",
-    '"' -> "\""
+    '"' -> "\"",
+    ',' -> "&thinsp;"
   )
 
   val specialSeqs: Map[String, String] = Map(
@@ -40,8 +41,13 @@ object Markdown {
     "geq" -> "&ge;",
     "sim" -> "~",
     "sp" -> "&nbsp;&nbsp;",
-    "cdot" -> "&middot;",
-    "Sigma" -> "&Sigma;"
+    "cdot" -> "&middot;"
+  )
+
+  val specialLinks: Map[String, (String, String)] = Map(
+    "cgt" -> ("/materials", "<em>Combinatorial Game Theory</em>"),
+    "ww" -> ("/materials", "<em>Winning Ways</em>"),
+    "onag" -> ("/materials", "<em>On Numbers and Games</em>")
   )
 
 }
@@ -122,8 +128,7 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSe
     stream consumeWhile { _ != ']' }
     stream.consume
 
-    linksRef += ((target, text))
-    f"@@${linksRef.size-1}%04d"
+    makeLink(target, text)
 
   }
 
@@ -139,9 +144,20 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSe
 
   }
 
+  def makeLink(target: String, text: Option[String]) = {
+
+    linksRef += ((target, text))
+    f"@@${linksRef.size-1}%04d"
+
+  }
+
   def consumeSpecialSeq(): String = {
     val id = stream consumeWhile { _.isLetter }
     val resolution = specialSeq(id)
+    if (stream.peek(2) == "{}") {
+      stream.consume
+      stream.consume
+    }
     resolution
   }
 
@@ -154,7 +170,14 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSe
   }
 
   def specialSeq(str: String): String = {
-    Markdown.specialSeqs getOrElse (str, "??????")
+    Markdown.specialSeqs get str match {
+      case Some(text) => text
+      case None =>
+        Markdown.specialLinks get str match {
+          case Some((target, text)) => makeLink(target, Some(text))
+          case None => s"&$str;"
+        }
+    }
   }
 
   def toMarkdown = Markdown(result.toString, linksRef.toList)

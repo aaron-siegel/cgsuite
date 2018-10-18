@@ -48,16 +48,16 @@ object CgscriptClasspath {
   private[cgsuite] def declareFolder(folder: File): Unit = {
     if (folder.fileSystem.provider.getScheme != "jar")
       new Monitor(folder).start()
-    declareFolderR(CgscriptPackage.root, folder)
+    declareFolderR(CgscriptPackage.root, folder, folder)
   }
 
-  private[cgsuite] def declareFolderR(pkg: CgscriptPackage, folder: File): Unit = {
+  private[cgsuite] def declareFolderR(pkg: CgscriptPackage, root: File, folder: File): Unit = {
     logger debug s"Declaring folder: $folder as package ${pkg.name}"
     folder.children foreach { file =>
       if (file.isDirectory) {
-        declareFolderR(pkg.declareSubpackage(file.name stripSuffix "/"), file)
+        declareFolderR(pkg.declareSubpackage(file.name stripSuffix "/"), root, file)
       } else if (file.extension exists { _.toLowerCase == ".cgs" }) {
-        pkg.declareClass(Symbol(file.nameWithoutExtension), UrlClassDef(file.url), None)
+        pkg.declareClass(Symbol(file.nameWithoutExtension), UrlClassDef(root, file.url), None)
       }
     }
   }

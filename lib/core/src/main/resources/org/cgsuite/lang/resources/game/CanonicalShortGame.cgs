@@ -30,10 +30,10 @@ system class CanonicalShortGame extends CanonicalStopper
   
   /** The birthday of this game.
     *
-    * The ~birthday~ of `G` is the [[Integer]] defined recursively by
+    * The ~birthday~ of `G` is the [[Integer]] $b(G)$ defined recursively by
     *
-    * `0.Birthday = 0
-    * G.Birthday = max{G^L^.Birthday, G^R^.Birthday}`.
+    * $b(0) = 0,\\
+    * b(G) = max{b(G^L^), b(G^R^)}$.
     *
     * It is equal to the height of the complete game tree for `G`.
     */
@@ -112,7 +112,7 @@ system class CanonicalShortGame extends CanonicalStopper
     * It is defined by
     *
     * $SC(x) = x$ \sp if $x$ is a number;\\
-    * $SC(G) = \Sigma SC(G^L^) + \Sigma SC(G^R^)$ \sp otherwise,
+    * $SC(G) = \Sigma\,SC(G^L^) + \Sigma\,SC(G^R^)$ \sp otherwise,
     *
     * where the sums are understood to range over all Left and Right options of $G$.
     */
