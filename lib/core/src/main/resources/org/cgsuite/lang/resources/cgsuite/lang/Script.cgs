@@ -6,6 +6,6 @@ system class Script
   external def Ordinal;
   external def QualifiedName;
 
-  external override def ToOutput = Class.ToOutput;
+  override def ToOutput := Class.ToOutput;
 
 end

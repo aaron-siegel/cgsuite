@@ -2,7 +2,7 @@ package org.cgsuite.help
 
 import better.files._
 import com.typesafe.scalalogging.Logger
-import org.cgsuite.exception.SyntaxException
+import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang._
 import org.cgsuite.util.{LinkBuilder, Markdown}
@@ -145,8 +145,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       } catch {
 
-        case exc: SyntaxException =>
-          logger warn s"Syntax error parsing class: `${cls.qualifiedName}`"
+        case exc: CgsuiteException =>
+          logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
 
       }
 
@@ -463,7 +463,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
             case None => "&nbsp;"
           }
         } catch {
-          case exc: SyntaxException => ""
+          case exc: CgsuiteException =>
+            logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
         }
       }
 
