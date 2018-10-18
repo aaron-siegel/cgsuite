@@ -6,8 +6,8 @@ import scala.collection.mutable
 
 object Markdown {
 
-  def apply(rawInput: String, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
-    val builder = new MarkdownBuilder(rawInput, stripAsterisks, firstSentenceOnly)
+  def apply(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): String = {
+    val builder = new MarkdownBuilder(rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
     builder.toMarkdown
   }
 
@@ -52,14 +52,17 @@ object Markdown {
 
 }
 
-case class Markdown(text: String, links: List[(String, Option[String])])
+trait LinkBuilder {
 
-class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false) {
+  def hyperlink(ref: String, textOpt: Option[String]): String
+
+}
+
+class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false) {
 
   private val stream = new MarkdownStream(rawInput, stripAsterisks)
   private var state = State.Normal
   private var location = Location.Normal
-  private val linksRef = mutable.MutableList[(String, Option[String])]()
   private val result = new StringBuffer()
 
   emit("  ")
@@ -128,7 +131,7 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSe
     stream consumeWhile { _ != ']' }
     stream.consume
 
-    makeLink(target, text)
+    linkBuilder.hyperlink(target, text)
 
   }
 
@@ -141,13 +144,6 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSe
     }
     stream.consume
     str.toString
-
-  }
-
-  def makeLink(target: String, text: Option[String]) = {
-
-    linksRef += ((target, text))
-    f"@@${linksRef.size-1}%04d"
 
   }
 
@@ -174,13 +170,13 @@ class MarkdownBuilder(rawInput: String, stripAsterisks: Boolean = false, firstSe
       case Some(text) => text
       case None =>
         Markdown.specialLinks get str match {
-          case Some((target, text)) => makeLink(target, Some(text))
+          case Some((target, text)) => linkBuilder.hyperlink(target, Some(text))
           case None => s"&$str;"
         }
     }
   }
 
-  def toMarkdown = Markdown(result.toString, linksRef.toList)
+  def toMarkdown = result.toString
 
 }
 

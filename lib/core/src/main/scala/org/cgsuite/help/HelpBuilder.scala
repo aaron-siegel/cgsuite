@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.Logger
 import org.cgsuite.exception.SyntaxException
 import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang._
-import org.cgsuite.util.Markdown
+import org.cgsuite.util.{LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
 
 object HelpBuilder {
@@ -92,14 +92,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           backPath.toString
       }
 
-      val linkBuilder = LinkBuilder(targetRootDir, targetDir, backref, fixedTargets, CgscriptPackage.root)
-      val markdown = Markdown(lines.tail mkString "\n")
-      var text = markdown.text
-
-      markdown.links.zipWithIndex foreach { case ((ref, textOpt), index) =>
-        val link = linkBuilder.hyperlink(ref, textOpt)
-        text = text replaceFirst (f"@@$index%04d", s"$link")
-      }
+      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref, fixedTargets, CgscriptPackage.root)
+      val text = Markdown(lines.tail mkString "\n", linkBuilder)
 
       val header =
         s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
@@ -141,8 +135,6 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
   }
 
   def renderClasses(): Unit = {
-    //renderHelpMap()
-    //renderHelpToc()
 
     allClasses foreach { cls =>
 
@@ -166,7 +158,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
     val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
 
-    val linkBuilder = LinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
+    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
 
     def renderClass(): Unit = {
 
@@ -424,26 +416,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       // TODO Links don't work quite right for copied doc comments
       // (Link GENERATION works fine, but link RESOLUTION does not)
 
-      val markdown = Markdown(comment, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly)
-      var result = {
-        if (firstSentenceOnly) {
-          markdown.text indexOf '.' match {
-            case -1 => markdown.text
-            case index => markdown.text substring (0, index + 1)
-          }
-        } else {
-          markdown.text
-        }
-      }
-
-      markdown.links.zipWithIndex foreach { case ((ref, textOpt), index) =>
-
-        val link = linkBuilder.hyperlink(ref, textOpt)
-        result = result replaceFirst (f"@@$index%04d", s"$link")
-
-      }
-
-      result
+      Markdown(comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly)
 
     }
 
@@ -515,72 +488,18 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
   }
 
-  // renderHelpMap and renderHelpToc can be used to generate JavaHelp indices (now obsolete).
-
-  /*
-  def renderHelpMap(): Unit = {
-
-    val file = referenceDir/"help-map.xml"
-
-    val header =
-      s"""<?xml version="1.0" encoding="UTF-8"?>
-         |<!DOCTYPE map PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 2.0//EN" "http://java.sun.com/products/javahelp/map_2_0.dtd">
-         |<map version="2.0">
-         |""".stripMargin
-
-    val allTargets = CgscriptPackage.allClasses map { cls =>
-      s"""  <mapID target="${cls.qualifiedName}" url="${pathTo(cls)}"/>\n"""
-    }
-
-    referenceDir.createDirectories()
-    file overwrite header
-    allTargets foreach file.append
-    file append "</map>"
-
-  }
-
-  def renderHelpToc(): Unit = {
-
-    val file = referenceDir/"help-toc.xml"
-
-    val header =
-      """<?xml version="1.0" encoding="UTF-8"?>
-        |<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
-        |<toc version="2.0">
-        |  <tocitem text="Combinatorial Game Suite" target="Combinatorial Game Suite">
-        |    <tocitem text="Reference Guide" target="Reference Guide">
-        |""".stripMargin
-
-    val allTargets = CgscriptPackage.allClasses map { cls =>
-      s"""      <tocitem text="${cls.qualifiedName}" target="${cls.qualifiedName}"/>\n"""
-    }
-
-    val footer =
-      """    </tocitem>
-        |  </tocitem>
-        |</toc>
-      """.stripMargin
-
-    referenceDir.createDirectories()
-    file overwrite header
-    allTargets foreach file.append
-    file append footer
-
-  }
-  */
-
 }
 
 case class MemberInfo(member: Member, entityType: String)
 
-case class LinkBuilder(
+case class HelpLinkBuilder(
   targetRootDir: File,
   targetDir: File,
   backPath: String,
   fixedTargets: Map[String, String],
   referringPackage: CgscriptPackage,
   referringClass: Option[CgscriptClass] = None
-  ) {
+  ) extends LinkBuilder {
 
   def hyperlink(ref: String, textOpt: Option[String]): String = {
 
