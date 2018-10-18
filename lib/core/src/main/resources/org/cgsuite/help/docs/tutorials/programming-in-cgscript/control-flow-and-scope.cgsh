@@ -1,3 +1,5 @@
+Control Flow and Scope
+
 In this section, we introduce the use of control flow and variable scope in CGScript.
 
 ##TOC##
@@ -88,7 +90,7 @@ to iterate over all the elements in a collection.  This syntax is used most comm
 game.  It can also be used in combination with $while$ and $where$.
 
 All of these types of loops can be used with $setof$, $listof$ and $tableof$, as described in the
-[[Getting Started][../gettingstarted/CGScript]] tutorial.
+[[/tutorials/getting-started/cgscript]] tutorial.
 
 Finally, you can type simply
 

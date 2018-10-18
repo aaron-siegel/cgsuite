@@ -20,7 +20,7 @@ general it can be quite difficult to determine which component to play on.  So l
 discover.
 
 The game is implemented via the class `examples.PartizanEuclid`.  (Details on how to implement new games from scratch are
-covered in the next tutorial, [[Using CGScript][../usingcgscript/Using CGScript]].  For the purpose of this tutorial,
+covered in the [[/tutorials/programming-in-cgscript/programming-in-cgscript]] tutorial. For the purpose of this tutorial,
 we assume we already have an implementation that we wish to study.)
 
 Typing

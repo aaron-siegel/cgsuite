@@ -10,12 +10,12 @@ system class ImpartialGame extends Game
     *
     * `def CanonicalForm := *NimValue`
     *
-    * so that all the work is done by the (more efficient) [[ImpartialGame.NimValue]]
+    * so that all the work is done by the (more efficient) [[#NimValue]]
     * property.
     *
     * `CanonicalForm` works only for loopfree games, and will raise an error if this
     * `ImpartialGame` is loopy. To find the values of loopy games, use the
-    * [[GameValue]] property instead.
+    * [[#GameValue]] property instead.
     */
   override def CanonicalForm := *NimValue;
   override def GameValue := *NimValue;    // TODO Nope! This won't work for loopy G
@@ -25,8 +25,8 @@ system class ImpartialGame extends Game
     * The ~genus~ of an impartial game $G$ is a symbol that contains information
     * about both normal and misere play of $G$. Specifically, it encodes:
     * \ul
-    * \li The [[ImpartialGame.NimValue][nim value]] of $G$
-    * \li The [[ImpartialGame.MisereNimValue][misere nim value]] of $G$
+    * \li The [[#NimValue][nim value]] of $G$
+    * \li The [[#MisereNimValue][misere nim value]] of $G$
     * \li The misere nim values of $G + *2$, $G + *2 + *2$, ...
     * \endul
     * See \ww, Chapter 13 or \cgt, Chapter V.2 for a complete discussion of genus
@@ -34,7 +34,7 @@ system class ImpartialGame extends Game
     *
     * Note that the genus may take a large amount of time and memory to
     * compute, since in general it depends on the full
-    * [[ImpartialGame.MisereCanonicalForm][misere canonical form]] of $G$.
+    * [[#MisereCanonicalForm][misere canonical form]] of $G$.
     */
   external def Genus;
 

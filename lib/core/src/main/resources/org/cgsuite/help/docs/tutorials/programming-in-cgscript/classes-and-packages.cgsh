@@ -1,3 +1,5 @@
+Classes and Packages
+
 ##TOC##
 
 ++ The Structure of a Class ++
@@ -75,7 +77,7 @@ $myObject.MyMethod()$
 
 for a zero-parameter method.
 
-We'll discuss property ~setters~ in a later chapter, [[Advanced Language Features]].
+We'll discuss property ~setters~ in a later chapter, [[advanced-language-features]].
 
 Methods and properties are visible to all objects, but variables are visible only to the declaring class and its
 descendants.  (In programming language theory these are ~public~ and ~protected~ access modes, respectively.)

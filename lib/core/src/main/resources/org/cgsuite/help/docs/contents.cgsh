@@ -2,17 +2,17 @@ Contents
 
 Welcome to Combinatorial Game Suite, version \{System.Version\}!
 
-If this is your first time using CGSuite, a good place to start is the [[/tutorials/getting-started][Getting Started]]
+If this is your first time using CGSuite, a good place to start is the [[/tutorials/getting-started/getting-started]]
 tutorial, which gives an overview of many key features of the software. If you're familiar with versions of CGSuite
 before 2.0, you'll probably want to read through the tutorial too, as there are many new features. There's also a summary
-of [[/whatsnew][What's New]] in recent releases.
+of [[whatsnew]] in recent releases.
 
 ++++ Tutorials ++++
 
 \<ul class=\"nobullets\"\>
-\<li\>[[/tutorials/getting-started/getting-started][Getting Started]]
-\<li\>[[/tutorials/advanced-features/advanced-features][Advanced Features]]
-\<li\>[[/tutorials/programming-in-cgscript/programming-in-cgscript][Programming in CGScript]]
+\<li\>[[/tutorials/getting-started/getting-started]]
+\<li\>[[/tutorials/advanced-features/advanced-features]]
+\<li\>[[/tutorials/programming-in-cgscript/programming-in-cgscript]]
 \</ul\>
 
 ++++ Reference Manual ++++
@@ -25,10 +25,10 @@ of [[/whatsnew][What's New]] in recent releases.
 ++++ Other Materials ++++
 
 \<ul class=\"nobullets\"\>
-\<li\>[[/whatsnew][What's New]]
-\<li\>[[/license][License]]
-\<li\>[[/reading][Recommended Reading]]
+\<li\>[[whatsnew]]
+\<li\>[[license]]
+\<li\>[[materials]]
 \</ul\>
 
 Combinatorial Game Suite is (c) 2003-\{System.Year\} Aaron Siegel (asiegel@users.sourceforge.net). It's open source
-and is licensed for use under the [[/license][GNU General Public License]], version 3.
+and is licensed for use under the [[license][GNU General Public License]], version 3.

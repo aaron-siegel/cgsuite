@@ -5,7 +5,7 @@ the worksheet, you're writing them in CGScript.  But it can also be used for mor
 specifying the rules for new combinatorial games.
 
 This chapter introduces the basic elements of CGScript.  A separate tutorial,
-[[/tutorials/using-cgscript/using-cgscript][Using CGScript]], describes how to design new classes and
+[[/tutorials/programming-in-cgscript/programming-in-cgscript]], describes how to design new classes and
 implement new games in CGScript.
 
 +++ Sets +++

@@ -1,3 +1,5 @@
+Advanced Language Features
+
 This section discusses an assortment of additional language features that are
 sometimes useful.
 
@@ -70,7 +72,7 @@ keyword.  Moreover, any methods that mutate instances of the class must also be 
 
 ++ Property Setters ++
 
-We discussed property ~getters~ in the [[Classes and Packages]] section.  A property ~setter~ is similar, but is used to
+We discussed property ~getters~ in the [[classes-and-packages]] section.  A property ~setter~ is similar, but is used to
 change the class in some way.  The declaration looks like
 
 $property MyProperty.set(value)$

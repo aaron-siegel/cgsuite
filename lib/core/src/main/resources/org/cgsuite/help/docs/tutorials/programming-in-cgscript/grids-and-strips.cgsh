@@ -1,3 +1,5 @@
+Grids and Strips
+
 This section describes several tools included with CGSuite to assist with game implementation.
 
 ##TOC##
@@ -9,7 +11,7 @@ via a utility class, $cgsuite.util.Grid$, and associated game skeleton, $game.Gr
 
 Games such as Clobber that are played on grids will normally be subclasses of $GridGame$, which implements the nuts and
 bolts of constructing, displaying and exploring grid-based positions.  An example of $GridGame$ usage was given in the
-first section of this tutorial ([[Three Examples]]); this section will focus on the underlying utility classes.
+first section of this tutorial ([[three-examples]]); this section will focus on the underlying utility classes.
 
 A blank $Grid$ can be created by passing the dimensions of the grid to its constructor.  For example
 

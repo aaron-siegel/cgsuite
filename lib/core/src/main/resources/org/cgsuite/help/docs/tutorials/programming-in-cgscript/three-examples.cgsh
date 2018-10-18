@@ -1,3 +1,5 @@
+Three Examples
+
 We'll begin with three example classes of increasing sophistication: Nim; the Partizan Subtraction Games; and Clobber.
 
 ##TOC##
@@ -71,7 +73,7 @@ example.
 ++ Example: Partizan Subtraction Games ++
 
 The ~Partizan Subtraction Games~ were described in the
-[[Getting Started][../gettingstarted/CGScript]] tutorial.
+[[/tutorials/getting-started/getting-started]] tutorial.
 Open up the file $PartizanSubtraction.cgs$ (in the $examples$ directory) to see CGSuite's implementation of it.
 
 There are three parameters: $leftSet$ and $rightSet$, representing the Left and Right subtraction sets; and $n$, the

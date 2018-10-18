@@ -55,7 +55,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
   // First pass to build targets mapping
 
   private[help] val fixedTargets = {
-    Map("reference/cgscript-index" -> "Index", "reference/overview" -> "Packages") ++
+    Map("reference/cgscript-index" -> "Index", "reference/overview" -> "Packages", "license" -> "License") ++
     cgshFiles.map { cgshFile =>
       val title = cgshFile.lines.head
       val path = srcDir relativize cgshFile
