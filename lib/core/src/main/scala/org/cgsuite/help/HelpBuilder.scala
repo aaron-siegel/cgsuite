@@ -93,7 +93,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       }
 
       val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref, fixedTargets, CgscriptPackage.root)
-      val text = Markdown(lines.tail mkString "\n", linkBuilder)
+      val markdown = Markdown(lines.tail mkString "\n", linkBuilder)
 
       val header =
         s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
@@ -113,10 +113,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
            |
            |""".stripMargin
 
-      val footer = "\n\n</div><p></div></body></html>"
+      val footer = s"\n\n${if (markdown.hasFooter) "" else "</div>"}<p></div></body></html>"
 
       targetFile overwrite header
-      targetFile append text
+      targetFile append markdown.text
       targetFile append footer
 
     }
@@ -416,7 +416,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       // TODO Links don't work quite right for copied doc comments
       // (Link GENERATION works fine, but link RESOLUTION does not)
 
-      Markdown(comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly)
+      Markdown(comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly).text
 
     }
 

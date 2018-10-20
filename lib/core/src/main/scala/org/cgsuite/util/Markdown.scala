@@ -1,18 +1,22 @@
 package org.cgsuite.util
 
-import org.cgsuite.util.Markdown.{Location, State}
+import com.typesafe.scalalogging.Logger
+import org.cgsuite.util.Markdown.{Location, State, logger}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
 object Markdown {
 
-  def apply(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): String = {
+  private[util] val logger = Logger(LoggerFactory.getLogger(classOf[Markdown]))
+
+  def apply(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
     val builder = new MarkdownBuilder(rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
     builder.toMarkdown
   }
 
   object State extends Enumeration {
-    val Normal, Code, Emph, Math, Section1, Section2, Section3 = Value
+    val Normal, Code, Emph, Bold, Math, Section1, Section2, Section3 = Value
   }
 
   object Location extends Enumeration {
@@ -21,7 +25,6 @@ object Markdown {
 
   val specials: Map[Char, String] = Map(
     '^' -> "&uarr;",
-    'v' -> "&darr;",
     '\\' -> "<br>",
     '<' -> "<",
     '>' -> ">",
@@ -30,6 +33,7 @@ object Markdown {
   )
 
   val specialSeqs: Map[String, String] = Map(
+    "v" -> "&darr;",
     "ol" -> "<ol>",
     "ul" -> "<ul>",
     "endol" -> "</ol>",
@@ -52,6 +56,8 @@ object Markdown {
 
 }
 
+case class Markdown(text: String, hasFooter: Boolean)
+
 trait LinkBuilder {
 
   def hyperlink(ref: String, textOpt: Option[String]): String
@@ -64,6 +70,7 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
   private var state = State.Normal
   private var location = Location.Normal
   private val result = new StringBuffer()
+  private var hasFooter = false
 
   emit("  ")
 
@@ -78,18 +85,20 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
     (state, location, stream.consume) match {
 
       case (State.Normal, _, '`') => state = State.Code; "<code>"
+      case (State.Normal, _, '~') if stream.next == '~' => stream.consume; state = State.Bold; "<b>"
       case (State.Normal, _, '~') => state = State.Emph; "<em>"
       case (State.Normal, _, '$') => state = State.Math; "<code>"
       case (State.Normal, _, '+') if stream.peek(3) == "+++" => state = State.Section3; stream consumeWhile { _ == '+' }; "<h3>"
-      case (State.Normal, _, '+') if stream.peek(2) == "++" => state = State.Section2; stream consumeWhile { _ == '+' }; "<h2>"
-      case (State.Normal, _, '+') if stream.next == '+' => state = State.Section1; stream.consume; "<h1>"
+      case (State.Normal, _, '+') if stream.peek(2) == "++" => state = State.Section2; stream consumeWhile { _ == '+' }; "</div><h2>"
+      case (State.Normal, _, '+') if stream.next == '+' => state = State.Section1; stream.consume; "</div><h1>"
 
       case (State.Code, _, '`') => state = State.Normal; "</code>"
+      case (State.Bold, _, '~') if stream.next == '~' => stream.consume; state = State.Normal; "</b>"
       case (State.Emph, _, '~') => state = State.Normal; "</em>"
       case (State.Math, _, '$') => state = State.Normal; "</code>"
       case (State.Section3, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h3>"
-      case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h2>"
-      case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h1>"
+      case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h2><div class="section">"""
+      case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h1><div class="section">"""
 
       case (_, Location.Normal, '^') if state != State.Code => location = Location.Super; "<sup>"
       case (_, Location.Normal, '_') if state != State.Code => location = Location.Sub; "<sub>"
@@ -104,6 +113,7 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
 
       case (_, _, '[') if stream.next == '[' => consumeLink()
 
+      case (_, _, '\\') if stream.peek(2) == "##" => consumeControl()
       case (_, _, '\\') if stream.next.isLetter => consumeSpecialSeq()
       case (_, _, '\\') => special(stream.consume)
 
@@ -157,6 +167,28 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
     resolution
   }
 
+  def consumeControl(): String = {
+
+    stream consumeWhile { _ == '#' }
+
+    val command = stream consumeWhile { _ != '#' }
+
+    stream consumeWhile { _ == '#' }
+
+    command.trim.toLowerCase match {
+
+      case "footer" =>
+        hasFooter = true
+        "\n</div>\n"
+
+      case str =>
+        logger warn s"Unknown command: $str"
+        ""
+
+    }
+
+  }
+
   def emit(ch: Char): Unit = result append ch
 
   def emit(str: String): Unit = result append str
@@ -176,7 +208,7 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
     }
   }
 
-  def toMarkdown = result.toString
+  def toMarkdown: Markdown = Markdown(result.toString, hasFooter)
 
 }
 

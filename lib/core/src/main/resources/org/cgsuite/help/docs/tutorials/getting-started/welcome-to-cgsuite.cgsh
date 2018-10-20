@@ -1,0 +1,123 @@
+Welcome to CGSuite!
+
+CGSuite is a computer algebra system for research in combinatorial game theory. It implements the Conway
+algebra of partizan combinatorial games, along with several related systems. CGSuite has a built-in library of
+well-known rulesets such as Clobber, Toads and Frogs, Kayles, and Wythoff Nim, and it includes a full-featured
+scripting language, CGScript, that can be used to create and explore new ones.
+
+In this tutorial, we'll walk through the basics on how to use CGSuite and how to navigate its help system. Other
+tutorials describe advanced features of CGSuite and the detailed structure of the CGScript language.
+
+A working knowledge of combinatorial game theory is assumed; if you've read the first volume of ~Winning Ways~, or an
+introductory text such as ~Lessons in Play~ (or are working through them and using CGSuite as a companion), then
+you're in good shape. If you're less familiar with combinatorial game theory and find the notation or terminology in
+this tutorial confusing, check out the [[/materials]]
+page for suggestions on useful reference materials (including the two books just mentioned).
+
++++ The Worksheet +++
+
+Much of your interaction with CGSuite will be through the ~Worksheet~, the notebook-style interface in the central part
+of the CGSuite window. In the Worksheet, you'll see a `>` symbol, the ~prompt~, with a highlighted text field to its
+right. Try clicking on the text field and entering a basic expression such as:
+
+`1 + 1`
+
+You should see output that looks something like the following:
+
+`> 1 + 1`\\
+\<big\>2\</big\>
+
+followed by a new prompt that's ready to receive the next input. CGSuite accepts a wide range of arithmetic expressions;
+here are some to try (be sure to enter each expression into the Worksheet on a separate line):
+
+`13 * 5
+19/64
+2^100
+13 % 4
+(19/64) % (1/4)`
+
+CGSuite can do exact calculations over arbitrarily large integers and rational numbers. The `%` symbol denotes modulus
+and is permitted to operate on non-integers. CGSuite does ~not~ allow irrational numbers, so typing (say) `2^(1/2)`
+will give you an error (try it!)
+
++++ Entering Games +++
+
+You can enter abstract partizan games using standard notation, and CGSuite will automatically simplify them into
+canonical form. For example, to specify the game whose only Left option is `0` and whose Right options are `1` and `2`:
+
+`> {0|1,2}`\\
+^1^\<big\>/\</big\>_2_
+
+In the above example, the dominated Right option `2` is removed and the result expressed in the usual form `1/2`.
+
+Sums are computed just as you'd expect:
+
+`> {3||2|1} + {1|0||-2}`\\
+\<big\>{3,{4|3}|2|||1||0|-1}\</big\>
+
+Note that both the input and the output use multiple slashes to denote more complex games; `{3||2|1}` is shorthand for
+`{3|{2|1}}` and so on.
+
+You can also use ~integer~ products as shorthand for iterated addition:
+
+`> 5 * {3||2|0}`\\
+\<big\>{11||10|{9||||8|||7||6|4}}\</big\>
+
+returns the sum of `5` copies of `{3||2|0}`.
+
++++ Star, Up, and Down +++
+
+The familiar games `*` (\"star\"), `\^` (\"up\"), and `\v` (\"down\") can be input using the
+`*`, `^`, and `v` symbols. Here are some examples:
+
+`> {0|*}`\\
+\<big\>\^\</big\>
+
+`> ^ + vv*`\\
+\<big\>\v`*`\</big\>
+
+In the latter example, note how these symbols can be chained together in the usual ways: `vv*` is shorthand for
+`v + v + *` (the game known as \"double-down-star\"). Similarly, the notation `^n` is used to denote larger multiples
+of `^`; thus for example,
+
+`> ^^ + ^^`\\
+\<big\>\^4\</big\>
+
+Higher-order nimbers are entered with the usual notation `*m`, so we have
+
+`> *4 + *7`\\
+\<big\>`*`3\</big\>
+
+as expected according to the arithmetic of Nim.
+
+Note that the symbol `*` plays a dual role in CGSuite. If it appears ~between~ two other expressions, such as
+`6 * 5`, then it's interpreted as multiplication. If it appears as a ~prefix~ of a single expression (or if it
+appears just by itself), then it's interpreted as a nimber. Complex expressions for constructing nimbers are allowed,
+such as:
+
+`> *(3+2)`\\
+\<big\>`*`5\</big\>
+
+The symbol `^` similarly serves a dual role: between two expressions, it's exponentiation; as a prefix, it's a
+multiple of up.
+
++++ Shorthand Notation +++
+
+In addition to `^n` and `*m`, CGSuite uses a variety of other shorthand notation to display games in a readable form.
+Here are some examples:
+
+`> {0||0|-2}`\\
+\<big\>+_2_\</big\>
+
+`> {0|v*}`\\
+\<big\>\^^2^\</big\>
+
+`> {1,1+*|-1,-1+*}`\\
+\<big\>\plusmn(1,1`*`)\</big\>
+
+These examples are the games "tiny-two", "up-second", and "plus or minus (1,1`*`)" respectively. If you're ever
+confused about the notation CGSuite uses to display games, the Help system's [[/notation]] page is a handy reference.
+
+\## Footer ##
+
+~~Continue on to the next part of the tutorial: [[using-the-worksheet]]~~
