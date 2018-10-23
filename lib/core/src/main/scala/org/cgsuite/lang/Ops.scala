@@ -1,7 +1,5 @@
 package org.cgsuite.lang
 
-import java.util
-
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._

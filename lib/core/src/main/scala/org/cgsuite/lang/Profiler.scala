@@ -10,19 +10,24 @@ object Profiler {
 
   def main(args: Array[String]) {
     CgscriptClass.Object.ensureInitialized()
-    val statement = """game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount"""
+    profileStatement("""game.grid.Clobber("xoxo|oxox|xoxo").CanonicalForm""", "0")
+    profileStatement("""game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount""", "20101")
+  }
+
+  def profileStatement(statement: String, expectedResult: String) {
     // Warm-up
-    evalForProfiler(statement, profile = false)
     CgscriptClass.clearAll()
-    val withoutProfiling = evalForProfiler(statement, profile = false)
+    evalForProfiler(statement, expectedResult, profile = false)
     CgscriptClass.clearAll()
-    val withProfiling = evalForProfiler(statement, profile = true)
+    val withoutProfiling = evalForProfiler(statement, expectedResult, profile = false)
+    CgscriptClass.clearAll()
+    val withProfiling = evalForProfiler(statement, expectedResult, profile = true)
     Profiler.print(withProfiling - withoutProfiling)
     printf("Without Profiling: %10.1f ms\n", withoutProfiling/1000000.0)
     printf("With Profiling   : %10.1f ms\n", withProfiling/1000000.0)
   }
 
-  def evalForProfiler(str: String, profile: Boolean): Long = {
+  def evalForProfiler(str: String, expectedResult: String, profile: Boolean): Long = {
     println(s"Evaluating with profile = $profile: $str")
     val domain = new EvaluationDomain(null, None, Some(mutable.AnyRefMap()))
     val tree = ParserUtil.parseStatement(str)
@@ -34,13 +39,13 @@ object Profiler {
     Profiler.setEnabled(enabled = profile)
     val start = JSystem.nanoTime()
     Profiler.start('Main)
-    val result = node.evaluate(domain).asInstanceOf[org.cgsuite.core.Integer].intValue
+    val result = node.evaluate(domain).toString
     Profiler.stop('Main)
     val totalDuration = JSystem.nanoTime() - start
     Profiler.setEnabled(enabled = false)
     assert(
-      result == 20101,
-      s"Performance is great. Correctness is better. ($result != 20101)"
+      result == expectedResult,
+      s"Performance is great. Correctness is better. ($result != $expectedResult)"
     )
     totalDuration
   }
@@ -107,7 +112,7 @@ object Profiler {
     }
   }
 
-  def print(totalProfileOverhead: Long) = {
+  def print(totalProfileOverhead: Long): Unit = {
     val totalEvents = totals.toSeq.map { _._2.count }.sum
     val latencyPerEvent = totalProfileOverhead / totalEvents
     printf("Latency per event : %10d ns\n", latencyPerEvent)

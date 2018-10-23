@@ -55,8 +55,6 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
 
   def terms: IndexedSeq[Term]
 
-  assert(terms forall { _.coefficient != zero })
-
   override def numerator: GeneralizedOrdinal = this
 
   override def denominator: GeneralizedOrdinal = one
@@ -204,4 +202,8 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
 
 }
 
-case class GeneralizedOrdinalImpl private[cgsuite](terms: Vector[Term]) extends GeneralizedOrdinal
+case class GeneralizedOrdinalImpl private[cgsuite](terms: Vector[Term]) extends GeneralizedOrdinal {
+
+  assert(terms forall { _.coefficient != zero })
+
+}

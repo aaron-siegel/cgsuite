@@ -6,8 +6,6 @@
 
 package org.cgsuite.core
 
-import org.cgsuite.exception.ArithmeticException
-
 object Zero {
   
   def apply(): Zero = ZeroImpl

@@ -46,8 +46,9 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   def get(row: Int, col: Int): Byte = values((row-1)*colCount+(col-1))
 
   def get(coord: Coordinates): Any = {
-    if (isInBounds(coord))
+    if (isInBounds(coord)) {
       SmallInteger(get(coord.row, coord.col))
+    }
     else
       null
   }

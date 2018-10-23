@@ -7,6 +7,8 @@ import scala.collection.BitSet
 
 object ImpartialGame {
 
+  // TODO: We can ignore elements that are greater than or equal to the size of the collection (they'll never
+  // contribute to the mex!)
   def mex(set: Iterable[Int]): Int = {
     if (set.isEmpty) {
       0

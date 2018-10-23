@@ -184,7 +184,7 @@ trait EvalNode extends Node {
   def evaluateAsBoolean(domain: EvaluationDomain): Boolean = {
     evaluate(domain) match {
       case x: Boolean => x
-      case _ => sys.error("not a bool")
+      case _ => sys.error("not a bool")   // TODO Improve these errors
     }
   }
 
@@ -355,7 +355,13 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
   override val children = Seq(operand1, operand2)
   override def evaluate(domain: EvaluationDomain) = {
     try {
-      op(tree, operand1.evaluate(domain), operand2.evaluate(domain))
+      if (op.precedence == OperatorPrecedence.And) {
+        operand1.evaluateAsBoolean(domain) && operand2.evaluateAsBoolean(domain)
+      } else if (op.precedence == OperatorPrecedence.Or) {
+        operand1.evaluateAsBoolean(domain) || operand2.evaluateAsBoolean(domain)
+      } else {
+        op(tree, operand1.evaluate(domain), operand2.evaluate(domain))
+      }
     } catch {
       case exc: CgsuiteException =>
         // We only add a token for ops if no subexpression has generated a token.

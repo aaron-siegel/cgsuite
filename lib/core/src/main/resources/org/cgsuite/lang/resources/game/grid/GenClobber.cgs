@@ -1,7 +1,5 @@
 /*${cgsuite.banner}*/
 
-// Benchmark: game.grid.Clobber("xox.|oxox|xoxo|oxox").CanonicalForm in 12.96 s
-
 class GenClobber(
   directions ? Coordinates.Orthogonal,
   clobbered ? {Left => {2}, Right => {1}},

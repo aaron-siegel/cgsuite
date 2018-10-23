@@ -1,2 +1,11 @@
 Using the Worksheet
 
+In this section of the tutorial, we'll continue discussing the features of the Worksheet.
+
++++ Variable Assignments +++
+
+You can assign variables as follows:
+
+`g := {2||1|0}`
+
+This assigns to `g` the value `{2||1|0}`.
