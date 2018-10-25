@@ -140,11 +140,11 @@ trait Game extends OutputTarget {
     }
   }
 
-  def sensibleLines(player: Player): Iterable[Vector[Game]] = {
+  def sensibleLines(player: Player): Iterable[IndexedSeq[Game]] = {
     val canonicalOptions = canonicalForm optionsFor player
     canonicalOptions map { k =>
       val thisCanonicalForm = canonicalForm
-      val line = mutable.MutableList[Game]()
+      val line = mutable.ArrayBuffer[Game]()
       var done = false
       var current = this
       while (!done) {
@@ -170,7 +170,7 @@ trait Game extends OutputTarget {
           current = line.last
         }
       }
-      line.toVector
+      line.toIndexedSeq
     }
   }
 

@@ -8,7 +8,7 @@ trait HeapRuleset {
 
   def heapNimValue(heapSize: Integer): Integer = SmallInteger(sequence nimValue heapSize.intValue)
 
-  def nimValueSequence(toHeapSize: Integer): Iterable[Integer] = {
+  def nimValueSequence(toHeapSize: Integer): IndexedSeq[Integer] = {
     sequence nimValues toHeapSize.intValue map { SmallInteger(_) }
   }
 

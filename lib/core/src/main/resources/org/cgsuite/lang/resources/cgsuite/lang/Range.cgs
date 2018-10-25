@@ -1,13 +1,11 @@
 /*${cgsuite.banner}*/
 
-system class Range extends Collection
-
-  def Apply(fn as Procedure) := listof(fn(x) for x in this);
-
-  external def Contains(x);
+system class Range extends List
 
   external def Start;
+  
   external def End;
+  
   external def Step;
 
   override def ToOutput begin

@@ -132,7 +132,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     subgrid
   }
 
-  def decomposition(boundaryValue: Integer, directions: Seq[Coordinates] = Coordinates.Orthogonal): Seq[Grid] = {
+  def decomposition(boundaryValue: Integer, directions: IndexedSeq[Coordinates] = Coordinates.Orthogonal): Seq[Grid] = {
     val bv = boundaryValue.intValue.toByte
     if (Grid.regionMarkers.length < values.length)
       Grid.regionMarkers = new Array[Int](values.length)
@@ -222,7 +222,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     newGrid
   }
 
-  def symmetryInvariant(symmetries: Seq[Symmetry]): Grid = {
+  def symmetryInvariant(symmetries: IndexedSeq[Symmetry]): Grid = {
     // TODO We can be cleverer when rowCount != colCount
     var min = this
     symmetries foreach { symmetry =>

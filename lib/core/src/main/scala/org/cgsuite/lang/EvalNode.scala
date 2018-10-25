@@ -384,21 +384,21 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 object ListNode {
   def apply(tree: Tree): ListNode = {
     assert(tree.getType == EXPLICIT_LIST)
-    ListNode(tree, tree.children.map { EvalNode(_) }.toList)
+    ListNode(tree, tree.children.map { EvalNode(_) }.toVector)
   }
 }
 
-case class ListNode(tree: Tree, elements: List[EvalNode]) extends EvalNode {
+case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
-  override def evaluate(domain: EvaluationDomain): List[_] = {
+  override def evaluate(domain: EvaluationDomain): IndexedSeq[_] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
-      case 0 => Nil
-      case 1 => List(elements(0).evaluate(domain))
-      case 2 => List(elements(0).evaluate(domain), elements(1).evaluate(domain))
-      case 3 => List(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
-      case 4 => List(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
-      case _ => elements.map { _.evaluate(domain) }
+      case 0 => Vector.empty
+      case 1 => Vector(elements(0).evaluate(domain))
+      case 2 => Vector(elements(0).evaluate(domain), elements(1).evaluate(domain))
+      case 3 => Vector(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
+      case 4 => Vector(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
+      case _ => elements map { _.evaluate(domain) }
     }
   }
   def toNodeStringPrec(enclosingPrecedence: Int) = {
@@ -728,7 +728,7 @@ case class LoopNode(
     val r = evaluate(domain, yieldResult)
     loopType match {
       case LoopNode.Do => null
-      case LoopNode.YieldList => if (yieldResult.isEmpty) Nil else yieldResult.toVector
+      case LoopNode.YieldList => yieldResult.toVector
       case LoopNode.YieldMap => yieldResult.asInstanceOf[mutable.HashMap[Any,Any]].toMap
       case LoopNode.YieldSet => yieldResult.toSet
       case LoopNode.YieldTable => Table { yieldResult.toSeq map {

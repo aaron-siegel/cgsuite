@@ -51,7 +51,7 @@ object GridOutput {
 
 }
 
-case class GridOutput(grid: Grid, iconEnumValues: Seq[_], alt: String) extends AbstractOutput {
+case class GridOutput(grid: Grid, iconEnumValues: IndexedSeq[_], alt: String) extends AbstractOutput {
 
   lazy val icons = iconEnumValues map {
     case x: EnumObject => GridOutput.lookupIcon(x.literal)

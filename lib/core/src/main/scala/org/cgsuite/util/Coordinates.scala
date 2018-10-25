@@ -16,8 +16,8 @@ object Coordinates {
   val West      = Coordinates( 0, -1)
   val Northwest = Coordinates(-1, -1)
 
-  val Orthogonal = Seq(North, East, South, West)
-  val Diagonal = Seq(Northeast, Southeast, Southwest, Northwest)
+  val Orthogonal = Vector(North, East, South, West)
+  val Diagonal = Vector(Northeast, Southeast, Southwest, Northwest)
   val Compass = Orthogonal ++ Diagonal
 
 }

@@ -55,7 +55,7 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("Range: Contains(9)", "(1..10..2).Contains(9)", "true"),
       ("Range: IsEmpty", "(1..0).IsEmpty", "true"),
       ("Range: IsEmpty", "(1..10).IsEmpty", "false"),
-      ("Range: ToList", "(1..10).ToList", "[1,2,3,4,5,6,7,8,9,10]"),
+      ("Range: ToList", "(1..10).ToList", "1..10"),
       ("Range: ToSet", "(1..10).ToSet", "{1,2,3,4,5,6,7,8,9,10}")
     ))
 

@@ -65,9 +65,9 @@ case class Spawning(
     }
   }
 
-  override def heapOptions(heapSize: Integer): Iterable[Iterable[Integer]] = {
+  override def heapOptions(heapSize: Integer): IndexedSeq[IndexedSeq[Integer]] = {
     val tr = traversal(heapSize.intValue)
-    val result = mutable.MutableList[Iterable[Integer]]()
+    val result = mutable.ArrayBuffer[IndexedSeq[Integer]]()
     while (tr.advance()) {
       result += (0 until tr.currentLength) map { n => Integer(tr.currentPart(n)) }
     }

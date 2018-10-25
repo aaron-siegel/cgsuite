@@ -33,7 +33,8 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Tail" -> { (collection: Iterable[_], _: Unit) =>
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.tail
     },
-    "cgsuite.lang.List.Sorted" -> { (list: Seq[_], _: Unit) => list.sorted(UniversalOrdering) },
+    "cgsuite.lang.Collection.ToList" -> { (collection: Iterable[_], _: Unit) => collection.toIndexedSeq },
+    "cgsuite.lang.List.Sorted" -> { (list: IndexedSeq[_], _: Unit) => list.sorted(UniversalOrdering) },
     "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.lang.Map.Keys" -> { (map: scala.collection.Map[_,_], _: Unit) => map.keySet },
     "cgsuite.lang.Map.Values" -> { (map: scala.collection.Map[_,_], _: Unit) => map.values.toSet },
@@ -61,10 +62,10 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.foreach { x => proc.call(Array(x)) }; null
     },
-    "cgsuite.lang.List.Grouped" -> { (list: Seq[_], n: Integer) =>
+    "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
     },
-    "cgsuite.lang.List.MkOutput" -> { (list: Seq[_], sep: String) =>
+    "cgsuite.lang.List.MkOutput" -> { (list: IndexedSeq[_], sep: String) =>
       val output = new StyledTextOutput
       var first = true
       list foreach { x =>
