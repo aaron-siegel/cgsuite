@@ -1048,12 +1048,14 @@ class CgscriptClass(
 
     def call(obj: Any, args: Array[Any]): Any = {
       val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
+      /*
       assert(
         target == null || of(target).ancestors.contains(declaringClass),
         (of(target), declaringClass)
       )
+      */
+      Profiler.start(reflect)
       try {
-        Profiler.start(reflect)
         validateArguments(args)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
@@ -1118,7 +1120,7 @@ class CgscriptClass(
     parameters: Seq[Parameter]
   ) extends Constructor {
 
-    private val invokeConstructor = Symbol(s"InvokeConstructor [$qualifiedName]")
+    private val invokeUserConstructor = Symbol(s"InvokeUserConstructor [$qualifiedName]")
 
     lazy val instantiator: (Array[Any], Any) => StandardObject = {
       if (ancestors.contains(ImpartialGame)) {
@@ -1136,8 +1138,13 @@ class CgscriptClass(
 
     def call(args: Array[Any], enclosingObject: Any): Any = {
       // TODO Superconstructor
-      validateArguments(args, ensureImmutable = !isMutable)
-      instantiator(args, enclosingObject)
+      Profiler.start(invokeUserConstructor)
+      try {
+        validateArguments(args, ensureImmutable = !isMutable)
+        instantiator(args, enclosingObject)
+      } finally {
+        Profiler.stop(invokeUserConstructor)
+      }
     }
 
   }

@@ -17,7 +17,7 @@ object Profiler {
   def profileStatement(statement: String, expectedResult: String) {
     // Warm-up
     CgscriptClass.clearAll()
-    evalForProfiler(statement, expectedResult, profile = false)
+    //evalForProfiler(statement, expectedResult, profile = false)
     CgscriptClass.clearAll()
     val withoutProfiling = evalForProfiler(statement, expectedResult, profile = false)
     CgscriptClass.clearAll()
