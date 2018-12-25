@@ -32,8 +32,8 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import scala.Symbol;
 import scala.Symbol$;
+import scala.collection.IndexedSeq;
 import scala.collection.JavaConverters;
-import scala.collection.immutable.Vector;
 import scala.collection.mutable.AnyRefMap;
 
 /**
@@ -212,7 +212,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     }// </editor-fold>//GEN-END:initComponents
 
     private Collection<Game> leftOptions, rightOptions;
-    private Collection<Vector<Game>> leftLines, rightLines;
+    private Collection<IndexedSeq<Game>> leftLines, rightLines;
 
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
@@ -296,7 +296,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         task.schedule(0);
         task.waitFinished();
 
-        for (Vector<Game> line : leftLines)
+        for (IndexedSeq<Game> line : leftLines)
         {
             ExplorerNode curNode = node;
             boolean left = true;
@@ -306,7 +306,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
                 left = !left;
             }
         }
-        for (Vector<Game> line : rightLines)
+        for (IndexedSeq<Game> line : rightLines)
         {
             ExplorerNode curNode = node;
             boolean left = false;

@@ -42,7 +42,7 @@ system class CanonicalShortGame extends CanonicalStopper
   /** The lattice companion of this game.
     *
     * The mapping `G -> G.Companion` defines the unique lattice automorphism
-    * of games born by day $n \geq 1$. The theory is described in \cgt,
+    * of games born by day $n \geq 1$. The relevant theory is described in \cgt,
     * Chapter III.2.
     */
   external def Companion;
@@ -117,6 +117,17 @@ system class CanonicalShortGame extends CanonicalStopper
     * where the sums are understood to range over all Left and Right options of $G$.
     */
   external def StopCount;
+  
+  /**
+   * The temperature of this `CanonicalShortGame`, as a [[DyadicRational]].
+   *
+   * The temperature $t(G)$ is defined to be the least $t \geq -1$ such that
+   * $G$ [[#Cool][cooled by]] $t$ is infinitesimally close to a number.
+   *
+   * If $G$ itself is a number, then $t(G)$ will be negative. In particular,
+   *
+   * $t(m/2^n^) = -1/2^n^$.
+   */
   external def Temperature;
   external def Thermograph;
 

@@ -1,11 +1,35 @@
 /*${cgsuite.banner}*/
 
+/** Base class for all objects in CGSuite.
+  */
 system class Object
 
+  /** The class object corresponding to this `Object`'s class.
+    */
   external def Class;
+  
+  /** The enclosing object for this `Object`.
+    *
+    * If this object belongs to a nested class, then its `EnclosingObject`
+    * is the object in which it's nested. For example, if `G` is an
+    * instance of a subclass of [[Game][`Game`]], then `G.EnclosingObject` will
+    * ordinarily be the corresponding [[Ruleset][`Ruleset`]].
+    *
+    * If this object does not belong to a nested class, then
+    * `EnclosingObject` will return [[Nothing]].
+    */
   external def EnclosingObject;
+  
+  /** The Java class for this `Object`, as a [[String]].
+    * This is typically used for CGSuite development or debugging and is
+    * not ordinarily needed otherwise.
+    */
   external def JavaClass;
 
+  /** Generates an instance of [[Output]] corresponding to this `Object`.
+    * This property will be accessed automatically any time this
+    * `Object` is rendered to a display (such as the Worksheet).
+    */
   external def ToOutput;
 
 end

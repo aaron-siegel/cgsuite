@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** A boolean value (`true` or `false`).
+  */
 system class Boolean
 
   override def ToOutput := if this then "true" else "false" end;

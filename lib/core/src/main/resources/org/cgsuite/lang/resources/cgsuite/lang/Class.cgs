@@ -1,9 +1,57 @@
 /*${cgsuite.banner}*/
 
+/** A CGScript class object. Every class in CGScript has an associated
+  * ~class object~, which is an instance of `Class` that exposes
+  * various useful properties of the underlying class.
+  *
+  * There are two ways to obtain a class object in CGScript.
+  * Entering a class name by itself returns its class object;
+  * for example, from the Worksheet,
+  *
+  * `> Nimber`
+  *
+  * returns the class object for [[Nimber]], and
+  *
+  * `> Nimber.Name`
+  *
+  * returns its name as a string (`"Nimber"`), and so on. Alternatively, you
+  * can use the [[Object#Class][Class]] property of any object
+  * to get its class object, e.g.,
+  *
+  * `> *2.Class`
+  *
+  * also returns the class object for `Nimber`. This can be a
+  * useful test for class equality:
+  *
+  * `> *2.Class == Nimber`
+  *
+  * But beware! While the above test returns `true`, the following
+  * will return `false`:
+  *
+  * `> 0.Class == Nimber`
+  *
+  * because $0$ belongs to the more specific class [[Zero]], not
+  * `Nimber`. Therefore, this should be viewed as a test for
+  * ~exact class identity~, not hierarchy.
+  *
+  * In this example, you can use the [[NormalValue#IsNimber][`IsNimber`]]
+  * property for the desired test: `*2.IsNimber` and `0.IsNimber`
+  * will both return `true`.
+  */
 system class Class
 
+  /** The short name of this `Class`, as a [[String]].
+    */
   external def Name;
+  
+  /** The class ordinal of this `Class`. The class ordinal is
+    * a unique integer that CGSuite assigns to every class
+    * in the system.
+    */
   external def Ordinal;
+  
+  /** The fully qualified name of this `Class`, as a [[String]].
+    */
   external def QualifiedName;
 
   override external def ToOutput;

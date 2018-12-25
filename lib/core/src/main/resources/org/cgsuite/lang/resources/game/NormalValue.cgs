@@ -1,27 +1,118 @@
 /*${cgsuite.banner}*/
 
-/** Base of the hierarchy of normal-play values.
+/** Base of the hierarchy of normal-play game values.
   *
-  * All objects that represent game values in normal play are subclasses of $NormalValue$.
+  * This class implements properties that are common to all normal-play
+  * game values. No objects in CGSuite are direct instances of
+  * $NormalValue$, however; instead, normal-play game values inherit its
+  * properties through one of two concrete classes,
+  * [[SidedValue]] or [[SurrealNumber]].
   */
 system class NormalValue
 
+  /** $true$ if this game value is represented by an all-small game.
+    * A game $G$ is ~all-small~ if every subposition of $G$ is an
+    * infinitesimal.
+    */
   external def IsAllSmall;
+  
+  /** $true$ if this game value is represented by a finite game.
+    *
+    * A game $G$ is ~finite~ if it has just finitely many distinct
+    * subpositions.
+    */
+  external def IsFinite;
+  
+  /** $true$ if this game value is an (additive) idempotent. i.e.,
+    * if $this + this == this$.
+    */
   external def IsIdempotent;
+  
+  /** $true$ if $-x < this < x$ for every [[DyadicRational][dyadic rational]] number $x$.
+    */
   external def IsInfinitesimal;
+  
+  /** $true$ if this game value is an integer.
+    */
   external def IsInteger;
+  
+  /** $true$ if this game value is represented by a loopfree game.
+    *
+    * A game $G$ is ~loopfree~ if it admits no infinite run, i.e., if
+    * there is no infinite sequence of moves proceeding from $G$.
+    *
+    * For [[#IsFinite][finite]] games, this is equivalent to the game
+    * graph of $G$ being cycle-free.
+    */
   external def IsLoopfree;
+  
+  /** $true$ if this game value is $*m$ for some $m$.
+    */
   external def IsNimber;
+  
+  /** $true$ if this game value is a number.
+    */
   external def IsNumber;
+  
+  /** $true$ if this game value is infinitesimally close to a number.
+    * i.e., if there is some number $x$ such that $this - x$ is an
+    * infinitesimal.
+    */
   external def IsNumberish;
+  
+  /** $true$ if this game value is equal to the sum of a number and
+    * a tiny value.
+    *
+    * A value is ~tiny~ if it is represented by a game of the form
+    *
+    * ${0||0|H}$ or ${-H|0||0}$
+    *
+    * where $H \leq -x$ for some number $x > 0$.
+    */
   external def IsNumberTiny;
+  
+  /** $true$ if this game value is an ordinal number.
+    */
   external def IsOrdinal;
+  
+  /** $true$ if this game value is represented by a plumtree.
+    *
+    * A game $G$ is a ~plumtree~ if every cycle in the game graph
+    * of $G$ has length $1$. In particular, every [[#IsLoopfree][loopfree]]
+    * game is a plumtree.
+    */
   external def IsPlumtree;
+  
+  /** $true$ if this game value is a pseudonumber.
+    */
   external def IsPseudonumber;
+  
+  /** $true$ if this game value is represented by a [[CanonicalStopper][stopper]].
+    */
   external def IsStopper;
+  
+  /** $true$ if the onside and offside of this game value are [[CanonicalStopper][stoppers]].
+    */
   external def IsStopperSided;
+  
+  /** $true$ if this game value is an uptimal.
+    *
+    * An ~uptimal~ is a value of the form
+    *
+    * $x + *m + G$,
+    *
+    * where $x$ is a [[DyadicRational][dyadic rationa]] number, $*m$ is a
+    * [[Nimber]][nimber]], and $G$ is a linear combination of games of the
+    * form $\^^n^$.
+    */
   external def IsUptimal;
+  
+  /** $true$ if this is $0$.
+    */
   external def IsZero;
+  
+  /** The (normal-play) [[OutcomeClass][outcome class]] of this game value.
+    */
   external def OutcomeClass;
 
 end
