@@ -313,11 +313,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           if (info.member.declaringClass == null)
             linkBuilder.hyperlinkToClass(info.member.asInstanceOf[CgscriptClass], textOpt = Some(name))
           else
-            linkBuilder.hyperlinkToClass(info.member.declaringClass, Some(info.member), Some(name))
+            linkBuilder.hyperlinkToClass(cls, Some(info.member), Some(name))
         }
 
-        val description = info.member.declNode flatMap { _.docComment } match {
-          case Some(comment) => processDocComment(comment, firstSentenceOnly = true)
+        val description = docCommentForMember(info.member) match {
+          case Some((commentStr, _)) => processDocComment(commentStr, firstSentenceOnly = true)
           case None => "&nbsp;"
         }
 
@@ -344,34 +344,55 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       val parametersStr = makeParameters(info.member)
 
-      val comment = {
-        for {
-          node <- info.member.declNode
-          comment <- node.docComment
-        } yield {
-          processDocComment(comment)
-        }
-      } getOrElse ""
+      val commentOpt = docCommentForMember(info.member)
 
-      val disclaimer = {
-        if (comment == "" || cls == info.member.declaringClass) {
-          ""
-        } else {
-          val link = {
-            if (info.member.declaringClass == null)
-              linkBuilder.hyperlinkToClass(info.member.asInstanceOf[CgscriptClass])
-            else
-              linkBuilder.hyperlinkToClass(info.member.declaringClass)
+      val comment = commentOpt match {
+        case None => ""
+        case Some((commentStr, ancestorClass)) =>
+          val processedComment = processDocComment(commentStr)
+          val disclaimer = {
+            if (cls == ancestorClass) ""
+            else {
+              val link = linkBuilder.hyperlinkToClass(ancestorClass)
+              s"<p><em>(description copied from </em>$link<em>)</em>\n"
+            }
           }
-          s"<p><em>(description copied from </em>$link<em>)</em>\n"
-        }
+          s"$disclaimer<p>$processedComment"
       }
 
       s"""<a name="$name"></a>
          |<p><div class="section">
          |  <code>${info.entityType} <b>$name</b>$parametersStr</code>
-         |  $disclaimer<p>$comment
+         |  $comment
          |</div>""".stripMargin
+
+    }
+
+    // If the specified member has an associated doc comment, then return
+    // it along with the class that the doc comment is actually copied from
+    def docCommentForMember(member: Member): Option[(String, CgscriptClass)] = {
+
+      member.declNode flatMap { _.docComment } match {
+
+        case Some(comment) => Some((comment, member.declaringClass))
+
+        case None if member.declaringClass != null =>
+          // Traverse the ancestor tree of the member's declaring class in standard order
+          // and pick the first occurrence of a doc comment.
+          val docOccurrence = member.declaringClass.ancestors.reverse find { ancestorClass =>
+            val ancestorMemberOpt = ancestorClass.lookupMember(member.id)
+            ancestorMemberOpt exists { ancestorMember =>
+              ancestorMember.declaringClass == ancestorClass &&
+                ancestorMember.declNode.flatMap { _.docComment }.nonEmpty
+            }
+          }
+          docOccurrence map { ancestorClass =>
+            (ancestorClass.lookupMember(member.id).get.declNode.get.docComment.get, ancestorClass)
+          }
+
+        case _ => None
+
+      }
 
     }
 

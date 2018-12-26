@@ -134,7 +134,7 @@ object CgscriptClass {
 class CgscriptClass(
   val pkg: CgscriptPackage,
   val classdef: CgscriptClassDef,
-  val id: Symbol,
+  override val id: Symbol,
   val systemClass: Option[Class[_]] = None
   ) extends Member with LazyLogging { thisClass =>
 
@@ -884,7 +884,7 @@ class CgscriptClass(
     val enumElements: Seq[EnumElementNode]
     ) {
 
-    val properAncestors: Seq[CgscriptClass] = supers.flatMap { _.classInfo.ancestors }.distinct
+    val properAncestors: Seq[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
@@ -949,7 +949,6 @@ class CgscriptClass(
 
     def declaringClass = thisClass
     def isMutable = modifiers.hasMutable
-    def id = idNode.id
 
   }
 
@@ -1206,6 +1205,7 @@ trait Member {
   def declaringClass: CgscriptClass
   def declNode: Option[MemberDeclarationNode]
   def idNode: IdentifierNode
+  def id = idNode.id
 }
 
 case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode], isExpandable: Boolean) {
