@@ -572,6 +572,26 @@ class CgscriptClass(
           }
         }
 
+        /*
+        if (systemClass.isDefined) {
+          resolvedSuperMembers foreach {
+            case (id, method: CgscriptClass#SystemMethod) =>
+              val javaParameterTypes = method.javaMethod.getParameterTypes
+              try {
+                val overrider = javaClass.getMethod(method.javaMethod.getName, javaParameterTypes : _*)
+                if (overrider != method.javaMethod && !(localMembers exists { _._1 == id })) {
+                  logger.warn(
+                    s"Method `${method.qualifiedName}` with Java method `${method.javaMethod.getName}` is overridden in Java class `${javaClass.getName}`, but is not redeclared in class `$qualifiedName`."
+                  )
+                }
+              } catch {
+                case exc: NoSuchMethodException =>
+              }
+            case _ =>
+          }
+        }
+        */
+
         val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
         val (allMethods, allNestedClasses) = allMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
 
@@ -692,10 +712,10 @@ class CgscriptClass(
       }
       // ... and that there are no mutable vars
       classInfoRef.initializers foreach {
-        case InitializerNode(_, AssignToNode(_, assignId, _, _), true, modifiers) if !modifiers.hasStatic && modifiers.hasMutable =>
+        case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
           throw EvalException(
-            s"Class `$qualifiedName` is immutable, but variable `${assignId.id.name}` is declared `mutable`",
-            token = Some(classInfoRef.idNode.token)    // TODO Use token of mutable var instead?
+            s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
+            token = Some(declNode.idNode.token)
           )
         case _ =>
       }
@@ -705,11 +725,11 @@ class CgscriptClass(
     classInfoRef.initializers collect {
       // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
       // a "default" nil value. This could be refactored to be a bit more elegant.
-      case InitializerNode(_, AssignToNode(_, assignId, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), true, modifiers)
+      case VarDeclarationNode(_, AssignToNode(_, idNode, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), modifiers)
         if !modifiers.hasMutable =>
         throw EvalException(
-          s"Immutable variable `${assignId.id.name}` must be assigned a value (or else declared `mutable`)",
-          token = Some(assignId.token)
+          s"Immutable variable `${idNode.id.name}` must be assigned a value (or else declared `mutable`)",
+          token = Some(idNode.token)
         )
     }
 
@@ -795,17 +815,18 @@ class CgscriptClass(
 
     // Static declarations - create a domain whose context is the class object
     val initializerDomain = new EvaluationDomain(null, Some(classObjectRef))
-    node.staticInitializers.foreach { node =>
-      if (!node.modifiers.hasExternal) {
+    node.staticInitializers foreach { initNode =>
+      if (!initNode.modifiers.hasExternal) {
         val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-        // We intentionally don't elaborate var declarations, since those are already
+        // We intentionally don't elaborate class var declarations, since those are already
         // accounted for in the class vars. But we still need to elaborate the RHS of
         // the assignment.
-        node.body match {
-          case AssignToNode(_, _, expr, AssignmentDeclType.ClassVarDecl) => expr.elaborate(scope)
-          case evalNode => evalNode.elaborate(scope)
+        initNode match {
+          case declNode: VarDeclarationNode if declNode.body.declType == AssignmentDeclType.ClassVarDecl =>
+            declNode.body.expr.elaborate(scope)
+          case _ => initNode.body.elaborate(scope)
         }
-        node.body.evaluate(initializerDomain)
+        initNode.body.evaluate(initializerDomain)
       }
     }
 
@@ -892,16 +913,21 @@ class CgscriptClass(
       case None => Seq.empty
     }
     val localClassVars = initializers collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, mod) if !mod.hasStatic => Var(assignId, Some(declNode), mod)
+      case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
+        Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
     val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
     val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
     val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
     val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
-    val staticVars = enumElements.map { _.id.id } ++ staticInitializers.collect {
-      case InitializerNode(_, AssignToNode(_, assignId, _, _), true, mod) if mod.hasStatic => assignId.id
+    // TOOD This doesn't yet include enum elements
+    val staticVars: Seq[CgscriptClass#Var] = staticInitializers collect {
+      case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
+        Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
-    val staticVarOrdinals: Map[Symbol, Int] = staticVars.zipWithIndex.toMap
+    val staticVarSymbols: Seq[Symbol] = enumElements.map { _.id.id } ++ staticVars.map { _.idNode.id }
+    val staticVarLookup: Map[Symbol, CgscriptClass#Var] = staticVars map { v => (v.id, v) } toMap
+    val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
     val allSymbolsInThisClass: Set[Symbol] = {
       classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
     }

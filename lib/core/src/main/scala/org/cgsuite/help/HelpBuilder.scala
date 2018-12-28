@@ -188,40 +188,48 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           regularMembers.filter { _.declaringClass == cls } ++ cls.pkg.allClasses
         else
           regularMembers
-      } sortBy { _.idNode.id.name }
+      } sortBy { _.id.name }
 
-      val memberInfo = members map { member =>
-        val entityType = member match {
-          case _: CgscriptClass => "class"
-          case _: CgscriptClass#Method => "def"
-          case _: CgscriptClass#Var => "var"
-          case _ => sys.error("can't happen")
-        }
-        MemberInfo(member, entityType)
+      val staticMemberSummary = {
+        if (cls.classInfo.staticVars.isEmpty)
+          ""
+        else
+          makeMemberSummary(cls, cls.classInfo.staticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
       }
 
-      val memberSummary = makeMemberSummary(cls, memberInfo filter {
-        info => info.member.declaringClass == cls || info.member.declaringClass == null
-      })
+      val memberSummary = makeMemberSummary(cls, members filter {
+        member => member.declaringClass == cls || member.declaringClass == null
+      }, "<h2>All Members</h2>")
 
       // TODO Breadth-first order for ancestor tree?
 
-      val allDeclaringClasses = memberInfo.filterNot { info =>
-        info.member.declaringClass == null || info.member.declaringClass == cls
-      }.map { _.member.declaringClass }.distinct sortBy { _.qualifiedName }
+      val allDeclaringClasses = members.filterNot { member =>
+        member.declaringClass == null || member.declaringClass == cls
+      }.map { _.declaringClass }.distinct sortBy { _.qualifiedName }
 
       val prevMemberSummary = allDeclaringClasses map { declaringClass =>
-        val declaredMembers = memberInfo filter { _.member.declaringClass == declaringClass }
-        makeMemberSummary(declaringClass, declaredMembers)
+        val declaredMembers = members filter { _.declaringClass == declaringClass }
+        makeMemberSummary(
+          declaringClass,
+          declaredMembers,
+          s"<h3>Members inherited from ${linkBuilder hyperlinkToClass declaringClass}</h3>"
+        )
       }
 
-      val memberDetails = memberInfo filterNot { _.member.declaringClass == null } map makeMemberDetail mkString "\n<p>\n"
+      val staticMemberDetails = cls.classInfo.staticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+
+      val memberDetails = members filterNot { _.declaringClass == null } map makeMemberDetail mkString "\n<p>\n"
 
       packageDir.createDirectories()
       file overwrite header
       classComment foreach file.append
+      file append staticMemberSummary
       file append memberSummary
       prevMemberSummary foreach file.append
+      if (staticMemberDetails.nonEmpty) {
+        file append "\n<h2>Static Member Details</h2>\n\n"
+        file append staticMemberDetails
+      }
       file append "\n<h2>Member Details</h2>\n\n"
       file append memberDetails
       file append htmlFooter
@@ -281,7 +289,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
          |<p>
          |
          |$packageStr
-         |<h1>${if (cls.isPackageObject) "package " + cls.pkg.qualifiedName else cls.name}</h1>
+         |<h1>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.name}</h1>
          |
          |<p><div class="section">
          |  <code>$modifiersStr $classtypeStr <b>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.name}</b>${makeParameters(cls)}$extendsStr</code>
@@ -291,14 +299,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
     }
 
-    def makeMemberSummary(declaringClass: CgscriptClass, members: Vector[MemberInfo]) = {
-
-      val sectionHeader = {
-        if (cls == declaringClass)
-          "\n<h2>All Members</h2>\n\n"
-        else
-          s"\n<h3>Members inherited from ${linkBuilder hyperlinkToClass declaringClass}</h3>\n\n"
-      }
+    def makeMemberSummary(
+      declaringClass: CgscriptClass,
+      members: Seq[Member],
+      header: String
+    ): String = {
 
       val tableHeader =
         """<p><div class="section"><table class="members">
@@ -306,27 +311,28 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       val footer = "</table></div>\n"
 
-      val rows = members map { info =>
+      val rows = members map { member =>
 
-        val name = info.member.idNode.id.name
+        val etype = entityType(member)
+        val name = member.idNode.id.name
         val memberLink = {
-          if (info.member.declaringClass == null)
-            linkBuilder.hyperlinkToClass(info.member.asInstanceOf[CgscriptClass], textOpt = Some(name))
+          if (member.declaringClass == null)
+            linkBuilder.hyperlinkToClass(member.asInstanceOf[CgscriptClass], textOpt = Some(name))
           else
-            linkBuilder.hyperlinkToClass(cls, Some(info.member), Some(name))
+            linkBuilder.hyperlinkToClass(cls, Some(member), Some(name))
         }
 
-        val description = docCommentForMember(info.member) match {
+        val description = docCommentForMember(member) match {
           case Some((commentStr, _)) => processDocComment(commentStr, firstSentenceOnly = true)
           case None => "&nbsp;"
         }
 
         s"""  <tr>
            |    <td class="entitytype">
-           |      <code>${info.entityType}${"&nbsp;" * (5 - info.entityType.length)}</code>
+           |      <code>$etype${"&nbsp;" * (5 - etype.length)}</code>
            |    </td>
            |    <td class="member">
-           |      <code>$memberLink${makeParameters(info.member)}</code>
+           |      <code>$memberLink${makeParameters(member)}</code>
            |      <br>$description
            |    </td>
            |  </tr>
@@ -334,17 +340,17 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       }
 
-      s"$sectionHeader$tableHeader${rows mkString ""}$footer"
+      s"\n$header\n\n$tableHeader${rows mkString ""}$footer"
 
     }
 
-    def makeMemberDetail(info: MemberInfo): String = {
+    def makeMemberDetail(member: Member): String = {
 
-      val name = info.member.idNode.id.name
+      val name = member.idNode.id.name
 
-      val parametersStr = makeParameters(info.member)
+      val parametersStr = makeParameters(member)
 
-      val commentOpt = docCommentForMember(info.member)
+      val commentOpt = docCommentForMember(member)
 
       val comment = commentOpt match {
         case None => ""
@@ -362,10 +368,19 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       s"""<a name="$name"></a>
          |<p><div class="section">
-         |  <code>${info.entityType} <b>$name</b>$parametersStr</code>
+         |  <code>${entityType(member)} <b>$name</b>$parametersStr</code>
          |  $comment
          |</div>""".stripMargin
 
+    }
+
+    def entityType(member: Member): String = {
+      member match {
+        case _: CgscriptClass => "class"
+        case _: CgscriptClass#Method => "def"
+        case _: CgscriptClass#Var => "var"
+        case _ => sys.error("can't happen")
+      }
     }
 
     // If the specified member has an associated doc comment, then return
@@ -511,8 +526,6 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
   }
 
 }
-
-case class MemberInfo(member: Member, entityType: String)
 
 case class HelpLinkBuilder(
   targetRootDir: File,

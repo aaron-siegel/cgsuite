@@ -10,7 +10,7 @@ class ClassObject(val forClass: CgscriptClass)
   def qualifiedName = forClass.qualifiedName
 
   override def init(): Unit = {
-    vars = new Array[Any](forClass.classInfo.staticVars.size)
+    vars = new Array[Any](forClass.classInfo.staticVarSymbols.size)
   }
 
   override def lookupInstanceMethod(id: Symbol): Option[Any] = {

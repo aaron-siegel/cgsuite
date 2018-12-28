@@ -1,24 +1,61 @@
 /*${cgsuite.banner}*/
 
+/** An integer coordinate pair. Instances of this class are pairs of integers
+  * `(a,b)`, where `a` is the ~row~ and `b` is the ~column~.
+  */
 system class Coordinates
 
+  /** The constant value `(-1,0)`. */
   static var North     := (-1,  0);
+  /** The constant value `(-1,1)`. */
   static var Northeast := (-1,  1);
+  /** The constant value `(0,1)`. */
   static var East      := ( 0,  1);
+  /** The constant value `(1,1)`. */
   static var Southeast := ( 1,  1);
+  /** The constant value `(1,0)`. */
   static var South     := ( 1,  0);
+  /** The constant value `(1,-1)`. */
   static var Southwest := ( 1, -1);
+  /** The constant value `(0,-1)`. */
   static var West      := ( 0, -1);
+  /** The constant value `(-1,-1)`. */
   static var Northwest := (-1, -1);
 
+  /** A `List` of all four orthogonal directions, in clockwise order.
+    * Specifically:
+    *
+    * `[North, East, South, West]`
+    */
   static var Orthogonal := [North, East, South, West];
+
+  /** A `List` of all four diagonal directions, in clockwise order.
+    * Specifically:
+    *
+    * `[Northeast, Southeast, Southwest, Northwest]`
+    */
   static var Diagonal := [Northeast, Southeast, Southwest, Northwest];
+  
+  /** A `List` of all eight compass directions, in clockwise order.
+    * Specifically:
+    *
+    * `[North, Northeast, East, Southeast, South, Southwest, West, Northwest]`
+    */
   static var Compass := [North, Northeast, East, Southeast, South, Southwest, West, Northwest];
 
+  /** The column of these `Coordinates`. */
   external def Col;
+  /** The row of these `Coordinates`. */
   external def Row;
   
+  /** `true` if the row and column of these `Coordinates` are units. i.e., if both [[#Row]] and [[#Col]]
+    * are equal to $0$, $1$, or $-1$.
+    */
   external def IsUnit;
+  
+  /** The `Coordinates` obtained by interchanging the row and column of these
+    * `Coordinates`.
+    */
   external def Swap;
 
   override def ToOutput := "(" + Row.ToOutput + "," + Col.ToOutput + ")";

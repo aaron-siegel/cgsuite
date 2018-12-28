@@ -23,22 +23,15 @@ object DeclarationNode {
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
-      case STATIC => Iterable(InitializerNode(tree, EvalNode(tree.head), isVarDeclaration = false, Modifiers(static = Some(tree.token))))
+      case STATIC => Iterable(InitializerBlockNode(tree, EvalNode(tree.head), Modifiers(static = Some(tree.token))))
 
       case CLASS_VAR =>
         val (modifiers, nodes) = ClassVarNode(tree)
-        nodes.map { node =>
-          InitializerNode(
-            tree,
-            node,
-            isVarDeclaration = true,
-            modifiers = modifiers
-          )
-        }
+        nodes map { VarDeclarationNode(tree, _, modifiers) }
 
       case ENUM_ELEMENT => Iterable(EnumElementNode(tree))
 
-      case _ => Iterable(InitializerNode(tree, EvalNode(tree), isVarDeclaration = false, Modifiers.none))
+      case _ => Iterable(InitializerBlockNode(tree, EvalNode(tree), Modifiers.none))
 
     }
 
@@ -107,7 +100,7 @@ case class ClassDeclarationNode(
 
 }
 
-trait MemberDeclarationNode extends Node {
+sealed trait MemberDeclarationNode extends Node {
   def idNode: IdentifierNode
 }
 
@@ -203,8 +196,18 @@ case class MethodDeclarationNode(
 
 }
 
-case class InitializerNode(tree: Tree, body: EvalNode, isVarDeclaration: Boolean, modifiers: Modifiers) extends Node {
-  val children = Seq(body)
+sealed trait InitializerNode extends Node {
+  def tree: Tree
+  def body: EvalNode
+  def modifiers: Modifiers
+  override lazy val children = Seq(body)
+}
+
+case class InitializerBlockNode(tree: Tree, body: EvalNode, modifiers: Modifiers) extends InitializerNode
+
+case class VarDeclarationNode(tree: Tree, body: AssignToNode, modifiers: Modifiers)
+  extends InitializerNode with MemberDeclarationNode {
+  override def idNode: IdentifierNode = body.idNode
 }
 
 object Modifiers {
