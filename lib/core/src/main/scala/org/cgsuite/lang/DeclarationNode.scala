@@ -180,8 +180,9 @@ object EnumElementNode {
   }
 }
 
-case class EnumElementNode(tree: Tree, id: IdentifierNode, modifiers: Modifiers) extends Node {
-  val children = Seq(id)
+case class EnumElementNode(tree: Tree, idNode: IdentifierNode, modifiers: Modifiers)
+  extends MemberDeclarationNode {
+  val children = Seq(idNode)
 }
 
 case class MethodDeclarationNode(

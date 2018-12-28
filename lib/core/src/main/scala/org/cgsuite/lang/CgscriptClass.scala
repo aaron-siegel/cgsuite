@@ -780,7 +780,7 @@ class CgscriptClass(
 
     // Enum construction
     node.enumElements foreach { element =>
-      classObjectRef.vars(classInfoRef.staticVarOrdinals(element.id.id)) = new EnumObject(this, element.id.id.name)
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(element.idNode.id)) = new EnumObject(this, element.idNode.id.name)
     }
 
     // Big temporary hack to populate Left and Right
@@ -902,11 +902,22 @@ class CgscriptClass(
     val constructor: Option[CgscriptClass#Constructor],
     val initializers: Seq[InitializerNode],
     val staticInitializers: Seq[InitializerNode],
-    val enumElements: Seq[EnumElementNode]
+    val enumElementNodes: Seq[EnumElementNode]
     ) {
 
     val properAncestors: Seq[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
+
+    val staticVars: Seq[CgscriptClass#Var] = staticInitializers collect {
+      case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
+        Var(declNode.idNode, Some(declNode), declNode.modifiers)
+    }
+    val staticVarLookup: Map[Symbol, CgscriptClass#Var] = staticVars map { v => (v.id, v) } toMap
+
+    val enumElements: Seq[CgscriptClass#Var] = enumElementNodes map { node =>
+      Var(node.idNode, Some(node), node.modifiers)
+    }
+
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
       case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Some(declNode), Modifiers.none, isConstructorParam = true) }
@@ -920,14 +931,10 @@ class CgscriptClass(
     val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
     val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
     val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
-    // TOOD This doesn't yet include enum elements
-    val staticVars: Seq[CgscriptClass#Var] = staticInitializers collect {
-      case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers)
-    }
-    val staticVarSymbols: Seq[Symbol] = enumElements.map { _.id.id } ++ staticVars.map { _.idNode.id }
-    val staticVarLookup: Map[Symbol, CgscriptClass#Var] = staticVars map { v => (v.id, v) } toMap
+
+    val staticVarSymbols: Seq[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
     val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
+
     val allSymbolsInThisClass: Set[Symbol] = {
       classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
     }

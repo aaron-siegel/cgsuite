@@ -190,6 +190,13 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           regularMembers
       } sortBy { _.id.name }
 
+      val enumElementSummary = {
+        if (cls.classInfo.enumElements.isEmpty)
+          ""
+        else
+          makeMemberSummary(cls, cls.classInfo.enumElements sortBy { _.id.name }, "<h2>Enum Elements</h2>")
+      }
+
       val staticMemberSummary = {
         if (cls.classInfo.staticVars.isEmpty)
           ""
@@ -216,6 +223,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         )
       }
 
+      val enumElementDetails = cls.classInfo.enumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+
       val staticMemberDetails = cls.classInfo.staticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
       val memberDetails = members filterNot { _.declaringClass == null } map makeMemberDetail mkString "\n<p>\n"
@@ -223,9 +232,14 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       packageDir.createDirectories()
       file overwrite header
       classComment foreach file.append
+      file append enumElementSummary
       file append staticMemberSummary
       file append memberSummary
       prevMemberSummary foreach file.append
+      if (enumElementDetails.nonEmpty) {
+        file append "\n<h2>Enum Element Details</h2>\n\n"
+        file append enumElementDetails
+      }
       if (staticMemberDetails.nonEmpty) {
         file append "\n<h2>Static Member Details</h2>\n\n"
         file append staticMemberDetails
