@@ -10,7 +10,6 @@ import org.cgsuite.lang.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.output.EmptyOutput
 
-import scala.collection.generic.Growable
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -719,24 +718,25 @@ case class LoopNode(
 
   override def evaluate(domain: EvaluationDomain): Any = {
 
-    val yieldResult: Iterable[Any] with Growable[Any] = loopType match {
-      case LoopNode.YieldList | LoopNode.YieldTable => ArrayBuffer[Any]()
-      case LoopNode.YieldMap => mutable.HashMap[Any,Any]().asInstanceOf[Iterable[Any] with Growable[Any]]
-      case LoopNode.YieldSet => mutable.HashSet[Any]()
+    val buffer: ArrayBuffer[Any] = loopType match {
+      case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldTable | LoopNode.YieldSet => ArrayBuffer[Any]()
       case LoopNode.YieldSum | LoopNode.Do => null
     }
-    val r = evaluate(domain, yieldResult)
-    loopType match {
+
+    val r = evaluate(domain, buffer)
+    val result = loopType match {
       case LoopNode.Do => null
-      case LoopNode.YieldList => yieldResult.toVector
-      case LoopNode.YieldMap => yieldResult.asInstanceOf[mutable.HashMap[Any,Any]].toMap
-      case LoopNode.YieldSet => yieldResult.toSet
-      case LoopNode.YieldTable => Table { yieldResult.toSeq map {
-        case list: Seq[_] => list
+      case LoopNode.YieldList => buffer.toVector
+      case LoopNode.YieldMap => buffer.asInstanceOf[mutable.HashMap[Any,Any]].toMap
+      case LoopNode.YieldSet => buffer.toSet
+      case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
+        case list: IndexedSeq[_] => list
         case _ => throw EvalException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
       } } (OutputBuilder.toOutput)
       case LoopNode.YieldSum => r
     }
+
+    result
 
   }
 
@@ -762,7 +762,7 @@ case class LoopNode(
     antecedent + " " + body.toNodeString + " end"
   }
 
-  private def evaluate(domain: EvaluationDomain, yieldResult: Growable[Any]): Any = {
+  private def evaluate(domain: EvaluationDomain, yieldResult: ArrayBuffer[Any]): Any = {
 
     Profiler.start(prepareLoop)
 
@@ -811,15 +811,10 @@ case class LoopNode(
             case Some(pushDown) => pushDown.evaluate(domain, yieldResult)
             case None =>
               val r = body.evaluate(domain)
-              loopType match {
-                case LoopNode.YieldList | LoopNode.YieldSet =>
-                  r match {
-                    case it: Iterable[_] => yieldResult ++= it
-                    case x => yieldResult += x
-                  }
-                case LoopNode.YieldMap | LoopNode.YieldTable => yieldResult += r
-                case LoopNode.YieldSum => sum = if (sum == null) r else Ops.Plus(tree, sum, r)
-                case LoopNode.Do => // Nothing
+              if (yieldResult != null) {
+                yieldResult += r
+              } else if (loopType == LoopNode.YieldSum) {
+                sum = if (sum == null) r else Ops.Plus(tree, sum, r)
               }
           }
           Profiler.stop(loopBody)

@@ -301,9 +301,8 @@ class GameTest extends CgscriptSpec {
       ("Right", "Right", "Right"),
       ("Player.Right", "Player.Right", "Right"),
       ("Player properties", "for p in [Left,Right] yield [p, p.Opponent, p.Sign, p.Ordinal] end",
-        "[Left,Right,1,1,Right,Left,-1,2]")
+        "[[Left,Right,1,1],[Right,Left,-1,2]]")
     ))
   }
-
 
 }

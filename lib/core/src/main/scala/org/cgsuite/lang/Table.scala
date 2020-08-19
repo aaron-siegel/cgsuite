@@ -42,11 +42,11 @@ object Table {
 }
 
 case class Table (
-  rows: Seq[Seq[_]],
+  rows: IndexedSeq[IndexedSeq[_]],
   format: Set[Format.Value] = Set(Format.HorizontalGridLines, Format.VerticalGridLines)
-  )(outputBuilder: Any => Output) extends Iterable[Seq[_]] with OutputTarget {
+  )(outputBuilder: Any => Output) extends Iterable[IndexedSeq[_]] with OutputTarget {
 
-  def iterator: Iterator[Seq[_]] = rows.iterator
+  def iterator: Iterator[IndexedSeq[_]] = rows.iterator
 
   def toOutput: TableOutput = {
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
