@@ -1,0 +1,14 @@
+.DS_Store
+
+# IntelliJ-related
+.idea
+*.iml
+target/
+lib/core/src/main/gen/
+
+# Netbeans-related
+desktop-app/**/build/
+desktop-app/**/nbproject/build-impl.xml
+desktop-app/**/nbproject/genfiles.properties
+desktop-app/**/nbproject/private/
+desktop-app/dist/
