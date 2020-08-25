@@ -100,7 +100,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
   val isResolvable = classScopeIndex >= 0 || method.isDefined || nestedClass.isDefined
 
   def evaluateFor(x: Any, referenceToken: Token): Any = {
-
+/*
     if (classScopeIndex >= 0) {
 
       x match {
@@ -133,7 +133,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       sys error "not resolvable"
 
     }
-
+*/
   }
 
 }

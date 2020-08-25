@@ -8,7 +8,7 @@ class ClassObject(val forClass: CgscriptClass)
   def name = forClass.name
   def ordinal = forClass.classOrdinal
   def qualifiedName = forClass.qualifiedName
-
+/*
   override def init(): Unit = {
     vars = new Array[Any](forClass.classInfo.staticVarSymbols.size)
   }
@@ -27,5 +27,5 @@ class ClassObject(val forClass: CgscriptClass)
     sto appendMath s"\u27ea$qualifiedName\u27eb"
     sto
   }
-
+*/
 }

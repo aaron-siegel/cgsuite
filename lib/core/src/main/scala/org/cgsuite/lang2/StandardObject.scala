@@ -11,6 +11,8 @@ import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclosingObj: Any = null)
   extends OutputTarget {
 
+  override def toOutput = ???
+/*
   private[lang2] var vars: Array[Any] = _
   init()
 
@@ -99,7 +101,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
       else
         InstanceMethod(this, method)
     }
-  }
+  }*/
 
 }
 
@@ -108,6 +110,8 @@ class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject
 class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends StandardObject(cls, objArgs, enclosingObj) with Game {
 
+  def optionsFor(player: Player): Iterable[Game] = ???
+/*
   def optionsFor(player: Player): Iterable[Game] = {
 
     val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsForMethod.call(this, Array(player)))
@@ -145,12 +149,14 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
         )
     }
   }
-
+*/
 }
 
 class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends GameObject(cls, objArgs, enclosingObj) with ImpartialGame {
 
+  def options: Iterable[ImpartialGame] = ???
+/*
   override def options: Iterable[ImpartialGame] = {
 
     val collection = optionsToCollection(cls.classInfo.optionsMethod.call(this, Array.empty))
@@ -172,14 +178,16 @@ class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj:
   override def misereCanonicalForm: MisereCanonicalGame = misereCanonicalForm(cls.transpositionCache)
 
   override def nimValue: Integer = nimValue(cls.transpositionCache)
-
+*/
 }
 
 class HeapRulesetObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends StandardObject(cls, objArgs, enclosingObj) with HeapRuleset {
 
+  def heapOptions(heapSize: Integer) = ???
+/*
   override def heapOptions(heapSize: Integer) = {
     cls.classInfo.heapOptionsMethod.call(this, Array(heapSize)).asInstanceOf[Iterable[Iterable[Integer]]]   // TODO Better error handling
   }
-
+*/
 }

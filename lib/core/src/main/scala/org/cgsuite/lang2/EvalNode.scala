@@ -176,7 +176,7 @@ object EvalNode {
 trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
-  def evaluate(domain: EvaluationDomain): Any
+  def evaluate(domain: EvaluationDomain): Any = ???
   def toScalaCode(context: CompileContext): String = ???
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
   def toNodeStringPrec(enclosingPrecedence: Int): String
@@ -286,60 +286,6 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   var classVariableReference: ClassVariableReference = _
 
   override val children = Seq.empty
-
-  override def elaborate(scope: ElaborationDomain) {
-    // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
-    scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
-      case Some(cls) => classResolution = {
-        Some(if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject)
-      }
-      case None =>
-    }
-    // Can this be resolved as a scoped variable?
-    scope lookup id match {
-      case Some(l@LocalVariableReference(_, _)) => localVariableReference = l
-      case Some(c@ClassVariableReference(_, _)) => classVariableReference = c
-      case None =>
-    }
-    // Can this be resolved as a constant? Check first in local package scope, then in default package scope
-    scope.pkg flatMap { _ lookupConstant id } orElse (CgscriptPackage lookupConstant id) match {
-      case Some(res) => constantResolution = res
-      case None =>
-    }
-    // If there's no possible resolution and we're inside a package (i.e., not at Worksheet scope),
-    // we can throw an exception now
-    if (classResolution.isEmpty && localVariableReference == null && classVariableReference == null &&
-      constantResolution == null && scope.pkg.isDefined) {
-      throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
-    }
-  }
-
-  override def evaluate(domain: EvaluationDomain) = {
-    // Try resolving in the following precedence order:
-    // (1) As a class name;
-    // (2) As a local (method-scope) variable;
-    // (3) [Inside a package] As a member variable of the context object or
-    //     [Worksheet scope] As a global (Worksheet) variable;
-    // (4) As a package constant
-    if (classResolution.isDefined) {
-      // Class name
-      classResolution.get
-    } else if (localVariableReference != null) {
-      // Local var
-      domain backref localVariableReference.domainHops localScope localVariableReference.index
-    } else {
-      lookupLocally(domain) match {
-        case Some(x) => x     // Member/Worksheet var
-        case None =>
-          if (constantResolution != null) {
-            // Constant
-            constantResolution evaluateFor (constantResolution.cls.singletonInstance, token)
-          } else {
-            throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
-          }
-      }
-    }
-  }
 
   private[this] def lookupLocally(domain: EvaluationDomain): Option[Any] = {
     if (domain.isOuterDomain) {
@@ -1075,6 +1021,15 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
   var isElaborated = false
   var classResolution: CgscriptClass = _
   var constantResolution: Resolution = _
+  val externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
+
+  override def toScalaCode(context: CompileContext) = {
+
+    val objStr = obj.toScalaCode(context)
+    s"($objStr).$externalName"
+
+  }
+
   override def elaborate(scope: ElaborationDomain) {
     antecedentAsPackage flatMap { _.lookupClass(idNode.id) } match {
       case Some(cls) => classResolution = cls
@@ -1086,33 +1041,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     }
     isElaborated = true
   }
-  override def evaluate(domain: EvaluationDomain): Any = {
-    if (!isElaborated) {
-      sys error s"Node has not been elaborated: $this"
-    }
-    if (classResolution != null) {
-      if (classResolution.isSingleton) classResolution.singletonInstance else classResolution.classObject
-    } else if (constantResolution != null) {
-      constantResolution evaluateFor (constantResolution.cls.singletonInstance, token)
-    } else {
-      val x = obj.evaluate(domain)
-      try {
-        val resolution = idNode.resolver.findResolution(x)
-        if (resolution.isResolvable) {
-          resolution.evaluateFor(x, token)
-        } else {
-          throw EvalException(
-            s"Not a method or member variable: `${idNode.id.name}` (in object of class `${(CgscriptClass of x).qualifiedName}`)",
-            token = Some(token)
-          )
-        }
-      } catch {
-        case exc: CgsuiteException if exc.tokenStack.isEmpty =>
-          exc.tokenStack += token
-          throw exc
-      }
-    }
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (OperatorPrecedence.Postfix <= enclosingPrecedence)
       s"${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString}"
@@ -1163,79 +1092,9 @@ case class FunctionCallNode(
     argNodes foreach { _ elaborate scope }
   }
 
-  override def evaluate(domain: EvaluationDomain) = {
-
-    if (Thread.interrupted())
-      throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
-
-    val obj = callSiteNode.evaluate(domain)
-    val callSite: CallSite = obj match {
-      case cs: CallSite => cs
-      case co: ClassObject => co.forClass.constructor match {
-        case Some(ctor) => ctor
-        case None => throw EvalException(
-          s"The class `${co.forClass.qualifiedName}` has no constructor and cannot be directly instantiated.",
-          token = Some(token)
-        )
-      }
-      case scr: Script => ScriptCaller(domain, scr)
-      case x =>
-        val evalMethod = try {
-          CgscriptClass.of(x).classInfo.evalMethod
-        } catch {
-          case exc: CgsuiteException =>
-            exc addToken token
-            throw exc
-        }
-        InstanceMethod(x, evalMethod)
-    }
-
-    val res = {
-      try {
-        resolutions.getOrElseUpdate(callSite.ordinal, makeNewResolution(callSite))
-      } catch {
-        case exc: CgsuiteException =>
-          exc addToken token
-          throw exc
-      }
-    }
-    val args = new Array[Any](callSite.parameters.length)
-    var i = 0
-    while (i < args.length) {
-      if (res.expandedLastParameter && i == args.length - 1) {
-        args(i) = argNodes.slice(i, argNodes.length) map { _.evaluate(domain) }
-      } else {
-        if (res.parameterToArgsMapping(i) >= 0)
-          args(i) = argNodes(res.parameterToArgsMapping(i)).evaluate(domain)
-        else
-          args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
-      }
-      i += 1
-    }
-    try {
-      callSite call args
-    } catch {
-      case exc: CgsuiteException =>
-        exc addToken token
-        throw exc
-      case err: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
-    }
-
-  }
-
   case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
 
     override def parameters: Seq[Parameter] = Seq.empty
-
-    override def call(args: Array[Any]): Any = {
-      val scriptDomain = new EvaluationDomain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
-      val result = script.node evaluate scriptDomain
-      if (script.node.suppressOutput)
-        EmptyOutput
-      else
-        result
-    }
 
     override def ordinal: Int = -1
 
@@ -1348,33 +1207,7 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
     }
     super.elaborate(scope)
   }
-  override def evaluate(domain: EvaluationDomain) = {
-    val newValue = expr.evaluate(domain)
-    if (idNode.classResolution.isDefined) {
-      throw EvalException(s"Cannot assign to class name as variable: `${idNode.id.name}`", token = Some(token))
-    } else if (idNode.localVariableReference != null) {
-      val refDomain = domain backref idNode.localVariableReference.domainHops
-      refDomain.localScope(idNode.localVariableReference.index) = newValue
-    } else if (domain.isOuterDomain) {
-      domain.putDynamicVar(idNode.id, newValue)
-    } else {
-      // TODO Nested classes
-      val res = idNode.resolver.findResolution(domain.contextObject.get)
-      if (res.classScopeIndex >= 0) {
-        if (declType == AssignmentDeclType.Ordinary && !res.isMutableVar)
-          throw EvalException(s"Cannot reassign to immutable var: `${idNode.id.name}`", token = Some(token))
-        val stdObj = domain.contextObject.get.asInstanceOf[StandardObject]
-        if (!stdObj.cls.isMutable && (CgscriptClass of newValue).isMutable)
-          throw EvalException(
-            s"Cannot assign mutable object to var `${idNode.id.name}` of immutable class `${stdObj.cls.qualifiedName}`",
-            token = Some(token)
-          )
-        stdObj.vars(res.classScopeIndex) = newValue.asInstanceOf[AnyRef]
-      } else
-        throw EvalException(s"Unknown variable for assignment: `${idNode.id.name}`", token = Some(token))
-    }
-    newValue
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val varStr = if (declType != AssignmentDeclType.Ordinary) "var " else ""
     val assignStr = s"$varStr${idNode.toNodeString} := ${expr.toNodeStringPrec(OperatorPrecedence.Assign)}"

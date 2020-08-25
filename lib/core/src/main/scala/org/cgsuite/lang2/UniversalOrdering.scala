@@ -17,6 +17,7 @@ object UniversalOrdering extends Ordering[Any] {
       case (_, _: CanonicalShortGame) => 1
       case (g: MisereCanonicalGame, h: MisereCanonicalGame) => MisereCanonicalGame.DeterministicOrdering.compare(g, h)
       case (a: ClassObject, b: ClassObject) => a.forClass.classOrdinal - b.forClass.classOrdinal
+        /*
       case (a: StandardObject, b: StandardObject) =>
         var cmp = a.cls.classOrdinal - b.cls.classOrdinal
         var i = 0
@@ -25,6 +26,7 @@ object UniversalOrdering extends Ordering[Any] {
           i += 1
         }
         cmp
+        */
       case (a: Coordinates, b: Coordinates) =>
         val cmp = a.row - b.row
         if (cmp == 0) a.col - b.col else cmp

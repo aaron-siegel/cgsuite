@@ -50,7 +50,7 @@ object CgscriptClass {
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
 
-  Object.ensureInitialized()
+  Object.ensureLoaded()
 
   def of(x: Any): CgscriptClass = {
     x match {
@@ -75,20 +75,17 @@ object CgscriptClass {
     MisereCanonicalGameOps.reinit()
     Resolver.clearAll()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
-    Object.ensureInitialized()
+    Object.ensureLoaded()
   }
 
   def instanceToOutput(x: Any): Output = {
-    CgscriptClass.of(x).classInfo.toOutputMethod.call(x, Array.empty) match {
+    x match {
       case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
-      case output: Output => output
-      case y =>
-        throw EvalException(
-          s"`ToOutput` method of class `${CgscriptClass.of(x).qualifiedName}` returned an object of type `${CgscriptClass.of(y).qualifiedName}` (expecting type `Output` or `String`)"
-        )
+      case ot: OutputTarget => ot.toOutput
+      case _ => sys.error("?!")
     }
   }
-
+/*
   def instanceToDefaultOutput(x: Any): StyledTextOutput = {
     val sto = new StyledTextOutput
     x match {
@@ -100,7 +97,7 @@ object CgscriptClass {
     }
     sto
   }
-
+*/
   private[lang2] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
     val path = name.replace('.', '/')
@@ -147,11 +144,6 @@ class CgscriptClass(
     case _ => null
   }
 
-  val javaClass: Class[_] = systemClass match {
-    case Some(cls) => cls
-    case None => classOf[StandardObject]
-  }
-
   val enclosingClass: Option[CgscriptClass] = classdef match {
     case NestedClassDef(cls) => Some(cls)
     case _ => None
@@ -192,34 +184,12 @@ class CgscriptClass(
 
   private var classDeclarationNode: ClassDeclarationNode = _
   private var classInfoRef: ClassInfo = _
-  private var scriptObjectRef: Script = _
-  private var classObjectRef: ClassObject = _
-  private var singletonInstanceRef: Any = _
-  var initializerLocalVariableCount: Int = 0
-
-  private[cgsuite] val transpositionCache = new TranspositionCache()
 
   def isLoaded = classInfoRef != null
 
   def classInfo: ClassInfo = {
     ensureDeclared()
     classInfoRef
-  }
-
-  def classObject: ClassObject = {
-    ensureInitialized()
-    classObjectRef
-  }
-
-  def scriptObject: Script = {
-    ensureInitialized()
-    scriptObjectRef
-  }
-
-  // Singleton instance is instantiated lazily
-  def singletonInstance: Any = {
-    ensureSingletonInstance()
-    singletonInstanceRef
   }
 
   override def idNode = classInfo.idNode
@@ -229,7 +199,10 @@ class CgscriptClass(
     Option(classDeclarationNode)
   }
 
-  def isScript = scriptObject != null
+  def isScript = {
+    ensureDeclared()
+    false // TODO
+  }
 
   def isMutable = classInfo.modifiers.hasMutable
 
@@ -259,9 +232,6 @@ class CgscriptClass(
   private def doUnload() {
     logger debug s"$logPrefix Unloading."
     classInfoRef = null
-    scriptObjectRef = null
-    singletonInstanceRef = null
-    this.transpositionCache.clear()
     this.stage = LifecycleStage.Unloaded
   }
 
@@ -291,76 +261,43 @@ class CgscriptClass(
   }
 
   def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
-    ensureInitialized()
+    ensureDeclared()
     classInfo.allMethodsInScope.get(id)
   }
 
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
-    ensureInitialized()
+    ensureDeclared()
     classInfo.allNestedClassesInScope.get(id)
   }
 
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
-    ensureInitialized()
+    ensureDeclared()
     classInfo.classVarLookup.get(id)
   }
 
   def lookupMember(id: Symbol): Option[Member] = {
-    ensureInitialized()
+    ensureDeclared()
     lookupMethod(id) orElse lookupNestedClass(id) orElse lookupVar(id)
   }
 
   def ensureDeclared(): Unit = {
-    if (stage != LifecycleStage.Declared && stage != LifecycleStage.Initialized && stage != LifecycleStage.Initializing) {
-      enclosingClass match {
-        case Some(cls) =>
-          cls.ensureInitialized()
-          if (stage != LifecycleStage.Initialized)
-            throw EvalException(s"Class no longer exists: `$qualifiedName`")
-        case _ => declare()
-      }
-    }
-  }
-
-  def ensureInitialized(): Unit = {
-    ensureDeclared()
-    if (stage != LifecycleStage.Initialized) {
-      enclosingClass match {
-        case Some(cls) =>
-          cls.ensureInitialized()
-          if (stage != LifecycleStage.Initialized)
-            throw EvalException(s"Class no longer exists: `$qualifiedName`")
-        case _ => initialize()
-      }
-    }
-  }
-
-  def ensureSingletonInstance(): Unit = {
-    ensureInitialized()
-    if (singletonInstanceRef == null)   // TODO This doesn't work for Nothing.
-      constructSingletonInstance()
-  }
-
-  private[this] def constructSingletonInstance(): Unit = {
-    if (isSingleton) {
-      logger debug s"$logPrefix Constructing singleton instance."
-      if (enclosingClass.isDefined) {
-        sys.error("Nested singleton classes are not yet supported.")
-      }
-      singletonInstanceRef = {
-        qualifiedName match {
-          case "game.Zero" => ZeroImpl
-          case "cgsuite.lang.Nothing" => null
-          case "cgsuite.util.output.EmptyOutput" => EmptyOutput
-          // TODO There is some code duplication here with general object instantiation (search for "GameObject")
-          case _ if ancestors contains ImpartialGame => new ImpartialGameObject(this, Array.empty)
-          case _ if ancestors contains Game => new GameObject(this, Array.empty)
-          case _ if ancestors contains HeapRuleset => new HeapRulesetObject(this, Array.empty)
-          case _ => new StandardObject(this, Array.empty)
+    stage match {
+      case LifecycleStage.New | LifecycleStage.Unloaded =>
+        enclosingClass match {
+          case Some(cls) => cls.ensureDeclared()    // TODO What if no longer exists?
+          case _ => declare()
         }
-      }
-    } else {
-      sys.error("Not a singleton")
+      case _ =>
+    }
+  }
+
+  def ensureLoaded(): Unit = {
+    stage match {
+      case LifecycleStage.New | LifecycleStage.Declared | LifecycleStage.Elaborated | LifecycleStage.Unloaded =>
+        enclosingClass match {
+          case Some(cls) => cls.ensureLoaded()    // TODO What if no longer exists?
+          case _ => //load()
+        }
     }
   }
 
@@ -433,13 +370,8 @@ class CgscriptClass(
 
   private def declareScript(node: StatementSequenceNode): Unit = {
 
-    val domain = ElaborationDomain.empty()
-    node.elaborate(domain)
     classDeclarationNode = null
     classInfoRef = null
-    classObjectRef = null
-    scriptObjectRef = Script(this, node, domain)
-    singletonInstanceRef = null
 
   }
 
@@ -476,13 +408,13 @@ class CgscriptClass(
                   }
                 }
               case node: DotNode =>
-                node.elaborate(ElaborationDomain.empty(Some(pkg)))
                 Option(node.classResolution) getOrElse {
                   sys.error("not found")
                 }
             }
           }
         }
+
         supers foreach { _.ensureDeclared() }
 
         val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
@@ -493,6 +425,8 @@ class CgscriptClass(
         } toMap
         val constructor = node.constructorParams map { t =>
           val parameters = t.toParameters
+          SystemConstructor(node.idNode, parameters)
+          /*
           systemClass match {
             case None => UserConstructor(node.idNode, parameters)
             case Some(cls) =>
@@ -501,9 +435,8 @@ class CgscriptClass(
                 case Some(fn) =>
                   ExplicitConstructor(node.idNode, parameters)(fn)
                 case None =>
-                  SystemConstructor(node.idNode, parameters, cls.getConstructor(externalParameterTypes : _*))
               }
-          }
+          }*/
         }
         val localMembers = localMethods ++ localNestedClasses
 
@@ -735,7 +668,7 @@ class CgscriptClass(
     }
   */
   }
-
+/*
   private def initialize(): Unit = {
 
     try {
@@ -846,7 +779,7 @@ class CgscriptClass(
     }
 
   }
-
+*/
   private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): (Symbol, Method) = {
 
     val name = node.idNode.id.name
@@ -869,14 +802,14 @@ class CgscriptClass(
         if (node.body.isDefined)
           throw EvalException(s"Method is declared `external` but has a method body", node.tree)
         logger.debug(s"$logPrefix Declaring external method: $name")
+        SystemMethod(node.idNode, Some(node), parameters, explicitReturnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)
+        /*
         SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
           case Some(fn) =>
             logger.debug(s"$logPrefix   It's a special method.")
             ExplicitMethod(node.idNode, Some(node), parameters, explicitReturnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
           case None =>
             val externalName = name.updated(0, name(0).toLower)
-            val externalParameterTypes = parameters map { _.paramType.javaClass }
-            logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
             val externalMethod = try {
               javaClass.getMethod(externalName, externalParameterTypes: _*)
             } catch {
@@ -886,6 +819,7 @@ class CgscriptClass(
             logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
             SystemMethod(node.idNode, Some(node), parameters, explicitReturnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
         }
+         */
       } else {
         logger.debug(s"$logPrefix Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
@@ -1000,7 +934,6 @@ class CgscriptClass(
     def isStatic: Boolean
     def isOverride: Boolean
     def explicitReturnType: Option[CgscriptType]
-    def call(obj: Any, args: Array[Any]): Any
 
     val methodName = idNode.id.name
     val declaringClass = thisClass
@@ -1054,25 +987,6 @@ class CgscriptClass(
       localVariableCount = scope.localVariableCount
     }
 
-    def call(obj: Any, args: Array[Any]): Any = {
-      Profiler.start(invokeUserMethod)
-      val target = if (isStatic) classObject else obj
-      try {
-        // Construct a new domain with local scope for this method.
-        val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
-        val domain = new EvaluationDomain(array, Some(target))
-        validateArguments(args)
-        var i = 0
-        while (i < parameters.length) {
-          domain.localScope(parameters(i).methodScopeIndex) = args(i)
-          i += 1
-        }
-        body.evaluate(domain)
-      } finally {
-        Profiler.stop(invokeUserMethod)
-      }
-    }
-
   }
 
   case class SystemMethod(
@@ -1082,42 +996,8 @@ class CgscriptClass(
     explicitReturnType: Option[CgscriptType],
     autoinvoke: Boolean,
     isStatic: Boolean,
-    isOverride: Boolean,
-    javaMethod: java.lang.reflect.Method
-  ) extends Method {
-
-    private val reflect = Symbol(s"Reflect [$javaMethod]")
-
-    def call(obj: Any, args: Array[Any]): Any = {
-      val target = if (isStatic) null else obj.asInstanceOf[AnyRef]
-      /*
-      assert(
-        target == null || of(target).ancestors.contains(declaringClass),
-        (of(target), declaringClass)
-      )
-      */
-      Profiler.start(reflect)
-      try {
-        validateArguments(args)
-        internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
-      } catch {
-        case exc: IllegalArgumentException => throw EvalException(
-          s"`IllegalArgumentException` in external method `$qualifiedName` (misconfigured parameters?)", exc
-        )
-        case exc: InvocationTargetException => throw EvalException(
-          exc.getTargetException match {
-            case nestedExc: CgsuiteException =>
-              // TODO nestedExc.setInvocationTarget(qualifiedName)
-              throw nestedExc
-            case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
-          }
-        )
-      } finally {
-        Profiler.stop(reflect)
-      }
-    }
-
-  }
+    isOverride: Boolean
+  ) extends Method
 
   case class ExplicitMethod(
     idNode: IdentifierNode,
@@ -1128,19 +1008,7 @@ class CgscriptClass(
     isStatic: Boolean,
     isOverride: Boolean
     )
-    (fn: (Any, Any) => Any) extends Method {
-
-    def call(obj: Any, args: Array[Any]): Any = {
-      validateArguments(args)
-      val argsTuple = parameters.size match {
-        case 0 => ()
-        case 1 => args(0)
-        case 2 => (args(0), args(1))
-      }
-      fn(if (isStatic) classObject else obj, argsTuple)
-    }
-
-  }
+    (fn: (Any, Any) => Any) extends Method
 
   trait Constructor extends Method with CallSite {
 
@@ -1151,8 +1019,6 @@ class CgscriptClass(
     val isOverride = false
 
     override def declNode = None
-
-    def call(obj: Any, args: Array[Any]): Any = call(args)
 
     override def referenceToken = Some(idNode.token)
 
@@ -1196,49 +1062,14 @@ class CgscriptClass(
 
   case class SystemConstructor(
     idNode: IdentifierNode,
-    parameters: Seq[Parameter],
-    javaConstructor: java.lang.reflect.Constructor[_]
-  ) extends Constructor {
-
-    private val reflect = Symbol(s"Reflect [$javaConstructor]")
-
-    def call(args: Array[Any]): Any = {
-      try {
-        Profiler.start(reflect)
-        validateArguments(args, ensureImmutable = !isMutable)
-        javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
-      } catch {
-        case exc: IllegalArgumentException =>
-          throw EvalException(s"`IllegalArgumentException` in external constructor for `${thisClass.qualifiedName}` (misconfigured parameters?)")
-        case exc: InvocationTargetException =>
-          exc.getCause match {
-            case exc2: CgsuiteException => throw exc2
-            case _ => throw exc
-          }
-      } finally {
-        Profiler.stop(reflect)
-      }
-    }
-
-  }
+    parameters: Seq[Parameter]
+  ) extends Constructor
 
   case class ExplicitConstructor(
     idNode: IdentifierNode,
     parameters: Seq[Parameter]
     )
-    (fn: (Any, Any) => Any) extends Constructor {
-
-    override def call(args: Array[Any]) = {
-      validateArguments(args, ensureImmutable = !isMutable)
-      val argsTuple = parameters.size match {
-        case 0 => ()
-        case 1 => args(0)
-        case 2 => (args(0), args(1))
-      }
-      fn(classObject, argsTuple)
-    }
-
-  }
+    (fn: (Any, Any) => Any) extends Constructor
 
 }
 
@@ -1261,5 +1092,5 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultVa
 }
 
 object LifecycleStage extends Enumeration {
-  val New, Declaring, Declared, Initializing, Initialized, Unloaded = Value
+  val New, Declaring, Declared, Elaborated, Loaded, Unloaded = Value
 }
