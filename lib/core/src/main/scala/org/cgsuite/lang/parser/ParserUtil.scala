@@ -26,7 +26,7 @@ object ParserUtil {
 
   }
 
-  private def parse(in: InputStream, source: String)(fn: CgsuiteParser => { def getTree(): Object }): Tree = {
+  private[cgsuite] def parse(in: InputStream, source: String)(fn: CgsuiteParser => { def getTree(): Object }): Tree = {
 
     val stream = new SourcedAntlrInputStream(in, source)
     val lexer = new CgsuiteLexer(stream)

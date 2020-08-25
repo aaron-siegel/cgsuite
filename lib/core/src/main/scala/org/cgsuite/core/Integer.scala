@@ -238,6 +238,8 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   override def toString = bigIntValue.toString()
 
   override def toOutput = super[DyadicRationalNumber].toOutput
+
+  def toNimber = Nimber(this)
   
 }
 

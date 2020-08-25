@@ -15,6 +15,14 @@
   */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 
+  external def op+(that as Integer) as Integer;
+
+  external def op-(that as Integer) as Integer;
+
+  external def op*(that as Integer) as Integer;
+
+  external def op/(that as Rational) as Rational;
+
   /** The integer quotient of this [[Integer]] and `that`.
     * Unlike `a/b`, which will be a noninteger unless `b` divides `a`,
     * the expression `a.Div(b)` will always be another [[Integer]].
@@ -22,28 +30,28 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     * `a.Div(b)` is equal to the floor of `a/b` when `a/b \geq 0`, and
     * the ceiling of `a/b` when `a/b \leq 0`.
     */
-  external def Div(that as Integer);
+  external def Div(that as Integer) as Integer;
 
   /** The greatest common divisor of this [[Integer]] and `that`.
     */
-  external def Gcd(that as Integer);
+  external def Gcd(that as Integer) as Integer;
 
   /** The floor of the (positive) square root of this [[Integer]].
     *
     * `Isqrt` will raise an error if this integer is not
     * strictly positive.
     */
-  external def Isqrt;
+  external def Isqrt as Integer;
 
   /** `true` if this [[Integer]] has an even number of
     * ones in its binary representation.
     */
-  external def IsEvil;
+  external def IsEvil as Boolean;
 
   /** `true` if this [[Integer]] has an odd number of
     * ones in its binary representation.
     */
-  external def IsOdious;
+  external def IsOdious as Boolean;
 
   /** `true` if this [[Integer]] $n$ satisfies
     * $-2^31^ \leq n \lt 2^31^$.
@@ -52,12 +60,12 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     * integers use a different internal representation (native
     * 32-bit) that is higher performance.
     */
-  external def IsSmallInteger;
+  external def IsSmallInteger as Boolean;
 
   /** `true` if this [[Integer]] $n$ is a power of two
     * ($n = 2^k^$ for some $k \geq 0$).
     */
-  external def IsTwoPower;
+  external def IsTwoPower as Boolean;
 
   /** The floor of the base-2 logarithm of this [[Integer]],
     * equal to the number of digits in its binary representation.
@@ -65,7 +73,7 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     * `Lb` will raise an error if this integer is not strictly
     * positive.
     */
-  external def Lb;
+  external def Lb as Integer;
 
   /** The nim product of this [[Integer]] and `that`.
     *
@@ -80,7 +88,7 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     *
     * `*(a NimProduct b) == *a ConwayProduct *b`.
     */
-  external def NimProduct(that as Integer);
+  external def NimProduct(that as Integer) as Integer;
 
   /** The nim sum of this [[Integer]] and `that`.
     *
@@ -94,12 +102,12 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     *
     * `*(a NimSum b) == *a + *b`.
     */
-  external def NimSum(that as Integer);
+  external def NimSum(that as Integer) as Integer;
 
   override external def ToOutput;
 
   /** The ugly product of this [[Integer]] and `that`.
     */
-  external def UglyProduct(that as Integer);
+  external def UglyProduct(that as Integer) as Integer;
 
 end

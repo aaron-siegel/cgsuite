@@ -115,6 +115,7 @@ tokens
     DECL_BEGIN;
     DECL_END;
     DECL_ID;
+    DECL_OP;
     DECLARATIONS;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
@@ -310,10 +311,13 @@ classVarInitializer
     ;
 
 defDeclaration
-    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
-      { $IDENTIFIER.setType(DECL_ID); }
-    | modifiers DEF^ IDENTIFIER defInitializer { $IDENTIFIER.setType(DECL_ID); }
+    : (modifiers DEF defName LPAREN methodParameterList RPAREN) =>
+      modifiers DEF^ defName (LPAREN! methodParameterList RPAREN!)? asClause? defInitializer
+    ;
+
+defName
+    : IDENTIFIER { $IDENTIFIER.setType(DECL_ID); }
+    | OP^ opCode { $OP.setType(DECL_OP); }
     ;
 
 defInitializer

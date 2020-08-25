@@ -1,12 +1,12 @@
-package org.cgsuite.lang
+package org.cgsuite.lang2
 
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, EvalException}
-import org.cgsuite.lang.Node.treeToRichTree
-import org.cgsuite.lang.Ops._
+import org.cgsuite.lang2.Node.treeToRichTree
+import org.cgsuite.lang2.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.output.EmptyOutput
 
@@ -21,10 +21,10 @@ object EvalNode {
 
       // Constants
 
-      case TRUE => ConstantNode(tree, true)
-      case FALSE => ConstantNode(tree, false)
-      case INTEGER => ConstantNode(tree, Integer.parseInteger(tree.getText))
-      case STRING => ConstantNode(tree, tree.getText.drop(1).dropRight(1).replaceAll("\\\\\"", "\""))
+      case TRUE => BooleanNode(tree, constantValue = true)
+      case FALSE => BooleanNode(tree, constantValue = false)
+      case INTEGER => IntegerNode(tree, Integer.parseInteger(tree.getText))
+      case STRING => StringNode(tree, tree.getText.drop(1).dropRight(1).replaceAll("\\\\\"", "\""))
 
       // This
 
@@ -146,7 +146,7 @@ object EvalNode {
 
   private def nimber(tree: Tree): EvalNode = {
     if (tree.children.isEmpty) {
-      ConstantNode(tree, star)
+      StarNode(tree)
     } else {
       UnOpNode(tree, MakeNimber)
     }
@@ -161,10 +161,10 @@ object EvalNode {
       }
       case _ => (Some(tree.head), Some(tree.children(1)))
     }
-    val upMultipleNode = upMultipleTree map { EvalNode(_) } getOrElse { ConstantNode(tree, Integer(tree.getText.length)) }
+    val upMultipleNode = upMultipleTree map { EvalNode(_) } getOrElse { IntegerNode(tree, Integer(tree.getText.length)) }
     val nimberNode = nimberTree map { t =>
-      if (t.children.isEmpty) ConstantNode(t, one) else EvalNode(t.head)
-    } getOrElse { ConstantNode(null, zero) }
+      if (t.children.isEmpty) IntegerNode(t, one) else EvalNode(t.head)
+    } getOrElse { IntegerNode(null, zero) }
     tree.getType match {
       case CARET | MULTI_CARET => BinOpNode(tree, MakeUpMultiple, upMultipleNode, nimberNode)
       case VEE | MULTI_VEE => BinOpNode(tree, MakeDownMultiple, upMultipleNode, nimberNode)
@@ -177,6 +177,7 @@ trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
   def evaluate(domain: EvaluationDomain): Any
+  def toScalaCode(context: CompileContext): String = ???
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
   def toNodeStringPrec(enclosingPrecedence: Int): String
 
@@ -215,14 +216,49 @@ trait EvalNode extends Node {
     children foreach { _.elaborate(scope) }
   }
 
+  def elaborate2(scope: ElaborationDomain2): CgscriptType = ???
+
 }
 
-case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
+trait ConstantNode extends EvalNode {
+
+  def constantValue: Any
+
   override val children = Seq.empty
   override def evaluate(domain: EvaluationDomain) = constantValue
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     CgscriptClass.instanceToOutput(constantValue).toString
   }
+
+}
+
+case class NullNode(tree: Tree) extends ConstantNode {
+  override val constantValue = null
+  override def toScalaCode(context: CompileContext) = null
+}
+
+case class StarNode(tree: Tree) extends ConstantNode {
+  override val constantValue = star
+  override def toScalaCode(context: CompileContext) = "org.cgsuite.core.Values.star"
+}
+
+case class BooleanNode(tree: Tree, override val constantValue: Boolean) extends ConstantNode {
+  override def toScalaCode(context: CompileContext) = constantValue.toString
+}
+
+case class IntegerNode(tree: Tree, override val constantValue: Integer) extends ConstantNode {
+  override def toScalaCode(context: CompileContext) = {
+    if (constantValue.isSmallInteger)
+      s"org.cgsuite.core.Integer($constantValue)"
+    else
+      "org.cgsuite.core.Integer.parseInteger(\"" + constantValue + "\")"
+  }
+}
+
+// TODO Escape strings
+case class StringNode(tree: Tree, override val constantValue: String) extends ConstantNode {
+  override def toScalaCode(context: CompileContext) = "\"" + constantValue + "\""
 }
 
 case class ThisNode(tree: Tree) extends EvalNode {
@@ -233,22 +269,8 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object IdentifierNode {
   def apply(tree: Tree): IdentifierNode = {
-    assert(tree.getType == IDENTIFIER || tree.getType == DECL_ID || tree.getType == DECL_OP || tree.getType == INFIX_OP, tree.toStringTree)
-    val name = {
-      if (tree.getType == DECL_OP) {
-        tree.getChild(0).token.getType match {
-          case PLUS => "$plus"
-          case MINUS => "$minus"
-          case AST => "$times"
-          case FSLASH => "$div"
-          case PERCENT => "$percent"
-          case _ => sys.error("TODO: The rest of these.")
-        }
-      } else {
-        tree.getText
-      }
-    }
-    IdentifierNode(tree, Symbol(name))
+    assert(tree.getType == IDENTIFIER || tree.getType == DECL_ID || tree.getType == INFIX_OP, tree.toStringTree)
+    IdentifierNode(tree, Symbol(tree.getText))
   }
 }
 
@@ -332,6 +354,8 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   def toNodeStringPrec(enclosingPrecedence: Int) = id.name
 
+  override def toScalaCode(context: CompileContext) = id.name
+
 }
 
 object UnOpNode {
@@ -340,6 +364,10 @@ object UnOpNode {
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override val children = Seq(operand)
+  override def toScalaCode(context: CompileContext) = {
+    val opCode = op.toScalaCode(operand.toScalaCode(context))
+    s"($opCode)"
+  }
   override def evaluate(domain: EvaluationDomain) = {
     try {
       op(tree, operand.evaluate(domain))
@@ -366,6 +394,9 @@ object BinOpNode {
 
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
   override val children = Seq(operand1, operand2)
+  override def toScalaCode(context: CompileContext) = {
+    "(" + op.toScalaCode(operand1.toScalaCode(context), operand2.toScalaCode(context)) + ")"
+  }
   override def evaluate(domain: EvaluationDomain) = {
     try {
       if (op.precedence == OperatorPrecedence.And) {
@@ -403,6 +434,10 @@ object ListNode {
 
 case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
+  override def toScalaCode(context: CompileContext) = {
+    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
+    s"Vector($elementsCode)"
+  }
   override def evaluate(domain: EvaluationDomain): IndexedSeq[_] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
@@ -428,6 +463,10 @@ object SetNode {
 
 case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
+  override def toScalaCode(context: CompileContext) = {
+    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
+    s"Set($elementsCode)"
+  }
   override def evaluate(domain: EvaluationDomain): Set[_] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
@@ -454,6 +493,10 @@ object MapNode {
 
 case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
   override val children = elements
+  override def toScalaCode(context: CompileContext) = {
+    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
+    s"Map($elementsCode)"
+  }
   override def evaluate(domain: EvaluationDomain): Map[_, _] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
@@ -481,6 +524,11 @@ object MapPairNode {
 
 case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
   override val children = Seq(from, to)
+  override def toScalaCode(context: CompileContext) = {
+    val fromCode = from.toScalaCode(context)
+    val toCode = to.toScalaCode(context)
+    s"($fromCode -> $toCode)"
+  }
   override def evaluate(domain: EvaluationDomain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
   def toNodeStringPrec(enclosingPrecedence: Int) = s"${from.toNodeString} => ${to.toNodeString}"
 }
@@ -632,6 +680,13 @@ case class LoopyGameSpecNode(
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
   override val children = Seq(condition, ifNode) ++ elseNode
+  override def toScalaCode(context: CompileContext) = {
+    val conditionCode = condition.toScalaCode(context)
+    val ifCode = ifNode.toScalaCode(context)
+    val elseCode = elseNode map { _.toScalaCode(context) }
+    val elseClause = elseCode map { code => s"else $code" } getOrElse ""
+    s"(if ($conditionCode) $ifCode $elseClause)"
+  }
   override def evaluate(domain: EvaluationDomain) = {
     if (condition.evaluateAsBoolean(domain))
       ifNode.evaluate(domain)
@@ -728,6 +783,117 @@ case class LoopNode(
     if (forId.isDefined) {
       scope.popScope()
     }
+  }
+
+  override def toScalaCode(context: CompileContext): String = toScalaCode(context, None)
+
+  def toScalaCode(context: CompileContext, pushdownYieldVar: Option[String]): String = {
+
+    val continueVar = context.newTempId()
+    val tempResultVar = context.newTempId()
+    val loopVar = {
+      if (forId.isDefined)
+        forId.get.id.name
+      else if (from.isDefined)
+        context.newTempId()
+      else
+        ""
+    }
+    val iteratorVar = {
+      if (in.isDefined)
+        context.newTempId()
+      else
+        ""
+    }
+    val yieldResultVar = {
+      if (isYield)
+        pushdownYieldVar getOrElse context.newTempId()
+      else
+        ""
+    }
+    val initCode = {
+      if (from.isDefined)
+        s"var $loopVar = " + from.get.toScalaCode(context)
+      else if (in.isDefined) {
+        val inCode = in.get.toScalaCode(context)
+        s"val $iteratorVar = $inCode.iterator"
+      } else
+        ""
+    }
+    val yieldInitCode = {
+      if (isYield && pushdownYieldVar.isEmpty)
+        s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[Any]"
+      else
+        ""
+    }
+    val checkIfDoneCode = {
+      if (to.isDefined)
+        s"$continueVar = $loopVar <= " + to.get.toScalaCode(context)
+      else if (in.isDefined)
+        s"$continueVar = $iteratorVar.hasNext"
+      else
+        ""
+    }
+    val iterateCode = {
+      if (in.isDefined)
+        s"val $loopVar = $iteratorVar.next()"
+      else
+        ""
+    }
+    val byCode = by map { _.toScalaCode(context) } getOrElse "org.cgsuite.core.Values.one"
+    val incrementCode = if (from.isDefined) s"$loopVar = $loopVar + $byCode" else ""
+    val whileCode = `while` map { s"$continueVar = " + _.toScalaCode(context) } getOrElse ""
+    val whereCode = where map { _.toScalaCode(context) } getOrElse "true"
+    val bodyCode = pushDownYield match {
+      case Some(loopBody) => loopBody.toScalaCode(context, Some(yieldResultVar))
+      case None => body.toScalaCode(context)
+    }
+    val yieldUpdateCode = {
+      if (isYield && pushDownYield.isEmpty)
+        s"$yieldResultVar += $tempResultVar"
+      else
+        ""
+    }
+    val yieldReturnCode = loopType match {
+      case LoopNode.Do => "null"
+      case LoopNode.YieldList => s"$yieldResultVar.toVector"
+      case LoopNode.YieldMap => s"$yieldResultVar.asInstanceOf[scala.collection.mutable.ArrayBuffer[(Any, Any)]].toMap"
+      case LoopNode.YieldSet => s"$yieldResultVar.toSet"
+        /*
+      case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
+        case list: IndexedSeq[_] => list
+        case _ => throw EvalException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
+      } } (OutputBuilder.toOutput)
+      case LoopNode.YieldSum => r
+         */
+    }
+
+    s"""{
+       |  var $continueVar = true
+       |  $initCode
+       |  $yieldInitCode
+       |  while ($continueVar) {
+       |    if (Thread.interrupted())
+       |      throw org.cgsuite.exception.CalculationCanceledException("Calculation canceled by user."/*, token = Some(token)*/)
+       |    $checkIfDoneCode
+       |    if ($continueVar) {
+       |      $iterateCode
+       |      $whileCode
+       |    }
+       |    if ($continueVar) {
+       |      if ($whereCode) {
+       |        val $tempResultVar = {
+       |          $bodyCode
+       |        }
+       |        $yieldUpdateCode
+       |      }
+       |      $incrementCode
+       |    }
+       |  }
+       |  $yieldReturnCode
+       |}
+       |""".stripMargin
+
   }
 
   override def evaluate(domain: EvaluationDomain): Any = {
@@ -868,7 +1034,7 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
     body.elaborate(newScope)
     localVariableCount = newScope.localVariableCount
   }
-  private[lang] val knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
+  private[lang2] val knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
   override def evaluate(domain: EvaluationDomain) = Procedure(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
   var localVariableCount: Int = 0
@@ -888,6 +1054,10 @@ case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode)
 
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
+  override def toScalaCode(context: CompileContext) = {
+    val msgCode = msg.toScalaCode(context)
+    s"throw EvalException($msgCode.toString)"
+  }
   override def evaluate(domain: EvaluationDomain) = {
     throw EvalException(msg.evaluate(domain).toString)
   }
@@ -1159,7 +1329,7 @@ object VarNode {
     assert(tree.getType == VAR && tree.children.size == 1)
     val t = tree.children.head
     t.getType match {
-      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), ConstantNode(null, null), AssignmentDeclType.VarDecl)
+      case IDENTIFIER => AssignToNode(t, IdentifierNode(t), NullNode(null), AssignmentDeclType.VarDecl)
       case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), AssignmentDeclType.VarDecl)
     }
   }
@@ -1231,6 +1401,9 @@ object StatementSequenceNode {
 case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean) extends EvalNode {
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
+  override def toScalaCode(context: CompileContext) = {
+    statements map { _.toScalaCode(context) } mkString "\n"
+  }
   override def elaborate(scope: ElaborationDomain): Unit = {
     scope.pushScope()
     statements.foreach { _.elaborate(scope) }
