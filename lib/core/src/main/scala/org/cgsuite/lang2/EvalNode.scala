@@ -176,6 +176,17 @@ object EvalNode {
 trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
+
+  var elaboratedType: CgscriptType = _
+
+  def elaborate2(scope: ElaborationDomain2): CgscriptType = {
+    if (elaboratedType == null)
+      elaboratedType = elaborateImpl(scope)
+    elaboratedType
+  }
+
+  def elaborateImpl(scope: ElaborationDomain2): CgscriptType = ???
+
   def evaluate(domain: EvaluationDomain): Any = ???
   def toScalaCode(context: CompileContext): String = ???
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
@@ -216,8 +227,6 @@ trait EvalNode extends Node {
     children foreach { _.elaborate(scope) }
   }
 
-  def elaborate2(scope: ElaborationDomain2): CgscriptType = ???
-
 }
 
 trait ConstantNode extends EvalNode {
@@ -234,31 +243,53 @@ trait ConstantNode extends EvalNode {
 }
 
 case class NullNode(tree: Tree) extends ConstantNode {
+
   override val constantValue = null
-  override def toScalaCode(context: CompileContext) = null
+
+  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.NothingClass)
+
+  override def toScalaCode(context: CompileContext) = "null"
+
 }
 
 case class StarNode(tree: Tree) extends ConstantNode {
+
   override val constantValue = star
+
+  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.Nimber)
+
   override def toScalaCode(context: CompileContext) = "org.cgsuite.core.Values.star"
+
 }
 
 case class BooleanNode(tree: Tree, override val constantValue: Boolean) extends ConstantNode {
+
+  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.Boolean)
+
   override def toScalaCode(context: CompileContext) = constantValue.toString
+
 }
 
 case class IntegerNode(tree: Tree, override val constantValue: Integer) extends ConstantNode {
+
+  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.Integer)
+
   override def toScalaCode(context: CompileContext) = {
     if (constantValue.isSmallInteger)
       s"org.cgsuite.core.Integer($constantValue)"
     else
       "org.cgsuite.core.Integer.parseInteger(\"" + constantValue + "\")"
   }
+
 }
 
 // TODO Escape strings
 case class StringNode(tree: Tree, override val constantValue: String) extends ConstantNode {
+
+  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.String)
+
   override def toScalaCode(context: CompileContext) = "\"" + constantValue + "\""
+
 }
 
 case class ThisNode(tree: Tree) extends EvalNode {
@@ -269,12 +300,21 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object IdentifierNode {
   def apply(tree: Tree): IdentifierNode = {
-    assert(tree.getType == IDENTIFIER || tree.getType == DECL_ID || tree.getType == INFIX_OP, tree.toStringTree)
-    IdentifierNode(tree, Symbol(tree.getText))
+    tree.getType match {
+      case IDENTIFIER | DECL_ID | INFIX_OP => IdentifierNode(tree, Symbol(tree.getText))
+      case DECL_OP => IdentifierNode(tree, Symbol(tree.children.head.getText))
+    }
   }
 }
 
 case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
+
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+    scope.typeOf(id) match {
+      case Some(typ) => typ
+      case _ => throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
+    }
+  }
 
   var resolver: Resolver = Resolver.forId(id)
   var constantResolution: Resolution = _
@@ -309,22 +349,25 @@ object UnOpNode {
 }
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
+
   override val children = Seq(operand)
+
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+
+    val operandType = operand.elaborate2(scope)
+    val opMethod = operandType.baseClass lookupMethod op.id
+    opMethod match {
+      case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
+      case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass}`", tree)
+    }
+
+  }
+
   override def toScalaCode(context: CompileContext) = {
     val opCode = op.toScalaCode(operand.toScalaCode(context))
     s"($opCode)"
   }
-  override def evaluate(domain: EvaluationDomain) = {
-    try {
-      op(tree, operand.evaluate(domain))
-    } catch {
-      case exc: CgsuiteException =>
-        // We only add a token for ops if no subexpression has generated a token.
-        if (exc.tokenStack.isEmpty)
-          exc addToken token
-        throw exc
-    }
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val opStr = operand.toNodeStringPrec(op.precedence)
     if (op.precedence <= enclosingPrecedence)
@@ -332,6 +375,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
     else
       s"(${op.toOpString(opStr)})"
   }
+
 }
 
 object BinOpNode {
@@ -339,7 +383,21 @@ object BinOpNode {
 }
 
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
+
   override val children = Seq(operand1, operand2)
+
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+
+    val operand1Type = operand1.elaborate2(scope)
+    val operand2Type = operand2.elaborate2(scope)
+    val opMethod = operand1Type.baseClass.lookupMethod(op.id)
+    opMethod match {
+      case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
+      case _ => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass}`, `${operand2Type.baseClass}`", tree)
+    }
+
+  }
+
   override def toScalaCode(context: CompileContext) = {
     "(" + op.toScalaCode(operand1.toScalaCode(context), operand2.toScalaCode(context)) + ")"
   }
@@ -480,6 +538,50 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
 }
 
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
+
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+
+    val optionTypes = (lo ++ ro) map { _.elaborate2(scope) }
+
+    CgscriptType(
+      if (optionTypes.isEmpty)
+        CgscriptClass.Zero
+      else if (!forceExplicit && allOfType(optionTypes, CgscriptClass.CanonicalShortGame))
+        CgscriptClass.CanonicalShortGame
+      else if (!forceExplicit && allOfType(optionTypes, CgscriptClass.CanonicalStopper))
+        CgscriptClass.CanonicalStopper
+      else if (!forceExplicit && allOfType(optionTypes, CgscriptClass.SidedValue))
+        CgscriptClass.SidedValue
+      else if (allOfType(optionTypes, CgscriptClass.Game))
+        CgscriptClass.ExplicitGame
+      else if (allOfType(optionTypes, CgscriptClass.SidedValue))
+        sys error "can't be force explicit - need better error msg here"
+      else
+        throw EvalException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
+    )
+
+  }
+
+  override def toScalaCode(context: CompileContext) = {
+
+    assert(elaboratedType != null)
+
+    val loCode = lo map { _.toScalaCode(context) } mkString ", "
+    val roCode = ro map { _.toScalaCode(context) } mkString ", "
+
+    elaboratedType.baseClass match {
+      case CgscriptClass.Zero => "org.cgsuite.core.Values.zero"
+      case CgscriptClass.CanonicalShortGame => s"org.cgsuite.core.CanonicalShortGame($loCode)($roCode)"
+      case CgscriptClass.CanonicalStopper => s"org.cgsuite.core.CanonicalStopper($loCode)($roCode)"
+      case CgscriptClass.ExplicitGame => s"org.cgsuite.core.ExplicitGame($loCode)($roCode)"
+      // TODO: case CgscriptClass.SidedValue =>
+    }
+
+  }
+
+  private def allOfType(types: Iterable[CgscriptType], target: CgscriptClass) = {
+    types forall { _.baseClass.classInfo.ancestors contains target }
+  }
 
   override val children = lo ++ ro
 
@@ -1078,6 +1180,37 @@ case class FunctionCallNode(
   argNames: IndexedSeq[Option[IdentifierNode]]
   ) extends EvalNode {
 
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+
+    // TODO This needs to be improved / rewritten (we could get methods other ways etc)
+    // TODO Validate method arguments
+
+    argNodes foreach { _.elaborate2(scope) }
+
+    callSiteNode match {
+      case dotNode: DotNode =>
+        // Method call
+        val objectType = dotNode.obj.elaborate2(scope)
+        val objectMethod = objectType.baseClass.lookupMethod(dotNode.idNode.id)
+        objectMethod match {
+          case Some(method) if !method.autoinvoke => method.explicitReturnType.get
+          case _ => ???
+        }
+      case _ => ???
+    }
+
+  }
+
+  override def toScalaCode(context: CompileContext) = {
+
+    // TODO arg names
+
+    val functionCode = callSiteNode.toScalaCode(context)
+    val argsCode = argNodes map { _.toScalaCode(context) } mkString ", "
+    s"($functionCode($argsCode))"
+
+  }
+
   var resolutions: mutable.LongMap[FunctionCallResolution] = mutable.LongMap()
 
   // Some profiler keys
@@ -1232,11 +1365,27 @@ object StatementSequenceNode {
 }
 
 case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean) extends EvalNode {
+
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
+
   override val children = statements
+
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+
+    scope.pushScope()
+    statements foreach { _.elaborate2(scope) }
+    scope.popScope()
+    statements.lastOption match {
+      case Some(node) => node.elaboratedType
+      case None => CgscriptType(CgscriptClass.NothingClass)
+    }
+
+  }
+
   override def toScalaCode(context: CompileContext) = {
     statements map { _.toScalaCode(context) } mkString "\n"
   }
+
   override def elaborate(scope: ElaborationDomain): Unit = {
     scope.pushScope()
     statements.foreach { _.elaborate(scope) }

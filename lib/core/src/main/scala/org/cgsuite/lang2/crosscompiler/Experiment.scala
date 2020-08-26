@@ -1,7 +1,9 @@
 package org.cgsuite.lang2.crosscompiler
 
+import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.lang2.parser.ParserUtil
-import org.cgsuite.lang2.{CompileContext, StatementSequenceNode}
+import org.cgsuite.lang2.{CgscriptClass, CompileContext, ElaborationDomain2, StatementSequenceNode}
+import org.slf4j.LoggerFactory
 
 import scala.reflect.internal.util.BatchSourceFile
 import scala.reflect.runtime.universe
@@ -23,8 +25,12 @@ object Experiment {
   }
 
   def testCC(str: String) = {
+    LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.DEBUG)
+    CgscriptClass.Object.ensureLoaded()
     val tree = ParserUtil.parseScript(str)
     val node = StatementSequenceNode(tree.getChild(0))
+    node.elaborate2(new ElaborationDomain2(None))
+    println(node.elaboratedType)
     val code = node.toScalaCode(new CompileContext())
     println(code)
     evaluate(code)

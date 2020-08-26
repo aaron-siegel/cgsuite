@@ -83,6 +83,7 @@ tokens
     MAPOF       = 'mapof';
     MUTABLE     = 'mutable';
     NEG         = 'neg';
+    NIM         = 'nim';
     NOT         = 'not';
     OP          = 'op';
     OR          = 'or';
@@ -332,7 +333,7 @@ modifiers
 
 opCode
 options { greedy = true; }
-    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND | NEG | POS
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND | NEG | POS | NIM
     | standardRelationalToken
     | (LBRACKET RBRACKET ASSIGN) => LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]

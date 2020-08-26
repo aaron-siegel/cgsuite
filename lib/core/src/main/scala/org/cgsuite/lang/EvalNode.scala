@@ -242,6 +242,9 @@ object IdentifierNode {
           case AST => "$times"
           case FSLASH => "$div"
           case PERCENT => "$percent"
+          case NEG => "$unary_-"
+          case POS => "$unary_+"
+          case NIM => "toNimber"
           case _ => sys.error("TODO: The rest of these.")
         }
       } else {

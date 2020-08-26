@@ -45,8 +45,17 @@ object CgscriptClass {
   val Class = CgscriptPackage.lookupClassByName("Class").get
   val Enum = CgscriptPackage.lookupClassByName("Enum").get
   val Game = CgscriptPackage.lookupClassByName("Game").get
+  val SidedValue = CgscriptPackage.lookupClassByName("SidedValue").get
+  val CanonicalStopper = CgscriptPackage.lookupClassByName("CanonicalStopper").get
+  val CanonicalShortGame = CgscriptPackage.lookupClassByName("CanonicalShortGame").get
   val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
+  val Integer = CgscriptPackage.lookupClassByName("Integer").get
+  val Nimber = CgscriptPackage.lookupClassByName("Nimber").get
+  val Zero = CgscriptPackage.lookupClassByName("Zero").get
+  val ExplicitGame = CgscriptPackage.lookupClassByName("ExplicitGame").get
   val List = CgscriptPackage.lookupClassByName("List").get
+  val String = CgscriptPackage.lookupClassByName("String").get
+  val Boolean = CgscriptPackage.lookupClassByName("Boolean").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
 
@@ -104,7 +113,7 @@ object CgscriptClass {
     val classdef: CgscriptClassDef = {
       explicitDefinition match {
         case Some(text) => ExplicitClassDef(text)
-        case None => UrlClassDef(CgscriptClasspath.systemDir, getClass.getResource(s"resources/$path.cgs"))
+        case None => UrlClassDef(CgscriptClasspath.systemDir, org.cgsuite.lang.CgscriptClasspath.getClass.getResource(s"resources/$path.cgs"))
       }
     }
     val components = name.split("\\.").toSeq
@@ -296,9 +305,16 @@ class CgscriptClass(
       case LifecycleStage.New | LifecycleStage.Declared | LifecycleStage.Elaborated | LifecycleStage.Unloaded =>
         enclosingClass match {
           case Some(cls) => cls.ensureLoaded()    // TODO What if no longer exists?
-          case _ => //load()
+          case _ =>
+            ensureDeclared()
+            load()
         }
+      case _ =>
     }
+  }
+
+  private def load(): Unit = {
+
   }
 
   private def declare() {

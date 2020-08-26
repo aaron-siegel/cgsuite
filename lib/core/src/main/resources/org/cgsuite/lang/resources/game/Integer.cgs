@@ -15,6 +15,10 @@
   */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 
+  external def op pos as Integer;
+
+  external def op neg as Integer;
+
   external def op+(that as Integer) as Integer;
 
   external def op-(that as Integer) as Integer;
@@ -22,6 +26,8 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
   external def op*(that as Integer) as Integer;
 
   external def op/(that as Rational) as Rational;
+
+  external def op nim as Nimber;
 
   /** The integer quotient of this [[Integer]] and `that`.
     * Unlike `a/b`, which will be a noninteger unless `b` divides `a`,

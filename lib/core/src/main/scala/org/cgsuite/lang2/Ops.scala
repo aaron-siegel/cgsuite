@@ -222,6 +222,8 @@ trait UnOp {
 
   def name: String
 
+  def id: Symbol = Symbol(name)
+
   def precedence: Int
 
   def toScalaCode: String => String = ???
@@ -285,6 +287,8 @@ class CachingUnOp(val name: String, val precedence: Int,
 trait BinOp {
 
   def name: String
+
+  def id = Symbol(name)
 
   def precedence: Int
 

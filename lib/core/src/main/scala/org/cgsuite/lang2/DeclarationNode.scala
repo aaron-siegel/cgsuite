@@ -20,7 +20,7 @@ object DeclarationNode {
           IdentifierNode(tree.children(1)),
           Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC),
           tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) },
-          tree.children find { _.getType == AS } map { node => IdentifierNode(node.children(1)) },
+          tree.children find { _.getType == AS } map { asTree => IdentifierNode(asTree.children.head) },
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
