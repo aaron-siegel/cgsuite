@@ -177,12 +177,19 @@ trait EvalNode extends Node {
 
   def children: Iterable[EvalNode]
 
-  var elaboratedType: CgscriptType = _
+  private var elaboratedTypeRef: CgscriptType = _
 
-  def elaborate2(scope: ElaborationDomain2): CgscriptType = {
-    if (elaboratedType == null)
-      elaboratedType = elaborateImpl(scope)
-    elaboratedType
+  def elaboratedType = {
+    if (elaboratedTypeRef == null)
+      throw new RuntimeException("Node has not been elaborated")
+    else
+      elaboratedTypeRef
+  }
+
+  def ensureElaborated(scope: ElaborationDomain2): CgscriptType = {
+    if (elaboratedTypeRef == null)
+      elaboratedTypeRef = elaborateImpl(scope)
+    elaboratedTypeRef
   }
 
   def elaborateImpl(scope: ElaborationDomain2): CgscriptType = ???
@@ -311,7 +318,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
     scope.typeOf(id) match {
-      case Some(typ) => typ
+      case Some(typ) => typ.get
       case _ => throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
     }
   }
@@ -354,7 +361,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
-    val operandType = operand.elaborate2(scope)
+    val operandType = operand.ensureElaborated(scope)
     val opMethod = operandType.baseClass lookupMethod op.id
     opMethod match {
       case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
@@ -388,8 +395,8 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
-    val operand1Type = operand1.elaborate2(scope)
-    val operand2Type = operand2.elaborate2(scope)
+    val operand1Type = operand1.ensureElaborated(scope)
+    val operand2Type = operand2.ensureElaborated(scope)
     val opMethod = operand1Type.baseClass.lookupMethod(op.id)
     opMethod match {
       case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
@@ -541,7 +548,7 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
-    val optionTypes = (lo ++ ro) map { _.elaborate2(scope) }
+    val optionTypes = (lo ++ ro) map { _.ensureElaborated(scope) }
 
     CgscriptType(
       if (optionTypes.isEmpty)
@@ -563,8 +570,6 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
   }
 
   override def toScalaCode(context: CompileContext) = {
-
-    assert(elaboratedType != null)
 
     val loCode = lo map { _.toScalaCode(context) } mkString ", "
     val roCode = ro map { _.toScalaCode(context) } mkString ", "
@@ -1185,12 +1190,12 @@ case class FunctionCallNode(
     // TODO This needs to be improved / rewritten (we could get methods other ways etc)
     // TODO Validate method arguments
 
-    argNodes foreach { _.elaborate2(scope) }
+    argNodes foreach { _.ensureElaborated(scope) }
 
     callSiteNode match {
       case dotNode: DotNode =>
         // Method call
-        val objectType = dotNode.obj.elaborate2(scope)
+        val objectType = dotNode.obj.ensureElaborated(scope)
         val objectMethod = objectType.baseClass.lookupMethod(dotNode.idNode.id)
         objectMethod match {
           case Some(method) if !method.autoinvoke => method.explicitReturnType.get
@@ -1373,7 +1378,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
     scope.pushScope()
-    statements foreach { _.elaborate2(scope) }
+    statements foreach { _.ensureElaborated(scope) }
     scope.popScope()
     statements.lastOption match {
       case Some(node) => node.elaboratedType

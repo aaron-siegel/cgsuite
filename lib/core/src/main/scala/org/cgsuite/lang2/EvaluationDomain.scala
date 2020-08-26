@@ -140,8 +140,14 @@ class ElaborationDomain2 (
       (cls exists { _.classInfo.allMembersInScope contains id })
   }
 
-  def typeOf(id: Symbol): Option[CgscriptType] = {
-    (scopeStack flatMap { _ lookup id }).head
+  def typeOf(id: Symbol): Option[Option[CgscriptType]] = {
+    (scopeStack flatMap { _ lookup id }).headOption orElse
+      (cls flatMap { _ lookupMember id } map { member => Some(member.resultType) })
+  }
+
+  def insertId(id: Symbol, typ: CgscriptType): Unit = {
+    assert(scopeStack.nonEmpty)
+    scopeStack.head.insertId(id, typ)
   }
 
 }
@@ -157,6 +163,10 @@ private[lang2] class ElaborationScope {
   }
 
   def lookup(id: Symbol): Option[Option[CgscriptType]] = declaredVars get id
+
+  def insertId(id: Symbol, typ: CgscriptType): Unit = {
+    declaredVars(id) = Some(typ)
+  }
 
 }
 

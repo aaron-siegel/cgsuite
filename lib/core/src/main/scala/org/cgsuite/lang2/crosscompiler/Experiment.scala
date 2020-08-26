@@ -29,7 +29,7 @@ object Experiment {
     CgscriptClass.Object.ensureLoaded()
     val tree = ParserUtil.parseScript(str)
     val node = StatementSequenceNode(tree.getChild(0))
-    node.elaborate2(new ElaborationDomain2(None))
+    node.ensureElaborated(new ElaborationDomain2(None))
     println(node.elaboratedType)
     val code = node.toScalaCode(new CompileContext())
     println(code)

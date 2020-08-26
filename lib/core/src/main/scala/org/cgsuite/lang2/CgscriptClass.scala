@@ -181,6 +181,8 @@ class CgscriptClass(
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
 
+  override def elaborate(domain: ElaborationDomain2) = ???
+
   val isPackageObject = id == 'constants
 
   private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
@@ -867,22 +869,24 @@ class CgscriptClass(
 
     val staticVars: Seq[CgscriptClass#Var] = staticInitializers collect {
       case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers)
+        Var(declNode.idNode, Some(declNode), declNode.modifiers, None, Some(declNode.body.children(1)))   // TODO: Explicit result type
     }
     val staticVarLookup: Map[Symbol, CgscriptClass#Var] = staticVars map { v => (v.id, v) } toMap
 
     val enumElements: Seq[CgscriptClass#Var] = enumElementNodes map { node =>
-      Var(node.idNode, Some(node), node.modifiers)
+      Var(node.idNode, Some(node), node.modifiers, Some(CgscriptType(thisClass)), None)
     }
 
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
-      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Some(declNode), Modifiers.none, isConstructorParam = true) }
+      case Some(ctor) => ctor.parameters map { param =>
+        Var(param.idNode, Some(declNode), Modifiers.none, Some(CgscriptType(param.paramType)), None, isConstructorParam = true)
+      }
       case None => Seq.empty
     }
     val localClassVars = initializers collect {
       case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers)
+        Var(declNode.idNode, Some(declNode), declNode.modifiers, None, Some(declNode.body.children(1)))   // TODO: Explicit result type
     }
     val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
     val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
@@ -934,11 +938,29 @@ class CgscriptClass(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
     modifiers: Modifiers,
+    explicitResultType: Option[CgscriptType],
+    initializerNode: Option[EvalNode],
     isConstructorParam: Boolean = false
   ) extends Member {
 
     def declaringClass = thisClass
+
     def isMutable = modifiers.hasMutable
+
+    override def elaborate(domain: ElaborationDomain2) = {
+
+      // TODO: Detect discrepancy between explicit result type and initializer type
+
+      explicitResultType match {
+        case Some(explicitType) => explicitType
+        case None =>
+          initializerNode match {
+            case Some(node) => node.ensureElaborated(domain)
+            case None => throw EvalException("Class member with no initializer")    // TODO Improve all this
+          }
+      }
+
+    }
 
   }
 
@@ -961,6 +983,7 @@ class CgscriptClass(
 
     var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
 
+    /*
     def elaborate(): Unit = {
       logger.debug(s"$logPrefix Elaborating method: $qualifiedName")
       val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
@@ -976,7 +999,7 @@ class CgscriptClass(
       assert(args.isEmpty || parameters.nonEmpty, qualifiedName)
       CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
     }
-
+    */
   }
 
   case class UserMethod(
@@ -990,9 +1013,19 @@ class CgscriptClass(
     body: StatementSequenceNode
   ) extends Method {
 
-    private val invokeUserMethod = Symbol(s"InvokeUserMethod [$qualifiedName]")
-    private var localVariableCount: Int = 0
+    override def elaborate(domain: ElaborationDomain2): CgscriptType = {
 
+      domain.pushScope()
+      parameters foreach { parameter =>
+        domain.insertId(parameter.id, CgscriptType(parameter.paramType))
+      }
+      val typ = body.ensureElaborated(domain)
+      domain.popScope()
+      typ
+
+    }
+
+    /*
     override def elaborate(): Unit = {
       val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
@@ -1001,7 +1034,7 @@ class CgscriptClass(
       }
       body.elaborate(scope)
       localVariableCount = scope.localVariableCount
-    }
+    }*/
 
   }
 
@@ -1013,18 +1046,16 @@ class CgscriptClass(
     autoinvoke: Boolean,
     isStatic: Boolean,
     isOverride: Boolean
-  ) extends Method
+  ) extends Method {
 
-  case class ExplicitMethod(
-    idNode: IdentifierNode,
-    declNode: Option[MemberDeclarationNode],
-    parameters: Seq[Parameter],
-    explicitReturnType: Option[CgscriptType],
-    autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean
-    )
-    (fn: (Any, Any) => Any) extends Method
+    override def elaborate(domain: ElaborationDomain2) = {
+      explicitReturnType match {
+        case Some(typ) => typ
+        case _ => throw EvalException(s"`system` method is missing result type: `$qualifiedName`")
+      }
+    }
+
+  }
 
   trait Constructor extends Method with CallSite {
 
@@ -1038,6 +1069,8 @@ class CgscriptClass(
 
     override def referenceToken = Some(idNode.token)
 
+    override def elaborate(domain: ElaborationDomain2) = CgscriptType(thisClass)
+
     override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
   }
@@ -1045,47 +1078,12 @@ class CgscriptClass(
   case class UserConstructor(
     idNode: IdentifierNode,
     parameters: Seq[Parameter]
-  ) extends Constructor {
-
-    private val invokeUserConstructor = Symbol(s"InvokeUserConstructor [$qualifiedName]")
-
-    lazy val instantiator: (Array[Any], Any) => StandardObject = {
-      if (ancestors.contains(ImpartialGame)) {
-        (args: Array[Any], enclosingObject: Any) => new ImpartialGameObject(thisClass, args, enclosingObject)
-      } else if (ancestors.contains(Game)) {
-        (args: Array[Any], enclosingObject: Any) => new GameObject(thisClass, args, enclosingObject)
-      } else if (ancestors.contains(HeapRuleset)) {
-        (args: Array[Any], enclosingObject: Any) => new HeapRulesetObject(thisClass, args, enclosingObject)
-      } else {
-        (args: Array[Any], enclosingObject: Any) => new StandardObject(thisClass, args, enclosingObject)
-      }
-    }
-
-    def call(args: Array[Any]): Any = call(args, null)
-
-    def call(args: Array[Any], enclosingObject: Any): Any = {
-      // TODO Superconstructor
-      Profiler.start(invokeUserConstructor)
-      try {
-        validateArguments(args, ensureImmutable = !isMutable)
-        instantiator(args, enclosingObject)
-      } finally {
-        Profiler.stop(invokeUserConstructor)
-      }
-    }
-
-  }
+  ) extends Constructor
 
   case class SystemConstructor(
     idNode: IdentifierNode,
     parameters: Seq[Parameter]
   ) extends Constructor
-
-  case class ExplicitConstructor(
-    idNode: IdentifierNode,
-    parameters: Seq[Parameter]
-    )
-    (fn: (Any, Any) => Any) extends Constructor
 
 }
 
@@ -1095,10 +1093,29 @@ case class ExplicitClassDef(text: String) extends CgscriptClassDef
 case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
 
 trait Member {
+
   def declaringClass: CgscriptClass
   def declNode: Option[MemberDeclarationNode]
   def idNode: IdentifierNode
   def id = idNode.id
+
+  private var elaboratedResultTypeRef: CgscriptType = _
+
+  def resultType = {
+    if (elaboratedResultTypeRef == null)
+      throw new RuntimeException("Member has not been elaborated")
+    else
+      elaboratedResultTypeRef
+  }
+
+  def ensureElaborated(domain: ElaborationDomain2): CgscriptType = {
+    if (elaboratedResultTypeRef == null)
+      elaboratedResultTypeRef = elaborate(domain)
+    elaboratedResultTypeRef
+  }
+
+  def elaborate(domain: ElaborationDomain2): CgscriptType
+
 }
 
 case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode], isExpandable: Boolean) {

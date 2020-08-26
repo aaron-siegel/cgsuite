@@ -25,7 +25,6 @@ case class InstanceClass(enclosingObject: Any, cls: CgscriptClass) extends CallS
   }
   def parameters = ctor.parameters
   def ordinal = ctor.ordinal
-  def call(args: Array[Any]): Any = ctor.call(args, enclosingObject)
   def referenceToken = Some(cls.classInfo.idNode.token)
   def locationMessage = s"in call to `${cls.qualifiedName}` constructor"
   def nestedClass = ??? //cls.classObject
