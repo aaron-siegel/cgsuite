@@ -53,7 +53,9 @@ object CgscriptClass {
   val Nimber = CgscriptPackage.lookupClassByName("Nimber").get
   val Zero = CgscriptPackage.lookupClassByName("Zero").get
   val ExplicitGame = CgscriptPackage.lookupClassByName("ExplicitGame").get
+  val Collection = CgscriptPackage.lookupClassByName("Collection").get
   val List = CgscriptPackage.lookupClassByName("List").get
+  val Set = CgscriptPackage.lookupClassByName("Set").get
   val String = CgscriptPackage.lookupClassByName("String").get
   val Boolean = CgscriptPackage.lookupClassByName("Boolean").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
@@ -223,7 +225,7 @@ class CgscriptClass(
 
   def constructor = classInfo.constructor
 
-  def evalMethodOpt = lookupMethod('Eval)
+  def evalMethodOpt = lookupMethods('Eval).headOption   // TODO What if there's more than one Eval method
 
   def ancestors = classInfo.ancestors
 
@@ -271,9 +273,30 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
-  def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
+  def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
     ensureDeclared()
-    classInfo.allMethodsInScope.get(id)
+    classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
+  }
+
+  def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
+    val allMethods = lookupMethods(id)
+    val argumentTypeList = CgscriptTypeList(argumentTypes)
+    val matchingMethods = allMethods filter { method =>
+      argumentTypeList <= method.parameterTypeList
+    }
+    val reducedMatchingMethods = reduceMethodList(matchingMethods)
+    if (reducedMatchingMethods.size >= 2) {
+      sys.error("need a useful error msg here") // TODO
+    }
+    reducedMatchingMethods.headOption
+  }
+
+  def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {
+    methods filterNot { method =>
+      methods exists { other =>
+        method != other && other.parameterTypeList <= method.parameterTypeList
+      }
+    }
   }
 
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
@@ -286,11 +309,12 @@ class CgscriptClass(
     classInfo.classVarLookup.get(id)
   }
 
+  /*
   def lookupMember(id: Symbol): Option[Member] = {
     ensureDeclared()
     lookupMethod(id) orElse lookupNestedClass(id) orElse lookupVar(id)
   }
-
+  */
   def ensureDeclared(): Unit = {
     stage match {
       case LifecycleStage.New | LifecycleStage.Unloaded =>
@@ -460,9 +484,12 @@ class CgscriptClass(
 
         // Check for duplicate methods.
 
+        /*
         localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
           throw EvalException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
         }
+        */
+        /*
 
         val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
         val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
@@ -499,10 +526,11 @@ class CgscriptClass(
         val renamedSuperMembers = resolvedSuperMembers map { case (superId, superMember) =>
           (Symbol("super$" + superId.name), superMember)
         }
-
+        */
         // override modifier validation.
         // TODO for Nested classes too!
 
+        /*
         localMethods foreach { case (methodId, method) =>
           if (method.isOverride) {
             if (!superMethods.exists { case (superId, _) => superId == methodId }) {
@@ -522,7 +550,7 @@ class CgscriptClass(
             }
           }
         }
-
+        */
         /*
         if (systemClass.isDefined) {
           resolvedSuperMembers foreach {
@@ -543,12 +571,21 @@ class CgscriptClass(
         }
         */
 
-        val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
-        val (allMethods, allNestedClasses) = allMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
+        //val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
+        //val (allMethods, allNestedClasses) = localMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
+
+        // TODO Handle overrides & inheritance conflicts
+
+        val inheritedMethods = supers flatMap { _.classInfo.methods.values.flatten }
+
+        val allMethods = localMethods ++ inheritedMethods
+
+        val groupedMethods: Map[Symbol, Vector[CgscriptClass#Method]] =
+          allMethods groupBy { _.id } mapValues { methods => checkOverrides(methods.toVector) }
 
         ( supers,
-          allNestedClasses mapValues { _.asInstanceOf[CgscriptClass] },
-          allMethods mapValues { _.asInstanceOf[CgscriptClass#Method] },
+          localNestedClasses,
+          groupedMethods,
           constructor
         )
 
@@ -556,7 +593,12 @@ class CgscriptClass(
 
         // We're loading Object right now!
         val localMethods = node.methodDeclarations map { parseMethod (_, node.modifiers) }
-        (Seq.empty[CgscriptClass], Map.empty[Symbol, CgscriptClass], localMethods.toMap, None)
+        val groupedMethods = localMethods groupBy { _.id } mapValues  { _.toVector }
+        ( Seq.empty[CgscriptClass],
+          Map.empty[Symbol, CgscriptClass],
+          groupedMethods,
+          None
+        )
 
       }
 
@@ -582,6 +624,27 @@ class CgscriptClass(
     logger debug s"$logPrefix Done declaring class."
 
     stage = LifecycleStage.Declared
+
+  }
+
+  private def checkOverrides(methods: Vector[CgscriptClass#Method]): Vector[CgscriptClass#Method] = {
+
+    val groupedBySignature = methods groupBy { _.parameterTypeList }
+
+    val resolved = groupedBySignature map { case (signature, matchingMethods) =>
+
+      if (matchingMethods.size == 1) {
+        // TODO Check no "override" keyword
+      } else {
+        // TODO Check "override" keyword
+        // TODO Check that method is *locally* defined (if not, it's a conflict)
+      }
+
+      matchingMethods.head
+
+    }
+
+    resolved.toVector
 
   }
 
@@ -798,13 +861,13 @@ class CgscriptClass(
 
   }
 */
-  private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): (Symbol, Method) = {
+  private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
 
     val name = node.idNode.id.name
 
     val (autoinvoke, parameters) = node.parameters match {
       case Some(n) => (false, n.toParameters)
-      case None => (true, Seq.empty)
+      case None => (true, Vector.empty)
     }
 
     val explicitReturnType = node.returnType map { idNode =>
@@ -845,7 +908,7 @@ class CgscriptClass(
       }
     }
 
-    node.idNode.id -> newMethod
+    newMethod
 
   }
 
@@ -857,7 +920,7 @@ class CgscriptClass(
     val modifiers: Modifiers,
     val supers: Seq[CgscriptClass],
     val nestedClasses: Map[Symbol, CgscriptClass],
-    val methods: Map[Symbol, CgscriptClass#Method],
+    val methods: Map[Symbol, Vector[CgscriptClass#Method]],
     val constructor: Option[CgscriptClass#Constructor],
     val initializers: Seq[InitializerNode],
     val staticInitializers: Seq[InitializerNode],
@@ -880,7 +943,7 @@ class CgscriptClass(
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
       case Some(ctor) => ctor.parameters map { param =>
-        Var(param.idNode, Some(declNode), Modifiers.none, Some(CgscriptType(param.paramType)), None, isConstructorParam = true)
+        Var(param.idNode, Some(declNode), Modifiers.none, Some(param.paramType), None, isConstructorParam = true)
       }
       case None => Seq.empty
     }
@@ -902,19 +965,20 @@ class CgscriptClass(
     lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
     }
-    val allMethodsInScope: Map[Symbol, CgscriptClass#Method] = {
+    val allMethodsInScope: Map[Symbol, Vector[CgscriptClass#Method]] = {
       (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
     }
     val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
       (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
     }
+    /*
     lazy val allMembersInScope: Map[Symbol, Member] = {
       classVarLookup ++ allMethodsInScope ++ allNestedClassesInScope
     }
     lazy val allNonSuperMembersInScope: Map[Symbol, Member] = {
       allMembersInScope filterNot { case (symbol, _) => symbol.name startsWith "super$" }
     }
-
+    */
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
     lazy val evalMethod = lookupMethodOrEvalException('Eval)
     lazy val optionsMethod = lookupMethodOrEvalException('Options)
@@ -927,7 +991,8 @@ class CgscriptClass(
     lazy val heapOptionsMethod = lookupMethodOrEvalException('HeapOptions)
 
     private def lookupMethodOrEvalException(id: Symbol): CgscriptClass#Method = {
-      lookupMethod(id) getOrElse {
+      // TODO What if there's more than one?
+      lookupMethods(id).headOption getOrElse {
         throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
       }
     }
@@ -967,7 +1032,7 @@ class CgscriptClass(
   trait Method extends Member {
 
     def idNode: IdentifierNode
-    def parameters: Seq[Parameter]
+    def parameters: Vector[Parameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
     def isOverride: Boolean
@@ -980,6 +1045,7 @@ class CgscriptClass(
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
     val locationMessage = s"in call to `$qualifiedName`"
+    val parameterTypeList = CgscriptTypeList(parameters map { _.paramType })
 
     var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
 
@@ -1005,7 +1071,7 @@ class CgscriptClass(
   case class UserMethod(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    parameters: Seq[Parameter],
+    parameters: Vector[Parameter],
     explicitReturnType: Option[CgscriptType],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -1017,7 +1083,7 @@ class CgscriptClass(
 
       domain.pushScope()
       parameters foreach { parameter =>
-        domain.insertId(parameter.id, CgscriptType(parameter.paramType))
+        domain.insertId(parameter.id, parameter.paramType)
       }
       val typ = body.ensureElaborated(domain)
       domain.popScope()
@@ -1041,7 +1107,7 @@ class CgscriptClass(
   case class SystemMethod(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    parameters: Seq[Parameter],
+    parameters: Vector[Parameter],
     explicitReturnType: Option[CgscriptType],
     autoinvoke: Boolean,
     isStatic: Boolean,
@@ -1077,12 +1143,12 @@ class CgscriptClass(
 
   case class UserConstructor(
     idNode: IdentifierNode,
-    parameters: Seq[Parameter]
+    parameters: Vector[Parameter]
   ) extends Constructor
 
   case class SystemConstructor(
     idNode: IdentifierNode,
-    parameters: Seq[Parameter]
+    parameters: Vector[Parameter]
   ) extends Constructor
 
 }
@@ -1118,10 +1184,20 @@ trait Member {
 
 }
 
-case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode], isExpandable: Boolean) {
+case class MethodSignature(id: Symbol, paramTypes: Vector[CgscriptType])
+
+case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultValue: Option[EvalNode], isExpandable: Boolean) {
+
   val id = idNode.id
-  val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "") + (if (isExpandable) "..." else "")
+
+  val signature = {
+    val optQuestionMark = if (defaultValue.isDefined) "?" else ""
+    val optEllipsis = if (isExpandable) " ..." else ""
+    s"${id.name} as ${paramType.qualifiedName}$optQuestionMark$optEllipsis"
+  }
+
   var methodScopeIndex = -1
+
 }
 
 object LifecycleStage extends Enumeration {

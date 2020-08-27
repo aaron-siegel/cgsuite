@@ -8,6 +8,14 @@
   */
 system class CanonicalShortGame extends CanonicalStopper
 
+  external def op+(that as CanonicalShortGame) as CanonicalShortGame;
+
+  external def op-(that as CanonicalShortGame) as CanonicalShortGame;
+
+  external def op pos as CanonicalShortGame;
+
+  external def op neg as CanonicalShortGame;
+
   external override def OptionsFor(player as Player);
 
   /** The atomic weight of this game.

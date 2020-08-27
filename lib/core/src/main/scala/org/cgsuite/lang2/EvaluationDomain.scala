@@ -129,20 +129,18 @@ class ElaborationDomain2 (
     scopeStack = scopeStack.tail
   }
 
-  def scopeDepth: Int = scopeStack.size
-
   def isToplevelWorksheet: Boolean = {
-    cls.isEmpty && scopeDepth <= 2   // It's 2 instead of 1 because of the enclosing StatementSequence
+    cls.isEmpty && scopeStack.size == 1
   }
 
   def contains(id: Symbol): Boolean = {
     (scopeStack exists { _ contains id }) ||
-      (cls exists { _.classInfo.allMembersInScope contains id })
+      (cls exists { _.classInfo.classVarLookup contains id })
   }
 
   def typeOf(id: Symbol): Option[Option[CgscriptType]] = {
     (scopeStack flatMap { _ lookup id }).headOption orElse
-      (cls flatMap { _ lookupMember id } map { member => Some(member.resultType) })
+      (cls flatMap { _.classInfo.classVarLookup get id } map { member => Some(member.resultType) })
   }
 
   def insertId(id: Symbol, typ: CgscriptType): Unit = {

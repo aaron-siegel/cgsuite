@@ -129,11 +129,11 @@ object ParametersNode {
   }
 }
 
-case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNodes: Seq[ParameterNode]) extends Node {
+case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNodes: Vector[ParameterNode]) extends Node {
 
   override val children = parameterNodes
 
-  def toParameters: Seq[Parameter] = {
+  def toParameters: Vector[Parameter] = {
 
     parameterNodes.map { n =>
       val ttype = n.classId match {
@@ -142,7 +142,7 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
           throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
         }
       }
-      Parameter(n.id, ttype, n.defaultValue, n.isExpandable)
+      Parameter(n.id, CgscriptType(ttype), n.defaultValue, n.isExpandable)
     }
 
   }

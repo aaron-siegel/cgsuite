@@ -81,7 +81,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       cls.lookupNestedClass(id)
     }
   }
-  val method = {
+  val method: Option[CgscriptClass#Method] = ??? /*{
     if (static) {
       // This is a little more complicated since we also need to look up common
       // static methods, i.e., methods of class Class.
@@ -93,7 +93,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       // In the instance case we can just do a straight lookup.
       cls.lookupMethod(id)
     }
-  }
+  }*/
 
   assert(classScopeIndex == -1 || method.isEmpty)
 

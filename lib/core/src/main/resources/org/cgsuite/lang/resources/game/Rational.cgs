@@ -2,13 +2,32 @@
 
 system class Rational extends SurrealNumber
 
+  external def op+(that as Rational) as Rational;
+
+  external def op-(that as Rational) as Rational;
+
+  external def op*(that as Rational) as Rational;
+
+  external def op/(that as Rational) as Rational;
+
+  external def op^(that as Integer) as Rational;
+
+  external def op%(that as Rational) as Rational;
+
+  external def op pos as Rational;
+
+  external def op neg as Rational;
+
   override external def ToOutput;
 
-  override external def Birthday;
-  external def Ceiling;
-  external def Floor;
-  external def IsDyadic;
-  external def Max(that as Rational);
-  external def Min(that as Rational);
+  external def Ceiling as Integer;
+
+  external def Floor as Integer;
+
+  external def IsDyadic as Boolean;
+
+  external def Max(that as Rational) as Rational;
+
+  external def Min(that as Rational) as Rational;
 
 end

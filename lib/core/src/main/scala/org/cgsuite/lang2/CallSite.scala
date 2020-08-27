@@ -66,7 +66,7 @@ object CallSite {
 
 trait CallSite {
 
-  def parameters: Seq[Parameter]
+  def parameters: Vector[Parameter]
   def ordinal: Int
   def referenceToken: Option[Token]
   def locationMessage: String

@@ -2,6 +2,14 @@
 
 system class Uptimal extends CanonicalShortGame
 
+  external def op+(that as Uptimal) as Uptimal;
+
+  external def op-(that as Uptimal) as Uptimal;
+
+  external def op pos as Uptimal;
+
+  external def op neg as Uptimal;
+
   external def UptimalExpansion;
 
 end

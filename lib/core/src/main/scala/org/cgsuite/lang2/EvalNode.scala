@@ -362,7 +362,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
     val operandType = operand.ensureElaborated(scope)
-    val opMethod = operandType.baseClass lookupMethod op.id
+    val opMethod = operandType.baseClass lookupMethod (op.id, Vector.empty)
     opMethod match {
       case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
       case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass}`", tree)
@@ -397,10 +397,11 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
     val operand1Type = operand1.ensureElaborated(scope)
     val operand2Type = operand2.ensureElaborated(scope)
-    val opMethod = operand1Type.baseClass.lookupMethod(op.id)
+    val opMethod = operand1Type.baseClass.lookupMethod(op.id, Vector(operand2Type))
+
     opMethod match {
       case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
-      case _ => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass}`, `${operand2Type.baseClass}`", tree)
+      case None => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass}`, `${operand2Type.baseClass}`", tree)
     }
 
   }
@@ -838,6 +839,55 @@ case class LoopNode(
     }
   }
 
+  override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
+
+    val inType = in map { _.ensureElaborated(domain) }
+    val fromType = from map { _.ensureElaborated(domain) }
+    val toType = to map { _.ensureElaborated(domain) }
+    val byType = by map { _.ensureElaborated(domain) }
+
+    inType foreach { typ =>
+      if (!(typ <= CgscriptType(CgscriptClass.Collection)))
+        sys.error("Need error msg for when in is not a collection")   // TODO
+    }
+
+    forId match {
+
+      case Some(idNode) =>
+        assert(fromType.isDefined || inType.isDefined)    // Guaranteed by parser
+        val forIdType = fromType getOrElse inType.get.typeParameters.head
+        domain.pushScope()
+        domain.insertId(idNode.id, forIdType)
+
+      case None =>
+
+    }
+
+    val whileType = `while` map { _.ensureElaborated(domain) }
+    val whereType = where map { _.ensureElaborated(domain) }
+
+    // TODO Validate where/while as Boolean
+
+    val bodyType = body.ensureElaborated(domain)
+
+    forId match {
+
+      case Some(idNode) =>
+        domain.popScope()
+
+      case None =>
+
+    }
+
+    loopType match {
+      case LoopNode.Do => CgscriptType(CgscriptClass.NothingClass)
+      case LoopNode.YieldList => CgscriptType(CgscriptClass.List, Vector(bodyType))
+      case LoopNode.YieldSet => CgscriptType(CgscriptClass.Set, Vector(bodyType))
+      // TODO Others
+    }
+
+  }
+
   override def toScalaCode(context: CompileContext): String = toScalaCode(context, None)
 
   def toScalaCode(context: CompileContext, pushdownYieldVar: Option[String]): String = {
@@ -1076,7 +1126,7 @@ object ProcedureNode {
   }
 }
 
-case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode) extends EvalNode {
+case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
   override def elaborate(scope: ElaborationDomain): Unit = {
     val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
@@ -1130,6 +1180,22 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
   var constantResolution: Resolution = _
   val externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
 
+  override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
+
+    val objectType = obj.ensureElaborated(domain)
+    val objectMethod = objectType.baseClass.lookupMethod(idNode.id, Vector.empty)
+    objectMethod match {
+      case Some(method) if method.autoinvoke => method.ensureElaborated(domain)
+      case None =>
+        val objectVar = objectType.baseClass.lookupVar(idNode.id)
+        objectVar match {
+          case Some(variable) => variable.ensureElaborated(domain)
+          case None => sys.error("need error msg here")
+        }
+    }
+
+  }
+
   override def toScalaCode(context: CompileContext) = {
 
     val objStr = obj.toScalaCode(context)
@@ -1160,7 +1226,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 object InfixOpNode {
   def apply(tree: Tree): FunctionCallNode = {
     val callSiteNode = DotNode(tree, EvalNode(tree.children.head), IdentifierNode(tree))
-    FunctionCallNode(tree, callSiteNode, IndexedSeq(EvalNode(tree.children(1))), IndexedSeq(None))
+    FunctionCallNode(tree, callSiteNode, Vector(EvalNode(tree.children(1))), Vector(None))
   }
 }
 
@@ -1174,31 +1240,30 @@ object FunctionCallNode {
       }
     }
     val (args, argNames) = argsWithNames.unzip
-    FunctionCallNode(tree, callSite, args.toIndexedSeq, argNames.toIndexedSeq)
+    FunctionCallNode(tree, callSite, args.toVector, argNames.toVector)
   }
 }
 
 case class FunctionCallNode(
   tree: Tree,
   callSiteNode: EvalNode,
-  argNodes: IndexedSeq[EvalNode],
-  argNames: IndexedSeq[Option[IdentifierNode]]
+  argNodes: Vector[EvalNode],
+  argNames: Vector[Option[IdentifierNode]]
   ) extends EvalNode {
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
     // TODO This needs to be improved / rewritten (we could get methods other ways etc)
-    // TODO Validate method arguments
 
-    argNodes foreach { _.ensureElaborated(scope) }
+    val argTypes = argNodes map { _.ensureElaborated(scope) }
 
     callSiteNode match {
       case dotNode: DotNode =>
         // Method call
         val objectType = dotNode.obj.ensureElaborated(scope)
-        val objectMethod = objectType.baseClass.lookupMethod(dotNode.idNode.id)
+        val objectMethod = objectType.baseClass.lookupMethod(dotNode.idNode.id, argTypes)
         objectMethod match {
-          case Some(method) if !method.autoinvoke => method.explicitReturnType.get
+          case Some(method) if !method.autoinvoke => method.explicitReturnType.get    // TODO Elaborate!
           case _ => ???
         }
       case _ => ???
@@ -1232,7 +1297,7 @@ case class FunctionCallNode(
 
   case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
 
-    override def parameters: Seq[Parameter] = Seq.empty
+    override def parameters: Vector[Parameter] = Vector.empty
 
     override def ordinal: Int = -1
 
@@ -1333,6 +1398,35 @@ object VarNode {
 }
 
 case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, declType: AssignmentDeclType.Value) extends EvalNode {
+
+  val varName = idNode.id.name
+
+  override def elaborateImpl(domain: ElaborationDomain2) = {
+
+    val exprType = expr.ensureElaborated(domain)
+
+    // If we're package-external (Worksheet/REPL scope) and scopeStack has size one (we're not
+    // in any nested subscope), then we treat idNode as a dynamic var.
+    if (declType == AssignmentDeclType.VarDecl || domain.isToplevelWorksheet) {
+      domain.insertId(idNode.id, exprType)
+    }
+
+    exprType
+
+  }
+
+  override def toScalaCode(context: CompileContext) = {
+
+    val exprCode = expr.toScalaCode(context)
+    declType match {
+      case AssignmentDeclType.VarDecl | AssignmentDeclType.ClassVarDecl =>
+        s"var $varName = $exprCode; "
+      case AssignmentDeclType.Ordinary =>
+        s"{ $varName = $exprCode; $varName }"
+    }
+
+  }
+
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   // TODO Catch illegal assignment to constant
@@ -1361,15 +1455,15 @@ object AssignmentDeclType extends Enumeration {
 }
 
 object StatementSequenceNode {
-  def apply(tree: Tree): StatementSequenceNode = {
+  def apply(tree: Tree, topLevel: Boolean = false): StatementSequenceNode = {
     // Filter out the semicolons (we only care about the last one)
     val filteredChildren = tree.children filterNot { _.getType == SEMI }
     val suppressOutput = tree.children.isEmpty || tree.children.last.getType == SEMI
-    StatementSequenceNode(tree, filteredChildren map { EvalNode(_) }, suppressOutput)
+    StatementSequenceNode(tree, filteredChildren map { EvalNode(_) }, suppressOutput, topLevel = topLevel)
   }
 }
 
-case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean) extends EvalNode {
+case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean, topLevel: Boolean) extends EvalNode {
 
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
 
@@ -1377,9 +1471,11 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
-    scope.pushScope()
+    if (!topLevel)
+      scope.pushScope()
     statements foreach { _.ensureElaborated(scope) }
-    scope.popScope()
+    if (!topLevel)
+      scope.popScope()
     statements.lastOption match {
       case Some(node) => node.elaboratedType
       case None => CgscriptType(CgscriptClass.NothingClass)
@@ -1389,6 +1485,15 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
 
   override def toScalaCode(context: CompileContext) = {
     statements map { _.toScalaCode(context) } mkString "\n"
+  }
+
+  def toScalaCodeWithVarDecls(context: CompileContext) = {
+    statements map {
+      case assignToNode: AssignToNode =>
+        s"val ${assignToNode.idNode.id.name} = { ${assignToNode.expr.toScalaCode(context)} }"
+      case node =>
+        s"val __result = { ${node.toScalaCode(context)} }"
+    }
   }
 
   override def elaborate(scope: ElaborationDomain): Unit = {
