@@ -242,10 +242,10 @@ object IdentifierNode {
           case AST => "$times"
           case FSLASH => "$div"
           case PERCENT => "$percent"
-          case NEG => "$unary_-"
-          case POS => "$unary_+"
-          case NIM => "toNimber"
-          case _ => sys.error("TODO: The rest of these.")
+          case CARET => "exp"
+          case UNARY => "unary"
+          case AMPERSAND => "$amp"
+          case _ => sys.error(s"TODO: The rest of these: ${tree.getChild(0).token.getText}")
         }
       } else {
         tree.getText

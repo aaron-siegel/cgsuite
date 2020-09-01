@@ -8,7 +8,7 @@ package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.ArithmeticException
+import org.cgsuite.exception.{ArithmeticException, EvalException}
 
 object Integer {
   
@@ -124,15 +124,19 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   override def birthday: Integer = abs
 
-  override def pow(n: Integer): RationalNumber = super[DyadicRationalNumber].pow(n)
-
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
 
   def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
 
-  def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
-
   override def followerCount: Integer = abs + Values.one
+
+  private[core] def intExp(other: Integer): Integer = {
+    assert(other >= zero)
+    if (other.isSmallInteger)
+      Integer(bigIntValue.pow(other.intValue))
+    else
+      throw new EvalException("Overflow.")
+  }
 
   override def isEven = !bigIntValue.testBit(0)
 
@@ -239,7 +243,14 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   override def toOutput = super[DyadicRationalNumber].toOutput
 
+  // TODO There should be overflow validation here
+  // TODO Expressions like ^(*3) parse, but shouldn't
+
   def toNimber = Nimber(this)
+
+  def toUp = Uptimal(zero, intValue, 0)
+
+  def toDown = Uptimal(zero, -intValue, 0)
   
 }
 

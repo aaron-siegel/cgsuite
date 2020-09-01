@@ -206,6 +206,8 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def isIdempotent = isZero      // 0 is the only loopfree idempotent
 
+  override def isInfinitesimal = leftStop == Values.zero && rightStop == Values.zero
+
   override def isInteger: Boolean = ops.isInteger(gameId)
 
   override def isLoopfree = true
@@ -288,6 +290,8 @@ trait CanonicalShortGame extends CanonicalStopper {
   override def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
 
   def stopCount: Integer = Integer(ops.stopCount(gameId))
+
+  def switch: CanonicalShortGame = CanonicalShortGame(this)(-this)
 
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 

@@ -21,15 +21,25 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
 
   external def op*(that as Integer) as Integer;
 
+  external def op*(that as CanonicalShortGame) as CanonicalShortGame;
+
+  external def op*(that as CanonicalStopper) as CanonicalStopper;
+
+  external def op*(that as SidedValue) as SidedValue;
+
   external def op^(that as Integer) as Rational;
 
   external def op%(that as Integer) as Integer;
 
-  external override def op pos as Integer;
+  external override def op unary+ as Integer;
 
-  external override def op neg as Integer;
+  external override def op unary- as Integer;
 
-  external override def op nim as Nimber;
+  external def op unary* as Nimber;
+
+  external def op unary^ as Uptimal;
+
+  external def op unary v as Uptimal;
 
   external def Max(that as Integer) as Integer;
 

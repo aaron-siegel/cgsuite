@@ -96,7 +96,7 @@ object Repl {
     if (str == "")
       return
 
-    CgscriptClass.Object.ensureLoaded()
+    CgscriptClass.Object.ensureDeclared()
 
     val start = JSystem.nanoTime
     try {

@@ -19,6 +19,12 @@ case class CgscriptType(baseClass: CgscriptClass, typeParameters: Vector[Cgscrip
 
   }
 
+  def scalaTypeName = {
+    val baseName = baseClass.scalaClassname
+    // TODO This is a temporary hack
+    if (baseName endsWith "Set") baseName + "[Any]" else baseName
+  }
+
   def <=(that: CgscriptType): Boolean = {
     baseClass.ancestors contains (that.baseClass)
   }

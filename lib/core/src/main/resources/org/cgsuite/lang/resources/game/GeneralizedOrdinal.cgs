@@ -2,8 +2,8 @@
 
 system class GeneralizedOrdinal extends SurrealNumber
 
-  external def OmegaPower;
+  external def OmegaPower as GeneralizedOrdinal;
 
-  override external def ToOutput;
+  override external def ToOutput as String;
 
 end

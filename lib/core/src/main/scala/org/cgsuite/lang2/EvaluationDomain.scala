@@ -118,6 +118,7 @@ class ElaborationDomain2 (
 {
 
   private var scopeStack = List.empty[ElaborationScope]
+  private var elaborationCallStack = List.empty[Member]
 
   pushScope()
 
@@ -146,6 +147,16 @@ class ElaborationDomain2 (
   def insertId(id: Symbol, typ: CgscriptType): Unit = {
     assert(scopeStack.nonEmpty)
     scopeStack.head.insertId(id, typ)
+  }
+
+  def pushMember(member: Member): Unit = {
+    if (elaborationCallStack contains member)
+      sys.error("circular reference (needs error msg)")
+    elaborationCallStack = member +: elaborationCallStack
+  }
+
+  def popMember(): Unit = {
+    elaborationCallStack = elaborationCallStack.tail
   }
 
 }

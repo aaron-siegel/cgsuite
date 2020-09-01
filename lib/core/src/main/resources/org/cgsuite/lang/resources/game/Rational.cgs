@@ -14,9 +14,9 @@ system class Rational extends SurrealNumber
 
   external def op%(that as Rational) as Rational;
 
-  external def op pos as Rational;
+  external def op unary+ as Rational;
 
-  external def op neg as Rational;
+  external def op unary- as Rational;
 
   override external def ToOutput;
 

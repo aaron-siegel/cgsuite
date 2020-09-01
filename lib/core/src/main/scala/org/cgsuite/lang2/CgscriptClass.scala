@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.language.{existentials, postfixOps}
+import scala.tools.nsc.interpreter.IMain
 
 object CgscriptClass {
 
@@ -49,10 +50,13 @@ object CgscriptClass {
   val CanonicalStopper = CgscriptPackage.lookupClassByName("CanonicalStopper").get
   val CanonicalShortGame = CgscriptPackage.lookupClassByName("CanonicalShortGame").get
   val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
+  val Rational = CgscriptPackage.lookupClassByName("Rational").get
+  val DyadicRational = CgscriptPackage.lookupClassByName("DyadicRational").get
   val Integer = CgscriptPackage.lookupClassByName("Integer").get
   val Nimber = CgscriptPackage.lookupClassByName("Nimber").get
   val Zero = CgscriptPackage.lookupClassByName("Zero").get
   val ExplicitGame = CgscriptPackage.lookupClassByName("ExplicitGame").get
+  val Coordinates = CgscriptPackage.lookupClassByName("Coordinates").get
   val Collection = CgscriptPackage.lookupClassByName("Collection").get
   val List = CgscriptPackage.lookupClassByName("List").get
   val Set = CgscriptPackage.lookupClassByName("Set").get
@@ -61,7 +65,7 @@ object CgscriptClass {
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
 
-  Object.ensureLoaded()
+  Object.ensureDeclared()
 
   def of(x: Any): CgscriptClass = {
     x match {
@@ -86,7 +90,7 @@ object CgscriptClass {
     MisereCanonicalGameOps.reinit()
     Resolver.clearAll()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
-    Object.ensureLoaded()
+    Object.ensureDeclared()
   }
 
   def instanceToOutput(x: Any): Output = {
@@ -148,6 +152,8 @@ class CgscriptClass(
 
   import CgscriptClass._
 
+  private[cgsuite] def logDebug(message: => String): Unit = logger debug s"$logPrefix $message"
+
   val classOrdinal: Int = newClassOrdinal        // TODO How to handle for nested classes??
 
   val url = classdef match {
@@ -183,6 +189,11 @@ class CgscriptClass(
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
 
+  val scalaClassname: String = systemClass match {
+    case Some(cls) => cls.getName
+    case None => qualifiedName.replace('.', '$')
+  }
+
   override def elaborate(domain: ElaborationDomain2) = ???
 
   val isPackageObject = id == 'constants
@@ -216,6 +227,8 @@ class CgscriptClass(
     ensureDeclared()
     false // TODO
   }
+
+  def isEnum = classDeclarationNode.isEnum
 
   def isMutable = classInfo.modifiers.hasMutable
 
@@ -326,20 +339,159 @@ class CgscriptClass(
     }
   }
 
-  def ensureLoaded(): Unit = {
+  def ensureCompiled(eval: IMain): Unit = {
     stage match {
       case LifecycleStage.New | LifecycleStage.Declared | LifecycleStage.Elaborated | LifecycleStage.Unloaded =>
         enclosingClass match {
-          case Some(cls) => cls.ensureLoaded()    // TODO What if no longer exists?
+          case Some(cls) => cls.ensureCompiled(eval)    // TODO What if no longer exists?
           case _ =>
             ensureDeclared()
-            load()
+            compile(eval)
         }
       case _ =>
     }
   }
 
-  private def load(): Unit = {
+  private def compile(eval: IMain): Unit = {
+
+    if (isSystem)
+      return
+
+    // TODO Nested classes
+
+    val context = new CompileContext
+    val classesCompiling = mutable.HashSet[CgscriptClass]()
+    val sb = new StringBuilder
+
+    appendScalaCode(context, classesCompiling, sb)
+
+    println(sb.toString)
+
+    eval.interpret(sb.toString)
+
+    classesCompiling foreach { compiledClass =>
+      compiledClass.stage = LifecycleStage.Loaded
+    }
+
+  }
+
+  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+
+    if (isSystem)
+      return
+
+    classesCompiling += this
+
+    // Elaborate all members.
+    val domain = new ElaborationDomain2(Some(this))
+    classInfo.constructorParamVars foreach { _.ensureElaborated(domain) }
+    classInfo.allMembers foreach { _.ensureElaborated(domain) }
+
+    logger debug s"$logPrefix Generating compiled code."
+
+    // Generate code.
+    if (isEnum || isSingleton)
+      sb append s"case object $scalaClassname {\n\n"
+    else
+      sb append s"object $scalaClassname {\n\n"
+
+    val companionObjectVars = {
+      if (isEnum || isSingleton)
+        classInfo.localClassVars
+      else
+        classInfo.staticVars
+    }
+
+    companionObjectVars foreach { variable =>
+      sb append s"val ${variable.id.name}: ${variable.resultType.scalaTypeName} = {\n\n"
+      variable.initializerNode foreach { node =>
+        sb append node.toScalaCode(context)
+      }
+      sb append "\n}\n\n"
+    }
+
+    val companionObjectMethods = {
+      if (isEnum || isSingleton)
+        classInfo.localMethods
+      else
+        Vector.empty //classInfo.staticMethods
+    }
+
+    companionObjectMethods foreach { method =>
+
+      sb append s"def ${method.methodName}"
+      if (!method.autoinvoke) {
+        sb append "("
+        sb append (
+          method.parameters map { parameter =>
+            parameter.id.name + ": " + parameter.paramType.scalaTypeName
+          } mkString ", "
+        )
+        sb append ")"
+      }
+      sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
+
+      sb append method.asInstanceOf[UserMethod].body.toScalaCode(context)
+
+      sb append "\n}\n\n"
+
+    }
+
+    sb append "}\n\n"
+
+    if (!(isEnum || isSingleton)) {
+
+      sb append s"case class $scalaClassname("
+      sb append (
+        classInfo.constructorParamVars map { parameter =>
+          parameter.id.name + ": " + parameter.resultType.scalaTypeName
+        } mkString ", "
+      )
+      sb append ")\n"
+      sb append "  extends "
+      sb append (
+        classInfo.supers map { _.scalaClassname } mkString ", "
+      )
+      sb append " {\n\n"
+
+      classInfo.localClassVars foreach { variable =>
+        sb append s"val ${variable.id.name}: ${variable.resultType.scalaTypeName} = {\n\n"
+        variable.initializerNode foreach { node =>
+          sb append node.toScalaCode(context)
+        }
+        sb append "\n}\n\n"
+      }
+
+      classInfo.localMethods foreach { method =>
+
+        sb append s"def ${method.methodName}"
+        if (!method.autoinvoke) {
+          sb append "("
+          sb append (
+            method.parameters map { parameter =>
+              parameter.id.name + ": " + parameter.paramType.scalaTypeName
+            } mkString ", "
+            )
+          sb append ")"
+        }
+        sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
+
+        sb append method.asInstanceOf[UserMethod].body.toScalaCode(context)
+
+        sb append "\n}\n\n"
+
+      }
+
+      sb append "}\n\n"
+
+    }
+
+    // Compile all mentioned classes that have not yet been compiled.
+    val allMentionedClasses = classInfo.supers ++ (classInfo.allMembers flatMap { _.mentionedClasses })
+    allMentionedClasses foreach { mentionedClass =>
+      if (mentionedClass.stage != LifecycleStage.Loaded && !(classesCompiling contains mentionedClass))
+        mentionedClass.appendScalaCode(context, classesCompiling, sb)
+    }
 
   }
 
@@ -425,7 +577,7 @@ class CgscriptClass(
 
     classDeclarationNode = node
 
-    val (supers, nestedClasses, methods, constructor) = {
+    val (supers, nestedClasses, localMethods, methods, constructor) = {
 
       if (Object.isLoaded) { // Hack to bootstrap Object
 
@@ -585,6 +737,7 @@ class CgscriptClass(
 
         ( supers,
           localNestedClasses,
+          localMethods,
           groupedMethods,
           constructor
         )
@@ -596,6 +749,7 @@ class CgscriptClass(
         val groupedMethods = localMethods groupBy { _.id } mapValues  { _.toVector }
         ( Seq.empty[CgscriptClass],
           Map.empty[Symbol, CgscriptClass],
+          localMethods,
           groupedMethods,
           None
         )
@@ -610,6 +764,7 @@ class CgscriptClass(
       node.modifiers,
       supers,
       nestedClasses,
+      localMethods,
       methods,
       constructor,
       node.ordinaryInitializers,
@@ -920,6 +1075,7 @@ class CgscriptClass(
     val modifiers: Modifiers,
     val supers: Seq[CgscriptClass],
     val nestedClasses: Map[Symbol, CgscriptClass],
+    val localMethods: Seq[Method],
     val methods: Map[Symbol, Vector[CgscriptClass#Method]],
     val constructor: Option[CgscriptClass#Constructor],
     val initializers: Seq[InitializerNode],
@@ -971,6 +1127,10 @@ class CgscriptClass(
     val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
       (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
     }
+
+    val allMembers = {
+      (methods flatMap { _._2 }) ++ allClassVars ++ staticVars ++ enumElements
+    }.toVector
     /*
     lazy val allMembersInScope: Map[Symbol, Member] = {
       classVarLookup ++ allMethodsInScope ++ allNestedClassesInScope
@@ -1019,10 +1179,13 @@ class CgscriptClass(
       explicitResultType match {
         case Some(explicitType) => explicitType
         case None =>
-          initializerNode match {
+          domain.pushMember(this)
+          val inferredResultType = initializerNode match {
             case Some(node) => node.ensureElaborated(domain)
             case None => throw EvalException("Class member with no initializer")    // TODO Improve all this
           }
+          domain.popMember()
+          inferredResultType
       }
 
     }
@@ -1091,6 +1254,8 @@ class CgscriptClass(
 
     }
 
+    override def mentionedClasses = body.mentionedClasses
+
     /*
     override def elaborate(): Unit = {
       val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
@@ -1117,7 +1282,7 @@ class CgscriptClass(
     override def elaborate(domain: ElaborationDomain2) = {
       explicitReturnType match {
         case Some(typ) => typ
-        case _ => throw EvalException(s"`system` method is missing result type: `$qualifiedName`")
+        case _ => throw EvalException(s"`external` method is missing result type: `$qualifiedName`")
       }
     }
 
@@ -1164,19 +1329,22 @@ trait Member {
   def declNode: Option[MemberDeclarationNode]
   def idNode: IdentifierNode
   def id = idNode.id
+  def mentionedClasses: Iterable[CgscriptClass] = Iterable.empty
 
   private var elaboratedResultTypeRef: CgscriptType = _
 
   def resultType = {
     if (elaboratedResultTypeRef == null)
-      throw new RuntimeException("Member has not been elaborated")
+      throw new RuntimeException(s"Member has not been elaborated: $this")
     else
       elaboratedResultTypeRef
   }
 
   def ensureElaborated(domain: ElaborationDomain2): CgscriptType = {
-    if (elaboratedResultTypeRef == null)
+    if (elaboratedResultTypeRef == null) {
+      declaringClass logDebug s"Elaborating member: ${id.name}"
       elaboratedResultTypeRef = elaborate(domain)
+    }
     elaboratedResultTypeRef
   }
 

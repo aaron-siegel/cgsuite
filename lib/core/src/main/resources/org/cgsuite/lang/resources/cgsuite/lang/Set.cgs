@@ -2,16 +2,16 @@
 
 system class Set extends Collection
 
-  external def Contains(x);
+  external def Contains(x) as Boolean;
 
-  def Apply(fn as Procedure) := setof(fn(x) for x in this);
+//  def Apply(fn as Procedure) := setof(fn(x) for x in this);
   
-  external def Intersection(that as Set);
+  external def Intersection(that as Set) as Set;
 
-  external def Replaced(replacements as Map);
+  external def Replaced(replacements as Map) as Set;
   
-  external def Union(that as Collection);
+  external def Union(that as Collection) as Set;
 
-  override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
+//  override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 
 end

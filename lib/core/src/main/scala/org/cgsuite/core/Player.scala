@@ -1,5 +1,9 @@
 package org.cgsuite.core
 
+object Player {
+  val Left = org.cgsuite.core.Left
+  val Right = org.cgsuite.core.Right
+}
 
 sealed trait Player {
   def sign: Int

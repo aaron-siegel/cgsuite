@@ -5,11 +5,11 @@ class CoordinateRuleset extends Ruleset
   override def Eval(coord as Coordinates) := Position(coord);
 
   def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must override `CoordinateOptions`.");
-  
+  /*
   def NimValueTable(maxRow as Integer, maxCol as Integer) begin
     tableof(listof(Position((m, n)).NimValue for n from 0 to maxCol) for m from 0 to maxRow)
   end
-  
+  */
   class Position(coord as Coordinates) extends ImpartialGame
 
     def Coord := coord;

@@ -1,5 +1,9 @@
 package org.cgsuite.core
 
+object Side {
+  val Onside = org.cgsuite.core.Onside
+  val Offside = org.cgsuite.core.Offside
+}
 
 sealed trait Side {
   def sign: Int

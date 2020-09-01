@@ -30,19 +30,19 @@ object Ops {
 
   type MultiOp = Iterable[Any] => Any
 
-  val Pos = UnOp("pos", OperatorPrecedence.Neg, Some { "+" + _ }) {
+  val Pos = UnOp("unary+", OperatorPrecedence.Neg, Some { "+" + _ }) {
     case x: Game => +x
     case x: SidedValue => +x
     case x: SurrealNumber => +x
   } { x => s"+$x" }
 
-  val Neg = UnOp("neg", OperatorPrecedence.Neg, Some { "-" + _ }) {
+  val Neg = UnOp("unary-", OperatorPrecedence.Neg, Some { "-" + _ }) {
     case x: Game => -x
     case x: SidedValue => -x
     case x: SurrealNumber => -x
   } { x => s"-$x" }
 
-  val PlusMinus = UnOp("+-", OperatorPrecedence.Neg, Some { "+-" + _ }) {
+  val PlusMinus = UnOp("unary+-", OperatorPrecedence.Neg, Some { "+-" + _ }) {
     case x: CanonicalShortGame => CanonicalShortGame(x)(-x)
     case x: CanonicalStopper => CanonicalStopper(x)(-x)
     case x: Set[_] if x forall { _.isInstanceOf[CanonicalShortGame] } =>
@@ -50,7 +50,7 @@ object Ops {
     case x: Set[_] if x forall { _.isInstanceOf[CanonicalStopper] } =>
       CanonicalStopper(x.asInstanceOf[Set[CanonicalStopper]], x.asInstanceOf[Set[CanonicalStopper]] map { -_ })
     case x: Game => ExplicitGame(x)(-x)
-  } { x => s"$x.op$$plusMinus" }
+  } { x => s"$x.switch" }
 
   val Plus = CachingBinOp("+", OperatorPrecedence.Plus) {
     case (_: Game, _: Zero) => (x: Game, _: Zero) => x
@@ -135,7 +135,7 @@ object Ops {
     case (x: RationalNumber, y: Integer) => x pow y
     case (x: GeneralizedOrdinal, y: GeneralizedOrdinal) if x.isOmega => y.omegaPower
     case (x: SurrealNumber, y: Integer) => x pow y
-  } { (x, y) => s"$x.pow($y)" }
+  } { (x, y) => s"$x.exp($y)" }
 
   val leq: PartialFunction[(Any, Any), Boolean] = {
     case (x: RationalNumber, y: RationalNumber) => x <= y
@@ -183,22 +183,22 @@ object Ops {
     CgscriptClass.of(x).ancestors.contains(y.forClass)
   } { _ + " ??? " + _ }
 
-  val MakeNimber = UnOp("nim", OperatorPrecedence.Nim, Some { "*" + _ }) {
+  val MakeNimber = UnOp("unary*", OperatorPrecedence.Nim, Some { "*" + _ }) {
     case x: SmallInteger => Nimber(x)
     case collection: Iterable[_] => MisereCanonicalGame(collection)
   } { x => s"($x.toNimber)" }
 
-  val MakeUpMultiple = BinOp("up", OperatorPrecedence.Nim, Some { "^" + _ + "*" + _ }) {
-    case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, x.intValue, y.intValue)
-  } { (x, y) => s"org.cgsuite.core.Uptimal(0, $x, $y)" }
+  val MakeUpMultiple = UnOp("unary^", OperatorPrecedence.Nim, Some { "^" + _ }) {
+    case x: SmallInteger => Uptimal(zero, x.intValue, 0)
+  } { x => s"($x.toUp)" }
 
-  val MakeDownMultiple = BinOp("down", OperatorPrecedence.Nim, Some { "v" + _ + "*" + _ }) {
-    case (x: SmallInteger, y: SmallInteger) => Uptimal(zero, -x.intValue, y.intValue)
-  } { (x, y) => s"org.cgsuite.core.Uptimal(0, -$x, $y)" }
+  val MakeDownMultiple = UnOp("unaryv", OperatorPrecedence.Nim, Some { "v" + _ }) {
+    case x: SmallInteger => Uptimal(zero, -x.intValue, 0)
+  } { x => s"($x.toDown)" }
 
   val MakeSides = BinOp("&", OperatorPrecedence.Sidle) {
     case (x: CanonicalStopper, y: CanonicalStopper) => StopperSidedValue(x, y)
-  } { (x, y) => s"org.cgsuite.core.StopperSidedValue($x, $y)" }
+  } { (x, y) => s"($x & $y)" }
 
   val MakeCoordinates = BinOp("(,)", OperatorPrecedence.Primary, Some { "(" + _ + ", " + _ + ")" }) {
     case (x: Integer, y: Integer) => Coordinates(x.intValue, y.intValue)

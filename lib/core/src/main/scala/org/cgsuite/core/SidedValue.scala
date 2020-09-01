@@ -37,6 +37,15 @@ object SidedValue {
     }
   }
 
+  def apply(lo: SidedValue*)(ro: SidedValue*): SidedValue = {
+    // TODO Optimize if arguments are all stoppers?
+    val lOnside = lo map { _.onside }
+    val rOnside = ro map { _.onside }
+    val lOffside = lo map { _.offside }
+    val rOffside = ro map { _.offside }
+    SidedValue(SimplifiedLoopyGame.constructLoopyGame(lOnside, rOnside), SimplifiedLoopyGame.constructLoopyGame(lOffside, rOffside))
+  }
+
   private lazy val zeroAsLoopyGame = new LoopyGame(zero)
 
 }

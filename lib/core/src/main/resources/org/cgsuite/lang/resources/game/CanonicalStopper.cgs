@@ -2,24 +2,42 @@
 
 system class CanonicalStopper extends Game, StopperSidedValue
 
+  external def op&(that as CanonicalStopper) as StopperSidedValue;
+
+  external override def op unary+ as CanonicalStopper;
+
+  external override def op unary- as CanonicalStopper;
+
+  external override def ToOutput as String;
+
   override external def OptionsFor(player as Player);
 
-  external def Degree;
-  external def Downsum(that as CanonicalStopper);
-  external def DownsumVariety(deg as CanonicalStopper);
-  external def FollowerCount;
-  external def Followers;
-  external def LeftStop;
-  def Miny := {this|0||0};
-  external override def OutcomeClass;
-  external def RightStop;
-  external def Stop(player as Player);
-  external def StrongStop(player as Player);
-  def Tiny := {0||0|-this};
-  external def Upsum(that as CanonicalStopper);
-  external def UpsumVariety(deg as CanonicalStopper);
-  external def Variety;
+  external def Degree as CanonicalStopper;
 
-  override external def ToOutput;
+  external def Downsum(that as CanonicalStopper) as CanonicalStopper;
+
+  external def DownsumVariety(deg as CanonicalStopper) as CanonicalStopper;
+
+  external def FollowerCount as Integer;
+
+  external def Followers as List;
+
+  external def LeftStop as Pseudonumber;
+
+  external override def OutcomeClass as OutcomeClass;
+
+  external def RightStop as Pseudonumber;
+
+  external def Stop(player as Player) as Pseudonumber;
+
+  external def StrongStop(player as Player) as Pseudonumber;
+
+  external def Upsum(that as CanonicalStopper) as CanonicalStopper;
+
+  external def UpsumVariety(deg as CanonicalStopper) as CanonicalStopper;
+
+  external def Variety as CanonicalStopper;
+
+  override external def ToOutput as String;
 
 end

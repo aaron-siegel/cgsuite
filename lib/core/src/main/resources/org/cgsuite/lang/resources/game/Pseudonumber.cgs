@@ -2,6 +2,6 @@
 
 system class Pseudonumber extends CanonicalStopper
 
-  external def Blowup;
+  external def Blowup as CanonicalStopper;
 
 end

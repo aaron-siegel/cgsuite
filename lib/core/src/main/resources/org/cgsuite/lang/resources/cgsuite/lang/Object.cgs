@@ -6,7 +6,7 @@ system class Object
 
   /** The class object corresponding to this `Object`'s class.
     */
-  external def Class;
+  external def Class as Class;
   
   /** The enclosing object for this `Object`.
     *
@@ -18,18 +18,18 @@ system class Object
     * If this object does not belong to a nested class, then
     * `EnclosingObject` will return [[Nothing]].
     */
-  external def EnclosingObject;
+  external def EnclosingObject as Object;
   
   /** The Java class for this `Object`, as a [[String]].
     * This is typically used for CGSuite development or debugging and is
     * not ordinarily needed otherwise.
     */
-  external def JavaClass;
+  external def JavaClass as String;
 
   /** Generates an instance of [[Output]] corresponding to this `Object`.
     * This property will be accessed automatically any time this
     * `Object` is rendered to a display (such as the Worksheet).
     */
-  external def ToOutput;
+  external def ToOutput as Object;
 
 end

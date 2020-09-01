@@ -125,6 +125,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def > (that: CanonicalStopper) = that <= this && !(this <= that)
 
+  def & (that: CanonicalStopper) = StopperSidedValue(this, that)
+
   override def outcomeClass: OutcomeClass = {
     if (isZero)
       OutcomeClass.P

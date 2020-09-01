@@ -43,21 +43,26 @@ system class Coordinates
     */
   static var Compass := [North, Northeast, East, Southeast, South, Southwest, West, Northwest];
 
+  external def op+(that as Coordinates) as Coordinates;
+
+  external def op-(that as Coordinates) as Coordinates;
+
+  external def op*(that as Integer) as Coordinates;
+
   /** The column of these `Coordinates`. */
-  external def Col;
+  external def Col as Integer;
+
   /** The row of these `Coordinates`. */
-  external def Row;
+  external def Row as Integer;
   
   /** `true` if the row and column of these `Coordinates` are units. i.e., if both [[#Row]] and [[#Col]]
     * are equal to $0$, $1$, or $-1$.
     */
-  external def IsUnit;
+  external def IsUnit as Boolean;
   
   /** The `Coordinates` obtained by interchanging the row and column of these
     * `Coordinates`.
     */
-  external def Swap;
-
-  override def ToOutput := "(" + Row.ToOutput + "," + Col.ToOutput + ")";
+  external def Swap as Coordinates;
 
 end

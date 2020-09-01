@@ -11,14 +11,17 @@ singleton class constants
   var inf := 1/0;
   var omega := 1.OmegaPower;
 
-  var on := {pass|};
+  var on := {pass|} as CanonicalStopper;
   var off := -on;
   var dud := on & off;
-  var over := {0|pass};
+  var over := {0|pass} as CanonicalStopper;
   var under := -over;
-  var upon := {pass|*};
+  var upon := {pass|*} as CanonicalStopper;
 
+  def Miny(g as CanonicalShortGame) := {g|0||0};
   def Miny(g as CanonicalStopper) := {g|0||0};
+
+  def Tiny(g as CanonicalShortGame) := {0||0|-g};
   def Tiny(g as CanonicalStopper) := {0||0|-g};
 
 end

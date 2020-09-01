@@ -82,14 +82,11 @@ tokens
     LISTOF      = 'listof';
     MAPOF       = 'mapof';
     MUTABLE     = 'mutable';
-    NEG         = 'neg';
-    NIM         = 'nim';
     NOT         = 'not';
     OP          = 'op';
     OR          = 'or';
     OVERRIDE    = 'override';
     PASS        = 'pass';
-    POS         = 'pos';
     RETURN      = 'return';
     SETOF       = 'setof';
     SINGLETON   = 'singleton';
@@ -103,6 +100,7 @@ tokens
     TO          = 'to';
     TRUE        = 'true';
     TRY         = 'try';
+    UNARY       = 'unary';
     VAR         = 'var';
     WHERE       = 'where';
     WHILE       = 'while';
@@ -318,7 +316,15 @@ defDeclaration
 
 defName
     : IDENTIFIER { $IDENTIFIER.setType(DECL_ID); }
-    | OP^ opCode { $OP.setType(DECL_OP); }
+    | OP^ (definableOpCode | definableUnaryOpCode) { $OP.setType(DECL_OP); }
+    ;
+
+definableOpCode
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND
+    ;
+
+definableUnaryOpCode
+    : UNARY^ (PLUS | MINUS | PLUSMINUS | AST | CARET | VEE)
     ;
 
 defInitializer
@@ -333,7 +339,7 @@ modifiers
 
 opCode
 options { greedy = true; }
-    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND | NEG | POS | NIM
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND
     | standardRelationalToken
     | (LBRACKET RBRACKET ASSIGN) => LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
@@ -410,6 +416,18 @@ varInitializer
     : IDENTIFIER (ASSIGN^ functionExpression)?
     ;
 
+/* TOWARDS AN IMPROVEMENT:
+
+localVarDeclaration
+    : VAR^ IDENTIFIER asClause? varAssignmentClause?
+    ;
+
+varAssignmentClause
+    : assignmentToken^ assignmentExpression
+    ;
+
+*/
+
 expression
     : assignmentExpression
     ;
@@ -424,14 +442,19 @@ assignmentToken
     
 functionExpression
     : procedureAntecedent RARROW^ functionExpression
-    | orExpression
+    | asExpression
     ;
 
 procedureAntecedent
     : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
     | LPAREN! methodParameterList RPAREN!
     ;
-    
+
+// TODO Is this the right precedence?
+asExpression
+    : orExpression (AS^ orExpression)?
+    ;
+
 orExpression
     : andExpression (OR^ orExpression)?
     ;
