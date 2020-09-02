@@ -15,32 +15,6 @@ import scala.collection.mutable
 
 object EvalUtil extends LazyLogging {
 
-  def evaluate(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
-    try {
-      evaluateScript(input, varMap)
-    } catch {
-      case exc: SyntaxException => syntaxExceptionToOutput(input, exc, includeLine = false)
-      case exc: CgsuiteException => cgsuiteExceptionToOutput(input, exc)
-      case exc: Throwable => throwableToOutput(input, exc)
-    }
-  }
-
-  def evaluateScript(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
-    // TODO We need to ignore local-moding of "var" declarations
-    val tree = ParserUtil.parseScript(input)
-    logger debug s"Parse Tree: ${tree.toStringTree}"
-    val node = StatementSequenceNode(tree.getChild(0))
-    val scope = ElaborationDomain(None, Seq.empty, None)
-    node.elaborate(scope)
-    logger debug s"EvalNode: $node"
-    val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
-    val result = node.evaluate(domain)
-    if (node.suppressOutput)
-      Vector.empty
-    else
-      objectToOutput(result)
-  }
-
   def objectToOutput(obj: Any): Vector[Output] = {
     CgscriptClass.instanceToOutput(obj) match {
       case EmptyOutput => Vector.empty

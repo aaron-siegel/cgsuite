@@ -8,8 +8,6 @@ import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, Ev
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.Ops._
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang2.IdentifierNode.IdentifierType
-import org.cgsuite.output.EmptyOutput
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -217,45 +215,11 @@ trait EvalNode extends Node {
     cgscriptType.typeParameters foreach { addTypeToClasses(classes, _) }
   }
 
-  def evaluate(domain: EvaluationDomain): Any = ???
   def toScalaCode(context: CompileContext): String = ???
+
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
+
   def toNodeStringPrec(enclosingPrecedence: Int): String
-
-  def evaluateAsBoolean(domain: EvaluationDomain): Boolean = {
-    evaluate(domain) match {
-      case x: Boolean => x
-      case _ => sys.error("not a bool")   // TODO Improve these errors
-    }
-  }
-
-  def evaluateAsIterator(domain: EvaluationDomain): Iterator[_] = {
-    val result = evaluate(domain)
-    result match {
-      case x: Iterable[_] => x.iterator
-      case _ => sys.error(s"not a collection: $result")
-    }
-  }
-
-  def evaluateLoopy(domain: EvaluationDomain): Iterable[LoopyGame.Node] = {
-    evaluate(domain) match {
-      case g: CanonicalShortGame => Iterable(new LoopyGame.Node(g))
-      case g: CanonicalStopper => Iterable(new LoopyGame.Node(g.loopyGame))   // TODO Refactor LoopyGame to consolidate w/ above
-      case node: LoopyGame.Node => Iterable(node)
-      case sublist: Iterable[_] =>
-        sublist map {
-          case g: CanonicalShortGame => new LoopyGame.Node(g)
-          case g: CanonicalStopper => new LoopyGame.Node(g.loopyGame)   // TODO Refactor LoopyGame to consolidate w/ above
-          case node: LoopyGame.Node => node
-          case _ => sys.error("must be a list of games")
-        }
-      case _ => sys.error("must be a list of games")
-    }
-  }
-
-  def elaborate(scope: ElaborationDomain): Unit = {
-    children foreach { _.elaborate(scope) }
-  }
 
 }
 
@@ -264,7 +228,6 @@ trait ConstantNode extends EvalNode {
   def constantValue: Any
 
   override val children = Seq.empty
-  override def evaluate(domain: EvaluationDomain) = constantValue
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     CgscriptClass.instanceToOutput(constantValue).toString
@@ -323,15 +286,19 @@ case class StringNode(tree: Tree, override val constantValue: String) extends Co
 }
 
 case class ThisNode(tree: Tree) extends EvalNode {
+
   override val children = Seq.empty
+
   override def elaborateImpl(scope: ElaborationDomain2) = {
     CgscriptType {
       scope.cls getOrElse { sys.error("invalid `this`")}
     }
   }
+
   override def toScalaCode(context: CompileContext) = "this"
-  override def evaluate(domain: EvaluationDomain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = "this"
+
 }
 
 object AsNode {
@@ -533,34 +500,16 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   }
 
-  var resolver: Resolver = Resolver.forId(id)
-  var constantResolution: Resolution = _
-  var classResolution: Option[Any] = None
-
-  // We cache these separately - that provides for faster resolution than
-  // using a matcher.
-  var localVariableReference: LocalVariableReference = _
-  var classVariableReference: ClassVariableReference = _
-
   override val children = Seq.empty
-
-  private[this] def lookupLocally(domain: EvaluationDomain): Option[Any] = {
-    if (domain.isOuterDomain) {
-      domain getDynamicVar id
-    } else if (classVariableReference != null) {
-      val backrefObject = domain nestingBackrefContextObject classVariableReference.nestingHops
-      Some(classVariableReference.resolver resolve (backrefObject, token))
-    } else {
-      None
-    }
-  }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = id.name
 
 }
 
 object UnOpNode {
+
   def apply(tree: Tree, op: UnOp): UnOpNode = UnOpNode(tree, op, EvalNode(tree.head))
+
 }
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
@@ -617,23 +566,7 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
   override def toScalaCode(context: CompileContext) = {
     "(" + op.toScalaCode(operand1.toScalaCode(context), operand2.toScalaCode(context)) + ")"
   }
-  override def evaluate(domain: EvaluationDomain) = {
-    try {
-      if (op.precedence == OperatorPrecedence.And) {
-        operand1.evaluateAsBoolean(domain) && operand2.evaluateAsBoolean(domain)
-      } else if (op.precedence == OperatorPrecedence.Or) {
-        operand1.evaluateAsBoolean(domain) || operand2.evaluateAsBoolean(domain)
-      } else {
-        op(tree, operand1.evaluate(domain), operand2.evaluate(domain))
-      }
-    } catch {
-      case exc: CgsuiteException =>
-        // We only add a token for ops if no subexpression has generated a token.
-        if (exc.tokenStack.isEmpty)
-          exc addToken token
-        throw exc
-    }
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val op1str = operand1.toNodeStringPrec(op.precedence)
     val op2str = operand2.toNodeStringPrec(op.precedence)
@@ -643,13 +576,16 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
       s"(${op.toOpString(op1str, op2str)})"
     }
   }
+
 }
 
 object CoordinatesNode {
+
   def apply(tree: Tree): CoordinatesNode = {
     assert(tree.getType == COORDINATES)
     CoordinatesNode(tree, EvalNode(tree.head), EvalNode(tree.children(1)))
   }
+
 }
 
 case class CoordinatesNode(tree: Tree, coord1: EvalNode, coord2: EvalNode) extends EvalNode {
@@ -685,29 +621,23 @@ object ListNode {
 }
 
 case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+
   override val children = elements
+
   override def elaborateImpl(domain: ElaborationDomain2) = {
     elements foreach { _.ensureElaborated(domain) }
     CgscriptType(CgscriptClass.List)
   }
+
   override def toScalaCode(context: CompileContext) = {
     val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
     s"Vector($elementsCode)"
   }
-  override def evaluate(domain: EvaluationDomain): IndexedSeq[_] = {
-    elements.size match {
-      // This is to avoid closures and get optimal performance on small collections.
-      case 0 => Vector.empty
-      case 1 => Vector(elements(0).evaluate(domain))
-      case 2 => Vector(elements(0).evaluate(domain), elements(1).evaluate(domain))
-      case 3 => Vector(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
-      case 4 => Vector(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
-      case _ => elements map { _.evaluate(domain) }
-    }
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     "[" + (elements map {  _.toNodeString } mkString ", ") + "]"
   }
+
 }
 
 object SetNode {
@@ -718,58 +648,46 @@ object SetNode {
 }
 
 case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+
   override val children = elements
+
   override def toScalaCode(context: CompileContext) = {
     val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
     s"Set($elementsCode)"
   }
-  override def evaluate(domain: EvaluationDomain): Set[_] = {
-    elements.size match {
-      // This is to avoid closures and get optimal performance on small collections.
-      case 0 => Set.empty
-      case 1 => Set(elements(0).evaluate(domain))
-      case 2 => Set(elements(0).evaluate(domain), elements(1).evaluate(domain))
-      case 3 => Set(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
-      case 4 => Set(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
-      case _ => elements.map { _.evaluate(domain) }.toSet
-    }
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     "{" + (elements map { _.toNodeString } mkString ", ") + "}"
   }
+
 }
 
 object MapNode {
+
   def apply(tree: Tree): MapNode = {
     assert(tree.getType == EXPLICIT_MAP)
     val mapPairNodes = tree.children map { MapPairNode(_) }
     MapNode(tree, mapPairNodes.toIndexedSeq)
   }
+
 }
 
 case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
+
   override val children = elements
+
   override def toScalaCode(context: CompileContext) = {
     val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
     s"Map($elementsCode)"
   }
-  override def evaluate(domain: EvaluationDomain): Map[_, _] = {
-    elements.size match {
-      // This is to avoid closures and get optimal performance on small collections.
-      case 0 => Map.empty
-      case 1 => Map(elements(0).evaluate(domain))
-      case 2 => Map(elements(0).evaluate(domain), elements(1).evaluate(domain))
-      case 3 => Map(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain))
-      case 4 => Map(elements(0).evaluate(domain), elements(1).evaluate(domain), elements(2).evaluate(domain), elements(3).evaluate(domain))
-      case _ => elements.map { _.evaluate(domain) }.toMap
-    }
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (elements.isEmpty)
       "{=>}"
     else
       "{" + (elements map { _.toNodeString } mkString ", ") + "}"
   }
+
 }
 
 object MapPairNode {
@@ -779,14 +697,17 @@ object MapPairNode {
 }
 
 case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
+
   override val children = Seq(from, to)
+
   override def toScalaCode(context: CompileContext) = {
     val fromCode = from.toScalaCode(context)
     val toCode = to.toScalaCode(context)
     s"($fromCode -> $toCode)"
   }
-  override def evaluate(domain: EvaluationDomain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
+
   def toNodeStringPrec(enclosingPrecedence: Int) = s"${from.toNodeString} => ${to.toNodeString}"
+
 }
 
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
@@ -841,62 +762,6 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
   }
 
   override val children = lo ++ ro
-
-  override def evaluate(domain: EvaluationDomain) = {
-    try {
-      val leval = lo map { _.evaluate(domain) }
-      val reval = ro map { _.evaluate(domain) }
-      if (isListOf[Game](leval) && isListOf[Game](reval)) {
-        val gl = castAs[Game](leval)
-        val gr = castAs[Game](reval)
-        if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalShortGame] }) {
-          CanonicalShortGame(gl map { _.asInstanceOf[CanonicalShortGame] }, gr map { _.asInstanceOf[CanonicalShortGame] })
-        } else if (!forceExplicit && (gl ++ gr).forall { _.isInstanceOf[CanonicalStopper] }) {
-          CanonicalStopper(gl map { _.asInstanceOf[CanonicalStopper] }, gr map { _.asInstanceOf[CanonicalStopper] })
-        } else {
-          ExplicitGame(gl, gr)
-        }
-      } else if (isListOf[SidedValue](leval) && isListOf[SidedValue](reval)) {
-        if (forceExplicit) {
-          sys error "can't be force explicit - need better error msg here"
-        } else {
-          val gl = castAs[SidedValue](leval)
-          val gr = castAs[SidedValue](reval)
-          val glonside = gl map { _.onside }
-          val gronside = gr map { _.onside }
-          val gloffside = gl map { _.offside }
-          val groffside = gr map { _.offside }
-          SidedValue(SimplifiedLoopyGame.constructLoopyGame(glonside, gronside), SimplifiedLoopyGame.constructLoopyGame(gloffside, groffside))
-        }
-      } else {
-        throw EvalException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
-      }
-    } catch {
-      case exc: CgsuiteException =>
-        if (exc.tokenStack.isEmpty)
-          exc.addToken(tree.token)
-        throw exc
-    }
-  }
-
-  def isListOf[T](objects: Iterable[_])(implicit mf: Manifest[T]): Boolean = {
-    objects forall {
-      case _: T => true
-      case sublist: Iterable[_] => sublist forall {
-        case _: T => true
-        case _ => false
-      }
-      case _ => false
-    }
-  }
-
-  def castAs[T](objects: Iterable[_])(implicit mf: Manifest[T]): Iterable[T] = {
-    objects flatMap {
-      case g: T => Iterable(g)
-      case sublist: Iterable[_] => sublist map { _.asInstanceOf[T] }
-      case _ => sys error "cannot be cast (this should never happen due to prior call to isListOf)"
-    }
-  }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val loStr = lo map { _.toNodeString } mkString ","
@@ -1032,36 +897,6 @@ case class LoopyGameSpecNode(
 
   }
 
-  override def elaborate(scope: ElaborationDomain): Unit = {
-    nodeLabel foreach { idNode =>
-      scope.pushScope()
-      scope.insertId(idNode)
-    }
-    super.elaborate(scope)
-    nodeLabel foreach { _ => scope.popScope() }
-  }
-
-  override def evaluate(domain: EvaluationDomain) = {
-    val thisNode = evaluateLoopy(domain).head
-    val loopyGame = new LoopyGame(thisNode)
-    SidedValue(loopyGame)
-  }
-
-  override def evaluateLoopy(domain: EvaluationDomain): Iterable[LoopyGame.Node] = {
-    val thisNode = new LoopyGame.Node()
-    if (nodeLabel.isDefined)
-      domain.localScope(nodeLabel.get.localVariableReference.index) = thisNode
-    lo flatMap { _.evaluateLoopy(domain) } foreach { thisNode.addLeftEdge }
-    ro flatMap { _.evaluateLoopy(domain) } foreach { thisNode.addRightEdge }
-    if (loPass)
-      thisNode.addLeftEdge(thisNode)
-    if (roPass)
-      thisNode.addRightEdge(thisNode)
-    if (nodeLabel.isDefined)
-      domain.localScope(nodeLabel.get.localVariableReference.index) = null
-    Iterable(thisNode)
-  }
-
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val loStr = (lo map { _.toNodeString }) ++ (if (loPass) Some("pass") else None) mkString ","
     val roStr = (ro map { _.toNodeString }) ++ (if (roPass) Some("pass") else None) mkString ","
@@ -1071,7 +906,9 @@ case class LoopyGameSpecNode(
 }
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
+
   override val children = Seq(condition, ifNode) ++ elseNode
+
   override def toScalaCode(context: CompileContext) = {
     val conditionCode = condition.toScalaCode(context)
     val ifCode = ifNode.toScalaCode(context)
@@ -1079,14 +916,10 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     val elseClause = elseCode map { code => s"else $code" } getOrElse ""
     s"(if ($conditionCode) $ifCode $elseClause)"
   }
-  override def evaluate(domain: EvaluationDomain) = {
-    if (condition.evaluateAsBoolean(domain))
-      ifNode.evaluate(domain)
-    else
-      elseNode.map { _.evaluate(domain) }.orNull
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
     (elseNode map { " else " + _.toNodeString } getOrElse "") + " end"
+
 }
 
 object LoopNode {
@@ -1157,24 +990,12 @@ case class LoopNode(
     case LoopNode.Do | LoopNode.YieldSum => false
     case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldSet | LoopNode.YieldTable => true
   }
+
   private val pushDownYield: Option[LoopNode] = (isYield, body) match {
     case (true, loopBody: LoopNode) =>
       assert(loopBody.isYield)
       Some(loopBody)
     case _ => None
-  }
-
-  override def elaborate(scope: ElaborationDomain) {
-    forId match {
-      case Some(idNode) =>
-        scope.pushScope()
-        scope.insertId(idNode)
-      case None =>
-    }
-    super.elaborate(scope)
-    if (forId.isDefined) {
-      scope.popScope()
-    }
   }
 
   override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
@@ -1351,30 +1172,6 @@ case class LoopNode(
 
   }
 
-  override def evaluate(domain: EvaluationDomain): Any = {
-
-    val buffer: ArrayBuffer[Any] = loopType match {
-      case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldTable | LoopNode.YieldSet => ArrayBuffer[Any]()
-      case LoopNode.YieldSum | LoopNode.Do => null
-    }
-
-    val r = evaluate(domain, buffer)
-    val result = loopType match {
-      case LoopNode.Do => null
-      case LoopNode.YieldList => buffer.toVector
-      case LoopNode.YieldMap => buffer.asInstanceOf[mutable.HashMap[Any,Any]].toMap
-      case LoopNode.YieldSet => buffer.toSet
-      case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
-        case list: IndexedSeq[_] => list
-        case _ => throw EvalException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
-      } } (OutputBuilder.toOutput)
-      case LoopNode.YieldSum => r
-    }
-
-    result
-
-  }
-
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val loopTypeStr = loopType match {
       case LoopNode.Do => "do"
@@ -1397,78 +1194,6 @@ case class LoopNode(
     antecedent + " " + body.toNodeString + " end"
   }
 
-  private def evaluate(domain: EvaluationDomain, yieldResult: ArrayBuffer[Any]): Any = {
-
-    Profiler.start(prepareLoop)
-
-    val forIndex = if (forId.isDefined) forId.get.localVariableReference.index else -1
-    var counter = if (from.isDefined) from.get.evaluate(domain) else null
-    val toVal = if (to.isDefined) to.get.evaluate(domain) else null
-    val byVal = if (by.isDefined) by.get.evaluate(domain) else one
-    val checkLeq = byVal match {
-      case x: Integer => x >= zero
-      case _ => true
-    }
-    val iterator = if (in.isDefined) in.get.evaluateAsIterator(domain) else null
-    var sum: Any = null
-
-    Profiler.stop(prepareLoop)
-
-    Profiler.start(loop)
-
-    var continue = true
-
-    while (continue) {
-
-      if (Thread.interrupted())
-        throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
-
-      if (iterator == null) {
-        if (forIndex >= 0)
-          domain.localScope(forIndex) = counter
-        continue = toVal == null || (checkLeq && Ops.leq(counter, toVal)) || (!checkLeq && Ops.leq(toVal, counter))
-      } else {
-        if (iterator.hasNext)
-          domain.localScope(forIndex) = iterator.next()
-        else
-          continue = false
-      }
-
-      if (continue) {
-        continue = `while`.isEmpty || `while`.get.evaluateAsBoolean(domain)
-      }
-
-      if (continue) {
-        val whereCond = where.isEmpty || where.get.evaluateAsBoolean(domain)
-        if (whereCond) {
-          Profiler.start(loopBody)
-          pushDownYield match {
-            case Some(pushDown) => pushDown.evaluate(domain, yieldResult)
-            case None =>
-              val r = body.evaluate(domain)
-              if (yieldResult != null) {
-                yieldResult += r
-              } else if (loopType == LoopNode.YieldSum) {
-                sum = if (sum == null) r else Ops.Plus(tree, sum, r)
-              }
-          }
-          Profiler.stop(loopBody)
-        }
-        if (counter != null)
-          counter = Ops.Plus(tree, counter, byVal)
-      }
-
-    }
-
-    Profiler.stop(loop)
-
-    if (loopType == LoopNode.YieldSum && sum == null)
-      zero
-    else
-      sum
-
-  }
-
 }
 
 object ProcedureNode {
@@ -1479,35 +1204,15 @@ object ProcedureNode {
 }
 
 case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
+
   override val children = (parameters flatMap { _.defaultValue }) :+ body
-  override def elaborate(scope: ElaborationDomain): Unit = {
-    val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
-    parameters foreach { param =>
-      param.methodScopeIndex = newScope.insertId(param.idNode)
-      param.defaultValue foreach { _.elaborate(newScope) }
-    }
-    body.elaborate(newScope)
-    localVariableCount = newScope.localVariableCount
-  }
-  private[lang2] val knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
-  override def evaluate(domain: EvaluationDomain) = Procedure(this, domain)
-  val ordinal = CallSite.newCallSiteOrdinal
-  var localVariableCount: Int = 0
-  def toNodeStringPrec(enclosingPrecedence: Int) = {
-    val paramStr = {
-      if (parameters.length == 1)
-        parameters.head.id.name
-      else
-        "(" + (parameters map { _.id.name } mkString ", ") + ")"
-    }
-    if (OperatorPrecedence.FunctionDef <= enclosingPrecedence)
-      s"$paramStr -> ${body.toNodeStringPrec(OperatorPrecedence.FunctionDef)}"
-    else
-      s"($paramStr -> ${body.toNodeStringPrec(OperatorPrecedence.FunctionDef)})"
-  }
+
+  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+
 }
 
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
+
   override val children = Seq(msg)
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
@@ -1515,28 +1220,27 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
     msg.ensureElaborated(scope)
     CgscriptType(CgscriptClass.NothingClass)
   }
+
   override def toScalaCode(context: CompileContext) = {
     val msgCode = msg.toScalaCode(context)
     s"throw org.cgsuite.exception.EvalException($msgCode.toString)"
   }
-  override def evaluate(domain: EvaluationDomain) = {
-    throw EvalException(msg.evaluate(domain).toString)
-  }
+
   def toNodeStringPrec(enclosingPrecedence: Int) = s"error(${msg.toNodeString})"
+
 }
 
 case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
+
   override val children = Seq(obj, idNode)
+
   val antecedentAsPackagePath: Option[Seq[String]] = obj match {
     case IdentifierNode(_, antecedentId) => Some(Seq(antecedentId.name))
     case node: DotNode => node.antecedentAsPackagePath.map { _ :+ node.idNode.id.name }
     case _ => None
   }
-  val antecedentAsPackage: Option[CgscriptPackage] = antecedentAsPackagePath flatMap { CgscriptPackage.root.lookupSubpackage }
-  var isElaborated = false
-  var classResolution: CgscriptClass = _
-  var constantResolution: Resolution = _
 
+  val antecedentAsPackage: Option[CgscriptPackage] = antecedentAsPackagePath flatMap { CgscriptPackage.root.lookupSubpackage }
   var isElaboratedAsPackage: Boolean = _
   var externalName: String = _
   var constantVar: CgscriptClass#Var = _
@@ -1666,18 +1370,6 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   }
 
-  override def elaborate(scope: ElaborationDomain) {
-    antecedentAsPackage flatMap { _.lookupClass(idNode.id) } match {
-      case Some(cls) => classResolution = cls
-      case None =>
-        antecedentAsPackage flatMap { _.lookupConstant(idNode.id) } match {
-          case Some(res) => constantResolution = res
-          case None => obj.elaborate(scope)     // Deliberately bypass idNode
-        }
-    }
-    isElaborated = true
-  }
-
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (OperatorPrecedence.Postfix <= enclosingPrecedence)
       s"${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString}"
@@ -1768,6 +1460,8 @@ case class FunctionCallNode(
   argNodes: Vector[EvalNode],
   argNames: Vector[Option[IdentifierNode]]
   ) extends EvalNode {
+
+  override val children = argNodes ++ argNames.flatten :+ callSiteNode
 
   var constantMethod: Option[CgscriptClass#Method] = None
   var localMethod: Option[CgscriptClass#Method] = None
@@ -1928,36 +1622,6 @@ case class FunctionCallNode(
 
   }
 
-  var resolutions: mutable.LongMap[FunctionCallResolution] = mutable.LongMap()
-
-  // Some profiler keys
-  val prepareCallSite = Symbol(s"PrepareCallSite [${tree.location}]")
-  val prepareCallArgs = Symbol(s"PrepareCallArgs [${tree.location}]")
-  val functionCall = Symbol(s"FunctionCall [${tree.location}]")
-
-  override val children = (callSiteNode +: argNodes) ++ argNames.flatten
-
-  override def elaborate(scope: ElaborationDomain): Unit = {
-    callSiteNode elaborate scope
-    argNodes foreach { _ elaborate scope }
-  }
-
-  case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
-
-    override def parameters: Vector[Parameter] = Vector.empty
-
-    override def ordinal: Int = -1
-
-    override def referenceToken = None
-
-    override def locationMessage: String = ???
-
-  }
-
-  private def makeNewResolution(callSite: CallSite) = {
-    FunctionCallResolution(callSite, argNames, token)
-  }
-
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val argStr = argNodes map { _.toNodeString } mkString ", "
     if (OperatorPrecedence.Postfix <= enclosingPrecedence)
@@ -2083,14 +1747,6 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   // TODO Catch illegal assignment to constant
   override val children = Seq(idNode, expr)
-  override def elaborate(scope: ElaborationDomain) {
-    // If we're package-external (Worksheet/REPL scope) and scopeStack has size one (we're not
-    // in any nested subscope), then we treat idNode as a dynamic var.
-    if (declType == AssignmentDeclType.VarDecl && !scope.isToplevelWorksheet) {
-      scope.insertId(idNode)
-    }
-    super.elaborate(scope)
-  }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val varStr = if (declType != AssignmentDeclType.Ordinary) "var " else ""
@@ -2100,6 +1756,7 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
     else
       s"($assignStr)"
   }
+
 }
 
 object AssignmentDeclType extends Enumeration {
@@ -2148,19 +1805,6 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
     }
   }
 
-  override def elaborate(scope: ElaborationDomain): Unit = {
-    scope.pushScope()
-    statements.foreach { _.elaborate(scope) }
-    scope.popScope()
-  }
-  override def evaluate(domain: EvaluationDomain) = {
-    var result: Any = null
-    val iterator = statements.iterator
-    while (iterator.hasNext) {
-      result = iterator.next().evaluate(domain)
-    }
-    result
-  }
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val seqStr = statements map { _.toNodeStringPrec(OperatorPrecedence.StatementSeq) } mkString "; "
     if (OperatorPrecedence.StatementSeq <= enclosingPrecedence)
@@ -2168,4 +1812,5 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
     else
       s"begin $seqStr end"
   }
+
 }

@@ -7,6 +7,7 @@ import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends CallSite with OutputTarget {
 
+  /*
   def parameters = node.parameters
   def ordinal = node.ordinal
   def call(args: Array[Any]) = {
@@ -19,10 +20,14 @@ case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends Call
     }
     node.body.evaluate(newDomain)
   }
-
+  */
   def referenceToken = Some(node.token)
   def locationMessage = "in procedure call"
 
   def toOutput: StyledTextOutput = new StyledTextOutput(util.EnumSet.of(Style.FACE_MONOSPACED), node.toNodeString)
 
+  override def parameters = ???
+
+  override def ordinal = ???
+  
 }

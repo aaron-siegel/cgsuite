@@ -101,8 +101,8 @@ object Repl {
     val start = JSystem.nanoTime
     try {
       CgscriptClasspath.reloadModifiedFiles()
-      val output = EvalUtil.evaluate(str, replVarMap)
-      output foreach println
+      //val output = EvalUtil.evaluate(str, replVarMap)
+      //output foreach println
     } catch {
       case exc: Throwable => exc.printStackTrace()
     }

@@ -31,7 +31,7 @@ case class CgscriptType(baseClass: CgscriptClass, typeParameters: Vector[Cgscrip
   }
 
   def <=(that: CgscriptType): Boolean = {
-    baseClass.ancestors contains (that.baseClass)
+    baseClass <= that.baseClass
   }
 
 }

@@ -23,8 +23,11 @@ import scala.language.{existentials, postfixOps}
 import scala.tools.nsc.interpreter.IMain
 
 sealed trait CgscriptClassDef
+
 case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
+
 case class ExplicitClassDef(text: String) extends CgscriptClassDef
+
 case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
 
 object LifecycleStage extends Enumeration {
@@ -270,6 +273,8 @@ class CgscriptClass(
   def ancestors = classInfo.ancestors
 
   def initializers = classInfo.initializers
+
+  def <=(that: CgscriptClass) = ancestors contains that
 
   def unload() {
     if (this.stage != LifecycleStage.Unloaded) {
@@ -705,7 +710,7 @@ class CgscriptClass(
                   }
                 }
               case node: DotNode =>
-                Option(node.classResolution) getOrElse {
+                Option(node.ensureElaborated(new ElaborationDomain2(Some(this))).baseClass) getOrElse {
                   sys.error("not found")
                 }
             }
