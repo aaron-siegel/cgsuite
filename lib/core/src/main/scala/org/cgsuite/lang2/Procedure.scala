@@ -5,7 +5,7 @@ import java.util
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
-case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends CallSite with OutputTarget {
+case class Procedure(node: ProcedureNode, domain: ElaborationDomain2) extends CallSite with OutputTarget {
 
   /*
   def parameters = node.parameters

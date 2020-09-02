@@ -26,10 +26,6 @@ object CgscriptPackage {
   // TODO Separate dictionary for URLs?
   def lookupClass(url: URL): Option[CgscriptClass] = classDictionary.values find { _.url == url }
 
-  def lookupConstant(id: Symbol): Option[Resolution] = {
-    lang.lookupConstant(id) orElse util.lookupConstant(id) orElse game.lookupConstant(id)
-  }
-
   def lookupConstantVar(id: Symbol): Option[Member] = {
     lang.lookupConstantVar(id) orElse util.lookupConstantVar(id) orElse game.lookupConstantVar(id)
   }
@@ -98,15 +94,6 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
     }
 
-  }
-
-  def lookupConstant(id: Symbol): Option[Resolution] = {
-    lookupClass('constants) flatMap { constantsCls =>
-      Option(Resolver forId id findResolutionForClass constantsCls) match {
-        case Some(res) if res.isResolvable => Some(res)
-        case _ => None
-      }
-    }
   }
 
   def lookupConstantMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {

@@ -1,8 +1,6 @@
 package org.cgsuite.lang2
 
-import org.cgsuite.output.StyledTextOutput
-
-case class Script(cls: CgscriptClass, node: StatementSequenceNode, scope: ElaborationDomain) {
+case class Script(cls: CgscriptClass, node: StatementSequenceNode, domain: ElaborationDomain2) {
 
   def name: String = cls.name
 

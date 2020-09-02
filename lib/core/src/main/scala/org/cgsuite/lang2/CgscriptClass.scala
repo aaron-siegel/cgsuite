@@ -68,28 +68,9 @@ object CgscriptClass {
 
   Object.ensureDeclared()
 
-  def of(x: Any): CgscriptClass = {
-    x match {
-      case null => NothingClass
-      case so: StandardObject => so.cls
-      case _ => classLookupCache.getOrElseUpdate(x.getClass, resolveToSystemClass(x))
-    }
-  }
-
-  def is(x: Any, cls: CgscriptClass) = of(x).ancestors.contains(cls)
-
-  // Various conversions from Java types to CGScript types.
-  def internalize(obj: AnyRef) = {
-    obj match {
-      case x: java.lang.Integer => SmallInteger(x.intValue)
-      case _ => obj
-    }
-  }
-
   def clearAll() {
     CanonicalShortGameOps.reinit()
     MisereCanonicalGameOps.reinit()
-    Resolver.clearAll()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
     Object.ensureDeclared()
   }
@@ -101,19 +82,9 @@ object CgscriptClass {
       case _ => sys.error("?!")
     }
   }
-/*
-  def instanceToDefaultOutput(x: Any): StyledTextOutput = {
-    val sto = new StyledTextOutput
-    x match {
-      case stdObj: StandardObject =>
-        sto append stdObj.toDefaultOutput
-      case _ =>
-        val cls = CgscriptClass of x
-        sto appendText s"${cls.name}.instance"
-    }
-    sto
-  }
-*/
+
+  def of(x: Any): CgscriptClass = ???
+
   private[lang2] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
     val path = name.replace('.', '/')
@@ -130,17 +101,6 @@ object CgscriptClass {
     pkg.declareClass(Symbol(components.last), classdef, scalaClass)
 
   }
-
-  private[lang2] def resolveToSystemClass(x: Any): CgscriptClass = {
-    // This is slow, but we cache the results so that it only happens once
-    // per distinct (Java) type witnessed.
-    val systemClass = CgscriptSystem.typedSystemClasses find { case (_, cls) => cls isAssignableFrom x.getClass }
-    systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
-      sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
-    }
-  }
-
-  private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
 
 }
 
@@ -271,7 +231,6 @@ class CgscriptClass(
       topClass.buildUnloadList(unloadList)
       logger debug s"$logPrefix Unloading ${unloadList.size} classes."
       unloadList foreach { _.doUnload() }
-      Resolver.clearAll()
     }
   }
 
@@ -376,6 +335,7 @@ class CgscriptClass(
   }
 
   def ensureCompiled(eval: IMain): Unit = {
+
     stage match {
 
       case LifecycleStage.New | LifecycleStage.DeclaredPhase1 | LifecycleStage.Declared | LifecycleStage.Unloaded =>
@@ -389,7 +349,10 @@ class CgscriptClass(
       case LifecycleStage.DeclaringPhase1 | LifecycleStage.DeclaringPhase2 =>
         assert(assertion = false, stage)
 
+      case LifecycleStage.Loaded =>
+
     }
+
   }
 
   private def compile(eval: IMain): Unit = {
@@ -1424,16 +1387,4 @@ class CgscriptClass(
     parameters: Vector[Parameter]
   ) extends Constructor
 
-}
-
-sealed trait CgscriptClassDef
-
-case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
-
-case class ExplicitClassDef(text: String) extends CgscriptClassDef
-
-case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
-
-object LifecycleStage extends Enumeration {
-  val New, DeclaringPhase1, DeclaredPhase1, DeclaringPhase2, Declared, Elaborated, Loaded, Unloaded = Value
 }
