@@ -22,18 +22,6 @@ import scala.collection.mutable
 import scala.language.{existentials, postfixOps}
 import scala.tools.nsc.interpreter.IMain
 
-sealed trait CgscriptClassDef
-
-case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
-
-case class ExplicitClassDef(text: String) extends CgscriptClassDef
-
-case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
-
-object LifecycleStage extends Enumeration {
-  val New, DeclaringPhase1, DeclaredPhase1, DeclaringPhase2, Declared, Elaborated, Loaded, Unloaded = Value
-}
-
 object CgscriptClass {
 
   private[lang2] val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
@@ -47,7 +35,7 @@ object CgscriptClass {
 
   logger debug "Declaring system classes."
 
-  SystemClassRegistry.allSystemClasses foreach { case (name, scalaClass) =>
+  CgscriptSystem.allSystemClasses foreach { case (name, scalaClass) =>
     declareSystemClass(name, Some(scalaClass))
   }
 
@@ -146,7 +134,7 @@ object CgscriptClass {
   private[lang2] def resolveToSystemClass(x: Any): CgscriptClass = {
     // This is slow, but we cache the results so that it only happens once
     // per distinct (Java) type witnessed.
-    val systemClass = SystemClassRegistry.typedSystemClasses find { case (_, cls) => cls isAssignableFrom x.getClass }
+    val systemClass = CgscriptSystem.typedSystemClasses find { case (_, cls) => cls isAssignableFrom x.getClass }
     systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
       sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
     }
@@ -389,14 +377,18 @@ class CgscriptClass(
 
   def ensureCompiled(eval: IMain): Unit = {
     stage match {
-      case LifecycleStage.New | LifecycleStage.Declared | LifecycleStage.Elaborated | LifecycleStage.Unloaded =>
+
+      case LifecycleStage.New | LifecycleStage.DeclaredPhase1 | LifecycleStage.Declared | LifecycleStage.Unloaded =>
         enclosingClass match {
           case Some(cls) => cls.ensureCompiled(eval)    // TODO What if no longer exists?
           case _ =>
             ensureDeclared()
             compile(eval)
         }
-      case _ =>
+
+      case LifecycleStage.DeclaringPhase1 | LifecycleStage.DeclaringPhase2 =>
+        assert(assertion = false, stage)
+
     }
   }
 
@@ -1432,4 +1424,16 @@ class CgscriptClass(
     parameters: Vector[Parameter]
   ) extends Constructor
 
+}
+
+sealed trait CgscriptClassDef
+
+case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
+
+case class ExplicitClassDef(text: String) extends CgscriptClassDef
+
+case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
+
+object LifecycleStage extends Enumeration {
+  val New, DeclaringPhase1, DeclaredPhase1, DeclaringPhase2, Declared, Elaborated, Loaded, Unloaded = Value
 }

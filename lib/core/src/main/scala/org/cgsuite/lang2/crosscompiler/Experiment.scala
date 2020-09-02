@@ -28,8 +28,10 @@ object Experiment {
     val tree = ParserUtil.parseScript(str)
     val node = StatementSequenceNode(tree.children.head, topLevel = true)
     node.ensureElaborated(domain)
-    println(node.elaboratedType)
     node.mentionedClasses foreach { _.ensureCompiled(eval) }
+    Thread.sleep(50)
+    println(node.elaboratedType)
+    println(node.mentionedClasses)
     val code = node.toScalaCodeWithVarDecls(new CompileContext())
     code foreach println
     code foreach eval.interpret

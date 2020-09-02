@@ -81,7 +81,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
       case Some(UrlClassDef(_, url)) =>
         val cls = classesLookup(id)
-        if (classdef != cls.classdef && !SystemClassRegistry.allSystemClasses.exists { _._1 == cls.qualifiedName }) {
+        if (classdef != cls.classdef && !CgscriptSystem.allSystemClasses.exists { _._1 == cls.qualifiedName }) {
           sys error s"Class conflict in package $name: ${id.name}"    // TODO Better error message
         }
         cls

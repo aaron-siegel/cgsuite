@@ -1,15 +1,15 @@
 package org.cgsuite.lang2
 
+import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
-import org.cgsuite.core._
 import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput}
 import org.cgsuite.util._
 
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 
-private[lang2] object SystemClassRegistry {
+private[lang2] object CgscriptSystem {
 
   val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
