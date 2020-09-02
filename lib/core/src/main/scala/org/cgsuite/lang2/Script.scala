@@ -1,6 +1,6 @@
 package org.cgsuite.lang2
 
-case class Script(cls: CgscriptClass, node: StatementSequenceNode, domain: ElaborationDomain2) {
+case class Script(cls: CgscriptClass, node: StatementSequenceNode, domain: ElaborationDomain) {
 
   def name: String = cls.name
 

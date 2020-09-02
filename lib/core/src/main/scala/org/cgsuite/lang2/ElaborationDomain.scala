@@ -2,13 +2,13 @@ package org.cgsuite.lang2
 
 import scala.collection.mutable
 
-object ElaborationDomain2 {
+object ElaborationDomain {
 
-  def apply(cls: Option[CgscriptClass]) = new ElaborationDomain2(cls)
+  def apply(cls: Option[CgscriptClass]) = new ElaborationDomain(cls)
 
 }
 
-class ElaborationDomain2 (
+class ElaborationDomain(
   val cls: Option[CgscriptClass]      // None = "external" (Worksheet/REPL) scope
 )
 {

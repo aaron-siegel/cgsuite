@@ -665,7 +665,7 @@ class CgscriptClass(
                   }
                 }
               case node: DotNode =>
-                Option(node.ensureElaborated(new ElaborationDomain2(Some(this))).baseClass) getOrElse {
+                Option(node.ensureElaborated(new ElaborationDomain(Some(this))).baseClass) getOrElse {
                   sys.error("not found")
                 }
             }
@@ -1240,7 +1240,7 @@ class CgscriptClass(
 
       // TODO: Detect discrepancy between explicit result type and initializer type
 
-      val domain = new ElaborationDomain2(Some(thisClass))
+      val domain = new ElaborationDomain(Some(thisClass))
       explicitResultType match {
         case Some(explicitType) => explicitType
         case None =>
@@ -1310,7 +1310,7 @@ class CgscriptClass(
 
     override def elaborate(): CgscriptType = {
 
-      val domain = new ElaborationDomain2(Some(thisClass))
+      val domain = new ElaborationDomain(Some(thisClass))
       domain.pushScope()
       parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)

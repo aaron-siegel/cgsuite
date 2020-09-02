@@ -190,13 +190,13 @@ trait EvalNode extends Node {
       elaboratedTypeRef
   }
 
-  def ensureElaborated(scope: ElaborationDomain2): CgscriptType = {
+  def ensureElaborated(domain: ElaborationDomain): CgscriptType = {
     if (elaboratedTypeRef == null)
-      elaboratedTypeRef = elaborateImpl(scope)
+      elaboratedTypeRef = elaborateImpl(domain)
     elaboratedTypeRef
   }
 
-  def elaborateImpl(scope: ElaborationDomain2): CgscriptType = ???
+  def elaborateImpl(domain: ElaborationDomain): CgscriptType = ???
 
   def mentionedClasses: Set[CgscriptClass] = {
     val classes = mutable.HashSet[CgscriptClass]()
@@ -238,7 +238,7 @@ case class NullNode(tree: Tree) extends ConstantNode {
 
   override val constantValue = null
 
-  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.NothingClass)
+  override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.NothingClass)
 
   override def toScalaCode(context: CompileContext) = "null"
 
@@ -248,7 +248,7 @@ case class StarNode(tree: Tree) extends ConstantNode {
 
   override val constantValue = star
 
-  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.Nimber)
+  override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.Nimber)
 
   override def toScalaCode(context: CompileContext) = "org.cgsuite.core.Values.star"
 
@@ -256,7 +256,7 @@ case class StarNode(tree: Tree) extends ConstantNode {
 
 case class BooleanNode(tree: Tree, override val constantValue: Boolean) extends ConstantNode {
 
-  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.Boolean)
+  override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.Boolean)
 
   override def toScalaCode(context: CompileContext) = constantValue.toString
 
@@ -264,7 +264,7 @@ case class BooleanNode(tree: Tree, override val constantValue: Boolean) extends 
 
 case class IntegerNode(tree: Tree, override val constantValue: Integer) extends ConstantNode {
 
-  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.Integer)
+  override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.Integer)
 
   override def toScalaCode(context: CompileContext) = {
     if (constantValue.isSmallInteger)
@@ -278,7 +278,7 @@ case class IntegerNode(tree: Tree, override val constantValue: Integer) extends 
 // TODO Escape strings
 case class StringNode(tree: Tree, override val constantValue: String) extends ConstantNode {
 
-  override def elaborateImpl(scope: ElaborationDomain2) = CgscriptType(CgscriptClass.String)
+  override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.String)
 
   override def toScalaCode(context: CompileContext) = "\"" + constantValue + "\""
 
@@ -288,9 +288,9 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
   override val children = Seq.empty
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
     CgscriptType {
-      scope.cls getOrElse { sys.error("invalid `this`")}
+      domain.cls getOrElse { sys.error("invalid `this`")}
     }
   }
 
@@ -312,10 +312,10 @@ case class AsNode(tree: Tree, exprNode: EvalNode, typeSpecNode: TypeSpecifierNod
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = ???
 
-  override def elaborateImpl(scope: ElaborationDomain2): CgscriptType = {
+  override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
     // TODO Validate that EvalNode actually might be castable to the desired class?
-    exprNode.ensureElaborated(scope)
+    exprNode.ensureElaborated(domain)
     typeSpecNode.toType
 
   }
@@ -410,9 +410,9 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   private var idType: IdentifierType.Value = _
   private var constantVar: CgscriptClass#Var = _
 
-  override def elaborateImpl(scope: ElaborationDomain2): CgscriptType = {
+  override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
-    scope.typeOf(id) match {
+    domain.typeOf(id) match {
 
       case Some(typ) =>
 
@@ -422,7 +422,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       case _ =>
 
         // Try to resolve as an autoinvoke method
-        scope.cls flatMap { _.lookupMethod(id, Vector.empty) } match {
+        domain.cls flatMap { _.lookupMethod(id, Vector.empty) } match {
 
           case Some(method) if method.autoinvoke =>
 
@@ -515,9 +515,9 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 
   override val children = Seq(operand)
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
-    val operandType = operand.ensureElaborated(scope)
+    val operandType = operand.ensureElaborated(domain)
     val opMethod = FunctionCallNode.lookupMethod(operandType, op.id, Vector.empty)
     opMethod match {
       case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
@@ -549,10 +549,10 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
   override val children = Seq(operand1, operand2)
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
-    val operand1Type = operand1.ensureElaborated(scope)
-    val operand2Type = operand2.ensureElaborated(scope)
+    val operand1Type = operand1.ensureElaborated(domain)
+    val operand2Type = operand2.ensureElaborated(domain)
     val opMethod = FunctionCallNode.lookupMethod(operand1Type, op.id, Vector(operand2Type))
 
     opMethod match {
@@ -591,7 +591,7 @@ case class CoordinatesNode(tree: Tree, coord1: EvalNode, coord2: EvalNode) exten
 
   override val children = Vector(coord1, coord2)
 
-  override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
+  override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
     val type1 = coord1.ensureElaborated(domain)
     val type2 = coord2.ensureElaborated(domain)
@@ -623,7 +623,7 @@ case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode
 
   override val children = elements
 
-  override def elaborateImpl(domain: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
     elements foreach { _.ensureElaborated(domain) }
     CgscriptType(CgscriptClass.List)
   }
@@ -711,9 +711,9 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
 
 case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
-    val optionTypes = (lo ++ ro) map { _.ensureElaborated(scope) }
+    val optionTypes = (lo ++ ro) map { _.ensureElaborated(domain) }
 
     CgscriptType(
       if (optionTypes.isEmpty)
@@ -809,13 +809,13 @@ case class LoopyGameSpecNode(
 
   override val children = nodeLabel ++ lo ++ ro
 
-  override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
+  override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
     elaborateLoopy(domain, mutable.HashSet[Symbol]())
 
   }
 
-  def elaborateLoopy(domain: ElaborationDomain2, nodeLabels: mutable.HashSet[Symbol]): CgscriptType = {
+  def elaborateLoopy(domain: ElaborationDomain, nodeLabels: mutable.HashSet[Symbol]): CgscriptType = {
 
     // TODO Check for duplicate or shadow node labels
     nodeLabel foreach { nodeLabels += _.id }
@@ -827,7 +827,7 @@ case class LoopyGameSpecNode(
 
   }
 
-  private def validateLoopyOption(optionNode: EvalNode, domain: ElaborationDomain2, nodeLabels: mutable.HashSet[Symbol]): Unit = {
+  private def validateLoopyOption(optionNode: EvalNode, domain: ElaborationDomain, nodeLabels: mutable.HashSet[Symbol]): Unit = {
 
     optionNode match {
 
@@ -997,7 +997,7 @@ case class LoopNode(
     case _ => None
   }
 
-  override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
+  override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
     val inType = in map { _.ensureElaborated(domain) }
     val fromType = from map { _.ensureElaborated(domain) }
@@ -1214,9 +1214,9 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
 
   override val children = Seq(msg)
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
     // TODO Type check or type convert String
-    msg.ensureElaborated(scope)
+    msg.ensureElaborated(domain)
     CgscriptType(CgscriptClass.NothingClass)
   }
 
@@ -1244,7 +1244,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
   var externalName: String = _
   var constantVar: CgscriptClass#Var = _
 
-  override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
+  override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
     // TODO Don't elaborate as package if shadowed by a variable
     elaborateAsPackageReference(domain) match {
@@ -1258,7 +1258,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   }
 
-  private[lang2] def elaborateAsPackageReference(domain: ElaborationDomain2): Option[CgscriptType] = {
+  private[lang2] def elaborateAsPackageReference(domain: ElaborationDomain): Option[CgscriptType] = {
 
     antecedentAsPackage flatMap { pkg =>
 
@@ -1290,7 +1290,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   }
 
-  private[lang2] def elaborateAsObjectReference(domain: ElaborationDomain2): CgscriptType = {
+  private[lang2] def elaborateAsObjectReference(domain: ElaborationDomain): CgscriptType = {
 
     val objectType = obj.ensureElaborated(domain)
 
@@ -1467,9 +1467,9 @@ case class FunctionCallNode(
   var isEval: Boolean = false
   var isCallSiteElaborated: Boolean = false
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
-    val argTypes = argNodes map { _.ensureElaborated(scope) }
+    val argTypes = argNodes map { _.ensureElaborated(domain) }
 
     val methodTypeOpt = callSiteNode match {
 
@@ -1480,7 +1480,7 @@ case class FunctionCallNode(
         // or just an object in scope whose Eval method is being called implicitly.
 
         // To be a local method call, we need to be in class scope.
-        val localMethod = scope.cls flatMap { cls =>
+        val localMethod = domain.cls flatMap { cls =>
           FunctionCallNode.lookupMethod(CgscriptType(cls), idNode.id, argTypes)
         }
 
@@ -1533,7 +1533,7 @@ case class FunctionCallNode(
 
           case None =>
 
-            val objType = dotNode.obj.ensureElaborated(scope)
+            val objType = dotNode.obj.ensureElaborated(domain)
             val objMethod = objType.baseClass.lookupMethod(dotNode.idNode.id, argTypes)
 
             objMethod match {
@@ -1561,7 +1561,7 @@ case class FunctionCallNode(
       case None =>
 
         isCallSiteElaborated = true
-        val callSiteType = callSiteNode.ensureElaborated(scope)
+        val callSiteType = callSiteNode.ensureElaborated(domain)
         if (callSiteType.baseClass == CgscriptClass.Class) {
           callSiteType.typeParameters.head.baseClass.constructor match {
             case Some(constructor) => constructor.ensureElaborated()
@@ -1711,7 +1711,7 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
 
   val varName = idNode.id.name
 
-  override def elaborateImpl(domain: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
     val exprType = expr.ensureElaborated(domain)
 
@@ -1777,13 +1777,13 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
 
   override val children = statements
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
     if (!topLevel)
-      scope.pushScope()
-    statements foreach { _.ensureElaborated(scope) }
+      domain.pushScope()
+    statements foreach { _.ensureElaborated(domain) }
     if (!topLevel)
-      scope.popScope()
+      domain.popScope()
     statements.lastOption match {
       case Some(node) => node.elaboratedType
       case None => CgscriptType(CgscriptClass.NothingClass)
