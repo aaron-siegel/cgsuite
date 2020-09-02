@@ -22,6 +22,15 @@ import scala.collection.mutable
 import scala.language.{existentials, postfixOps}
 import scala.tools.nsc.interpreter.IMain
 
+sealed trait CgscriptClassDef
+case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
+case class ExplicitClassDef(text: String) extends CgscriptClassDef
+case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
+
+object LifecycleStage extends Enumeration {
+  val New, DeclaringPhase1, DeclaredPhase1, DeclaringPhase2, Declared, Elaborated, Loaded, Unloaded = Value
+}
+
 object CgscriptClass {
 
   private[lang2] val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
@@ -1418,58 +1427,4 @@ class CgscriptClass(
     parameters: Vector[Parameter]
   ) extends Constructor
 
-}
-
-sealed trait CgscriptClassDef
-case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
-case class ExplicitClassDef(text: String) extends CgscriptClassDef
-case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
-
-trait Member {
-
-  def declaringClass: CgscriptClass
-  def declNode: Option[MemberDeclarationNode]
-  def idNode: IdentifierNode
-  def id = idNode.id
-  def mentionedClasses: Iterable[CgscriptClass] = Iterable.empty
-
-  private var elaboratedResultTypeRef: CgscriptType = _
-
-  def resultType = {
-    if (elaboratedResultTypeRef == null)
-      throw new RuntimeException(s"Member has not been elaborated: $this")
-    else
-      elaboratedResultTypeRef
-  }
-
-  def ensureElaborated(): CgscriptType = {
-    if (elaboratedResultTypeRef == null) {
-      declaringClass logDebug s"Elaborating member: ${id.name}"
-      elaboratedResultTypeRef = elaborate()
-    }
-    elaboratedResultTypeRef
-  }
-
-  def elaborate(): CgscriptType
-
-}
-
-case class MethodSignature(id: Symbol, paramTypes: Vector[CgscriptType])
-
-case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultValue: Option[EvalNode], isExpandable: Boolean) {
-
-  val id = idNode.id
-
-  val signature = {
-    val optQuestionMark = if (defaultValue.isDefined) "?" else ""
-    val optEllipsis = if (isExpandable) " ..." else ""
-    s"${id.name} as ${paramType.qualifiedName}$optQuestionMark$optEllipsis"
-  }
-
-  var methodScopeIndex = -1
-
-}
-
-object LifecycleStage extends Enumeration {
-  val New, DeclaringPhase1, DeclaredPhase1, DeclaringPhase2, Declared, Elaborated, Loaded, Unloaded = Value
 }

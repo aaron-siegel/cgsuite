@@ -134,6 +134,8 @@ tokens
     PREAMBLE;
     SCRIPT;
     STATEMENT_SEQUENCE;
+    TYPE_PARAMETERS;
+    TYPE_SPECIFIER;
     UNARY_AST;
     UNARY_MINUS;
     UNARY_PLUS;
@@ -277,6 +279,18 @@ classModifier
     
 extendsClause
     : EXTENDS^ qualifiedId (COMMA! qualifiedId)*
+    ;
+
+typeSpecifier
+    : multiTypeParameter? (singleTypeParameter^)+
+    ;
+
+multiTypeParameter
+    : LPAREN typeSpecifier (COMMA typeSpecifier)* RPAREN -> ^(TYPE_PARAMETERS typeSpecifier*)
+    ;
+
+singleTypeParameter
+    : qualifiedId -> ^(TYPE_SPECIFIER qualifiedId)
     ;
 
 qualifiedId
@@ -452,7 +466,7 @@ procedureAntecedent
 
 // TODO Is this the right precedence?
 asExpression
-    : orExpression (AS^ orExpression)?
+    : orExpression (AS^ typeSpecifier)?
     ;
 
 orExpression

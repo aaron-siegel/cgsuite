@@ -336,13 +336,13 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object AsNode {
 
-  def apply(tree: Tree): AsNode = AsNode(tree, EvalNode(tree.head), IdentifierNode(tree.children(1)))
+  def apply(tree: Tree): AsNode = AsNode(tree, EvalNode(tree.head), TypeSpecifierNode(tree.children(1)))
 
 }
 
-case class AsNode(tree: Tree, exprNode: EvalNode, idNode: IdentifierNode) extends EvalNode {
+case class AsNode(tree: Tree, exprNode: EvalNode, typeSpecNode: TypeSpecifierNode) extends EvalNode {
 
-  override val children = Vector(exprNode, idNode)
+  override val children = Vector(exprNode, typeSpecNode)
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = ???
 
@@ -350,10 +350,7 @@ case class AsNode(tree: Tree, exprNode: EvalNode, idNode: IdentifierNode) extend
 
     // TODO Validate that EvalNode actually might be castable to the desired class?
     exprNode.ensureElaborated(scope)
-    val cls = CgscriptPackage.lookupClass(idNode.id) getOrElse {
-      sys.error("class not found (needs error msg)")  // TODO
-    }
-    CgscriptType(cls)
+    typeSpecNode.toType
 
   }
 
@@ -369,6 +366,47 @@ case class AsNode(tree: Tree, exprNode: EvalNode, idNode: IdentifierNode) extend
 
     addTypeToClasses(classes, elaboratedType)
     exprNode.collectMentionedClasses(classes)
+
+  }
+
+}
+
+object TypeSpecifierNode {
+
+  def apply(tree: Tree): TypeSpecifierNode = {
+
+    assert(tree.getType == TYPE_SPECIFIER)
+    println(tree.toStringTree)
+
+    val baseClassIdNode = IdentifierNode(tree.children.head)
+    val typeParameterNodes = {
+      if (tree.children.size == 1)
+        Vector.empty
+      else if (tree.children(1).getType == TYPE_PARAMETERS)
+        tree.children(1).children.toVector map { TypeSpecifierNode(_) }
+      else
+        Vector(TypeSpecifierNode(tree.children(1)))
+    }
+
+    TypeSpecifierNode(tree, baseClassIdNode, typeParameterNodes)
+
+  }
+
+}
+
+case class TypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeParameterNodes: Vector[TypeSpecifierNode]) extends EvalNode {
+
+  override def children = baseClassIdNode +: typeParameterNodes
+
+  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+
+  def toType: CgscriptType = {
+
+    val baseClass = CgscriptPackage.lookupClass(baseClassIdNode.id) getOrElse {
+      sys.error("class not found (needs error msg)")  // TODO
+    }
+    val typeParameters = typeParameterNodes map { _.toType }
+    CgscriptType(baseClass, typeParameters)
 
   }
 

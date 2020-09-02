@@ -30,6 +30,10 @@ object EvalNode {
 
       case THIS => ThisNode(tree)
 
+      // as
+
+      case AS => ConstantNode(tree, zero)
+
       // Identifier
 
       case IDENTIFIER => IdentifierNode(tree)
