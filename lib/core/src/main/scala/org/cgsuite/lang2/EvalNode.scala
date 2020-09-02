@@ -324,6 +324,12 @@ case class StringNode(tree: Tree, override val constantValue: String) extends Co
 
 case class ThisNode(tree: Tree) extends EvalNode {
   override val children = Seq.empty
+  override def elaborateImpl(scope: ElaborationDomain2) = {
+    CgscriptType {
+      scope.cls getOrElse { sys.error("invalid `this`")}
+    }
+  }
+  override def toScalaCode(context: CompileContext) = "this"
   override def evaluate(domain: EvaluationDomain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
   def toNodeStringPrec(enclosingPrecedence: Int) = "this"
 }
@@ -359,12 +365,19 @@ case class AsNode(tree: Tree, exprNode: EvalNode, idNode: IdentifierNode) extend
 
   }
 
+  override def collectMentionedClasses(classes: mutable.HashSet[CgscriptClass]): Unit = {
+
+    addTypeToClasses(classes, elaboratedType)
+    exprNode.collectMentionedClasses(classes)
+
+  }
+
 }
 
 object IdentifierNode {
 
   object IdentifierType extends Enumeration {
-    val VarIdentifier, ClassIdentifier, PackageIdentifier, ConstantIdentifier = Value
+    val VarIdentifier, ClassIdentifier, PackageIdentifier, ConstantIdentifier, AutoinvokeMethodIdentifier = Value
   }
 
   def apply(tree: Tree): IdentifierNode = {
@@ -393,41 +406,53 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   private var idType: IdentifierType.Value = _
   private var constantVar: CgscriptClass#Var = _
 
-  override def elaborateImpl(scope: ElaborationDomain2) = {
+  override def elaborateImpl(scope: ElaborationDomain2): CgscriptType = {
 
     scope.typeOf(id) match {
 
       case Some(typ) =>
+
         idType = IdentifierType.VarIdentifier
         typ.get
 
       case _ =>
 
-        // Try to resolve as a classname
-        CgscriptPackage.lookupClass(id) match {
+        // Try to resolve as an autoinvoke method
+        scope.cls flatMap { _.lookupMethod(id, Vector.empty) } match {
 
-          case Some(cls) =>
-            idType = IdentifierType.ClassIdentifier
-            if (cls.isSingleton)
-              CgscriptType(cls)
-            else
-              CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
+          case Some(method) if method.autoinvoke =>
 
-          case None =>
+            idType = IdentifierType.AutoinvokeMethodIdentifier
+            method.ensureElaborated()
 
-            // Try to resolve as a constant
-            CgscriptPackage.lookupConstantVar(id) match {
+          case _ =>
 
-              case Some(constantVar: CgscriptClass#Var) =>
-                idType = IdentifierType.ConstantIdentifier
-                this.constantVar = constantVar
-                constantVar.ensureElaborated(scope)
-                constantVar.resultType
+            // Try to resolve as a classname
+            CgscriptPackage.lookupClass(id) match {
 
-              // TODO Nested Classes
+              case Some(cls) =>
+                idType = IdentifierType.ClassIdentifier
+                if (cls.isSingleton)
+                  CgscriptType(cls)
+                else
+                  CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
 
               case None =>
-                throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
+
+                // Try to resolve as a constant
+                CgscriptPackage.lookupConstantVar(id) match {
+
+                  case Some(constantVar: CgscriptClass#Var) =>
+                    idType = IdentifierType.ConstantIdentifier
+                    this.constantVar = constantVar
+                    constantVar.ensureElaborated()
+
+                  // TODO Nested Classes of constants?
+
+                  case None =>
+                    throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
+
+                }
 
             }
 
@@ -623,6 +648,10 @@ object ListNode {
 
 case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
   override val children = elements
+  override def elaborateImpl(domain: ElaborationDomain2) = {
+    elements foreach { _.ensureElaborated(domain) }
+    CgscriptType(CgscriptClass.List)
+  }
   override def toScalaCode(context: CompileContext) = {
     val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
     s"Vector($elementsCode)"
@@ -1126,7 +1155,8 @@ case class LoopNode(
 
       case Some(idNode) =>
         assert(fromType.isDefined || inType.isDefined)    // Guaranteed by parser
-        val forIdType = fromType getOrElse inType.get.typeParameters.head
+        // TODO Implement generics...
+        val forIdType = fromType getOrElse CgscriptType(CgscriptClass.Object) // inType.get.typeParameters.head
         domain.pushScope()
         domain.insertId(idNode.id, forIdType)
 
@@ -1150,11 +1180,15 @@ case class LoopNode(
 
     }
 
-    loopType match {
-      case LoopNode.Do => CgscriptType(CgscriptClass.NothingClass)
-      case LoopNode.YieldList => CgscriptType(CgscriptClass.List, Vector(bodyType))
-      case LoopNode.YieldSet => CgscriptType(CgscriptClass.Set, Vector(bodyType))
-      // TODO Others
+    pushDownYield match {
+      case Some(loopNode) => loopNode.elaboratedType
+      case None =>
+        loopType match {
+          case LoopNode.Do => CgscriptType(CgscriptClass.NothingClass)
+          case LoopNode.YieldList => CgscriptType(CgscriptClass.List, Vector(bodyType))
+          case LoopNode.YieldSet => CgscriptType(CgscriptClass.Set, Vector(bodyType))
+          // TODO Others
+        }
     }
 
   }
@@ -1195,10 +1229,12 @@ case class LoopNode(
         ""
     }
     val yieldInitCode = {
-      if (isYield && pushdownYieldVar.isEmpty)
-        s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[Any]"
-      else
+      if (isYield && pushdownYieldVar.isEmpty) {
+        val yieldType = elaboratedType.typeParameters.head
+        s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
+      } else {
         ""
+      }
     }
     val checkIfDoneCode = {
       if (to.isDefined)
@@ -1253,15 +1289,15 @@ case class LoopNode(
        |    if ($continueVar) {
        |      $iterateCode
        |      $whileCode
-       |    }
-       |    if ($continueVar) {
-       |      if ($whereCode) {
-       |        val $tempResultVar = {
-       |          $bodyCode
+       |      if ($continueVar) {
+       |        if ($whereCode) {
+       |          val $tempResultVar = {
+       |            $bodyCode
+       |          }
+       |          $yieldUpdateCode
        |        }
-       |        $yieldUpdateCode
+       |        $incrementCode
        |      }
-       |      $incrementCode
        |    }
        |  }
        |  $yieldReturnCode
@@ -1437,13 +1473,13 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
   override val children = Seq(msg)
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
-    // TODO Type check or type convert
+    // TODO Type check or type convert String
     msg.ensureElaborated(scope)
     CgscriptType(CgscriptClass.NothingClass)
   }
   override def toScalaCode(context: CompileContext) = {
     val msgCode = msg.toScalaCode(context)
-    s"throw EvalException($msgCode.toString)"
+    s"throw org.cgsuite.exception.EvalException($msgCode.toString)"
   }
   override def evaluate(domain: EvaluationDomain) = {
     throw EvalException(msg.evaluate(domain).toString)
@@ -1499,7 +1535,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
             case Some(constantVar: CgscriptClass#Var) =>
               externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
               this.constantVar = constantVar
-              constantVar.ensureElaborated(domain)
+              constantVar.ensureElaborated()
               Some(constantVar.resultType)
 
             // TODO Nested Classes
@@ -1522,7 +1558,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
       case Some(member) =>
         externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
-        member.ensureElaborated(domain)
+        member.ensureElaborated()
 
       case None =>
 
@@ -1536,7 +1572,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
         staticResolution match {
           case Some(member) =>
             externalName = idNode.id.name
-            member.ensureElaborated(domain)
+            member.ensureElaborated()
           case None =>
             sys.error(s"need error msg here: ${objectType.baseClass.qualifiedName}.${idNode.id.name}")
         }
@@ -1697,6 +1733,7 @@ case class FunctionCallNode(
   ) extends EvalNode {
 
   var constantMethod: Option[CgscriptClass#Method] = None
+  var localMethod: Option[CgscriptClass#Method] = None
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
 
@@ -1704,7 +1741,7 @@ case class FunctionCallNode(
 
     val argTypes = argNodes map { _.ensureElaborated(scope) }
 
-    callSiteNode match {
+    val methodTypeOpt = callSiteNode match {
 
       case dotNode: DotNode =>
         // Method call
@@ -1712,18 +1749,20 @@ case class FunctionCallNode(
         val objectMethod = FunctionCallNode.lookupMethod(objectType, dotNode.idNode.id, argTypes)
         objectMethod match {
           case Some(method) if !method.autoinvoke =>
-            dotNode.externalName = method.methodName.updated(0, method.methodName.charAt(0).toLower)
-            method.ensureElaborated(scope)
-          case _ => ???
+            dotNode.externalName = method.scalaName
+            Some(method.ensureElaborated())
+          case _ => None
         }
 
       case idNode: IdentifierNode if scope.cls.isDefined =>
-        // TODO: Procedure calls
+
         // Local method call
         val localMethod = FunctionCallNode.lookupMethod(CgscriptType(scope.cls.get), idNode.id, argTypes)
         localMethod match {
-          case Some(method) if !method.autoinvoke => method.ensureElaborated(scope)
-          case _ => ???
+          case Some(method) if !method.autoinvoke =>
+            this.localMethod = localMethod
+            Some(method.ensureElaborated())
+          case _ => None
         }
 
       case idNode: IdentifierNode =>
@@ -1731,8 +1770,27 @@ case class FunctionCallNode(
         CgscriptPackage.lookupConstantMethod(idNode.id, argTypes) match {
           case Some(method) if !method.autoinvoke =>
             constantMethod = Some(method)
-            method.ensureElaborated(scope)
-          case _ => ???
+            Some(method.ensureElaborated())
+          case _ => None
+        }
+
+    }
+
+    methodTypeOpt match {
+
+      case Some(methodType) => methodType
+
+      case None =>
+
+        val callSiteType = callSiteNode.ensureElaborated(scope)
+        if (callSiteType.baseClass == CgscriptClass.Class) {
+          callSiteType.typeParameters.head.baseClass.constructor match {
+            case Some(constructor) => constructor.ensureElaborated()
+            case None => throw new EvalException(s"No constructor for class: ${callSiteType.typeParameters.head.baseClass.qualifiedName}")
+          }
+        } else {
+          // TODO Eval method
+          throw new EvalException(s"Illegal function call on object of type: ${callSiteType.qualifiedName}")
         }
 
     }
@@ -1762,8 +1820,12 @@ case class FunctionCallNode(
     // TODO arg names
 
     val functionCode = constantMethod match {
-      case Some(method) => method.declaringClass.scalaClassname + "." + method.methodName
-      case None => callSiteNode.toScalaCode(context)
+      case Some(method) => method.declaringClass.scalaClassname + "." + method.scalaName
+      case None =>
+        localMethod match {
+          case Some(method) => method.scalaName
+          case _ => callSiteNode.toScalaCode(context)
+        }
     }
     val argsCode = argNodes map { _.toScalaCode(context) } mkString ", "
     s"($functionCode($argsCode))"

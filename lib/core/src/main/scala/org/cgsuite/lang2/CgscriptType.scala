@@ -19,10 +19,15 @@ case class CgscriptType(baseClass: CgscriptClass, typeParameters: Vector[Cgscrip
 
   }
 
-  def scalaTypeName = {
+  def scalaTypeName: String = {
     val baseName = baseClass.scalaClassname
     // TODO This is a temporary hack
-    if (baseName endsWith "Set") baseName + "[Any]" else baseName
+    if ((baseName endsWith "IndexedSeq") || (baseName endsWith "Set") || (baseName endsWith "Iterable")) {
+      val typeParameter = typeParameters.headOption map { _.scalaTypeName } getOrElse "Any"
+      s"$baseName[$typeParameter]"
+    } else {
+      baseName
+    }
   }
 
   def <=(that: CgscriptType): Boolean = {

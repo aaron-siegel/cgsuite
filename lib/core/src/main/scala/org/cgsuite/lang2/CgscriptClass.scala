@@ -17,6 +17,7 @@ import org.cgsuite.output._
 import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.{existentials, postfixOps}
 import scala.tools.nsc.interpreter.IMain
@@ -189,12 +190,28 @@ class CgscriptClass(
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
 
-  val scalaClassname: String = systemClass match {
-    case Some(cls) => cls.getName
-    case None => qualifiedName.replace('.', '$')
+  val scalaClassname: String = {
+    if (qualifiedName == "cgsuite.lang.Nothing")
+      "Nothing"
+    else {
+      systemClass match {
+        case Some(cls) => cls.getName
+        case None if enclosingClass.isDefined => nameAsFullyScopedMember
+        case None => qualifiedName.replace('.', '$')
+      }
+    }
   }
 
-  override def elaborate(domain: ElaborationDomain2) = ???
+  override def elaborate() = sys.error("use ensureElaborated()")
+
+  override def ensureElaborated() = {
+
+    classInfo.constructorParamVars foreach { _.ensureElaborated() }
+    classInfo.allMembers foreach { _.ensureElaborated() }
+    classInfo.localNestedClasses.values foreach { _.ensureElaborated() }
+    CgscriptType(this)
+
+  }
 
   val isPackageObject = id == 'constants
 
@@ -212,7 +229,8 @@ class CgscriptClass(
   def isLoaded = classInfoRef != null
 
   def classInfo: ClassInfo = {
-    ensureDeclared()
+    ensureDeclaredPhase1()
+    assert(classInfoRef != null, this)
     classInfoRef
   }
 
@@ -329,13 +347,29 @@ class CgscriptClass(
   }
   */
   def ensureDeclared(): Unit = {
-    stage match {
-      case LifecycleStage.New | LifecycleStage.Unloaded =>
-        enclosingClass match {
-          case Some(cls) => cls.ensureDeclared()    // TODO What if no longer exists?
-          case _ => declare()
+    ensureDeclaredPhase1()
+    ensureDeclaredPhase2()
+  }
+
+  def ensureDeclaredPhase1(): Unit = {
+    enclosingClass match {
+      case Some(cls) => cls.ensureDeclaredPhase1()
+      case None =>
+        stage match {
+          case LifecycleStage.New | LifecycleStage.Unloaded => declarePhase1()
+          case _ =>   // Nothing to do
         }
-      case _ =>
+    }
+  }
+
+  def ensureDeclaredPhase2(): Unit = {
+    enclosingClass match {
+      case Some(cls) => cls.ensureDeclaredPhase2()
+      case None =>
+        stage match {
+          case LifecycleStage.DeclaredPhase1 => declarePhase2()
+          case _ =>   // Nothing to do
+        }
     }
   }
 
@@ -357,13 +391,11 @@ class CgscriptClass(
     if (isSystem)
       return
 
-    // TODO Nested classes
-
     val context = new CompileContext
     val classesCompiling = mutable.HashSet[CgscriptClass]()
     val sb = new StringBuilder
 
-    appendScalaCode(context, classesCompiling, sb)
+    includeInCompilationUnit(context, classesCompiling, sb)
 
     println(sb.toString)
 
@@ -375,17 +407,30 @@ class CgscriptClass(
 
   }
 
-  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+  @tailrec
+  private def includeInCompilationUnit(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
 
     if (isSystem)
       return
 
-    classesCompiling += this
+    if (stage == LifecycleStage.Loaded || (classesCompiling contains this))
+      return
 
-    // Elaborate all members.
-    val domain = new ElaborationDomain2(Some(this))
-    classInfo.constructorParamVars foreach { _.ensureElaborated(domain) }
-    classInfo.allMembers foreach { _.ensureElaborated(domain) }
+    enclosingClass match {
+
+      case Some(cls) =>
+        cls.includeInCompilationUnit(context, classesCompiling, sb)
+
+      case None =>
+        classesCompiling += this
+        ensureElaborated()
+        appendScalaCode(context, classesCompiling, sb)
+
+    }
+
+  }
+
+  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
 
     logger debug s"$logPrefix Generating compiled code."
 
@@ -394,6 +439,26 @@ class CgscriptClass(
       sb append s"case object $scalaClassname {\n\n"
     else
       sb append s"object $scalaClassname {\n\n"
+
+    if (constructor.isDefined) {
+
+      // Class is instantiable.
+      assert(!(isEnum || isSingleton))
+      sb append "def apply("
+      sb append (
+        classInfo.constructorParamVars map { parameter =>
+          parameter.id.name + ": " + parameter.resultType.scalaTypeName
+        } mkString ", "
+        )
+      sb append s") = $scalaClassname$$Impl("
+      sb append (
+        classInfo.constructorParamVars map { parameter =>
+          parameter.id.name
+        } mkString ", "
+        )
+      sb append ")\n\n"
+
+    }
 
     val companionObjectVars = {
       if (isEnum || isSingleton)
@@ -419,7 +484,8 @@ class CgscriptClass(
 
     companionObjectMethods foreach { method =>
 
-      sb append s"def ${method.methodName}"
+      val overrideSpec = if (method.isOverride) "override " else ""
+      sb append s"${overrideSpec}def ${method.scalaName}"
       if (!method.autoinvoke) {
         sb append "("
         sb append (
@@ -441,18 +507,15 @@ class CgscriptClass(
 
     if (!(isEnum || isSingleton)) {
 
-      sb append s"case class $scalaClassname("
-      sb append (
-        classInfo.constructorParamVars map { parameter =>
-          parameter.id.name + ": " + parameter.resultType.scalaTypeName
-        } mkString ", "
-      )
-      sb append ")\n"
-      sb append "  extends "
+      sb append s"trait $scalaClassname extends "
       sb append (
         classInfo.supers map { _.scalaClassname } mkString ", "
-      )
+        )
       sb append " {\n\n"
+
+      classInfo.constructorParamVars map { parameter =>
+        sb append s"def ${parameter.id.name}: ${parameter.resultType.scalaTypeName}\n\n"
+      }
 
       classInfo.localClassVars foreach { variable =>
         sb append s"val ${variable.id.name}: ${variable.resultType.scalaTypeName} = {\n\n"
@@ -464,7 +527,8 @@ class CgscriptClass(
 
       classInfo.localMethods foreach { method =>
 
-        sb append s"def ${method.methodName}"
+        val overrideSpec = if (method.isOverride) "override " else ""
+        sb append s"${overrideSpec}def ${method.scalaName}"
         if (!method.autoinvoke) {
           sb append "("
           sb append (
@@ -482,36 +546,52 @@ class CgscriptClass(
 
       }
 
+      classInfo.localNestedClasses.values foreach { _.appendScalaCode(context, classesCompiling, sb) }
+
       sb append "}\n\n"
+
+      if (constructor.isDefined) {
+
+        // Class is instantiable.
+
+        sb append s"case class $scalaClassname$$Impl("
+        sb append (
+          classInfo.constructorParamVars map { parameter =>
+            parameter.id.name + ": " + parameter.resultType.scalaTypeName
+          } mkString ", "
+          )
+        sb append ")\n"
+        sb append s"  extends $scalaClassname\n\n"
+
+      }
 
     }
 
     // Compile all mentioned classes that have not yet been compiled.
     val allMentionedClasses = classInfo.supers ++ (classInfo.allMembers flatMap { _.mentionedClasses })
-    allMentionedClasses foreach { mentionedClass =>
-      if (mentionedClass.stage != LifecycleStage.Loaded && !(classesCompiling contains mentionedClass))
-        mentionedClass.appendScalaCode(context, classesCompiling, sb)
-    }
+    allMentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, sb) }
 
   }
 
-  private def declare() {
+  private def declarePhase1(): Unit = {
 
-    logger debug s"$logPrefix Declaring."
+    logger debug s"$logPrefix Declaring (phase 1)."
 
-    if (stage == LifecycleStage.Declaring) {
+    if (stage == LifecycleStage.DeclaringPhase1) {
       // TODO Better error message/handling here?
       sys.error("circular class definition?: " + qualifiedName)
     }
 
     // Force constants to declare first
     pkg lookupClass 'constants foreach { constantsCls =>
-      if (constantsCls != this) constantsCls.ensureDeclared()
+      if (constantsCls != this) constantsCls.ensureDeclaredPhase1()
     }
 
     val tree = parseTree()
 
     logger debug s"$logPrefix Parsed class: ${tree.toStringTree}"
+
+    stage = LifecycleStage.DeclaringPhase1
 
     try {
       tree.getType match {
@@ -531,9 +611,25 @@ class CgscriptClass(
       stage = LifecycleStage.Unloaded
     }
 
-    stage = LifecycleStage.Declared
+    stage = LifecycleStage.DeclaredPhase1
 
-    logger debug s"$logPrefix Done declaring."
+    logger debug s"$logPrefix Done declaring (phase 1)."
+
+  }
+
+  private def declarePhase2(): Unit = {
+
+    assert(classInfoRef != null, this)
+
+    classInfoRef.supers foreach { _.ensureDeclaredPhase2() }
+
+    // Declare nested classes
+    classDeclarationNode.nestedClassDeclarations foreach { decl =>
+      val id = decl.idNode.id
+      classInfoRef.localNestedClasses(id).declareClass(decl)
+    }
+
+    stage = LifecycleStage.Declared
 
   }
 
@@ -571,13 +667,11 @@ class CgscriptClass(
 
   private def declareClass(node: ClassDeclarationNode): Unit = {
 
-    stage = LifecycleStage.Declaring
-
     logger debug s"$logPrefix Declaring class."
 
     classDeclarationNode = node
 
-    val (supers, nestedClasses, localMethods, methods, constructor) = {
+    val (supers, localNestedClasses, allNestedClasses, localMethods, methods, constructor) = {
 
       if (Object.isLoaded) { // Hack to bootstrap Object
 
@@ -594,7 +688,7 @@ class CgscriptClass(
                 // First, if this is a nested class, then look it up as some other nested class
                 // of this class's enclosing class;
                 // Then try looking it up as a global class.
-                enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
+                enclosingClass flatMap { _.classInfoRef.allNestedClassesInScope get superId } getOrElse {
                   pkg lookupClass superId getOrElse {
                     CgscriptPackage lookupClass superId getOrElse {
                       throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
@@ -609,7 +703,7 @@ class CgscriptClass(
           }
         }
 
-        supers foreach { _.ensureDeclared() }
+        supers foreach { _.ensureDeclaredPhase1() }
 
         val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
         val localNestedClasses = node.nestedClassDeclarations map { decl =>
@@ -619,18 +713,10 @@ class CgscriptClass(
         } toMap
         val constructor = node.constructorParams map { t =>
           val parameters = t.toParameters
-          SystemConstructor(node.idNode, parameters)
-          /*
           systemClass match {
+            case Some(_) => SystemConstructor(node.idNode, parameters)
             case None => UserConstructor(node.idNode, parameters)
-            case Some(cls) =>
-              val externalParameterTypes = parameters map { _.paramType.javaClass }
-              SpecialMethods.specialMethods get qualifiedName match {
-                case Some(fn) =>
-                  ExplicitConstructor(node.idNode, parameters)(fn)
-                case None =>
-              }
-          }*/
+          }
         }
         val localMembers = localMethods ++ localNestedClasses
 
@@ -735,8 +821,14 @@ class CgscriptClass(
         val groupedMethods: Map[Symbol, Vector[CgscriptClass#Method]] =
           allMethods groupBy { _.id } mapValues { methods => checkOverrides(methods.toVector) }
 
+        // TODO Resolve conflicts
+        val inheritedNestedClasses = (supers flatMap { _.classInfo.allNestedClasses }).toMap
+
+        val allNestedClasses = inheritedNestedClasses ++ localNestedClasses
+
         ( supers,
           localNestedClasses,
+          allNestedClasses,
           localMethods,
           groupedMethods,
           constructor
@@ -748,6 +840,7 @@ class CgscriptClass(
         val localMethods = node.methodDeclarations map { parseMethod (_, node.modifiers) }
         val groupedMethods = localMethods groupBy { _.id } mapValues  { _.toVector }
         ( Seq.empty[CgscriptClass],
+          Map.empty[Symbol, CgscriptClass],
           Map.empty[Symbol, CgscriptClass],
           localMethods,
           groupedMethods,
@@ -763,7 +856,8 @@ class CgscriptClass(
       node,
       node.modifiers,
       supers,
-      nestedClasses,
+      localNestedClasses,
+      allNestedClasses,
       localMethods,
       methods,
       constructor,
@@ -825,7 +919,7 @@ class CgscriptClass(
     // TODO We may want to allow defs to override vars in the future - then the vars become private to the
     // superclass. For now, we prohibit it.
 
-    classInfoRef.methods ++ classInfoRef.nestedClasses foreach { case (memberId, member) =>
+    classInfoRef.methods ++ classInfoRef.allNestedClasses foreach { case (memberId, member) =>
       if (classInfoRef.classVarLookup contains memberId)
         throw EvalException(
           s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`",
@@ -1074,7 +1168,8 @@ class CgscriptClass(
     val declNode: ClassDeclarationNode,
     val modifiers: Modifiers,
     val supers: Seq[CgscriptClass],
-    val nestedClasses: Map[Symbol, CgscriptClass],
+    val localNestedClasses: Map[Symbol, CgscriptClass],
+    val allNestedClasses: Map[Symbol, CgscriptClass],
     val localMethods: Seq[Method],
     val methods: Map[Symbol, Vector[CgscriptClass#Method]],
     val constructor: Option[CgscriptClass#Constructor],
@@ -1116,7 +1211,7 @@ class CgscriptClass(
     val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
     val allSymbolsInThisClass: Set[Symbol] = {
-      classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
+      classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ allNestedClasses.keySet
     }
     lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
@@ -1125,11 +1220,11 @@ class CgscriptClass(
       (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
     }
     val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
-      (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ nestedClasses
+      (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ allNestedClasses
     }
 
     val allMembers = {
-      (methods flatMap { _._2 }) ++ allClassVars ++ staticVars ++ enumElements
+      (methods flatMap { _._2 }) ++ allClassVars ++ staticVars ++ enumElements ++ constructor
     }.toVector
     /*
     lazy val allMembersInScope: Map[Symbol, Member] = {
@@ -1172,19 +1267,20 @@ class CgscriptClass(
 
     def isMutable = modifiers.hasMutable
 
-    override def elaborate(domain: ElaborationDomain2) = {
+    override def elaborate() = {
 
       // TODO: Detect discrepancy between explicit result type and initializer type
 
+      val domain = new ElaborationDomain2(Some(thisClass))
       explicitResultType match {
         case Some(explicitType) => explicitType
         case None =>
-          domain.pushMember(this)
+          //domain.pushMember(this)  TODO Catch circular references
           val inferredResultType = initializerNode match {
             case Some(node) => node.ensureElaborated(domain)
             case None => throw EvalException("Class member with no initializer")    // TODO Improve all this
           }
-          domain.popMember()
+          //domain.popMember()
           inferredResultType
       }
 
@@ -1202,6 +1298,7 @@ class CgscriptClass(
     def explicitReturnType: Option[CgscriptType]
 
     val methodName = idNode.id.name
+    val scalaName = methodName.updated(0, methodName.charAt(0).toLower)
     val declaringClass = thisClass
     val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
@@ -1242,15 +1339,20 @@ class CgscriptClass(
     body: StatementSequenceNode
   ) extends Method {
 
-    override def elaborate(domain: ElaborationDomain2): CgscriptType = {
+    override def elaborate(): CgscriptType = {
 
+      val domain = new ElaborationDomain2(Some(thisClass))
       domain.pushScope()
       parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
       }
-      val typ = body.ensureElaborated(domain)
+      val inferredType = body.ensureElaborated(domain)
       domain.popScope()
-      typ
+
+      explicitReturnType match {
+        case Some(explicitType) => explicitType
+        case None => inferredType
+      }
 
     }
 
@@ -1279,7 +1381,7 @@ class CgscriptClass(
     isOverride: Boolean
   ) extends Method {
 
-    override def elaborate(domain: ElaborationDomain2) = {
+    override def elaborate() = {
       explicitReturnType match {
         case Some(typ) => typ
         case _ => throw EvalException(s"`external` method is missing result type: `$qualifiedName`")
@@ -1300,7 +1402,7 @@ class CgscriptClass(
 
     override def referenceToken = Some(idNode.token)
 
-    override def elaborate(domain: ElaborationDomain2) = CgscriptType(thisClass)
+    override def elaborate() = CgscriptType(thisClass)
 
     override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
@@ -1340,15 +1442,15 @@ trait Member {
       elaboratedResultTypeRef
   }
 
-  def ensureElaborated(domain: ElaborationDomain2): CgscriptType = {
+  def ensureElaborated(): CgscriptType = {
     if (elaboratedResultTypeRef == null) {
       declaringClass logDebug s"Elaborating member: ${id.name}"
-      elaboratedResultTypeRef = elaborate(domain)
+      elaboratedResultTypeRef = elaborate()
     }
     elaboratedResultTypeRef
   }
 
-  def elaborate(domain: ElaborationDomain2): CgscriptType
+  def elaborate(): CgscriptType
 
 }
 
@@ -1369,5 +1471,5 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultVal
 }
 
 object LifecycleStage extends Enumeration {
-  val New, Declaring, Declared, Elaborated, Loaded, Unloaded = Value
+  val New, DeclaringPhase1, DeclaredPhase1, DeclaringPhase2, Declared, Elaborated, Loaded, Unloaded = Value
 }

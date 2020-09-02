@@ -9,7 +9,7 @@ singleton class constants
   var Offside := Side.Offside;
 
   var inf := 1/0;
-  var omega := 1.OmegaPower;
+  var omega := 1.OmegaPower as GeneralizedOrdinal;
 
   var on := {pass|} as CanonicalStopper;
   var off := -on;

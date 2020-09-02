@@ -17,8 +17,9 @@ system class ImpartialGame extends Game
     * `ImpartialGame` is loopy. To find the values of loopy games, use the
     * [[#GameValue]] property instead.
     */
-  override def CanonicalForm := *NimValue;
-  override def GameValue := *NimValue;    // TODO Nope! This won't work for loopy G
+  //override def CanonicalForm := *NimValue;
+
+  //override def GameValue := *NimValue;    // TODO Nope! This won't work for loopy G
 
   /** The (extended) genus of this `ImpartialGame`.
     *
@@ -36,16 +37,20 @@ system class ImpartialGame extends Game
     * compute, since in general it depends on the full
     * [[#MisereCanonicalForm][misere canonical form]] of $G$.
     */
-  external def Genus;
+  external def Genus as Object; // TODO
 
   /** The misere canonical form of this `ImpartialGame`.
     *
     *
     */
-  external def MisereCanonicalForm;
-  external def MisereNimValue;
-  external def NimValue;
-  override def Options := error("Subclasses of `ImpartialGame` must override the `Options` method.");
-  override def OptionsFor(player as Player) := Options;
+  external def MisereCanonicalForm as Object;   // TODO
+
+  external def MisereNimValue as Integer;
+
+  external def NimValue as Integer;
+
+  override def Options as Collection := error("Subclasses of `ImpartialGame` must override the `Options` method.");
+
+  override def OptionsFor(player as Player) as Collection := Options;
 
 end

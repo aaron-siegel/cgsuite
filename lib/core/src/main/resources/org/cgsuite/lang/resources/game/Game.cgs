@@ -37,13 +37,21 @@ system class Game
     * `Game` is loopy. To find the values of loopy games, use the
     * [[#GameValue]] property instead.
     */
-  external def CanonicalForm;
-  external def ConwayProduct(h as Game);
-  external def GameValue;
-  external def OrdinalProduct(h as Game);
+  external def CanonicalForm as CanonicalShortGame;
+
+  external def ConwayProduct(h as Game) as Game;
+
+  external def GameValue as SidedValue;
+
+  external def OrdinalSum(h as Game) as Game;
+
+  external def OrdinalProduct(h as Game) as Game;
+
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
-  external def SensibleLines(player as Player);
-  external def SensibleOptions(player as Player);
+
+  external def SensibleLines(player as Player) as Collection;
+
+  external def SensibleOptions(player as Player) as Collection;
 
   def DepthHint := error("That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.");
 
@@ -52,7 +60,9 @@ system class Game
   def Options := OptionsFor(Left).ToSet Union OptionsFor(Right);
 
   def Decomposition := [this];
+
   def LeftOptions := OptionsFor(Left);
+
   def RightOptions := OptionsFor(Right);
 
   // TODO DicotVariant and ImpartialVariant should override Decomposition
