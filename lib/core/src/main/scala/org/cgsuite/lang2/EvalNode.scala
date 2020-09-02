@@ -1543,8 +1543,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   override def elaborateImpl(domain: ElaborationDomain2): CgscriptType = {
 
-    // TODO Ideally package references would resolve *last*. Some refactoring
-    // will be needed for that
+    // TODO Don't elaborate as package if shadowed by a variable
     elaborateAsPackageReference(domain) match {
       case Some(typ) =>
         isElaboratedAsPackage = true
@@ -1556,7 +1555,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   }
 
-  private def elaborateAsPackageReference(domain: ElaborationDomain2): Option[CgscriptType] = {
+  private[lang2] def elaborateAsPackageReference(domain: ElaborationDomain2): Option[CgscriptType] = {
 
     antecedentAsPackage flatMap { pkg =>
 
@@ -1588,7 +1587,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   }
 
-  private def elaborateAsObjectReference(domain: ElaborationDomain2): CgscriptType = {
+  private[lang2] def elaborateAsObjectReference(domain: ElaborationDomain2): CgscriptType = {
 
     val objectType = obj.ensureElaborated(domain)
 
@@ -1772,45 +1771,93 @@ case class FunctionCallNode(
 
   var constantMethod: Option[CgscriptClass#Method] = None
   var localMethod: Option[CgscriptClass#Method] = None
+  var isEval: Boolean = false
+  var isCallSiteElaborated: Boolean = false
 
   override def elaborateImpl(scope: ElaborationDomain2) = {
-
-    // TODO This needs to be improved / rewritten (we could get methods other ways etc)
 
     val argTypes = argNodes map { _.ensureElaborated(scope) }
 
     val methodTypeOpt = callSiteNode match {
 
-      case dotNode: DotNode =>
-        // Method call
-        val objectType = dotNode.obj.ensureElaborated(scope)
-        val objectMethod = FunctionCallNode.lookupMethod(objectType, dotNode.idNode.id, argTypes)
-        objectMethod match {
-          case Some(method) if !method.autoinvoke =>
-            dotNode.externalName = method.scalaName
-            Some(method.ensureElaborated())
-          case _ => None
+      case idNode: IdentifierNode =>
+
+        // CASE 1:
+        // A bare identifier. It could be a local method call, a method call to imported constants,
+        // or just an object in scope whose Eval method is being called implicitly.
+
+        // To be a local method call, we need to be in class scope.
+        val localMethod = scope.cls flatMap { cls =>
+          FunctionCallNode.lookupMethod(CgscriptType(cls), idNode.id, argTypes)
         }
 
-      case idNode: IdentifierNode if scope.cls.isDefined =>
-
-        // Local method call
-        val localMethod = FunctionCallNode.lookupMethod(CgscriptType(scope.cls.get), idNode.id, argTypes)
         localMethod match {
+
           case Some(method) if !method.autoinvoke =>
             this.localMethod = localMethod
             Some(method.ensureElaborated())
-          case _ => None
+
+          case _ =>
+
+            // Now see if it's an imported constant. (TODO We really want to do this last -
+            // that will require some refactoring)
+            CgscriptPackage.lookupConstantMethod(idNode.id, argTypes) match {
+
+              case Some(method) if !method.autoinvoke =>
+                constantMethod = Some(method)
+                Some(method.ensureElaborated())
+
+              case _ =>
+                None
+
+            }
+
         }
 
-      case idNode: IdentifierNode =>
-        // Constants method call
-        CgscriptPackage.lookupConstantMethod(idNode.id, argTypes) match {
-          case Some(method) if !method.autoinvoke =>
-            constantMethod = Some(method)
-            Some(method.ensureElaborated())
-          case _ => None
+      case dotNode: DotNode =>
+
+        // CASE 2:
+        // A dot node. It could be a method call on an object, a method call from
+        // explicitly specified package constants, or just an object whose Eval method
+        // is being called.
+
+        // TODO Don't elaborate as package if shadowed by a variable
+
+        dotNode.antecedentAsPackage match {
+
+          case Some(pkg) =>
+
+            pkg.lookupConstantMethod(dotNode.idNode.id, argTypes) match {
+
+              case Some(method) if !method.autoinvoke =>
+                constantMethod = Some(method)
+                Some(method.ensureElaborated())
+
+              case _ =>
+                None
+
+            }
+
+          case None =>
+
+            val objType = dotNode.obj.ensureElaborated(scope)
+            val objMethod = objType.baseClass.lookupMethod(dotNode.idNode.id, argTypes)
+
+            objMethod match {
+
+              case Some(method) if !method.autoinvoke =>
+                dotNode.externalName = method.scalaName
+                Some(method.ensureElaborated())
+
+              case _ =>
+                None
+
+            }
+
         }
+
+      case _ =>
+        None
 
     }
 
@@ -1820,15 +1867,20 @@ case class FunctionCallNode(
 
       case None =>
 
+        isCallSiteElaborated = true
         val callSiteType = callSiteNode.ensureElaborated(scope)
         if (callSiteType.baseClass == CgscriptClass.Class) {
           callSiteType.typeParameters.head.baseClass.constructor match {
             case Some(constructor) => constructor.ensureElaborated()
-            case None => throw new EvalException(s"No constructor for class: ${callSiteType.typeParameters.head.baseClass.qualifiedName}")
+            case None => throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeParameters.head.baseClass.qualifiedName}")
           }
         } else {
-          // TODO Eval method
-          throw new EvalException(s"Illegal function call on object of type: ${callSiteType.qualifiedName}")
+          // Eval method
+          val evalMethod = callSiteType.baseClass.lookupMethod('Eval, argTypes) getOrElse {
+            throw EvalException("No method `Eval`") // TODO Better error msg
+          }
+          isEval = true
+          evalMethod.ensureElaborated()
         }
 
     }
@@ -1840,10 +1892,15 @@ case class FunctionCallNode(
     addTypeToClasses(classes, elaboratedType)
     // Skip over dotNode or idNode  TODO We might not always want to do this
     val childNode = {
-      callSiteNode match {
-        case _: IdentifierNode => None
-        case dotNode: DotNode => Some(dotNode.obj)
-        case _ => Some(callSiteNode)
+      if (isCallSiteElaborated)
+        Some(callSiteNode)
+      else {
+        callSiteNode match {
+          case _: IdentifierNode => None
+          case _: DotNode if constantMethod.isDefined => None
+          case dotNode: DotNode => Some(dotNode.obj)
+          case _ => Some(callSiteNode)
+        }
       }
     }
     (argNodes ++ childNode) foreach { _.collectMentionedClasses(classes) }
@@ -1862,11 +1919,12 @@ case class FunctionCallNode(
       case None =>
         localMethod match {
           case Some(method) => method.scalaName
-          case _ => callSiteNode.toScalaCode(context)
+          case None => callSiteNode.toScalaCode(context)
         }
     }
+    val evalCode = if (isEval) ".eval" else ""
     val argsCode = argNodes map { _.toScalaCode(context) } mkString ", "
-    s"($functionCode($argsCode))"
+    s"($functionCode$evalCode($argsCode))"
 
   }
 
