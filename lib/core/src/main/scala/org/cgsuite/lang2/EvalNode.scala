@@ -210,8 +210,11 @@ trait EvalNode extends Node {
   }
 
   def addTypeToClasses(classes: mutable.HashSet[CgscriptClass], cgscriptType: CgscriptType): Unit = {
-    classes += cgscriptType.baseClass
-    cgscriptType.typeParameters foreach { addTypeToClasses(classes, _) }
+    cgscriptType match {
+      case ConcreteType(cls, typeParameters) =>
+        classes += cls
+        typeParameters foreach { addTypeToClasses(classes, _) }
+    }
   }
 
   def toScalaCode(context: CompileContext): String = ???

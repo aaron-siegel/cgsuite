@@ -1,6 +1,50 @@
 package org.cgsuite.lang2
 
-case class CgscriptType(baseClass: CgscriptClass, typeParameters: Vector[CgscriptType] = Vector.empty) {
+object CgscriptType {
+
+  def apply(cls: CgscriptClass, typeParameters: Vector[CgscriptType] = Vector.empty): CgscriptType = {
+    ConcreteType(cls, typeParameters)
+  }
+
+}
+
+sealed trait CgscriptType {
+
+  def qualifiedName: String
+
+  def scalaTypeName: String
+
+  def baseClass: CgscriptClass
+
+  def typeParameters: Vector[CgscriptType]
+
+  def <=(that: CgscriptType): Boolean
+
+}
+
+case class TypeVariable(id: Symbol) extends CgscriptType {
+
+  override def qualifiedName = id.name
+
+  override def scalaTypeName = id.name
+
+  override def baseClass = sys.error("type variable cannot resolve to a class (this should never happen)")
+
+  override def typeParameters = sys.error("type variable cannot resolve to a class (this should never happen)")
+
+  def <=(that: CgscriptType) = {
+
+    that match {
+      case _: ConcreteType => false
+      case _: IntersectionType => false
+      case thatTypeVariable: TypeVariable => id == thatTypeVariable.id
+    }
+
+  }
+
+}
+
+case class ConcreteType(baseClass: CgscriptClass, typeParameters: Vector[CgscriptType] = Vector.empty) extends CgscriptType {
 
   def qualifiedName: String = {
 
@@ -31,7 +75,43 @@ case class CgscriptType(baseClass: CgscriptClass, typeParameters: Vector[Cgscrip
   }
 
   def <=(that: CgscriptType): Boolean = {
-    baseClass <= that.baseClass
+
+    that match {
+      case thatConcreteType: ConcreteType =>
+        baseClass <= thatConcreteType.baseClass && {
+//          assert(typeParameters.length == thatConcreteType.typeParameters.length, (this, that))
+          typeParameters zip thatConcreteType.typeParameters forall { case (thisParam, thatParam) =>
+            thisParam <= thatParam
+          }
+        }
+      case _: TypeVariable => false
+      case thatIntersectionType: IntersectionType =>
+        thatIntersectionType.components forall { this <= _ }
+    }
+  }
+
+}
+
+case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptType {
+
+  override def qualifiedName = ???
+
+  override def scalaTypeName = components map { _.scalaTypeName } mkString " with "
+
+  override def baseClass = ???
+
+  override def typeParameters = ???
+
+  override def <=(that: CgscriptType) = {
+
+    that match {
+      case thatConcreteType: ConcreteType =>
+        components exists { _ <= thatConcreteType }
+      case _: TypeVariable => false
+      case thatIntersectionType: IntersectionType =>
+        components exists { _ <= thatIntersectionType }
+    }
+
   }
 
 }
