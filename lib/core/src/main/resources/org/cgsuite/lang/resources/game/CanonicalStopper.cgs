@@ -20,7 +20,7 @@ system class CanonicalStopper extends Game, StopperSidedValue
 
   external def FollowerCount as Integer;
 
-  external def Followers as List;
+  external def Followers as List of CanonicalStopper;
 
   external def LeftStop as Pseudonumber;
 

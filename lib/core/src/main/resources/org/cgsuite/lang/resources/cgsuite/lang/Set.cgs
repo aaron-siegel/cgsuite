@@ -1,16 +1,16 @@
 /*${cgsuite.banner}*/
 
-system class Set extends Collection
+system class Set of `T extends Collection
 
   external def Contains(x) as Boolean;
 
 //  def Apply(fn as Procedure) := setof(fn(x) for x in this);
   
-  external def Intersection(that as Set) as Set;
+  external def Intersection(that as Set of Object) as Set of `T;
 
-  external def Replaced(replacements as Map) as Set;
+  external def Replaced(replacements as Map) as Set of `T;
   
-  external def Union(that as Collection) as Set;
+  external def Union(that as Set of `T) as Set of `T;
 
 //  override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
 

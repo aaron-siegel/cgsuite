@@ -65,7 +65,7 @@ system class CanonicalShortGame extends CanonicalStopper
     */
   external def Freeze as CanonicalShortGame;
   external def Heat(t as CanonicalShortGame) as CanonicalShortGame;
-  external def Incentives as List;
+  external def Incentives as List of CanonicalShortGame;
   
   external override def IsAllSmall as Boolean;
   
@@ -96,7 +96,7 @@ system class CanonicalShortGame extends CanonicalStopper
   external def IsOdd as Boolean;
   external def IsOddTempered as Boolean;
   external override def IsUptimal as Boolean;
-  external def LeftIncentives as List;
+  external def LeftIncentives as List of CanonicalShortGame;
   external override def LeftStop as DyadicRational;
   
   /** The mean value of this `CanonicalShortGame`, as a [[DyadicRational]].
@@ -114,7 +114,7 @@ system class CanonicalShortGame extends CanonicalStopper
   external def Pow(x as Pseudonumber) as CanonicalShortGame;
   external def PowTo(x as Pseudonumber) as CanonicalShortGame;
   external override def ReducedCanonicalForm as CanonicalShortGame;
-  external def RightIncentives as List;
+  external def RightIncentives as List of CanonicalShortGame;
   external override def RightStop as DyadicRational;
   
   /** The total number of stopping positions in this game's complete game tree.

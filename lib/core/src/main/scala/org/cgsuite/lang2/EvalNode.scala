@@ -214,6 +214,7 @@ trait EvalNode extends Node {
       case ConcreteType(cls, typeParameters) =>
         classes += cls
         typeParameters foreach { addTypeToClasses(classes, _) }
+      case TypeVariable(_) =>
     }
   }
 
@@ -471,26 +472,19 @@ object TypeSpecifierNode {
 
   def apply(tree: Tree): TypeSpecifierNode = {
 
-    assert(tree.getType == TYPE_SPECIFIER)
     println(tree.toStringTree)
 
-    if (tree.head.getType == TYPE_VARIABLE) {
+    tree.getType match {
 
-      TypeVariableNode(tree.head)
+      case TYPE_VARIABLE =>
+        TypeVariableNode(tree)
 
-    } else {
+      case IDENTIFIER =>
+        ConcreteTypeSpecifierNode(tree, IdentifierNode(tree), Vector.empty)
 
-      val baseClassIdNode = IdentifierNode(tree.children.head)
-      val typeParameterNodes = {
-        if (tree.children.size == 1)
-          Vector.empty
-        else if (tree.children(1).getType == TYPE_PARAMETERS)
-          tree.children(1).children.toVector map { TypeSpecifierNode(_) }
-        else
-          Vector(TypeSpecifierNode(tree.children(1)))
-      }
-
-      ConcreteTypeSpecifierNode(tree, baseClassIdNode, typeParameterNodes)
+      case OF =>
+        val typeArguments = tree.children.drop(1) map { TypeSpecifierNode(_) }
+        ConcreteTypeSpecifierNode(tree, IdentifierNode(tree.head), typeArguments)
 
     }
 
@@ -643,6 +637,33 @@ case class CoordinatesNode(tree: Tree, coord1: EvalNode, coord2: EvalNode) exten
 
 }
 
+trait CollectionNode extends EvalNode {
+
+  def elements: Vector[EvalNode]
+
+  def collectionClass: CgscriptClass
+
+  def scalaCollectionClassName: String
+
+  override def elaborateImpl(domain: ElaborationDomain) = {
+    elements foreach { _.ensureElaborated(domain) }
+    val elementTypes = elements map { _.elaboratedType }
+    val joinedElementType = {
+      if (elementTypes.isEmpty)
+        CgscriptType(CgscriptClass.NothingClass)
+      else
+        elementTypes reduce { _ join _ }
+    }
+    CgscriptType(collectionClass, Vector(joinedElementType))
+  }
+
+  override def toScalaCode(context: CompileContext) = {
+    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
+    s"$scalaCollectionClassName($elementsCode)"
+  }
+
+}
+
 object ListNode {
   def apply(tree: Tree): ListNode = {
     assert(tree.getType == EXPLICIT_LIST)
@@ -650,19 +671,13 @@ object ListNode {
   }
 }
 
-case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+case class ListNode(tree: Tree, elements: Vector[EvalNode]) extends CollectionNode {
+
+  def collectionClass = CgscriptClass.List
+
+  def scalaCollectionClassName = "Vector"
 
   override val children = elements
-
-  override def elaborateImpl(domain: ElaborationDomain) = {
-    elements foreach { _.ensureElaborated(domain) }
-    CgscriptType(CgscriptClass.List)
-  }
-
-  override def toScalaCode(context: CompileContext) = {
-    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
-    s"Vector($elementsCode)"
-  }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     "[" + (elements map {  _.toNodeString } mkString ", ") + "]"
@@ -673,11 +688,15 @@ case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode
 object SetNode {
   def apply(tree: Tree): SetNode = {
     assert(tree.getType == EXPLICIT_SET)
-    SetNode(tree, tree.children.map { EvalNode(_) }.toIndexedSeq)
+    SetNode(tree, tree.children.map { EvalNode(_) }.toVector)
   }
 }
 
-case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+case class SetNode(tree: Tree, elements: Vector[EvalNode]) extends CollectionNode {
+
+  def collectionClass = CgscriptClass.Set
+
+  def scalaCollectionClassName = "Set"
 
   override val children = elements
 
@@ -1119,7 +1138,7 @@ case class LoopNode(
     }
     val yieldInitCode = {
       if (isYield && pushdownYieldVar.isEmpty) {
-        val yieldType = elaboratedType.typeParameters.head
+        val yieldType = elaboratedType.typeArguments.head
         s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
       } else {
         ""
@@ -1335,7 +1354,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
         val staticResolution = {
           if (objectType.baseClass == CgscriptClass.Class)
-            resolveStaticMember(objectType.typeParameters.head)
+            resolveStaticMember(objectType.typeArguments.head)
           else
             None
         }
@@ -1354,7 +1373,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
   private def resolveElaboratedMember(objectType: CgscriptType): Option[Member] = {
 
-    val objectMethod = objectType.baseClass.lookupMethod(idNode.id, Vector.empty)
+    val objectMethod = objectType.lookupMethod(idNode.id, Vector.empty)
 
     objectMethod match {
       case Some(method) if method.autoinvoke => Some(method)
@@ -1382,7 +1401,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       if (constantVar != null) {
         s"${constantVar.declaringClass.scalaClassname}.$externalName"
       } else {
-        elaboratedType.typeParameters.head.scalaTypeName
+        elaboratedType.typeArguments.head.scalaTypeName
       }
     } else {
       val objStr = obj.toScalaCode(context)
@@ -1565,13 +1584,13 @@ case class FunctionCallNode(
           case None =>
 
             val objType = dotNode.obj.ensureElaborated(domain)
-            val objMethod = objType.baseClass.lookupMethod(dotNode.idNode.id, argTypes)
+            val objMethod = objType.lookupMethod(dotNode.idNode.id, argTypes)
 
             objMethod match {
 
               case Some(method) if !method.autoinvoke =>
                 dotNode.externalName = method.scalaName
-                Some(method.ensureElaborated())
+                Some(method.ensureElaborated().substituteAll(objType.baseClass.typeParameters zip objType.typeArguments))
 
               case _ =>
                 None
@@ -1594,9 +1613,9 @@ case class FunctionCallNode(
         isCallSiteElaborated = true
         val callSiteType = callSiteNode.ensureElaborated(domain)
         if (callSiteType.baseClass == CgscriptClass.Class) {
-          callSiteType.typeParameters.head.baseClass.constructor match {
+          callSiteType.typeArguments.head.baseClass.constructor match {
             case Some(constructor) => constructor.ensureElaborated()
-            case None => throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeParameters.head.baseClass.qualifiedName}")
+            case None => throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
           }
         } else {
           // Eval method

@@ -38,7 +38,7 @@
   * property for the desired test: `*2.IsNimber` and `0.IsNimber`
   * will both return `true`.
   */
-system class Class
+system class Class of `T
 
   /** The short name of this `Class`, as a [[String]].
     */

@@ -16,12 +16,12 @@ object Node {
 
     lazy val token = tree.asInstanceOf[CommonTree].token
 
-    lazy val children: Seq[Tree] = {
+    lazy val children: Vector[Tree] = {
       val jChildren = tree.asInstanceOf[CommonTree].getChildren
       if (jChildren == null)  // Really dumb ANTLR semantics
-        Seq.empty
+        Vector.empty
       else
-        jChildren.toSeq map { _.asInstanceOf[Tree] }
+        jChildren.toVector map { _.asInstanceOf[Tree] }
     }
 
     lazy val head = children.head

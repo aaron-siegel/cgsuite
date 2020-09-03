@@ -220,6 +220,8 @@ class CgscriptClass(
 
   def initializers = classInfo.initializers
 
+  def typeParameters = classInfo.typeParameters
+
   def <=(that: CgscriptClass) = ancestors contains that
 
   def unload() {
@@ -268,11 +270,13 @@ class CgscriptClass(
     classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
   }
 
-  def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
+  def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
+    assert(typeParameters.size == typeParameterSubstitutions.size, (id, typeParameters, typeParameterSubstitutions))
     val allMethods = lookupMethods(id)
     val argumentTypeList = CgscriptTypeList(argumentTypes)
     val matchingMethods = allMethods filter { method =>
-      argumentTypeList <= method.parameterTypeList
+      val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
+      argumentTypeList <= substitutedParameterTypeList
     }
     val reducedMatchingMethods = reduceMethodList(matchingMethods)
     if (reducedMatchingMethods.size >= 2) {
@@ -309,6 +313,8 @@ class CgscriptClass(
     ensureDeclaredPhase1()
     ensureDeclaredPhase2()
   }
+
+  def isDeclaredPhase1: Boolean = classInfoRef != null
 
   def ensureDeclaredPhase1(): Unit = {
     enclosingClass match {
@@ -1122,7 +1128,7 @@ class CgscriptClass(
     val idNode: IdentifierNode,
     val declNode: ClassDeclarationNode,
     val modifiers: Modifiers,
-    val typeParameters: Vector[CgscriptType],
+    val typeParameters: Vector[TypeVariable],
     val supers: Seq[CgscriptClass],
     val localNestedClasses: Map[Symbol, CgscriptClass],
     val allNestedClasses: Map[Symbol, CgscriptClass],

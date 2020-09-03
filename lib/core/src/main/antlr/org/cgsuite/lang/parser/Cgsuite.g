@@ -83,6 +83,7 @@ tokens
     MAPOF       = 'mapof';
     MUTABLE     = 'mutable';
     NOT         = 'not';
+    OF          = 'of';
     OP          = 'op';
     OR          = 'or';
     OVERRIDE    = 'override';
@@ -262,10 +263,10 @@ importClause
     ;
 
 classDeclaration
-    : (classModifiers CLASS classTypeParameters? IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      classModifiers CLASS^ classTypeParameters? IDENTIFIER (LPAREN! methodParameterList RPAREN!) extendsClause? declarations END
+    : (classModifiers CLASS IDENTIFIER classTypeParameters? LPAREN methodParameterList RPAREN) =>
+      classModifiers CLASS^ IDENTIFIER classTypeParameters? (LPAREN! methodParameterList RPAREN!) extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
-    | classModifiers CLASS^ classTypeParameters? IDENTIFIER extendsClause? declarations END
+    | classModifiers CLASS^ IDENTIFIER classTypeParameters? extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
     ;
 
@@ -278,25 +279,20 @@ classModifier
     ;
 
 classTypeParameters
-    : LPAREN TYPE_VARIABLE (COMMA TYPE_VARIABLE)* RPAREN -> ^(TYPE_SPECIFIER ^(TYPE_PARAMETERS TYPE_VARIABLE*))
-    | TYPE_VARIABLE -> ^(TYPE_SPECIFIER TYPE_VARIABLE)
+    : OF^ (TYPE_VARIABLE | LPAREN! TYPE_VARIABLE (COMMA! TYPE_VARIABLE)+ RPAREN!)
     ;
     
 extendsClause
-    : EXTENDS^ qualifiedId (COMMA! qualifiedId)*
+    : EXTENDS^ typeSpecifier (COMMA! typeSpecifier)*
     ;
 
 typeSpecifier
-    : multiTypeParameter? (singleTypeParameter^)+
+    : TYPE_VARIABLE
+    | qualifiedId (OF^ (multiTypeParameter | typeSpecifier))?
     ;
 
 multiTypeParameter
-    : LPAREN typeSpecifier (COMMA typeSpecifier)* RPAREN -> ^(TYPE_PARAMETERS typeSpecifier*)
-    ;
-
-singleTypeParameter
-    : qualifiedId -> ^(TYPE_SPECIFIER qualifiedId)
-    | TYPE_VARIABLE -> ^(TYPE_SPECIFIER TYPE_VARIABLE)
+    : LPAREN! typeSpecifier (COMMA! typeSpecifier)+ RPAREN!
     ;
 
 qualifiedId

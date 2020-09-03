@@ -45,7 +45,7 @@ object ClassDeclarationNode {
     val isEnum = tree.getType == ENUM
     val modifiers = Modifiers(tree.head, MUTABLE, SINGLETON, SYSTEM)
     val id = IdentifierNode(tree.children.find { _.getType == DECL_ID }.get)
-    val typeParameters = tree.children.find { _.getType == TYPE_PARAMETERS } match {
+    val typeParameters = tree.children.find { _.getType == OF } match {
       case Some(t) => t.children map { TypeVariableNode(_) }
       case _ => Vector.empty
     }

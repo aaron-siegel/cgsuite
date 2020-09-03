@@ -1,20 +1,20 @@
 /*${cgsuite.banner}*/
 
-system class `T List extends Collection
+system class List of `T extends Collection
 
   def Apply(fn as Procedure) := listof(fn(x) for x in this);
 
   external def Contains(x) as Boolean;
 
-  external def Grouped(n as Integer) as `T List List;
+  external def Grouped(n as Integer) as List of List of `T;
 
   external def Length as Integer;
 
   def PeriodicTable(period as Integer) := tableof(row for row in Grouped(period));
 
-  external def Sorted as `T List;
+  external def Sorted as List of `T;
 
-  external def Updated(index as Integer, value) as `T List;
+  external def Updated(index as Integer, value) as List of `T;
 
   external def MkOutput(sep as String) as String;
 
