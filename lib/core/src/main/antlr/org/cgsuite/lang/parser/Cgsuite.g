@@ -262,10 +262,10 @@ importClause
     ;
 
 classDeclaration
-    : (classModifiers CLASS IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END
+    : (classModifiers CLASS classTypeParameters? IDENTIFIER LPAREN methodParameterList RPAREN) =>
+      classModifiers CLASS^ classTypeParameters? IDENTIFIER (LPAREN! methodParameterList RPAREN!) extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
-    | classModifiers CLASS^ IDENTIFIER extendsClause? declarations END
+    | classModifiers CLASS^ classTypeParameters? IDENTIFIER extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
     ;
 
@@ -275,6 +275,11 @@ classModifiers
 
 classModifier
     : MUTABLE | OVERRIDE | SINGLETON | SYSTEM
+    ;
+
+classTypeParameters
+    : LPAREN TYPE_VARIABLE (COMMA TYPE_VARIABLE)* RPAREN -> ^(TYPE_SPECIFIER ^(TYPE_PARAMETERS TYPE_VARIABLE*))
+    | TYPE_VARIABLE -> ^(TYPE_SPECIFIER TYPE_VARIABLE)
     ;
     
 extendsClause
@@ -291,6 +296,7 @@ multiTypeParameter
 
 singleTypeParameter
     : qualifiedId -> ^(TYPE_SPECIFIER qualifiedId)
+    | TYPE_VARIABLE -> ^(TYPE_SPECIFIER TYPE_VARIABLE)
     ;
 
 qualifiedId
@@ -369,7 +375,7 @@ methodParameter
     ;
 
 asClause
-    : AS^ IDENTIFIER
+    : AS^ typeSpecifier
     ;
 
 questionClause
@@ -455,7 +461,7 @@ assignmentToken
     ;
     
 functionExpression
-    : procedureAntecedent RARROW^ functionExpression
+    : (procedureAntecedent RARROW) => procedureAntecedent RARROW^ functionExpression
     | asExpression
     ;
 
@@ -783,41 +789,43 @@ generalizedId
     | OP opc=opCode -> IDENTIFIER[$OP, $OP.getText() + " " + $opc.tree.getText()]
     ;
 
-INTEGER        : DIGIT+;
+INTEGER       : DIGIT+;
 
-MULTI_CARET : '^' ('^')+;
+MULTI_CARET   : '^' ('^')+;
 
-MULTI_VEE   : 'v' ('v')+;
+MULTI_VEE     : 'v' ('v')+;
 
-IDENTIFIER    : 'v'* NONV (LETTER | DIGIT)*;
+IDENTIFIER    : ('v'+ (NONV | '_') | NONV) (LETTER | DIGIT | '_')*;
+
+TYPE_VARIABLE : '`' LETTER (LETTER | DIGIT)*;
 
 STRING        : DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 
-SLASHES        : SLASH+;
+SLASHES       : SLASH+;
 
 // 00A0 = non-breaking space
-WHITESPACE  : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
+WHITESPACE    : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
 
-DOC_COMMENT : '/**' ( ~('*') | '*' ~('/') )* '*/'? { $channel = DOC_COMMENT_CHANNEL; };
+DOC_COMMENT   : '/**' ( ~('*') | '*' ~('/') )* '*/'? { $channel = DOC_COMMENT_CHANNEL; };
 
-SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
+SL_COMMENT    : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
 
-ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
-
-fragment
-DIGIT        : '0'..'9';
+ML_COMMENT    : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
 
 fragment
-HEX_DIGIT    : '0'..'9' | 'A'..'F' | 'a'..'f';
+DIGIT         : '0'..'9';
 
 fragment
-LETTER        : 'A'..'Z' | 'a'..'z' | '_';
+HEX_DIGIT     : '0'..'9' | 'A'..'F' | 'a'..'f';
 
 fragment
-NONV        : 'A'..'Z' | 'a'..'u' | 'w'..'z' | '_';
+LETTER        : 'A'..'Z' | 'a'..'z';
 
 fragment
-SLASH        : '|';
+NONV          : 'A'..'Z' | 'a'..'u' | 'w'..'z';
+
+fragment
+SLASH         : '|';
 
 fragment
 ESCAPE_SEQ    : BACKSLASH
@@ -828,7 +836,7 @@ ESCAPE_SEQ    : BACKSLASH
               | DQUOTE
               | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
               )
-            ;
+              ;
 
 fragment
-NEWLINE     : '\r'? '\n';
+NEWLINE       : '\r'? '\n';

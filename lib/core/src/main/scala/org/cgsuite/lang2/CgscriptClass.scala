@@ -115,9 +115,9 @@ class CgscriptClass(
 
   private[cgsuite] def logDebug(message: => String): Unit = logger debug s"$logPrefix $message"
 
-  val classOrdinal: Int = newClassOrdinal        // TODO How to handle for nested classes??
+  val classOrdinal: Int = newClassOrdinal
 
-  val url = classdef match {
+  val url: URL = classdef match {
     case UrlClassDef(_, x) => x
     case _ => null
   }
@@ -172,8 +172,6 @@ class CgscriptClass(
     CgscriptType(this)
 
   }
-
-  val isPackageObject = id == 'constants
 
   private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
 
@@ -563,6 +561,7 @@ class CgscriptClass(
     stage = LifecycleStage.DeclaringPhase1
 
     try {
+
       tree.getType match {
 
         case SCRIPT =>
@@ -576,8 +575,12 @@ class CgscriptClass(
           declareClass(node)
 
       }
+
     } finally {
+
+      // If an exception occurred, we want to treat this class as Unloaded
       stage = LifecycleStage.Unloaded
+
     }
 
     stage = LifecycleStage.DeclaredPhase1
@@ -640,190 +643,171 @@ class CgscriptClass(
 
     classDeclarationNode = node
 
-    val (supers, localNestedClasses, allNestedClasses, localMethods, methods, constructor) = {
+    if (node.idNode.id.name != nameAsFullyScopedMember)
+      throw EvalException(s"Class name does not match filename: `${node.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", node.idNode.tree)
 
-      if (Object.isLoaded) { // Hack to bootstrap Object
+    val typeParameters = node.typeParameters map { typeParameterNode =>
+      TypeVariable(typeParameterNode.id)
+    }
 
-        if (node.idNode.id.name != nameAsFullyScopedMember)
-          throw EvalException(s"Class name does not match filename: `${node.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", node.idNode.tree)
+    val supers = {
 
-        val supers = {
-          if (node.extendsClause.isEmpty) {
-            Seq(if (node.isEnum) Enum else Object)
-          } else {
-            node.extendsClause map {
-              case IdentifierNode(tree, superId) =>
-                // Try looking this id up two ways:
-                // First, if this is a nested class, then look it up as some other nested class
-                // of this class's enclosing class;
-                // Then try looking it up as a global class.
-                enclosingClass flatMap { _.classInfoRef.allNestedClassesInScope get superId } getOrElse {
-                  pkg lookupClass superId getOrElse {
-                    CgscriptPackage lookupClass superId getOrElse {
-                      throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
-                    }
-                  }
-                }
-              case node: DotNode =>
-                Option(node.ensureElaborated(new ElaborationDomain(Some(this))).baseClass) getOrElse {
-                  sys.error("not found")
-                }
-            }
-          }
-        }
-
-        supers foreach { _.ensureDeclaredPhase1() }
-
-        val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
-        val localNestedClasses = node.nestedClassDeclarations map { decl =>
-          val id = decl.idNode.id
-          val newClass = locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(this), id))
-          (id, newClass)
-        } toMap
-        val constructor = node.constructorParams map { t =>
-          val parameters = t.toParameters
-          systemClass match {
-            case Some(_) => SystemConstructor(node.idNode, parameters)
-            case None => UserConstructor(node.idNode, parameters)
-          }
-        }
-        val localMembers = localMethods ++ localNestedClasses
-
-        // Check for duplicate methods.
-
-        /*
-        localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
-          throw EvalException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
-        }
-        */
-        /*
-
-        val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
-        val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
-        val superMembers = superMethods ++ superNestedClasses
-
-        // Check for conflicting superclass methods.
-
-        val mostSpecificSuperMembers = superMembers groupBy { _._1 } map { case (superId, instances) =>
-          val mostSpecificInstances = instances.distinct filterNot { case (_, member) =>
-            // Filter out this declaration if there exists a strict subclass that also declares this method
-            // (that one will override)
-            instances.exists { case (_, other) =>
-              other != member && other.declaringClass.ancestors.contains(member.declaringClass)
-            }
-          }
-          // If there are multiple most specific instances (so that neither one overrides the other),
-          // and this method isn't redeclared by the loading class, that's an error
-          if (mostSpecificInstances.size > 1 && !localMembers.exists { case (localId, _) => localId == superId }) {
-            val superclassNames = mostSpecificInstances map { case (_, superMember) => s"`${superMember.declaringClass.qualifiedName}`" }
-            throw EvalException(
-              s"Member `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
-                s"because it is defined in multiple superclasses (${superclassNames mkString ", "})"
-            )
-          }
-          (superId, mostSpecificInstances)
-        }
-
-        val resolvedSuperMembers = mostSpecificSuperMembers collect {
-          case (_, instances) if instances.size == 1 => instances.head
-        }
-
-        // TODO What if there are multiple resolved supermethods? How do we define `super.` syntax in that case?
-
-        val renamedSuperMembers = resolvedSuperMembers map { case (superId, superMember) =>
-          (Symbol("super$" + superId.name), superMember)
-        }
-        */
-        // override modifier validation.
-        // TODO for Nested classes too!
-
-        /*
-        localMethods foreach { case (methodId, method) =>
-          if (method.isOverride) {
-            if (!superMethods.exists { case (superId, _) => superId == methodId }) {
-              throw EvalException(
-                s"Method `${method.qualifiedName}` overrides nothing",
-                token = Some(method.idNode.token)
-              )
-            }
-          } else {
-            superMethods find { case (superId, _) => superId == methodId } match {
-              case None =>
-              case Some((_, superMethod)) =>
-                throw EvalException(
-                  s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`",
-                  token = Some(method.idNode.token)
-                )
-            }
-          }
-        }
-        */
-        /*
-        if (systemClass.isDefined) {
-          resolvedSuperMembers foreach {
-            case (id, method: CgscriptClass#SystemMethod) =>
-              val javaParameterTypes = method.javaMethod.getParameterTypes
-              try {
-                val overrider = javaClass.getMethod(method.javaMethod.getName, javaParameterTypes : _*)
-                if (overrider != method.javaMethod && !(localMembers exists { _._1 == id })) {
-                  logger.warn(
-                    s"Method `${method.qualifiedName}` with Java method `${method.javaMethod.getName}` is overridden in Java class `${javaClass.getName}`, but is not redeclared in class `$qualifiedName`."
-                  )
-                }
-              } catch {
-                case exc: NoSuchMethodException =>
-              }
-            case _ =>
-          }
-        }
-        */
-
-        //val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
-        //val (allMethods, allNestedClasses) = localMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
-
-        // TODO Handle overrides & inheritance conflicts
-
-        val inheritedMethods = supers flatMap { _.classInfo.methods.values.flatten }
-
-        val allMethods = localMethods ++ inheritedMethods
-
-        val groupedMethods: Map[Symbol, Vector[CgscriptClass#Method]] =
-          allMethods groupBy { _.id } mapValues { methods => checkOverrides(methods.toVector) }
-
-        // TODO Resolve conflicts
-        val inheritedNestedClasses = (supers flatMap { _.classInfo.allNestedClasses }).toMap
-
-        val allNestedClasses = inheritedNestedClasses ++ localNestedClasses
-
-        ( supers,
-          localNestedClasses,
-          allNestedClasses,
-          localMethods,
-          groupedMethods,
-          constructor
-        )
-
+      if (qualifiedName == "cgsuite.lang.Object") {
+        Vector.empty
+      } else if (node.extendsClause.isEmpty) {
+        Vector(if (node.isEnum) Enum else Object)
       } else {
 
-        // We're loading Object right now!
-        val localMethods = node.methodDeclarations map { parseMethod (_, node.modifiers) }
-        val groupedMethods = localMethods groupBy { _.id } mapValues  { _.toVector }
-        ( Seq.empty[CgscriptClass],
-          Map.empty[Symbol, CgscriptClass],
-          Map.empty[Symbol, CgscriptClass],
-          localMethods,
-          groupedMethods,
-          None
-        )
+        node.extendsClause map {
+          case IdentifierNode(tree, superId) =>
+            // Try looking this id up two ways:
+            // First, if this is a nested class, then look it up as some other nested class
+            // of this class's enclosing class;
+            // Then try looking it up as a global class.
+            enclosingClass flatMap { _.classInfoRef.allNestedClassesInScope get superId } getOrElse {
+              pkg lookupClass superId getOrElse {
+                CgscriptPackage lookupClass superId getOrElse {
+                  throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
+                }
+              }
+            }
+          case node: DotNode =>
+            Option(node.ensureElaborated(new ElaborationDomain(Some(this))).baseClass) getOrElse {
+              sys.error("not found")
+            }
+        }
 
       }
-
     }
+
+    supers foreach { _.ensureDeclaredPhase1() }
+
+    val localMethods = node.methodDeclarations map { parseMethod(_, node.modifiers) }
+    val localNestedClasses = node.nestedClassDeclarations map { decl =>
+      val id = decl.idNode.id
+      val newClass = locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(this), id))
+      (id, newClass)
+    } toMap
+    val constructor = node.constructorParams map { t =>
+      val parameters = t.toParameters
+      systemClass match {
+        case Some(_) => SystemConstructor(node.idNode, parameters)
+        case None => UserConstructor(node.idNode, parameters)
+      }
+    }
+    val localMembers = localMethods ++ localNestedClasses
+
+    // Check for duplicate methods.
+
+    /*
+    localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
+      throw EvalException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
+    }
+    */
+    /*
+
+    val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
+    val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
+    val superMembers = superMethods ++ superNestedClasses
+
+    // Check for conflicting superclass methods.
+
+    val mostSpecificSuperMembers = superMembers groupBy { _._1 } map { case (superId, instances) =>
+      val mostSpecificInstances = instances.distinct filterNot { case (_, member) =>
+        // Filter out this declaration if there exists a strict subclass that also declares this method
+        // (that one will override)
+        instances.exists { case (_, other) =>
+          other != member && other.declaringClass.ancestors.contains(member.declaringClass)
+        }
+      }
+      // If there are multiple most specific instances (so that neither one overrides the other),
+      // and this method isn't redeclared by the loading class, that's an error
+      if (mostSpecificInstances.size > 1 && !localMembers.exists { case (localId, _) => localId == superId }) {
+        val superclassNames = mostSpecificInstances map { case (_, superMember) => s"`${superMember.declaringClass.qualifiedName}`" }
+        throw EvalException(
+          s"Member `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
+            s"because it is defined in multiple superclasses (${superclassNames mkString ", "})"
+        )
+      }
+      (superId, mostSpecificInstances)
+    }
+
+    val resolvedSuperMembers = mostSpecificSuperMembers collect {
+      case (_, instances) if instances.size == 1 => instances.head
+    }
+
+    // TODO What if there are multiple resolved supermethods? How do we define `super.` syntax in that case?
+
+    val renamedSuperMembers = resolvedSuperMembers map { case (superId, superMember) =>
+      (Symbol("super$" + superId.name), superMember)
+    }
+    */
+    // override modifier validation.
+    // TODO for Nested classes too!
+
+    /*
+    localMethods foreach { case (methodId, method) =>
+      if (method.isOverride) {
+        if (!superMethods.exists { case (superId, _) => superId == methodId }) {
+          throw EvalException(
+            s"Method `${method.qualifiedName}` overrides nothing",
+            token = Some(method.idNode.token)
+          )
+        }
+      } else {
+        superMethods find { case (superId, _) => superId == methodId } match {
+          case None =>
+          case Some((_, superMethod)) =>
+            throw EvalException(
+              s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`",
+              token = Some(method.idNode.token)
+            )
+        }
+      }
+    }
+    */
+    /*
+    if (systemClass.isDefined) {
+      resolvedSuperMembers foreach {
+        case (id, method: CgscriptClass#SystemMethod) =>
+          val javaParameterTypes = method.javaMethod.getParameterTypes
+          try {
+            val overrider = javaClass.getMethod(method.javaMethod.getName, javaParameterTypes : _*)
+            if (overrider != method.javaMethod && !(localMembers exists { _._1 == id })) {
+              logger.warn(
+                s"Method `${method.qualifiedName}` with Java method `${method.javaMethod.getName}` is overridden in Java class `${javaClass.getName}`, but is not redeclared in class `$qualifiedName`."
+              )
+            }
+          } catch {
+            case exc: NoSuchMethodException =>
+          }
+        case _ =>
+      }
+    }
+    */
+
+    //val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
+    //val (allMethods, allNestedClasses) = localMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
+
+    // TODO Handle overrides & inheritance conflicts
+
+    val inheritedMethods = supers flatMap { _.classInfo.methods.values.flatten }
+
+    val allMethods = localMethods ++ inheritedMethods
+
+    val methods: Map[Symbol, Vector[CgscriptClass#Method]] =
+      allMethods groupBy { _.id } mapValues { methods => checkOverrides(methods.toVector) }
+
+    // TODO Resolve conflicts
+    val inheritedNestedClasses = (supers flatMap { _.classInfo.allNestedClasses }).toMap
+
+    val allNestedClasses = inheritedNestedClasses ++ localNestedClasses
 
     classInfoRef = new ClassInfo(
       node.idNode,
       node,
       node.modifiers,
+      typeParameters,
       supers,
       localNestedClasses,
       allNestedClasses,
@@ -1088,12 +1072,14 @@ class CgscriptClass(
       case None => (true, Vector.empty)
     }
 
+    val explicitReturnType = node.returnType map { _.toType }
+    /*
     val explicitReturnType = node.returnType map { idNode =>
       pkg lookupClass idNode.id orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
         throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
       }
     } map { CgscriptType(_) }
-
+    */
     val newMethod = {
       if (node.modifiers.hasExternal) {
         if (!classModifiers.hasSystem)
@@ -1136,6 +1122,7 @@ class CgscriptClass(
     val idNode: IdentifierNode,
     val declNode: ClassDeclarationNode,
     val modifiers: Modifiers,
+    val typeParameters: Vector[CgscriptType],
     val supers: Seq[CgscriptClass],
     val localNestedClasses: Map[Symbol, CgscriptClass],
     val allNestedClasses: Map[Symbol, CgscriptClass],

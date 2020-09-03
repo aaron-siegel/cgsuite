@@ -340,47 +340,6 @@ case class AsNode(tree: Tree, exprNode: EvalNode, typeSpecNode: TypeSpecifierNod
 
 }
 
-object TypeSpecifierNode {
-
-  def apply(tree: Tree): TypeSpecifierNode = {
-
-    assert(tree.getType == TYPE_SPECIFIER)
-    println(tree.toStringTree)
-
-    val baseClassIdNode = IdentifierNode(tree.children.head)
-    val typeParameterNodes = {
-      if (tree.children.size == 1)
-        Vector.empty
-      else if (tree.children(1).getType == TYPE_PARAMETERS)
-        tree.children(1).children.toVector map { TypeSpecifierNode(_) }
-      else
-        Vector(TypeSpecifierNode(tree.children(1)))
-    }
-
-    TypeSpecifierNode(tree, baseClassIdNode, typeParameterNodes)
-
-  }
-
-}
-
-case class TypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeParameterNodes: Vector[TypeSpecifierNode]) extends EvalNode {
-
-  override def children = baseClassIdNode +: typeParameterNodes
-
-  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
-
-  def toType: CgscriptType = {
-
-    val baseClass = CgscriptPackage.lookupClass(baseClassIdNode.id) getOrElse {
-      sys.error("class not found (needs error msg)")  // TODO
-    }
-    val typeParameters = typeParameterNodes map { _.toType }
-    CgscriptType(baseClass, typeParameters)
-
-  }
-
-}
-
 object IdentifierNode {
 
   object IdentifierType extends Enumeration {
@@ -505,6 +464,75 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   override val children = Seq.empty
 
   def toNodeStringPrec(enclosingPrecedence: Int) = id.name
+
+}
+
+object TypeSpecifierNode {
+
+  def apply(tree: Tree): TypeSpecifierNode = {
+
+    assert(tree.getType == TYPE_SPECIFIER)
+    println(tree.toStringTree)
+
+    if (tree.head.getType == TYPE_VARIABLE) {
+
+      TypeVariableNode(tree.head)
+
+    } else {
+
+      val baseClassIdNode = IdentifierNode(tree.children.head)
+      val typeParameterNodes = {
+        if (tree.children.size == 1)
+          Vector.empty
+        else if (tree.children(1).getType == TYPE_PARAMETERS)
+          tree.children(1).children.toVector map { TypeSpecifierNode(_) }
+        else
+          Vector(TypeSpecifierNode(tree.children(1)))
+      }
+
+      ConcreteTypeSpecifierNode(tree, baseClassIdNode, typeParameterNodes)
+
+    }
+
+  }
+
+}
+
+trait TypeSpecifierNode extends EvalNode {
+
+  def toType: CgscriptType
+
+  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+
+}
+
+object TypeVariableNode {
+
+  def apply(tree: Tree): TypeVariableNode = TypeVariableNode(tree, Symbol(tree.getText))
+
+}
+
+case class TypeVariableNode(tree: Tree, id: Symbol) extends TypeSpecifierNode {
+
+  override def children = Vector.empty
+
+  override def toType = TypeVariable(id)
+
+}
+
+case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeParameterNodes: Vector[TypeSpecifierNode]) extends TypeSpecifierNode {
+
+  override def children = baseClassIdNode +: typeParameterNodes
+
+  override def toType: CgscriptType = {
+
+    val baseClass = CgscriptPackage.lookupClass(baseClassIdNode.id) getOrElse {
+      sys.error("class not found (needs error msg)")  // TODO
+    }
+    val typeParameters = typeParameterNodes map { _.toType }
+    CgscriptType(baseClass, typeParameters)
+
+  }
 
 }
 

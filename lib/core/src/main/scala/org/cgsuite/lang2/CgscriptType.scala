@@ -18,6 +18,8 @@ sealed trait CgscriptType {
 
   def typeParameters: Vector[CgscriptType]
 
+  def substitute(variable: TypeVariable, substitution: CgscriptType): CgscriptType
+
   def <=(that: CgscriptType): Boolean
 
 }
@@ -31,6 +33,13 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
   override def baseClass = sys.error("type variable cannot resolve to a class (this should never happen)")
 
   override def typeParameters = sys.error("type variable cannot resolve to a class (this should never happen)")
+
+  override def substitute(variable: TypeVariable, substitution: CgscriptType): CgscriptType = {
+    if (id == variable.id)
+      substitution
+    else
+      this
+  }
 
   def <=(that: CgscriptType) = {
 
@@ -74,6 +83,10 @@ case class ConcreteType(baseClass: CgscriptClass, typeParameters: Vector[Cgscrip
     }
   }
 
+  override def substitute(variable: TypeVariable, substitution: CgscriptType): ConcreteType = {
+    ConcreteType(baseClass, typeParameters map { _.substitute(variable, substitution) })
+  }
+
   def <=(that: CgscriptType): Boolean = {
 
     that match {
@@ -101,6 +114,10 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
   override def baseClass = ???
 
   override def typeParameters = ???
+
+  override def substitute(variable: TypeVariable, substitution: CgscriptType): IntersectionType = {
+    IntersectionType(components map { _.substitute(variable, substitution) })
+  }
 
   override def <=(that: CgscriptType) = {
 

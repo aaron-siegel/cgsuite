@@ -20,7 +20,7 @@ object DeclarationNode {
           IdentifierNode(tree.children(1)),
           Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC),
           tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) },
-          tree.children find { _.getType == AS } map { asTree => IdentifierNode(asTree.children.head) },
+          tree.children find { _.getType == AS } map { asTree => TypeSpecifierNode(asTree.children.head) },
           tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
         ))
 
@@ -44,7 +44,11 @@ object ClassDeclarationNode {
   def apply(tree: Tree, pkg: CgscriptPackage): ClassDeclarationNode = {
     val isEnum = tree.getType == ENUM
     val modifiers = Modifiers(tree.head, MUTABLE, SINGLETON, SYSTEM)
-    val id = IdentifierNode(tree.children(1))
+    val id = IdentifierNode(tree.children.find { _.getType == DECL_ID }.get)
+    val typeParameters = tree.children.find { _.getType == TYPE_PARAMETERS } match {
+      case Some(t) => t.children map { TypeVariableNode(_) }
+      case _ => Vector.empty
+    }
     val extendsClause = tree.children find { _.getType == EXTENDS } match {
       case Some(t) => t.children map { EvalNode(_) }
       case None => Seq.empty
@@ -69,6 +73,7 @@ object ClassDeclarationNode {
     ClassDeclarationNode(
       tree,
       id,
+      typeParameters,
       isEnum,
       modifiers,
       extendsClause,
@@ -85,6 +90,7 @@ object ClassDeclarationNode {
 case class ClassDeclarationNode(
   tree: Tree,
   idNode: IdentifierNode,
+  typeParameters: Vector[TypeVariableNode],
   isEnum: Boolean,
   modifiers: Modifiers,
   extendsClause: Seq[Node],
@@ -113,7 +119,7 @@ object ParametersNode {
       ParameterNode(
         t,
         IdentifierNode(t.head),
-        t.children find { _.getType == AS } map { u => IdentifierNode(u.head) },
+        t.children find { _.getType == AS } map { u => TypeSpecifierNode(u.head) },
         t.children find { _.getType == QUESTION } map { u => EvalNode(u.head) },
         t.children exists { _.getType == DOTDOTDOT }
       )
@@ -136,13 +142,15 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
   def toParameters: Vector[Parameter] = {
 
     parameterNodes.map { n =>
-      val ttype = n.classId match {
-        case None => CgscriptClass.Object
+      val ttype = n.typeSpecifier match {
+        case None => CgscriptType(CgscriptClass.Object)
+        case Some(typeSpecNode) => typeSpecNode.toType
+          /*
         case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
           throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
-        }
+        }*/
       }
-      Parameter(n.id, CgscriptType(ttype), n.defaultValue, n.isExpandable)
+      Parameter(n.id, ttype, n.defaultValue, n.isExpandable)
     }
 
   }
@@ -152,11 +160,11 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
 case class ParameterNode(
   tree: Tree,
   id: IdentifierNode,
-  classId: Option[IdentifierNode],
+  typeSpecifier: Option[TypeSpecifierNode],
   defaultValue: Option[EvalNode],
   isExpandable: Boolean
   ) extends Node {
-  override val children = Seq(id) ++ classId ++ defaultValue
+  override val children = Seq(id) ++ typeSpecifier ++ defaultValue
 }
 
 object ClassVarNode {
@@ -191,7 +199,7 @@ case class MethodDeclarationNode(
   idNode: IdentifierNode,
   modifiers: Modifiers,
   parameters: Option[ParametersNode],
-  returnType: Option[IdentifierNode],
+  returnType: Option[TypeSpecifierNode],
   body: Option[StatementSequenceNode]
   ) extends MemberDeclarationNode {
 
