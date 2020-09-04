@@ -1062,9 +1062,9 @@ case class LoopNode(
     forId match {
 
       case Some(idNode) =>
-        assert(fromType.isDefined || inType.isDefined)    // Guaranteed by parser
-        // TODO Implement generics...
-        val forIdType = fromType getOrElse CgscriptType(CgscriptClass.Object) // inType.get.typeParameters.head
+        assert(fromType.isDefined || inType.isDefined)      // Guaranteed by parser
+        assert(inType forall { _.typeArguments.nonEmpty }, inType)  // Since it extends Collection - TODO - we should really look at the Collection ancestor
+        val forIdType = fromType getOrElse inType.get.typeArguments.head
         domain.pushScope()
         domain.insertId(idNode.id, forIdType)
 
