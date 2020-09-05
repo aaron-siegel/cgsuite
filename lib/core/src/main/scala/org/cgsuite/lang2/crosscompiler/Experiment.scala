@@ -34,7 +34,7 @@ object Experiment {
     println(node.mentionedClasses)
     val code = node.toScalaCodeWithVarDecls(new CompileContext())
     code foreach println
-    code foreach eval.interpret
+    code foreach { case (line, varName) => eval.interpret(line) }
   }
 
 }

@@ -196,12 +196,12 @@ class CgscriptClass(
   override def idNode = classInfo.idNode
 
   override def declNode = {
-    ensureDeclared()
+    ensureDeclaredPhase1()
     Option(classDeclarationNode)
   }
 
   def isScript = {
-    ensureDeclared()
+    ensureDeclaredPhase1()
     false // TODO
   }
 
@@ -267,7 +267,6 @@ class CgscriptClass(
   }
 
   def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
-    ensureDeclared()
     classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
   }
 
@@ -295,12 +294,10 @@ class CgscriptClass(
   }
 
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
-    ensureDeclared()
     classInfo.allNestedClassesInScope.get(id)
   }
 
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
-    ensureDeclared()
     classInfo.classVarLookup.get(id)
   }
 
@@ -1148,7 +1145,7 @@ class CgscriptClass(
     }
 
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
-    val constructorParamVars = constructor match {
+    lazy val constructorParamVars = constructor match {
       case Some(ctor) => ctor.parameters map { param =>
         Var(param.idNode, Some(declNode), Modifiers.none, Some(param.paramType), None, isConstructorParam = true)
       }
@@ -1158,15 +1155,15 @@ class CgscriptClass(
       case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
         Var(declNode.idNode, Some(declNode), declNode.modifiers, None, Some(declNode.body.children(1)))   // TODO: Explicit result type
     }
-    val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
-    val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
-    val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
-    val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
+    lazy val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
+    lazy val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
+    lazy val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
+    lazy val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
 
-    val staticVarSymbols: Seq[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
-    val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
+    lazy val staticVarSymbols: Seq[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
+    lazy val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
-    val allMethods = localMethods ++ inheritedMethods
+    lazy val allMethods = localMethods ++ inheritedMethods
 
     lazy val methods: Map[Symbol, Vector[CgscriptClass#Method]] =
       allMethods groupBy { _.id } mapValues { methods => checkOverrides(methods.toVector) }
@@ -1174,12 +1171,15 @@ class CgscriptClass(
     lazy val allSymbolsInThisClass: Set[Symbol] = {
       classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ allNestedClasses.keySet
     }
+
     lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
     }
+
     lazy val allMethodsInScope: Map[Symbol, Vector[CgscriptClass#Method]] = {
       (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
     }
+
     lazy val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
       (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ allNestedClasses
     }
@@ -1302,16 +1302,16 @@ class CgscriptClass(
     var _parameters: Vector[Parameter] = _
 
     def parameters = {
-      ensureElaborated()
+      if (_parameters == null)
+        _parameters = parametersNode map { _.toParameters(ElaborationDomain(thisClass)) } getOrElse Vector.empty
       _parameters
     }
 
     override def elaborate(): CgscriptType = {
 
-      val domain = new ElaborationDomain(Some(thisClass))
-      _parameters = parametersNode map { _.toParameters(domain) } getOrElse Vector.empty
+      val domain = ElaborationDomain(thisClass)
       domain.pushScope()
-      _parameters foreach { parameter =>
+      parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
       }
       val inferredType = body.ensureElaborated(domain)
@@ -1354,15 +1354,15 @@ class CgscriptClass(
     var _parameters: Vector[Parameter] = _
 
     def parameters = {
-      ensureElaborated()
+      if (_parameters == null)
+        _parameters = parametersNode map { _.toParameters(ElaborationDomain(thisClass)) } getOrElse Vector.empty
       _parameters
     }
 
     override def elaborate() = {
       val domain = new ElaborationDomain(Some(thisClass))
-      _parameters = parametersNode map { _.toParameters(domain) } getOrElse Vector.empty
       domain.pushScope()
-      _parameters foreach { parameter =>
+      parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
       }
       val resultType = resultTypeNode map { _.toType(domain) }
@@ -1385,15 +1385,15 @@ class CgscriptClass(
     var _parameters: Vector[Parameter] = _
 
     def parameters = {
-      ensureElaborated()
+      if (_parameters == null)
+        _parameters = parametersNode map { _.toParameters(ElaborationDomain(thisClass)) } getOrElse Vector.empty
       _parameters
     }
 
     override def elaborate(): CgscriptType = {
       val domain = new ElaborationDomain(Some(thisClass))
-      _parameters = parametersNode map { _.toParameters(domain) } getOrElse Vector.empty
       domain.pushScope()
-      _parameters foreach { parameter =>
+      parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
       }
       CgscriptType(thisClass, typeParameters)
@@ -1416,11 +1416,5 @@ class CgscriptClass(
     idNode: IdentifierNode,
     parametersNode: Option[ParametersNode]
   ) extends Constructor
-
-  case class MethodGroup(id: Symbol, localMethods: Vector[Method], inheritedMethods: Vector[CgscriptClass#Method]) {
-
-    var
-
-  }
 
 }

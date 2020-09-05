@@ -531,10 +531,12 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
 
   override def toType(domain: ElaborationDomain): CgscriptType = {
 
-    val classResolution = domain.cls flatMap { _.lookupNestedClass(baseClassIdNode.id) } orElse
+    val classResolution =
+      (domain.cls flatMap { _.lookupNestedClass(baseClassIdNode.id) }) orElse
+      (domain.cls flatMap { _.pkg.lookupClass(baseClassIdNode.id) }) orElse
       CgscriptPackage.lookupClass(baseClassIdNode.id)
     val baseClass = classResolution getOrElse {
-      sys.error("class not found (needs error msg) " + this)  // TODO
+      sys.error("class not found (needs error msg) " + (this, domain.cls))  // TODO
     }
     val typeParameters = typeParameterNodes map { _.toType(domain) }
     CgscriptType(baseClass, typeParameters)
@@ -1881,13 +1883,13 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
     statements map { _.toScalaCode(context) } mkString "\n"
   }
 
-  def toScalaCodeWithVarDecls(context: CompileContext) = {
+  def toScalaCodeWithVarDecls(context: CompileContext): Seq[(String, Option[String])] = {
     statements map {
       case assignToNode: AssignToNode =>
         val varName = assignToNode.idNode.id.name
-        s"val $varName = { ${assignToNode.expr.toScalaCode(context)} }; $varName"
+        (s"${assignToNode.expr.toScalaCode(context)}", Some(varName))
       case node =>
-        s"${node.toScalaCode(context)}"
+        (s"${node.toScalaCode(context)}", None)
     }
   }
 

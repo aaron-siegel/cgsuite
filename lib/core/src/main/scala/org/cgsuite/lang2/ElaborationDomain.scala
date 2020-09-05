@@ -4,7 +4,9 @@ import scala.collection.mutable
 
 object ElaborationDomain {
 
-  def apply(cls: Option[CgscriptClass]) = new ElaborationDomain(cls)
+  def apply(cls: CgscriptClass): ElaborationDomain = new ElaborationDomain(Some(cls))
+
+  def apply(cls: Option[CgscriptClass] = None): ElaborationDomain = new ElaborationDomain(cls)
 
 }
 

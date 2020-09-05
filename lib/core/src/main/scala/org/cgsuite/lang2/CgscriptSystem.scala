@@ -144,17 +144,14 @@ private[lang2] object CgscriptSystem {
 
     val code = node.toScalaCodeWithVarDecls(new CompileContext())
 
-    code foreach { line =>
+    code foreach { case (line, varNameOpt) =>
 
       val wrappedLine =
-        s"""val __result: Either[Any, Throwable] = try {
+        s"""val __result = try { scala.Left {
            |
-           |val __eval =
            |$line
            |
-           |scala.Left(__eval)
-           |
-           |} catch {
+           |} } catch {
            |  case t: Throwable => scala.Right(t)
            |}
            |""".stripMargin
@@ -166,6 +163,13 @@ private[lang2] object CgscriptSystem {
         case IR.Error | IR.Incomplete =>
           throw EvalException("Internal error.")
         case IR.Success =>
+      }
+
+      val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
+      if (result.isLeft) {
+        varNameOpt foreach { varName =>
+          interpreter interpret s"val $varName = __result.left.get"
+        }
       }
 
     }
