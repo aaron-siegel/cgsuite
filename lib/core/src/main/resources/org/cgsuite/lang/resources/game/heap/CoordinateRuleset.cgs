@@ -14,7 +14,7 @@ class CoordinateRuleset extends Ruleset
 */
   class Position(coord as Coordinates) extends ImpartialGame
 
-    override def Options := listof(Position(c as Coordinates) for c in CoordinateOptions(coord));
+    override def Options as List of Position := listof(Position(c as Coordinates) for c in CoordinateOptions(coord));
 
     override def ToOutput := error("not impl yet");
 

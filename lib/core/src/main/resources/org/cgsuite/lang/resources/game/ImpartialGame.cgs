@@ -49,8 +49,8 @@ system class ImpartialGame extends Game
 
   external def NimValue as Integer;
 
-  override def Options as Collection := error("Subclasses of `ImpartialGame` must override the `Options` method.");
+  override def Options as Collection of ImpartialGame := error("Subclasses of `ImpartialGame` must override the `Options` method.");
 
-  override def OptionsFor(player as Player) as Collection := Options;
+  override def OptionsFor(player as Player) as Collection of ImpartialGame := Options;
 
 end

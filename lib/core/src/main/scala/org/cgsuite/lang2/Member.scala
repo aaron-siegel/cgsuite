@@ -9,6 +9,8 @@ trait Member {
   def id = idNode.id
   def mentionedClasses: Iterable[CgscriptClass] = Iterable.empty
 
+  var isElaborating = false
+
   private var elaboratedResultTypeRef: CgscriptType = _
 
   def resultType = {
@@ -21,7 +23,11 @@ trait Member {
   def ensureElaborated(): CgscriptType = {
     if (elaboratedResultTypeRef == null) {
       declaringClass logDebug s"Elaborating member: ${id.name}"
+      if (isElaborating)
+        sys.error("already elaborating")
+      isElaborating = true
       elaboratedResultTypeRef = elaborate()
+      isElaborating = false
     }
     elaboratedResultTypeRef
   }

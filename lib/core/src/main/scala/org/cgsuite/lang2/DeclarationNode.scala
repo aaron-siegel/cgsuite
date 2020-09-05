@@ -139,12 +139,12 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
 
   override val children = parameterNodes
 
-  def toParameters: Vector[Parameter] = {
+  def toParameters(domain: ElaborationDomain): Vector[Parameter] = {
 
     parameterNodes.map { n =>
       val ttype = n.typeSpecifier match {
         case None => CgscriptType(CgscriptClass.Object)
-        case Some(typeSpecNode) => typeSpecNode.toType
+        case Some(typeSpecNode) => typeSpecNode.toType(domain)
           /*
         case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
           throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)

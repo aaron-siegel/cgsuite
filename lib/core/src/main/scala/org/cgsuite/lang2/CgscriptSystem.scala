@@ -1,26 +1,35 @@
 package org.cgsuite.lang2
 
+import java.io.PrintWriter
+
+import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
+import org.cgsuite.exception.EvalException
+import org.cgsuite.lang2.Node.treeToRichTree
+import org.cgsuite.lang2.parser.ParserUtil
 import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput}
 import org.cgsuite.util._
+import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
+import scala.tools.nsc.Settings
+import scala.tools.nsc.interpreter.{IMain, IR}
 
 private[lang2] object CgscriptSystem {
 
   val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Object" -> classOf[AnyRef],
-    "cgsuite.lang.Enum" -> classOf[EnumObject]
+    "cgsuite.lang.Enum" -> classOf[AnyRef]
 
   )
 
   val typedSystemClasses: Seq[(String, Class[_])] = Seq(
 
-    "cgsuite.lang.Class" -> classOf[ClassObject],
+    "cgsuite.lang.Class" -> classOf[Class[_]],
     "cgsuite.lang.Script" -> classOf[Script],
 
     "cgsuite.util.MutableList" -> classOf[mutable.ArrayBuffer[_]],
@@ -96,5 +105,94 @@ private[lang2] object CgscriptSystem {
   )
 
   val allSystemClasses = baseSystemClasses ++ typedSystemClasses
+
+  var interpreter: IMain = _
+  var domain: ElaborationDomain = _
+  var debug: Boolean = _
+
+  setDebug(true)
+
+  if (debug)
+    LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.DEBUG)
+
+  initialize()
+
+  def initialize(): Unit = {
+
+    val settings = new Settings
+    settings.usejavacp.value = true
+    settings.deprecation.value = true
+
+    interpreter = new IMain(settings, new PrintWriter(DebugOutput))
+    domain = new ElaborationDomain(None)
+    interpreter.interpret("import org.cgsuite.dsl._")
+    interpreter.interpret("import org.cgsuite.lang2.CgscriptImplicits._")
+    evaluate("game.heap.GenWythoff(1)")
+
+  }
+
+  def evaluate(str: String): Option[Any] = {
+
+    val tree = ParserUtil.parseScript(str)
+    val node = StatementSequenceNode(tree.children.head, topLevel = true)
+    node.ensureElaborated(domain)
+    node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
+
+    Thread.sleep(10)
+    //println(node.elaboratedType)
+    //println(node.mentionedClasses)
+
+    val code = node.toScalaCodeWithVarDecls(new CompileContext())
+
+    code foreach { line =>
+
+      val wrappedLine =
+        s"""val __result: Either[Any, Throwable] = try {
+           |
+           |val __eval =
+           |$line
+           |
+           |scala.Left(__eval)
+           |
+           |} catch {
+           |  case t: Throwable => scala.Right(t)
+           |}
+           |""".stripMargin
+
+      if (debug)
+        println(wrappedLine)
+
+      interpreter interpret wrappedLine match {
+        case IR.Error | IR.Incomplete =>
+          throw EvalException("Internal error.")
+        case IR.Success =>
+      }
+
+    }
+
+    val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
+    result match {
+      case scala.Left(obj) => Some(obj)
+      case scala.Right(t) =>
+        t.printStackTrace()
+        None
+    }
+
+  }
+
+  def setDebug(debug: Boolean): Unit = {
+    this.debug = debug
+  }
+
+  def isDebug: Boolean = debug
+
+  object DebugOutput extends java.io.OutputStream {
+
+    override def write(b: Int): Unit = {
+      if (debug)
+        Console.out.write(b)
+    }
+
+  }
 
 }

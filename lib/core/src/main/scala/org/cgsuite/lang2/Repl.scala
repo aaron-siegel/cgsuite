@@ -20,20 +20,23 @@ object Repl {
 
   val welcome = s"Welcome to the CGSuite REPL, Version $version."
 
+  val instruction = "Type CGScript expressions for evaluation, or :help for a list of REPL commands."
+
   val replVarMap = mutable.AnyRefMap[Symbol, Any]()
 
   def main(args: Array[String]) {
 
-    print(
-      s"""$welcome
-         |Type CGScript expressions for evaluation, or :help for a list of REPL commands.
-         |""".stripMargin)
+    println(welcome)
 
     val terminal = TerminalBuilder.builder().jansi(true).dumb(true).build()
     val lineReader = LineReaderBuilder.builder().expander(NullExpander).terminal(terminal).build()
 
     UiHarness.setUiHarness(ReplUiHarness)
     var done = false
+
+    CgscriptSystem.evaluate("0")
+
+    println(instruction)
 
     while (!done) {
       val str = lineReader.readLine("> ").trim
@@ -96,13 +99,12 @@ object Repl {
     if (str == "")
       return
 
-    CgscriptClass.Object.ensureDeclared()
-
     val start = JSystem.nanoTime
     try {
       CgscriptClasspath.reloadModifiedFiles()
-      //val output = EvalUtil.evaluate(str, replVarMap)
-      //output foreach println
+      val result = CgscriptSystem.evaluate(str)
+      val output = result.toVector flatMap EvalUtil.objectToOutput
+      output foreach println
     } catch {
       case exc: Throwable => exc.printStackTrace()
     }

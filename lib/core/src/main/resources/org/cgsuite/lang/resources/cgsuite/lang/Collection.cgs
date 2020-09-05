@@ -2,7 +2,7 @@
 
 /** Base class for all collections in CGSuite.
   */
-system class Collection
+system class Collection of `T
 
   /** Returns `true` if there exists an element in this collection
     * that satisfies the specified predicate.
@@ -14,7 +14,7 @@ system class Collection
     *
     * returns `true` just if the collection `c` contains an even element.
     */
-  external def Exists(predicate as Procedure);
+  external def Exists(predicate as Procedure) as Boolean;
 
   /** Returns the first element in this collection that
     * satisfies the specified predicate.
@@ -23,26 +23,26 @@ system class Collection
     * If no element of this collection satisfies the predicate, then
     * [[Nothing]] will be returned.
     */
-  external def Find(predicate as Procedure);
+  external def Find(predicate as Procedure) as `T;
 
   /** Returns `true` if every element in this collection
     * satisfies the specified predicate.
     * `predicate` must be a [[Boolean]]-valued procedure.
     */
-  external def ForAll(predicate as Procedure);
+  external def ForAll(predicate as Procedure) as Boolean;
 
   /** Applies the specified procedure to element in this collection. 
     */
-  external def ForEach(proc as Procedure);
+  external def ForEach(proc as Procedure) as Nothing;
 
   /** The first element in this collection (in iteration order).
     * An exception will be thrown if this collection is empty.
     */
-  external def Head;
+  external def Head as `T;
 
   /** `true` if this collection is empty.
     */
-  external def IsEmpty;
+  external def IsEmpty as Boolean;
 
   /** A maximal element of this collection. If there are multiple
     * distinct maxima, then the first such element (in iteration
@@ -60,7 +60,7 @@ system class Collection
     * The ~mex~ of a collection $c$ is defined to be the least
     * non-negative [[Integer]] that is not an element of $c$.
     */
-  external def Mex;
+  external def Mex as Integer;
 
   /** A minimal element of this collection. If there are multiple
     * distinct minima, then the first such element (in iteration
@@ -76,24 +76,24 @@ system class Collection
 
   /** The number of elements in this collection.
     */
-  external def Size;
+  external def Size as Integer;
 
   /** A `Collection` containing all the elements of this collection
     * except for [[#Head]].
     */
-  external def Tail;
+  external def Tail as `T;
 
   /** Converts this collection to a [[List]]. The resulting
     * `List` will contain exactly the elements of this collection, in
     * iteration order.
     */
-  external def ToList;
+  external def ToList as List of `T;
 
   /** Converts this collection to a [[Set]]. The resulting `Set` will
     * contain exactly one of each of the elements of this collection.
     *
     * The iteration order of the resulting `Set` is arbitrary.
     */
-  external def ToSet;
+  external def ToSet as Set of `T;
 
 end

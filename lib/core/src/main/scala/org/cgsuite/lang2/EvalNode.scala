@@ -196,7 +196,9 @@ trait EvalNode extends Node {
     elaboratedTypeRef
   }
 
-  def elaborateImpl(domain: ElaborationDomain): CgscriptType = ???
+  def elaborateImpl(domain: ElaborationDomain): CgscriptType
+
+  def toScalaCode(context: CompileContext): String
 
   def mentionedClasses: Set[CgscriptClass] = {
     val classes = mutable.HashSet[CgscriptClass]()
@@ -217,8 +219,6 @@ trait EvalNode extends Node {
       case TypeVariable(_) =>
     }
   }
-
-  def toScalaCode(context: CompileContext): String = ???
 
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
 
@@ -320,7 +320,7 @@ case class AsNode(tree: Tree, exprNode: EvalNode, typeSpecNode: TypeSpecifierNod
 
     // TODO Validate that EvalNode actually might be castable to the desired class?
     exprNode.ensureElaborated(domain)
-    typeSpecNode.toType
+    typeSpecNode.toType(domain)
 
   }
 
@@ -395,7 +395,11 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
           case _ =>
 
             // Try to resolve as a classname
-            CgscriptPackage.lookupClass(id) match {
+            val classResolution = {
+              domain.cls flatMap { _.pkg.lookupClass(id) } orElse
+                CgscriptPackage.lookupClass(id)
+            }
+            classResolution match {
 
               case Some(cls) =>
                 idType = IdentifierType.ClassIdentifier
@@ -407,7 +411,11 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
               case None =>
 
                 // Try to resolve as a constant
-                CgscriptPackage.lookupConstantVar(id) match {
+                val constantResolution = {
+                  domain.cls flatMap { _.pkg.lookupConstantVar(id) } orElse
+                    CgscriptPackage.lookupConstantVar(id)
+                }
+                constantResolution match {
 
                   case Some(constantVar: CgscriptClass#Var) =>
                     idType = IdentifierType.ConstantIdentifier
@@ -457,8 +465,9 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   override def collectMentionedClasses(classes: mutable.HashSet[CgscriptClass]): Unit = {
 
     super.collectMentionedClasses(classes)
-    if (idType == IdentifierType.ConstantIdentifier)
+    if (idType == IdentifierType.ConstantIdentifier) {
       classes += constantVar.declaringClass     // constants class is implicitly mentioned
+    }
 
   }
 
@@ -471,8 +480,6 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 object TypeSpecifierNode {
 
   def apply(tree: Tree): TypeSpecifierNode = {
-
-    println(tree.toStringTree)
 
     tree.getType match {
 
@@ -494,9 +501,13 @@ object TypeSpecifierNode {
 
 trait TypeSpecifierNode extends EvalNode {
 
-  def toType: CgscriptType
+  def toType(domain: ElaborationDomain): CgscriptType
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+
+  override def elaborateImpl(domain: ElaborationDomain) = ???
+
+  override def toScalaCode(context: CompileContext) = ???
 
 }
 
@@ -510,7 +521,7 @@ case class TypeVariableNode(tree: Tree, id: Symbol) extends TypeSpecifierNode {
 
   override def children = Vector.empty
 
-  override def toType = TypeVariable(id)
+  override def toType(domain: ElaborationDomain) = TypeVariable(id)
 
 }
 
@@ -518,12 +529,14 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
 
   override def children = baseClassIdNode +: typeParameterNodes
 
-  override def toType: CgscriptType = {
+  override def toType(domain: ElaborationDomain): CgscriptType = {
 
-    val baseClass = CgscriptPackage.lookupClass(baseClassIdNode.id) getOrElse {
-      sys.error("class not found (needs error msg)")  // TODO
+    val classResolution = domain.cls flatMap { _.lookupNestedClass(baseClassIdNode.id) } orElse
+      CgscriptPackage.lookupClass(baseClassIdNode.id)
+    val baseClass = classResolution getOrElse {
+      sys.error("class not found (needs error msg) " + this)  // TODO
     }
-    val typeParameters = typeParameterNodes map { _.toType }
+    val typeParameters = typeParameterNodes map { _.toType(domain) }
     CgscriptType(baseClass, typeParameters)
 
   }
@@ -545,7 +558,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
     val operandType = operand.ensureElaborated(domain)
     val opMethod = FunctionCallNode.lookupMethod(operandType, op.id, Vector.empty)
     opMethod match {
-      case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
+      case Some(method) => method.ensureElaborated()
       case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass}`", tree)
     }
 
@@ -581,7 +594,7 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
     val opMethod = FunctionCallNode.lookupMethod(operand1Type, op.id, Vector(operand2Type))
 
     opMethod match {
-      case Some(method) => method.explicitReturnType.get    // TODO Method elaboration!
+      case Some(method) => method.ensureElaborated()
       case None => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass}`, `${operand2Type.baseClass}`", tree)
     }
 
@@ -688,7 +701,7 @@ case class ListNode(tree: Tree, elements: Vector[EvalNode]) extends CollectionNo
 object SetNode {
   def apply(tree: Tree): SetNode = {
     assert(tree.getType == EXPLICIT_SET)
-    SetNode(tree, tree.children.map { EvalNode(_) }.toVector)
+    SetNode(tree, tree.children.map { EvalNode(_) })
   }
 }
 
@@ -699,11 +712,6 @@ case class SetNode(tree: Tree, elements: Vector[EvalNode]) extends CollectionNod
   def scalaCollectionClassName = "Set"
 
   override val children = elements
-
-  override def toScalaCode(context: CompileContext) = {
-    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
-    s"Set($elementsCode)"
-  }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     "{" + (elements map { _.toNodeString } mkString ", ") + "}"
@@ -716,19 +724,18 @@ object MapNode {
   def apply(tree: Tree): MapNode = {
     assert(tree.getType == EXPLICIT_MAP)
     val mapPairNodes = tree.children map { MapPairNode(_) }
-    MapNode(tree, mapPairNodes.toIndexedSeq)
+    MapNode(tree, mapPairNodes)
   }
 
 }
 
-case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
+case class MapNode(tree: Tree, elements: Vector[MapPairNode]) extends CollectionNode {
 
   override val children = elements
 
-  override def toScalaCode(context: CompileContext) = {
-    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
-    s"Map($elementsCode)"
-  }
+  override def collectionClass = CgscriptClass.Map
+
+  override def scalaCollectionClassName = "Map"
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (elements.isEmpty)
@@ -748,6 +755,8 @@ object MapPairNode {
 case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
 
   override val children = Seq(from, to)
+
+  override def elaborateImpl(domain: ElaborationDomain) = ???
 
   override def toScalaCode(context: CompileContext) = {
     val fromCode = from.toScalaCode(context)
@@ -958,12 +967,30 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
 
   override val children = Seq(condition, ifNode) ++ elseNode
 
+  override def elaborateImpl(domain: ElaborationDomain) = {
+
+    // TODO Validate that condition is a Boolean
+    val conditionType = condition.ensureElaborated(domain)
+
+    val ifType = ifNode.ensureElaborated(domain)
+    val elseType = elseNode map { _.ensureElaborated(domain) }
+
+    elseType match {
+      case Some(typ) => ifType join typ
+      case _ => ifType
+    }
+
+  }
+
   override def toScalaCode(context: CompileContext) = {
+
     val conditionCode = condition.toScalaCode(context)
     val ifCode = ifNode.toScalaCode(context)
     val elseCode = elseNode map { _.toScalaCode(context) }
     val elseClause = elseCode map { code => s"else $code" } getOrElse ""
+
     s"(if ($conditionCode) $ifCode $elseClause)"
+
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = s"if ${condition.toNodeString} then ${ifNode.toNodeString}" +
@@ -1054,8 +1081,10 @@ case class LoopNode(
     val toType = to map { _.ensureElaborated(domain) }
     val byType = by map { _.ensureElaborated(domain) }
 
+    val mostGeneralCollection = CgscriptType(CgscriptClass.Collection, Vector(CgscriptType(CgscriptClass.Object)))
+
     inType foreach { typ =>
-      if (!(typ <= CgscriptType(CgscriptClass.Collection)))
+      if (!(typ <= mostGeneralCollection))
         sys.error("Need error msg for when in is not a collection")   // TODO
     }
 
@@ -1247,7 +1276,7 @@ case class LoopNode(
 
 object ProcedureNode {
   def apply(tree: Tree, pkg: Option[CgscriptPackage]): ProcedureNode = {
-    val parameters = ParametersNode(tree.head, pkg).toParameters
+    val parameters = ParametersNode(tree.head, pkg).toParameters(new ElaborationDomain(None)) // TODO
     ProcedureNode(tree, parameters, EvalNode(tree.children(1)))
   }
 }
@@ -1257,6 +1286,10 @@ case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNo
   override val children = (parameters flatMap { _.defaultValue }) :+ body
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+
+  override def elaborateImpl(domain: ElaborationDomain) = ???
+
+  override def toScalaCode(context: CompileContext) = ???
 
 }
 
@@ -1415,6 +1448,9 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     addTypeToClasses(classes, elaboratedType)
     if (!isElaboratedAsPackage) {
       obj.collectMentionedClasses(classes)
+    }
+    if (constantVar != null) {
+      classes += constantVar.declaringClass
     }
 
   }
@@ -1848,9 +1884,10 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
   def toScalaCodeWithVarDecls(context: CompileContext) = {
     statements map {
       case assignToNode: AssignToNode =>
-        s"val ${assignToNode.idNode.id.name} = { ${assignToNode.expr.toScalaCode(context)} }"
+        val varName = assignToNode.idNode.id.name
+        s"val $varName = { ${assignToNode.expr.toScalaCode(context)} }; $varName"
       case node =>
-        s"val __result = { ${node.toScalaCode(context)} }"
+        s"${node.toScalaCode(context)}"
     }
   }
 

@@ -81,9 +81,6 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
   if (baseClass.isDeclaredPhase1)
     assert(baseClass.typeParameters.length == typeArguments.length, this)
 
-  if (baseClass.name == "Player")
-    assert(typeArguments.isEmpty)
-
   def qualifiedName: String = {
 
     val baseName = baseClass.qualifiedName

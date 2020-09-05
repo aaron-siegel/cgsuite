@@ -1,7 +1,7 @@
 /*${cgsuite.banner}*/
 
 singleton class constants
-
+/*
   var Cutcake := GenCutcake(TakeAndBreak("4.0"), TakeAndBreak("4.0"));
 
   var DawsonsKayles := TakeAndBreak("0.07");
@@ -43,5 +43,5 @@ singleton class constants
   var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
   var Wythoff := GenWythoff(1);
-
+*/
 end

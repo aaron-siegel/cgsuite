@@ -6,7 +6,7 @@ system class Object
 
   /** The class object corresponding to this `Object`'s class.
     */
-  external def Class as Class;
+  external def Class as Class of Object;
   
   /** The enclosing object for this `Object`.
     *
