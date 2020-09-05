@@ -4,6 +4,8 @@
   */
 system class Object
 
+  external def op==(that as Object) as Boolean;
+
   /** The class object corresponding to this `Object`'s class.
     */
   external def Class as Class of Object;

@@ -336,7 +336,8 @@ defName
     ;
 
 definableOpCode
-    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND |
+      standardRelationalToken
     ;
 
 definableUnaryOpCode
@@ -462,8 +463,8 @@ functionExpression
     ;
 
 procedureAntecedent
-    : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
-    | LPAREN! methodParameterList RPAREN!
+    : IDENTIFIER asClause? -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER IDENTIFIER asClause?))
+//    | LPAREN! methodParameterList RPAREN!
     ;
 
 // TODO Is this the right precedence?

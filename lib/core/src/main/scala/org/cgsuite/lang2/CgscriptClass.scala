@@ -64,6 +64,7 @@ object CgscriptClass {
   val Map = CgscriptPackage.lookupClassByName("Map").get
   val String = CgscriptPackage.lookupClassByName("String").get
   val Boolean = CgscriptPackage.lookupClassByName("Boolean").get
+  val Procedure = CgscriptPackage.lookupClassByName("Procedure").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
 
@@ -78,8 +79,9 @@ object CgscriptClass {
 
   def instanceToOutput(x: Any): Output = {
     x match {
-      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
       case ot: OutputTarget => ot.toOutput
+      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
+      case bool: Boolean => new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, bool.toString)
       case _ => sys.error("?!")
     }
   }
@@ -189,6 +191,8 @@ class CgscriptClass(
     if (stage == LifecycleStage.DeclaringPhase1)
       sys.error("classInfo called while still declaring: " + this)
     ensureDeclaredPhase1()
+    if (this != topClass)
+      topClass.ensureDeclaredPhase2()     // I'm not 100% sure abt this pattern
     assert(classInfoRef != null, this)
     classInfoRef
   }
@@ -298,7 +302,7 @@ class CgscriptClass(
   }
 
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
-    classInfo.classVarLookup.get(id)
+    classInfo.classVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
   }
 
   /*

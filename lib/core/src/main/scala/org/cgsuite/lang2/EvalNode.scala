@@ -293,9 +293,8 @@ case class ThisNode(tree: Tree) extends EvalNode {
   override val children = Seq.empty
 
   override def elaborateImpl(domain: ElaborationDomain) = {
-    CgscriptType {
-      domain.cls getOrElse { sys.error("invalid `this`")}
-    }
+    val thisClass = domain.cls getOrElse { sys.error("invalid `this`") }
+    CgscriptType(thisClass, thisClass.typeParameters)
   }
 
   override def toScalaCode(context: CompileContext) = "this"
@@ -372,6 +371,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   private var idType: IdentifierType.Value = _
   private var constantVar: CgscriptClass#Var = _
+  private var classResolution: CgscriptClass = _
 
   override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
@@ -403,6 +403,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
               case Some(cls) =>
                 idType = IdentifierType.ClassIdentifier
+                this.classResolution = cls
                 if (cls.isSingleton)
                   CgscriptType(cls)
                 else
@@ -446,10 +447,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       case IdentifierType.VarIdentifier => id.name
 
       case IdentifierType.ClassIdentifier =>
-        CgscriptPackage.lookupClass(id) match {
-          case Some(cls) => cls.scalaClassname
-          case _ => sys.error("this can't happen")
-        }
+        classResolution.scalaClassname
 
       case IdentifierType.ConstantIdentifier =>
         CgscriptPackage.lookupConstantVar(id) match {
@@ -1278,20 +1276,48 @@ case class LoopNode(
 
 object ProcedureNode {
   def apply(tree: Tree, pkg: Option[CgscriptPackage]): ProcedureNode = {
-    val parameters = ParametersNode(tree.head, pkg).toParameters(new ElaborationDomain(None)) // TODO
-    ProcedureNode(tree, parameters, EvalNode(tree.children(1)))
+    val parametersNode = ParametersNode(tree.head, pkg)
+    ProcedureNode(tree, parametersNode, EvalNode(tree.children(1)))
   }
 }
 
-case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
+case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalNode) extends EvalNode {
 
-  override val children = (parameters flatMap { _.defaultValue }) :+ body
+  var parameters: Vector[Parameter] = _
+
+  override val children = (parametersNode.parameterNodes flatMap { _.defaultValue }) :+ body
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = ???
 
-  override def elaborateImpl(domain: ElaborationDomain) = ???
+  override def elaborateImpl(domain: ElaborationDomain) = {
 
-  override def toScalaCode(context: CompileContext) = ???
+    parameters = parametersNode.toParameters(domain)
+
+    assert(parameters.length == 1)
+
+    domain.pushScope()
+    parameters foreach { param =>
+      domain.insertId(param.id, param.paramType)
+      param.defaultValue foreach { _.ensureElaborated(domain) }
+    }
+    val resultType = body.ensureElaborated(domain)
+    domain.popScope()
+
+    ConcreteType(CgscriptClass.Procedure, Vector(parameters.head.paramType, resultType))
+
+  }
+
+  override def toScalaCode(context: CompileContext) = {
+
+    assert(parameters.length == 1)
+
+    val paramName = parameters.head.id.name
+    val paramTypeName = parameters.head.paramType.scalaTypeName
+    val bodyCode = body.toScalaCode(context)
+
+    s"{ $paramName: $paramTypeName => { $bodyCode } }"
+
+  }
 
 }
 
@@ -1399,7 +1425,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
             externalName = idNode.id.name
             member.ensureElaborated()
           case None =>
-            sys.error(s"need error msg here: ${objectType.baseClass.qualifiedName}.${idNode.id.name}")
+            sys.error(s"need error msg here: $objectType, ${idNode.id.name}")
         }
 
     }

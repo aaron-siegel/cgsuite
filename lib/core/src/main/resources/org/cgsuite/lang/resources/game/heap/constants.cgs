@@ -8,7 +8,7 @@ singleton class constants
 
   var Eatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"));
 
-  var FibonacciNim := TakeAway(2);
+//  var FibonacciNim := TakeAway(2);
 
   var GrundysGame := TakeAndBreak("4!.0");
 
@@ -16,19 +16,19 @@ singleton class constants
 
   var MaundyCake := GenCutcake(TakeAndBreak("{2+}=.0"), TakeAndBreak("{2+}=.0"));
 
-  var Mem := GenMem((memory, j) -> j >= memory);
+//  var Mem := GenMem((memory, j) -> j >= memory);
 
   var Nim := TakeAndBreak("0.[3]");
-
+/*
   def PartizanSplittles(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Splittles(leftSet, allbut), Splittles(rightSet, allbut));
 
   def PartizanSubtraction(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Subtraction(leftSet, allbut), Subtraction(rightSet, allbut));
-
+*/
   def PartizanTakeAndBreak(leftCode as String, rightCode as String) :=
     PartizanHeapRuleset(TakeAndBreak(leftCode), TakeAndBreak(rightCode));
-
+/*
   def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
 
   def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
@@ -39,8 +39,8 @@ singleton class constants
     else System.Error("Argument to `TakeAway` must be a `DyadicRational` or a `Procedure`.")
     end
   end
-  
-  var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
+*/
+//  var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
   var Wythoff := GenWythoff(1);
 

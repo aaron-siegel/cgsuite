@@ -44,7 +44,7 @@ private[lang2] object CgscriptSystem {
     "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
     "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
-    "cgsuite.lang.Procedure" -> classOf[Procedure],
+    "cgsuite.lang.Procedure" -> classOf[_ => _],
     "cgsuite.lang.System" -> classOf[System],
     "cgsuite.lang.Table" -> classOf[Table],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],

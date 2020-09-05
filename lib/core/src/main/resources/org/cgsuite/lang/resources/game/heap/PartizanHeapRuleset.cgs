@@ -11,7 +11,7 @@ class PartizanHeapRuleset(leftRuleset as HeapRuleset, rightRuleset as HeapRulese
     override def OptionsFor(player as Player) begin
       var ruleset := if player == Left then leftRuleset else rightRuleset end;
       ruleset HeapOptions heapSize Apply
-        (heaps -> if heaps.IsEmpty then 0 else sumof(Position(n) for n in heaps) end)
+        (heaps as List of Integer -> if heaps.IsEmpty then 0 else 0 /* sumof(Position(n) for n in heaps) */ end)
     end
 
   end
