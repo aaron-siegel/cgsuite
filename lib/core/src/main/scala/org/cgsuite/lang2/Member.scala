@@ -7,7 +7,7 @@ trait Member {
   def declNode: Option[MemberDeclarationNode]
   def idNode: IdentifierNode
   def id = idNode.id
-  def mentionedClasses: Iterable[CgscriptClass] = Iterable.empty
+  def mentionedClasses: Iterable[CgscriptClass]
 
   var isElaborating = false
 
@@ -42,6 +42,8 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultVal
 
   val id = idNode.id
 
+  val name = id.name
+
   val signature = {
     val optQuestionMark = if (defaultValue.isDefined) "?" else ""
     val optEllipsis = if (isExpandable) " ..." else ""
@@ -49,5 +51,17 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultVal
   }
 
   var methodScopeIndex = -1
+
+  def mentionedClasses: Iterable[CgscriptClass] = {
+    paramType.mentionedClasses ++ (defaultValue.toIterable flatMap { _.mentionedClasses })
+  }
+
+  def toScalaCode(context: CompileContext): String = {
+    val defaultValueClause = defaultValue match {
+      case Some(node) => " = " + node.toScalaCode(context)
+      case None => ""
+    }
+    s"$name: ${paramType.scalaTypeName}$defaultValueClause"
+  }
 
 }

@@ -80,9 +80,9 @@ object CgscriptClass {
   def instanceToOutput(x: Any): Output = {
     x match {
       case ot: OutputTarget => ot.toOutput
-      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
-      case bool: Boolean => new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, bool.toString)
-      case _ => sys.error("?!")
+      case _ =>
+        assert(CgscriptSystem.allSystemClasses exists { case (_, cls) => cls.isAssignableFrom(x.getClass) })
+        new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, x.toString)
     }
   }
 
@@ -180,12 +180,10 @@ class CgscriptClass(
 
   logger debug s"$logPrefix Formed new class with classdef: $classdef"
 
-  private var stage: LifecycleStage.Value = LifecycleStage.New
+  private[lang2] var stage: LifecycleStage.Value = LifecycleStage.New
 
   private var classDeclarationNode: ClassDeclarationNode = _
   private var classInfoRef: ClassInfo = _
-
-  def isLoaded = classInfoRef != null
 
   def classInfo: ClassInfo = {
     if (stage == LifecycleStage.DeclaringPhase1)
@@ -228,6 +226,18 @@ class CgscriptClass(
   def typeParameters = classInfo.typeParameters
 
   def <=(that: CgscriptClass) = ancestors contains that
+
+  override def mentionedClasses = {
+
+    ensureElaborated()
+
+    (classInfo.supers flatMap { _.mentionedClasses }) ++
+      (classInfo.allMembers flatMap { _.mentionedClasses }) ++
+      (classInfo.localNestedClasses.values flatMap { _.mentionedClasses }) :+
+      this
+    // TODO Initializers?
+
+  }
 
   def unload() {
     if (this.stage != LifecycleStage.Unloaded) {
@@ -275,7 +285,6 @@ class CgscriptClass(
   }
 
   def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
-    assert(typeParameters.size == typeParameterSubstitutions.size, (id, typeParameters, typeParameterSubstitutions))
     val allMethods = lookupMethods(id)
     val argumentTypeList = CgscriptTypeList(argumentTypes)
     val matchingMethods = allMethods filter { method =>
@@ -383,8 +392,17 @@ class CgscriptClass(
 
   }
 
-  @tailrec
   private def includeInCompilationUnit(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+
+    enclosingClass match {
+
+      case Some(cls) =>
+        cls.includeInCompilationUnit(context, classesCompiling, sb)
+        return
+
+      case _ =>
+
+    }
 
     if (isSystem)
       return
@@ -392,17 +410,12 @@ class CgscriptClass(
     if (stage == LifecycleStage.Loaded || (classesCompiling contains this))
       return
 
-    enclosingClass match {
+    classesCompiling += this
+    ensureElaborated()
+    appendScalaCode(context, classesCompiling, sb)
 
-      case Some(cls) =>
-        cls.includeInCompilationUnit(context, classesCompiling, sb)
-
-      case None =>
-        classesCompiling += this
-        ensureElaborated()
-        appendScalaCode(context, classesCompiling, sb)
-
-    }
+    // Compile all mentioned classes that have not yet been compiled.
+    mentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, sb) }
 
   }
 
@@ -429,10 +442,8 @@ class CgscriptClass(
       assert(!(isEnum || isSingleton))
       sb append "def apply("
       sb append (
-        classInfo.constructorParamVars map { parameter =>
-          parameter.id.name + ": " + parameter.resultType.scalaTypeName
-        } mkString ", "
-        )
+        classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
+      )
       sb append s") = $scalaClassname$$Impl("
       sb append (
         classInfo.constructorParamVars map { parameter =>
@@ -472,9 +483,7 @@ class CgscriptClass(
       if (!method.autoinvoke) {
         sb append "("
         sb append (
-          method.parameters map { parameter =>
-            parameter.id.name + ": " + parameter.paramType.scalaTypeName
-          } mkString ", "
+          method.parameters map { _.toScalaCode(context) } mkString ", "
         )
         sb append ")"
       }
@@ -511,10 +520,8 @@ class CgscriptClass(
         if (!method.autoinvoke) {
           sb append "("
           sb append (
-            method.parameters map { parameter =>
-              parameter.id.name + ": " + parameter.paramType.scalaTypeName
-            } mkString ", "
-            )
+            method.parameters map { _.toScalaCode(context) } mkString ", "
+          )
           sb append ")"
         }
         sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
@@ -535,9 +542,7 @@ class CgscriptClass(
 
         sb append s"case class $scalaClassname$$Impl("
         sb append (
-          classInfo.constructorParamVars map { parameter =>
-            parameter.id.name + ": " + parameter.resultType.scalaTypeName
-          } mkString ", "
+          classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
           )
         sb append ")\n"
         sb append s"  extends $scalaClassname\n\n"
@@ -545,10 +550,6 @@ class CgscriptClass(
       }
 
     }
-
-    // Compile all mentioned classes that have not yet been compiled.
-    val allMentionedClasses = classInfo.supers ++ (classInfo.allMembers flatMap { _.mentionedClasses })
-    allMentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, sb) }
 
   }
 
@@ -1124,7 +1125,7 @@ class CgscriptClass(
     val declNode: ClassDeclarationNode,
     val modifiers: Modifiers,
     val typeParameters: Vector[TypeVariable],
-    val supers: Seq[CgscriptClass],
+    val supers: Vector[CgscriptClass],
     val localNestedClasses: Map[Symbol, CgscriptClass],
     val allNestedClasses: Map[Symbol, CgscriptClass],
     val localMethods: Seq[Method],
@@ -1135,7 +1136,7 @@ class CgscriptClass(
     val enumElementNodes: Seq[EnumElementNode]
     ) {
 
-    val properAncestors: Seq[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
+    val properAncestors: Vector[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
 
     val staticVars: Seq[CgscriptClass#Var] = staticInitializers collect {
@@ -1249,6 +1250,10 @@ class CgscriptClass(
           inferredResultType
       }
 
+    }
+
+    override def mentionedClasses: Iterable[CgscriptClass] = {
+      (explicitResultType.toIterable flatMap { _.mentionedClasses }) ++ (initializerNode.toIterable flatMap { _.mentionedClasses })
     }
 
   }
@@ -1376,6 +1381,8 @@ class CgscriptClass(
       }
     }
 
+    override def mentionedClasses = parameters flatMap { _.mentionedClasses }
+
   }
 
   trait Constructor extends Method with CallSite {
@@ -1399,6 +1406,7 @@ class CgscriptClass(
       domain.pushScope()
       parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
+        parameter.defaultValue foreach { _.ensureElaborated(domain) }
       }
       CgscriptType(thisClass, typeParameters)
     }
@@ -1408,6 +1416,8 @@ class CgscriptClass(
     override def referenceToken = Some(idNode.token)
 
     override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
+
+    override def mentionedClasses = parameters flatMap { _.mentionedClasses }
 
   }
 

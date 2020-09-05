@@ -972,8 +972,16 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     // TODO Validate that condition is a Boolean
     val conditionType = condition.ensureElaborated(domain)
 
+    domain.pushScope()
     val ifType = ifNode.ensureElaborated(domain)
-    val elseType = elseNode map { _.ensureElaborated(domain) }
+    domain.popScope()
+
+    val elseType = elseNode map { node =>
+      domain.pushScope()
+      val typ = node.ensureElaborated(domain)
+      domain.popScope()
+      typ
+    }
 
     elseType match {
       case Some(typ) => ifType join typ
@@ -987,9 +995,9 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     val conditionCode = condition.toScalaCode(context)
     val ifCode = ifNode.toScalaCode(context)
     val elseCode = elseNode map { _.toScalaCode(context) }
-    val elseClause = elseCode map { code => s"else $code" } getOrElse ""
+    val elseClause = elseCode map { code => s"else { $code }" } getOrElse ""
 
-    s"(if ($conditionCode) $ifCode $elseClause)"
+    s"(if ($conditionCode) { $ifCode } $elseClause)"
 
   }
 
@@ -1084,7 +1092,7 @@ case class LoopNode(
     val mostGeneralCollection = CgscriptType(CgscriptClass.Collection, Vector(CgscriptType(CgscriptClass.Object)))
 
     inType foreach { typ =>
-      if (!(typ <= mostGeneralCollection))
+      if (!(typ matches mostGeneralCollection))
         sys.error("Need error msg for when in is not a collection")   // TODO
     }
 
@@ -1557,9 +1565,9 @@ object FunctionCallNode {
 
   def availableImplicits(typ: CgscriptType): Vector[CgscriptType] = {
 
-    typ.baseClass match {
-      case CgscriptClass.Rational => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
-      case CgscriptClass.DyadicRational => Vector(typ, CgscriptType(CgscriptClass.Integer))
+    typ match {
+      case ConcreteType(CgscriptClass.Rational, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
+      case ConcreteType(CgscriptClass.DyadicRational, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
       case _ => Vector(typ)
     }
 
@@ -1595,7 +1603,7 @@ case class FunctionCallNode(
 
         // To be a local method call, we need to be in class scope.
         val localMethod = domain.cls flatMap { cls =>
-          FunctionCallNode.lookupMethod(CgscriptType(cls), idNode.id, argTypes)
+          FunctionCallNode.lookupMethod(CgscriptType(cls, cls.typeParameters), idNode.id, argTypes)
         }
 
         localMethod match {

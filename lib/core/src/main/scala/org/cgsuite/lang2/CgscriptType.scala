@@ -6,9 +6,15 @@ object CgscriptType {
     ConcreteType(cls, typeParameters)
   }
 
-  def reduceClasses(classes: Iterable[CgscriptClass]) = {
+  def reduceClasses(classes: Set[CgscriptClass]) = {
     classes filterNot { cls =>
       classes exists { thatClass => thatClass != cls && thatClass <= cls }
+    }
+  }
+
+  def reduceTypes(types: Set[ConcreteType]) = {
+    types filterNot { typ =>
+      types exists { thatType => thatType != typ && (thatType matches typ) }
     }
   }
 
@@ -30,7 +36,9 @@ sealed trait CgscriptType {
 
   def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method]
 
-  def <=(that: CgscriptType): Boolean
+  def matches(that: CgscriptType): Boolean
+
+  def mentionedClasses: Iterable[CgscriptClass]
 
   def substituteAll(substitutions: Iterable[(TypeVariable, CgscriptType)]): CgscriptType = {
     substitutions.foldLeft (this) { case (currentType, (variable, substitution)) =>
@@ -52,6 +60,8 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
 
   override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("type variable cannot resolve to a class (this should never happen)")
 
+  override def mentionedClasses = Vector.empty
+
   override def substitute(variable: TypeVariable, substitution: CgscriptType): CgscriptType = {
     if (id == variable.id)
       substitution
@@ -64,12 +74,12 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
     else CgscriptType(CgscriptClass.Object)
   }
 
-  override def <=(that: CgscriptType) = {
+  override def matches(that: CgscriptType) = {
 
     that match {
-      case _: ConcreteType => false
+      case concreteType: ConcreteType => concreteType.baseClass == CgscriptClass.Object
       case _: IntersectionType => false
-      case thatTypeVariable: TypeVariable => id == thatTypeVariable.id
+      case _: TypeVariable => true
     }
 
   }
@@ -117,46 +127,70 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
   override def join(that: CgscriptType): CgscriptType = {
     that match {
       case thatConcreteType: ConcreteType =>
-        val joinedTypes = reducedJoinedClasses(thatConcreteType) map { ConcreteType(_) }
+        val joinedTypes = reducedJoinedTypes(thatConcreteType)
         joinedTypes.size match {
           case 1 => joinedTypes.head
-          case _ => IntersectionType(joinedTypes)
+          case _ => IntersectionType(joinedTypes.toVector)
         }
       case thatIntersectionType: IntersectionType =>
-        val joinedTypes = thatIntersectionType.components flatMap reducedJoinedClasses
-        val mergedJoinedTypes = CgscriptType.reduceClasses(joinedTypes).toVector map { ConcreteType(_) }
+        val joinedTypes = thatIntersectionType.components.toSet flatMap reducedJoinedTypes
+        val mergedJoinedTypes = CgscriptType.reduceTypes(joinedTypes)
         mergedJoinedTypes.size match {
           case 1 => mergedJoinedTypes.head
-          case _ => IntersectionType(mergedJoinedTypes)
+          case _ => IntersectionType(mergedJoinedTypes.toVector)
         }
       case _: TypeVariable => ConcreteType(CgscriptClass.Object)
     }
   }
 
-  def reducedJoinedClasses(that: ConcreteType): Vector[CgscriptClass] = {
-    val commonAncestors = baseClass.ancestors intersect that.baseClass.ancestors
+  def ancestorTypes: Vector[ConcreteType] = {
+    baseClass.ancestors map { ancestor =>
+      if (ancestor.typeParameters.isEmpty)
+        ConcreteType(ancestor)
+      else if (ancestor.typeParameters == baseClass.typeParameters)
+        ConcreteType(ancestor, typeArguments)
+      else
+        sys.error("complex type parameter inheritance is not yet handled")
+    }
+  }
+
+  def reducedJoinedTypes(that: ConcreteType): Set[ConcreteType] = {
+    // This is currently pretty rudimentary in how it handles type parameters.
+    // We assume trivial (non-mapped) type parameter inheritance.
+    val commonAncestors = ancestorTypes.toSet intersect that.ancestorTypes.toSet
+    val reducedCommonAncestors = CgscriptType.reduceTypes(commonAncestors)
+    assert(reducedCommonAncestors.nonEmpty, "I'm surprised commonAncestors doesn't contain Object.")
+    reducedCommonAncestors
+  }
+
+  def reducedJoinedClasses(that: ConcreteType): Set[CgscriptClass] = {
+    val commonAncestors = baseClass.ancestors.toSet intersect that.baseClass.ancestors.toSet
     val reducedCommonAncestors = CgscriptType.reduceClasses(commonAncestors)
-    reducedCommonAncestors.toVector
+    reducedCommonAncestors
   }
 
   override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = {
     baseClass.lookupMethod(id, argTypes, typeArguments)
   }
 
-  override def <=(that: CgscriptType): Boolean = {
+  override def matches(that: CgscriptType): Boolean = {
 
     that match {
       case thatConcreteType: ConcreteType =>
         baseClass <= thatConcreteType.baseClass && {
           // TODO This is not the right general logic for type variable inheritance
           typeArguments zip thatConcreteType.typeArguments forall { case (thisParam, thatParam) =>
-            thisParam <= thatParam
+            thisParam matches thatParam
           }
         }
-      case _: TypeVariable => false
+      case _: TypeVariable => true
       case thatIntersectionType: IntersectionType =>
-        thatIntersectionType.components forall { this <= _ }
+        thatIntersectionType.components forall { this matches _ }
     }
+  }
+
+  override def mentionedClasses = {
+    baseClass +: (typeArguments flatMap { _.mentionedClasses })
   }
 
 }
@@ -182,12 +216,12 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
     that match {
       case thatConcreteType: ConcreteType => thatConcreteType join this
       case thatIntersectionType: IntersectionType =>
-        val joinedTypes = components flatMap { thisComponent =>
-          thatIntersectionType.components flatMap { thatComponent =>
-            thisComponent reducedJoinedClasses thatComponent
+        val joinedTypes = components.toSet flatMap { thisComponent: ConcreteType =>
+          thatIntersectionType.components flatMap { thatComponent: ConcreteType =>
+            thisComponent reducedJoinedTypes thatComponent
           }
         }
-        val mergedJoinedTypes = CgscriptType.reduceClasses(joinedTypes).toVector map { ConcreteType(_) }
+        val mergedJoinedTypes = CgscriptType.reduceTypes(joinedTypes).toVector
         mergedJoinedTypes.size match {
           case 1 => mergedJoinedTypes.head
           case _ => IntersectionType(mergedJoinedTypes)
@@ -196,16 +230,20 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
 
   }
 
-  override def <=(that: CgscriptType) = {
+  override def matches(that: CgscriptType) = {
 
     that match {
       case thatConcreteType: ConcreteType =>
-        components exists { _ <= thatConcreteType }
-      case _: TypeVariable => false
+        components exists { _ matches thatConcreteType }
+      case _: TypeVariable => true
       case thatIntersectionType: IntersectionType =>
-        components exists { _ <= thatIntersectionType }
+        components exists { _ matches thatIntersectionType }
     }
 
+  }
+
+  override def mentionedClasses = {
+    components flatMap { _.mentionedClasses }
   }
 
 }
@@ -217,7 +255,7 @@ case class CgscriptTypeList(types: Vector[CgscriptType]) {
   }
 
   def <=(that: CgscriptTypeList): Boolean = {
-    types zip that.types forall { case (thisType, thatType) => thisType <= thatType }
+    types zip that.types forall { case (thisType, thatType) => thisType matches thatType }
   }
 
 }

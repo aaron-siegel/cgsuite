@@ -55,15 +55,15 @@ system class Game
 
   def DepthHint := error("That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.");
 
-  def OptionsFor(player as Player) := error("Subclasses of `Game` must override the `OptionsFor` method.");
+  def OptionsFor(player as Player) as Collection of Game := error("Subclasses of `Game` must override the `OptionsFor` method.");
 
-  def Options := OptionsFor(Left).ToSet Union OptionsFor(Right);
+  def Options as Collection of Game := OptionsFor(Left).ToSet Union OptionsFor(Right).ToSet;
 
   def Decomposition := [this];
 
-  def LeftOptions := OptionsFor(Left);
+  def LeftOptions as Collection of Game := OptionsFor(Left);
 
-  def RightOptions := OptionsFor(Right);
+  def RightOptions as Collection of Game := OptionsFor(Right);
 
 /*
   // TODO DicotVariant and ImpartialVariant should override Decomposition
