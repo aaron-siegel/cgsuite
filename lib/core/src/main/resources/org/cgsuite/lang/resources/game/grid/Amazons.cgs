@@ -2,23 +2,17 @@
 
 singleton class Amazons extends GridRuleset
 
-  class Position(grid as Grid) extends GridGame
+  override def GridOptions(grid as Grid, player as Player) begin
 
-    override def OptionsFor(player as Player) begin
+    var us := player.Ordinal;
 
-      var us := player.Ordinal;
-      var moveTo;
-      var fireTo;
-
-      for ourAmazon in grid FindAll us
-      for moveDir in Coordinates.Compass
-      for k from 1 while grid[moveTo := ourAmazon+moveDir*k] == 0
-      for arrowDir in Coordinates.Compass
-      for l from 1 while (grid[fireTo := moveTo+arrowDir*l] == 0 or fireTo == ourAmazon)
-      yield
-        Position(grid Updated {ourAmazon => 0, moveTo => us, fireTo => 3})
-      end
-
+    for ourAmazon in grid FindAll us
+    for moveDir in Coordinates.Compass
+    for k from 1 while grid[ourAmazon + moveDir * k] == 0
+    for arrowDir in Coordinates.Compass
+    for l from 1 while (grid[ourAmazon + moveDir * k + arrowDir * l] == 0 or fireTo == ourAmazon)
+    yield
+      grid Updated {ourAmazon => 0, ourAmazon + moveDir * k => us, ourAmazon + moveDir * k + arrowDir * l => 3}
     end
 
   end

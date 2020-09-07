@@ -32,7 +32,7 @@ singleton class constants
   def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
 
   def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
-  
+/*
   def TakeAway(arg) begin
     if arg is DyadicRational then GenMem((memory, j) -> j <= memory * arg)
     elseif arg is Procedure then GenMem((memory, j) -> j <= arg(memory))

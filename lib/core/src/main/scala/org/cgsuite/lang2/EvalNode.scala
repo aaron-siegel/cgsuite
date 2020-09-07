@@ -1658,18 +1658,36 @@ case class FunctionCallNode(
 
           case None =>
 
-            val objType = dotNode.obj.ensureElaborated(domain)
-            val objMethod = objType.lookupMethod(dotNode.idNode.id, argTypes)
+            val objectType = dotNode.obj.ensureElaborated(domain)
+            val objectMethod = objectType.lookupMethod(dotNode.idNode.id, argTypes)
 
-            objMethod match {
+            objectMethod match {
 
               case Some(method) if !method.autoinvoke =>
                 dotNode.externalName = method.scalaName
-                val methodType = method.ensureElaborated().substituteAll(objType.baseClass.typeParameters zip objType.typeArguments)
+                val methodType = method.ensureElaborated().substituteAll(objectType.baseClass.typeParameters zip objectType.typeArguments)
                 // Apply further substitutions for unbound type parameters
                 Some(methodType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes))
 
               case _ =>
+
+                val staticMethod = {
+                  if (objectType.baseClass == CgscriptClass.Class) {
+                    val staticType = objectType.typeArguments.head
+                    staticType.lookupMethod(dotNode.idNode.id, argTypes)
+                  } else
+                    None
+                }
+
+                staticMethod match {
+                  case Some(method) if method.isStatic =>
+                    val methodType = method.ensureElaborated().substituteAll(objectType.baseClass.typeParameters zip objectType.typeArguments)
+                    // Apply further substitutions for unbound type parameters
+                    Some(methodType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes))
+                  case None =>
+                    sys.error(s"need error msg here: $objectType, ${dotNode.idNode.id.name}")
+                }
+
                 None
 
             }

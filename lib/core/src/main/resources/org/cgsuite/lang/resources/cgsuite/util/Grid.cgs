@@ -2,18 +2,26 @@
 
 system class Grid
 
-  external static def Empty(rowCount as Integer, colCount as Integer);
+  external static def Empty(rowCount as Integer, colCount as Integer) as Grid;
 
-  external static def Parse(str as String, charMap as String);
+  external static def Parse(str as String, charMap as String) as Grid;
 
-  external def ColCount;
-  external def Decomposition(boundaryValue as Integer, directions as List ? Coordinates.Orthogonal);
-  external def FindAll(value as Integer);
-  external def IsInBounds(coord as Coordinates);
-  external def RowCount;
-  external def Subgrid(northwest as Coordinates, southeast as Coordinates);
-  external def SymmetryInvariant(symmetries as List);
-  external def ToString(charMap as String);
-  external def Updated(newValues as Map);
+  external def ColCount as Integer;
+
+  external def Decomposition(boundaryValue as Integer, directions as List of Coordinates ? Coordinates.Orthogonal) as List of Grid;
+
+  external def FindAll(value as Integer) as List of Coordinates;
+
+  external def IsInBounds(coord as Coordinates) as Boolean;
+
+  external def RowCount as Integer;
+
+  external def Subgrid(northwest as Coordinates, southeast as Coordinates) as Grid;
+
+  external def SymmetryInvariant(symmetries as List of Symmetry) as Grid;
+
+  external def ToString(charMap as String) as String;
+
+  external def Updated(newValues as Map) as Grid;
 
 end

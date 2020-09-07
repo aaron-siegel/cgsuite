@@ -44,7 +44,7 @@ class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, v
     new Strip(newValues)
   }
 
-  override def findAll(value: Integer): Seq[Integer] = {
+  override def findAll(value: Integer): IndexedSeq[Integer] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0
