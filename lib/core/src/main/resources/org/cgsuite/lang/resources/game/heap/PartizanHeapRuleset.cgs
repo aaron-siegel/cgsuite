@@ -2,7 +2,7 @@
 
 class PartizanHeapRuleset(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset) extends Ruleset
 
-  override def Eval(heapSize as Integer) := Position(heapSize);
+  def Eval(heapSize as Integer) := Position(heapSize);
 
   def GameValueSequence(toHeapSize as Integer) := listof(Position(n).GameValue for n from 1 to toHeapSize);
 
@@ -11,7 +11,7 @@ class PartizanHeapRuleset(leftRuleset as HeapRuleset, rightRuleset as HeapRulese
     override def OptionsFor(player as Player) begin
       var ruleset := if player == Left then leftRuleset else rightRuleset end;
       ruleset HeapOptions heapSize Apply
-        (heaps as List of Integer -> if heaps.IsEmpty then 0 else 0 /* sumof(Position(n) for n in heaps) */ end)
+        (heaps as Collection of Integer -> if heaps.IsEmpty then 0 else 0 /* sumof(Position(n) for n in heaps) */ end)
     end
 
   end

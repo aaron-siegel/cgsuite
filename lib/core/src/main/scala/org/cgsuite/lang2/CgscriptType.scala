@@ -32,6 +32,18 @@ sealed trait CgscriptType {
 
   def substitute(variable: TypeVariable, substitution: CgscriptType): CgscriptType
 
+  def substituteForUnboundTypeParameters(parameterTypes: Vector[CgscriptType], argumentTypes: Vector[CgscriptType]) = {
+    val unboundTypeSubstitutions = parameterTypes zip argumentTypes flatMap { case (parameterType, argumentType) =>
+      parameterType.unboundTypeSubstitutions(argumentType)
+    }
+    unboundTypeSubstitutions.groupBy { _._1 } mapValues { substitutions =>
+      substitutions map { _._2 } reduce { _ join _ }
+    }
+    substituteAll(unboundTypeSubstitutions)
+  }
+
+  def unboundTypeSubstitutions(instanceType: CgscriptType): Map[TypeVariable, CgscriptType]
+
   def join(that: CgscriptType): CgscriptType
 
   def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method]
@@ -61,6 +73,10 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
   override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("type variable cannot resolve to a class (this should never happen)")
 
   override def mentionedClasses = Vector.empty
+
+  override def unboundTypeSubstitutions(instanceType: CgscriptType) = {
+    Map(this -> instanceType)
+  }
 
   override def substitute(variable: TypeVariable, substitution: CgscriptType): CgscriptType = {
     if (id == variable.id)
@@ -109,7 +125,7 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
   }
 
   def scalaTypeName: String = {
-    val baseName = baseClass.scalaClassname
+    val baseName = baseClass.scalaQualifiedTypeName
     // TODO This is a temporary hack
     if ((baseName endsWith "IndexedSeq") || (baseName endsWith "Set") || (baseName endsWith "Iterable")) {
       val typeParameter = typeArguments.headOption map { _.scalaTypeName } getOrElse "Any"
@@ -121,6 +137,21 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
 
   override def substitute(variable: TypeVariable, substitution: CgscriptType): ConcreteType = {
     ConcreteType(baseClass, typeArguments map { _.substitute(variable, substitution) })
+  }
+
+  override def unboundTypeSubstitutions(instanceType: CgscriptType) = {
+
+    assert(instanceType.baseClass.ancestors contains baseClass, (this, instanceType))
+
+    // TODO We need to properly manifest derived types as their generified ancestors
+    assert(instanceType.typeArguments.length == typeArguments.length)
+    val nestedSubstitutions = typeArguments zip instanceType.typeArguments flatMap { case (thisTypeArgument, thatTypeArgument) =>
+      thisTypeArgument.unboundTypeSubstitutions(thatTypeArgument)
+    }
+    nestedSubstitutions.groupBy { _._1 } mapValues { substitutions =>
+      substitutions map { _._2 } reduce { _ join _ }
+    }
+
   }
 
   // TODO Only works for parameterless types currently
@@ -210,6 +241,8 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
   override def substitute(variable: TypeVariable, substitution: CgscriptType): IntersectionType = {
     IntersectionType(components map { _.substitute(variable, substitution) })
   }
+
+  override def unboundTypeSubstitutions(instanceType: CgscriptType) = ???
 
   override def join(that: CgscriptType) = {
 

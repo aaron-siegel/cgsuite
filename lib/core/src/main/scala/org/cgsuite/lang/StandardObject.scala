@@ -59,7 +59,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
     }
   }
 
-  def toOutput: Output = {
+  override def toOutput: Output = {
     cls.classInfo.toOutputMethod.call(this, Array.empty).asInstanceOf[Output]
   }
 

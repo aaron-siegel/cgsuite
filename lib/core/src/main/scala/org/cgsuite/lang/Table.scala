@@ -48,7 +48,7 @@ case class Table (
 
   def iterator: Iterator[IndexedSeq[_]] = rows.iterator
 
-  def toOutput: TableOutput = {
+  override def toOutput: TableOutput = {
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
   }
 

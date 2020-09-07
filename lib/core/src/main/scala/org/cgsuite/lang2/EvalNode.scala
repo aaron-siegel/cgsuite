@@ -6,6 +6,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.lang2.LoopNode.YieldSum
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.Ops._
 
@@ -1066,13 +1067,9 @@ case class LoopNode(
 
   override val children = forId.toSeq ++ in ++ from ++ to ++ by ++ `while` ++ where :+ body
 
-  private val prepareLoop = Symbol(s"PrepareLoop [${tree.location}]")
-  private val loop = Symbol(s"Loop [${tree.location}]")
-  private val loopBody = Symbol(s"LoopBody [${tree.location}]")
-
   private val isYield: Boolean = loopType match {
-    case LoopNode.Do | LoopNode.YieldSum => false
-    case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldSet | LoopNode.YieldTable => true
+    case LoopNode.Do => false
+    case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldSet | LoopNode.YieldTable | LoopNode.YieldSum => true
   }
 
   private val pushDownYield: Option[LoopNode] = (isYield, body) match {
@@ -1132,6 +1129,7 @@ case class LoopNode(
           case LoopNode.Do => CgscriptType(CgscriptClass.NothingClass)
           case LoopNode.YieldList => CgscriptType(CgscriptClass.List, Vector(bodyType))
           case LoopNode.YieldSet => CgscriptType(CgscriptClass.Set, Vector(bodyType))
+          case LoopNode.YieldSum => CgscriptType(CgscriptClass.Game)
           // TODO Others
         }
     }
@@ -1175,8 +1173,13 @@ case class LoopNode(
     }
     val yieldInitCode = {
       if (isYield && pushdownYieldVar.isEmpty) {
-        val yieldType = elaboratedType.typeArguments.head
-        s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
+        loopType match {
+          case YieldSum =>
+            s"var $yieldResultVar: org.cgsuite.core.Game = org.cgsuite.core.Values.zero"
+          case _ =>
+            val yieldType = elaboratedType.typeArguments.head
+            s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
+        }
       } else {
         ""
       }
@@ -1214,12 +1217,12 @@ case class LoopNode(
       case LoopNode.YieldList => s"$yieldResultVar.toVector"
       case LoopNode.YieldMap => s"$yieldResultVar.asInstanceOf[scala.collection.mutable.ArrayBuffer[(Any, Any)]].toMap"
       case LoopNode.YieldSet => s"$yieldResultVar.toSet"
+      case LoopNode.YieldSum => yieldResultVar
         /*
       case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
         case list: IndexedSeq[_] => list
         case _ => throw EvalException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
       } } (OutputBuilder.toOutput)
-      case LoopNode.YieldSum => r
          */
     }
 
@@ -1392,7 +1395,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
           pkg.lookupConstantVar(idNode.id) match {
 
             case Some(constantVar: CgscriptClass#Var) =>
-              externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
+              externalName = idNode.id.name
               this.constantVar = constantVar
               constantVar.ensureElaborated()
               Some(constantVar.resultType)
@@ -1516,7 +1519,7 @@ object FunctionCallNode {
       }
     }
     val (args, argNames) = argsWithNames.unzip
-    FunctionCallNode(tree, callSite, args.toVector, argNames.toVector)
+    FunctionCallNode(tree, callSite, args, argNames)
   }
 
   def lookupMethod(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
@@ -1662,7 +1665,9 @@ case class FunctionCallNode(
 
               case Some(method) if !method.autoinvoke =>
                 dotNode.externalName = method.scalaName
-                Some(method.ensureElaborated().substituteAll(objType.baseClass.typeParameters zip objType.typeArguments))
+                val methodType = method.ensureElaborated().substituteAll(objType.baseClass.typeParameters zip objType.typeArguments)
+                // Apply further substitutions for unbound type parameters
+                Some(methodType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes))
 
               case _ =>
                 None

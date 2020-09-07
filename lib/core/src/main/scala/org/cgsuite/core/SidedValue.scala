@@ -114,7 +114,7 @@ trait SidedValue extends NormalValue with OutputTarget {
 
   override def isStopperSided = onside.loopyGame.isStopper && offside.loopyGame.isStopper
 
-  def toOutput: StyledTextOutput = {
+  override def toOutput: StyledTextOutput = {
 
     val sto = new StyledTextOutput
     if (onside == on && offside == off) {

@@ -163,6 +163,13 @@ class CgscriptClass(
     }
   }
 
+  val scalaQualifiedTypeName: String = {
+    enclosingClass match {
+      case None => scalaClassname
+      case Some(cls) => s"${cls.scalaQualifiedTypeName}#$scalaClassname"
+    }
+  }
+
   override def elaborate() = sys.error("use ensureElaborated()")
 
   override def ensureElaborated() = {
@@ -1267,7 +1274,10 @@ class CgscriptClass(
     def isOverride: Boolean
 
     val methodName = idNode.id.name
-    val scalaName = methodName.updated(0, methodName.charAt(0).toLower)
+    val scalaName = methodName match {
+      case "Apply" => "map"
+      case _ => methodName.updated(0, methodName.charAt(0).toLower)
+    }
     val declaringClass = thisClass
     val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
