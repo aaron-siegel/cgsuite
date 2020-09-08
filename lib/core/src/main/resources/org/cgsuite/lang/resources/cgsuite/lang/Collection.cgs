@@ -5,6 +5,7 @@
 system class Collection of `T
 
   external def Apply(fn as Procedure of (`T,`R)) as Collection of `R;
+  //def Apply(fn as Procedure of (`T,`R)) as Collection of `R := error("Subclasses of `Collection` must override method `Apply`");
 
   /** Returns `true` if there exists an element in this collection
     * that satisfies the specified predicate.
@@ -16,7 +17,7 @@ system class Collection of `T
     *
     * returns `true` just if the collection `c` contains an even element.
     */
-  external def Exists(predicate as Procedure) as Boolean;
+  external def Exists(predicate as Procedure of (`T, Boolean)) as Boolean;
 
   /** Returns the first element in this collection that
     * satisfies the specified predicate.
@@ -25,17 +26,17 @@ system class Collection of `T
     * If no element of this collection satisfies the predicate, then
     * [[Nothing]] will be returned.
     */
-  external def Find(predicate as Procedure) as `T;
+  external def Find(predicate as Procedure of (`T, Boolean)) as `T;
 
   /** Returns `true` if every element in this collection
     * satisfies the specified predicate.
     * `predicate` must be a [[Boolean]]-valued procedure.
     */
-  external def ForAll(predicate as Procedure) as Boolean;
+  external def ForAll(predicate as Procedure of (`T, Boolean)) as Boolean;
 
   /** Applies the specified procedure to element in this collection. 
     */
-  external def ForEach(proc as Procedure) as Nothing;
+  external def ForEach(proc as Procedure of (`T, `R)) as Nothing;
 
   /** The first element in this collection (in iteration order).
     * An exception will be thrown if this collection is empty.
@@ -50,6 +51,7 @@ system class Collection of `T
     * distinct maxima, then the first such element (in iteration
     * order) will be returned.
     */
+    /*
   def Max begin
     var max := Head;
     for x in Tail where x > max do
@@ -57,7 +59,7 @@ system class Collection of `T
     end
     max
   end
-
+*/
   /** The mex (minimal excluded value) of this collection.
     * The ~mex~ of a collection $c$ is defined to be the least
     * non-negative [[Integer]] that is not an element of $c$.
@@ -68,6 +70,7 @@ system class Collection of `T
     * distinct minima, then the first such element (in iteration
     * order) will be returned.
     */
+    /*
   def Min begin
     var min := Head;
     for x in Tail where x < min do
@@ -75,7 +78,7 @@ system class Collection of `T
     end
     min
   end
-
+*/
   /** The number of elements in this collection.
     */
   external def Size as Integer;
@@ -83,7 +86,7 @@ system class Collection of `T
   /** A `Collection` containing all the elements of this collection
     * except for [[#Head]].
     */
-  external def Tail as `T;
+  external def Tail as Collection of `T;
 
   /** Converts this collection to a [[List]]. The resulting
     * `List` will contain exactly the elements of this collection, in

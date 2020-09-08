@@ -126,8 +126,6 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     */
   external def NimSum(that as Integer) as Integer;
 
-  override external def ToOutput;
-
   /** The ugly product of this [[Integer]] and `that`.
     */
   external def UglyProduct(that as Integer) as Integer;

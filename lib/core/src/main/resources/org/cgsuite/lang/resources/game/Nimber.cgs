@@ -10,8 +10,8 @@ system class Nimber extends ImpartialGame, Uptimal
 
   external def op unary- as Nimber;
 
-  override external def Options;
+  override external def Options as Collection of Nimber;
 
-  override def OptionsFor(player as Player) := Options;
+  //override def OptionsFor(player as Player) := Options;
 
 end

@@ -4,6 +4,7 @@ import java.util
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
@@ -97,13 +98,24 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
     GeneralizedOrdinal(prodTerms : _*)
   }
 
-  override def pow(n: Integer): SurrealNumber = {
+  def exp(that: GeneralizedOrdinal): SurrealNumber = {
+    that match {
+      case n: Integer => exp(n)
+      case _ =>
+        if (this == omega)
+          that.omegaPower
+        else
+          throw EvalException("TODO Error msg") // TODO
+    }
+  }
+
+  override def exp(n: Integer): SurrealNumber = {
     if (n.isZero)
       one
     else if (n < zero)
-      pow(-n).reciprocal
+      exp(-n).reciprocal
     else
-      this * pow(n - one)
+      this * exp(n - one)
   }
 
   override def abs: GeneralizedOrdinal = if (this < zero) -this else this

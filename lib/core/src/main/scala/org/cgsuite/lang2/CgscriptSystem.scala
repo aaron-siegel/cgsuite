@@ -165,6 +165,7 @@ private[lang2] object CgscriptSystem {
         case IR.Success =>
       }
 
+      // TODO Don't interpret subsequent lines if we get an error
       val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
       if (result.isLeft) {
         varNameOpt foreach { varName =>
@@ -176,7 +177,7 @@ private[lang2] object CgscriptSystem {
 
     val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
     result match {
-      case scala.Left(obj) => Some(obj)
+      case scala.Left(obj) => Option(obj)   // Could be null
       case scala.Right(t) =>
         t.printStackTrace()
         None

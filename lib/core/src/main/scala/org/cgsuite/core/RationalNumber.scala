@@ -99,7 +99,7 @@ trait RationalNumber extends SurrealNumber with OutputTarget {
   def max(other: RationalNumber) = if (this > other) this else other
   def mean(other: RationalNumber) = (this + other) / Values.two
 
-  def exp(exponent: Integer): RationalNumber = {
+  override def exp(exponent: Integer): RationalNumber = {
     if (exponent >= Values.zero) {
       RationalNumber(numerator.intExp(exponent), denominator.intExp(exponent))
     } else {

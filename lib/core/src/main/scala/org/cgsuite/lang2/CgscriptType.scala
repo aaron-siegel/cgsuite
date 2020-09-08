@@ -42,6 +42,8 @@ sealed trait CgscriptType {
     substituteAll(unboundTypeSubstitutions)
   }
 
+  def allTypeVariables: Vector[TypeVariable]
+
   def unboundTypeSubstitutions(instanceType: CgscriptType): Map[TypeVariable, CgscriptType]
 
   def join(that: CgscriptType): CgscriptType
@@ -73,6 +75,8 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
   override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("type variable cannot resolve to a class (this should never happen)")
 
   override def mentionedClasses = Vector.empty
+
+  override def allTypeVariables = Vector(this)
 
   override def unboundTypeSubstitutions(instanceType: CgscriptType) = {
     Map(this -> instanceType)
@@ -125,15 +129,25 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
   }
 
   def scalaTypeName: String = {
-    val baseName = baseClass.scalaQualifiedTypeName
+    val baseName = baseClass.scalaTyperefName
     // TODO This is a temporary hack
     if ((baseName endsWith "IndexedSeq") || (baseName endsWith "Set") || (baseName endsWith "Iterable")) {
       val typeParameter = typeArguments.headOption map { _.scalaTypeName } getOrElse "Any"
       s"$baseName[$typeParameter]"
     } else {
-      baseName
+      val typeArgumentsBlock = {
+        if (typeArguments.isEmpty)
+          ""
+        else {
+          val typeArgumentsString = typeArguments map { _.scalaTypeName } mkString ", "
+          s"[$typeArgumentsString]"
+        }
+      }
+      s"$baseName$typeArgumentsBlock"
     }
   }
+
+  override def allTypeVariables = (typeArguments flatMap { _.allTypeVariables }).distinct
 
   override def substitute(variable: TypeVariable, substitution: CgscriptType): ConcreteType = {
     ConcreteType(baseClass, typeArguments map { _.substitute(variable, substitution) })
@@ -237,6 +251,8 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
   override def typeArguments = ???
 
   override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = ???
+
+  override def allTypeVariables = (components flatMap { _.allTypeVariables }).distinct
 
   override def substitute(variable: TypeVariable, substitution: CgscriptType): IntersectionType = {
     IntersectionType(components map { _.substitute(variable, substitution) })

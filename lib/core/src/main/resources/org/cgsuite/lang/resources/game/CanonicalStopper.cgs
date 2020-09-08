@@ -10,7 +10,7 @@ system class CanonicalStopper extends Game, StopperSidedValue
 
   external override def ToOutput as String;
 
-  override external def OptionsFor(player as Player);
+  override external def OptionsFor(player as Player) as List of CanonicalStopper;
 
   external def Degree as CanonicalStopper;
 
@@ -37,7 +37,5 @@ system class CanonicalStopper extends Game, StopperSidedValue
   external def UpsumVariety(deg as CanonicalStopper) as CanonicalStopper;
 
   external def Variety as CanonicalStopper;
-
-  override external def ToOutput as String;
 
 end

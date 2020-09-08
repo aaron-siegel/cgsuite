@@ -151,22 +151,29 @@ class CgscriptClass(
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
 
-  val scalaClassname: String = {
+  val scalaClassdefName: String = {
+    if (qualifiedName == "cgsuite.lang.Nothing")
+      "Nothing"
+    else {
+      enclosingClass match {
+        case Some(_) => nameAsFullyScopedMember
+        case _ => qualifiedName.replace('.', '$')
+      }
+    }
+  }
+
+  val scalaTyperefName: String = {
     if (qualifiedName == "cgsuite.lang.Nothing")
       "Nothing"
     else {
       systemClass match {
         case Some(cls) => cls.getName
-        case None if enclosingClass.isDefined => nameAsFullyScopedMember
-        case None => qualifiedName.replace('.', '$')
+        case None =>
+          enclosingClass match {
+            case Some(cls) => s"${cls.scalaTyperefName}#$nameAsFullyScopedMember"
+            case None => scalaClassdefName
+          }
       }
-    }
-  }
-
-  val scalaQualifiedTypeName: String = {
-    enclosingClass match {
-      case None => scalaClassname
-      case Some(cls) => s"${cls.scalaQualifiedTypeName}#$scalaClassname"
     }
   }
 
@@ -177,7 +184,7 @@ class CgscriptClass(
     classInfo.constructorParamVars foreach { _.ensureElaborated() }
     classInfo.allMembers foreach { _.ensureElaborated() }
     classInfo.localNestedClasses.values foreach { _.ensureElaborated() }
-    CgscriptType(this)
+    CgscriptType(this, typeParameters)
 
   }
 
@@ -231,6 +238,8 @@ class CgscriptClass(
   def initializers = classInfo.initializers
 
   def typeParameters = classInfo.typeParameters
+
+  lazy val mostGenericType = CgscriptType(this, typeParameters)
 
   def <=(that: CgscriptClass) = ancestors contains that
 
@@ -319,6 +328,10 @@ class CgscriptClass(
 
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
     classInfo.classVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
+  }
+
+  def lookupStaticVar(id: Symbol): Option[CgscriptClass#Var] = {
+    classInfo.staticVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
   }
 
   /*
@@ -411,10 +424,10 @@ class CgscriptClass(
 
     }
 
-    if (isSystem)
+    if (stage == LifecycleStage.Loaded || (classesCompiling contains this))
       return
 
-    if (stage == LifecycleStage.Loaded || (classesCompiling contains this))
+    if (this == CgscriptClass.NothingClass)
       return
 
     classesCompiling += this
@@ -433,25 +446,35 @@ class CgscriptClass(
     val extendsClause = {
       classInfo.supers map {
         case CgscriptClass.Object => "org.cgsuite.lang2.StandardObject"
-        case otherClass => otherClass.scalaClassname
+        case otherClass => otherClass.scalaTyperefName
       } mkString " with "
     }
 
+    val genericTypeParametersBlock = {
+      if (typeParameters.isEmpty) {
+        ""
+      } else {
+        val typeParametersString = typeParameters map { _.scalaTypeName } mkString ", "
+        s"[$typeParametersString]"
+      }
+    }
+
     // Generate code.
-    if (isEnum || isSingleton)
-      sb append s"case object $scalaClassname\n  extends $extendsClause {\n\n"
+    if (isSingleton)
+      sb append s"case object $scalaClassdefName\n  extends $extendsClause {\n\n"
     else
-      sb append s"object $scalaClassname {\n\n"
+      sb append s"object $scalaClassdefName {\n\n"
 
     if (constructor.isDefined) {
 
       // Class is instantiable.
-      assert(!(isEnum || isSingleton))
+      assert(!isSingleton, this)
       sb append "def apply("
       sb append (
         classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
       )
-      sb append s") = $scalaClassname$$Impl("
+      val applicatorName = if (isSystem) scalaTyperefName else s"$scalaClassdefName$$Impl"
+      sb append s") = $applicatorName("
       sb append (
         classInfo.constructorParamVars map { parameter =>
           parameter.id.name
@@ -483,7 +506,9 @@ class CgscriptClass(
         Vector.empty //classInfo.staticMethods
     }
 
-    companionObjectMethods foreach { method =>
+    val companionObjectUserMethods = companionObjectMethods collect { case method: UserMethod => method }
+
+    companionObjectUserMethods foreach { method =>
 
       val overrideSpec = if (method.isOverride) "override " else ""
       sb append s"${overrideSpec}def ${method.scalaName}"
@@ -496,7 +521,7 @@ class CgscriptClass(
       }
       sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
 
-      sb append method.asInstanceOf[UserMethod].body.toScalaCode(context)
+      sb append method.body.toScalaCode(context)
 
       sb append "\n}\n\n"
 
@@ -504,12 +529,18 @@ class CgscriptClass(
 
     sb append "}\n\n"
 
-    if (!(isEnum || isSingleton)) {
+    if (!isSingleton) {
 
-      sb append s"trait $scalaClassname\n  extends $extendsClause {\n\n"
+      if (isSystem) {
+        sb append s"case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock) {\n\n"
+      } else {
+        sb append s"trait $scalaClassdefName\n  extends $extendsClause {\n\n"
+      }
 
-      classInfo.constructorParamVars map { parameter =>
-        sb append s"def ${parameter.id.name}: ${parameter.resultType.scalaTypeName}\n\n"
+      if (!isSystem) {
+        classInfo.constructorParamVars foreach { parameter =>
+          sb append s"def ${parameter.id.name}: ${parameter.resultType.scalaTypeName}\n\n"
+        }
       }
 
       classInfo.localClassVars foreach { variable =>
@@ -520,10 +551,20 @@ class CgscriptClass(
         sb append "\n}\n\n"
       }
 
-      classInfo.localMethods foreach { method =>
+      val userMethods = classInfo.localMethods collect { case method: UserMethod => method }
+
+      userMethods foreach { method =>
 
         val overrideSpec = if (method.isOverride) "override " else ""
         sb append s"${overrideSpec}def ${method.scalaName}"
+        // TODO This may not work for nested classes (we'd need a recursive way to capture bound type parameters)
+        val allTypeParameters = method.parameters flatMap { _.paramType.allTypeVariables }
+        val unboundTypeParameters = allTypeParameters.toSet -- thisClass.typeParameters
+        if (unboundTypeParameters.nonEmpty) {
+          sb append "["
+          sb append (unboundTypeParameters map { _.scalaTypeName } mkString ", ")
+          sb append "]"
+        }
         if (!method.autoinvoke) {
           sb append "("
           sb append (
@@ -533,7 +574,7 @@ class CgscriptClass(
         }
         sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
 
-        sb append method.asInstanceOf[UserMethod].body.toScalaCode(context)
+        sb append method.body.toScalaCode(context)
 
         sb append "\n}\n\n"
 
@@ -543,18 +584,30 @@ class CgscriptClass(
 
       sb append "}\n\n"
 
-      if (constructor.isDefined) {
+      if (constructor.isDefined && !isSystem) {
 
         // Class is instantiable.
 
-        sb append s"case class $scalaClassname$$Impl("
+        sb append s"case class $scalaClassdefName$$Impl("
         sb append (
           classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
           )
         sb append ")\n"
-        sb append s"  extends $scalaClassname\n\n"
+        sb append s"  extends $scalaClassdefName\n\n"
 
       }
+
+    }
+
+    // Implicit conversion for enriched system types
+    if (isSystem) {
+
+      sb append
+        s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
+           |  $scalaClassdefName(_instance)
+           |}
+
+           """.stripMargin
 
     }
 
@@ -1272,10 +1325,11 @@ class CgscriptClass(
     def autoinvoke: Boolean
     def isStatic: Boolean
     def isOverride: Boolean
+    def isExternal: Boolean
 
     val methodName = idNode.id.name
     val scalaName = methodName match {
-      case "Apply" => "map"
+      case "Apply" if isExternal => "map"
       case _ => methodName.updated(0, methodName.charAt(0).toLower)
     }
     val declaringClass = thisClass
@@ -1317,6 +1371,8 @@ class CgscriptClass(
     isOverride: Boolean,
     body: StatementSequenceNode
   ) extends Method {
+
+    override def isExternal = false
 
     var _parameters: Vector[Parameter] = _
 
@@ -1370,6 +1426,8 @@ class CgscriptClass(
     isOverride: Boolean
   ) extends Method {
 
+    override def isExternal = true
+
     var _parameters: Vector[Parameter] = _
 
     def parameters = {
@@ -1383,6 +1441,7 @@ class CgscriptClass(
       domain.pushScope()
       parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
+        parameter.defaultValue foreach { _.ensureElaborated(domain) }
       }
       val resultType = resultTypeNode map { _.toType(domain) }
       resultType match {
@@ -1397,9 +1456,10 @@ class CgscriptClass(
 
   trait Constructor extends Method with CallSite {
 
-    val autoinvoke = false
-    val isStatic = false
-    val isOverride = false
+    def autoinvoke = false
+    def isStatic = false
+    def isOverride = false
+    def isExternal = false
 
     def parametersNode: Option[ParametersNode]
 

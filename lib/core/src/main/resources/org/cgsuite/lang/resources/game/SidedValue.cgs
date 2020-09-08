@@ -10,6 +10,4 @@ system class SidedValue extends NormalValue
 
   external def op unary- as SidedValue;
 
-  external override def ToOutput;
-
 end

@@ -10,6 +10,6 @@ system class Uptimal extends CanonicalShortGame
 
   external def op unary- as Uptimal;
 
-  external def UptimalExpansion;
+  external def UptimalExpansion as UptimalExpansion;
 
 end

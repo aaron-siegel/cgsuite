@@ -2,28 +2,24 @@
 
 singleton class Domineering extends GridRuleset
 
-  class Position(grid as Grid) extends GridGame
+  override def GridOptions(grid as Grid, player as Player) begin
 
-    override def OptionsFor(player as Player) begin
+    var directions := if player == Left then [(1,0)] else [(0,1)] end;
 
-      var directions := if player == Left then [(1,0)] else [(0,1)] end;
-
-      for m from 1 to grid.RowCount
-      for n from 1 to grid.ColCount
-      for d in directions
-      where grid[(m,n)] == 0 and grid[(m,n)+d] == 0
-      yield
-        Position(grid Updated {(m,n) => 1, (m,n)+d => 1})
-      end
-
+    for m from 1 to grid.RowCount
+    for n from 1 to grid.ColCount
+    for d in directions
+    where grid[(m,n)] == 0 and grid[(m,n)+d] == 0
+    yield
+      grid Updated {(m,n) => 1, (m,n)+d => 1}
     end
 
-    override def Decomposition begin
-      for component in grid.Decomposition(1) yield
-        Position(component SymmetryInvariant Symmetry.Flip)
-      end
-    end
+  end
 
+  override def Decomposition(grid as Grid) begin
+    for component in grid.Decomposition(1) yield
+      component SymmetryInvariant Symmetry.Flip
+    end
   end
 
   override def CharMap := ".#";

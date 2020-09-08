@@ -5,6 +5,4 @@ system enum Side
   external Onside,
   external Offside;
 
-  external override def Literal;
-
 end

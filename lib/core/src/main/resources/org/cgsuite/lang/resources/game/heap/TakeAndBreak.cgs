@@ -2,11 +2,12 @@
 
 system class TakeAndBreak(code as String) extends HeapRuleset
 
-  external def Code;
-  external override def HeapOptions(heapSize as Integer);
+  external def Code as String;
 
-  external static def FromSubtractionSet(subtset as Collection, codeDigit as String, allbut as Boolean ? false);
+  external override def HeapOptions(heapSize as Integer) as Collection of Collection of Integer;
 
-  override def ToOutput := "TakeAndBreak(\"" + Code + "\")";
+  external static def FromSubtractionSet(subtset as Collection of Object, codeDigit as String, allbut as Boolean ? false) as TakeAndBreak;
+
+  //override def ToOutput := "TakeAndBreak(\"" + Code + "\")";
 
 end

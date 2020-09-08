@@ -2,6 +2,7 @@ package org.cgsuite.lang2
 
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
+import org.apache.commons.text.StringEscapeUtils
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.EvalException
@@ -285,7 +286,7 @@ case class StringNode(tree: Tree, override val constantValue: String) extends Co
 
   override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.String)
 
-  override def toScalaCode(context: CompileContext) = "\"" + constantValue + "\""
+  override def toScalaCode(context: CompileContext) = "\"" + StringEscapeUtils.ESCAPE_JAVA.translate(constantValue) + "\""
 
 }
 
@@ -293,12 +294,15 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
   override val children = Seq.empty
 
+  var literal: String = _
+
   override def elaborateImpl(domain: ElaborationDomain) = {
     val thisClass = domain.cls getOrElse { sys.error("invalid `this`") }
+    literal = if (thisClass.isSystem) "_instance" else "this"
     CgscriptType(thisClass, thisClass.typeParameters)
   }
 
-  override def toScalaCode(context: CompileContext) = "this"
+  override def toScalaCode(context: CompileContext) = literal
 
   def toNodeStringPrec(enclosingPrecedence: Int) = "this"
 
@@ -371,6 +375,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   import org.cgsuite.lang2.IdentifierNode._
 
   private var idType: IdentifierType.Value = _
+  private var idLiteral: String = _
   private var constantVar: CgscriptClass#Var = _
   private var classResolution: CgscriptClass = _
 
@@ -381,6 +386,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       case Some(typ) =>
 
         idType = IdentifierType.VarIdentifier
+        idLiteral = id.name
         typ.get
 
       case _ =>
@@ -391,6 +397,12 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
           case Some(method) if method.autoinvoke =>
 
             idType = IdentifierType.AutoinvokeMethodIdentifier
+            idLiteral = {
+              if (method.isExternal)
+                s"_instance.${method.scalaName}"
+              else
+                method.scalaName
+            }
             method.ensureElaborated()
 
           case _ =>
@@ -445,15 +457,15 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
     idType match {
 
-      case IdentifierType.VarIdentifier => id.name
+      case IdentifierType.VarIdentifier | IdentifierType.AutoinvokeMethodIdentifier => idLiteral
 
       case IdentifierType.ClassIdentifier =>
-        classResolution.scalaClassname
+        classResolution.scalaTyperefName
 
       case IdentifierType.ConstantIdentifier =>
         CgscriptPackage.lookupConstantVar(id) match {
           case Some(variable: CgscriptClass#Var) =>
-            variable.declaringClass.scalaClassname + "." + variable.id.name
+            variable.declaringClass.scalaClassdefName + "." + variable.id.name
           case _ => sys.error("this can't happen")
         }
 
@@ -560,7 +572,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
     val opMethod = FunctionCallNode.lookupMethod(operandType, op.id, Vector.empty)
     opMethod match {
       case Some(method) => method.ensureElaborated()
-      case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass}`", tree)
+      case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass.qualifiedName}`", tree)
     }
 
   }
@@ -596,7 +608,7 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
     opMethod match {
       case Some(method) => method.ensureElaborated()
-      case None => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass}`, `${operand2Type.baseClass}`", tree)
+      case None => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass.qualifiedName}`, `${operand2Type.baseClass.qualifiedName}`", tree)
     }
 
   }
@@ -1471,7 +1483,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     assert(externalName != null, this)
     if (isElaboratedAsPackage) {
       if (constantVar != null) {
-        s"${constantVar.declaringClass.scalaClassname}.$externalName"
+        s"${constantVar.declaringClass.scalaClassdefName}.$externalName"
       } else {
         elaboratedType.typeArguments.head.scalaTypeName
       }
@@ -1712,6 +1724,9 @@ case class FunctionCallNode(
             case Some(constructor) => constructor.ensureElaborated()
             case None => throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
           }
+        } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
+          // TODO Validate args? Type-infer the procedure?
+          callSiteType.typeArguments.last
         } else {
           // Eval method
           val evalMethod = callSiteType.baseClass.lookupMethod('Eval, argTypes) getOrElse {
@@ -1753,9 +1768,10 @@ case class FunctionCallNode(
     // TODO arg names
 
     val functionCode = constantMethod match {
-      case Some(method) => method.declaringClass.scalaClassname + "." + method.scalaName
+      case Some(method) => method.declaringClass.scalaClassdefName + "." + method.scalaName
       case None =>
         localMethod match {
+          case Some(method) if (method.isExternal) => s"_instance.${method.scalaName}"
           case Some(method) => method.scalaName
           case None => callSiteNode.toScalaCode(context)
         }
@@ -1875,7 +1891,7 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
     val exprCode = expr.toScalaCode(context)
     declType match {
       case AssignmentDeclType.VarDecl | AssignmentDeclType.ClassVarDecl =>
-        s"var $varName: ${elaboratedType.scalaTypeName} = $exprCode; "
+        s"var $varName: ${elaboratedType.scalaTypeName} = $exprCode; $varName;"
       case AssignmentDeclType.Ordinary =>
         s"{ $varName = $exprCode; $varName }"
     }
@@ -1941,13 +1957,17 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
   }
 
   def toScalaCodeWithVarDecls(context: CompileContext): Seq[(String, Option[String])] = {
-    statements map {
+    val regularOutput = statements map {
       case assignToNode: AssignToNode =>
         val varName = assignToNode.idNode.id.name
         (s"${assignToNode.expr.toScalaCode(context)}", Some(varName))
       case node =>
         (s"${node.toScalaCode(context)}", None)
     }
+    if (suppressOutput)
+      regularOutput :+ (("null", None))
+    else
+      regularOutput
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {

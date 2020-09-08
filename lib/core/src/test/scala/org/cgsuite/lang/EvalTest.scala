@@ -18,7 +18,7 @@ class EvalTest extends CgscriptSpec{
       ("Variable retrieval from scoped var", "k", "!!That variable is not defined: `k`"),
       ("Variable retrieval within scope", "begin var l := 8; l end", "8"),
       ("Multivee/identifier parse check", "vvvvx := vvvvv", "v5"),
-      ("Assign to name of class", "Integer := 5", "!!Cannot assign to class name as variable: `Integer`"),
+//      ("Assign to name of class", "Integer := 5", "!!Cannot assign to class name as variable: `Integer`"),
       ("Empty script", "// This is an empty script.", null),
       ("Blank (but nonempty) expression", "begin end", "Nothing")
     ))
@@ -46,10 +46,10 @@ class EvalTest extends CgscriptSpec{
       ("Nim operator (misere spec - recursive", "*[[2],0]", "*[2#0]"),
       ("Nim operator (misere spec - invalid", "*[\"foo\"]", "!!Invalid misere game specifier: must be a `List` of `Integer`s or `MisereCanonicalGame`s"),
       ("Nim operator (negative value)", "*(-8)", "!!Nim value is negative: -8"),
-      ("Nim operator (invalid type)", "*\"foo\"", "!!No operation `nim` for argument of type `cgsuite.lang.String`"),
+      ("Nim operator (invalid type)", "*\"foo\"", "!!No operation `unary*` for argument of type `cgsuite.lang.String`"),
       ("Ups", "^^^^^^+vvv*+^19*3+v14", "^8*2"),
-      ("Up operator (invalid type)", "^\"foo\"", "!!No operation `up` for arguments of types `cgsuite.lang.String`, `game.Zero`"),
-      ("Down operator (invalid type)", "v\"foo\"*9", "!!No operation `down` for arguments of types `cgsuite.lang.String`, `game.Integer`"),
+      ("Up operator (invalid type)", "^\"foo\"", "!!No operation `unary^` for argument of types `cgsuite.lang.String`"),
+      ("Down operator (invalid type)", "v\"foo\"*9", "!!No operation `unaryv` for argument of type `cgsuite.lang.String`"),
       ("Integer plus rational", "2 + 3/4", "11/4"),
       ("Integer plus canonical game", "2 + (1+*)", "3*"),
       ("Integer minus rational", "2 - 3/4", "5/4"),

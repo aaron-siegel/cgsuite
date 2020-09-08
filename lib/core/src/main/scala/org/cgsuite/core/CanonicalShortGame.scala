@@ -128,6 +128,8 @@ trait CanonicalShortGame extends CanonicalStopper {
     optionsFor(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
+  override def canonicalForm = this
+
   override def canonicalForm(tc: TranspositionCache) = this
 
   def atomicWeight = {

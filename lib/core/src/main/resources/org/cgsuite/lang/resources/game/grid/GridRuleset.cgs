@@ -8,6 +8,8 @@ class GridRuleset extends Ruleset
 
   def GridOptions(grid as Grid, player as Player) := error("Subclasses of `GridRuleset` must override `GridOptions`.");
 
+  def Decomposition(grid as Grid) := error("Subclasses of `GridRuleset` must override `Decomposition`.");
+
   def CharMap := error("Subclasses of `GridRuleset` must override `CharMap`.");
 
   def Icons := error("Subclasses of `GridRuleset` must override `Icons`.");

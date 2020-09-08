@@ -2,8 +2,6 @@
 
 system class Enum
 
-  external def Literal;
-
-  override def ToOutput := Literal;
+  external def Literal as String;
 
 end

@@ -42,18 +42,16 @@ system class Class of `T
 
   /** The short name of this `Class`, as a [[String]].
     */
-  external def Name;
+  external def Name as String;
   
   /** The class ordinal of this `Class`. The class ordinal is
     * a unique integer that CGSuite assigns to every class
     * in the system.
     */
-  external def Ordinal;
+  external def Ordinal as Integer;
   
   /** The fully qualified name of this `Class`, as a [[String]].
     */
-  external def QualifiedName;
-
-  override external def ToOutput;
+  external def QualifiedName as String;
 
 end

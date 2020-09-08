@@ -120,6 +120,8 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
   def *(other: SidedValue): SidedValue = other.nCopies(this)
 
+  override def exp(exponent: Integer) = super[DyadicRationalNumber].exp(exponent)
+
   override def abs: Integer = Integer(bigIntValue.abs)
 
   override def birthday: Integer = abs

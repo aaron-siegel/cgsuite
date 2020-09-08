@@ -1,15 +1,15 @@
 /*${cgsuite.banner}*/
 
-system class Map extends Collection
+system class Map of (`K, `V) extends Collection
 
-  external def ContainsKey(key);
+  external def ContainsKey(key) as Boolean;
 
-  external def Entries;
+  external def Entries as Collection of MapEntry of (`K, `V);
 
-  external def Keys;
+  external def Keys as Set of `K;
 
-  external def Values;
-
+  external def Values as Collection of `V;
+/*
   override def ToOutput begin
     var entries := Entries;
     if entries.IsEmpty then
@@ -18,5 +18,5 @@ system class Map extends Collection
       "{" + Entries.ToList.Sorted.MkOutput(", ") + "}"
     end
   end
-
+*/
 end

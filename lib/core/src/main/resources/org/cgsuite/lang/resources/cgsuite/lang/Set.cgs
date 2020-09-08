@@ -4,6 +4,7 @@ system class Set of `T extends Collection
 
   external def Contains(x) as Boolean;
 
+  external override def Apply(fn as Procedure of (`T,`R)) as Set of `R;
 //  def Apply(fn as Procedure) := setof(fn(x) for x in this);
   
   external def Intersection(that as Set of Object) as Set of `T;

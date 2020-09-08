@@ -4,6 +4,6 @@
   */
 system class Boolean
 
-  override def ToOutput := if this then "true" else "false" end;
+  //override def ToOutput := if this then "true" else "false" end;
 
 end
