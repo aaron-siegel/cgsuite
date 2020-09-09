@@ -36,11 +36,11 @@ private[lang2] object CgscriptSystem {
     "cgsuite.util.MutableSet" -> classOf[mutable.HashSet[_]],
     "cgsuite.util.MutableMap" -> classOf[mutable.HashMap[_,_]],
 
-    "cgsuite.lang.Boolean" -> classOf[java.lang.Boolean],
+    "cgsuite.lang.Boolean" -> classOf[scala.Boolean],
     "cgsuite.lang.String" -> classOf[String],
     "cgsuite.lang.Coordinates" -> classOf[Coordinates],
     "cgsuite.lang.Range" -> classOf[NumericRange[_]],
-    "cgsuite.lang.List" -> classOf[IndexedSeq[_]],
+    "cgsuite.lang.List" -> classOf[scala.IndexedSeq[_]],
     "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
     "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
@@ -131,18 +131,7 @@ private[lang2] object CgscriptSystem {
 
   }
 
-  def evaluate(str: String): Option[Any] = {
-
-    evaluateOrException(str) match {
-      case scala.Left(obj) => Option(obj) // Could be null
-      case scala.Right(t) =>
-        t.printStackTrace()
-        None
-    }
-
-  }
-
-  def evaluateOrException(str: String): Either[Any, Throwable] = {
+  def evaluate(str: String): Either[Output, Throwable] = {
 
     val code = {
       try {
@@ -160,13 +149,17 @@ private[lang2] object CgscriptSystem {
     code foreach { case (line, varNameOpt) =>
 
       val wrappedLine =
-        s"""val __result = try { scala.Left {
+        s"""val __object = try { scala.Left {
+           |{
            |
            |$line
            |
+           |}
            |} } catch {
            |  case t: Throwable => scala.Right(t)
            |}
+           |
+           |val __output = __object.left map { _.toOutput }
            |""".stripMargin
 
       if (debug)
@@ -179,16 +172,16 @@ private[lang2] object CgscriptSystem {
       }
 
       // TODO Don't interpret subsequent lines if we get an error
-      val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
+      val result = (interpreter valueOfTerm "__object").get.asInstanceOf[Either[Any, Throwable]]
       if (result.isLeft) {
         varNameOpt foreach { varName =>
-          interpreter interpret s"val $varName = __result.left.get"
+          interpreter interpret s"val $varName = __object.left.get"
         }
       }
 
     }
 
-    val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
+    val result = (interpreter valueOfTerm "__output").get.asInstanceOf[Either[Output, Throwable]]
     result
 
   }

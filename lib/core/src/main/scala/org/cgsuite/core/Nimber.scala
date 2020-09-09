@@ -46,7 +46,9 @@ trait Nimber extends ImpartialGame with Uptimal {
   override def outcomeClass: ImpartialOutcomeClass = {
     if (nimValue.isZero) OutcomeClass.P else OutcomeClass.N
   }
-  
+
+  override def toString = s"*$nimValue"
+
 }
 
 case class NimberImpl(intNimValue: Int) extends Nimber {

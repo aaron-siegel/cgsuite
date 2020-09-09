@@ -103,8 +103,10 @@ object Repl {
     try {
       CgscriptClasspath.reloadModifiedFiles()
       val result = CgscriptSystem.evaluate(str)
-      val output = result.toVector flatMap EvalUtil.objectToOutput
-      output foreach println
+      result match {
+        case Left(output) => println(output)
+        case Right(t) => t.printStackTrace()
+      }
     } catch {
       case exc: Throwable => exc.printStackTrace()
     }

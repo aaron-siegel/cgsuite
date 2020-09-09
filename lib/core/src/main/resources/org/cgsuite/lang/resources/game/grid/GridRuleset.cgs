@@ -22,9 +22,8 @@ class GridRuleset extends Ruleset
     override def OptionsFor(player as Player) :=
       listof(Position(gridOption) for gridOption in GridOptions(grid, player));
 
-    // TODO
-    //override def ToOutput :=
-    //  cgsuite.util.output.GridOutput(grid, Icons, this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
+    override def ToOutput :=
+      cgsuite.util.output.GridOutput(grid, Icons, EnclosingObject.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
 
   end
 

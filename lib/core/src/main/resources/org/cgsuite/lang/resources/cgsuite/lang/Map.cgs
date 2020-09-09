@@ -9,14 +9,5 @@ system class Map of (`K, `V)
   external def Keys as Set of `K;
 
   external def Values as Collection of `V;
-/*
-  override def ToOutput begin
-    var entries := Entries;
-    if entries.IsEmpty then
-      cgsuite.util.output.TextOutput("{=>}")
-    else
-      "{" + Entries.ToList.Sorted.MkOutput(", ") + "}"
-    end
-  end
-*/
+
 end

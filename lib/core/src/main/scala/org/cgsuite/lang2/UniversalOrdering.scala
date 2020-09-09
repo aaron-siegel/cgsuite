@@ -32,7 +32,9 @@ object UniversalOrdering extends Ordering[Any] {
         if (cmp == 0) a.length - b.length else cmp
       case (a: Set[_], b: Set[_]) => compare(a.toSeq.sorted(this), b.toSeq.sorted(this))
       case (_, _) =>
-        val cmp = CgscriptClass.of(x).classOrdinal - CgscriptClass.of(y).classOrdinal
+        // TODO fix this
+        //val cmp = CgscriptClass.of(x).classOrdinal - CgscriptClass.of(y).classOrdinal
+        val cmp = 0
         if (cmp == 0)
           x.hashCode - y.hashCode  // TODO this can be improved
         else

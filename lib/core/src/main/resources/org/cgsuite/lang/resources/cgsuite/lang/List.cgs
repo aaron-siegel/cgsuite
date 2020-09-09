@@ -18,8 +18,6 @@ system class List of `T extends Collection
 
   external def Updated(index as Integer, value) as List of `T;
 
-//  external def MkOutput(sep as String) as String;
-
-//  override def ToOutput := "[" + MkOutput(",") + "]";
+  external def MkOutput(sep as String) as Output;
 
 end

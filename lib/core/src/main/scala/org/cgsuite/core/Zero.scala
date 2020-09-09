@@ -31,6 +31,8 @@ trait Zero extends SmallInteger with Nimber {
   override def optionsFor(player: Player): Iterable[Nothing] = Set.empty
   override def options: Iterable[Nothing] = Set.empty
 
+  override def toString = "0"
+
 }
 
 case object ZeroImpl extends Zero

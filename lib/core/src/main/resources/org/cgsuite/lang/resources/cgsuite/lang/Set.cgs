@@ -13,6 +13,4 @@ system class Set of `T extends Collection
   
   external def Union(that as Set of `T) as Set of `T;
 
-//  override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";
-
 end

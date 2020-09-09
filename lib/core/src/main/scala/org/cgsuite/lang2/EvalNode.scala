@@ -7,7 +7,7 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang2.LoopNode.YieldSum
+import org.cgsuite.lang2.LoopNode.{YieldSum, YieldTable}
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.Ops._
 
@@ -398,7 +398,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
             idType = IdentifierType.AutoinvokeMethodIdentifier
             idLiteral = {
-              if (method.isExternal)
+              if (method.isExternal && method.methodName != "EnclosingObject")
                 s"_instance.${method.scalaName}"
               else
                 method.scalaName
@@ -1121,7 +1121,7 @@ case class LoopNode(
   }
 
   private val pushDownYield: Option[LoopNode] = (isYield, body) match {
-    case (true, loopBody: LoopNode) =>
+    case (true, loopBody: LoopNode) if loopType != LoopNode.YieldSum =>
       assert(loopBody.isYield)
       Some(loopBody)
     case _ => None
@@ -1177,8 +1177,26 @@ case class LoopNode(
           case LoopNode.Do => CgscriptType(CgscriptClass.NothingClass)
           case LoopNode.YieldList => CgscriptType(CgscriptClass.List, Vector(bodyType))
           case LoopNode.YieldSet => CgscriptType(CgscriptClass.Set, Vector(bodyType))
-          case LoopNode.YieldSum => CgscriptType(CgscriptClass.Game)
-          // TODO Others
+          case LoopNode.YieldMap => sys.error("TODO")   // TODO
+          case LoopNode.YieldTable =>
+            if (!bodyType.baseClass.ancestors.contains(CgscriptClass.List))
+              throw EvalException(s"Table row of type `${bodyType.qualifiedName}` cannot be converted to class `cgsuite.lang.List`")
+            else
+              CgscriptType(CgscriptClass.Table)
+          case LoopNode.YieldSum =>
+            var closureType = bodyType
+            var done = false
+            while (!done) {
+              val closureOp = closureType.lookupMethod(Symbol("+"), Vector(closureType)) getOrElse {
+                throw EvalException(s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`")
+              }
+              val nextClosureType = closureType join closureOp.resultType
+              if (closureType == nextClosureType)
+                done = true
+              else
+                closureType = nextClosureType
+            }
+            closureType
         }
     }
 
@@ -1223,7 +1241,9 @@ case class LoopNode(
       if (isYield && pushdownYieldVar.isEmpty) {
         loopType match {
           case YieldSum =>
-            s"var $yieldResultVar: org.cgsuite.core.Game = org.cgsuite.core.Values.zero"
+            s"var $yieldResultVar: ${elaboratedType.scalaTypeName} = null"
+          case YieldTable =>
+            s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[IndexedSeq[_]]"
           case _ =>
             val yieldType = elaboratedType.typeArguments.head
             s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
@@ -1255,16 +1275,20 @@ case class LoopNode(
       case None => body.toScalaCode(context)
     }
     val yieldUpdateCode = {
-      if (isYield && pushDownYield.isEmpty)
+      if (isYield && loopType == LoopNode.YieldSum) {
+        s"$yieldResultVar = if ($yieldResultVar == null) $tempResultVar else $yieldResultVar + $tempResultVar"
+      } else if (isYield && pushDownYield.isEmpty) {
         s"$yieldResultVar += $tempResultVar"
-      else
+      } else {
         ""
+      }
     }
     val yieldReturnCode = loopType match {
       case LoopNode.Do => "null"
       case LoopNode.YieldList => s"$yieldResultVar.toVector"
       case LoopNode.YieldMap => s"$yieldResultVar.asInstanceOf[scala.collection.mutable.ArrayBuffer[(Any, Any)]].toMap"
       case LoopNode.YieldSet => s"$yieldResultVar.toSet"
+      case LoopNode.YieldTable => s"org.cgsuite.lang2.Table($yieldResultVar.toIndexedSeq)(org.cgsuite.lang2.CgscriptClass.instanceToOutput)"
       case LoopNode.YieldSum => yieldResultVar
         /*
       case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
@@ -1471,6 +1495,9 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
       case Some(member) =>
         externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
+        // Temporary hack
+        if (externalName == "class")
+          externalName = "_class"
         member.ensureElaborated()
 
       case None =>
@@ -1812,7 +1839,7 @@ case class FunctionCallNode(
       case Some(method) => method.declaringClass.scalaClassdefName + "." + method.scalaName
       case None =>
         localMethod match {
-          case Some(method) if (method.isExternal) => s"_instance.${method.scalaName}"
+          case Some(method) if method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
           case Some(method) => method.scalaName
           case None => callSiteNode.toScalaCode(context)
         }
@@ -1995,7 +2022,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
 
   override def toScalaCode(context: CompileContext) = {
     if (statements.isEmpty) {
-      "null"
+      "org.cgsuite.output.EmptyOutput"
     } else {
       statements map { _.toScalaCode(context) } mkString "\n"
     }
@@ -2003,7 +2030,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
 
   def toScalaCodeWithVarDecls(context: CompileContext): Seq[(String, Option[String])] = {
     if (statements.isEmpty) {
-      Vector(("null", None))
+      Vector(("org.cgsuite.output.EmptyOutput", None))
     } else {
       val regularOutput = statements map {
         case assignToNode: AssignToNode =>
@@ -2013,7 +2040,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
           (s"${node.toScalaCode(context)}", None)
       }
       if (suppressOutput)
-        regularOutput :+ (("null", None))
+        regularOutput :+ (("org.cgsuite.output.EmptyOutput", None))
       else
         regularOutput
     }

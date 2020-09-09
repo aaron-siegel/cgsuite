@@ -242,7 +242,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   override def denominator = Values.one
   override def denominatorExponent = 0
 
-  override def toString = bigIntValue.toString()
+  override def toString = bigIntValue.toString
 
   override def toOutput = super[DyadicRationalNumber].toOutput
 

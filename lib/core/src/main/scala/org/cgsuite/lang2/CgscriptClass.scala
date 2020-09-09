@@ -63,6 +63,7 @@ object CgscriptClass {
   val Set = CgscriptPackage.lookupClassByName("Set").get
   val Map = CgscriptPackage.lookupClassByName("Map").get
   val MapEntry = CgscriptPackage.lookupClassByName("MapEntry").get
+  val Table = CgscriptPackage.lookupClassByName("Table").get
   val String = CgscriptPackage.lookupClassByName("String").get
   val Boolean = CgscriptPackage.lookupClassByName("Boolean").get
   val Procedure = CgscriptPackage.lookupClassByName("Procedure").get
@@ -81,13 +82,24 @@ object CgscriptClass {
   def instanceToOutput(x: Any): Output = {
     x match {
       case ot: OutputTarget => ot.toOutput
+      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, "\"" + str + "\"")
+      case list: IndexedSeq[_] => RichList(list).mkOutput(",", parens = "[]")
+      case set: Set[_] => RichList(set.toVector.sorted(UniversalOrdering)).mkOutput(",", parens = "{}")
+      case map: Map[_,_] if map.isEmpty => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, "{=>}")
+      case map: Map[_,_] => RichList(map.toVector.sorted(UniversalOrdering)).mkOutput(", ", parens = "{}")
+      case (k, v) =>
+        val output = new StyledTextOutput
+        output.append(instanceToOutput(k))
+        output.appendMath(" ")
+        output.appendSymbol(StyledTextOutput.Symbol.BIG_RIGHT_ARROW)
+        output.appendMath(" ")
+        output.append(instanceToOutput(v))
+        output
       case _ =>
         assert(CgscriptSystem.allSystemClasses exists { case (_, cls) => cls.isAssignableFrom(x.getClass) })
         new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, x.toString)
     }
   }
-
-  def of(x: Any): CgscriptClass = ???
 
   private[lang2] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
 
@@ -164,17 +176,18 @@ class CgscriptClass(
   }
 
   val scalaTyperefName: String = {
-    if (qualifiedName == "cgsuite.lang.Nothing")
-      "Nothing"
-    else {
-      systemClass match {
-        case Some(cls) => cls.getName
-        case None =>
-          enclosingClass match {
-            case Some(cls) => s"${cls.scalaTyperefName}#$nameAsFullyScopedMember"
-            case None => scalaClassdefName
-          }
-      }
+    qualifiedName match {
+      case "cgsuite.lang.Nothing" => "Nothing"
+      case "cgsuite.lang.Boolean" => "Boolean"
+      case _ =>
+        systemClass match {
+          case Some(cls) => cls.getName
+          case None =>
+            enclosingClass match {
+              case Some(cls) => s"${cls.scalaTyperefName}#$nameAsFullyScopedMember"
+              case None => scalaClassdefName
+            }
+        }
     }
   }
 
@@ -441,12 +454,9 @@ class CgscriptClass(
 
     logger debug s"$logPrefix Generating compiled code."
 
-    val extendsClause = {
-      classInfo.supers map {
-        case CgscriptClass.Object => "org.cgsuite.lang2.StandardObject"
-        case otherClass => otherClass.scalaTyperefName
-      } mkString " with "
-    }
+    val nonObjectSupers = classInfo.supers filterNot { _ == CgscriptClass.Object } map { _.scalaTyperefName }
+    val extendsClause = (nonObjectSupers :+ "org.cgsuite.lang2.CgscriptObject") mkString " with "
+    val enclosingClause = if (this == topClass) " enclosingObject =>"
 
     val genericTypeParametersBlock = {
       if (typeParameters.isEmpty) {
@@ -459,9 +469,11 @@ class CgscriptClass(
 
     // Generate code.
     if (isSingleton)
-      sb append s"case object $scalaClassdefName\n  extends $extendsClause {\n\n"
+      sb append s"case object $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
     else
       sb append s"object $scalaClassdefName {\n\n"
+
+    sb append s"""  val _class = $classLocatorCode\n\n"""
 
     if (constructor.isDefined) {
 
@@ -539,17 +551,24 @@ class CgscriptClass(
     if (isEnum && !isSystem) {
 
       sb append
-        s"""case class $scalaClassdefName(ordinal: Int, literal: String) {
+        s"""case class $scalaClassdefName(ordinal: Int, literal: String) extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
            |  override def toString = "$name." + literal
+           |  override def _class = $scalaClassdefName._class
            |}
            |""".stripMargin
 
     } else if (!isSingleton) {
 
       if (isSystem) {
-        sb append s"case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock) {\n\n"
+        sb append
+          s"""case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock)
+             |  extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
+             |
+             |  override def _class = $scalaClassdefName._class
+             |  override def toOutput: org.cgsuite.output.Output = org.cgsuite.lang2.CgscriptClass.instanceToOutput(_instance)
+             |\n""".stripMargin
       } else {
-        sb append s"trait $scalaClassdefName\n  extends $extendsClause {\n\n"
+        sb append s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
       }
 
       if (!isSystem) {
@@ -608,7 +627,13 @@ class CgscriptClass(
           classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
           )
         sb append ")\n"
-        sb append s"  extends $scalaClassdefName\n\n"
+        sb append
+          s"""  extends $scalaClassdefName {$enclosingClause
+             |
+             |    override def _class = $scalaClassdefName._class
+             |
+             |}
+             |\n""".stripMargin
 
       }
 
@@ -626,6 +651,13 @@ class CgscriptClass(
 
     }
 
+  }
+
+  def classLocatorCode: String = {
+    enclosingClass match {
+      case Some(cls) => cls.classLocatorCode + s""".lookupNestedClass(Symbol("$nameAsFullyScopedMember")).get"""
+      case None => s"""org.cgsuite.lang2.CgscriptPackage.lookupClassByName("$qualifiedName").get"""
+    }
   }
 
   private def declarePhase1(): Unit = {

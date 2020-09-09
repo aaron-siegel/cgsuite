@@ -43,14 +43,14 @@ object Table {
 
 case class Table (
   rows: IndexedSeq[IndexedSeq[_]],
-  format: Set[Format.Value] = Set(Format.HorizontalGridLines, Format.VerticalGridLines)
+  format: Set[org.cgsuite.lang.Table.Format.Value] = Set(org.cgsuite.lang.Table.Format.HorizontalGridLines, org.cgsuite.lang.Table.Format.VerticalGridLines)
   )(outputBuilder: Any => Output) extends Iterable[IndexedSeq[_]] with OutputTarget {
 
   def iterator: Iterator[IndexedSeq[_]] = rows.iterator
 
-  override def toOutput: TableOutput = ??? // {
-    //TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
-  //}
+  override def toOutput: TableOutput = {
+    TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
+  }
 
   def intensityPlot(unitSize: Integer): IntensityPlotOutput = {
     val numbers = rows map {

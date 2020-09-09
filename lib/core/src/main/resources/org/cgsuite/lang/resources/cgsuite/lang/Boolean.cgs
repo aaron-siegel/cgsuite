@@ -10,6 +10,4 @@ system class Boolean
 
   external def op not as Boolean;
 
-  //override def ToOutput := if this then "true" else "false" end;
-
 end
