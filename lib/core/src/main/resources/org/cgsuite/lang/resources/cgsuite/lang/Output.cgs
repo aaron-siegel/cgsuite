@@ -1,7 +1,4 @@
 /*${cgsuite.banner}*/
 
 system class Output
-
-  override def ToOutput := this;
-
 end

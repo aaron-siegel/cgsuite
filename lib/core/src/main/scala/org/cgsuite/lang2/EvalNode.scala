@@ -961,6 +961,8 @@ case class LoopyGameSpecNode(
 
   private def toScalaCode(sb: StringBuilder, context: CompileContext, nodeLabels: mutable.HashSet[Symbol]): String = {
 
+    nodeLabel foreach { nodeLabels += _.id }
+
     val nodeName = context.newTempId()
     val labelName = nodeLabel map { _.id.name } getOrElse nodeName
 
@@ -982,6 +984,8 @@ case class LoopyGameSpecNode(
 
     if (nodeLabel.isDefined)
       sb append s"$labelName }\n"
+
+    nodeLabel foreach { nodeLabels -= _.id }
 
     nodeName
 
@@ -1008,6 +1012,21 @@ case class LoopyGameSpecNode(
     val loStr = (lo map { _.toNodeString }) ++ (if (loPass) Some("pass") else None) mkString ","
     val roStr = (ro map { _.toNodeString }) ++ (if (roPass) Some("pass") else None) mkString ","
     s"{$loStr | $roStr}"
+  }
+
+  override def collectMentionedClasses(classes: mutable.HashSet[CgscriptClass]): Unit = {
+    collectMentionedClassesLoopy(classes, mutable.HashSet[Symbol]())
+  }
+
+  def collectMentionedClassesLoopy(classes: mutable.HashSet[CgscriptClass], nodeLabels: mutable.HashSet[Symbol]): Unit = {
+    addTypeToClasses(classes, elaboratedType)
+    nodeLabel foreach { nodeLabels += _.id }
+    (lo ++ ro) foreach {
+      case loopyGameSpecNode: LoopyGameSpecNode => loopyGameSpecNode.collectMentionedClassesLoopy(classes, nodeLabels)
+      case identifierNode: IdentifierNode if nodeLabels contains identifierNode.id =>
+      case node => node.collectMentionedClasses(classes)
+    }
+    nodeLabel foreach { nodeLabels -= _.id }
   }
 
 }

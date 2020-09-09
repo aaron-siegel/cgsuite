@@ -99,7 +99,7 @@ class EvalTest extends CgscriptSpec{
       ("Pow*", "{0,*|v}", "^<2>*"),
       ("PowTo", "{^|*}", "^[2]"),
       ("PowTo*", "{0,^*|0}", "^[2]*"),
-      ("Game specifier containing non-value game", "{game.grid.Domineering(\"..|..\")|-1}", "'{Domineering.Position(\"..|..\")|-1}'"),
+      ("Game specifier containing non-value game", "{game.grid.Domineering(\"..|..\")|-1}", "'{Domineering(\"..|..\")|-1}'"),
       ("Illegal object in game specifier", "{0|false}", "!!Invalid game specifier: objects must be of type `Game` or `SidedValue`"),
       ("Integer out of bounds", "{2^100|0}", "!!Integer out of bounds in game specifier (must satisfy -2147483648 <= n <= 2147483647)"),
       ("Max options exceeded", "{1|*16384}", "!!Too many options for `CanonicalShortGame` (must have at most 16383 Left options and 16383 Right options)")
