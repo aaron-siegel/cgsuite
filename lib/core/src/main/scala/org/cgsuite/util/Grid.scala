@@ -43,6 +43,8 @@ object Grid {
 
 class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] {
 
+  def apply(coord: Coordinates) = get(coord)
+
   def get(row: Int, col: Int): Byte = values((row-1)*colCount+(col-1))
 
   def get(coord: Coordinates): Any = {
@@ -99,7 +101,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     rowInt >= 1 && rowInt <= rowCount && colInt >= 1 && colInt <= colCount
   }
 
-  def findAll(value: Integer): IndexedSeq[Any] = {
+  def findAll(value: Integer): IndexedSeq[Coordinates] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0

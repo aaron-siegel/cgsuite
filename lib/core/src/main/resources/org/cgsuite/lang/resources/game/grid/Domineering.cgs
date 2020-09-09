@@ -16,7 +16,7 @@ singleton class Domineering extends GridRuleset
 
   end
 
-  override def Decomposition(grid as Grid) begin
+  override def GridDecomposition(grid as Grid) begin
     for component in grid.Decomposition(1) yield
       component SymmetryInvariant Symmetry.Flip
     end

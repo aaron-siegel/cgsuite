@@ -1,10 +1,9 @@
 /*${cgsuite.banner}*/
 
-system class MapEntry
+system class MapEntry of (`K,`V)
 
-  external def Key;
-  external def Value;
+  external def Key as `K;
 
-  override external def ToOutput;
+  external def Value as `V;
 
 end

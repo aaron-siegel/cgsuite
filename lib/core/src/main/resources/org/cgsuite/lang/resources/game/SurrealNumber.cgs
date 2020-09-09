@@ -10,6 +10,12 @@ system class SurrealNumber extends NormalValue
 
   external def op/(that as SurrealNumber) as SurrealNumber;
 
+  external def op unary+ as SurrealNumber;
+
+  external def op unary- as SurrealNumber;
+
+  external def op<=(that as SurrealNumber) as Boolean;
+
   external def Abs as SurrealNumber;
 
   external def Birthday as GeneralizedOrdinal;

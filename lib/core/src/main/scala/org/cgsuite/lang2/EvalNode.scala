@@ -570,6 +570,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 
     val operandType = operand.ensureElaborated(domain)
     val opMethod = FunctionCallNode.lookupMethod(operandType, op.id, Vector.empty)
+    // TODO Unary opMethods need to be enforced as having no args
     opMethod match {
       case Some(method) => method.ensureElaborated()
       case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass.qualifiedName}`", tree)
@@ -604,12 +605,20 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
     val operand1Type = operand1.ensureElaborated(domain)
     val operand2Type = operand2.ensureElaborated(domain)
-    val opMethod = FunctionCallNode.lookupMethod(operand1Type, op.id, Vector(operand2Type))
-
-    opMethod match {
+    val opMethod = FunctionCallNode.lookupMethod(operand1Type, op.baseId, Vector(operand2Type))
+    val result = opMethod match {
       case Some(method) => method.ensureElaborated()
-      case None => throw EvalException(s"No operation `${op.name}` for arguments of types `${operand1Type.baseClass.qualifiedName}`, `${operand2Type.baseClass.qualifiedName}`", tree)
+      case None => throw EvalException(s"No operation `${op.baseId.name}` for arguments of types `${operand1Type.baseClass.qualifiedName}`, `${operand2Type.baseClass.qualifiedName}`", tree)
     }
+    if (op.id != op.baseId) {
+      val opMethod2 = FunctionCallNode.lookupMethod(operand2Type, op.baseId, Vector(operand1Type))
+      val result2 = opMethod2 match {
+        case Some(method) => method.ensureElaborated()
+        case None => throw EvalException(s"No operation `${op.baseId.name}` for arguments of types `${operand2Type.baseClass.qualifiedName}`, `${operand1Type.baseClass.qualifiedName}`", tree)
+      }
+      // TODO Check result1 == result2 and they are Boolean (for relational ops)
+    }
+    result
 
   }
 
@@ -672,8 +681,7 @@ trait CollectionNode extends EvalNode {
   def scalaCollectionClassName: String
 
   override def elaborateImpl(domain: ElaborationDomain) = {
-    elements foreach { _.ensureElaborated(domain) }
-    val elementTypes = elements map { _.elaboratedType }
+    val elementTypes = elements map { _.ensureElaborated(domain) }
     val joinedElementType = {
       if (elementTypes.isEmpty)
         CgscriptType(CgscriptClass.NothingClass)
@@ -742,13 +750,36 @@ object MapNode {
 
 }
 
-case class MapNode(tree: Tree, elements: Vector[MapPairNode]) extends CollectionNode {
+case class MapNode(tree: Tree, elements: Vector[MapPairNode]) extends EvalNode {
 
-  override val children = elements
+  override def children = elements
 
-  override def collectionClass = CgscriptClass.Map
+  override def elaborateImpl(domain: ElaborationDomain) = {
+    val elementTypes = elements map { _.ensureElaborated(domain) }
+    val kvTypes = elementTypes map { elementType =>
+      assert(elementType.baseClass == CgscriptClass.MapEntry, elementType)  // Guaranteed by parser
+      (elementType.typeArguments.head, elementType.typeArguments(1))
+    }
+    val (keyTypes, valueTypes) = kvTypes.unzip
+    val joinedKeyType = {
+      if (keyTypes.isEmpty)
+        CgscriptType(CgscriptClass.NothingClass)
+      else
+        keyTypes reduce { _ join _ }
+    }
+    val joinedValueType = {
+      if (valueTypes.isEmpty)
+        CgscriptType(CgscriptClass.NothingClass)
+      else
+        valueTypes reduce { _ join _ }
+    }
+    CgscriptType(CgscriptClass.Map, Vector(joinedKeyType, joinedValueType))
+  }
 
-  override def scalaCollectionClassName = "Map"
+  override def toScalaCode(context: CompileContext) = {
+    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
+    s"Map($elementsCode)"
+  }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (elements.isEmpty)
@@ -769,7 +800,12 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
 
   override val children = Seq(from, to)
 
-  override def elaborateImpl(domain: ElaborationDomain) = ???
+  override def elaborateImpl(domain: ElaborationDomain) = {
+    CgscriptType(
+      CgscriptClass.MapEntry,
+      Vector(from.ensureElaborated(domain), to.ensureElaborated(domain))
+    )
+  }
 
   override def toScalaCode(context: CompileContext) = {
     val fromCode = from.toScalaCode(context)
@@ -1400,7 +1436,10 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
         case Some(cls) =>
           externalName = idNode.id.name
-          Some(CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls))))
+          if (cls.isSingleton)
+            Some(CgscriptType(cls))
+          else
+            Some(CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls))))
 
         case None =>
 
@@ -1484,8 +1523,10 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
     if (isElaboratedAsPackage) {
       if (constantVar != null) {
         s"${constantVar.declaringClass.scalaClassdefName}.$externalName"
-      } else {
+      } else if (elaboratedType.baseClass == CgscriptClass.Class) {
         elaboratedType.typeArguments.head.scalaTypeName
+      } else {
+        elaboratedType.scalaTypeName
       }
     } else {
       val objStr = obj.toScalaCode(context)
@@ -1690,17 +1731,16 @@ case class FunctionCallNode(
                   } else
                     None
                 }
+                println(staticMethod)
 
                 staticMethod match {
                   case Some(method) if method.isStatic =>
+                    dotNode.externalName = method.scalaName
                     val methodType = method.ensureElaborated().substituteAll(objectType.baseClass.typeParameters zip objectType.typeArguments)
                     // Apply further substitutions for unbound type parameters
                     Some(methodType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes))
-                  case None =>
-                    sys.error(s"need error msg here: $objectType, ${dotNode.idNode.id.name}")
+                  case None => None
                 }
-
-                None
 
             }
 
@@ -1722,7 +1762,8 @@ case class FunctionCallNode(
         if (callSiteType.baseClass == CgscriptClass.Class) {
           callSiteType.typeArguments.head.baseClass.constructor match {
             case Some(constructor) => constructor.ensureElaborated()
-            case None => throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
+            case None =>
+              throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
           }
         } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
           // TODO Validate args? Type-infer the procedure?
@@ -1730,7 +1771,7 @@ case class FunctionCallNode(
         } else {
           // Eval method
           val evalMethod = callSiteType.baseClass.lookupMethod('Eval, argTypes) getOrElse {
-            throw EvalException("No method `Eval`") // TODO Better error msg
+            throw EvalException(s"No method `Eval` (`${callSiteType.baseClass.qualifiedName}`)") // TODO Better error msg
           }
           isEval = true
           evalMethod.ensureElaborated()
@@ -1953,21 +1994,29 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
   }
 
   override def toScalaCode(context: CompileContext) = {
-    statements map { _.toScalaCode(context) } mkString "\n"
+    if (statements.isEmpty) {
+      "null"
+    } else {
+      statements map { _.toScalaCode(context) } mkString "\n"
+    }
   }
 
   def toScalaCodeWithVarDecls(context: CompileContext): Seq[(String, Option[String])] = {
-    val regularOutput = statements map {
-      case assignToNode: AssignToNode =>
-        val varName = assignToNode.idNode.id.name
-        (s"${assignToNode.expr.toScalaCode(context)}", Some(varName))
-      case node =>
-        (s"${node.toScalaCode(context)}", None)
+    if (statements.isEmpty) {
+      Vector(("null", None))
+    } else {
+      val regularOutput = statements map {
+        case assignToNode: AssignToNode =>
+          val varName = assignToNode.idNode.id.name
+          (s"${assignToNode.expr.toScalaCode(context)}", Some(varName))
+        case node =>
+          (s"${node.toScalaCode(context)}", None)
+      }
+      if (suppressOutput)
+        regularOutput :+ (("null", None))
+      else
+        regularOutput
     }
-    if (suppressOutput)
-      regularOutput :+ (("null", None))
-    else
-      regularOutput
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {

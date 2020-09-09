@@ -49,15 +49,15 @@ object Ops {
 
   val Neq = BinOp("!=", OperatorPrecedence.Relational) { (x, y) => s"$x != $y" }
 
-  val RefEquals = BinOp("===", OperatorPrecedence.Relational) { (x, y) => s"$x == $y" }
-  val RefNeq = BinOp("!==", OperatorPrecedence.Relational) { (x, y) => s"$x != $y" }
+  val RefEquals = BinOp("===", OperatorPrecedence.Relational) { (x, y) => s"(($x <= $y) && ($y <= $x))" }
+  val RefNeq = BinOp("!==", OperatorPrecedence.Relational) { (x, y) => s"(!($x <= $y) || !($y <= $x))" }
   val Leq = BinOp("<=", OperatorPrecedence.Relational) { (x, y) => s"$x <= $y" }
   val Geq = BinOp(">=", OperatorPrecedence.Relational) { (x, y) => s"$y <= $x" }
-  val Lt = BinOp("<", OperatorPrecedence.Relational) { _ + " ??? " + _ }
-  val Gt = BinOp(">", OperatorPrecedence.Relational) { _ + " ??? " + _ }
-  val Confused = BinOp("<>", OperatorPrecedence.Relational) { _ + " ??? " + _ }
-  val LConfused = BinOp("<|", OperatorPrecedence.Relational) { _ + " ??? " + _ }
-  val GConfused = BinOp("|>", OperatorPrecedence.Relational) { _ + " ??? " + _ }
+  val Lt = BinOp("<", OperatorPrecedence.Relational) { (x, y) => s"(($x <= $y) && !($y <= $x))" }
+  val Gt = BinOp(">", OperatorPrecedence.Relational) { (x, y) => s"(!($x <= $y) && ($y <= $x))" }
+  val Confused = BinOp("<>", OperatorPrecedence.Relational) { (x, y) => s"(!($x <= $y) && !($y <= $x))" }
+  val LConfused = BinOp("<|", OperatorPrecedence.Relational) { (x, y) => s"!($y <= $x)" }
+  val GConfused = BinOp("|>", OperatorPrecedence.Relational) { (x, y) => s"!($x <= $y)" }
   val Compare = BinOp("<=>", OperatorPrecedence.Relational) { _ + " ??? " + _ }
 
   val Not = UnOp("not", OperatorPrecedence.Not) { x => s"(!$x)" }
@@ -114,6 +114,15 @@ case class BinOp(name: String, precedence: Int, toOpStringOpt: Option[(String, S
                 (val toScalaCode: (String, String) => String) {
 
   val id = Symbol(name)
+
+  val isRelational = {
+    name match {
+      case "<=" | ">=" | "<" | ">" | "<|" | "|>" | "<>" | "===" | "!==" => true
+      case _ => false
+    }
+  }
+
+  val baseId = if (isRelational) Symbol("<=") else id
 
   val toOpString: (String, String) => String = { (op1, op2) =>
     toOpStringOpt match {

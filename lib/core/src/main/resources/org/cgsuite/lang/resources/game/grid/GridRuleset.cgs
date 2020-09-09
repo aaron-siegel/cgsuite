@@ -6,21 +6,25 @@ class GridRuleset extends Ruleset
 
   def Eval(str as String) := Position(Grid.Parse(str, CharMap));
 
-  def GridOptions(grid as Grid, player as Player) := error("Subclasses of `GridRuleset` must override `GridOptions`.");
+  def GridOptions(grid as Grid, player as Player) as Collection of Grid := error("Subclasses of `GridRuleset` must override `GridOptions`.");
 
-  def Decomposition(grid as Grid) := error("Subclasses of `GridRuleset` must override `Decomposition`.");
+  def GridDecomposition(grid as Grid) as Collection of Grid := [grid];
 
-  def CharMap := error("Subclasses of `GridRuleset` must override `CharMap`.");
+  def CharMap as String := error("Subclasses of `GridRuleset` must override `CharMap`.");
 
-  def Icons := error("Subclasses of `GridRuleset` must override `Icons`.");
+  def Icons as List of Icon := error("Subclasses of `GridRuleset` must override `Icons`.");
 
   class Position(grid as Grid) extends Game
 
-    override def Options(player as Player) :=
+    override def Decomposition :=
+      listof(Position(subGrid) for subGrid in GridDecomposition(grid));
+
+    override def OptionsFor(player as Player) :=
       listof(Position(gridOption) for gridOption in GridOptions(grid, player));
 
-    override def ToOutput :=
-      cgsuite.util.output.GridOutput(grid, Icons, this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
+    // TODO
+    //override def ToOutput :=
+    //  cgsuite.util.output.GridOutput(grid, Icons, this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
 
   end
 

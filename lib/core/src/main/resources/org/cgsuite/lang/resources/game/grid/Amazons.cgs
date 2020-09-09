@@ -10,7 +10,8 @@ singleton class Amazons extends GridRuleset
     for moveDir in Coordinates.Compass
     for k from 1 while grid[ourAmazon + moveDir * k] == 0
     for arrowDir in Coordinates.Compass
-    for l from 1 while (grid[ourAmazon + moveDir * k + arrowDir * l] == 0 or fireTo == ourAmazon)
+    for l from 1 while (grid[ourAmazon + moveDir * k + arrowDir * l] == 0 or
+                        ourAmazon + moveDir * k + arrowDir * l == ourAmazon)
     yield
       grid Updated {ourAmazon => 0, ourAmazon + moveDir * k => us, ourAmazon + moveDir * k + arrowDir * l => 3}
     end

@@ -133,16 +133,29 @@ private[lang2] object CgscriptSystem {
 
   def evaluate(str: String): Option[Any] = {
 
-    val tree = ParserUtil.parseScript(str)
-    val node = StatementSequenceNode(tree.children.head, topLevel = true)
-    node.ensureElaborated(domain)
-    node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
+    evaluateOrException(str) match {
+      case scala.Left(obj) => Option(obj) // Could be null
+      case scala.Right(t) =>
+        t.printStackTrace()
+        None
+    }
 
-    Thread.sleep(10)
-    //println(node.elaboratedType)
-    //println(node.mentionedClasses)
+  }
 
-    val code = node.toScalaCodeWithVarDecls(new CompileContext())
+  def evaluateOrException(str: String): Either[Any, Throwable] = {
+
+    val code = {
+      try {
+        val tree = ParserUtil.parseScript(str)
+        val node = StatementSequenceNode(tree.children.head, topLevel = true)
+        node.ensureElaborated(domain)
+        node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
+        Thread.sleep(10)
+        node.toScalaCodeWithVarDecls(new CompileContext())
+      } catch {
+        case t: Throwable => return scala.Right(t)
+      }
+    }
 
     code foreach { case (line, varNameOpt) =>
 
@@ -176,12 +189,7 @@ private[lang2] object CgscriptSystem {
     }
 
     val result = (interpreter valueOfTerm "__result").get.asInstanceOf[Either[Any, Throwable]]
-    result match {
-      case scala.Left(obj) => Option(obj)   // Could be null
-      case scala.Right(t) =>
-        t.printStackTrace()
-        None
-    }
+    result
 
   }
 

@@ -11,11 +11,10 @@ system enum Symmetry
   external ClockwiseRotation,
   external AnticlockwiseRotation;
 
-  static var Flip := [Identity, Inversion, HorizontalFlip, VerticalFlip];
-  static var Rotational := [Identity, Inversion, ClockwiseRotation, AnticlockwiseRotation];
-  static var EightWay := [Identity, Inversion, HorizontalFlip, VerticalFlip, ClockwiseRotation, AnticlockwiseRotation,
-    Transpose, AntiTranspose];
-
-  external override def Literal;
+  // TODO Local references should work here
+  static var Flip := [Symmetry.Identity, Symmetry.Inversion, Symmetry.HorizontalFlip, Symmetry.VerticalFlip];
+  static var Rotational := [Symmetry.Identity, Symmetry.Inversion, Symmetry.ClockwiseRotation, Symmetry.AnticlockwiseRotation];
+  static var EightWay := [Symmetry.Identity, Symmetry.Inversion, Symmetry.HorizontalFlip, Symmetry.VerticalFlip, Symmetry.ClockwiseRotation, Symmetry.AnticlockwiseRotation,
+    Symmetry.Transpose, Symmetry.AntiTranspose];
 
 end

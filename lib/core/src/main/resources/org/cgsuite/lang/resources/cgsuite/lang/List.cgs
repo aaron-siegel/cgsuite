@@ -2,6 +2,8 @@
 
 system class List of `T extends Collection
 
+  external def op[](index as Integer) as `T;
+
   external override def Apply(fn as Procedure of (`T,`R)) as List of `R; // := listof(fn(x) for x in this);
 
   external def Contains(x) as Boolean;

@@ -6,6 +6,8 @@ system class Grid
 
   external static def Parse(str as String, charMap as String) as Grid;
 
+  external def op[](coord as Coordinates) as Integer;
+
   external def ColCount as Integer;
 
   external def Decomposition(boundaryValue as Integer, directions as List of Coordinates ? Coordinates.Orthogonal) as List of Grid;
@@ -22,6 +24,6 @@ system class Grid
 
   external def ToString(charMap as String) as String;
 
-  external def Updated(newValues as Map) as Grid;
+  external def Updated(newValues as Map of (Coordinates, Integer)) as Grid;
 
 end

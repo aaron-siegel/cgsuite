@@ -168,7 +168,7 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
 
   }
 
-  // TODO Only works for parameterless types currently
+  // TODO Currently only works for parameterless types
   override def join(that: CgscriptType): CgscriptType = {
     that match {
       case thatConcreteType: ConcreteType =>

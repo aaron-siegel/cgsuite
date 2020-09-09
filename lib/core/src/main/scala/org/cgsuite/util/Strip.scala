@@ -43,7 +43,7 @@ class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, v
     }
     new Strip(newValues)
   }
-
+/*
   override def findAll(value: Integer): IndexedSeq[Integer] = {
     val byte = value.intValue.toByte
     var cnt = 0
@@ -62,7 +62,7 @@ class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, v
     }
     result
   }
-
+*/
   def substrip(first: Integer, last: Integer): Strip = {
     val iFirst = first.intValue
     val iLast = last.intValue

@@ -10,10 +10,12 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
   implicit def surrealNumberToGeneralizedOrdinal(x: SurrealNumber): GeneralizedOrdinal = x.asInstanceOf[GeneralizedOrdinal]
 
+  implicit def integerToInt(x: Integer): Int = x.intValue
+
 }
 
 trait LowPriorityCgscriptImplicits {
 
-  implicit def rationalToInteger(x: RationalNumber): org.cgsuite.core.Integer = x.asInstanceOf[org.cgsuite.core.Integer]
+  implicit def rationalToInteger(x: RationalNumber): Integer = x.asInstanceOf[Integer]
 
 }

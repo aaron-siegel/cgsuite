@@ -27,6 +27,16 @@
   */
 system class Game
 
+  external def op+(that as Game) as Game;
+
+  external def op-(that as Game) as Game;
+
+  external def op:(that as Game) as Game;
+
+  external def op unary+ as Game;
+
+  external def op unary- as Game;
+
   /** The normal-play canonical form of this `Game`, given as a [[CanonicalShortGame]].
     *
     * This property can be used to find the canonical form of a game

@@ -11,7 +11,7 @@ object Symmetry {
   case object ClockwiseRotation     extends SymmetryImpl(false, true,  true )
   case object AnticlockwiseRotation extends SymmetryImpl(true,  false, true )
 
-  val Flip = Seq(Inversion, HorizontalFlip, VerticalFlip)
+  val Flip = Vector(Identity, Inversion, HorizontalFlip, VerticalFlip)
 
 }
 

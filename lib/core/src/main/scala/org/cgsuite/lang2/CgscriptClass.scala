@@ -62,6 +62,7 @@ object CgscriptClass {
   val List = CgscriptPackage.lookupClassByName("List").get
   val Set = CgscriptPackage.lookupClassByName("Set").get
   val Map = CgscriptPackage.lookupClassByName("Map").get
+  val MapEntry = CgscriptPackage.lookupClassByName("MapEntry").get
   val String = CgscriptPackage.lookupClassByName("String").get
   val Boolean = CgscriptPackage.lookupClassByName("Boolean").get
   val Procedure = CgscriptPackage.lookupClassByName("Procedure").get
@@ -392,9 +393,6 @@ class CgscriptClass(
 
   private def compile(eval: IMain): Unit = {
 
-    if (isSystem)
-      return
-
     val context = new CompileContext
     val classesCompiling = mutable.HashSet[CgscriptClass]()
     val sb = new StringBuilder
@@ -485,7 +483,7 @@ class CgscriptClass(
     }
 
     val companionObjectVars = {
-      if (isEnum || isSingleton)
+      if (isSingleton)
         classInfo.localClassVars
       else
         classInfo.staticVars
@@ -500,7 +498,7 @@ class CgscriptClass(
     }
 
     val companionObjectMethods = {
-      if (isEnum || isSingleton)
+      if (isSingleton)
         classInfo.localMethods
       else
         Vector.empty //classInfo.staticMethods
@@ -527,9 +525,26 @@ class CgscriptClass(
 
     }
 
+    if (isEnum && !isSystem) {
+      classInfo.enumElements.zipWithIndex foreach { case(enumElement, ordinal) =>
+        val literal = enumElement.id.name
+        sb append
+          s"""val $literal = new $scalaClassdefName($ordinal, "$literal")
+             |""".stripMargin
+      }
+    }
+
     sb append "}\n\n"
 
-    if (!isSingleton) {
+    if (isEnum && !isSystem) {
+
+      sb append
+        s"""case class $scalaClassdefName(ordinal: Int, literal: String) {
+           |  override def toString = "$name." + literal
+           |}
+           |""".stripMargin
+
+    } else if (!isSingleton) {
 
       if (isSystem) {
         sb append s"case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock) {\n\n"
@@ -903,6 +918,7 @@ class CgscriptClass(
       } else {
         // TODO Check "override" keyword
         // TODO Check that method is *locally* defined (if not, it's a conflict)
+        // TODO Check that result types match
       }
 
       matchingMethods.head
@@ -1228,10 +1244,10 @@ class CgscriptClass(
     lazy val staticVarSymbols: Seq[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
     lazy val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
-    lazy val allMethods = localMethods ++ inheritedMethods
-
     lazy val methods: Map[Symbol, Vector[CgscriptClass#Method]] =
-      allMethods groupBy { _.id } mapValues { methods => checkOverrides(methods.toVector) }
+      (localMethods ++ inheritedMethods) groupBy { _.id } mapValues { methods =>
+        checkOverrides(methods.toVector)
+      }
 
     lazy val allSymbolsInThisClass: Set[Symbol] = {
       classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ allNestedClasses.keySet

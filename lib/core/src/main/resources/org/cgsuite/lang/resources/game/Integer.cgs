@@ -27,6 +27,8 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
 
   external def op*(that as SidedValue) as SidedValue;
 
+  external def op*(that as Game) as Game;
+
   external def op^(that as Integer) as Rational;
 
   external def op%(that as Integer) as Integer;

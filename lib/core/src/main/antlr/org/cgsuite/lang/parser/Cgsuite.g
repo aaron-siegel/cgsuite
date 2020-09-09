@@ -336,8 +336,10 @@ defName
     ;
 
 definableOpCode
-    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND |
-      standardRelationalToken
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND
+    | standardRelationalToken
+    | AND | OR | NOT
+    | LBRACKET RBRACKET -> LBRACKET[$LBRACKET, "[]"]
     ;
 
 definableUnaryOpCode

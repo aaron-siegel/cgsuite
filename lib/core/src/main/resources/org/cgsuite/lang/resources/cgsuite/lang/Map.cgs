@@ -1,10 +1,10 @@
 /*${cgsuite.banner}*/
 
-system class Map of (`K, `V) extends Collection
+system class Map of (`K, `V)
 
   external def ContainsKey(key) as Boolean;
 
-  external def Entries as Collection of MapEntry of (`K, `V);
+//  external def Entries as Collection of MapEntry of (`K, `V);
 
   external def Keys as Set of `K;
 
