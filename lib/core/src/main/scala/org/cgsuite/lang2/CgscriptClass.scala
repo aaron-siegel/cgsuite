@@ -310,6 +310,16 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
+  def lookupMember(id: Symbol): Option[MemberResolution] = {
+
+    classInfo.allMethodsInScope get id match {
+      case Some(methods) => Some(MethodGroup(id, methods))
+      case None =>
+        lookupVar(id) orElse lookupStaticVar(id) orElse lookupNestedClass(id)
+    }
+
+  }
+
   def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
     classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
   }
@@ -1343,6 +1353,8 @@ class CgscriptClass(
 
     def isMutable = modifiers.hasMutable
 
+    def isStatic = modifiers.hasStatic
+
     override def elaborate() = {
 
       // TODO: Detect discrepancy between explicit result type and initializer type
@@ -1550,5 +1562,17 @@ class CgscriptClass(
     idNode: IdentifierNode,
     parametersNode: Option[ParametersNode]
   ) extends Constructor
+
+  case class MethodGroup(override val id: Symbol, methods: Vector[CgscriptClass#Method]) extends MemberResolution {
+
+    override def declaringClass = thisClass
+
+    val isPureAutoinvoke = methods.size == 1 && methods.head.autoinvoke
+
+    val autoinvokeMethod = methods find { _.autoinvoke }
+
+    def qualifiedName = methods.head.qualifiedName
+
+  }
 
 }

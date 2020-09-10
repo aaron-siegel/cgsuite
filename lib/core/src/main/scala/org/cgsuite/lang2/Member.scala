@@ -1,13 +1,13 @@
 package org.cgsuite.lang2
 
 
-trait Member {
+trait Member extends MemberResolution {
 
-  def declaringClass: CgscriptClass
   def declNode: Option[MemberDeclarationNode]
   def idNode: IdentifierNode
-  def id = idNode.id
   def mentionedClasses: Iterable[CgscriptClass]
+
+  override def id = idNode.id
 
   var isElaborating = false
 
@@ -33,6 +33,14 @@ trait Member {
   }
 
   def elaborate(): CgscriptType
+
+}
+
+trait MemberResolution {
+
+  def declaringClass: CgscriptClass
+
+  def id: Symbol
 
 }
 

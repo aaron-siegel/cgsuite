@@ -1,10 +1,10 @@
 /*${cgsuite.banner}*/
 
 class GenClobber(
-  directions ? Coordinates.Orthogonal,
-  clobbered ? {Left => {2}, Right => {1}},
-  leftBehind ? {Left => 0, Right => 0},
-  maxDistance ? 1
+  directions as List of Coordinates ? Coordinates.Orthogonal,
+  clobbered as Map of (Player, Set of Integer) ? {Left => {2}, Right => {1}},
+  leftBehind as Map of (Player, Integer) ? {Left => 0, Right => 0},
+  maxDistance as Integer ? 1
   ) extends GridRuleset
 
   var clobberedAsList := [clobbered[Left], clobbered[Right]];

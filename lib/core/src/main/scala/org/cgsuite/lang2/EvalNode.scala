@@ -374,78 +374,55 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   import org.cgsuite.lang2.IdentifierNode._
 
-  private var idType: IdentifierType.Value = _
-  private var idLiteral: String = _
-  private var constantVar: CgscriptClass#Var = _
-  private var classResolution: CgscriptClass = _
+  private var elaboratedMemberResolution: Option[MemberResolution] = None
+  private var elaboratedClassScope: Option[CgscriptClass] = None
+
+  def resolveAsMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
+
+    val localMemberResolution = classScope flatMap { _.lookupMember(id) }
+
+    localMemberResolution orElse {
+
+      val constantResolution =
+        classScope flatMap { _.pkg.lookupConstantMember(id) } orElse
+          CgscriptPackage.lookupConstantMember(id)
+
+      constantResolution orElse {
+
+        classScope flatMap { _.pkg.lookupClass(id) } orElse
+          CgscriptPackage.lookupClass(id)
+
+      }
+
+    }
+
+  }
 
   override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
-    domain.typeOf(id) match {
+    elaboratedClassScope = domain.cls
 
-      case Some(typ) =>
+    domain.typeOf(id).flatten getOrElse {
 
-        idType = IdentifierType.VarIdentifier
-        idLiteral = id.name
-        typ.get
+      elaboratedMemberResolution = resolveAsMember(domain.cls)
 
-      case _ =>
+      elaboratedMemberResolution match {
 
-        // Try to resolve as an autoinvoke method
-        domain.cls flatMap { _.lookupMethod(id, Vector.empty) } match {
+        case Some(methodGroup: CgscriptClass#MethodGroup) =>
+          methodGroup.autoinvokeMethod match {
+            case Some(method) => method.ensureElaborated()
+            case None => throw EvalException(s"Method `${methodGroup.qualifiedName}` requires arguments")
+          }
 
-          case Some(method) if method.autoinvoke =>
+        case Some(variable: CgscriptClass#Var) => variable.ensureElaborated()
 
-            idType = IdentifierType.AutoinvokeMethodIdentifier
-            idLiteral = {
-              if (method.isExternal && method.methodName != "EnclosingObject")
-                s"_instance.${method.scalaName}"
-              else
-                method.scalaName
-            }
-            method.ensureElaborated()
+        case Some(cls: CgscriptClass) if cls.isSingleton => CgscriptType(cls)
 
-          case _ =>
+        case Some(cls: CgscriptClass) => CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
 
-            // Try to resolve as a classname
-            val classResolution = {
-              domain.cls flatMap { _.pkg.lookupClass(id) } orElse
-                CgscriptPackage.lookupClass(id)
-            }
-            classResolution match {
+        case None => throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
 
-              case Some(cls) =>
-                idType = IdentifierType.ClassIdentifier
-                this.classResolution = cls
-                if (cls.isSingleton)
-                  CgscriptType(cls)
-                else
-                  CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
-
-              case None =>
-
-                // Try to resolve as a constant
-                val constantResolution = {
-                  domain.cls flatMap { _.pkg.lookupConstantVar(id) } orElse
-                    CgscriptPackage.lookupConstantVar(id)
-                }
-                constantResolution match {
-
-                  case Some(constantVar: CgscriptClass#Var) =>
-                    idType = IdentifierType.ConstantIdentifier
-                    this.constantVar = constantVar
-                    constantVar.ensureElaborated()
-
-                  // TODO Nested Classes of constants?
-
-                  case None =>
-                    throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
-
-                }
-
-            }
-
-        }
+      }
 
     }
 
@@ -453,21 +430,27 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   override def toScalaCode(context: CompileContext): String = {
 
-    assert(idType != null, this)
+    elaboratedMemberResolution match {
 
-    idType match {
+      case None => id.name        // Local variable
 
-      case IdentifierType.VarIdentifier | IdentifierType.AutoinvokeMethodIdentifier => idLiteral
+      case Some(methodGroup: CgscriptClass#MethodGroup) =>
+        assert(methodGroup.autoinvokeMethod.isDefined, "should have been caught during elaboration")
+        val method = methodGroup.autoinvokeMethod.get
+        if (method.isExternal && method.methodName != "EnclosingObject")
+          s"_instance.${method.scalaName}"
+        else
+          method.scalaName
 
-      case IdentifierType.ClassIdentifier =>
-        classResolution.scalaTyperefName
+      case Some(variable: CgscriptClass#Var) =>
+        if ((elaboratedClassScope contains variable.declaringClass) && !variable.isStatic)
+          variable.id.name
+        else
+          variable.declaringClass.scalaClassdefName + "." + variable.id.name
 
-      case IdentifierType.ConstantIdentifier =>
-        CgscriptPackage.lookupConstantVar(id) match {
-          case Some(variable: CgscriptClass#Var) =>
-            variable.declaringClass.scalaClassdefName + "." + variable.id.name
-          case _ => sys.error("this can't happen")
-        }
+      case Some(cls: CgscriptClass) => cls.scalaTyperefName
+
+      case None => sys.error("this should have been caught during elaboration")
 
     }
 
@@ -476,8 +459,13 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   override def collectMentionedClasses(classes: mutable.HashSet[CgscriptClass]): Unit = {
 
     super.collectMentionedClasses(classes)
-    if (idType == IdentifierType.ConstantIdentifier) {
-      classes += constantVar.declaringClass     // constants class is implicitly mentioned
+
+    // There may be an implicit mention of a constants class, so we need to handle
+    // that possibility separately.
+    elaboratedMemberResolution match {
+      case Some(memberResolution) if memberResolution.declaringClass != null =>
+        classes += memberResolution.declaringClass
+      case _ =>
     }
 
   }
