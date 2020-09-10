@@ -2,9 +2,9 @@
 
 system class StopperSidedValue extends SidedValue
 
-  external def op+(that as SidedValue) as SidedValue;
+  external def op+(that as StopperSidedValue) as StopperSidedValue;
 
-  external def op-(that as SidedValue) as SidedValue;
+  external def op-(that as StopperSidedValue) as StopperSidedValue;
 
   external override def op unary+ as StopperSidedValue;
 

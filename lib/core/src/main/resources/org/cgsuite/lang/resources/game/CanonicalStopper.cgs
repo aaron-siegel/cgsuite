@@ -2,6 +2,10 @@
 
 system class CanonicalStopper extends Game, StopperSidedValue
 
+  external def op+(that as CanonicalStopper) as StopperSidedValue;
+
+  external def op-(that as CanonicalStopper) as StopperSidedValue;
+
   external def op&(that as CanonicalStopper) as StopperSidedValue;
 
   external override def op unary+ as CanonicalStopper;

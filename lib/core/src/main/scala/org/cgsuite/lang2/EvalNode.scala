@@ -1015,11 +1015,11 @@ case class LoopyGameSpecNode(
   }
 
   override def collectMentionedClasses(classes: mutable.HashSet[CgscriptClass]): Unit = {
+    addTypeToClasses(classes, elaboratedType)
     collectMentionedClassesLoopy(classes, mutable.HashSet[Symbol]())
   }
 
   def collectMentionedClassesLoopy(classes: mutable.HashSet[CgscriptClass], nodeLabels: mutable.HashSet[Symbol]): Unit = {
-    addTypeToClasses(classes, elaboratedType)
     nodeLabel foreach { nodeLabels += _.id }
     (lo ++ ro) foreach {
       case loopyGameSpecNode: LoopyGameSpecNode => loopyGameSpecNode.collectMentionedClassesLoopy(classes, nodeLabels)
@@ -1204,18 +1204,22 @@ case class LoopNode(
               CgscriptType(CgscriptClass.Table)
           case LoopNode.YieldSum =>
             var closureType = bodyType
-            var done = false
-            while (!done) {
-              val closureOp = closureType.lookupMethod(Symbol("+"), Vector(closureType)) getOrElse {
-                throw EvalException(s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`")
+            if (closureType.baseClass == CgscriptClass.NothingClass) {
+              CgscriptType(CgscriptClass.Integer)
+            } else {
+              var done = false
+              while (!done) {
+                val closureOp = closureType.lookupMethod(Symbol("+"), Vector(closureType)) getOrElse {
+                  throw EvalException(s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`")
+                }
+                val nextClosureType = closureType join closureOp.resultType
+                if (closureType == nextClosureType)
+                  done = true
+                else
+                  closureType = nextClosureType
               }
-              val nextClosureType = closureType join closureOp.resultType
-              if (closureType == nextClosureType)
-                done = true
-              else
-                closureType = nextClosureType
+              closureType
             }
-            closureType
         }
     }
 
@@ -1227,6 +1231,7 @@ case class LoopNode(
 
     val continueVar = context.newTempId()
     val tempResultVar = context.newTempId()
+    val byVar = context.newTempId()
     val loopVar = {
       if (forId.isDefined)
         forId.get.id.name
@@ -1248,9 +1253,13 @@ case class LoopNode(
         ""
     }
     val initCode = {
-      if (from.isDefined)
-        s"var $loopVar = " + from.get.toScalaCode(context)
-      else if (in.isDefined) {
+      if (from.isDefined) {
+        val fromCode = from.get.toScalaCode(context)
+        val byCode = by map { _.toScalaCode(context) } getOrElse "org.cgsuite.core.Values.one"
+        s"""var $loopVar = $fromCode
+           |var $byVar = $byCode
+           """
+      } else if (in.isDefined) {
         val inCode = in.get.toScalaCode(context)
         s"val $iteratorVar = $inCode.iterator"
       } else
@@ -1272,9 +1281,10 @@ case class LoopNode(
       }
     }
     val checkIfDoneCode = {
-      if (to.isDefined)
-        s"$continueVar = $loopVar <= " + to.get.toScalaCode(context)
-      else if (in.isDefined)
+      if (to.isDefined) {
+        val toCode = to.get.toScalaCode(context)
+        s"$continueVar = if ($byVar < org.cgsuite.core.Values.zero) $loopVar >= $toCode else $loopVar <= $toCode"
+      } else if (in.isDefined)
         s"$continueVar = $iteratorVar.hasNext"
       else
         ""
@@ -1308,13 +1318,7 @@ case class LoopNode(
       case LoopNode.YieldMap => s"$yieldResultVar.asInstanceOf[scala.collection.mutable.ArrayBuffer[(Any, Any)]].toMap"
       case LoopNode.YieldSet => s"$yieldResultVar.toSet"
       case LoopNode.YieldTable => s"org.cgsuite.lang2.Table($yieldResultVar.toIndexedSeq)(org.cgsuite.lang2.CgscriptClass.instanceToOutput)"
-      case LoopNode.YieldSum => yieldResultVar
-        /*
-      case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
-        case list: IndexedSeq[_] => list
-        case _ => throw EvalException("A `tableof` expression must generate exclusively objects of type `cgsuite.lang.List`.")
-      } } (OutputBuilder.toOutput)
-         */
+      case LoopNode.YieldSum => s"if ($yieldResultVar == null) org.cgsuite.core.Values.zero else $yieldResultVar"
     }
 
     s"""{

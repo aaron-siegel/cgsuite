@@ -323,7 +323,9 @@ class CgscriptClass(
     }
     val reducedMatchingMethods = reduceMethodList(matchingMethods)
     if (reducedMatchingMethods.size >= 2) {
-      sys.error("need a useful error msg here") // TODO
+      val argTypeNames = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+      reducedMatchingMethods foreach { m => println(m.qualifiedName) }
+      throw EvalException(s"Method `${id.name}` of class `$qualifiedName` is ambiguous when applied to $argTypeNames")
     }
     reducedMatchingMethods.headOption
   }
@@ -557,7 +559,7 @@ class CgscriptClass(
            |}
            |""".stripMargin
 
-    } else if (!isSingleton) {
+    } else if (!isSingleton && this != CgscriptClass.Object) {
 
       if (isSystem) {
         sb append
@@ -640,7 +642,7 @@ class CgscriptClass(
     }
 
     // Implicit conversion for enriched system types
-    if (isSystem) {
+    if (isSystem && this != CgscriptClass.Object) {
 
       sb append
         s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
