@@ -39,8 +39,8 @@ class ElaborationDomain(
 
   def typeOf(id: Symbol): Option[Option[CgscriptType]] = {
     (scopeStack flatMap { _ lookup id }).headOption orElse
-      (cls flatMap { _.lookupVar(id) } map { member => Some(member.resultType) }) orElse
-      (cls flatMap { _.lookupStaticVar(id) } map { member => Some(member.resultType) }) orElse
+      (cls flatMap { _.lookupVar(id) } map { member => Some(member.ensureElaborated()) }) orElse
+      (cls flatMap { _.lookupStaticVar(id) } map { member => Some(member.ensureElaborated()) }) orElse
       (cls flatMap { _.classInfo.allNestedClassesInScope get id } map { member => Some(CgscriptType(CgscriptClass.Class, Vector(CgscriptType(member)))) })
   }
 

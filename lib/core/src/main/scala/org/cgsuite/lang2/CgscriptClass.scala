@@ -313,9 +313,21 @@ class CgscriptClass(
   def lookupMember(id: Symbol): Option[MemberResolution] = {
 
     classInfo.allMethodsInScope get id match {
+      // TODO If one is static, all should be static? Or put them in separate method groups
+      case Some(methods) if methods.head.isStatic => None
       case Some(methods) => Some(MethodGroup(id, methods))
       case None =>
-        lookupVar(id) orElse lookupStaticVar(id) orElse lookupNestedClass(id)
+        lookupVar(id) orElse lookupNestedClass(id)
+    }
+
+  }
+
+  def lookupStaticMember(id: Symbol): Option[MemberResolution] = {
+
+    classInfo.allMethodsInScope get id match {
+      case Some(methods) if methods.head.isStatic => Some(MethodGroup(id, methods))
+      case Some(_) => None
+      case None => lookupStaticVar(id) orElse classInfo.enumElements.find { _.id == id }    // TODO Static nested class?
     }
 
   }
@@ -514,7 +526,7 @@ class CgscriptClass(
     }
 
     companionObjectVars foreach { variable =>
-      sb append s"val ${variable.id.name}: ${variable.resultType.scalaTypeName} = {\n\n"
+      sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
       variable.initializerNode foreach { node =>
         sb append node.toScalaCode(context)
       }
@@ -541,7 +553,7 @@ class CgscriptClass(
         )
         sb append ")"
       }
-      sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
+      sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
 
       sb append method.body.toScalaCode(context)
 
@@ -585,12 +597,12 @@ class CgscriptClass(
 
       if (!isSystem) {
         classInfo.constructorParamVars foreach { parameter =>
-          sb append s"def ${parameter.id.name}: ${parameter.resultType.scalaTypeName}\n\n"
+          sb append s"def ${parameter.id.name}: ${parameter.ensureElaborated().scalaTypeName}\n\n"
         }
       }
 
       classInfo.localClassVars foreach { variable =>
-        sb append s"val ${variable.id.name}: ${variable.resultType.scalaTypeName} = {\n\n"
+        sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
         variable.initializerNode foreach { node =>
           sb append node.toScalaCode(context)
         }
@@ -618,7 +630,7 @@ class CgscriptClass(
           )
           sb append ")"
         }
-        sb append ": " + method.resultType.scalaTypeName + " = {\n\n"
+        sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
 
         sb append method.body.toScalaCode(context)
 
@@ -1392,6 +1404,7 @@ class CgscriptClass(
     val methodName = idNode.id.name
     val scalaName = methodName match {
       case "Apply" if isExternal => "map"
+      case "Class" => "_class"
       case _ => methodName.updated(0, methodName.charAt(0).toLower)
     }
     val declaringClass = thisClass
@@ -1572,6 +1585,10 @@ class CgscriptClass(
     val autoinvokeMethod = methods find { _.autoinvoke }
 
     def qualifiedName = methods.head.qualifiedName
+
+    def lookupMethod(argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty) = {
+      thisClass.lookupMethod(id, argumentTypes, typeParameterSubstitutions)
+    }
 
   }
 

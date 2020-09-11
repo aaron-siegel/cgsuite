@@ -9,7 +9,7 @@ system class Set of `T extends Collection
   
   external def Intersection(that as Set of Object) as Set of `T;
 
-  external def Replaced(replacements as Map) as Set of `T;
+  external def Replaced(replacements as Map of (`T,`T)) as Set of `T;
   
   external def Union(that as Set of `T) as Set of `T;
 

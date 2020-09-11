@@ -13,13 +13,6 @@ trait Member extends MemberResolution {
 
   private var elaboratedResultTypeRef: CgscriptType = _
 
-  def resultType = {
-    if (elaboratedResultTypeRef == null)
-      throw new RuntimeException(s"Member has not been elaborated: $this")
-    else
-      elaboratedResultTypeRef
-  }
-
   def ensureElaborated(): CgscriptType = {
     if (elaboratedResultTypeRef == null) {
       declaringClass logDebug s"Elaborating member: ${id.name}"

@@ -372,10 +372,22 @@ object IdentifierNode {
 
 case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
-  import org.cgsuite.lang2.IdentifierNode._
-
   private var elaboratedMemberResolution: Option[MemberResolution] = None
   private var elaboratedClassScope: Option[CgscriptClass] = None
+
+  def resolveAsPackage(domain: ElaborationDomain): Option[CgscriptPackage] = {
+
+    domain.typeOf(id) match {
+      case Some(_) => None
+      case None =>
+        resolveAsMember(domain.cls) match {
+          case Some(_) => None
+          case None =>
+            CgscriptPackage.root.lookupSubpackage(id)
+        }
+    }
+
+  }
 
   def resolveAsMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
 
@@ -1200,7 +1212,7 @@ case class LoopNode(
                 val closureOp = closureType.lookupMethod(Symbol("+"), Vector(closureType)) getOrElse {
                   throw EvalException(s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`")
                 }
-                val nextClosureType = closureType join closureOp.resultType
+                val nextClosureType = closureType join closureOp.ensureElaborated()
                 if (closureType == nextClosureType)
                   done = true
                 else
@@ -1434,141 +1446,136 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
 
 }
 
-case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
+case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) extends EvalNode {
 
-  override val children = Seq(obj, idNode)
+  override val children = Seq(antecedent, idNode)
 
-  val antecedentAsPackagePath: Option[Seq[String]] = obj match {
-    case IdentifierNode(_, antecedentId) => Some(Seq(antecedentId.name))
-    case node: DotNode => node.antecedentAsPackagePath.map { _ :+ node.idNode.id.name }
-    case _ => None
+  var elaboratedMember: Member = _
+  var isElaboratedAsPackage: Boolean = _
+
+  def resolveAsPackage(domain: ElaborationDomain): Option[CgscriptPackage] = {
+
+    val enclosingPackage: Option[CgscriptPackage] = {
+      antecedent match {
+        case identifierNode: IdentifierNode => identifierNode.resolveAsPackage(domain)
+        case dotNode: DotNode => dotNode.resolveAsPackage(domain)
+        case _ => None
+      }
+    }
+
+    enclosingPackage flatMap { pkg =>
+      pkg.lookupMember(idNode.id) match {
+        case Some(_) => None        // Subpackage name is shadowed
+        case None => pkg.lookupSubpackage(idNode.id)
+      }
+    }
+
   }
 
-  val antecedentAsPackage: Option[CgscriptPackage] = antecedentAsPackagePath flatMap { CgscriptPackage.root.lookupSubpackage }
-  var isElaboratedAsPackage: Boolean = _
-  var externalName: String = _
-  var constantVar: CgscriptClass#Var = _
+  def resolveAsPackageMember(domain: ElaborationDomain): Option[MemberResolution] = {
+
+    val antecedentPackage = antecedent match {
+      case identifierNode: IdentifierNode => identifierNode.resolveAsPackage(domain)
+      case dotNode: DotNode => dotNode.resolveAsPackage(domain)
+      case _ => None
+    }
+
+    antecedentPackage map { pkg =>
+      pkg.lookupConstantMember(idNode.id) orElse pkg.lookupClass(idNode.id) getOrElse {
+        throw EvalException(s"No symbol `${idNode.id.name}` found in package `${pkg.qualifiedName}`")
+      }
+    }
+
+  }
+
+  def resolveAsObjectMember(domain: ElaborationDomain): MemberResolution = {
+
+    val antecedentType = antecedent.ensureElaborated(domain)
+
+    antecedentType.baseClass match {
+
+      case CgscriptClass.Class =>
+
+        // This is a class object, so we need to look for a static resolution
+        val cls = antecedentType.typeArguments.head.baseClass
+        CgscriptClass.Class.lookupMember(idNode.id) orElse cls.lookupStaticMember(idNode.id) getOrElse {
+          throw EvalException(s"No symbol `${idNode.id.name}` found in class `${cls.qualifiedName}`")
+        }
+
+      case _ =>
+
+        antecedentType.baseClass.lookupMember(idNode.id) getOrElse {
+          throw EvalException(s"No symbol `${idNode.id.name}` found in class `${antecedentType.baseClass.qualifiedName}`")
+        }
+
+    }
+
+  }
+
+  def doResolutionForElaboration(domain: ElaborationDomain): MemberResolution = {
+    resolveAsPackageMember(domain) match {
+      case Some(member) =>
+        isElaboratedAsPackage = true
+        member
+      case None =>
+        isElaboratedAsPackage = false
+        resolveAsObjectMember(domain)
+    }
+  }
+
+  // TODO Code-consolidate with IdentifierNode? and/or member.ensureElaborated()
+  def memberToElaboratedType(member: Member) = {
+
+    member match {
+      case method: CgscriptClass#Method => method.ensureElaborated()
+      case variable: CgscriptClass#Var => variable.ensureElaborated()
+      case cls: CgscriptClass if cls.isSingleton => CgscriptType(cls)
+      case cls: CgscriptClass => CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
+    }
+
+  }
 
   override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
-    // TODO Don't elaborate as package if shadowed by a variable
-    elaborateAsPackageReference(domain) match {
-      case Some(typ) =>
-        isElaboratedAsPackage = true
-        typ
-      case None =>
-        isElaboratedAsPackage = false
-        elaborateAsObjectReference(domain)
-    }
+    elaboratedMember = {
+      doResolutionForElaboration(domain) match {
 
-  }
-
-  private[lang2] def elaborateAsPackageReference(domain: ElaborationDomain): Option[CgscriptType] = {
-
-    antecedentAsPackage flatMap { pkg =>
-
-      pkg.lookupClass(idNode.id) match {
-
-        case Some(cls) =>
-          externalName = idNode.id.name
-          if (cls.isSingleton)
-            Some(CgscriptType(cls))
-          else
-            Some(CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls))))
-
-        case None =>
-
-          pkg.lookupConstantVar(idNode.id) match {
-
-            case Some(constantVar: CgscriptClass#Var) =>
-              externalName = idNode.id.name
-              this.constantVar = constantVar
-              constantVar.ensureElaborated()
-              Some(constantVar.resultType)
-
-            // TODO Nested Classes
-
-            case None => None
-
+        case methodGroup: CgscriptClass#MethodGroup =>
+          methodGroup.autoinvokeMethod getOrElse {
+            throw EvalException(s"Method `${methodGroup.qualifiedName}` requires arguments")
           }
 
+        case member: Member => member
+
       }
-
     }
 
-  }
-
-  private[lang2] def elaborateAsObjectReference(domain: ElaborationDomain): CgscriptType = {
-
-    val objectType = obj.ensureElaborated(domain)
-
-    resolveElaboratedMember(objectType) match {
-
-      case Some(member) =>
-        externalName = idNode.id.name.updated(0, idNode.id.name(0).toLower)
-        // Temporary hack
-        if (externalName == "class")
-          externalName = "_class"
-        member.ensureElaborated()
-
-      case None =>
-
-        val staticResolution = {
-          if (objectType.baseClass == CgscriptClass.Class)
-            resolveStaticMember(objectType.typeArguments.head)
-          else
-            None
-        }
-
-        staticResolution match {
-          case Some(member) =>
-            externalName = idNode.id.name
-            member.ensureElaborated()
-          case None =>
-            sys.error(s"need error msg here: $objectType, ${idNode.id.name}")
-        }
-
-    }
-
-  }
-
-  private def resolveElaboratedMember(objectType: CgscriptType): Option[Member] = {
-
-    val objectMethod = objectType.lookupMethod(idNode.id, Vector.empty)
-
-    objectMethod match {
-      case Some(method) if method.autoinvoke => Some(method)
-      case None => objectType.baseClass.lookupVar(idNode.id)
-    }
-
-  }
-
-  private def resolveStaticMember(classType: CgscriptType): Option[Member] = {
-
-    // TODO static method
-    // TODO refactor!!
-    val staticVar = classType.baseClass.classInfo.staticVars find { _.id == idNode.id }
-
-    staticVar orElse {
-      classType.baseClass.classInfo.enumElements find { _.id == idNode.id }
-    }
+    memberToElaboratedType(elaboratedMember)
 
   }
 
   override def toScalaCode(context: CompileContext) = {
 
-    assert(externalName != null, this)
-    if (isElaboratedAsPackage) {
-      if (constantVar != null) {
-        s"${constantVar.declaringClass.scalaClassdefName}.$externalName"
-      } else if (elaboratedType.baseClass == CgscriptClass.Class) {
-        elaboratedType.typeArguments.head.scalaTypeName
-      } else {
-        elaboratedType.scalaTypeName
-      }
-    } else {
-      val objStr = obj.toScalaCode(context)
-      s"($objStr).$externalName"
+    elaboratedMember match {
+
+      case cls: CgscriptClass => cls.scalaTyperefName
+
+      case variable: CgscriptClass#Var =>
+        if (isElaboratedAsPackage)
+          variable.declaringClass.scalaClassdefName + "." + variable.id.name
+        else {
+          val objStr = antecedent.toScalaCode(context)
+          s"($objStr).${variable.id.name}"
+        }
+
+      case method: CgscriptClass#Method =>
+        if (isElaboratedAsPackage)
+          method.declaringClass.scalaClassdefName + "." + method.scalaName
+        else {
+          val objStr = antecedent.toScalaCode(context)
+          s"($objStr).${method.scalaName}"
+        }
+
     }
 
   }
@@ -1577,19 +1584,21 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 
     addTypeToClasses(classes, elaboratedType)
     if (!isElaboratedAsPackage) {
-      obj.collectMentionedClasses(classes)
+      antecedent.collectMentionedClasses(classes)
     }
-    if (constantVar != null) {
-      classes += constantVar.declaringClass
+    // There may be an implicit mention of a constants class, so we need to handle
+    // that possibility separately.
+    if (elaboratedMember.declaringClass != null) {
+      classes += elaboratedMember.declaringClass
     }
 
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     if (OperatorPrecedence.Postfix <= enclosingPrecedence)
-      s"${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString}"
+      s"${antecedent.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString}"
     else
-      s"(${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString})"
+      s"(${antecedent.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString})"
   }
 }
 
@@ -1678,124 +1687,62 @@ case class FunctionCallNode(
 
   override val children = argNodes ++ argNames.flatten :+ callSiteNode
 
-  var constantMethod: Option[CgscriptClass#Method] = None
-  var localMethod: Option[CgscriptClass#Method] = None
+  var objectType: Option[CgscriptType] = _
+  var elaboratedMethod: Option[CgscriptClass#Method] = _
+  var isLocalMethod: Boolean = _
   var isEval: Boolean = false
-  var isCallSiteElaborated: Boolean = false
 
   override def elaborateImpl(domain: ElaborationDomain) = {
 
     val argTypes = argNodes map { _.ensureElaborated(domain) }
 
-    val methodTypeOpt = callSiteNode match {
+    val elaboratedMethodGroup = callSiteNode match {
 
       case idNode: IdentifierNode =>
 
-        // CASE 1:
-        // A bare identifier. It could be a local method call, a method call to imported constants,
-        // or just an object in scope whose Eval method is being called implicitly.
-
-        // To be a local method call, we need to be in class scope.
-        val localMethod = domain.cls flatMap { cls =>
-          FunctionCallNode.lookupMethod(CgscriptType(cls, cls.typeParameters), idNode.id, argTypes)
-        }
-
-        localMethod match {
-
-          case Some(method) if !method.autoinvoke =>
-            this.localMethod = localMethod
-            Some(method.ensureElaborated())
-
+        idNode.resolveAsMember(domain.cls) match {
+          case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
+            isLocalMethod = domain.cls exists { _.lookupMember(idNode.id).isDefined }
+            objectType = None
+            Some(methodGroup)
           case _ =>
-
-            // Now see if it's an imported constant. (TODO We really want to do this last -
-            // that will require some refactoring)
-            CgscriptPackage.lookupConstantMethod(idNode.id, argTypes) match {
-
-              case Some(method) if !method.autoinvoke =>
-                constantMethod = Some(method)
-                Some(method.ensureElaborated())
-
-              case _ =>
-                None
-
-            }
-
+            None
         }
 
       case dotNode: DotNode =>
 
-        // CASE 2:
-        // A dot node. It could be a method call on an object, a method call from
-        // explicitly specified package constants, or just an object whose Eval method
-        // is being called.
-
-        // TODO Don't elaborate as package if shadowed by a variable
-
-        dotNode.antecedentAsPackage match {
-
-          case Some(pkg) =>
-
-            pkg.lookupConstantMethod(dotNode.idNode.id, argTypes) match {
-
-              case Some(method) if !method.autoinvoke =>
-                constantMethod = Some(method)
-                Some(method.ensureElaborated())
-
-              case _ =>
+        dotNode.doResolutionForElaboration(domain) match {
+          case methodGroup: CgscriptClass#MethodGroup if !methodGroup.isPureAutoinvoke =>
+            isLocalMethod = false
+            objectType = {
+              if (dotNode.isElaboratedAsPackage)
                 None
-
+              else
+                Some(dotNode.antecedent.ensureElaborated(domain))
             }
-
-          case None =>
-
-            val objectType = dotNode.obj.ensureElaborated(domain)
-            val objectMethod = objectType.lookupMethod(dotNode.idNode.id, argTypes)
-
-            objectMethod match {
-
-              case Some(method) if !method.autoinvoke =>
-                dotNode.externalName = method.scalaName
-                val methodType = method.ensureElaborated().substituteAll(objectType.baseClass.typeParameters zip objectType.typeArguments)
-                // Apply further substitutions for unbound type parameters
-                Some(methodType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes))
-
-              case _ =>
-
-                val staticMethod = {
-                  if (objectType.baseClass == CgscriptClass.Class) {
-                    val staticType = objectType.typeArguments.head
-                    staticType.lookupMethod(dotNode.idNode.id, argTypes)
-                  } else
-                    None
-                }
-                println(staticMethod)
-
-                staticMethod match {
-                  case Some(method) if method.isStatic =>
-                    dotNode.externalName = method.scalaName
-                    val methodType = method.ensureElaborated().substituteAll(objectType.baseClass.typeParameters zip objectType.typeArguments)
-                    // Apply further substitutions for unbound type parameters
-                    Some(methodType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes))
-                  case None => None
-                }
-
-            }
-
+            Some(methodGroup)
+          case _ => None
         }
-
-      case _ =>
-        None
 
     }
 
-    methodTypeOpt match {
+    elaboratedMethodGroup match {
 
-      case Some(methodType) => methodType
+      case Some(methodGroup) =>
+        val method = methodGroup.lookupMethod(argTypes) getOrElse {
+          val argTypesMsg = argTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+          throw EvalException(s"Method `${methodGroup.qualifiedName}` cannot be applied to argument types $argTypesMsg")
+        }
+        elaboratedMethod = Some(method)
+        val methodType = method.ensureElaborated()
+        val substitutedType = objectType match {
+          case Some(typ) => methodType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
+          case None => methodType
+        }
+        substitutedType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes)
 
       case None =>
-
-        isCallSiteElaborated = true
+        elaboratedMethod = None
         val callSiteType = callSiteNode.ensureElaborated(domain)
         if (callSiteType.baseClass == CgscriptClass.Class) {
           callSiteType.typeArguments.head.baseClass.constructor match {
@@ -1808,10 +1755,10 @@ case class FunctionCallNode(
           callSiteType.typeArguments.last
         } else {
           // Eval method
+          isEval = true
           val evalMethod = callSiteType.baseClass.lookupMethod('Eval, argTypes) getOrElse {
             throw EvalException(s"No method `Eval` (`${callSiteType.baseClass.qualifiedName}`)") // TODO Better error msg
           }
-          isEval = true
           evalMethod.ensureElaborated()
         }
 
@@ -1824,20 +1771,25 @@ case class FunctionCallNode(
     addTypeToClasses(classes, elaboratedType)
     // Skip over dotNode or idNode  TODO We might not always want to do this
     val childNode = {
-      if (isCallSiteElaborated)
+      if (elaboratedMethod.isEmpty)
         Some(callSiteNode)
       else {
         callSiteNode match {
           case _: IdentifierNode => None
-          case _: DotNode if constantMethod.isDefined => None
-          case dotNode: DotNode => Some(dotNode.obj)
+          case dotNode: DotNode if dotNode.isElaboratedAsPackage => None
+          case dotNode: DotNode => Some(dotNode.antecedent)
           case _ => Some(callSiteNode)
         }
       }
     }
     (argNodes ++ childNode) foreach { _.collectMentionedClasses(classes) }
-    constantMethod foreach { method =>
-      addTypeToClasses(classes, CgscriptType(method.declaringClass))
+
+    // There may be an implicit mention of a constants class, so we need to handle
+    // that possibility separately.
+    elaboratedMethod match {
+      case Some(method) if method.declaringClass != null =>
+        classes += method.declaringClass
+      case _ =>
     }
 
   }
@@ -1846,21 +1798,19 @@ case class FunctionCallNode(
 
     // TODO arg names
 
-    val functionCode = constantMethod match {
-      case Some(method) => method.declaringClass.scalaClassdefName + "." + method.scalaName
-      case None =>
-        localMethod match {
-          case Some(method) if method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
-          case Some(method) => method.scalaName
-          case None => callSiteNode.toScalaCode(context)
-        }
+    val functionCode = elaboratedMethod match {
+      case Some(method) if isLocalMethod && method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
+      case Some(method) if isLocalMethod => method.scalaName
+      case Some(method) if objectType.isEmpty => method.declaringClass.scalaClassdefName + "." + method.scalaName
+      case Some(method) => callSiteNode.asInstanceOf[DotNode].antecedent.toScalaCode(context) + "." + method.scalaName
+      case _ if isEval => callSiteNode.toScalaCode(context) + ".eval"
+      case _ => callSiteNode.toScalaCode(context)
     }
-    val evalCode = if (isEval) ".eval" else ""
     val argsCode = argNodes map { _.toScalaCode(context) } mkString ", "
-    s"($functionCode$evalCode($argsCode))"
+    s"($functionCode($argsCode))"
 
   }
-
+  
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val argStr = argNodes map { _.toNodeString } mkString ", "
     if (OperatorPrecedence.Postfix <= enclosingPrecedence)

@@ -65,6 +65,8 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
     subpackages.getOrElseUpdate(name, new CgscriptPackage(Some(this), name))
   }
 
+  def lookupSubpackage(id: Symbol): Option[CgscriptPackage] = lookupSubpackage(Seq(id.name))
+
   def lookupSubpackage(path: Seq[String]): Option[CgscriptPackage] = {
     if (path.isEmpty) {
       Some(this)
@@ -98,6 +100,10 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
     }
 
+  }
+
+  def lookupMember(id: Symbol): Option[MemberResolution] = {
+    lookupConstantMember(id) orElse lookupClass(id)
   }
 
   def lookupConstantMember(id: Symbol): Option[MemberResolution] = {
