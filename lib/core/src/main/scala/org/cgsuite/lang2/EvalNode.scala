@@ -569,7 +569,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
   override def elaborateImpl(domain: ElaborationDomain) = {
 
     val operandType = operand.ensureElaborated(domain)
-    val opMethod = FunctionCallNode.lookupMethod(operandType, op.id, Vector.empty)
+    val opMethod = FunctionCallNode.lookupMethodWithImplicits(operandType, op.id, Vector.empty)
     // TODO Unary opMethods need to be enforced as having no args
     opMethod match {
       case Some(method) => method.ensureElaborated()
@@ -605,13 +605,15 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
     val operand1Type = operand1.ensureElaborated(domain)
     val operand2Type = operand2.ensureElaborated(domain)
-    val opMethod = FunctionCallNode.lookupMethod(operand1Type, op.baseId, Vector(operand2Type))
+    val opMethod = FunctionCallNode.lookupMethodWithImplicits(operand1Type, op.baseId, Vector(operand2Type))
     val result = opMethod match {
-      case Some(method) => method.ensureElaborated()
+      case Some(method) =>
+        val methodType = method.ensureElaborated()
+        methodType.substituteAll(operand1Type.baseClass.typeParameters zip operand1Type.typeArguments)
       case None => throw EvalException(s"No operation `${op.baseId.name}` for arguments of types `${operand1Type.baseClass.qualifiedName}`, `${operand2Type.baseClass.qualifiedName}`", tree)
     }
     if (op.id != op.baseId) {
-      val opMethod2 = FunctionCallNode.lookupMethod(operand2Type, op.baseId, Vector(operand1Type))
+      val opMethod2 = FunctionCallNode.lookupMethodWithImplicits(operand2Type, op.baseId, Vector(operand1Type))
       val result2 = opMethod2 match {
         case Some(method) => method.ensureElaborated()
         case None => throw EvalException(s"No operation `${op.baseId.name}` for arguments of types `${operand2Type.baseClass.qualifiedName}`, `${operand1Type.baseClass.qualifiedName}`", tree)
@@ -1044,15 +1046,15 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     val ifType = ifNode.ensureElaborated(domain)
     domain.popScope()
 
-    val elseType = elseNode map { node =>
+    val elseTypeOpt = elseNode map { node =>
       domain.pushScope()
       val typ = node.ensureElaborated(domain)
       domain.popScope()
       typ
     }
 
-    elseType match {
-      case Some(typ) => ifType join typ
+    elseTypeOpt match {
+      case Some(elseType) => ifType join elseType
       case _ => ifType
     }
 
@@ -1157,7 +1159,7 @@ case class LoopNode(
 
     inType foreach { typ =>
       if (!(typ matches mostGeneralCollection))
-        sys.error("Need error msg for when in is not a collection")   // TODO
+        throw EvalException(s"Object of type `${typ.qualifiedName}` cannot be expanded as a Collection", in.get.tree)
     }
 
     forId match {
@@ -1452,6 +1454,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
   var elaboratedMember: Member = _
   var isElaboratedAsPackage: Boolean = _
+  var antecedentType: Option[CgscriptType] = _
 
   def resolveAsPackage(domain: ElaborationDomain): Option[CgscriptPackage] = {
 
@@ -1481,6 +1484,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
     }
 
     antecedentPackage map { pkg =>
+      antecedentType = None
       pkg.lookupConstantMember(idNode.id) orElse pkg.lookupClass(idNode.id) getOrElse {
         throw EvalException(s"No symbol `${idNode.id.name}` found in package `${pkg.qualifiedName}`")
       }
@@ -1491,6 +1495,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
   def resolveAsObjectMember(domain: ElaborationDomain): MemberResolution = {
 
     val antecedentType = antecedent.ensureElaborated(domain)
+    this.antecedentType = Some(antecedentType)
 
     antecedentType.baseClass match {
 
@@ -1527,7 +1532,13 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
   def memberToElaboratedType(member: Member) = {
 
     member match {
-      case method: CgscriptClass#Method => method.ensureElaborated()
+      case method: CgscriptClass#Method =>
+        val methodType = method.ensureElaborated()
+        // TODO We need to do type-substitutions for vars and nested classes too.
+        antecedentType match {
+          case Some(typ) => methodType.substituteAll(method.declaringClass.typeParameters zip typ.typeArguments)
+          case None => methodType
+        }
       case variable: CgscriptClass#Var => variable.ensureElaborated()
       case cls: CgscriptClass if cls.isSingleton => CgscriptType(cls)
       case cls: CgscriptClass => CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
@@ -1622,7 +1633,7 @@ object FunctionCallNode {
     FunctionCallNode(tree, callSite, args, argNames)
   }
 
-  def lookupMethod(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
+  def lookupMethodWithImplicits(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
 
     objectType.baseClass.lookupMethod(methodId, argTypes) orElse {
 
@@ -1729,9 +1740,11 @@ case class FunctionCallNode(
     elaboratedMethodGroup match {
 
       case Some(methodGroup) =>
-        val method = methodGroup.lookupMethod(argTypes) getOrElse {
+        val parameterSubstitutions = objectType map { _.typeArguments } getOrElse Vector.empty
+        val method = methodGroup.lookupMethod(argTypes, parameterSubstitutions) getOrElse {
           val argTypesMsg = argTypes map { "`" + _.qualifiedName + "`" } mkString ", "
-          throw EvalException(s"Method `${methodGroup.qualifiedName}` cannot be applied to argument types $argTypesMsg")
+          val objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
+          throw EvalException(s"Method `${methodGroup.name}`$objTypeSuffix cannot be applied to argument types $argTypesMsg")
         }
         elaboratedMethod = Some(method)
         val methodType = method.ensureElaborated()
@@ -1810,7 +1823,7 @@ case class FunctionCallNode(
     s"($functionCode($argsCode))"
 
   }
-  
+
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     val argStr = argNodes map { _.toNodeString } mkString ", "
     if (OperatorPrecedence.Postfix <= enclosingPrecedence)

@@ -49,7 +49,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
 
   def get(coord: Coordinates): Any = {
     if (isInBounds(coord)) {
-      SmallInteger(get(coord.row, coord.col))
+      SmallInteger(get(coord.row.intValue, coord.col.intValue))
     }
     else
       null
@@ -65,7 +65,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   def updated(coord: Coordinates, newValue: Integer): Grid = {
     if (!isInBounds(coord))
       sys.error("out of bounds")
-    updated(coord.row, coord.col, newValue.intValue.toByte)
+    updated(coord.row.intValue, coord.col.intValue, newValue.intValue.toByte)
   }
 
   def updated(coords: scala.collection.Map[Coordinates, Integer]): Grid = {
@@ -74,7 +74,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     val it = coords.iterator
     while (it.hasNext) {
       val (coord, newValue) = it.next()
-      newValues((coord.row-1)*colCount+(coord.col-1)) = newValue.intValue.toByte
+      newValues((coord.row.intValue-1)*colCount+(coord.col.intValue-1)) = newValue.intValue.toByte
     }
     new Grid(rowCount, colCount, newValues)
   }
@@ -96,8 +96,8 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   }
 
   def isInBounds(coord: Coordinates) = {
-    val rowInt = coord.row
-    val colInt = coord.col
+    val rowInt = coord.row.intValue
+    val colInt = coord.col.intValue
     rowInt >= 1 && rowInt <= rowCount && colInt >= 1 && colInt <= colCount
   }
 
@@ -121,7 +121,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   }
 
   def subgrid(northwest: Coordinates, southeast: Coordinates): Grid = {
-    subgrid(northwest.row, southeast.row, northwest.col, southeast.col)
+    subgrid(northwest.row.intValue, southeast.row.intValue, northwest.col.intValue, southeast.col.intValue)
   }
 
   def subgrid(minRow: Int, maxRow: Int, minCol: Int, maxCol: Int): Grid = {
@@ -184,8 +184,8 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
       val it = directions.iterator
       while (it.hasNext) {
         val direction = it.next()
-        if ((i % colCount) + direction.col >= 0 && (i % colCount) + direction.col < colCount) {
-          val newI = i + (direction.row * colCount) + direction.col
+        if ((i % colCount) + direction.col.intValue >= 0 && (i % colCount) + direction.col.intValue < colCount) {
+          val newI = i + (direction.row.intValue * colCount) + direction.col.intValue
           if (newI >= 0 && newI < values.length) {
             markRegion(bv, newI, info, directions)
           }
@@ -196,8 +196,8 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
         // symmetry, but I'm not sure how to fix this without making it even less efficient.
         // (Idea: Introduce the concept of a DirectionSpace or some such with cached info such
         // as symmetric closure. Maybe in a later version.)
-        if ((i % colCount) - direction.col >= 0 && (i % colCount) - direction.col < colCount) {
-          val newI = i - (direction.row * colCount) - direction.col
+        if ((i % colCount) - direction.col.intValue >= 0 && (i % colCount) - direction.col.intValue < colCount) {
+          val newI = i - (direction.row.intValue * colCount) - direction.col.intValue
           if (newI >= 0 && newI < values.length) {
             markRegion(bv, newI, info, directions)
           }

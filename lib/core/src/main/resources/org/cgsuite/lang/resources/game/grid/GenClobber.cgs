@@ -10,43 +10,40 @@ class GenClobber(
   var clobberedAsList := [clobbered[Left], clobbered[Right]];
   var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
 
-  class Position(grid as Grid) extends GridGame
+  override def GridOptions(grid as Grid, player as Player) begin
 
-    override def OptionsFor(player as Player) begin
+    var us := player.Ordinal;
 
-      var us := player.Ordinal;
+    var clob := clobberedAsList[us];
+    var lb := leftBehindAsList[us];
 
-      var clob := clobberedAsList[us];
-      var lb := leftBehindAsList[us];
-
-      for c in grid FindAll us
-      for d in directions
-      for p in ClobberablePoints(c, d, clob)
-      yield
-        Position(grid Updated {c => lb, p => us})
-      end
-
-    end
-
-    override def Decomposition begin
-      if maxDistance == 1 then
-        listof(Position(component) for component in grid.Decomposition(0, directions))
-      else
-        [this]
-      end
-    end
-  
-    def ClobberablePoints(c as Coordinates, d as Coordinates, clob as Collection) begin
-      var n := 1;
-      while n < maxDistance and grid[c+n*d] == 0 do
-        n := n + 1;
-      end
-      if clob Contains grid[c+n*d] then [c+n*d] else [] end
+    for c in grid FindAll us
+    for d in directions
+    for p in ClobberablePoints(grid, c, d, clob)
+    yield
+      grid Updated {c => lb, p => us}
     end
 
   end
 
-  override def CharMap := if clobbered.Values Contains 0 then ".xo#" else ".xo" end;
+  override def GridDecomposition(grid as Grid) begin
+    if maxDistance == 1 then
+      listof(Position(component) for component in grid.Decomposition(0, directions))
+    else
+      [grid]
+    end
+  end
+  
+  def ClobberablePoints(grid as Grid, c as Coordinates, d as Coordinates, clob as Collection of Integer) begin
+    var n := 1;
+    while n < maxDistance and grid[c+n*d] == 0 do
+      n := n + 1;
+    end
+    // TODO This cast should be unnecessary
+    (if clob Contains grid[c+n*d] then [c+n*d] else [] end) as List of Coordinates
+  end
+
+  override def CharMap := if clobbered.Values.Exists(x as Set of Integer -> x Contains 0) then ".xo#" else ".xo" end;
 
   override def Icons begin
   
@@ -63,11 +60,11 @@ class GenClobber(
       end
     end
     
-    if clobbered.Values Contains 0 then
-      [Icon.Blank, bwIcons[1], bwIcons[2], Icon.GraySquare]
-    else
+    //if clobbered.Values Contains 0 then
+    //  [Icon.Blank, bwIcons[1], bwIcons[2], Icon.GraySquare]
+    //else
       [Icon.Blank, bwIcons[1], bwIcons[2]]
-    end
+    //end
         
   end
 

@@ -24,4 +24,15 @@ singleton class constants
   def Tiny(g as CanonicalShortGame) := {0||0|-g};
   def Tiny(g as CanonicalStopper) := {0||0|-g};
 
+  def Max(collection as Collection of Integer) as Integer begin
+    if collection.IsEmpty then 0
+    else
+      var max := collection.Head;
+      for x in collection do
+        max := max Max x
+      end
+      max
+    end
+  end
+
 end

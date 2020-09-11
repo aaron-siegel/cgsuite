@@ -21,6 +21,7 @@ trait Member extends MemberResolution {
       isElaborating = true
       elaboratedResultTypeRef = elaborate()
       isElaborating = false
+      declaringClass logDebug s"Elaborated member `${id.name}` as type `${elaboratedResultTypeRef.qualifiedName}`"
     }
     elaboratedResultTypeRef
   }

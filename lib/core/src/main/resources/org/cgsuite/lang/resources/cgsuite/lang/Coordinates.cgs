@@ -49,6 +49,8 @@ system class Coordinates
 
   external def op*(that as Integer) as Coordinates;
 
+  external def op<=(that as Coordinates) as Boolean;
+
   /** The column of these `Coordinates`. */
   external def Col as Integer;
 

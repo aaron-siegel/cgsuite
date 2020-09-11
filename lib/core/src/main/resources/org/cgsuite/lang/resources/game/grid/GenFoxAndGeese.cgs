@@ -6,31 +6,31 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
     error("`foxRange` must be >= 1.");
   end
 
-  var GeeseMoves := [(-1,-1),(-1,1)];
+  var GeeseMoves := [(-1,-1), (-1,1)];
 
-  override def Eval(geese as Set, fox as Coordinates) begin
+  override def Eval(geese as Set of Coordinates, fox as Coordinates) begin
     ValidateGeese(geese);
     if not IsValidCoordinate(fox) then
-      error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
+      error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even).")
     end
     Position(geese, fox)
   end
 
-  def ValidateGeese(geese as Set) begin
-    if not geese.ForAll(c -> IsValidCoordinate(c)) then
-      error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
+  def ValidateGeese(geese as Set of Coordinates) begin
+    if not geese.ForAll(c as Coordinates -> IsValidCoordinate(c)) then
+      error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even).")
     end
   end
 
-  def IsValidCoordinate(c) begin
-    c is Coordinates and 1 <= c.Row and 1 <= c.Col and c.Col <= boardWidth and (c.Row + c.Col).IsEven
+  def IsValidCoordinate(c as Coordinates) begin
+    1 <= c.Row and 1 <= c.Col and c.Col <= boardWidth and (c.Row + c.Col).IsEven
   end
 
-  class Position(geese as Set, fox as Coordinates) extends Game
+  class Position(geese as Set of Coordinates, fox as Coordinates) extends Game
 
     override def OptionsFor(player as Player) begin
 
-      var next;
+      var next := (0,0);
 
       if player == Right then
         for dir in Coordinates.Diagonal
@@ -43,17 +43,18 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
         for goose in geese
         for dir in FoxAndGeese.GeeseMoves
         where (next := goose + dir) >= (1,1) and next.Col <= boardWidth
-          and next != fox and not geese.Contains(next)
+          and next != fox and not geese Contains next
         yield
-          Position(geese Replaced {goose => next}, fox)
+          var newGeese := geese Apply (x as Coordinates -> if x == goose then next else x end);
+          Position(newGeese, fox)
         end
       end
 
     end
 
-    override def Decomposition begin
+    override def Decomposition as List of Game begin
 
-      var maxGooseRow := geese.Apply(x -> x.Row).Max;
+      var maxGooseRow := Max(geese.Apply(x as Coordinates -> x.Row));
       if fox.Row >= maxGooseRow or
         (fox.Row == maxGooseRow - 1 and
           (fox.Col > 1 and not geese.Contains(fox + (1,-1)) or fox.Col < boardWidth and not geese.Contains(fox + (1,1)))) then
@@ -68,10 +69,10 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
 
   end
 
-  def Table(geese as Set) begin
+  def Table(geese as Set of Coordinates) begin
 
     ValidateGeese(geese);
-    var maxGooseRow := geese.Apply(x -> x.Row).Max;
+    var maxGooseRow := Max(geese.Apply(x as Coordinates -> x.Row));
     tableof(listof(
       if geese Contains (row,col) then
         "X"

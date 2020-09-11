@@ -17,8 +17,8 @@ object UniversalOrdering extends Ordering[Any] {
       case (_, _: CanonicalShortGame) => 1
       case (g: MisereCanonicalGame, h: MisereCanonicalGame) => MisereCanonicalGame.DeterministicOrdering.compare(g, h)
       case (a: Coordinates, b: Coordinates) =>
-        val cmp = a.row - b.row
-        if (cmp == 0) a.col - b.col else cmp
+        val cmp = compare(a.row, b.row)
+        if (cmp == 0) compare(a.col, b.col) else cmp
       case (a: (_,_), b: (_,_)) =>
         val cmp = compare(a._1, b._1)
         if (cmp == 0) compare(a._2, b._2) else cmp

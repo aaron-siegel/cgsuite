@@ -1,11 +1,11 @@
 /*${cgsuite.banner}*/
 
-system class System
+singleton system class System
 
-  external static def ClearAll();
+  external def ClearAll() as Nothing;
 
-  external static def Error(msg as String);
+  external def Error(msg as String) as Nothing;
 
-  external static def Print(obj);
+  external def Print(obj) as Nothing;
 
 end

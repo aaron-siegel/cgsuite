@@ -2,7 +2,7 @@ package org.cgsuite.lang2
 
 import org.cgsuite.core._
 import org.cgsuite.lang.CgscriptClass
-import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.output.{EmptyOutput, StyledTextOutput}
 
 object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
@@ -15,6 +15,8 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
   implicit def integerToInt(x: Integer): Int = x.intValue
 
   implicit def universalOrdering[T]: Ordering[T] = UniversalOrdering.asInstanceOf[Ordering[T]]
+
+  implicit def unitToRichUnit(unit: Unit): RichUnit.type = RichUnit
 
 }
 
@@ -41,5 +43,11 @@ case class RichList[T](list: IndexedSeq[T]) {
       output appendMath parens.substring(1, 2)
     output
   }
+
+}
+
+object RichUnit {
+
+  def toOutput = EmptyOutput
 
 }

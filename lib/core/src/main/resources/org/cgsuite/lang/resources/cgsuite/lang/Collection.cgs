@@ -7,6 +7,8 @@ system class Collection of `T
   external def Apply(fn as Procedure of (`T,`R)) as Collection of `R;
   //def Apply(fn as Procedure of (`T,`R)) as Collection of `R := error("Subclasses of `Collection` must override method `Apply`");
 
+  external def Contains(element as `T) as Boolean;
+
   /** Returns `true` if there exists an element in this collection
     * that satisfies the specified predicate.
     * `predicate` must be a [[Boolean]]-valued procedure.

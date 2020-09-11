@@ -6,8 +6,6 @@ system class List of `T extends Collection
 
   external override def Apply(fn as Procedure of (`T,`R)) as List of `R; // := listof(fn(x) for x in this);
 
-  external def Contains(x) as Boolean;
-
   external def Grouped(n as Integer) as List of List of `T;
 
   external def Length as Integer;

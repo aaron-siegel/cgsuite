@@ -1405,6 +1405,7 @@ class CgscriptClass(
     val scalaName = methodName match {
       case "Apply" if isExternal => "map"
       case "Class" => "_class"
+      case "ForAll" => "forall"
       case _ => methodName.updated(0, methodName.charAt(0).toLower)
     }
     val declaringClass = thisClass
@@ -1583,6 +1584,8 @@ class CgscriptClass(
     val isPureAutoinvoke = methods.size == 1 && methods.head.autoinvoke
 
     val autoinvokeMethod = methods find { _.autoinvoke }
+
+    def name = methods.head.methodName
 
     def qualifiedName = methods.head.qualifiedName
 

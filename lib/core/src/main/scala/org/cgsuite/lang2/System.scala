@@ -3,7 +3,6 @@ package org.cgsuite.lang2
 import org.cgsuite.exception.EvalException
 import org.cgsuite.util.UiHarness
 
-
 object System {
 
   def clearAll(): Unit = {
@@ -17,4 +16,4 @@ object System {
 
 }
 
-private class System
+class System

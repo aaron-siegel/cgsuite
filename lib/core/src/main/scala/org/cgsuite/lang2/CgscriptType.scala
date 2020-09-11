@@ -119,10 +119,10 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
       case 0 => baseName
       case 1 =>
         val typeParamName = typeArguments.head.qualifiedName
-        s"$typeParamName $baseName"
+        s"$baseName of $typeParamName"
       case _ =>
         val typeParamNames = typeArguments map { _.qualifiedName } mkString ", "
-        s"($typeParamNames) $baseName"
+        s"$baseName of ($typeParamNames)"
 
     }
 
@@ -158,7 +158,7 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
     assert(instanceType.baseClass.ancestors contains baseClass, (this, instanceType))
 
     // TODO We need to properly manifest derived types as their generified ancestors
-    assert(instanceType.typeArguments.length == typeArguments.length)
+    assert(instanceType.typeArguments.length == typeArguments.length, (instanceType, typeArguments))
     val nestedSubstitutions = typeArguments zip instanceType.typeArguments flatMap { case (thisTypeArgument, thatTypeArgument) =>
       thisTypeArgument.unboundTypeSubstitutions(thatTypeArgument)
     }
