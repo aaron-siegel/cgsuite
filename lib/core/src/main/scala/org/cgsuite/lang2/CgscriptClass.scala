@@ -124,7 +124,8 @@ class CgscriptClass(
   val systemClass: Option[Class[_]] = None
   ) extends Member with LazyLogging { thisClass =>
 
-  private[cgsuite] def logDebug(message: => String): Unit = logger debug s"$logPrefix $message"
+  ///////////////////////////////////////////////////////////////
+  // Basic properties derivable without parsing
 
   val classOrdinal: Int = CgscriptClass.newClassOrdinal
 
@@ -199,22 +200,11 @@ class CgscriptClass(
 
   private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
-  logDebug(s"Formed new class with classdef: $classdef")
+  private[cgsuite] def logDebug(message: => String): Unit = logger debug s"$logPrefix $message"
 
-  private var stage: LifecycleStage.Value = LifecycleStage.New
-  private var classDeclarationNode: ClassDeclarationNode = _
-  private var classInfoRef: ClassInfo = _
-
-  override def elaborate() = sys.error("use ensureElaborated()")
-
-  override def ensureElaborated() = {
-
-    classInfo.constructorParamVars foreach { _.ensureElaborated() }
-    classInfo.allMembers foreach { _.ensureElaborated() }
-    classInfo.localNestedClasses.values foreach { _.ensureElaborated() }
-    CgscriptType(this, typeParameters)
-
-  }
+  ///////////////////////////////////////////////////////////////
+  // ClassInfo properties and lookups
+  // (available after phase 1 declaration)
 
   def classInfo: ClassInfo = {
     if (stage == LifecycleStage.DeclaringPhase1)
@@ -250,9 +240,188 @@ class CgscriptClass(
 
   def typeParameters: Vector[TypeVariable] = classInfo.typeParameters
 
-  lazy val mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
+  def mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
 
   def <=(that: CgscriptClass) = ancestors contains that
+
+  def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
+    classInfo.classVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
+  }
+
+  def lookupStaticVar(id: Symbol): Option[CgscriptClass#Var] = {
+    classInfo.staticVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
+  }
+
+  def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
+    classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
+  }
+
+  def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
+    val allMethods = lookupMethods(id)
+    val argumentTypeList = CgscriptTypeList(argumentTypes)
+    val matchingMethods = allMethods filter { method =>
+      val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
+      argumentTypeList <= substitutedParameterTypeList
+    }
+    val reducedMatchingMethods = reduceMethodList(matchingMethods)
+    if (reducedMatchingMethods.size >= 2) {
+      val argTypeNames = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+      reducedMatchingMethods foreach { m => println(m.qualifiedName) }
+      throw EvalException(s"Method `${id.name}` of class `$qualifiedName` is ambiguous when applied to $argTypeNames")
+    }
+    reducedMatchingMethods.headOption
+  }
+
+  def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {
+    methods filterNot { method =>
+      methods exists { other =>
+        method != other && other.parameterTypeList <= method.parameterTypeList
+      }
+    }
+  }
+
+  def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
+    classInfo.allNestedClassesInScope.get(id)
+  }
+
+  def lookupInstanceMember(id: Symbol): Option[MemberResolution] = {
+
+    classInfo.allMethodsInScope get id match {
+      // TODO If one is static, all should be static? Or put them in separate method groups
+      case Some(methods) if methods.head.isStatic => None
+      case Some(methods) => Some(MethodGroup(id, methods))
+      case None => lookupVar(id) orElse lookupNestedClass(id)
+    }
+
+  }
+
+  def lookupStaticMember(id: Symbol): Option[MemberResolution] = {
+
+    classInfo.allMethodsInScope get id match {
+      case Some(methods) if methods.head.isStatic => Some(MethodGroup(id, methods))
+      case Some(_) => None
+      case None => lookupStaticVar(id) orElse classInfo.enumElements.find { _.id == id }    // TODO Static nested class?
+    }
+
+  }
+
+  ///////////////////////////////////////////////////////////////
+  // Lifecycle management
+
+  logDebug(s"Formed new class with classdef: $classdef")
+
+  private var stage: LifecycleStage.Value = LifecycleStage.New
+  private var classDeclarationNode: ClassDeclarationNode = _
+  private var classInfoRef: ClassInfo = _
+
+  def ensureDeclared(): Unit = {
+    ensureDeclaredPhase1()
+    ensureDeclaredPhase2()
+  }
+
+  def isDeclaredPhase1: Boolean = classInfoRef != null
+
+  def ensureDeclaredPhase1(): Unit = {
+    enclosingClass match {
+      case Some(cls) => cls.ensureDeclaredPhase1()
+      case None =>
+        stage match {
+          case LifecycleStage.New | LifecycleStage.Unloaded => declarePhase1()
+          case _ =>   // Nothing to do
+        }
+    }
+  }
+
+  private def declarePhase1(): Unit = {
+
+    logDebug(s"Declaring class (phase 1).")
+
+    if (stage == LifecycleStage.DeclaringPhase1) {
+      // TODO Better error message/handling here?
+      sys.error("circular class definition?: " + qualifiedName)
+    }
+
+    // Force constants to declare first
+    pkg lookupClass 'constants foreach { constantsCls =>
+      if (constantsCls != this) {
+        constantsCls.ensureDeclaredPhase1()
+      }
+    }
+
+    val tree = parse()
+
+    logDebug(s"Parsed class.")
+
+    stage = LifecycleStage.DeclaringPhase1
+
+    try {
+
+      tree.getType match {
+
+        case SCRIPT =>
+          val node = StatementSequenceNode(tree.children.head)
+          logDebug(s"Script Node: $node")
+          declareScriptPhase1(node)
+
+        case EOF =>
+          val node = ClassDeclarationNode(tree.children(1), pkg)
+          logDebug(s"Class Node: $node")
+          declareClassPhase1(node)
+
+      }
+
+    } finally {
+
+      // If an exception occurred, we want to treat this class as Unloaded
+      stage = LifecycleStage.Unloaded
+
+    }
+
+    stage = LifecycleStage.DeclaredPhase1
+
+    logger debug s"$logPrefix Done declaring (phase 1)."
+
+  }
+
+  def ensureDeclaredPhase2(): Unit = {
+    enclosingClass match {
+      case Some(cls) => cls.ensureDeclaredPhase2()
+      case None =>
+        stage match {
+          case LifecycleStage.DeclaredPhase1 => declarePhase2()
+          case _ =>   // Nothing to do
+        }
+    }
+  }
+
+  private def declarePhase2(): Unit = {
+
+    assert(classInfoRef != null, this)
+
+    classInfoRef.supers foreach { _.ensureDeclaredPhase2() }
+
+    // Declare nested classes
+    classDeclarationNode.nestedClassDeclarations foreach { decl =>
+      val id = decl.idNode.id
+      classInfoRef.localNestedClasses(id).declareClassPhase1(decl)
+    }
+
+    //validateClass()
+
+    stage = LifecycleStage.Declared
+
+  }
+
+  override def elaborate() = sys.error("use ensureElaborated()")
+
+  override def ensureElaborated() = {
+
+    classInfo.constructorParamVars foreach { _.ensureElaborated() }
+    classInfo.allMembers foreach { _.ensureElaborated() }
+    classInfo.localNestedClasses.values foreach { _.ensureElaborated() }
+    CgscriptType(this, typeParameters)
+
+  }
 
   override def mentionedClasses = {
 
@@ -263,6 +432,27 @@ class CgscriptClass(
       (classInfo.localNestedClasses.values flatMap { _.mentionedClasses }) :+
       this
     // TODO Initializers?
+
+  }
+
+  def ensureCompiled(eval: IMain): Unit = {
+
+    stage match {
+
+      case LifecycleStage.New | LifecycleStage.DeclaredPhase1 | LifecycleStage.Declared | LifecycleStage.Unloaded =>
+        enclosingClass match {
+          case Some(cls) => cls.ensureCompiled(eval)    // TODO What if no longer exists?
+          case _ =>
+            ensureDeclared()
+            compile(eval)
+        }
+
+      case LifecycleStage.DeclaringPhase1 | LifecycleStage.DeclaringPhase2 =>
+        assert(assertion = false, stage)
+
+      case LifecycleStage.Loaded =>
+
+    }
 
   }
 
@@ -309,447 +499,10 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
-  def lookupInstanceMember(id: Symbol): Option[MemberResolution] = {
+  ///////////////////////////////////////////////////////////////
+  // Parsing and declaration
 
-    classInfo.allMethodsInScope get id match {
-      // TODO If one is static, all should be static? Or put them in separate method groups
-      case Some(methods) if methods.head.isStatic => None
-      case Some(methods) => Some(MethodGroup(id, methods))
-      case None => lookupVar(id) orElse lookupNestedClass(id)
-    }
-
-  }
-
-  def lookupStaticMember(id: Symbol): Option[MemberResolution] = {
-
-    classInfo.allMethodsInScope get id match {
-      case Some(methods) if methods.head.isStatic => Some(MethodGroup(id, methods))
-      case Some(_) => None
-      case None => lookupStaticVar(id) orElse classInfo.enumElements.find { _.id == id }    // TODO Static nested class?
-    }
-
-  }
-
-  def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
-    classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
-  }
-
-  def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
-    val allMethods = lookupMethods(id)
-    val argumentTypeList = CgscriptTypeList(argumentTypes)
-    val matchingMethods = allMethods filter { method =>
-      val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
-      argumentTypeList <= substitutedParameterTypeList
-    }
-    val reducedMatchingMethods = reduceMethodList(matchingMethods)
-    if (reducedMatchingMethods.size >= 2) {
-      val argTypeNames = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
-      reducedMatchingMethods foreach { m => println(m.qualifiedName) }
-      throw EvalException(s"Method `${id.name}` of class `$qualifiedName` is ambiguous when applied to $argTypeNames")
-    }
-    reducedMatchingMethods.headOption
-  }
-
-  def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {
-    methods filterNot { method =>
-      methods exists { other =>
-        method != other && other.parameterTypeList <= method.parameterTypeList
-      }
-    }
-  }
-
-  def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
-    classInfo.allNestedClassesInScope.get(id)
-  }
-
-  def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
-    classInfo.classVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
-  }
-
-  def lookupStaticVar(id: Symbol): Option[CgscriptClass#Var] = {
-    classInfo.staticVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
-  }
-
-  /*
-  def lookupMember(id: Symbol): Option[Member] = {
-    ensureDeclared()
-    lookupMethod(id) orElse lookupNestedClass(id) orElse lookupVar(id)
-  }
-  */
-  def ensureDeclared(): Unit = {
-    ensureDeclaredPhase1()
-    ensureDeclaredPhase2()
-  }
-
-  def isDeclaredPhase1: Boolean = classInfoRef != null
-
-  def ensureDeclaredPhase1(): Unit = {
-    enclosingClass match {
-      case Some(cls) => cls.ensureDeclaredPhase1()
-      case None =>
-        stage match {
-          case LifecycleStage.New | LifecycleStage.Unloaded => declarePhase1()
-          case _ =>   // Nothing to do
-        }
-    }
-  }
-
-  def ensureDeclaredPhase2(): Unit = {
-    enclosingClass match {
-      case Some(cls) => cls.ensureDeclaredPhase2()
-      case None =>
-        stage match {
-          case LifecycleStage.DeclaredPhase1 => declarePhase2()
-          case _ =>   // Nothing to do
-        }
-    }
-  }
-
-  def ensureCompiled(eval: IMain): Unit = {
-
-    stage match {
-
-      case LifecycleStage.New | LifecycleStage.DeclaredPhase1 | LifecycleStage.Declared | LifecycleStage.Unloaded =>
-        enclosingClass match {
-          case Some(cls) => cls.ensureCompiled(eval)    // TODO What if no longer exists?
-          case _ =>
-            ensureDeclared()
-            compile(eval)
-        }
-
-      case LifecycleStage.DeclaringPhase1 | LifecycleStage.DeclaringPhase2 =>
-        assert(assertion = false, stage)
-
-      case LifecycleStage.Loaded =>
-
-    }
-
-  }
-
-  private def compile(eval: IMain): Unit = {
-
-    val context = new CompileContext
-    val classesCompiling = mutable.HashSet[CgscriptClass]()
-    val sb = new StringBuilder
-
-    includeInCompilationUnit(context, classesCompiling, sb)
-
-    if (CgscriptSystem.isDebug)
-      println(sb.toString)
-
-    eval.interpret(sb.toString)
-
-    classesCompiling foreach { compiledClass =>
-      compiledClass.stage = LifecycleStage.Loaded
-    }
-
-  }
-
-  private def includeInCompilationUnit(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
-
-    enclosingClass match {
-
-      case Some(cls) =>
-        cls.includeInCompilationUnit(context, classesCompiling, sb)
-        return
-
-      case _ =>
-
-    }
-
-    if (stage == LifecycleStage.Loaded || (classesCompiling contains this))
-      return
-
-    if (this == CgscriptClass.NothingClass)
-      return
-
-    classesCompiling += this
-    ensureElaborated()
-    appendScalaCode(context, classesCompiling, sb)
-
-    // Compile all mentioned classes that have not yet been compiled.
-    mentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, sb) }
-
-  }
-
-  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
-
-    logger debug s"$logPrefix Generating compiled code."
-
-    val nonObjectSupers = classInfo.supers filterNot { _ == CgscriptClass.Object } map { _.scalaTyperefName }
-    val extendsClause = (nonObjectSupers :+ "org.cgsuite.lang2.CgscriptObject") mkString " with "
-    val enclosingClause = if (this == topClass) " enclosingObject =>"
-
-    val genericTypeParametersBlock = {
-      if (typeParameters.isEmpty) {
-        ""
-      } else {
-        val typeParametersString = typeParameters map { _.scalaTypeName } mkString ", "
-        s"[$typeParametersString]"
-      }
-    }
-
-    // Generate code.
-    if (isSingleton)
-      sb append s"case object $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
-    else
-      sb append s"object $scalaClassdefName {\n\n"
-
-    sb append s"""  val _class = $classLocatorCode\n\n"""
-
-    if (constructor.isDefined) {
-
-      // Class is instantiable.
-      assert(!isSingleton, this)
-      sb append "def apply("
-      sb append (
-        classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
-      )
-      val applicatorName = if (isSystem) scalaTyperefName else s"$scalaClassdefName$$Impl"
-      sb append s") = $applicatorName("
-      sb append (
-        classInfo.constructorParamVars map { parameter =>
-          parameter.id.name
-        } mkString ", "
-        )
-      sb append ")\n\n"
-
-    }
-
-    val companionObjectVars = {
-      if (isSingleton)
-        classInfo.localClassVars
-      else
-        classInfo.staticVars
-    }
-
-    companionObjectVars foreach { variable =>
-      sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
-      variable.initializerNode foreach { node =>
-        sb append node.toScalaCode(context)
-      }
-      sb append "\n}\n\n"
-    }
-
-    val companionObjectMethods = {
-      if (isSingleton)
-        classInfo.localMethods
-      else
-        Vector.empty //classInfo.staticMethods
-    }
-
-    val companionObjectUserMethods = companionObjectMethods collect { case method: UserMethod => method }
-
-    companionObjectUserMethods foreach { method =>
-
-      val overrideSpec = if (method.isOverride) "override " else ""
-      sb append s"${overrideSpec}def ${method.scalaName}"
-      if (!method.autoinvoke) {
-        sb append "("
-        sb append (
-          method.parameters map { _.toScalaCode(context) } mkString ", "
-        )
-        sb append ")"
-      }
-      sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
-
-      sb append method.body.toScalaCode(context)
-
-      sb append "\n}\n\n"
-
-    }
-
-    if (isEnum && !isSystem) {
-      classInfo.enumElements.zipWithIndex foreach { case(enumElement, ordinal) =>
-        val literal = enumElement.id.name
-        sb append
-          s"""val $literal = new $scalaClassdefName($ordinal, "$literal")
-             |""".stripMargin
-      }
-    }
-
-    sb append "}\n\n"
-
-    if (isEnum && !isSystem) {
-
-      sb append
-        s"""case class $scalaClassdefName(ordinal: Int, literal: String) extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
-           |  override def toString = "$nameInPackage." + literal
-           |  override def _class = $scalaClassdefName._class
-           |}
-           |""".stripMargin
-
-    } else if (!isSingleton && this != CgscriptClass.Object) {
-
-      if (isSystem) {
-        sb append
-          s"""case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock)
-             |  extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
-             |
-             |  override def _class = $scalaClassdefName._class
-             |  override def toOutput: org.cgsuite.output.Output = org.cgsuite.lang2.CgscriptClass.instanceToOutput(_instance)
-             |\n""".stripMargin
-      } else {
-        sb append s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
-      }
-
-      if (!isSystem) {
-        classInfo.constructorParamVars foreach { parameter =>
-          sb append s"def ${parameter.id.name}: ${parameter.ensureElaborated().scalaTypeName}\n\n"
-        }
-      }
-
-      classInfo.localClassVars foreach { variable =>
-        sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
-        variable.initializerNode foreach { node =>
-          sb append node.toScalaCode(context)
-        }
-        sb append "\n}\n\n"
-      }
-
-      val userMethods = classInfo.localMethods collect { case method: UserMethod => method }
-
-      userMethods foreach { method =>
-
-        val overrideSpec = if (method.isOverride) "override " else ""
-        sb append s"${overrideSpec}def ${method.scalaName}"
-        // TODO This may not work for nested classes (we'd need a recursive way to capture bound type parameters)
-        val allTypeParameters = method.parameters flatMap { _.paramType.allTypeVariables }
-        val unboundTypeParameters = allTypeParameters.toSet -- thisClass.typeParameters
-        if (unboundTypeParameters.nonEmpty) {
-          sb append "["
-          sb append (unboundTypeParameters map { _.scalaTypeName } mkString ", ")
-          sb append "]"
-        }
-        if (!method.autoinvoke) {
-          sb append "("
-          sb append (
-            method.parameters map { _.toScalaCode(context) } mkString ", "
-          )
-          sb append ")"
-        }
-        sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
-
-        sb append method.body.toScalaCode(context)
-
-        sb append "\n}\n\n"
-
-      }
-
-      classInfo.localNestedClasses.values foreach { _.appendScalaCode(context, classesCompiling, sb) }
-
-      sb append "}\n\n"
-
-      if (constructor.isDefined && !isSystem) {
-
-        // Class is instantiable.
-
-        sb append s"case class $scalaClassdefName$$Impl("
-        sb append (
-          classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
-          )
-        sb append ")\n"
-        sb append
-          s"""  extends $scalaClassdefName {$enclosingClause
-             |
-             |    override def _class = $scalaClassdefName._class
-             |
-             |}
-             |\n""".stripMargin
-
-      }
-
-    }
-
-    // Implicit conversion for enriched system types
-    if (isSystem && this != CgscriptClass.Object) {
-
-      sb append
-        s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
-           |  $scalaClassdefName(_instance)
-           |}
-
-           """.stripMargin
-
-    }
-
-  }
-
-  def classLocatorCode: String = {
-    enclosingClass match {
-      case Some(cls) => cls.classLocatorCode + s""".lookupNestedClass(Symbol("$name")).get"""
-      case None => s"""org.cgsuite.lang2.CgscriptPackage.lookupClassByName("$qualifiedName").get"""
-    }
-  }
-
-  private def declarePhase1(): Unit = {
-
-    logger debug s"$logPrefix Declaring (phase 1)."
-
-    if (stage == LifecycleStage.DeclaringPhase1) {
-      // TODO Better error message/handling here?
-      sys.error("circular class definition?: " + qualifiedName)
-    }
-
-    // Force constants to declare first
-    pkg lookupClass 'constants foreach { constantsCls =>
-      if (constantsCls != this) constantsCls.ensureDeclaredPhase1()
-    }
-
-    val tree = parseTree()
-
-    logger debug s"$logPrefix Parsed class: ${tree.toStringTree}"
-
-    stage = LifecycleStage.DeclaringPhase1
-
-    try {
-
-      tree.getType match {
-
-        case SCRIPT =>
-          val node = StatementSequenceNode(tree.children.head)
-          logger debug s"$logPrefix Script Node: $node"
-          declareScript(node)
-
-        case EOF =>
-          val node = ClassDeclarationNode(tree.children(1), pkg)
-          logger debug s"$logPrefix Class Node: $node"
-          declareClass(node)
-
-      }
-
-    } finally {
-
-      // If an exception occurred, we want to treat this class as Unloaded
-      stage = LifecycleStage.Unloaded
-
-    }
-
-    stage = LifecycleStage.DeclaredPhase1
-
-    logger debug s"$logPrefix Done declaring (phase 1)."
-
-  }
-
-  private def declarePhase2(): Unit = {
-
-    assert(classInfoRef != null, this)
-
-    classInfoRef.supers foreach { _.ensureDeclaredPhase2() }
-
-    // Declare nested classes
-    classDeclarationNode.nestedClassDeclarations foreach { decl =>
-      val id = decl.idNode.id
-      classInfoRef.localNestedClasses(id).declareClass(decl)
-    }
-
-    //validateClass()
-
-    stage = LifecycleStage.Declared
-
-  }
-
-  private def parseTree(): Tree = {
+  private def parse(): Tree = {
 
     val (in, source) = classdef match {
 
@@ -774,14 +527,14 @@ class CgscriptClass(
 
   }
 
-  private def declareScript(node: StatementSequenceNode): Unit = {
+  private def declareScriptPhase1(node: StatementSequenceNode): Unit = {
 
     classDeclarationNode = null
     classInfoRef = null
 
   }
 
-  private def declareClass(node: ClassDeclarationNode): Unit = {
+  private def declareClassPhase1(node: ClassDeclarationNode): Unit = {
 
     logger debug s"$logPrefix Declaring class."
 
@@ -1348,6 +1101,265 @@ class CgscriptClass(
       }
     }
 
+  }
+
+  ///////////////////////////////////////////////////////////////
+  // Compilation (Scala code generation)
+
+  private def compile(eval: IMain): Unit = {
+
+    val context = new CompileContext
+    val classesCompiling = mutable.HashSet[CgscriptClass]()
+    val sb = new StringBuilder
+
+    includeInCompilationUnit(context, classesCompiling, sb)
+
+    if (CgscriptSystem.isDebug)
+      println(sb.toString)
+
+    eval.interpret(sb.toString)
+
+    classesCompiling foreach { compiledClass =>
+      compiledClass.stage = LifecycleStage.Loaded
+    }
+
+  }
+
+  private def includeInCompilationUnit(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+
+    enclosingClass match {
+
+      case Some(cls) =>
+        cls.includeInCompilationUnit(context, classesCompiling, sb)
+        return
+
+      case _ =>
+
+    }
+
+    if (stage == LifecycleStage.Loaded || (classesCompiling contains this))
+      return
+
+    if (this == CgscriptClass.NothingClass)
+      return
+
+    classesCompiling += this
+    ensureElaborated()
+    appendScalaCode(context, classesCompiling, sb)
+
+    // Compile all mentioned classes that have not yet been compiled.
+    mentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, sb) }
+
+  }
+
+  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+
+    logger debug s"$logPrefix Generating compiled code."
+
+    val nonObjectSupers = classInfo.supers filterNot { _ == CgscriptClass.Object } map { _.scalaTyperefName }
+    val extendsClause = (nonObjectSupers :+ "org.cgsuite.lang2.CgscriptObject") mkString " with "
+    val enclosingClause = if (this == topClass) " enclosingObject =>"
+
+    val genericTypeParametersBlock = {
+      if (typeParameters.isEmpty) {
+        ""
+      } else {
+        val typeParametersString = typeParameters map { _.scalaTypeName } mkString ", "
+        s"[$typeParametersString]"
+      }
+    }
+
+    // Generate code.
+    if (isSingleton)
+      sb append s"case object $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
+    else
+      sb append s"object $scalaClassdefName {\n\n"
+
+    sb append s"""  val _class = $classLocatorCode\n\n"""
+
+    if (constructor.isDefined) {
+
+      // Class is instantiable.
+      assert(!isSingleton, this)
+      sb append "def apply("
+      sb append (
+        classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
+        )
+      val applicatorName = if (isSystem) scalaTyperefName else s"$scalaClassdefName$$Impl"
+      sb append s") = $applicatorName("
+      sb append (
+        classInfo.constructorParamVars map { parameter =>
+          parameter.id.name
+        } mkString ", "
+        )
+      sb append ")\n\n"
+
+    }
+
+    val companionObjectVars = {
+      if (isSingleton)
+        classInfo.localClassVars
+      else
+        classInfo.staticVars
+    }
+
+    companionObjectVars foreach { variable =>
+      sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
+      variable.initializerNode foreach { node =>
+        sb append node.toScalaCode(context)
+      }
+      sb append "\n}\n\n"
+    }
+
+    val companionObjectMethods = {
+      if (isSingleton)
+        classInfo.localMethods
+      else
+        Vector.empty //classInfo.staticMethods
+    }
+
+    val companionObjectUserMethods = companionObjectMethods collect { case method: UserMethod => method }
+
+    companionObjectUserMethods foreach { method =>
+
+      val overrideSpec = if (method.isOverride) "override " else ""
+      sb append s"${overrideSpec}def ${method.scalaName}"
+      if (!method.autoinvoke) {
+        sb append "("
+        sb append (
+          method.parameters map { _.toScalaCode(context) } mkString ", "
+          )
+        sb append ")"
+      }
+      sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
+
+      sb append method.body.toScalaCode(context)
+
+      sb append "\n}\n\n"
+
+    }
+
+    if (isEnum && !isSystem) {
+      classInfo.enumElements.zipWithIndex foreach { case(enumElement, ordinal) =>
+        val literal = enumElement.id.name
+        sb append
+          s"""val $literal = new $scalaClassdefName($ordinal, "$literal")
+             |""".stripMargin
+      }
+    }
+
+    sb append "}\n\n"
+
+    if (isEnum && !isSystem) {
+
+      sb append
+        s"""case class $scalaClassdefName(ordinal: Int, literal: String) extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
+           |  override def toString = "$nameInPackage." + literal
+           |  override def _class = $scalaClassdefName._class
+           |}
+           |""".stripMargin
+
+    } else if (!isSingleton && this != CgscriptClass.Object) {
+
+      if (isSystem) {
+        sb append
+          s"""case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock)
+             |  extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
+             |
+             |  override def _class = $scalaClassdefName._class
+             |  override def toOutput: org.cgsuite.output.Output = org.cgsuite.lang2.CgscriptClass.instanceToOutput(_instance)
+             |\n""".stripMargin
+      } else {
+        sb append s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
+      }
+
+      if (!isSystem) {
+        classInfo.constructorParamVars foreach { parameter =>
+          sb append s"def ${parameter.id.name}: ${parameter.ensureElaborated().scalaTypeName}\n\n"
+        }
+      }
+
+      classInfo.localClassVars foreach { variable =>
+        sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
+        variable.initializerNode foreach { node =>
+          sb append node.toScalaCode(context)
+        }
+        sb append "\n}\n\n"
+      }
+
+      val userMethods = classInfo.localMethods collect { case method: UserMethod => method }
+
+      userMethods foreach { method =>
+
+        val overrideSpec = if (method.isOverride) "override " else ""
+        sb append s"${overrideSpec}def ${method.scalaName}"
+        // TODO This may not work for nested classes (we'd need a recursive way to capture bound type parameters)
+        val allTypeParameters = method.parameters flatMap { _.paramType.allTypeVariables }
+        val unboundTypeParameters = allTypeParameters.toSet -- thisClass.typeParameters
+        if (unboundTypeParameters.nonEmpty) {
+          sb append "["
+          sb append (unboundTypeParameters map { _.scalaTypeName } mkString ", ")
+          sb append "]"
+        }
+        if (!method.autoinvoke) {
+          sb append "("
+          sb append (
+            method.parameters map { _.toScalaCode(context) } mkString ", "
+            )
+          sb append ")"
+        }
+        sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
+
+        sb append method.body.toScalaCode(context)
+
+        sb append "\n}\n\n"
+
+      }
+
+      classInfo.localNestedClasses.values foreach { _.appendScalaCode(context, classesCompiling, sb) }
+
+      sb append "}\n\n"
+
+      if (constructor.isDefined && !isSystem) {
+
+        // Class is instantiable.
+
+        sb append s"case class $scalaClassdefName$$Impl("
+        sb append (
+          classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
+          )
+        sb append ")\n"
+        sb append
+          s"""  extends $scalaClassdefName {$enclosingClause
+             |
+             |    override def _class = $scalaClassdefName._class
+             |
+             |}
+             |\n""".stripMargin
+
+      }
+
+    }
+
+    // Implicit conversion for enriched system types
+    if (isSystem && this != CgscriptClass.Object) {
+
+      sb append
+        s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
+           |  $scalaClassdefName(_instance)
+           |}
+
+           """.stripMargin
+
+    }
+
+  }
+
+  def classLocatorCode: String = {
+    enclosingClass match {
+      case Some(cls) => cls.classLocatorCode + s""".lookupNestedClass(Symbol("$name")).get"""
+      case None => s"""org.cgsuite.lang2.CgscriptPackage.lookupClassByName("$qualifiedName").get"""
+    }
   }
 
   case class Var(
