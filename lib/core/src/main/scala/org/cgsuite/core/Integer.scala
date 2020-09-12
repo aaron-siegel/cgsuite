@@ -9,6 +9,7 @@ package org.cgsuite.core
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
 import org.cgsuite.exception.{ArithmeticException, EvalException}
+import org.cgsuite.util.Coordinates
 
 object Integer {
   
@@ -119,6 +120,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def *(other: CanonicalShortGame): CanonicalShortGame = other.nCopies(this)
   def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
   def *(other: SidedValue): SidedValue = other.nCopies(this)
+  def *(other: Coordinates): Coordinates = other * this
   def *(g: Game): CompoundGame = CompoundGame(ConwayProduct, this, g)
 
   override def exp(exponent: Integer) = super[DyadicRationalNumber].exp(exponent)

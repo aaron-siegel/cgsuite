@@ -1,7 +1,6 @@
 package org.cgsuite.lang2
 
 import java.io.{ByteArrayInputStream, File}
-import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.nio.charset.StandardCharsets
 
@@ -9,15 +8,13 @@ import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
-import org.cgsuite.exception.{CgsuiteException, EvalException}
+import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output._
-import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
-import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.{existentials, postfixOps}
 import scala.tools.nsc.interpreter.IMain
@@ -166,7 +163,7 @@ class CgscriptClass(
 
   val scalaClassdefName: String = {
     if (qualifiedName == "cgsuite.lang.Nothing")
-      "Nothing"
+      "Null"
     else {
       enclosingClass match {
         case Some(_) => nameAsFullyScopedMember
@@ -177,7 +174,7 @@ class CgscriptClass(
 
   val scalaTyperefName: String = {
     qualifiedName match {
-      case "cgsuite.lang.Nothing" => "Nothing"
+      case "cgsuite.lang.Nothing" => "Null"
       case "cgsuite.lang.Boolean" => "Boolean"
       case _ =>
         systemClass match {
@@ -188,6 +185,13 @@ class CgscriptClass(
               case None => scalaClassdefName
             }
         }
+    }
+  }
+
+  val scalaClassrefName: String = {
+    qualifiedName match {
+      case "cgsuite.lang.Nothing" => "null"
+      case _ => scalaTyperefName
     }
   }
 

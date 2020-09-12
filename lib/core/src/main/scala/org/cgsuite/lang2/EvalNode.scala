@@ -460,7 +460,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
         else
           variable.declaringClass.scalaClassdefName + "." + variable.id.name
 
-      case Some(cls: CgscriptClass) => cls.scalaTyperefName
+      case Some(cls: CgscriptClass) => cls.scalaClassrefName
 
       case None => sys.error("this should have been caught during elaboration")
 
@@ -1055,7 +1055,7 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
 
     elseTypeOpt match {
       case Some(elseType) => ifType join elseType
-      case _ => ifType
+      case None => ifType
     }
 
   }
@@ -1066,8 +1066,9 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     val ifCode = ifNode.toScalaCode(context)
     val elseCode = elseNode map { _.toScalaCode(context) }
     val elseClause = elseCode map { code => s"else { $code }" } getOrElse ""
+    val nullClause = if (elaboratedType.baseClass == CgscriptClass.NothingClass) "; null" else ""
 
-    s"(if ($conditionCode) { $ifCode } $elseClause)"
+    s"{if ($conditionCode) { $ifCode } $elseClause$nullClause}"
 
   }
 
