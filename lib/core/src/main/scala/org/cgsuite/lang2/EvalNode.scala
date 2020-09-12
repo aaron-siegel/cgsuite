@@ -601,9 +601,11 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
   override val children = Seq(operand1, operand2)
 
+  var operand1Type: CgscriptType = _
+
   override def elaborateImpl(domain: ElaborationDomain) = {
 
-    val operand1Type = operand1.ensureElaborated(domain)
+    operand1Type = operand1.ensureElaborated(domain)
     val operand2Type = operand2.ensureElaborated(domain)
     val opMethod = FunctionCallNode.lookupMethodWithImplicits(operand1Type, op.baseId, Vector(operand2Type))
     val result = opMethod match {
@@ -625,7 +627,10 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
   }
 
   override def toScalaCode(context: CompileContext) = {
-    "(" + op.toScalaCode(operand1.toScalaCode(context), operand2.toScalaCode(context)) + ")"
+    if (operand1Type.baseClass == CgscriptClass.List && op.id.name == "[]")
+      "(" + operand1.toScalaCode(context) + "._lookup(" + operand2.toScalaCode(context) + "))"
+    else
+      "(" + op.toScalaCode(operand1.toScalaCode(context), operand2.toScalaCode(context)) + ")"
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = {
@@ -1735,6 +1740,8 @@ case class FunctionCallNode(
             Some(methodGroup)
           case _ => None
         }
+
+      case _ => None
 
     }
 

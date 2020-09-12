@@ -18,6 +18,8 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
   implicit def unitToRichUnit(unit: Unit): RichUnit.type = RichUnit
 
+  implicit def listToRichList[T](list: IndexedSeq[T]): RichList[T] = RichList(list)
+
 }
 
 trait LowPriorityCgscriptImplicits {
@@ -27,6 +29,10 @@ trait LowPriorityCgscriptImplicits {
 }
 
 case class RichList[T](list: IndexedSeq[T]) {
+
+  def _lookup(index: org.cgsuite.core.Integer): T = {
+    list(index.intValue - 1)
+  }
 
   def mkOutput(sep: String, parens: String = ""): StyledTextOutput = {
     val output = new StyledTextOutput
@@ -43,6 +49,12 @@ case class RichList[T](list: IndexedSeq[T]) {
       output appendMath parens.substring(1, 2)
     output
   }
+
+}
+
+case class RichMap[K, V](map: Map[K, V]) {
+
+  def _lookup(key: K) = map(key)
 
 }
 
