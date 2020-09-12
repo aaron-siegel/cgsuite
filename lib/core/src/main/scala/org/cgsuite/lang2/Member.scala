@@ -4,10 +4,8 @@ package org.cgsuite.lang2
 trait Member extends MemberResolution {
 
   def declNode: Option[MemberDeclarationNode]
-  def idNode: IdentifierNode
-  def mentionedClasses: Iterable[CgscriptClass]
 
-  override def id = idNode.id
+  def mentionedClasses: Iterable[CgscriptClass]
 
   var isElaborating = false
 

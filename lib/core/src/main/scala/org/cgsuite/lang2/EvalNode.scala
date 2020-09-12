@@ -391,7 +391,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   def resolveAsMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
 
-    val localMemberResolution = classScope flatMap { _.lookupMember(id) }
+    val localMemberResolution = classScope flatMap { _.lookupInstanceMember(id) }
 
     localMemberResolution orElse {
 
@@ -402,7 +402,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       constantResolution orElse {
 
         classScope flatMap { _.pkg.lookupClass(id) } orElse
-          CgscriptPackage.lookupClass(id)
+          CgscriptPackage.lookupClassByName(id.name)
 
       }
 
@@ -545,7 +545,7 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
     val classResolution =
       (domain.cls flatMap { _.lookupNestedClass(baseClassIdNode.id) }) orElse
       (domain.cls flatMap { _.pkg.lookupClass(baseClassIdNode.id) }) orElse
-      CgscriptPackage.lookupClass(baseClassIdNode.id)
+      CgscriptPackage.lookupClassByName(baseClassIdNode.id.name)
     val baseClass = classResolution getOrElse {
       sys.error("class not found (needs error msg) " + (this, domain.cls))  // TODO
     }
@@ -1509,13 +1509,13 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
         // This is a class object, so we need to look for a static resolution
         val cls = antecedentType.typeArguments.head.baseClass
-        CgscriptClass.Class.lookupMember(idNode.id) orElse cls.lookupStaticMember(idNode.id) getOrElse {
+        CgscriptClass.Class.lookupInstanceMember(idNode.id) orElse cls.lookupStaticMember(idNode.id) getOrElse {
           throw EvalException(s"No symbol `${idNode.id.name}` found in class `${cls.qualifiedName}`")
         }
 
       case _ =>
 
-        antecedentType.baseClass.lookupMember(idNode.id) getOrElse {
+        antecedentType.baseClass.lookupInstanceMember(idNode.id) getOrElse {
           throw EvalException(s"No symbol `${idNode.id.name}` found in class `${antecedentType.baseClass.qualifiedName}`")
         }
 
@@ -1719,7 +1719,7 @@ case class FunctionCallNode(
 
         idNode.resolveAsMember(domain.cls) match {
           case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
-            isLocalMethod = domain.cls exists { _.lookupMember(idNode.id).isDefined }
+            isLocalMethod = domain.cls exists { _.lookupInstanceMember(idNode.id).isDefined }
             objectType = None
             Some(methodGroup)
           case _ =>

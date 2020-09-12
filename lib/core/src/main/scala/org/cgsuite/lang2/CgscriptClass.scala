@@ -128,11 +128,6 @@ class CgscriptClass(
 
   val classOrdinal: Int = CgscriptClass.newClassOrdinal
 
-  val url: URL = classdef match {
-    case UrlClassDef(_, x) => x
-    case _ => null
-  }
-
   val enclosingClass: Option[CgscriptClass] = classdef match {
     case NestedClassDef(cls) => Some(cls)
     case _ => None
@@ -143,30 +138,35 @@ class CgscriptClass(
     case None => this
   }
 
+  val isTopClass: Boolean = this == topClass
+
+  def url: Option[URL] = classdef match {
+    case UrlClassDef(_, x) => Some(x)
+    case _ => None
+  }
+
   override val declaringClass = enclosingClass.orNull
 
-  val nameAsFullyScopedMember: String = id.name
+  val name: String = id.name
 
-  val name: String = enclosingClass match {
-    case Some(encl) => encl.name + "." + nameAsFullyScopedMember
-    case None => nameAsFullyScopedMember
+  val nameInPackage: String = enclosingClass match {
+    case Some(encl) => encl.nameInPackage + "." + name
+    case None => name
   }
 
   val qualifiedName: String = {
     if (pkg.isRoot)
-      name
+      nameInPackage
     else
-      s"${pkg.qualifiedName}.$name"
+      s"${pkg.qualifiedName}.$nameInPackage"
   }
-
-  val qualifiedId: Symbol = Symbol(qualifiedName)
 
   val scalaClassdefName: String = {
     if (qualifiedName == "cgsuite.lang.Nothing")
       "Null"
     else {
       enclosingClass match {
-        case Some(_) => nameAsFullyScopedMember
+        case Some(_) => name
         case _ => qualifiedName.replace('.', '$')
       }
     }
@@ -181,7 +181,7 @@ class CgscriptClass(
           case Some(cls) => cls.getName
           case None =>
             enclosingClass match {
-              case Some(cls) => s"${cls.scalaTyperefName}#$nameAsFullyScopedMember"
+              case Some(cls) => s"${cls.scalaTyperefName}#$name"
               case None => scalaClassdefName
             }
         }
@@ -195,6 +195,16 @@ class CgscriptClass(
     }
   }
 
+  private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
+
+  private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
+
+  logDebug(s"Formed new class with classdef: $classdef")
+
+  private var stage: LifecycleStage.Value = LifecycleStage.New
+  private var classDeclarationNode: ClassDeclarationNode = _
+  private var classInfoRef: ClassInfo = _
+
   override def elaborate() = sys.error("use ensureElaborated()")
 
   override def ensureElaborated() = {
@@ -206,28 +216,15 @@ class CgscriptClass(
 
   }
 
-  private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
-
-  private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
-
-  logger debug s"$logPrefix Formed new class with classdef: $classdef"
-
-  private[lang2] var stage: LifecycleStage.Value = LifecycleStage.New
-
-  private var classDeclarationNode: ClassDeclarationNode = _
-  private var classInfoRef: ClassInfo = _
-
   def classInfo: ClassInfo = {
     if (stage == LifecycleStage.DeclaringPhase1)
       sys.error("classInfo called while still declaring: " + this)
     ensureDeclaredPhase1()
-    if (this != topClass)
+    if (!isTopClass)
       topClass.ensureDeclaredPhase2()     // I'm not 100% sure abt this pattern
     assert(classInfoRef != null, this)
     classInfoRef
   }
-
-  override def idNode = classInfo.idNode
 
   override def declNode = {
     ensureDeclaredPhase1()
@@ -239,25 +236,21 @@ class CgscriptClass(
     false // TODO
   }
 
-  def isEnum = classDeclarationNode.isEnum
+  def ancestors: Vector[CgscriptClass] = classInfo.ancestors
 
-  def isMutable = classInfo.modifiers.hasMutable
+  def isEnum: Boolean = classDeclarationNode.isEnum
 
-  def isSingleton = classInfo.modifiers.hasSingleton
+  def isMutable: Boolean = classInfo.modifiers.hasMutable
 
-  def isSystem = classInfo.modifiers.hasSystem
+  def isSingleton: Boolean = classInfo.modifiers.hasSingleton
 
-  def constructor = classInfo.constructor
+  def isSystem: Boolean = classInfo.modifiers.hasSystem
 
-  def evalMethodOpt = lookupMethods('Eval).headOption   // TODO What if there's more than one Eval method
+  def constructor: Option[Constructor] = classInfo.constructor
 
-  def ancestors = classInfo.ancestors
+  def typeParameters: Vector[TypeVariable] = classInfo.typeParameters
 
-  def initializers = classInfo.initializers
-
-  def typeParameters = classInfo.typeParameters
-
-  lazy val mostGenericType = CgscriptType(this, typeParameters)
+  lazy val mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
 
   def <=(that: CgscriptClass) = ancestors contains that
 
@@ -302,7 +295,9 @@ class CgscriptClass(
     }
 
     // Recursively add nested classes
-    locallyDefinedNestedClasses.values foreach { _.buildUnloadList(list )}
+    locallyDefinedNestedClasses.values foreach { _.buildUnloadList(list) }
+
+    // TODO Also anything that references this class?
 
   }
 
@@ -314,14 +309,13 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
-  def lookupMember(id: Symbol): Option[MemberResolution] = {
+  def lookupInstanceMember(id: Symbol): Option[MemberResolution] = {
 
     classInfo.allMethodsInScope get id match {
       // TODO If one is static, all should be static? Or put them in separate method groups
       case Some(methods) if methods.head.isStatic => None
       case Some(methods) => Some(MethodGroup(id, methods))
-      case None =>
-        lookupVar(id) orElse lookupNestedClass(id)
+      case None => lookupVar(id) orElse lookupNestedClass(id)
     }
 
   }
@@ -580,7 +574,7 @@ class CgscriptClass(
 
       sb append
         s"""case class $scalaClassdefName(ordinal: Int, literal: String) extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
-           |  override def toString = "$name." + literal
+           |  override def toString = "$nameInPackage." + literal
            |  override def _class = $scalaClassdefName._class
            |}
            |""".stripMargin
@@ -683,7 +677,7 @@ class CgscriptClass(
 
   def classLocatorCode: String = {
     enclosingClass match {
-      case Some(cls) => cls.classLocatorCode + s""".lookupNestedClass(Symbol("$nameAsFullyScopedMember")).get"""
+      case Some(cls) => cls.classLocatorCode + s""".lookupNestedClass(Symbol("$name")).get"""
       case None => s"""org.cgsuite.lang2.CgscriptPackage.lookupClassByName("$qualifiedName").get"""
     }
   }
@@ -793,8 +787,8 @@ class CgscriptClass(
 
     classDeclarationNode = node
 
-    if (node.idNode.id.name != nameAsFullyScopedMember)
-      throw EvalException(s"Class name does not match filename: `${node.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", node.idNode.tree)
+    if (node.idNode.id.name != name)
+      throw EvalException(s"Class name does not match filename: `${node.idNode.id.name}` (was expecting `$name`)", node.idNode.tree)
 
     val typeParameters = node.typeParameters map { typeParameterNode =>
       TypeVariable(typeParameterNode.id)
@@ -816,7 +810,7 @@ class CgscriptClass(
             // Then try looking it up as a global class.
             enclosingClass flatMap { _.classInfoRef.allNestedClassesInScope get superId } getOrElse {
               pkg lookupClass superId getOrElse {
-                CgscriptPackage lookupClass superId getOrElse {
+                CgscriptPackage lookupClassByName superId.name getOrElse {
                   throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
                 }
               }
@@ -1038,7 +1032,7 @@ class CgscriptClass(
     }
 
     // Check that constants classes must be singletons
-    if (name == "constants" && !classDeclarationNode.modifiers.hasSingleton) {
+    if (nameInPackage == "constants" && !classDeclarationNode.modifiers.hasSingleton) {
       throw EvalException(
         s"Constants class `$qualifiedName` must be declared `singleton`",
         token = Some(classInfoRef.idNode.token)
@@ -1266,7 +1260,7 @@ class CgscriptClass(
     val allNestedClasses: Map[Symbol, CgscriptClass],
     val localMethods: Seq[Method],
     val inheritedMethods: Seq[CgscriptClass#Method],
-    val constructor: Option[CgscriptClass#Constructor],
+    val constructor: Option[Constructor],
     val initializers: Seq[InitializerNode],
     val staticInitializers: Seq[InitializerNode],
     val enumElementNodes: Seq[EnumElementNode]
@@ -1365,6 +1359,8 @@ class CgscriptClass(
     isConstructorParam: Boolean = false
   ) extends Member {
 
+    val id = idNode.id
+
     def declaringClass = thisClass
 
     def isMutable = modifiers.hasMutable
@@ -1452,6 +1448,8 @@ class CgscriptClass(
     body: StatementSequenceNode
   ) extends Method {
 
+    val id = idNode.id
+
     override def isExternal = false
 
     var _parameters: Vector[Parameter] = _
@@ -1506,6 +1504,8 @@ class CgscriptClass(
     isOverride: Boolean
   ) extends Method {
 
+    val id = idNode.id
+
     override def isExternal = true
 
     var _parameters: Vector[Parameter] = _
@@ -1540,6 +1540,7 @@ class CgscriptClass(
     def isStatic = false
     def isOverride = false
     def isExternal = false
+    val id = idNode.id
 
     def parametersNode: Option[ParametersNode]
 
