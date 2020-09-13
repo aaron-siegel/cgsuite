@@ -95,11 +95,11 @@ case class ClassDeclarationNode(
   modifiers: Modifiers,
   extendsClause: Vector[Node],
   constructorParams: Option[ParametersNode],
-  nestedClassDeclarations: Seq[ClassDeclarationNode],
-  methodDeclarations: Seq[MethodDeclarationNode],
-  staticInitializers: Seq[InitializerNode],
-  ordinaryInitializers: Seq[InitializerNode],
-  enumElements: Seq[EnumElementNode]
+  nestedClassDeclarations: Vector[ClassDeclarationNode],
+  methodDeclarations: Vector[MethodDeclarationNode],
+  staticInitializers: Vector[InitializerNode],
+  ordinaryInitializers: Vector[InitializerNode],
+  enumElements: Vector[EnumElementNode]
   ) extends MemberDeclarationNode {
 
   val children = Seq(idNode) ++ extendsClause ++ constructorParams ++
