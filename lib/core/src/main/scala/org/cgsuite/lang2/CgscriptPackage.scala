@@ -29,14 +29,6 @@ object CgscriptPackage {
     lang.lookupConstantMember(id) orElse util.lookupConstantMember(id) orElse game.lookupConstantMember(id)
   }
 
-  def lookupConstantVar(id: Symbol): Option[Member] = {
-    lang.lookupConstantVar(id) orElse util.lookupConstantVar(id) orElse game.lookupConstantVar(id)
-  }
-
-  def lookupConstantMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
-    lang.lookupConstantMethod(id, argumentTypes) orElse util.lookupConstantMethod(id, argumentTypes) orElse game.lookupConstantMethod(id, argumentTypes)
-  }
-
   def allClasses = classDictionary.values.toVector.distinct sortBy { _.qualifiedName }
 
 }
@@ -101,20 +93,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
   }
 
   def lookupConstantMember(id: Symbol): Option[MemberResolution] = {
-    lookupClass(id = 'constants) flatMap { _.lookupInstanceMember(id) }
-  }
-
-  def lookupConstantMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
-    lookupClass('constants) flatMap { constantsCls =>
-      constantsCls.lookupMethod(id, argumentTypes)
-    }
-  }
-
-  def lookupConstantVar(id: Symbol): Option[Member] = {
-    lookupClass(id = 'constants) flatMap { constantsCls =>
-      // TODO Nested classes
-      constantsCls.lookupVar(id)
-    }
+    lookupClass(id = 'constants) flatMap { _.resolveInstanceMember(id) }
   }
 
 }

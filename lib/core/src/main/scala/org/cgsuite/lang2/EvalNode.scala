@@ -391,7 +391,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   def resolveAsMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
 
-    val localMemberResolution = classScope flatMap { _.lookupInstanceMember(id) }
+    val localMemberResolution = classScope flatMap { _.resolveMember(id) }
 
     localMemberResolution orElse {
 
@@ -460,7 +460,8 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
         else
           variable.declaringClass.scalaClassdefName + "." + variable.id.name
 
-      case Some(cls: CgscriptClass) => cls.scalaClassrefName
+      case Some(cls: CgscriptClass) =>
+        cls.scalaClassrefName
 
       case None => sys.error("this should have been caught during elaboration")
 
@@ -543,7 +544,7 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
   override def toType(domain: ElaborationDomain): CgscriptType = {
 
     val classResolution =
-      (domain.cls flatMap { _.lookupNestedClass(baseClassIdNode.id) }) orElse
+      (domain.cls flatMap { _.classInfo.allNestedClasses.get(baseClassIdNode.id) }) orElse
       (domain.cls flatMap { _.pkg.lookupClass(baseClassIdNode.id) }) orElse
       CgscriptPackage.lookupClassByName(baseClassIdNode.id.name)
     val baseClass = classResolution getOrElse {
@@ -1217,7 +1218,7 @@ case class LoopNode(
             } else {
               var done = false
               while (!done) {
-                val closureOp = closureType.lookupMethod(Symbol("+"), Vector(closureType)) getOrElse {
+                val closureOp = closureType.resolveMethod(Symbol("+"), Vector(closureType)) getOrElse {
                   throw EvalException(s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`")
                 }
                 val nextClosureType = closureType join closureOp.ensureElaborated()
@@ -1509,13 +1510,13 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
         // This is a class object, so we need to look for a static resolution
         val cls = antecedentType.typeArguments.head.baseClass
-        CgscriptClass.Class.lookupInstanceMember(idNode.id) orElse cls.lookupStaticMember(idNode.id) getOrElse {
+        CgscriptClass.Class.resolveInstanceMember(idNode.id) orElse cls.resolveStaticMember(idNode.id) getOrElse {
           throw EvalException(s"No symbol `${idNode.id.name}` found in class `${cls.qualifiedName}`")
         }
 
       case _ =>
 
-        antecedentType.baseClass.lookupInstanceMember(idNode.id) getOrElse {
+        antecedentType.baseClass.resolveInstanceMember(idNode.id) getOrElse {
           throw EvalException(s"No symbol `${idNode.id.name}` found in class `${antecedentType.baseClass.qualifiedName}`")
         }
 
@@ -1641,7 +1642,7 @@ object FunctionCallNode {
 
   def lookupMethodWithImplicits(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
 
-    objectType.baseClass.lookupMethod(methodId, argTypes) orElse {
+    objectType.baseClass.resolveMethod(methodId, argTypes) orElse {
 
       // Try various types of implicit conversions. This is a bit of a hack to handle
       // Rational -> DyadicRational -> Integer conversions in a few places. In later versions, this might be
@@ -1652,10 +1653,10 @@ object FunctionCallNode {
         case 0 =>
           val implicits = availableImplicits(objectType)
           val validImplicits = implicits find { implObjectType =>
-            implObjectType.baseClass.lookupMethod(methodId, Vector.empty).isDefined
+            implObjectType.baseClass.resolveMethod(methodId, Vector.empty).isDefined
           }
           validImplicits flatMap { implObjectType =>
-            implObjectType.baseClass.lookupMethod(methodId, Vector.empty)
+            implObjectType.baseClass.resolveMethod(methodId, Vector.empty)
           }
 
         case 1 =>
@@ -1668,10 +1669,10 @@ object FunctionCallNode {
             }
           }
           val validImplicits = implicits find { case (implObjectType, implArgType) =>
-            implObjectType.baseClass.lookupMethod(methodId, Vector(implArgType)).isDefined
+            implObjectType.baseClass.resolveMethod(methodId, Vector(implArgType)).isDefined
           }
           validImplicits flatMap { case (implObjectType, implArgType) =>
-            implObjectType.baseClass.lookupMethod(methodId, Vector(implArgType))
+            implObjectType.baseClass.resolveMethod(methodId, Vector(implArgType))
           }
 
         case _ =>
@@ -1719,7 +1720,7 @@ case class FunctionCallNode(
 
         idNode.resolveAsMember(domain.cls) match {
           case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
-            isLocalMethod = domain.cls exists { _.lookupInstanceMember(idNode.id).isDefined }
+            isLocalMethod = domain.cls exists { _.resolveInstanceMember(idNode.id).isDefined }
             objectType = None
             Some(methodGroup)
           case _ =>
@@ -1777,7 +1778,7 @@ case class FunctionCallNode(
         } else {
           // Eval method
           isEval = true
-          val evalMethod = callSiteType.baseClass.lookupMethod('Eval, argTypes) getOrElse {
+          val evalMethod = callSiteType.baseClass.resolveMethod('Eval, argTypes) getOrElse {
             throw EvalException(s"No method `Eval` (`${callSiteType.baseClass.qualifiedName}`)") // TODO Better error msg
           }
           evalMethod.ensureElaborated()

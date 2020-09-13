@@ -61,11 +61,8 @@ object ClassDeclarationNode {
     val methodDeclarations = declarations collect {
       case x: MethodDeclarationNode => x
     }
-    val staticInitializers = declarations collect {
-      case x: InitializerNode if x.modifiers.hasStatic => x
-    }
-    val ordinaryInitializers = declarations collect {
-      case x: InitializerNode if !x.modifiers.hasStatic => x
+    val initializers = declarations collect {
+      case x: InitializerNode => x
     }
     val enumElements = declarations collect {
       case x: EnumElementNode => x
@@ -80,8 +77,7 @@ object ClassDeclarationNode {
       constructorParams,
       nestedClassDeclarations,
       methodDeclarations,
-      staticInitializers,
-      ordinaryInitializers,
+      initializers,
       enumElements
     )
   }
@@ -97,13 +93,12 @@ case class ClassDeclarationNode(
   constructorParams: Option[ParametersNode],
   nestedClassDeclarations: Vector[ClassDeclarationNode],
   methodDeclarations: Vector[MethodDeclarationNode],
-  staticInitializers: Vector[InitializerNode],
-  ordinaryInitializers: Vector[InitializerNode],
+  initializers: Vector[InitializerNode],
   enumElements: Vector[EnumElementNode]
   ) extends MemberDeclarationNode {
 
-  val children = Seq(idNode) ++ extendsClause ++ constructorParams ++
-    nestedClassDeclarations ++ methodDeclarations ++ staticInitializers ++ ordinaryInitializers
+  val children = Vector(idNode) ++ extendsClause ++ constructorParams ++
+    nestedClassDeclarations ++ methodDeclarations ++ initializers
 
 }
 

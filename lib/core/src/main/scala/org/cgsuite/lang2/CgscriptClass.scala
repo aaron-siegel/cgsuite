@@ -163,13 +163,13 @@ class CgscriptClass(
   }
 
   val scalaClassdefName: String = {
-    if (qualifiedName == "cgsuite.lang.Nothing")
-      "Null"
-    else {
-      enclosingClass match {
-        case Some(_) => name
-        case _ => qualifiedName.replace('.', '$')
-      }
+    qualifiedName match {
+      case "cgsuite.lang.Nothing" => "Null"
+      case _ =>
+        enclosingClass match {
+          case Some(_) => name
+          case _ => qualifiedName.replace('.', '$')
+        }
     }
   }
 
@@ -192,7 +192,11 @@ class CgscriptClass(
   val scalaClassrefName: String = {
     qualifiedName match {
       case "cgsuite.lang.Nothing" => "null"
-      case _ => scalaTyperefName
+      case _ =>
+        systemClass match {
+          case Some(cls) => cls.getName
+          case None => scalaClassdefName
+        }
     }
   }
 
@@ -232,6 +236,8 @@ class CgscriptClass(
 
   def isSingleton: Boolean = classInfo.modifiers.hasSingleton
 
+  def isStatic: Boolean = classInfo.modifiers.hasStatic
+
   def isSystem: Boolean = classInfo.modifiers.hasSystem
 
   def constructor: Option[Constructor] = classInfo.constructor
@@ -241,9 +247,9 @@ class CgscriptClass(
   def mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
 
   def <=(that: CgscriptClass) = ancestors contains that
-
+/*
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
-    classInfo.classVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
+    classInfo.instanceVars.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
   }
 
   def lookupStaticVar(id: Symbol): Option[CgscriptClass#Var] = {
@@ -253,31 +259,27 @@ class CgscriptClass(
   def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
     classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
   }
-
-  def lookupMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
-    val allMethods = lookupMethods(id)
-    val argumentTypeList = CgscriptTypeList(argumentTypes)
-    val matchingMethods = allMethods filter { method =>
-      val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
-      argumentTypeList <= substitutedParameterTypeList
-    }
-    val reducedMatchingMethods = reduceMethodList(matchingMethods)
-    if (reducedMatchingMethods.size >= 2) {
-      val argTypeNames = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
-      reducedMatchingMethods foreach { m => println(m.qualifiedName) }
-      throw EvalException(s"Method `${id.name}` of class `$qualifiedName` is ambiguous when applied to $argTypeNames")
-    }
-    reducedMatchingMethods.headOption
+*/
+  def resolveMember(id: Symbol): Option[MemberResolution] = {
+    resolveInstanceMember(id) orElse resolveStaticMember(id)
   }
 
-  def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {
-    methods filterNot { method =>
-      methods exists { other =>
-        method != other && other.parameterTypeList <= method.parameterTypeList
-      }
+  def resolveInstanceMember(id: Symbol): Option[MemberResolution] = {
+    classInfo.instanceMemberLookup get id
+  }
+
+  def resolveMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
+    resolveInstanceMember(id) match {
+      case Some(methodGroup: MethodGroup) => methodGroup.lookupMethod(argumentTypes, typeParameterSubstitutions)
+      case None => None
     }
   }
 
+  def resolveStaticMember(id: Symbol): Option[MemberResolution] = {
+    classInfo.staticMemberLookup get id
+  }
+
+/*
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
     classInfo.allNestedClassesInScope.get(id)
   }
@@ -302,7 +304,7 @@ class CgscriptClass(
     }
 
   }
-
+*/
   ///////////////////////////////////////////////////////////////
   // Lifecycle management
 
@@ -401,7 +403,7 @@ class CgscriptClass(
     // Declare nested classes
     classDeclarationNode.nestedClassDeclarations foreach { decl =>
       val id = decl.idNode.id
-      classInfoRef.localNestedClasses(id).declareClassPhase1(decl)
+      classInfoRef.localNestedClasses.find { _.id == id }.get.declareClassPhase1(decl)
     }
 
     //validateClass()
@@ -414,9 +416,8 @@ class CgscriptClass(
 
   override def ensureElaborated() = {
 
-    classInfo.constructorParamVars foreach { _.ensureElaborated() }
+    classInfo.constructor foreach { _.ensureElaborated() }
     classInfo.allMembers foreach { _.ensureElaborated() }
-    classInfo.localNestedClasses.values foreach { _.ensureElaborated() }
     CgscriptType(this, typeParameters)
 
   }
@@ -427,7 +428,7 @@ class CgscriptClass(
 
     (classInfo.supers flatMap { _.mentionedClasses }) ++
       (classInfo.allMembers flatMap { _.mentionedClasses }) ++
-      (classInfo.localNestedClasses.values flatMap { _.mentionedClasses }) :+
+      (classInfo.localNestedClasses flatMap { _.mentionedClasses }) :+
       this
     // TODO Initializers?
 
@@ -484,7 +485,7 @@ class CgscriptClass(
 
     // Recursively add nested classes
     if (classInfoRef != null) {
-      classInfoRef.locallyDefinedNestedClasses.values foreach { _.buildUnloadList(list) }
+      classInfoRef.localNestedClasses foreach { _.buildUnloadList(list) }
     }
 
     // TODO Also anything that references this class?
@@ -497,7 +498,7 @@ class CgscriptClass(
     }
     // Recurse through nested classes
     if (cls.classInfoRef != null) {
-      cls.classInfoRef.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
+      cls.classInfoRef.localNestedClasses foreach { addDerivedClassesToUnloadList(list, _) }
     }
   }
 
@@ -569,7 +570,7 @@ class CgscriptClass(
     resolved.toVector
 
   }
-
+/*
   private def validateClass(): Unit = {
 
     // Check for duplicate vars (we make an exception for the constructor)
@@ -647,7 +648,7 @@ class CgscriptClass(
         }
       }
       // ... and that there are no mutable vars
-      classInfoRef.initializers foreach {
+      classInfoRef.initializerNodes foreach {
         case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
           throw EvalException(
             s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
@@ -658,7 +659,7 @@ class CgscriptClass(
     }
 
     // Check that immutable class vars are assigned at declaration time
-    /*
+
     classInfoRef.initializers collect {
       // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
       // a "default" nil value. This could be refactored to be a bit more elegant.
@@ -669,9 +670,9 @@ class CgscriptClass(
           token = Some(idNode.token)
         )
     }
-  */
+
   }
-/*
+
   private def initialize(): Unit = {
 
     try {
@@ -850,10 +851,6 @@ class CgscriptClass(
       TypeVariable(typeParameterNode.id)
     }
 
-    val initializers = declNode.ordinaryInitializers
-
-    val staticInitializers = declNode.staticInitializers
-
     val enumElementNodes = declNode.enumElements
 
     val supers: Vector[CgscriptClass] = {
@@ -870,7 +867,7 @@ class CgscriptClass(
             // First, if this is a nested class, then look it up as some other nested class
             // of this class's enclosing class;
             // Then try looking it up as a global class.
-            enclosingClass flatMap { _.classInfoRef.allNestedClassesInScope get superId } getOrElse {
+            enclosingClass flatMap { _.classInfoRef.allInstanceNestedClassesInScope get superId } getOrElse {
               pkg lookupClass superId getOrElse {
                 CgscriptPackage lookupClassByName superId.name getOrElse {
                   throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
@@ -888,20 +885,40 @@ class CgscriptClass(
 
     supers foreach { _.ensureDeclaredPhase1() }
 
+    val properAncestors: Vector[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
+
+    val ancestors = properAncestors :+ CgscriptClass.this
+
+    val localVars: Vector[Var] = declNode.initializers collect {
+      case varDeclNode: VarDeclarationNode =>
+        Var(varDeclNode.idNode, Some(varDeclNode), varDeclNode.modifiers.hasMutable, varDeclNode.modifiers.hasStatic, None, Some(varDeclNode.body.children(1)))   // TODO: Explicit result type
+    }
+
     val localMethods: Vector[Method] = declNode.methodDeclarations map { parseMethod(_, declNode.modifiers) }
-    private[lang2] val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
-    val localNestedClasses = declNode.nestedClassDeclarations map { decl =>
-      val id = decl.idNode.id
-      val newClass = locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(thisClass), id))
-      (id, newClass)
-    } toMap
-    val constructor = declNode.constructorParams map { parametersNode =>
+
+    val localNestedClasses: Vector[CgscriptClass] = declNode.nestedClassDeclarations map { nestedDeclNode =>
+      new CgscriptClass(pkg, NestedClassDef(thisClass), nestedDeclNode.idNode.id)
+    }
+
+    val enumElements: Vector[CgscriptClass#Var] = enumElementNodes map { node =>
+      Var(node.idNode, Some(node), isMutable = false, isStatic = true, Some(CgscriptType(thisClass)), None, isEnumElement = true)
+    }
+
+    val constructor: Option[Constructor] = declNode.constructorParams map { parametersNode =>
       systemClass match {
         case Some(_) => SystemConstructor(declNode.idNode, Some(parametersNode))
         case None => UserConstructor(declNode.idNode, Some(parametersNode))
       }
     }
-    val localMembers = localMethods ++ localNestedClasses
+
+    val constructorParamVars: Vector[Var] = constructor match {
+      case Some(ctor) => ctor.parameters map { param =>
+        Var(param.idNode, Some(declNode), isMutable = false, isStatic = false, Some(param.paramType), None, isConstructorParam = true)
+      }
+      case None => Vector.empty
+    }
+
+    val localMembers: Vector[Member] = localVars ++ localMethods ++ localNestedClasses ++ constructorParamVars ++ enumElements
 
     // Check for duplicate methods.
 
@@ -997,94 +1014,54 @@ class CgscriptClass(
 
     // TODO Handle overrides & inheritance conflicts
 
-    val inheritedMethods = supers flatMap { _.classInfo.methods.values.flatten }
+    val inheritedMembers: Vector[Member] = supers flatMap { _.classInfo.allMembers }
 
-    // TODO Resolve conflicts
-    val inheritedNestedClasses: Map[Symbol, CgscriptClass] = (supers flatMap { _.classInfo.allNestedClasses }).toMap
+    val allMembers: Vector[Member] = localMembers ++ inheritedMembers
 
-    val allNestedClasses: Map[Symbol, CgscriptClass] = inheritedNestedClasses ++ localNestedClasses
+    lazy val groupedMembers: Map[Symbol, Vector[Member]] = allMembers groupBy { _.id }
 
-    val properAncestors: Vector[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
-
-    val ancestors = properAncestors :+ CgscriptClass.this
-
-    val staticVars: Seq[CgscriptClass#Var] = staticInitializers collect {
-      case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers, None, Some(declNode.body.children(1)))   // TODO: Explicit result type
-    }
-    val staticVarLookup: Map[Symbol, CgscriptClass#Var] = staticVars map { v => (v.id, v) } toMap
-
-    val enumElements: Seq[CgscriptClass#Var] = enumElementNodes map { node =>
-      Var(node.idNode, Some(node), node.modifiers, Some(CgscriptType(thisClass)), None)
+    lazy val allVars: Map[Symbol, CgscriptClass#Var] = groupedMembers collect {
+      case (id, vars) if vars.head.isInstanceOf[CgscriptClass#Var] =>
+        // TODO Validate non-duplicate symbol
+        (id, vars.head.asInstanceOf[CgscriptClass#Var])
     }
 
-    val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
-    lazy val constructorParamVars = constructor match {
-      case Some(ctor) => ctor.parameters map { param =>
-        Var(param.idNode, Some(declNode), Modifiers.none, Some(param.paramType), None, isConstructorParam = true)
+    lazy val allMethods: Map[Symbol, MethodGroup] = groupedMembers collect {
+      case (id, methods) if methods.head.isInstanceOf[CgscriptClass#Method] =>
+        // TODO Validate "static consistency" (all static or all non-static)
+        // TODO Validate all are methods with legal signatures
+        val checkedMethods = checkOverrides(methods map { _.asInstanceOf[CgscriptClass#Method] })
+        (id, MethodGroup(id, checkedMethods))
+    }
+
+    lazy val allNestedClasses: Map[Symbol, CgscriptClass] = {
+      groupedMembers collect {
+        case (id, classes) if classes.head.isInstanceOf[CgscriptClass] =>
+          (id, classes.head.asInstanceOf[CgscriptClass])
       }
-      case None => Seq.empty
-    }
-    val localClassVars = initializers collect {
-      case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers, None, Some(declNode.body.children(1)))   // TODO: Explicit result type
-    }
-    lazy val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
-    lazy val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
-    lazy val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
-    lazy val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
-
-    lazy val staticVarSymbols: Seq[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
-    lazy val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
-
-    lazy val methods: Map[Symbol, Vector[CgscriptClass#Method]] =
-      (localMethods ++ inheritedMethods) groupBy { _.id } mapValues { methods =>
-        checkOverrides(methods.toVector)
-      }
-
-    lazy val allSymbolsInThisClass: Set[Symbol] = {
-      classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ allNestedClasses.keySet
     }
 
-    lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
-      allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
+    lazy val (staticVars, instanceVars) = allVars partition { _._2.isStatic }
+    lazy val (staticMethods, instanceMethods) = allMethods partition { _._2.isStatic }
+    lazy val instanceNestedClasses = allNestedClasses   // TODO support static nested classes?
+    //lazy val (staticNestedClasses, instanceNestedClasses) = allNestedClasses partition { _._2.isStatic }
+
+    lazy val allInstanceMethodsInScope: Map[Symbol, CgscriptClass#MethodGroup] = {
+      (enclosingClass map { _.classInfo.allInstanceMethodsInScope } getOrElse Map.empty) ++ instanceMethods
     }
 
-    lazy val allMethodsInScope: Map[Symbol, Vector[CgscriptClass#Method]] = {
-      (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
+    lazy val allInstanceNestedClassesInScope: Map[Symbol, CgscriptClass] = {
+      (enclosingClass map { _.classInfo.allInstanceNestedClassesInScope } getOrElse Map.empty) ++ instanceNestedClasses
     }
 
-    lazy val allNestedClassesInScope: Map[Symbol, CgscriptClass] = {
-      (enclosingClass map { _.classInfo.allNestedClassesInScope } getOrElse Map.empty) ++ allNestedClasses
+    lazy val instanceMemberLookup: Map[Symbol, MemberResolution] = {
+      // The locally present vars, method groups, and nested classes will all have unique names at this point,
+      // and if they collide with something else in scope, they should legitimately shadow it.
+      allInstanceMethodsInScope ++ allInstanceNestedClassesInScope ++ instanceVars ++ instanceMethods ++ instanceNestedClasses
     }
 
-    lazy val allMembers = {
-      (methods flatMap { _._2 }) ++ allClassVars ++ staticVars ++ enumElements ++ constructor
-    }.toVector
-    /*
-    lazy val allMembersInScope: Map[Symbol, Member] = {
-      classVarLookup ++ allMethodsInScope ++ allNestedClassesInScope
-    }
-    lazy val allNonSuperMembersInScope: Map[Symbol, Member] = {
-      allMembersInScope filterNot { case (symbol, _) => symbol.name startsWith "super$" }
-    }
-    */
-    // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = lookupMethodOrEvalException('Eval)
-    lazy val optionsMethod = lookupMethodOrEvalException('Options)
-    lazy val optionsForMethod = lookupMethodOrEvalException('OptionsFor)
-    lazy val decompositionMethod = lookupMethodOrEvalException('Decomposition)
-    lazy val canonicalFormMethod = lookupMethodOrEvalException('CanonicalForm)
-    lazy val gameValueMethod = lookupMethodOrEvalException('GameValue)
-    lazy val depthHintMethod = lookupMethodOrEvalException('DepthHint)
-    lazy val toOutputMethod = lookupMethodOrEvalException('ToOutput)
-    lazy val heapOptionsMethod = lookupMethodOrEvalException('HeapOptions)
-
-    private def lookupMethodOrEvalException(id: Symbol): CgscriptClass#Method = {
-      // TODO What if there's more than one?
-      lookupMethods(id).headOption getOrElse {
-        throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
-      }
+    lazy val staticMemberLookup: Map[Symbol, MemberResolution] = {
+      staticVars ++ staticMethods // ++ staticNestedClasses
     }
 
   }
@@ -1184,9 +1161,11 @@ class CgscriptClass(
 
     val companionObjectVars = {
       if (isSingleton)
-        classInfo.localClassVars
-      else
-        classInfo.staticVars
+        classInfo.localVars
+      else {
+        // Enum elements are handled separately, below
+        classInfo.staticVars.values filterNot { _.isEnumElement }
+      }
     }
 
     companionObjectVars foreach { variable =>
@@ -1201,7 +1180,7 @@ class CgscriptClass(
       if (isSingleton)
         classInfo.localMethods
       else
-        Vector.empty //classInfo.staticMethods
+        classInfo.staticMethods.values
     }
 
     val companionObjectUserMethods = companionObjectMethods collect { case method: UserMethod => method }
@@ -1265,7 +1244,7 @@ class CgscriptClass(
         }
       }
 
-      classInfo.localClassVars foreach { variable =>
+      classInfo.localVars foreach { variable =>
         sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
         variable.initializerNode foreach { node =>
           sb append node.toScalaCode(context)
@@ -1302,7 +1281,7 @@ class CgscriptClass(
 
       }
 
-      classInfo.localNestedClasses.values foreach { _.appendScalaCode(context, classesCompiling, sb) }
+      classInfo.localNestedClasses foreach { _.appendScalaCode(context, classesCompiling, sb) }
 
       sb append "}\n\n"
 
@@ -1343,7 +1322,7 @@ class CgscriptClass(
 
   def classLocatorCode: String = {
     enclosingClass match {
-      case Some(cls) => cls.classLocatorCode + s""".lookupNestedClass(Symbol("$name")).get"""
+      case Some(cls) => cls.classLocatorCode + s""".classInfo.allInstanceNestedClassesInScope(Symbol("$name"))"""
       case None => s"""org.cgsuite.lang2.CgscriptPackage.lookupClassByName("$qualifiedName").get"""
     }
   }
@@ -1351,19 +1330,17 @@ class CgscriptClass(
   case class Var(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    modifiers: Modifiers,
+    isMutable: Boolean,
+    isStatic: Boolean,
     explicitResultType: Option[CgscriptType],
     initializerNode: Option[EvalNode],
-    isConstructorParam: Boolean = false
+    isConstructorParam: Boolean = false,
+    isEnumElement: Boolean = false
   ) extends Member {
 
     val id = idNode.id
 
     def declaringClass = thisClass
-
-    def isMutable = modifiers.hasMutable
-
-    def isStatic = modifiers.hasStatic
 
     override def elaborate() = {
 
@@ -1546,7 +1523,7 @@ class CgscriptClass(
 
     def parameters = {
       if (_parameters == null)
-        _parameters = parametersNode map { _.toParameters(ElaborationDomain(thisClass)) } getOrElse Vector.empty
+        _parameters = parametersNode map { _.toParameters(ElaborationDomain(enclosingClass)) } getOrElse Vector.empty
       _parameters
     }
 
@@ -1592,8 +1569,29 @@ class CgscriptClass(
 
     def qualifiedName = methods.head.qualifiedName
 
-    def lookupMethod(argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty) = {
-      thisClass.lookupMethod(id, argumentTypes, typeParameterSubstitutions)
+    def isStatic = methods.head.isStatic
+
+    def lookupMethod(argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
+      val argumentTypeList = CgscriptTypeList(argumentTypes)
+      val matchingMethods = methods filter { method =>
+        val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
+        argumentTypeList <= substitutedParameterTypeList
+      }
+      val reducedMatchingMethods = reduceMethodList(matchingMethods)
+      if (reducedMatchingMethods.size >= 2) {
+        val argTypeNames = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+        reducedMatchingMethods foreach { m => println(m.qualifiedName) }
+        throw EvalException(s"Method `${id.name}` of class `$qualifiedName` is ambiguous when applied to $argTypeNames")
+      }
+      reducedMatchingMethods.headOption
+    }
+
+    def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {
+      methods filterNot { method =>
+        methods exists { other =>
+          method != other && other.parameterTypeList <= method.parameterTypeList
+        }
+      }
     }
 
   }

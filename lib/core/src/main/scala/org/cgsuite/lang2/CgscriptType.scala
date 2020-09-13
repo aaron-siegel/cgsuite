@@ -48,7 +48,7 @@ sealed trait CgscriptType {
 
   def join(that: CgscriptType): CgscriptType
 
-  def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method]
+  def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method]
 
   def matches(that: CgscriptType): Boolean
 
@@ -72,7 +72,7 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
 
   override def typeArguments = sys.error("type variable cannot resolve to a class (this should never happen)")
 
-  override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("type variable cannot resolve to a class (this should never happen)")
+  override def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("type variable cannot resolve to a class (this should never happen)")
 
   override def mentionedClasses = Vector.empty
 
@@ -214,8 +214,8 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
     reducedCommonAncestors
   }
 
-  override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = {
-    baseClass.lookupMethod(id, argTypes, typeArguments)
+  override def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]) = {
+    baseClass.resolveMethod(id, argTypes, typeArguments)
   }
 
   override def matches(that: CgscriptType): Boolean = {
@@ -250,7 +250,7 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
 
   override def typeArguments = ???
 
-  override def lookupMethod(id: Symbol, argTypes: Vector[CgscriptType]) = ???
+  override def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]) = ???
 
   override def allTypeVariables = (components flatMap { _.allTypeVariables }).distinct
 
