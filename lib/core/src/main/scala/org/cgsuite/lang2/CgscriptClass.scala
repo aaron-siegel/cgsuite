@@ -260,11 +260,32 @@ class CgscriptClass(
     classInfo.instanceMemberLookup get id
   }
 
-  def resolveInstanceMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
-    resolveInstanceMember(id) match {
-      case Some(methodGroup: MethodGroup) => methodGroup.lookupMethod(argumentTypes, typeParameterSubstitutions)
+  def lookupInstanceMethod(
+    id: Symbol,
+    argumentTypes: Vector[CgscriptType],
+    namedArgumentTypes: Map[Symbol, CgscriptType],
+    objectType: Option[CgscriptType] = None): Option[CgscriptClass#Method] = {
+
+    resolveMember(id) match {
+      case Some(methodGroup: MethodGroup) => methodGroup.lookupMethod(argumentTypes, namedArgumentTypes, objectType)
       case None => None
     }
+
+  }
+
+  def resolveInstanceMethod(
+    id: Symbol,
+    argumentTypes: Vector[CgscriptType],
+    namedArgumentTypes: Map[Symbol, CgscriptType],
+    objectType: Option[CgscriptType] = None): CgscriptClass#Method = {
+
+    resolveMember(id) match {
+      case Some(methodGroup: MethodGroup) => methodGroup.resolveToMethod(argumentTypes, namedArgumentTypes, objectType)
+      case None =>
+        val objSuffixString = objectType map { typ => s" (for object of type `${typ.qualifiedName}`)" } getOrElse ""
+        throw EvalException(s"No method `Eval`$objSuffixString")
+    }
+
   }
 
   def resolveStaticMember(id: Symbol): Option[MemberResolution] = {
@@ -1372,19 +1393,71 @@ class CgscriptClass(
 
     def isStatic = methods.head.isStatic
 
-    def lookupMethod(argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
-      val argumentTypeList = CgscriptTypeList(argumentTypes)
+    def lookupMethod(
+      argumentTypes: Vector[CgscriptType],
+      namedArgumentTypes: Map[Symbol, CgscriptType],
+      objectType: Option[CgscriptType] = None
+      ): Option[CgscriptClass#Method] = {
+
+      /*** This assertion is not valid for implicit resolutions
+      assert(
+        objectType match {
+          case Some(typ) if typ.baseClass == CgscriptClass.Class =>
+            thisClass == CgscriptClass.Class || thisClass == typ.typeArguments.head.baseClass
+          case Some(typ) => thisClass == typ.baseClass
+          case None => true
+        },
+        (objectType.get.qualifiedName, thisClass.qualifiedName)
+      )
+      */
+
+      // The following strings are used for error reporting:
+      def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+      def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
+
+      // Determine which methods match the specified arguments
       val matchingMethods = methods filter { method =>
+
+        val typeParameterSubstitutions = objectType map { _.typeArguments } getOrElse Vector.empty
         val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
-        argumentTypeList <= substitutedParameterTypeList
+
+        substitutedParameterTypeList.types.indices forall { index =>
+          if (index < argumentTypes.length) {
+            argumentTypes(index) matches substitutedParameterTypeList.types(index)
+          } else {
+            val optNamedArgumentType = namedArgumentTypes get method.parameters(index).id
+            optNamedArgumentType match {
+              case Some(argumentType) => argumentType matches substitutedParameterTypeList.types(index)
+              case None => method.parameters(index).defaultValue.isDefined
+            }
+          }
+        }
+
       }
+
       val reducedMatchingMethods = reduceMethodList(matchingMethods)
       if (reducedMatchingMethods.size >= 2) {
-        val argTypeNames = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
-        reducedMatchingMethods foreach { m => println(m.qualifiedName) }
-        throw EvalException(s"Method `${id.name}` of class `$qualifiedName` is ambiguous when applied to $argTypeNames")
+        throw EvalException(s"Method `$name`$objTypeSuffix is ambiguous when applied to $argTypesString")
       }
+
       reducedMatchingMethods.headOption
+
+    }
+
+    def resolveToMethod(
+      argumentTypes: Vector[CgscriptType],
+      namedArgumentTypes: Map[Symbol, CgscriptType],
+      objectType: Option[CgscriptType] = None
+      ): CgscriptClass#Method = {
+
+      // The following strings are used for error reporting:
+      def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+      def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
+
+      lookupMethod(argumentTypes, namedArgumentTypes, objectType) getOrElse {
+        throw EvalException(s"Method `$name`$objTypeSuffix cannot be applied to argument types $argTypesString")
+      }
+
     }
 
     def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {

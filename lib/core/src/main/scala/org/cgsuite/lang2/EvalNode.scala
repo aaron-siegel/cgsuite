@@ -1642,7 +1642,7 @@ object FunctionCallNode {
 
   def lookupMethodWithImplicits(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
 
-    objectType.baseClass.resolveInstanceMethod(methodId, argTypes) orElse {
+    objectType.baseClass.lookupInstanceMethod(methodId, argTypes, Map.empty, Some(objectType)) orElse {
 
       // Try various types of implicit conversions. This is a bit of a hack to handle
       // Rational -> DyadicRational -> Integer conversions in a few places. In later versions, this might be
@@ -1653,10 +1653,10 @@ object FunctionCallNode {
         case 0 =>
           val implicits = availableImplicits(objectType)
           val validImplicits = implicits find { implObjectType =>
-            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector.empty).isDefined
+            implObjectType.baseClass.lookupInstanceMethod(methodId, Vector.empty, Map.empty, Some(objectType)).isDefined
           }
           validImplicits flatMap { implObjectType =>
-            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector.empty)
+            implObjectType.baseClass.lookupInstanceMethod(methodId, Vector.empty, Map.empty, Some(objectType))
           }
 
         case 1 =>
@@ -1669,10 +1669,10 @@ object FunctionCallNode {
             }
           }
           val validImplicits = implicits find { case (implObjectType, implArgType) =>
-            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector(implArgType)).isDefined
+            implObjectType.baseClass.lookupInstanceMethod(methodId, Vector(implArgType), Map.empty, Some(objectType)).isDefined
           }
           validImplicits flatMap { case (implObjectType, implArgType) =>
-            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector(implArgType))
+            implObjectType.baseClass.lookupInstanceMethod(methodId, Vector(implArgType), Map.empty, Some(objectType))
           }
 
         case _ =>
@@ -1749,12 +1749,7 @@ case class FunctionCallNode(
     elaboratedMethodGroup match {
 
       case Some(methodGroup) =>
-        val parameterSubstitutions = objectType map { _.typeArguments } getOrElse Vector.empty
-        val method = methodGroup.lookupMethod(argTypes, parameterSubstitutions) getOrElse {
-          val argTypesMsg = argTypes map { "`" + _.qualifiedName + "`" } mkString ", "
-          val objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
-          throw EvalException(s"Method `${methodGroup.name}`$objTypeSuffix cannot be applied to argument types $argTypesMsg")
-        }
+        val method = methodGroup.resolveToMethod(argTypes, Map.empty, objectType)
         elaboratedMethod = Some(method)
         val methodType = method.ensureElaborated()
         val substitutedType = objectType match {
@@ -1778,9 +1773,7 @@ case class FunctionCallNode(
         } else {
           // Eval method
           isEval = true
-          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, argTypes) getOrElse {
-            throw EvalException(s"No method `Eval` (`${callSiteType.baseClass.qualifiedName}`)") // TODO Better error msg
-          }
+          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, argTypes, Map.empty)
           evalMethod.ensureElaborated()
         }
 
