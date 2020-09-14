@@ -12,9 +12,9 @@ system class CanonicalShortGame extends CanonicalStopper
 
   external def op-(that as CanonicalShortGame) as CanonicalShortGame;
 
-  external def op unary+ as CanonicalShortGame;
+  external override def op unary+ as CanonicalShortGame;
 
-  external def op unary- as CanonicalShortGame;
+  external override def op unary- as CanonicalShortGame;
 
   external def op unary+- as CanonicalShortGame;
 

@@ -215,7 +215,7 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
   }
 
   override def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]) = {
-    baseClass.resolveMethod(id, argTypes, typeArguments)
+    baseClass.resolveInstanceMethod(id, argTypes, typeArguments)
   }
 
   override def matches(that: CgscriptType): Boolean = {

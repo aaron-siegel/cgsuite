@@ -200,6 +200,8 @@ class CgscriptClass(
     }
   }
 
+  override def toString = s"<<$qualifiedName>>"
+
   private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
   private[cgsuite] def logDebug(message: => String): Unit = logger debug s"$logPrefix $message"
@@ -220,7 +222,7 @@ class CgscriptClass(
 
   override def declNode = {
     ensureDeclaredPhase1()
-    Option(classDeclarationNode)
+    Option(classInfoRef.declNode)
   }
 
   def isScript = {
@@ -230,7 +232,9 @@ class CgscriptClass(
 
   def ancestors: Vector[CgscriptClass] = classInfo.ancestors
 
-  def isEnum: Boolean = classDeclarationNode.isEnum
+  def properAncestors: Vector[CgscriptClass] = classInfo.properAncestors
+
+  def isEnum: Boolean = classInfo.declNode.isEnum
 
   def isMutable: Boolean = classInfo.modifiers.hasMutable
 
@@ -247,19 +251,7 @@ class CgscriptClass(
   def mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
 
   def <=(that: CgscriptClass) = ancestors contains that
-/*
-  def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
-    classInfo.instanceVars.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
-  }
 
-  def lookupStaticVar(id: Symbol): Option[CgscriptClass#Var] = {
-    classInfo.staticVarLookup.get(id) orElse (enclosingClass flatMap { _.lookupVar(id) })
-  }
-
-  def lookupMethods(id: Symbol): Vector[CgscriptClass#Method] = {
-    classInfo.allMethodsInScope.getOrElse(id, Vector.empty)
-  }
-*/
   def resolveMember(id: Symbol): Option[MemberResolution] = {
     resolveInstanceMember(id) orElse resolveStaticMember(id)
   }
@@ -268,7 +260,7 @@ class CgscriptClass(
     classInfo.instanceMemberLookup get id
   }
 
-  def resolveMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
+  def resolveInstanceMethod(id: Symbol, argumentTypes: Vector[CgscriptType], typeParameterSubstitutions: Vector[CgscriptType] = Vector.empty): Option[CgscriptClass#Method] = {
     resolveInstanceMember(id) match {
       case Some(methodGroup: MethodGroup) => methodGroup.lookupMethod(argumentTypes, typeParameterSubstitutions)
       case None => None
@@ -279,39 +271,12 @@ class CgscriptClass(
     classInfo.staticMemberLookup get id
   }
 
-/*
-  def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
-    classInfo.allNestedClassesInScope.get(id)
-  }
-
-  def lookupInstanceMember(id: Symbol): Option[MemberResolution] = {
-
-    classInfo.allMethodsInScope get id match {
-      // TODO If one is static, all should be static? Or put them in separate method groups
-      case Some(methods) if methods.head.isStatic => None
-      case Some(methods) => Some(MethodGroup(id, methods))
-      case None => lookupVar(id) orElse lookupNestedClass(id)
-    }
-
-  }
-
-  def lookupStaticMember(id: Symbol): Option[MemberResolution] = {
-
-    classInfo.allMethodsInScope get id match {
-      case Some(methods) if methods.head.isStatic => Some(MethodGroup(id, methods))
-      case Some(_) => None
-      case None => lookupStaticVar(id) orElse classInfo.enumElements.find { _.id == id }    // TODO Static nested class?
-    }
-
-  }
-*/
   ///////////////////////////////////////////////////////////////
   // Lifecycle management
 
   logDebug(s"Formed new class with classdef: $classdef")
 
   private var stage: LifecycleStage.Value = LifecycleStage.New
-  private var classDeclarationNode: ClassDeclarationNode = _
   private var classInfoRef: ClassInfo = _
 
   def ensureDeclared(): Unit = {
@@ -401,7 +366,7 @@ class CgscriptClass(
     classInfoRef.supers foreach { _.ensureDeclaredPhase2() }
 
     // Declare nested classes
-    classDeclarationNode.nestedClassDeclarations foreach { decl =>
+    classInfoRef.declNode.nestedClassDeclarations foreach { decl =>
       val id = decl.idNode.id
       classInfoRef.localNestedClasses.find { _.id == id }.get.declareClassPhase1(decl)
     }
@@ -532,7 +497,6 @@ class CgscriptClass(
 
   private def declareScriptPhase1(node: StatementSequenceNode): Unit = {
 
-    classDeclarationNode = null
     classInfoRef = null
 
   }
@@ -541,35 +505,12 @@ class CgscriptClass(
 
     logger debug s"$logPrefix Declaring class."
 
-    classDeclarationNode = node
-
     classInfoRef = new ClassInfo(node)
 
     logger debug s"$logPrefix Done declaring class (phase 1)."
 
   }
 
-  private def checkOverrides(methods: Vector[CgscriptClass#Method]): Vector[CgscriptClass#Method] = {
-
-    val groupedBySignature = methods groupBy { _.parameterTypeList }
-
-    val resolved = groupedBySignature map { case (signature, matchingMethods) =>
-
-      if (matchingMethods.size == 1) {
-        // TODO Check no "override" keyword
-      } else {
-        // TODO Check "override" keyword
-        // TODO Check that method is *locally* defined (if not, it's a conflict)
-        // TODO Check that result types match
-      }
-
-      matchingMethods.head
-
-    }
-
-    resolved.toVector
-
-  }
 /*
   private def validateClass(): Unit = {
 
@@ -588,44 +529,6 @@ class CgscriptClass(
       }
     }
 
-    // Check for member/var conflicts
-
-    // TODO We may want to allow defs to override vars in the future - then the vars become private to the
-    // superclass. For now, we prohibit it.
-
-    classInfoRef.methods ++ classInfoRef.allNestedClasses foreach { case (memberId, member) =>
-      if (classInfoRef.classVarLookup contains memberId)
-        throw EvalException(
-          s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`",
-          token = Some(classInfoRef.idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
-        )
-    }
-
-    // Check that singleton => no constructor
-    if (classInfoRef.constructor.isDefined && classDeclarationNode.modifiers.hasSingleton) {
-      throw EvalException(
-        s"Class `$qualifiedName` must not have a constructor if declared `singleton`",
-        token = Some(classInfoRef.idNode.token)
-      )
-    }
-
-    // Check that no superclass is a singleton
-    classInfoRef.supers foreach { ancestor =>
-      if (ancestor.isSingleton) {
-        throw EvalException(
-          s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`",
-          token = Some(classInfoRef.idNode.token)
-        )
-      }
-    }
-
-    // Check that constants classes must be singletons
-    if (nameInPackage == "constants" && !classDeclarationNode.modifiers.hasSingleton) {
-      throw EvalException(
-        s"Constants class `$qualifiedName` must be declared `singleton`",
-        token = Some(classInfoRef.idNode.token)
-      )
-    }
 
     if (classDeclarationNode.modifiers.hasMutable) {
       // If we're mutable, check that no nested class is immutable
@@ -672,117 +575,6 @@ class CgscriptClass(
     }
 
   }
-
-  private def initialize(): Unit = {
-
-    try {
-      if (classDeclarationNode != null)
-        initializeClass(classDeclarationNode)
-    } finally {
-      stage = LifecycleStage.Unloaded
-    }
-
-    stage = LifecycleStage.Initialized
-
-  }
-
-  private def initializeClass(node: ClassDeclarationNode): Unit = {
-
-    if (stage == LifecycleStage.Initializing) {
-      return
-    }
-
-    assert(classInfoRef != null)
-
-    classInfoRef.supers foreach { _.ensureInitialized() }
-
-    stage = LifecycleStage.Initializing
-
-    logger debug s"$logPrefix Initializing class."
-
-    // Create the class object
-    classObjectRef = new ClassObject(CgscriptClass.this)
-
-    // Declare nested classes
-    node.nestedClassDeclarations foreach { decl =>
-      val id = decl.idNode.id
-      classInfo.nestedClasses(id).declareClass(decl)
-    }
-
-    // Elaborate methods
-    constructor foreach { _.elaborate() }
-    classInfoRef.methods foreach { case (_, method) =>
-      if (method.declaringClass == this)
-        method.elaborate()
-    }
-
-    // Enum construction
-    node.enumElements foreach { element =>
-      classObjectRef.vars(classInfoRef.staticVarOrdinals(element.idNode.id)) = new EnumObject(this, element.idNode.id.name)
-    }
-
-    // Big temporary hack to populate Left and Right
-    if (qualifiedName == "game.Player") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
-    }
-    if (qualifiedName == "game.Side") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Onside)) = Onside
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
-    }
-    if (qualifiedName == "game.OutcomeClass") {
-      import org.cgsuite.core.OutcomeClass._
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('P)) = P
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('N)) = N
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('L)) = L
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('R)) = R
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('D)) = D
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('PHat)) = PHat
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('PCheck)) = PCheck
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('NHat)) = NHat
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('NCheck)) = NCheck
-    }
-    if (qualifiedName == "cgsuite.util.Symmetry") {
-      import Symmetry._
-      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
-        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
-        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
-        classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
-      }
-    }
-
-    // Static declarations - create a domain whose context is the class object
-    val initializerDomain = new EvaluationDomain(null, Some(classObjectRef))
-    node.staticInitializers foreach { initNode =>
-      if (!initNode.modifiers.hasExternal) {
-        val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-        // We intentionally don't elaborate class var declarations, since those are already
-        // accounted for in the class vars. But we still need to elaborate the RHS of
-        // the assignment.
-        initNode match {
-          case declNode: VarDeclarationNode if declNode.body.declType == AssignmentDeclType.ClassVarDecl =>
-            declNode.body.expr.elaborate(scope)
-          case _ => initNode.body.elaborate(scope)
-        }
-        initNode.body.evaluate(initializerDomain)
-      }
-    }
-
-    val initializerElaborationDomain = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-    node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
-    initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
-
-    logger debug s"$logPrefix Done initializing class."
-
-    stage = LifecycleStage.Initialized
-
-    // Initialize nested classes
-    node.nestedClassDeclarations foreach { decl =>
-      val id = decl.idNode.id
-      classInfo.nestedClasses(id).initializeClass(decl)
-    }
-
-  }
 */
   private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
 
@@ -808,23 +600,6 @@ class CgscriptClass(
           throw EvalException(s"Method is declared `external` but has a method body", node.tree)
         logger.debug(s"$logPrefix Declaring external method: $name")
         SystemMethod(node.idNode, Some(node), parameters, node.returnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)
-        /*
-        SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
-          case Some(fn) =>
-            logger.debug(s"$logPrefix   It's a special method.")
-            ExplicitMethod(node.idNode, Some(node), parameters, explicitReturnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
-          case None =>
-            val externalName = name.updated(0, name(0).toLower)
-            val externalMethod = try {
-              javaClass.getMethod(externalName, externalParameterTypes: _*)
-            } catch {
-              case exc: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (in Java class `$javaClass`): `$qualifiedName.$name`", node.tree)
-            }
-            logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
-            SystemMethod(node.idNode, Some(node), parameters, explicitReturnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
-        }
-         */
       } else {
         logger.debug(s"$logPrefix Declaring user method: $name")
         val body = node.body getOrElse { sys.error("no body") }
@@ -835,8 +610,6 @@ class CgscriptClass(
     newMethod
 
   }
-
-  override def toString = s"<<$qualifiedName>>"
 
   class ClassInfo(val declNode: ClassDeclarationNode) {
 
@@ -920,75 +693,6 @@ class CgscriptClass(
 
     val localMembers: Vector[Member] = localVars ++ localMethods ++ localNestedClasses ++ constructorParamVars ++ enumElements
 
-    // Check for duplicate methods.
-
-    /*
-    localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
-      throw EvalException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", node.tree)
-    }
-    */
-    /*
-
-    val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
-    val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
-    val superMembers = superMethods ++ superNestedClasses
-
-    // Check for conflicting superclass methods.
-
-    val mostSpecificSuperMembers = superMembers groupBy { _._1 } map { case (superId, instances) =>
-      val mostSpecificInstances = instances.distinct filterNot { case (_, member) =>
-        // Filter out this declaration if there exists a strict subclass that also declares this method
-        // (that one will override)
-        instances.exists { case (_, other) =>
-          other != member && other.declaringClass.ancestors.contains(member.declaringClass)
-        }
-      }
-      // If there are multiple most specific instances (so that neither one overrides the other),
-      // and this method isn't redeclared by the loading class, that's an error
-      if (mostSpecificInstances.size > 1 && !localMembers.exists { case (localId, _) => localId == superId }) {
-        val superclassNames = mostSpecificInstances map { case (_, superMember) => s"`${superMember.declaringClass.qualifiedName}`" }
-        throw EvalException(
-          s"Member `${superId.name}` needs to be declared explicitly in class `$qualifiedName`, " +
-            s"because it is defined in multiple superclasses (${superclassNames mkString ", "})"
-        )
-      }
-      (superId, mostSpecificInstances)
-    }
-
-    val resolvedSuperMembers = mostSpecificSuperMembers collect {
-      case (_, instances) if instances.size == 1 => instances.head
-    }
-
-    // TODO What if there are multiple resolved supermethods? How do we define `super.` syntax in that case?
-
-    val renamedSuperMembers = resolvedSuperMembers map { case (superId, superMember) =>
-      (Symbol("super$" + superId.name), superMember)
-    }
-    */
-    // override modifier validation.
-    // TODO for Nested classes too!
-
-    /*
-    localMethods foreach { case (methodId, method) =>
-      if (method.isOverride) {
-        if (!superMethods.exists { case (superId, _) => superId == methodId }) {
-          throw EvalException(
-            s"Method `${method.qualifiedName}` overrides nothing",
-            token = Some(method.idNode.token)
-          )
-        }
-      } else {
-        superMethods find { case (superId, _) => superId == methodId } match {
-          case None =>
-          case Some((_, superMethod)) =>
-            throw EvalException(
-              s"Method `${method.qualifiedName}` must be declared with `override`, since it overrides `${superMethod.qualifiedName}`",
-              token = Some(method.idNode.token)
-            )
-        }
-      }
-    }
-    */
     /*
     if (systemClass.isDefined) {
       resolvedSuperMembers foreach {
@@ -1009,9 +713,6 @@ class CgscriptClass(
     }
     */
 
-    //val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
-    //val (allMethods, allNestedClasses) = localMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
-
     // TODO Handle overrides & inheritance conflicts
 
     val inheritedMembers: Vector[Member] = supers flatMap { _.classInfo.allMembers }
@@ -1022,21 +723,38 @@ class CgscriptClass(
 
     lazy val allVars: Map[Symbol, CgscriptClass#Var] = groupedMembers collect {
       case (id, vars) if vars.head.isInstanceOf[CgscriptClass#Var] =>
-        // TODO Validate non-duplicate symbol
+        if (vars.size > 1)
+          throwExceptionForDuplicateSymbol(id, vars)
         (id, vars.head.asInstanceOf[CgscriptClass#Var])
     }
 
     lazy val allMethods: Map[Symbol, MethodGroup] = groupedMembers collect {
-      case (id, methods) if methods.head.isInstanceOf[CgscriptClass#Method] =>
-        // TODO Validate "static consistency" (all static or all non-static)
-        // TODO Validate all are methods with legal signatures
-        val checkedMethods = checkOverrides(methods map { _.asInstanceOf[CgscriptClass#Method] })
+
+      case (id, members) if members.head.isInstanceOf[CgscriptClass#Method] =>
+
+        if (members exists { !_.isInstanceOf[CgscriptClass#Method] })
+          throwExceptionForDuplicateSymbol(id, members)
+        val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
+        val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
+
+        if (locallyDefinedMethods.nonEmpty) {
+          // Check for "static consistency": if any method is static, all must be
+          val isStatic = locallyDefinedMethods.head.isStatic
+          if (methods exists { _.isStatic != isStatic })
+            throw EvalException(s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`", token = locallyDefinedMethods.head.declNode map { _.idNode.token })
+        }
+
+        // TODO Duplicate method signatures
+        val checkedMethods = validateMethods(methods)
         (id, MethodGroup(id, checkedMethods))
+
     }
 
     lazy val allNestedClasses: Map[Symbol, CgscriptClass] = {
       groupedMembers collect {
         case (id, classes) if classes.head.isInstanceOf[CgscriptClass] =>
+          if (classes.size > 1)
+            throwExceptionForDuplicateSymbol(id, classes)
           (id, classes.head.asInstanceOf[CgscriptClass])
       }
     }
@@ -1062,6 +780,104 @@ class CgscriptClass(
 
     lazy val staticMemberLookup: Map[Symbol, MemberResolution] = {
       staticVars ++ staticMethods // ++ staticNestedClasses
+    }
+
+    validateClass()
+
+    private def throwExceptionForDuplicateSymbol(symbol: Symbol, members: Vector[Member]): Nothing = {
+      val locallyDefinedMembers = members filter { member =>
+        member.declaringClass == thisClass && !member.isInstanceOf[CgscriptClass#Method]
+      }
+      assert(locallyDefinedMembers.nonEmpty)
+      val memberForException = if (locallyDefinedMembers.size == 1) locallyDefinedMembers.head else locallyDefinedMembers(1)
+      throw EvalException(s"Duplicate symbol `${id.name}` in class `$qualifiedName`", token = memberForException.declNode map { _.idNode.token })
+    }
+
+    private def validateMethods(methods: Vector[CgscriptClass#Method]): Vector[CgscriptClass#Method] = {
+
+      val groupedBySignature = methods.distinct groupBy { _.parameterTypeList }
+
+      val resolved = groupedBySignature map { case (_, matchingMethods) =>
+
+        val localDeclarations = matchingMethods filter { _.declaringClass == thisClass }
+
+        if (localDeclarations.size > 1) {
+          throw EvalException(
+            s"Method `${localDeclarations(1).qualifiedName}` is declared twice with identical signature",
+            token = Some(localDeclarations(1).idNode.token)
+          )
+        }
+
+        if (localDeclarations.nonEmpty) {
+          if (matchingMethods.size == 1 && localDeclarations.head.isOverride) {
+            throw EvalException(
+              s"Method `${localDeclarations.head.qualifiedName}` overrides nothing",
+              token = Some(localDeclarations.head.idNode.token)
+            )
+          }
+          if (matchingMethods.size > 1 && !localDeclarations.head.isOverride) {
+            throw EvalException(
+              s"Method `${localDeclarations.head.qualifiedName}` must be declared with `override`, since it overrides `${matchingMethods(1).qualifiedName}`",
+              token = Some(localDeclarations.head.idNode.token)
+            )
+          }
+        }
+
+        val mostSpecificMethods = matchingMethods filterNot { method =>
+          // Filter out a declaration if there exists a strict subclass that declares a method
+          // with exactly the same signature
+          matchingMethods exists { otherMethod =>
+            otherMethod.declaringClass.properAncestors contains method.declaringClass
+          }
+        }
+
+        if (mostSpecificMethods.size > 1) {
+          assert(localDeclarations.isEmpty)   // Otherwise, localDeclarations.head should have filtered out everything else
+          throw EvalException(
+            s"Method `${mostSpecificMethods.head.methodName}` must be declared explicitly in class `$qualifiedName`, " +
+              s"because it is defined in multiple superclasses (`${mostSpecificMethods.head.declaringClass.qualifiedName}`, `${mostSpecificMethods(1).declaringClass.qualifiedName}`)",
+            token = Some(classInfo.declNode.idNode.token)
+          )
+        }
+
+        mostSpecificMethods.head
+
+      }
+
+      // TODO Check that result types match (this should happen later, during elaboration)
+
+      resolved.toVector
+
+    }
+
+    private def validateClass(): Unit = {
+
+      // Check that singleton => no constructor
+      if (constructor.isDefined && declNode.modifiers.hasSingleton) {
+        throw EvalException(
+          s"Class `$qualifiedName` cannot have a constructor if declared `singleton`",
+          token = Some(idNode.token)
+        )
+      }
+
+      // Check that no superclass is a singleton
+      supers foreach { ancestor =>
+        if (ancestor.isSingleton) {
+          throw EvalException(
+            s"Class `$qualifiedName` cannot extend singleton class `${ancestor.qualifiedName}`",
+            token = Some(idNode.token)
+          )
+        }
+      }
+
+      // Check that constants classes must be singletons
+      if (nameInPackage == "constants" && !declNode.modifiers.hasSingleton) {
+        throw EvalException(
+          s"Constants class `$qualifiedName` must be declared `singleton`",
+          token = Some(idNode.token)
+        )
+      }
+
     }
 
   }

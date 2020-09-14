@@ -1642,7 +1642,7 @@ object FunctionCallNode {
 
   def lookupMethodWithImplicits(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
 
-    objectType.baseClass.resolveMethod(methodId, argTypes) orElse {
+    objectType.baseClass.resolveInstanceMethod(methodId, argTypes) orElse {
 
       // Try various types of implicit conversions. This is a bit of a hack to handle
       // Rational -> DyadicRational -> Integer conversions in a few places. In later versions, this might be
@@ -1653,10 +1653,10 @@ object FunctionCallNode {
         case 0 =>
           val implicits = availableImplicits(objectType)
           val validImplicits = implicits find { implObjectType =>
-            implObjectType.baseClass.resolveMethod(methodId, Vector.empty).isDefined
+            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector.empty).isDefined
           }
           validImplicits flatMap { implObjectType =>
-            implObjectType.baseClass.resolveMethod(methodId, Vector.empty)
+            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector.empty)
           }
 
         case 1 =>
@@ -1669,10 +1669,10 @@ object FunctionCallNode {
             }
           }
           val validImplicits = implicits find { case (implObjectType, implArgType) =>
-            implObjectType.baseClass.resolveMethod(methodId, Vector(implArgType)).isDefined
+            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector(implArgType)).isDefined
           }
           validImplicits flatMap { case (implObjectType, implArgType) =>
-            implObjectType.baseClass.resolveMethod(methodId, Vector(implArgType))
+            implObjectType.baseClass.resolveInstanceMethod(methodId, Vector(implArgType))
           }
 
         case _ =>
@@ -1778,7 +1778,7 @@ case class FunctionCallNode(
         } else {
           // Eval method
           isEval = true
-          val evalMethod = callSiteType.baseClass.resolveMethod('Eval, argTypes) getOrElse {
+          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, argTypes) getOrElse {
             throw EvalException(s"No method `Eval` (`${callSiteType.baseClass.qualifiedName}`)") // TODO Better error msg
           }
           evalMethod.ensureElaborated()

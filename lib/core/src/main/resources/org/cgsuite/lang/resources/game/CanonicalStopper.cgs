@@ -12,8 +12,6 @@ system class CanonicalStopper extends Game, StopperSidedValue
 
   external override def op unary- as CanonicalStopper;
 
-  external override def ToOutput as String;
-
   override external def OptionsFor(player as Player) as List of CanonicalStopper;
 
   external def Degree as CanonicalStopper;

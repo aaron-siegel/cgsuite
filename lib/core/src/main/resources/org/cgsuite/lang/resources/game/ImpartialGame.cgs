@@ -8,9 +8,9 @@ system class ImpartialGame extends Game
 
   external def op-(that as ImpartialGame) as ImpartialGame;
 
-  external def op unary+ as ImpartialGame;
+  external override def op unary+ as ImpartialGame;
 
-  external def op unary- as ImpartialGame;
+  external override def op unary- as ImpartialGame;
 
   /** The normal-play canonical form of this `ImpartialGame`. The result
     * will always be a [[Nimber]], and in fact `CanonicalForm` for

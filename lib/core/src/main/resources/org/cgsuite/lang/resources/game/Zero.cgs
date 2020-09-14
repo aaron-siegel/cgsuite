@@ -1,4 +1,9 @@
 /*${cgsuite.banner}*/
 
 singleton system class Zero extends Integer, Nimber
+
+  external override def op unary+ as Zero;
+
+  external override def op unary- as Zero;
+
 end
