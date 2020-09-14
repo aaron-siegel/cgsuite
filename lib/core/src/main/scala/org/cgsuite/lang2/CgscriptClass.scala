@@ -511,71 +511,6 @@ class CgscriptClass(
 
   }
 
-/*
-  private def validateClass(): Unit = {
-
-    // Check for duplicate vars (we make an exception for the constructor)
-
-    (classInfoRef.inheritedClassVars ++ classInfoRef.localClassVars) groupBy { _.id } foreach { case (varId, vars) =>
-      if (vars.size > 1 && (vars exists { !_.isConstructorParam })) {
-        val class1 = vars.head.declaringClass
-        val class2 = vars(1).declaringClass
-        if (class1 == thisClass && class2 == thisClass)
-          throw EvalException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", classDeclarationNode.tree)
-        else if (class2 == thisClass)
-          throw EvalException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
-        else
-          throw EvalException(s"Variable `${varId.name}` is defined in multiple superclasses: `${class1.qualifiedName}`, `${class2.qualifiedName}`")
-      }
-    }
-
-
-    if (classDeclarationNode.modifiers.hasMutable) {
-      // If we're mutable, check that no nested class is immutable
-      classDeclarationNode.nestedClassDeclarations foreach { nested =>
-        if (!nested.modifiers.hasMutable) {
-          throw EvalException(
-            s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
-            token = Some(nested.idNode.token)
-          )
-        }
-      }
-    } else {
-      // If we're immutable, check that no superclass is mutable
-      classInfoRef.supers foreach { spr =>
-        if (spr.isMutable) {
-          throw EvalException(
-            s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
-            token = Some(classInfoRef.idNode.token)
-          )
-        }
-      }
-      // ... and that there are no mutable vars
-      classInfoRef.initializerNodes foreach {
-        case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
-          throw EvalException(
-            s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
-            token = Some(declNode.idNode.token)
-          )
-        case _ =>
-      }
-    }
-
-    // Check that immutable class vars are assigned at declaration time
-
-    classInfoRef.initializers collect {
-      // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
-      // a "default" nil value. This could be refactored to be a bit more elegant.
-      case VarDeclarationNode(_, AssignToNode(_, idNode, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), modifiers)
-        if !modifiers.hasMutable =>
-        throw EvalException(
-          s"Immutable variable `${idNode.id.name}` must be assigned a value (or else declared `mutable`)",
-          token = Some(idNode.token)
-        )
-    }
-
-  }
-*/
   private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
 
     val name = node.idNode.id.name
@@ -693,26 +628,6 @@ class CgscriptClass(
 
     val localMembers: Vector[Member] = localVars ++ localMethods ++ localNestedClasses ++ constructorParamVars ++ enumElements
 
-    /*
-    if (systemClass.isDefined) {
-      resolvedSuperMembers foreach {
-        case (id, method: CgscriptClass#SystemMethod) =>
-          val javaParameterTypes = method.javaMethod.getParameterTypes
-          try {
-            val overrider = javaClass.getMethod(method.javaMethod.getName, javaParameterTypes : _*)
-            if (overrider != method.javaMethod && !(localMembers exists { _._1 == id })) {
-              logger.warn(
-                s"Method `${method.qualifiedName}` with Java method `${method.javaMethod.getName}` is overridden in Java class `${javaClass.getName}`, but is not redeclared in class `$qualifiedName`."
-              )
-            }
-          } catch {
-            case exc: NoSuchMethodException =>
-          }
-        case _ =>
-      }
-    }
-    */
-
     // TODO Handle overrides & inheritance conflicts
 
     val inheritedMembers: Vector[Member] = supers flatMap { _.classInfo.allMembers }
@@ -785,12 +700,36 @@ class CgscriptClass(
     validateClass()
 
     private def throwExceptionForDuplicateSymbol(symbol: Symbol, members: Vector[Member]): Nothing = {
+
       val locallyDefinedMembers = members filter { member =>
         member.declaringClass == thisClass && !member.isInstanceOf[CgscriptClass#Method]
       }
-      assert(locallyDefinedMembers.nonEmpty)
-      val memberForException = if (locallyDefinedMembers.size == 1) locallyDefinedMembers.head else locallyDefinedMembers(1)
-      throw EvalException(s"Duplicate symbol `${id.name}` in class `$qualifiedName`", token = memberForException.declNode map { _.idNode.token })
+      val superclassesDefining = members.map { _.declaringClass }.filterNot { _ == thisClass }.distinct
+
+      locallyDefinedMembers.size match {
+
+        case 0 =>
+          assert(superclassesDefining.size >= 2)
+          throw EvalException(
+            s"Symbol `${symbol.name}` is defined in multiple superclasses: `${superclassesDefining.head.qualifiedName}`, `${superclassesDefining(1).qualifiedName}`",
+            token = Some(classInfo.declNode.idNode.token)
+          )
+
+        case 1 =>
+          assert(superclassesDefining.nonEmpty)
+          throw EvalException(
+            s"Symbol `${symbol.name}` in class `$qualifiedName` shadows definition in class `${superclassesDefining.head.qualifiedName}`",
+            token = locallyDefinedMembers.head.declNode map { _.idNode.token }
+          )
+
+        case _ =>
+          throw EvalException(
+            s"Duplicate symbol `${id.name}` in class `$qualifiedName`",
+            token = locallyDefinedMembers(1).declNode map { _.idNode.token }
+          )
+
+      }
+
     }
 
     private def validateMethods(methods: Vector[CgscriptClass#Method]): Vector[CgscriptClass#Method] = {
@@ -876,6 +815,52 @@ class CgscriptClass(
           s"Constants class `$qualifiedName` must be declared `singleton`",
           token = Some(idNode.token)
         )
+      }
+
+      // If this class is mutable, check that every nested class is also mutable
+      if (declNode.modifiers.hasMutable) {
+        // If we're mutable, check that no (locally declared) nested class is immutable
+        declNode.nestedClassDeclarations foreach { nested =>
+          if (!nested.modifiers.hasMutable) {
+            throw EvalException(
+              s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
+              token = Some(nested.idNode.token)
+            )
+          }
+        }
+      }
+
+      // If this class is immutable, check that every superclass is also immutable
+      if (!declNode.modifiers.hasMutable) {
+        supers foreach { spr =>
+          if (spr.isMutable) {
+            throw EvalException(
+              s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
+              token = Some(classInfoRef.idNode.token)
+            )
+          }
+        }
+        // ... and that there are no mutable vars
+        declNode.initializers foreach {
+          case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
+            throw EvalException(
+              s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
+              token = Some(declNode.idNode.token)
+            )
+          case _ =>
+        }
+      }
+
+      // Check that immutable class vars are assigned values at declaration time
+      declNode.initializers collect {
+        // This is a little bit of a hack: we look for "phantom" constant nodes since those are indicative of
+        // a "default" nil value. This could be refactored to be a bit more elegant.
+        case VarDeclarationNode(_, AssignToNode(_, idNode, NullNode(_), AssignmentDeclType.ClassVarDecl), modifiers)
+          if !modifiers.hasMutable =>
+          throw EvalException(
+            s"Immutable variable `${idNode.id.name}` must be assigned a value",
+            token = Some(idNode.token)
+          )
       }
 
     }
