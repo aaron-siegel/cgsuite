@@ -218,7 +218,7 @@ trait EvalNode extends Node {
       case ConcreteType(cls, typeParameters) =>
         classes += cls
         typeParameters foreach { addTypeToClasses(classes, _) }
-      case TypeVariable(_) =>
+      case TypeVariable(_, _) =>
     }
   }
 
@@ -534,15 +534,21 @@ trait TypeSpecifierNode extends EvalNode {
 
 object TypeVariableNode {
 
-  def apply(tree: Tree): TypeVariableNode = TypeVariableNode(tree, Symbol(tree.getText))
+  def apply(tree: Tree): TypeVariableNode = {
+    assert(tree.getType == TYPE_VARIABLE)
+    assert(tree.children.isEmpty || tree.head.getType == AST)
+    TypeVariableNode(tree, Symbol(tree.getText), isExpandable = tree.children.nonEmpty)
+  }
 
 }
 
-case class TypeVariableNode(tree: Tree, id: Symbol) extends TypeSpecifierNode {
+case class TypeVariableNode(tree: Tree, id: Symbol, isExpandable: Boolean) extends TypeSpecifierNode {
 
   override def children = Vector.empty
 
-  override def toType(domain: ElaborationDomain) = TypeVariable(id)
+  def toType = TypeVariable(id, isExpandable)
+
+  override def toType(domain: ElaborationDomain) = toType
 
 }
 
@@ -1409,37 +1415,64 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
 
   var parameters: Vector[Parameter] = _
 
+  def arity = parameters.length
+
   override val children = (parametersNode.parameterNodes flatMap { _.defaultValue }) :+ body
 
-  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+  override def toNodeStringPrec(enclosingPrecedence: Int) = {
+    val parameterStrings = parameters map { param =>
+      s"${param.name} as ${param.paramType.qualifiedName}"
+    }
+    val parametersString = arity match {
+      case 1 => parameterStrings.head
+      case _ => "(" + parameterStrings.mkString(", ") + ")"
+    }
+    val bodyString = body.toNodeStringPrec(OperatorPrecedence.FunctionDef)
+    s"$parametersString -> $bodyString"
+  }
 
   override def elaborateImpl(domain: ElaborationDomain) = {
 
     parameters = parametersNode.toParameters(domain)
 
-    assert(parameters.length == 1)
-
     domain.pushScope()
     parameters foreach { param =>
+      if (domain.isDefinedInLocalScope(param.id)) {
+        throw EvalException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
+      }
       domain.insertId(param.id, param.paramType)
       param.defaultValue foreach { _.ensureElaborated(domain) }
     }
     val resultType = body.ensureElaborated(domain)
     domain.popScope()
 
-    ConcreteType(CgscriptClass.Procedure, Vector(parameters.head.paramType, resultType))
+    ConcreteType(CgscriptClass.Procedure, (parameters map { _.paramType }) :+ resultType)
 
   }
 
   override def toScalaCode(context: CompileContext) = {
 
-    assert(parameters.length == 1)
+    val paramNames = parameters map { _.id.name } mkString ", "
 
-    val paramName = parameters.head.id.name
-    val paramTypeName = parameters.head.paramType.scalaTypeName
+    val paramTypeNames = parameters map { _.paramType.scalaTypeName } mkString ", "
+
+    val paramNamesCode = parameters.length match {
+      case 0 => "_"
+      case 1 => paramNames
+      case _ => s"case($paramNames)"
+    }
+
+    val typeCode = parameters.length match {
+      case 0 => "AnyRef"
+      case 1 => paramTypeNames
+      case _ => s"($paramTypeNames)"
+    }
+
     val bodyCode = body.toScalaCode(context)
 
-    s"{ $paramName: $paramTypeName => { $bodyCode } }"
+    val escapedNodeString = StringEscapeUtils.ESCAPE_JAVA.translate(toNodeString)
+
+    s"""org.cgsuite.lang2.Procedure[$typeCode, ${body.elaboratedType.scalaTypeName}]($arity, "$escapedNodeString"){ $paramNamesCode => { $bodyCode } }"""
 
   }
 
@@ -1712,12 +1745,16 @@ case class FunctionCallNode(
   argNames: Vector[Option[IdentifierNode]]
   ) extends EvalNode {
 
+  // TODO Are we being sufficiently careful that procedures have a stricter call syntax
+  // (no named or default parameters)?
+
   override val children = argNodes ++ argNames.flatten :+ callSiteNode
 
   var objectType: Option[CgscriptType] = _
   var elaboratedMethod: Option[CgscriptClass#Method] = _
   var isElaboratedInLocalScope: Boolean = _
   var isEval: Boolean = false
+  var isExpandableArgumentPattern: Boolean = false
 
   override def elaborateImpl(domain: ElaborationDomain) = {
 
@@ -1817,11 +1854,12 @@ case class FunctionCallNode(
           }
         } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
           // TODO Validate args? Type-infer the procedure?
+          isExpandableArgumentPattern = true
           callSiteType.typeArguments.last
         } else {
           // Eval method
           isEval = true
-          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, ordinaryArgumentTypes, namedArgumentTypes)
+          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, ordinaryArgumentTypes, namedArgumentTypes, Some(callSiteType))
           evalMethod.ensureElaborated()
         }
 
@@ -1859,8 +1897,6 @@ case class FunctionCallNode(
 
   override def toScalaCode(context: CompileContext) = {
 
-    // TODO arg names
-
     val functionCode = elaboratedMethod match {
       case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
       case Some(method) if isElaboratedInLocalScope => method.scalaName
@@ -1869,10 +1905,23 @@ case class FunctionCallNode(
       case _ if isEval => callSiteNode.toScalaCode(context) + ".eval"
       case _ => callSiteNode.toScalaCode(context)
     }
-    val argsCode = argNodes zip argNames map {
-      case (node, None) => node.toScalaCode(context)
-      case (node, Some(nameNode)) => nameNode.id.name + " = { " + node.toScalaCode(context) + " }"
-    } mkString ", "
+    val baseArgsCode = {
+      argNodes zip argNames map {
+        case (node, None) => node.toScalaCode(context)
+        case (node, Some(nameNode)) => nameNode.id.name + " = { " + node.toScalaCode(context) + " }"
+      } mkString ", "
+    }
+    val argsCode = {
+      if (isExpandableArgumentPattern) {
+        argNodes.length match {
+          case 0 => "null"                      // Placeholder for nullary procedures
+          case 1 => baseArgsCode
+          case _ => "(" + baseArgsCode + ")"    // Tupleize the inputs
+        }
+      } else {
+        baseArgsCode
+      }
+    }
     s"($functionCode($argsCode))"
 
   }

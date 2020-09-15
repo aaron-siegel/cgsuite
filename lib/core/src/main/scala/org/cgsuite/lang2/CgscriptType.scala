@@ -62,7 +62,7 @@ sealed trait CgscriptType {
 
 }
 
-case class TypeVariable(id: Symbol) extends CgscriptType {
+case class TypeVariable(id: Symbol, isExpandable: Boolean = false) extends CgscriptType {
 
   override def qualifiedName = id.name
 
@@ -108,8 +108,8 @@ case class TypeVariable(id: Symbol) extends CgscriptType {
 
 case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[CgscriptType] = Vector.empty) extends CgscriptType {
 
-  if (baseClass.isDeclaredPhase1)
-    assert(baseClass.typeParameters.length == typeArguments.length, this)
+  if (baseClass.isDeclaredPhase1 && (baseClass.typeParameters.isEmpty || !baseClass.typeParameters.head.isExpandable))
+    assert(baseClass.typeParameters.length == typeArguments.length, (this, baseClass.typeParameters))
 
   def qualifiedName: String = {
 

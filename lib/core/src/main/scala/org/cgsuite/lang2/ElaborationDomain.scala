@@ -16,7 +16,6 @@ class ElaborationDomain(
 {
 
   private var scopeStack = List.empty[ElaborationScope]
-  private var elaborationCallStack = List.empty[Member]
 
   pushScope()
 
@@ -28,8 +27,16 @@ class ElaborationDomain(
     scopeStack = scopeStack.tail
   }
 
+  def popScopeToTopLevel(): Unit = {
+    scopeStack = scopeStack takeRight 1
+  }
+
   def isToplevelWorksheet: Boolean = {
     cls.isEmpty && scopeStack.size == 1
+  }
+
+  def isDefinedInLocalScope(id: Symbol): Boolean = {
+    scopeStack.head contains id
   }
 
   def typeOf(id: Symbol): Option[Option[CgscriptType]] = {
@@ -43,16 +50,6 @@ class ElaborationDomain(
   def insertId(id: Symbol, typ: CgscriptType): Unit = {
     assert(scopeStack.nonEmpty)
     scopeStack.head.insertId(id, typ)
-  }
-
-  def pushMember(member: Member): Unit = {
-    if (elaborationCallStack contains member)
-      sys.error("circular reference (needs error msg)")
-    elaborationCallStack = member +: elaborationCallStack
-  }
-
-  def popMember(): Unit = {
-    elaborationCallStack = elaborationCallStack.tail
   }
 
 }

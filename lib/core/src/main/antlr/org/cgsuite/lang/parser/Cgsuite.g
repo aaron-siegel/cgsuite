@@ -279,7 +279,12 @@ classModifier
     ;
 
 classTypeParameters
-    : OF^ (TYPE_VARIABLE | LPAREN! TYPE_VARIABLE (COMMA! TYPE_VARIABLE)+ RPAREN!)
+    : OF^ (typeVariable | LPAREN! typeVariable (COMMA! typeVariable)+ RPAREN!)
+    ;
+
+typeVariable
+    : (TYPE_VARIABLE AST) => TYPE_VARIABLE^ AST
+    | TYPE_VARIABLE
     ;
     
 extendsClause
@@ -287,7 +292,7 @@ extendsClause
     ;
 
 typeSpecifier
-    : TYPE_VARIABLE
+    : typeVariable
     | qualifiedId (OF^ (multiTypeParameter | typeSpecifier))?
     ;
 
@@ -466,7 +471,7 @@ functionExpression
 
 procedureAntecedent
     : IDENTIFIER asClause? -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER IDENTIFIER asClause?))
-//    | LPAREN! methodParameterList RPAREN!
+    | LPAREN! methodParameterList RPAREN!
     ;
 
 // TODO Is this the right precedence?

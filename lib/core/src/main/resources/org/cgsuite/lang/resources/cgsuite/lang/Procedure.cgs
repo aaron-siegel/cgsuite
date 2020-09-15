@@ -1,7 +1,7 @@
 /*${cgsuite.banner}*/
 
-system class Procedure of (`T, `R)
+system class Procedure of (`T*, `R)
 
-  external def Eval(argument as `T) as `R;
+  external def Eval(arguments as `T*) as `R;
 
 end

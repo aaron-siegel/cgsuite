@@ -44,7 +44,7 @@ private[lang2] object CgscriptSystem {
     "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
     "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
-    "cgsuite.lang.Procedure" -> classOf[_ => _],
+    "cgsuite.lang.Procedure" -> classOf[Procedure[_, _]],
     "cgsuite.lang.System" -> classOf[System],
     "cgsuite.lang.Table" -> classOf[Table],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
@@ -146,6 +146,9 @@ private[lang2] object CgscriptSystem {
         node.toScalaCodeWithVarDecls(new CompileContext())
       } catch {
         case exc: Throwable => exc.printStackTrace(); return scala.Right(exc)
+      } finally {
+        // If an exception was thrown during elaboration, we need to clear out the scope stack
+        domain.popScopeToTopLevel()
       }
     }
 

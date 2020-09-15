@@ -286,7 +286,7 @@ class CgscriptClass(
       case Some(methodGroup: MethodGroup) => methodGroup.resolveToMethod(argumentTypes, namedArgumentTypes, objectType)
       case None =>
         val objSuffixString = objectType map { typ => s" (for object of type `${typ.qualifiedName}`)" } getOrElse ""
-        throw EvalException(s"No method `Eval`$objSuffixString")
+        throw EvalException(s"No method `${id.name}`$objSuffixString")
     }
 
   }
@@ -581,7 +581,7 @@ class CgscriptClass(
     val modifiers: Modifiers = declNode.modifiers
 
     val typeParameters: Vector[TypeVariable] = declNode.typeParameters map { typeParameterNode =>
-      TypeVariable(typeParameterNode.id)
+      typeParameterNode.toType
     }
 
     val enumElementNodes = declNode.enumElements
