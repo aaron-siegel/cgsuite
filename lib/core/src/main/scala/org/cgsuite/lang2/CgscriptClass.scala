@@ -92,6 +92,7 @@ object CgscriptClass {
         output.appendMath(" ")
         output.append(instanceToOutput(v))
         output
+      case null => EmptyOutput
       case _ =>
         assert(CgscriptSystem.allSystemClasses exists { case (_, cls) => cls.isAssignableFrom(x.getClass) })
         new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, x.toString)
@@ -406,6 +407,7 @@ class CgscriptClass(
 
     classInfo.constructor foreach { _.ensureElaborated() }
     classInfo.allMembers foreach { _.ensureElaborated() }
+    classInfo.initializers foreach { _.ensureElaborated() }
     CgscriptType(this, typeParameters)
 
   }
@@ -620,10 +622,14 @@ class CgscriptClass(
 
     val ancestors = properAncestors :+ CgscriptClass.this
 
-    val localVars: Vector[Var] = declNode.initializers collect {
+    val initializers: Vector[Initializer] = declNode.initializers map {
+      case blockNode: InitializerBlockNode =>
+        OrdinaryInitializer(blockNode.modifiers.hasMutable, blockNode.modifiers.hasStatic, Some(blockNode.body))
       case varDeclNode: VarDeclarationNode =>
         Var(varDeclNode.idNode, Some(varDeclNode), varDeclNode.modifiers.hasMutable, varDeclNode.modifiers.hasStatic, None, Some(varDeclNode.body.children(1)))   // TODO: Explicit result type
     }
+
+    val localVars: Vector[Var] = initializers collect { case variable: Var => variable }
 
     val localMethods: Vector[Method] = declNode.methodDeclarations map { parseMethod(_, declNode.modifiers) }
 
@@ -983,29 +989,35 @@ class CgscriptClass(
 
     }
 
-    val companionObjectVars = {
+    val companionObjectInitializers = {
       if (isSingleton)
       // TODO Handle suspicious forward reference
-        classInfo.localVars filter { localVar => !localVar.isStatic }     // TODO Don't allow static declaration in singletons
+        classInfo.initializers     // TODO Don't allow static declaration in singletons
       else {
         // Enum elements are handled separately, below
-        classInfo.localVars filter { localVar => localVar.isStatic && !localVar.isEnumElement }
+        classInfo.initializers filter { _.isStatic }
       }
     }
 
-    companionObjectVars foreach { variable =>
-      sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
-      variable.initializerNode foreach { node =>
+    companionObjectInitializers foreach { initializer =>
+      initializer match {
+        case variable: Var =>
+          sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
+        case _: OrdinaryInitializer =>
+      }
+      initializer.initializerNode foreach { node =>
         sb append node.toScalaCode(context)
       }
-      sb append "\n}\n\n"
+      if (initializer.isInstanceOf[Var]) {
+        sb append "\n}\n\n"
+      }
     }
 
     val companionObjectMethods = {
       if (isSingleton)
         classInfo.localMethods
       else
-        classInfo.staticMethods.values
+        classInfo.localMethods filter { _.isStatic }
     }
 
     val companionObjectUserMethods = companionObjectMethods collect { case method: UserMethod => method }
@@ -1069,12 +1081,19 @@ class CgscriptClass(
         }
       }
 
-      classInfo.localVars foreach { variable =>
-        sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
-        variable.initializerNode foreach { node =>
+      classInfo.initializers filter { !_.isStatic } foreach { initializer =>
+        initializer match {
+          case variable: Var =>
+            sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
+          case _: OrdinaryInitializer =>
+        }
+        initializer.initializerNode foreach { node =>
           sb append node.toScalaCode(context)
         }
-        sb append "\n}\n\n"
+        sb append "\n"
+        if (initializer.isInstanceOf[Var]) {
+          sb append "}\n\n"
+        }
       }
 
       val userMethods = classInfo.localMethods collect { case method: UserMethod => method }
@@ -1152,6 +1171,26 @@ class CgscriptClass(
     }
   }
 
+  trait Initializer {
+    def isMutable: Boolean
+    def isStatic: Boolean
+    def initializerNode: Option[EvalNode]
+    def ensureElaborated(): CgscriptType
+  }
+
+  case class OrdinaryInitializer(
+    isMutable: Boolean,
+    isStatic: Boolean,
+    initializerNode: Option[EvalNode]
+  ) extends Initializer {
+
+    override def ensureElaborated() = initializerNode match {
+      case Some(node) => node.ensureElaborated(new ElaborationDomain(Some(thisClass)))
+      case None => CgscriptType(CgscriptClass.NothingClass)
+    }
+
+  }
+
   case class Var(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
@@ -1161,7 +1200,7 @@ class CgscriptClass(
     initializerNode: Option[EvalNode],
     isConstructorParam: Boolean = false,
     isEnumElement: Boolean = false
-  ) extends Member {
+  ) extends Member with Initializer {
 
     val id = idNode.id
 
@@ -1218,23 +1257,6 @@ class CgscriptClass(
 
     var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
 
-    /*
-    def elaborate(): Unit = {
-      logger.debug(s"$logPrefix Elaborating method: $qualifiedName")
-      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-      parameters foreach { param =>
-        param.defaultValue foreach { _.elaborate(scope) }
-      }
-      logger.debug(s"$logPrefix Done elaborating method: $qualifiedName")
-    }
-
-    // This is optimized to be really fast for methods with <= 4 parameters.
-    // TODO Optimize for more than 4 parameters?
-    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
-      assert(args.isEmpty || parameters.nonEmpty, qualifiedName)
-      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
-    }
-    */
   }
 
   case class UserMethod(
@@ -1403,7 +1425,7 @@ class CgscriptClass(
       failFastOnSingleMethod: Boolean = false
       ): Option[CgscriptClass#Method] = {
 
-      /*** This assertion is not valid for implicit resolutions
+      /** This assertion is not valid for implicit resolutions
       assert(
         objectType match {
           case Some(typ) if typ.baseClass == CgscriptClass.Class =>

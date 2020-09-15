@@ -127,13 +127,10 @@ private[lang2] object CgscriptSystem {
     domain = new ElaborationDomain(None)
     interpreter.interpret("import org.cgsuite.dsl._")
     interpreter.interpret("import org.cgsuite.lang2.CgscriptImplicits._")
-    /*
-    evaluate("game.heap.GenWythoff(1)") match {
+    evaluate("0") match {
       case scala.Right(exc) => throw exc
       case _ =>
     }
-
-     */
 
   }
 

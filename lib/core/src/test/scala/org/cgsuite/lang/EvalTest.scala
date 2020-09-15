@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-class EvalTest extends CgscriptSpec{
+class EvalTest extends CgscriptSpec {
 
   "CGScript" should "process basic expressions" in {
 

@@ -1,4 +1,4 @@
-package org.cgsuite.lang
+package org.cgsuite.lang2
 
 class GameGridTest extends CgscriptSpec {
 
