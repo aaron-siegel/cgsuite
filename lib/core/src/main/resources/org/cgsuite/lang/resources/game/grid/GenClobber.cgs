@@ -36,7 +36,7 @@ class GenClobber(
   
   def ClobberablePoints(grid as Grid, c as Coordinates, d as Coordinates, clob as Set of Integer) begin
     var n := 1;
-    while n < maxDistance and grid[c+n*d] == 0 do
+    while (maxDistance == 0 or n < maxDistance) and grid[c+n*d] == 0 do
       n := n + 1;
     end
     // TODO This cast should be unnecessary
@@ -48,7 +48,7 @@ class GenClobber(
   override def Icons begin
   
     var bwIcons := [Icon.BlackStone, Icon.WhiteStone];
-    if maxDistance == inf then
+    if maxDistance == 0 then
       if directions == Coordinates.Orthogonal then
         bwIcons := [Icon.BlackRook, Icon.WhiteRook];
       elseif directions == Coordinates.Compass then

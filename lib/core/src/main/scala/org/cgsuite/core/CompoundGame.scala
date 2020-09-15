@@ -42,7 +42,7 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
 
   }
 
-  override def depthHint: Int = g.depthHint + h.depthHint
+  override def depthHint: Integer = g.depthHint + h.depthHint
 
   override def decomposition: Iterable[_] = {
     compoundType match {

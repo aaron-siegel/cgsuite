@@ -85,7 +85,7 @@ trait SimplifiedLoopyGame extends Game {
     optionsFor(player).toSeq.sorted(SimplifiedLoopyGame.SemideterministicOrdering)
   }
 
-  override def depthHint = 0
+  override def depthHint = Values.zero
 
   override def toOutput: StyledTextOutput = {
     val output: StyledTextOutput = new StyledTextOutput

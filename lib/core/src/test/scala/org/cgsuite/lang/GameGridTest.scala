@@ -13,7 +13,7 @@ class GameGridTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("Clobber", """game.grid.Clobber("xox|ox.").CanonicalForm""", "{^^*|*,v}"),
-      ("Clobber (Diagonal)", """game.grid.GenClobber(directions => Coordinates.Diagonal)("xoxo|oox.|xxx.").CanonicalForm""", "{0,v*|vv}"),
+      ("Kings", """game.grid.Kings("xoxo|oox.|xxx.").CanonicalForm""", "{0,v*|vv}"),
       ("Clobber (Anti)", """game.grid.AntiClobber("xoxo|oo..").CanonicalForm""", "{*|-1}")
     ))
   }
@@ -37,7 +37,9 @@ class GameGridTest extends CgscriptSpec {
            |          | 2over |           | 2 |          | 3* |            | 4over@
            |----------+-------+-----------+---+----------+----+------------+------@
            |{6|2over} |       | {2over|2} |   | {4|3||2} |    | {4over|3*} |      @""".filterNot{ _ == '@' }.stripMargin),
-      ("FoxAndGeese Validation", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,6))", "!!`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row+col even).")
+      ("FoxAndGeese Validation - 1", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,6))", "!!`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even)"),
+      ("FoxAndGeese Validation - 2", "game.grid.FoxAndGeese({(3,1),(3,3),(2,5),(3,7)}, (1,1))", "!!Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even)"),
+      ("FoxAndGeese Validation - 3", "game.grid.GenFoxAndGeese(foxRange => 0)", "!!`foxRange` must be >= 1")
     ))
   }
 

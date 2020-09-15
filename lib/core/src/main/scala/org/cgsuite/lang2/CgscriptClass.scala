@@ -257,7 +257,9 @@ class CgscriptClass(
   }
 
   def resolveInstanceMember(id: Symbol): Option[MemberResolution] = {
-    classInfo.instanceMemberLookup get id
+    classInfo.instanceMemberLookup get id orElse {
+      enclosingClass flatMap { _.resolveInstanceMember(id) }
+    }
   }
 
   def lookupInstanceMethod(
@@ -983,10 +985,11 @@ class CgscriptClass(
 
     val companionObjectVars = {
       if (isSingleton)
-        classInfo.localVars
+      // TODO Handle suspicious forward reference
+        classInfo.localVars filter { localVar => !localVar.isStatic }     // TODO Don't allow static declaration in singletons
       else {
         // Enum elements are handled separately, below
-        classInfo.staticVars.values filterNot { _.isEnumElement }
+        classInfo.localVars filter { localVar => localVar.isStatic && !localVar.isEnumElement }
       }
     }
 
@@ -1396,7 +1399,8 @@ class CgscriptClass(
     def lookupMethod(
       argumentTypes: Vector[CgscriptType],
       namedArgumentTypes: Map[Symbol, CgscriptType],
-      objectType: Option[CgscriptType] = None
+      objectType: Option[CgscriptType] = None,
+      failFastOnSingleMethod: Boolean = false
       ): Option[CgscriptClass#Method] = {
 
       /*** This assertion is not valid for implicit resolutions
@@ -1415,13 +1419,15 @@ class CgscriptClass(
       def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
 
+      val failFast: Boolean = failFastOnSingleMethod && methods.size == 1
+
       // Determine which methods match the specified arguments
       val matchingMethods = methods filter { method =>
 
         val typeParameterSubstitutions = objectType map { _.typeArguments } getOrElse Vector.empty
         val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
 
-        substitutedParameterTypeList.types.indices forall { index =>
+        val requiredParametersAreSatisfied = substitutedParameterTypeList.types.indices forall { index =>
           if (index < argumentTypes.length) {
             argumentTypes(index) matches substitutedParameterTypeList.types(index)
           } else {
@@ -1432,6 +1438,16 @@ class CgscriptClass(
             }
           }
         }
+
+        val allArgumentsAreValid = {
+          argumentTypes.length <= substitutedParameterTypeList.types.length && {
+            namedArgumentTypes.keys forall { id =>
+              method.parameters exists { _.id == id }
+            }
+          }
+        }
+
+        requiredParametersAreSatisfied && allArgumentsAreValid
 
       }
 
@@ -1454,7 +1470,7 @@ class CgscriptClass(
       def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
 
-      lookupMethod(argumentTypes, namedArgumentTypes, objectType) getOrElse {
+      lookupMethod(argumentTypes, namedArgumentTypes, objectType, failFastOnSingleMethod = true) getOrElse {
         throw EvalException(s"Method `$name`$objTypeSuffix cannot be applied to argument types $argTypesString")
       }
 

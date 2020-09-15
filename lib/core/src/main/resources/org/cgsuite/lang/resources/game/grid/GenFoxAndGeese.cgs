@@ -3,22 +3,22 @@
 class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends Ruleset
 
   if foxRange < 1 then
-    error("`foxRange` must be >= 1.");
+    error("`foxRange` must be >= 1");
   end
 
   var GeeseMoves := [(-1,-1), (-1,1)];
 
-  override def Eval(geese as Set of Coordinates, fox as Coordinates) begin
+  def Eval(geese as Set of Coordinates, fox as Coordinates) begin
     ValidateGeese(geese);
     if not IsValidCoordinate(fox) then
-      error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even).")
+      error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even)")
     end
     Position(geese, fox)
   end
 
   def ValidateGeese(geese as Set of Coordinates) begin
     if not geese.ForAll(c as Coordinates -> IsValidCoordinate(c)) then
-      error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even).")
+      error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even)")
     end
   end
 

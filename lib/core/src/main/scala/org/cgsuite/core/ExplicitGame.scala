@@ -18,9 +18,9 @@ case class ExplicitGame(lo: Iterable[Game], ro: Iterable[Game]) extends Game {
     case Right => ro
   }
 
-  override def depthHint: Int = {
-    val loMax = (lo map { _.depthHint }).max
-    val roMax = (ro map { _.depthHint }).max
+  override def depthHint: Integer = {
+    val loMax = lo map { _.depthHint } maxBy { _.intValue }
+    val roMax = ro map { _.depthHint } maxBy { _.intValue }
     loMax + roMax
   }
 

@@ -130,8 +130,8 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
     cls.classInfo.decompositionMethod.call(this, Array.empty).asInstanceOf[Iterable[_]]
   }
 
-  override def depthHint: Int = {
-    cls.classInfo.depthHintMethod.call(this, Array.empty).asInstanceOf[Integer].intValue
+  override def depthHint: Integer = {
+    cls.classInfo.depthHintMethod.call(this, Array.empty).asInstanceOf[Integer]
   }
 
   override def gameName: String = cls.qualifiedName

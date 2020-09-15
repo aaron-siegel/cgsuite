@@ -372,39 +372,38 @@ object IdentifierNode {
 
 case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
-  private var elaboratedMemberResolution: Option[MemberResolution] = None
-  private var elaboratedClassScope: Option[CgscriptClass] = None
+  private var elaboratedMemberResolution: Option[MemberResolution] = _
+  private var isElaboratedInLocalScope: Boolean = _
 
   def resolveAsPackage(domain: ElaborationDomain): Option[CgscriptPackage] = {
 
-    domain.typeOf(id) match {
+    val shadowingResolution = domain.typeOf(id) orElse
+      resolveAsLocalMember(domain.cls) orElse
+      resolveAsPackageMember(domain.cls)
+
+    shadowingResolution match {
       case Some(_) => None
-      case None =>
-        resolveAsMember(domain.cls) match {
-          case Some(_) => None
-          case None =>
-            CgscriptPackage.root.lookupSubpackage(id)
-        }
+      case None => CgscriptPackage.root.lookupSubpackage(id)
     }
 
   }
 
-  def resolveAsMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
+  def resolveAsLocalMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
 
-    val localMemberResolution = classScope flatMap { _.resolveMember(id) }
+    classScope flatMap { _.resolveMember(id) }
 
-    localMemberResolution orElse {
+  }
 
-      val constantResolution =
-        classScope flatMap { _.pkg.lookupConstantMember(id) } orElse
-          CgscriptPackage.lookupConstantMember(id)
+  def resolveAsPackageMember(classScope: Option[CgscriptClass]): Option[MemberResolution] = {
 
-      constantResolution orElse {
+    val constantResolution =
+      classScope flatMap { _.pkg.lookupConstantMember(id) } orElse
+        CgscriptPackage.lookupConstantMember(id)
 
-        classScope flatMap { _.pkg.lookupClass(id) } orElse
-          CgscriptPackage.lookupClassByName(id.name)
+    constantResolution orElse {
 
-      }
+      classScope flatMap { _.pkg.lookupClass(id) } orElse
+        CgscriptPackage.lookupClassByName(id.name)
 
     }
 
@@ -412,11 +411,21 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
-    elaboratedClassScope = domain.cls
+    elaboratedMemberResolution = None
 
     domain.typeOf(id).flatten getOrElse {
 
-      elaboratedMemberResolution = resolveAsMember(domain.cls)
+      resolveAsLocalMember(domain.cls) match {
+
+        case Some(memberResolution) =>
+          isElaboratedInLocalScope = true
+          elaboratedMemberResolution = Some(memberResolution)
+
+        case None =>
+          isElaboratedInLocalScope = false
+          elaboratedMemberResolution = resolveAsPackageMember(domain.cls)
+
+      }
 
       elaboratedMemberResolution match {
 
@@ -455,7 +464,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
           method.scalaName
 
       case Some(variable: CgscriptClass#Var) =>
-        if ((elaboratedClassScope contains variable.declaringClass) && !variable.isStatic)
+        if (isElaboratedInLocalScope)
           variable.id.name
         else
           variable.declaringClass.scalaClassdefName + "." + variable.id.name
@@ -1707,31 +1716,35 @@ case class FunctionCallNode(
 
   var objectType: Option[CgscriptType] = _
   var elaboratedMethod: Option[CgscriptClass#Method] = _
-  var isLocalMethod: Boolean = _
+  var isElaboratedInLocalScope: Boolean = _
   var isEval: Boolean = false
 
   override def elaborateImpl(domain: ElaborationDomain) = {
-
-    val argTypes = argNodes map { _.ensureElaborated(domain) }
 
     val elaboratedMethodGroup = callSiteNode match {
 
       case idNode: IdentifierNode =>
 
-        idNode.resolveAsMember(domain.cls) match {
+        idNode.resolveAsLocalMember(domain.cls) match {
           case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
-            isLocalMethod = domain.cls exists { _.resolveInstanceMember(idNode.id).isDefined }
+            isElaboratedInLocalScope = true
             objectType = None
             Some(methodGroup)
-          case _ =>
-            None
+          case Some(_) => None
+          case None => idNode.resolveAsPackageMember(domain.cls) match {
+            case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
+              isElaboratedInLocalScope = false
+              objectType = None
+              Some(methodGroup)
+            case _ => None
+          }
         }
 
       case dotNode: DotNode =>
 
         dotNode.doResolutionForElaboration(domain) match {
           case methodGroup: CgscriptClass#MethodGroup if !methodGroup.isPureAutoinvoke =>
-            isLocalMethod = false
+            isElaboratedInLocalScope = false
             objectType = {
               if (dotNode.isElaboratedAsPackage)
                 None
@@ -1746,20 +1759,55 @@ case class FunctionCallNode(
 
     }
 
+    val argTypes = argNodes map { _.ensureElaborated(domain) }
+
+    // Syntactic validation of arguments: check that named parameters appear
+    // strictly after ordinary arguments
+    val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
+    argNames take (lastOrdinaryArgIndex + 1) foreach {
+      case None =>
+      case Some(argNameNode) => throw EvalException(
+        s"Named parameter `${argNameNode.id.name}` appears in earlier position than an ordinary argument",
+        token = Some(argNameNode.token)
+      )
+    }
+
+    // Syntactic validation of arguments: check for duplicate named parameter
+    argNames.flatten groupBy { _.id } foreach { case (id, argNameNodes) =>
+      if (argNameNodes.size > 1) {
+        throw EvalException(
+          s"Duplicate parameter name: `${id.name}`",
+          token = Some(argNameNodes(1).token)
+        )
+      }
+    }
+
+    val ordinaryArgumentTypes = argNodes.indices.toVector collect {
+      case n if argNames(n).isEmpty => argTypes(n)
+    }
+
+    val namedArgumentTypes = {
+      argNodes.indices collect {
+        case n if argNames(n).nonEmpty => argNames(n).get.id -> argTypes(n)
+      }
+    }.toMap
+
     elaboratedMethodGroup match {
 
       case Some(methodGroup) =>
-        val method = methodGroup.resolveToMethod(argTypes, Map.empty, objectType)
+        val method = methodGroup.resolveToMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType)
         elaboratedMethod = Some(method)
         val methodType = method.ensureElaborated()
         val substitutedType = objectType match {
           case Some(typ) => methodType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
           case None => methodType
         }
+        // TODO This won't work for named parameters:
         substitutedType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes)
 
       case None =>
         elaboratedMethod = None
+        // TODO Named parameter validation for constructor args
         val callSiteType = callSiteNode.ensureElaborated(domain)
         if (callSiteType.baseClass == CgscriptClass.Class) {
           callSiteType.typeArguments.head.baseClass.constructor match {
@@ -1773,7 +1821,7 @@ case class FunctionCallNode(
         } else {
           // Eval method
           isEval = true
-          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, argTypes, Map.empty)
+          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, ordinaryArgumentTypes, namedArgumentTypes)
           evalMethod.ensureElaborated()
         }
 
@@ -1814,14 +1862,17 @@ case class FunctionCallNode(
     // TODO arg names
 
     val functionCode = elaboratedMethod match {
-      case Some(method) if isLocalMethod && method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
-      case Some(method) if isLocalMethod => method.scalaName
+      case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
+      case Some(method) if isElaboratedInLocalScope => method.scalaName
       case Some(method) if objectType.isEmpty => method.declaringClass.scalaClassdefName + "." + method.scalaName
       case Some(method) => callSiteNode.asInstanceOf[DotNode].antecedent.toScalaCode(context) + "." + method.scalaName
       case _ if isEval => callSiteNode.toScalaCode(context) + ".eval"
       case _ => callSiteNode.toScalaCode(context)
     }
-    val argsCode = argNodes map { _.toScalaCode(context) } mkString ", "
+    val argsCode = argNodes zip argNames map {
+      case (node, None) => node.toScalaCode(context)
+      case (node, Some(nameNode)) => nameNode.id.name + " = { " + node.toScalaCode(context) + " }"
+    } mkString ", "
     s"($functionCode($argsCode))"
 
   }
@@ -1835,71 +1886,6 @@ case class FunctionCallNode(
   }
 
 }
-
-object FunctionCallResolution {
-
-  def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]], referenceToken: Token): FunctionCallResolution = {
-
-    val params = callSite.parameters
-
-    // Last parameter is expandable only if there are no named args
-    val expandedLastParameter = params.nonEmpty && params.last.isExpandable && argNames.forall { _.isEmpty }
-
-    // Check for too many arguments
-    if (!expandedLastParameter && argNames.length > params.length) {
-      throw EvalException(
-        s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})",
-        token = Some(referenceToken)
-      )
-    }
-
-    // Check for named args in earlier position than ordinary args
-    val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
-    argNames take (lastOrdinaryArgIndex+1) foreach {
-      case None =>
-      case Some(idNode) => throw EvalException(
-        s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
-          "appears in earlier position than an ordinary argument",
-        token = Some(referenceToken)
-      )
-    }
-
-    val parameterToArgsMapping = new Array[Int](if (expandedLastParameter) params.length - 1 else params.length)
-    java.util.Arrays.fill(parameterToArgsMapping, -1)
-    argNames.zipWithIndex foreach {
-      case (None, index) =>
-        if (index < parameterToArgsMapping.length)
-          parameterToArgsMapping(index) = index
-      case (Some(idNode), index) =>
-        val namedIndex = params indexWhere { _.id == idNode.id }
-        if (namedIndex == -1)
-          throw EvalException(
-            s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`",
-            token = Some(referenceToken)
-          )
-        if (parameterToArgsMapping(namedIndex) != -1)
-          throw EvalException(
-            s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`",
-            token = Some(referenceToken)
-          )
-        parameterToArgsMapping(namedIndex) = index
-    }
-
-    // Check that all required args are present
-    params zip parameterToArgsMapping foreach { case (param, index) =>
-      if (param.defaultValue.isEmpty && index == -1)
-        throw EvalException(
-          s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`",
-          token = Some(referenceToken)
-        )
-    }
-
-    FunctionCallResolution(parameterToArgsMapping, expandedLastParameter)
-
-  }
-}
-
-case class FunctionCallResolution(parameterToArgsMapping: Array[Int], expandedLastParameter: Boolean)
 
 object VarNode {
   def apply(tree: Tree): AssignToNode = {
@@ -2000,7 +1986,7 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
     if (statements.isEmpty) {
       "org.cgsuite.output.EmptyOutput"
     } else {
-      statements map { _.toScalaCode(context) } mkString "\n"
+      statements map { _.toScalaCode(context) } mkString ";\n"
     }
   }
 
