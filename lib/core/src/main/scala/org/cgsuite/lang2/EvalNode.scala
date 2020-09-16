@@ -318,7 +318,16 @@ case class AsNode(tree: Tree, exprNode: EvalNode, typeSpecNode: TypeSpecifierNod
 
   override val children = Vector(exprNode, typeSpecNode)
 
-  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+  override def toNodeStringPrec(enclosingPrecedence: Int) = {
+    val exprStr = exprNode.toNodeStringPrec(OperatorPrecedence.As)
+    val typeStr = typeSpecNode.toNodeStringPrec(OperatorPrecedence.As)
+    if (OperatorPrecedence.As <= enclosingPrecedence) {
+      s"$exprStr as $typeStr"
+    } else {
+      s"($exprStr as $typeStr)"
+    }
+
+  }
 
   override def elaborateImpl(domain: ElaborationDomain): CgscriptType = {
 
@@ -524,8 +533,6 @@ trait TypeSpecifierNode extends EvalNode {
 
   def toType(domain: ElaborationDomain): CgscriptType
 
-  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
-
   override def elaborateImpl(domain: ElaborationDomain) = ???
 
   override def toScalaCode(context: CompileContext) = ???
@@ -550,6 +557,10 @@ case class TypeVariableNode(tree: Tree, id: Symbol, isExpandable: Boolean) exten
 
   override def toType(domain: ElaborationDomain) = toType
 
+  override def toNodeStringPrec(enclosingPrecedence: Int) = {
+    s"`${id.name}${if (isExpandable) "*" else ""}"
+  }
+
 }
 
 case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeArgumentNodes: Vector[TypeSpecifierNode]) extends TypeSpecifierNode {
@@ -562,8 +573,8 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
 
     val classResolution =
       (domain.cls flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) }) orElse
-      (domain.cls flatMap { _.pkg.lookupClass(id) }) orElse
-      CgscriptPackage.lookupClassByName(id.name)
+        domain.pkg.lookupClass(id) orElse
+        CgscriptPackage.lookupClassByName(id.name)
     val baseClass = classResolution getOrElse {
       throw EvalException(s"Unrecognized type symbol: `${id.name}`", token = Some(baseClassIdNode.token))
     }
@@ -582,6 +593,16 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
 
     CgscriptType(baseClass, typeArguments)
 
+  }
+
+  override def toNodeStringPrec(enclosingPrecedence: Int) = {
+    // TODO Use elaborated type...
+    val typeArgumentsStr = typeArgumentNodes.length match {
+      case 0 => ""
+      case 1 => " of " + typeArgumentNodes.head.toNodeStringPrec(enclosingPrecedence)
+      case 2 => " of (" + typeArgumentNodes.map { _.toNodeStringPrec(enclosingPrecedence) }.mkString(", ") + ")"
+    }
+    baseClassIdNode.id.name + typeArgumentsStr
   }
 
 }

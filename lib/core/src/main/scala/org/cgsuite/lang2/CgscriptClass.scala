@@ -183,7 +183,7 @@ class CgscriptClass(
           case Some(cls) => cls.getName
           case None =>
             enclosingClass match {
-              case Some(cls) => s"${cls.scalaTyperefName}#$name"
+              case Some(cls) => s"${cls.scalaClassdefName}#$name"
               case None => scalaClassdefName
             }
         }
@@ -608,7 +608,7 @@ class CgscriptClass(
               }
             }
           case node: DotNode =>
-            Option(node.ensureElaborated(new ElaborationDomain(Some(thisClass))).baseClass) getOrElse {
+            Option(node.ensureElaborated(new ElaborationDomain(pkg, Some(thisClass))).baseClass) getOrElse {
               sys.error("not found")
             }
         }
@@ -1185,7 +1185,7 @@ class CgscriptClass(
   ) extends Initializer {
 
     override def ensureElaborated() = initializerNode match {
-      case Some(node) => node.ensureElaborated(new ElaborationDomain(Some(thisClass)))
+      case Some(node) => node.ensureElaborated(new ElaborationDomain(pkg, Some(thisClass)))
       case None => CgscriptType(CgscriptClass.NothingClass)
     }
 
@@ -1210,7 +1210,7 @@ class CgscriptClass(
 
       // TODO: Detect discrepancy between explicit result type and initializer type
 
-      val domain = new ElaborationDomain(Some(thisClass))
+      val domain = new ElaborationDomain(pkg, Some(thisClass))
       explicitResultType match {
         case Some(explicitType) => explicitType
         case None =>
@@ -1339,7 +1339,7 @@ class CgscriptClass(
     }
 
     override def elaborate() = {
-      val domain = new ElaborationDomain(Some(thisClass))
+      val domain = new ElaborationDomain(pkg, Some(thisClass))
       domain.pushScope()
       parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)
@@ -1370,12 +1370,12 @@ class CgscriptClass(
 
     def parameters = {
       if (_parameters == null)
-        _parameters = parametersNode map { _.toParameters(ElaborationDomain(enclosingClass)) } getOrElse Vector.empty
+        _parameters = parametersNode map { _.toParameters(ElaborationDomain(pkg, enclosingClass)) } getOrElse Vector.empty
       _parameters
     }
 
     override def elaborate(): CgscriptType = {
-      val domain = new ElaborationDomain(Some(thisClass))
+      val domain = new ElaborationDomain(pkg, Some(thisClass))
       domain.pushScope()
       parameters foreach { parameter =>
         domain.insertId(parameter.id, parameter.paramType)

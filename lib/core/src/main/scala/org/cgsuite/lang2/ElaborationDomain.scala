@@ -4,13 +4,14 @@ import scala.collection.mutable
 
 object ElaborationDomain {
 
-  def apply(cls: CgscriptClass): ElaborationDomain = new ElaborationDomain(Some(cls))
+  def apply(cls: CgscriptClass): ElaborationDomain = new ElaborationDomain(cls.pkg, Some(cls))
 
-  def apply(cls: Option[CgscriptClass] = None): ElaborationDomain = new ElaborationDomain(cls)
+  def apply(pkg: CgscriptPackage, cls: Option[CgscriptClass] = None): ElaborationDomain = new ElaborationDomain(pkg, cls)
 
 }
 
 class ElaborationDomain(
+  val pkg: CgscriptPackage,
   val cls: Option[CgscriptClass]      // None = "external" (Worksheet/REPL) scope
 )
 {

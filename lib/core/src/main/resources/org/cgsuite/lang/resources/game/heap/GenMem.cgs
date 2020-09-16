@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-class GenMem(predicate as Procedure) extends CoordinateRuleset
+class GenMem(predicate as Procedure of (Integer, Integer, Boolean)) extends CoordinateRuleset
 
   override def CoordinateOptions(coord as Coordinates) begin
     var n := coord.Row;

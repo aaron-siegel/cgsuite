@@ -85,7 +85,7 @@ object Ops {
 object OperatorPrecedence {
 
   val Primary, Nim, Postfix, Exp, Neg, Mult, OrdinalSum, Sidle, Plus, Range, Infix, Relational,
-  Is, Not, And, Or, FunctionDef, Assign, StatementSeq = next
+  Is, Not, And, Or, As, FunctionDef, Assign, StatementSeq = next
 
   private var prec = 0
 

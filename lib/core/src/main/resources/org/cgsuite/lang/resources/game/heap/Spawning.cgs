@@ -2,6 +2,6 @@
 
 system class Spawning(code as String) extends HeapRuleset
 
-  external override def HeapOptions(heapSize as Integer);
+  external override def HeapOptions(heapSize as Integer) as List of List of Integer;
 
 end

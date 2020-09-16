@@ -1,7 +1,4 @@
 /*${cgsuite.banner}*/
 
 system class Genus
-
-  override external def ToOutput;
-
 end

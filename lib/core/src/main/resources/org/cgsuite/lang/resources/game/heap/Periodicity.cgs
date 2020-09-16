@@ -2,11 +2,13 @@
 
 system class Periodicity
 
-  external def Period;
-  external def Preperiod;
-  external def Saltus;
+  external def Period as Integer;
 
-  override def ToOutput :=
-    cgsuite.util.output.TextOutput("Periodicity(Period => ") + Period.ToOutput + ", Preperiod => " + Preperiod.ToOutput + ", Saltus => " + Saltus.ToOutput + ")";
+  external def Preperiod as Integer;
+
+  external def Saltus as Integer;
+
+//  override def ToOutput :=
+//    cgsuite.util.output.TextOutput("Periodicity(Period => ") + Period.ToOutput + ", Preperiod => " + Preperiod.ToOutput + ", Saltus => " + Saltus.ToOutput + ")";
 
 end

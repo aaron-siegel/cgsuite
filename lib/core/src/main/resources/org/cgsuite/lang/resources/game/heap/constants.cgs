@@ -19,19 +19,19 @@ singleton class constants
 //  var Mem := GenMem((memory, j) -> j >= memory);
 
   var Nim := TakeAndBreak("0.[3]");
-/*
-  def PartizanSplittles(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
+
+  def PartizanSplittles(leftSet as Collection of Integer, rightSet as Collection of Integer, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Splittles(leftSet, allbut), Splittles(rightSet, allbut));
 
-  def PartizanSubtraction(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
+  def PartizanSubtraction(leftSet as Collection of Integer, rightSet as Collection of Integer, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Subtraction(leftSet, allbut), Subtraction(rightSet, allbut));
-*/
+
   def PartizanTakeAndBreak(leftCode as String, rightCode as String) :=
     PartizanHeapRuleset(TakeAndBreak(leftCode), TakeAndBreak(rightCode));
-/*
-  def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
 
-  def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
+  def Splittles(subtset as Collection of Integer, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
+
+  def Subtraction(subtset as Collection of Integer, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
 /*
   def TakeAway(arg) begin
     if arg is DyadicRational then GenMem((memory, j) -> j <= memory * arg)
@@ -40,7 +40,7 @@ singleton class constants
     end
   end
 */
-//  var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
+  var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
   var Wythoff := GenWythoff(1);
 

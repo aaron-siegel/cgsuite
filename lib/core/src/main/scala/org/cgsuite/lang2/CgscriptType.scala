@@ -132,8 +132,8 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
     val baseName = baseClass.scalaTyperefName
     // TODO This is a temporary hack
     if ((baseName endsWith "IndexedSeq") || (baseName endsWith "Set") || (baseName endsWith "Iterable")) {
-      val typeParameter = typeArguments.headOption map { _.scalaTypeName } getOrElse "Any"
-      s"$baseName[$typeParameter]"
+      val typeArgument = typeArguments.headOption map { _.scalaTypeName } getOrElse "Any"
+      s"$baseName[$typeArgument]"
     } else {
       val typeArgumentsBlock = {
         if (typeArguments.isEmpty)

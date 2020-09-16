@@ -124,7 +124,7 @@ private[lang2] object CgscriptSystem {
     settings.deprecation.value = true
 
     interpreter = new IMain(settings, new PrintWriter(DebugOutput))
-    domain = new ElaborationDomain(None)
+    domain = new ElaborationDomain(CgscriptPackage.root, None)
     interpreter.interpret("import org.cgsuite.dsl._")
     interpreter.interpret("import org.cgsuite.lang2.CgscriptImplicits._")
     evaluate("0") match {

@@ -4,7 +4,7 @@ import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core.{DyadicRationalNumber, RationalNumber}
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.parser.ParserUtil
-import org.cgsuite.lang2.{CgscriptClass, CompileContext, ElaborationDomain, StatementSequenceNode}
+import org.cgsuite.lang2.{CgscriptClass, CgscriptPackage, CompileContext, ElaborationDomain, StatementSequenceNode}
 import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
@@ -18,7 +18,7 @@ object Experiment {
   settings.deprecation.value = true
 
   val eval = new IMain(settings)
-  val domain = new ElaborationDomain(None)
+  val domain = new ElaborationDomain(CgscriptPackage.root, None)
   eval.interpret("import org.cgsuite.dsl._")
   eval.interpret("import org.cgsuite.lang2.crosscompiler.ExperimentImplicits._")
 

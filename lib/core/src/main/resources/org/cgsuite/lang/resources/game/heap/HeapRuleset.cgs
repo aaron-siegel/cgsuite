@@ -4,7 +4,7 @@ system class HeapRuleset extends Ruleset
 
   def CakeProduct(that as HeapRuleset, twisted as Boolean ? false) := GenCutcake(this, that, twisted);
 
-//  def Eval(heapSize as Integer) := Position(heapSize);
+  def Eval(heapSize as Integer) := Position(heapSize);
 
   external def HeapOptions(heapSize as Integer) as Collection of Collection of Integer;
   //def HeapOptions(heapSize as Integer) as Collection of Collection of Integer := error("Subclasses of `HeapRuleset` must override `HeapOptions`.");
