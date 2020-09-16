@@ -20,6 +20,16 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
   implicit def listToRichList[T](list: IndexedSeq[T]): RichList[T] = RichList(list)
 
+  implicit def procedureToFunction1[T, R](procedure: Procedure[T, R]): T => R = procedure.fn
+
+  implicit def procedureToFunction2[T1, T2, R](procedure: Procedure[(T1, T2), R]): (T1, T2) => R = {
+    (x1, x2) => procedure.fn((x1, x2))
+  }
+
+  implicit def procedureToFunction3[T1, T2, T3, R](procedure: Procedure[(T1, T2, T3), R]): (T1, T2, T3) => R = {
+    (x1, x2, x3) => procedure.fn((x1, x2, x3))
+  }
+
 }
 
 trait LowPriorityCgscriptImplicits {

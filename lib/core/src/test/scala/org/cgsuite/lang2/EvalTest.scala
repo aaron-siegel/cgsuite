@@ -347,6 +347,17 @@ class EvalTest extends CgscriptSpec {
     ))
   }
 
+  it should "handle type conversion and type references properly" in {
+
+    executeTests(Table(
+      header,
+      ("Unrecognized type", "5 as Foo", "Unrecognized type symbol: `Foo`"),
+      ("Type takes parameters", "{3} as Collection", "Class `cgsuite.lang.Collection` requires type parameters"),
+      ("Invalid number of parameters", "{3} as Collection of (Int, Boolean)", "Incorrect number of type parameters for class: `cgsuite.lang.Collection`")
+    ))
+
+  }
+
   // TODO Bring back this test
   ignore should "validate function calls correctly" in {
 

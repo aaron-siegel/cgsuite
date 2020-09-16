@@ -552,21 +552,35 @@ case class TypeVariableNode(tree: Tree, id: Symbol, isExpandable: Boolean) exten
 
 }
 
-case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeParameterNodes: Vector[TypeSpecifierNode]) extends TypeSpecifierNode {
+case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeArgumentNodes: Vector[TypeSpecifierNode]) extends TypeSpecifierNode {
 
-  override def children = baseClassIdNode +: typeParameterNodes
+  override def children = baseClassIdNode +: typeArgumentNodes
 
   override def toType(domain: ElaborationDomain): CgscriptType = {
 
+    val id = baseClassIdNode.id
+
     val classResolution =
-      (domain.cls flatMap { _.classInfo.allNestedClasses.get(baseClassIdNode.id) }) orElse
-      (domain.cls flatMap { _.pkg.lookupClass(baseClassIdNode.id) }) orElse
-      CgscriptPackage.lookupClassByName(baseClassIdNode.id.name)
+      (domain.cls flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) }) orElse
+      (domain.cls flatMap { _.pkg.lookupClass(id) }) orElse
+      CgscriptPackage.lookupClassByName(id.name)
     val baseClass = classResolution getOrElse {
-      sys.error("class not found (needs error msg) " + (this, domain.cls))  // TODO
+      throw EvalException(s"Unrecognized type symbol: `${id.name}`", token = Some(baseClassIdNode.token))
     }
-    val typeParameters = typeParameterNodes map { _.toType(domain) }
-    CgscriptType(baseClass, typeParameters)
+
+    // Check that type arguments are consistent with the base class definition.
+    val typeArguments = typeArgumentNodes map { _.toType(domain) }
+    if (typeArguments.isEmpty && baseClass.typeParameters.nonEmpty) {
+      throw EvalException(s"Class `${id.name}` requires type parameters")
+    } else if (
+      // If the number of parameters disagrees, it's an error, but we have to make
+      // an exception for expandable type parameters (Procedures)
+      (baseClass.typeParameters.isEmpty || !baseClass.typeParameters.head.isExpandable) &&
+        baseClass.typeParameters.size != typeArguments.size) {
+      throw EvalException(s"Incorrect number of type parameters for class: `${id.name}`")
+    }
+
+    CgscriptType(baseClass, typeArguments)
 
   }
 
