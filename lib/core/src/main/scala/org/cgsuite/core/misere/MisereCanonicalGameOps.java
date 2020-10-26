@@ -1250,7 +1250,7 @@ public final class MisereCanonicalGameOps
     ////////////////////////////////////////////////////////////////
     // Game operations
 
-    private static int numOptions(int id)
+    static int numOptions(int id)
     {
         return (id&1) +
             numOptions(sectors[(id >> SECTOR_BITS)&SECTOR_MASK],

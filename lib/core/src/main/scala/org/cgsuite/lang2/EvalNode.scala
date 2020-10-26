@@ -270,10 +270,17 @@ case class BooleanNode(tree: Tree, override val constantValue: Boolean) extends 
 
 case class IntegerNode(tree: Tree, override val constantValue: Integer) extends ConstantNode {
 
-  override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.Integer)
+  override def elaborateImpl(domain: ElaborationDomain) = {
+    if (constantValue.isZero)
+      CgscriptType(CgscriptClass.Zero)
+    else
+      CgscriptType(CgscriptClass.Integer)
+  }
 
   override def toScalaCode(context: CompileContext) = {
-    if (constantValue.isSmallInteger)
+    if (constantValue.isZero)
+      s"org.cgsuite.core.Values.zero"
+    else if (constantValue.isSmallInteger)
       s"org.cgsuite.core.Integer($constantValue)"
     else
       "org.cgsuite.core.Integer.parseInteger(\"" + constantValue + "\")"
@@ -582,13 +589,13 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
     // Check that type arguments are consistent with the base class definition.
     val typeArguments = typeArgumentNodes map { _.toType(domain) }
     if (typeArguments.isEmpty && baseClass.typeParameters.nonEmpty) {
-      throw EvalException(s"Class `${id.name}` requires type parameters")
+      throw EvalException(s"Class `${baseClass.qualifiedName}` requires type parameters")
     } else if (
       // If the number of parameters disagrees, it's an error, but we have to make
       // an exception for expandable type parameters (Procedures)
       (baseClass.typeParameters.isEmpty || !baseClass.typeParameters.head.isExpandable) &&
         baseClass.typeParameters.size != typeArguments.size) {
-      throw EvalException(s"Incorrect number of type parameters for class: `${id.name}`")
+      throw EvalException(s"Incorrect number of type parameters for class: `${baseClass.qualifiedName}`")
     }
 
     CgscriptType(baseClass, typeArguments)

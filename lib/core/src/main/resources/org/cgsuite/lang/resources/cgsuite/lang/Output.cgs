@@ -1,4 +1,7 @@
 /*${cgsuite.banner}*/
 
 system class Output
+
+  external def op+(that as Output) as Output;
+
 end

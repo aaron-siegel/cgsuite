@@ -1,7 +1,4 @@
 /*${cgsuite.banner}*/
 
 system class Trajectory
-
-  external override def ToOutput;
-
 end

@@ -9,7 +9,7 @@ import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.parser.ParserUtil
-import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput}
+import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput, TextOutput}
 import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
@@ -65,7 +65,7 @@ private[lang2] object CgscriptSystem {
 
     "cgsuite.util.output.EmptyOutput" -> classOf[EmptyOutput],
     "cgsuite.util.output.GridOutput" -> classOf[GridOutput],
-    "cgsuite.util.output.TextOutput" -> classOf[StyledTextOutput],
+    "cgsuite.util.output.TextOutput" -> classOf[TextOutput],
     "cgsuite.lang.Output" -> classOf[Output],
 
     "game.Zero" -> classOf[Zero],
@@ -136,20 +136,28 @@ private[lang2] object CgscriptSystem {
 
   def evaluate(str: String): Either[Output, Throwable] = {
 
-    val code = {
+    val (elaboratedType, code) = {
       try {
         val tree = ParserUtil.parseScript(str)
         val node = StatementSequenceNode(tree.children.head, topLevel = true)
-        node.ensureElaborated(domain)
+        val elaboratedType = node.ensureElaborated(domain)
         node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
         Thread.sleep(10)
-        node.toScalaCodeWithVarDecls(new CompileContext())
+        (elaboratedType,
+          node.toScalaCodeWithVarDecls(new CompileContext))
       } catch {
         case exc: Throwable => exc.printStackTrace(); return scala.Right(exc)
       } finally {
         // If an exception was thrown during elaboration, we need to clear out the scope stack
         domain.popScopeToTopLevel()
       }
+    }
+
+    val extractorCode = {
+      if (elaboratedType.baseClass == CgscriptClass.NothingClass)
+        "_ => org.cgsuite.output.EmptyOutput"
+      else
+        "result => Option(result) map { _.toOutput } getOrElse org.cgsuite.output.EmptyOutput"
     }
 
     code foreach { case (line, varNameOpt) =>
@@ -165,7 +173,7 @@ private[lang2] object CgscriptSystem {
            |  case t: Throwable => scala.Right(t)
            |}
            |
-           |val __output = __object.left map { _.toOutput }
+           |val __output = __object.left map { $extractorCode }
            |""".stripMargin
 
       if (debug)

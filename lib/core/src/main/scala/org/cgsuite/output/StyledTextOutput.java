@@ -697,7 +697,7 @@ public class StyledTextOutput extends AbstractOutput
     {
         appendSymbol(EnumSet.of(Style.FACE_MATH), EnumSet.allOf(Mode.class), symbol);
     }
-    
+
     /**
      * Gets a set containing all style attributes that appear anywhere in
      * this <code>StyledTextOutput</code>.

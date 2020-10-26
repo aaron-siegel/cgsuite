@@ -1,8 +1,7 @@
 package org.cgsuite.lang2
 
 import org.cgsuite.core._
-import org.cgsuite.lang.CgscriptClass
-import org.cgsuite.output.{EmptyOutput, StyledTextOutput}
+import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 
 object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
@@ -19,6 +18,9 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
   implicit def unitToRichUnit(unit: Unit): RichUnit.type = RichUnit
 
   implicit def listToRichList[T](list: IndexedSeq[T]): RichList[T] = RichList(list)
+
+  // TODO Output enrichment wouldn't be necessary if Output were recoded in scala
+  implicit def outputToRichOutput(output: Output): RichOutput = RichOutput(output)
 
   implicit def procedureToFunction1[T, R](procedure: Procedure[T, R]): T => R = procedure.fn
 
@@ -71,5 +73,16 @@ case class RichMap[K, V](map: Map[K, V]) {
 object RichUnit {
 
   def toOutput = EmptyOutput
+
+}
+
+case class RichOutput(output: Output) {
+
+  def +(that: Output) = {
+    val outputSum = new StyledTextOutput
+    outputSum.append(output)
+    outputSum.append(that)
+    outputSum
+  }
 
 }

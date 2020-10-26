@@ -2,9 +2,8 @@
 
 system class Thermograph
 
-  external def Plot();
-  external def Wall(player as Player);
+  external def Plot() as Output;
 
-  external override def ToOutput;
+  external def Wall(player as Player) as Trajectory;
 
 end

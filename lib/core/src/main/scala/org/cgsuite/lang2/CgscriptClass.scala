@@ -201,7 +201,7 @@ class CgscriptClass(
     }
   }
 
-  override def toString = s"<<$qualifiedName>>"
+  override def toString = s"\u27ea$qualifiedName\u27eb"
 
   private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
@@ -963,7 +963,9 @@ class CgscriptClass(
     }
 
     // Generate code.
-    if (isSingleton)
+    if (isSingleton && isSystem)
+      sb append s"case object $scalaClassdefName {$enclosingClause\n\n"
+    else if (isSingleton)
       sb append s"case object $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
     else
       sb append s"object $scalaClassdefName {\n\n"
@@ -1066,10 +1068,9 @@ class CgscriptClass(
       if (isSystem) {
         sb append
           s"""case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock)
-             |  extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
+             |  extends org.cgsuite.lang2.SystemExtensionObject {$enclosingClause
              |
              |  override def _class = $scalaClassdefName._class
-             |  override def toOutput: org.cgsuite.output.Output = org.cgsuite.lang2.CgscriptClass.instanceToOutput(_instance)
              |\n""".stripMargin
       } else {
         sb append s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
@@ -1153,12 +1154,17 @@ class CgscriptClass(
     // Implicit conversion for enriched system types
     if (isSystem && this != CgscriptClass.Object) {
 
-      sb append
-        s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
-           |  $scalaClassdefName(_instance)
-           |}
-
-           """.stripMargin
+      if (isSingleton) {
+        sb append
+          s"""implicit def enrich$$$scalaClassdefName(_instance: $scalaTyperefName): $scalaClassdefName.type = {
+             |  $scalaClassdefName
+             |}\n\n""".stripMargin
+      } else {
+        sb append
+          s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
+             |  $scalaClassdefName(_instance)
+             |}\n\n""".stripMargin
+      }
 
     }
 

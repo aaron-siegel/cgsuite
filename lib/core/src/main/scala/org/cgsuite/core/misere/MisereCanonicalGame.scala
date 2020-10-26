@@ -80,6 +80,8 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   override def genus: Genus = ops.genus(misereGameId)
 
+  def isEmpty = ops.numOptions(misereGameId) == 0
+
   def isEven = ops.isEven(misereGameId)
 
   def isExtraverted = ops.isExtraverted(misereGameId)
@@ -93,6 +95,10 @@ trait MisereCanonicalGame extends ImpartialGame {
   def isIntroverted = ops.isIntroverted(misereGameId)
 
   def isNimHeap = ops.isNimHeap(misereGameId)
+
+  def isNPosition = !isPPosition
+
+  def isPPosition = ops.isPPosition(misereGameId)
 
   def isPrime = ops.isPrime(misereGameId)
 

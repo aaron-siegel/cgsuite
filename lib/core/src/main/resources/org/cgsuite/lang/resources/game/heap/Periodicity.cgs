@@ -8,7 +8,7 @@ system class Periodicity
 
   external def Saltus as Integer;
 
-//  override def ToOutput :=
-//    cgsuite.util.output.TextOutput("Periodicity(Period => ") + Period.ToOutput + ", Preperiod => " + Preperiod.ToOutput + ", Saltus => " + Saltus.ToOutput + ")";
+  override def ToOutput :=
+    cgsuite.util.output.TextOutput("Periodicity(Period => " + Period + ", Preperiod => " + Preperiod + ", Saltus => " + Saltus + ")");
 
 end
