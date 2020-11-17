@@ -24,6 +24,8 @@ trait StopperSidedValue extends SidedValue {
 
   override def unary_- : StopperSidedValue = StopperSidedValue(-offside, -onside)
 
+  override def switch: StopperSidedValue = super.switch.asInstanceOf[StopperSidedValue]
+
   def +(that: StopperSidedValue) = StopperSidedValue(onside upsum that.onside, offside downsum that.offside)
 
   def -(that: StopperSidedValue) = this + (-that)
@@ -52,7 +54,11 @@ trait StopperSidedValue extends SidedValue {
 
   def onside: CanonicalStopper
 
-  override def side(side: Side): CanonicalStopper = {
+  def offsideSimplified = offside
+
+  def onsideSimplified = onside
+
+  def side(side: Side): CanonicalStopper = {
     side match {
       case Onside => onside
       case Offside => offside

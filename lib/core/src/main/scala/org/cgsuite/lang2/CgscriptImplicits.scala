@@ -1,11 +1,21 @@
 package org.cgsuite.lang2
 
+import org.cgsuite.core
 import org.cgsuite.core._
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 
 object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
   // TODO Intelligent type conversion with good error messages
+
+  implicit def sidedValueToStopperSidedValue(x: SidedValue): StopperSidedValue = {
+    castSafely(x, "game.SidedValue", "game.StopperSidedValue") { _.asInstanceOf[StopperSidedValue] }
+  }
+
+  implicit def canonicalShortGameToUptimal(x: CanonicalShortGame): Uptimal = {
+    castSafely(x, "game.CanonicalShortGame", "game.Uptimal") { _.asInstanceOf[Uptimal] }
+  }
 
   implicit def rationalToDyadicRational(x: RationalNumber): DyadicRationalNumber = x.asInstanceOf[DyadicRationalNumber]
 
@@ -34,9 +44,30 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
 }
 
-trait LowPriorityCgscriptImplicits {
+trait LowPriorityCgscriptImplicits extends LowestPriorityCgscriptImplicits {
 
   implicit def rationalToInteger(x: RationalNumber): Integer = x.asInstanceOf[Integer]
+
+  implicit def sidedValueToCanonicalStopper(x: SidedValue): CanonicalStopper = x.asInstanceOf[CanonicalStopper]
+
+  //implicit def canonicalShortGameToDyadicRational(x: CanonicalShortGame): DyadicRationalNumber = x.asInstanceOf[DyadicRationalNumber]
+
+}
+
+trait LowestPriorityCgscriptImplicits {
+
+  implicit def sidedValueToPseudonumber(x: SidedValue): Pseudonumber = x.asInstanceOf[Pseudonumber]
+
+  def castSafely[T, U](x: T, tType: String, uType: String)(cast: T => U): U = {
+    try {
+      cast(x)
+    } catch {
+      case _: java.lang.ClassCastException =>
+        throw EvalException(s"That `$tType` is not of type `$uType`.")
+    }
+  }
+
+  //implicit def canonicalShortGameToInteger(x: CanonicalShortGame): Integer = x.asInstanceOf[Integer]
 
 }
 

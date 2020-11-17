@@ -2,6 +2,8 @@
 
 system class Pseudonumber extends CanonicalStopper
 
+  external override def op unary- as Pseudonumber;
+
   external def Blowup as CanonicalStopper;
 
 end

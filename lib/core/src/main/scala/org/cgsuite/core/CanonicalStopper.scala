@@ -117,6 +117,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   override def unary_- : CanonicalStopper = CanonicalStopper(loopyGame.negative)
 
+  override def switch: CanonicalStopper = CanonicalStopper(this)(-this)
+
   def <=(that: CanonicalStopper) = loopyGame.leq(that.loopyGame, true)
 
   def >=(that: CanonicalStopper) = that <= this

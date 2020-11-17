@@ -75,7 +75,7 @@ trait Game extends OutputTarget {
               case g: Game => result += g.loopyGameValue(tt)
             }
           }
-          val nodes = (new LoopyGame.Node(result.onside.loopyGame), new LoopyGame.Node(result.offside.loopyGame))
+          val nodes = (new LoopyGame.Node(result.onsideSimplified.loopyGame), new LoopyGame.Node(result.offsideSimplified.loopyGame))
           nodeMap.put(this, nodes)
           nodes
         }
@@ -92,8 +92,8 @@ trait Game extends OutputTarget {
     optionsFor(Left) foreach { g =>
       if (g.depthHint < depth) {
         val value = g.loopyGameValue(tt)
-        onsideNode.addLeftEdge(value.onside.loopyGame)
-        offsideNode.addLeftEdge(value.offside.loopyGame)
+        onsideNode.addLeftEdge(value.onsideSimplified.loopyGame)
+        offsideNode.addLeftEdge(value.offsideSimplified.loopyGame)
       } else {
         val (onsideTarget, offsideTarget) = g.buildNodeMap(tt, nodeMap)
         onsideNode.addLeftEdge(onsideTarget)
@@ -103,8 +103,8 @@ trait Game extends OutputTarget {
     optionsFor(Right) foreach { g =>
       if (g.depthHint < depth) {
         val value = g.loopyGameValue(tt)
-        onsideNode.addRightEdge(value.onside.loopyGame)
-        offsideNode.addRightEdge(value.offside.loopyGame)
+        onsideNode.addRightEdge(value.onsideSimplified.loopyGame)
+        offsideNode.addRightEdge(value.offsideSimplified.loopyGame)
       } else {
         val (onsideTarget, offsideTarget) = g.buildNodeMap(tt, nodeMap)
         onsideNode.addRightEdge(onsideTarget)

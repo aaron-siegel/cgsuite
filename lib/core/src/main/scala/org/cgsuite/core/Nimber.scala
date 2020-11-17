@@ -28,6 +28,7 @@ trait Nimber extends ImpartialGame with Uptimal {
   def intNimValue: Int
 
   override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, intNimValue)
+  def conwayProduct(that: Nimber) = Nimber(nimValue nimProduct that.nimValue)
   override def numberPart = Values.zero
   override def nimberPart = intNimValue
   def ordinalSum(that: Nimber) = Nimber(intNimValue + that.intNimValue)

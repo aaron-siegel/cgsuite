@@ -10,7 +10,7 @@ import java.util
 
 import org.cgsuite.core.Values._
 import org.cgsuite.core.{CanonicalShortGameOps => ops}
-import org.cgsuite.exception.{CalculationCanceledException, InvalidOperationException, NotAtomicException}
+import org.cgsuite.exception.{CalculationCanceledException, InvalidOperationException, NotAtomicException, NotUptimalException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
@@ -293,7 +293,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def stopCount: Integer = Integer(ops.stopCount(gameId))
 
-  def switch: CanonicalShortGame = CanonicalShortGame(this)(-this)
+  override def switch: CanonicalShortGame = CanonicalShortGame(this)(-this)
 
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
@@ -302,6 +302,8 @@ trait CanonicalShortGame extends CanonicalStopper {
   def trajectory(player: Player): Trajectory = if (player == Left) thermograph.getLeftWall else thermograph.getRightWall
 
   override def variety = zero
+
+  override def toString: String = toOutput.toString
 
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()

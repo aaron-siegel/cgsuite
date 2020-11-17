@@ -1011,7 +1011,8 @@ case class LoopyGameSpecNode(
 
       case _ =>
         val optionType = optionNode.ensureElaborated(domain)
-        if (!optionType.baseClass.ancestors.contains(CgscriptClass.CanonicalStopper))
+        if (!optionType.baseClass.ancestors.contains(CgscriptClass.CanonicalStopper) &&
+            !optionType.baseClass.ancestors.contains(CgscriptClass.Rational))
           sys.error("must be list of games - need error message here")    // TODO
 
     }
@@ -1599,8 +1600,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
         }
 
       case _ =>
-
-        antecedentType.baseClass.resolveInstanceMember(idNode.id) getOrElse {
+        antecedentType.baseClass.resolveInstanceMemberWithImplicits(idNode.id) getOrElse {
           throw EvalException(s"No symbol `${idNode.id.name}` found in class `${antecedentType.baseClass.qualifiedName}`")
         }
 
@@ -1771,6 +1771,7 @@ object FunctionCallNode {
   def availableImplicits(typ: CgscriptType): Vector[CgscriptType] = {
 
     typ match {
+      case ConcreteType(CgscriptClass.CanonicalShortGame, _) => Vector(typ, CgscriptType(CgscriptClass.Uptimal))
       case ConcreteType(CgscriptClass.Rational, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
       case ConcreteType(CgscriptClass.DyadicRational, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
       case _ => Vector(typ)
@@ -1874,15 +1875,34 @@ case class FunctionCallNode(
     elaboratedMethodGroup match {
 
       case Some(methodGroup) =>
-        val method = methodGroup.resolveToMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType)
-        elaboratedMethod = Some(method)
-        val methodType = method.ensureElaborated()
-        val substitutedType = objectType match {
-          case Some(typ) => methodType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
-          case None => methodType
+        // First try elaborating without implicits.
+        val methodOpt = methodGroup.lookupMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType)
+        methodOpt match {
+
+          case Some(method) =>
+
+            // We were able to elaborate without implicits.
+            // We might have generics or unbound type parameters and hence need to do a type substitution.
+            elaboratedMethod = Some(method)
+            val methodType = method.ensureElaborated()
+            val substitutedType = objectType match {
+              case Some(typ) => methodType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
+              case None => methodType
+            }
+            // TODO This won't work for named parameters:
+            substitutedType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes)
+
+          case None =>
+
+            // Try elaborating with implicits. This will throw an exception if no elaboration is possible.
+            val method = methodGroup.resolveToMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType, withImplicits = true)
+            elaboratedMethod = Some(method)
+            method.ensureElaborated()
+            // Note we DON'T allow implicits on generics (currently); hence we don't do type substitution here.
+            // TODO This may fail in some edge cases where the same method has both generic parameters and non-generic
+            // implicits; more attention is needed here eventually.
+
         }
-        // TODO This won't work for named parameters:
-        substitutedType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes)
 
       case None =>
         elaboratedMethod = None
@@ -2077,7 +2097,9 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
     if (statements.isEmpty) {
       "org.cgsuite.output.EmptyOutput"
     } else {
-      statements map { _.toScalaCode(context) } mkString ";\n"
+      "{\n" +
+        (statements map { _.toScalaCode(context) } mkString ";\n") +
+      "}\n"
     }
   }
 

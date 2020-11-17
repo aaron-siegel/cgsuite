@@ -46,9 +46,11 @@ object CgscriptClass {
   val Game = CgscriptPackage.lookupClassByName("Game").get
   val SidedValue = CgscriptPackage.lookupClassByName("SidedValue").get
   val CanonicalStopper = CgscriptPackage.lookupClassByName("CanonicalStopper").get
+  val Pseudonumber = CgscriptPackage.lookupClassByName("Pseudonumber").get
   val CanonicalShortGame = CgscriptPackage.lookupClassByName("CanonicalShortGame").get
   val ImpartialGame = CgscriptPackage.lookupClassByName("ImpartialGame").get
   val Rational = CgscriptPackage.lookupClassByName("Rational").get
+  val Uptimal = CgscriptPackage.lookupClassByName("Uptimal").get
   val DyadicRational = CgscriptPackage.lookupClassByName("DyadicRational").get
   val Integer = CgscriptPackage.lookupClassByName("Integer").get
   val Nimber = CgscriptPackage.lookupClassByName("Nimber").get
@@ -263,6 +265,29 @@ class CgscriptClass(
     }
   }
 
+  def resolveInstanceMemberWithImplicits(id: Symbol): Option[MemberResolution] = {
+
+    resolveInstanceMember(id) orElse {
+
+      // Try various types of implicit conversions. This is a bit of a hack to handle
+      // Rational -> DyadicRational -> Integer conversions in a few places. In later versions, this might be
+      // replaced by a more elegant / general solution.
+
+      val implicits = this match {
+        case CgscriptClass.SidedValue => Vector(this, CgscriptClass.CanonicalStopper, CgscriptClass.Pseudonumber)
+        case CgscriptClass.CanonicalShortGame => Vector(this, CgscriptClass.Uptimal)
+        case CgscriptClass.Rational => Vector(this, CgscriptClass.DyadicRational, CgscriptClass.Integer)
+        case CgscriptClass.DyadicRational => Vector(this, CgscriptClass.Integer)
+        case _ => Vector(this)
+      }
+
+      val implicitResolutions = implicits flatMap { _.resolveInstanceMember(id) }
+      implicitResolutions.headOption
+
+    }
+
+  }
+
   def lookupInstanceMethod(
     id: Symbol,
     argumentTypes: Vector[CgscriptType],
@@ -280,10 +305,11 @@ class CgscriptClass(
     id: Symbol,
     argumentTypes: Vector[CgscriptType],
     namedArgumentTypes: Map[Symbol, CgscriptType],
-    objectType: Option[CgscriptType] = None): CgscriptClass#Method = {
+    objectType: Option[CgscriptType] = None,
+    withImplicits: Boolean = false): CgscriptClass#Method = {
 
     resolveMember(id) match {
-      case Some(methodGroup: MethodGroup) => methodGroup.resolveToMethod(argumentTypes, namedArgumentTypes, objectType)
+      case Some(methodGroup: MethodGroup) => methodGroup.resolveToMethod(argumentTypes, namedArgumentTypes, objectType, withImplicits)
       case None =>
         val objSuffixString = objectType map { typ => s" (for object of type `${typ.qualifiedName}`)" } getOrElse ""
         throw EvalException(s"No method `${id.name}`$objSuffixString")
@@ -1427,8 +1453,7 @@ class CgscriptClass(
     def lookupMethod(
       argumentTypes: Vector[CgscriptType],
       namedArgumentTypes: Map[Symbol, CgscriptType],
-      objectType: Option[CgscriptType] = None,
-      failFastOnSingleMethod: Boolean = false
+      objectType: Option[CgscriptType] = None
       ): Option[CgscriptClass#Method] = {
 
       /** This assertion is not valid for implicit resolutions
@@ -1446,8 +1471,6 @@ class CgscriptClass(
       // The following strings are used for error reporting:
       def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
-
-      val failFast: Boolean = failFastOnSingleMethod && methods.size == 1
 
       // Determine which methods match the specified arguments
       val matchingMethods = methods filter { method =>
@@ -1491,15 +1514,53 @@ class CgscriptClass(
     def resolveToMethod(
       argumentTypes: Vector[CgscriptType],
       namedArgumentTypes: Map[Symbol, CgscriptType],
-      objectType: Option[CgscriptType] = None
+      objectType: Option[CgscriptType] = None,
+      withImplicits: Boolean = false
       ): CgscriptClass#Method = {
 
       // The following strings are used for error reporting:
       def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
 
-      lookupMethod(argumentTypes, namedArgumentTypes, objectType, failFastOnSingleMethod = true) getOrElse {
+      lookupMethod(argumentTypes, namedArgumentTypes, objectType) orElse {
+
+        if (withImplicits) {
+
+          // Try various types of implicit conversions. This is a bit of a hack to handle
+          // Rational -> DyadicRational -> Integer conversions in a few places. In later versions, this might be
+          // replaced by a more elegant / general solution.
+
+          argumentTypes.length match {
+
+            // TODO Handle >= 2 members
+            case 1 =>
+              val implicitMethods = availableImplicits(argumentTypes.head) flatMap { implArgType =>
+                lookupMethod(Vector(implArgType), Map.empty, objectType)
+              }
+              implicitMethods.headOption
+
+            case _ => None
+
+          }
+
+        } else {
+          None
+        }
+
+      } getOrElse {
         throw EvalException(s"Method `$name`$objTypeSuffix cannot be applied to argument types $argTypesString")
+      }
+
+    }
+
+    def availableImplicits(typ: CgscriptType): Vector[CgscriptType] = {
+
+      typ match {
+        case ConcreteType(CgscriptClass.SidedValue, _) => Vector(typ, CgscriptType(CgscriptClass.CanonicalStopper), CgscriptType(CgscriptClass.Pseudonumber))
+        case ConcreteType(CgscriptClass.CanonicalShortGame, _) => Vector(typ, CgscriptType(CgscriptClass.Uptimal))
+        case ConcreteType(CgscriptClass.Rational, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
+        case ConcreteType(CgscriptClass.DyadicRational, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
+        case _ => Vector(typ)
       }
 
     }

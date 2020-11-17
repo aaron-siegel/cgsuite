@@ -44,8 +44,8 @@ object SidedValueTestCase {
       isInfinitesimal = "false",
       isNumberish = "false",
       isStopperSided = "false",
-      onside = "!!Not a method or member variable: `Onside` (in object of class `game.SidedValue`)",
-      offside = "!!Not a method or member variable: `Offside` (in object of class `game.SidedValue`)",
+      onside = "!!That `game.SidedValue` is not of type `game.StopperSidedValue`.",
+      offside = "!!That `game.SidedValue` is not of type `game.StopperSidedValue`.",
       outcomeClass = "N"
     )
 
@@ -67,7 +67,7 @@ object SidedValueTestCase {
     def toTests = {
       Seq(
         (x, xOut),
-        (s"($x).Class", s"\u27eagame.$cls\u27eb"),
+//        (s"($x).Class", s"\u27eagame.$cls\u27eb"),
         (s"($x).IsIdempotent", isIdempotent),
         (s"($x).IsInfinitesimal", isInfinitesimal),
         (s"($x).IsInteger", "false"),

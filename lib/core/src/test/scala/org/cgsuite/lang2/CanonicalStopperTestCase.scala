@@ -90,7 +90,7 @@ object CanonicalStopperTestCase {
     ),
 
     CanonicalStopperTestCase(
-      "begin uponth := {0||0|0,pass}; {0|uponth||-uponth} end", "{0|^<on>||v<on>}", "CanonicalStopper",
+      "begin var uponth := {0||0|0,pass}; {0|uponth||-uponth} end", "{0|^<on>||v<on>}", "CanonicalStopper",
       degree = "^<on>",
       followerCount = "7",
       isIdempotent = "false",
@@ -251,7 +251,7 @@ case class CanonicalStopperTestCase(
   def toTests = {
     Seq(
       (x, xOut),
-      (s"($x).Class", s"\u27eagame.$cls\u27eb"),
+//      (s"($x).Class", s"\u27eagame.$cls\u27eb"),
       (s"($x).Degree", degree),
       (s"($x).FollowerCount", followerCount),
       (s"($x).IsIdempotent", isIdempotent),

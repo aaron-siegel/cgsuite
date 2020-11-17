@@ -669,7 +669,7 @@ object CanonicalShortGameTestCase {
       stopCount = "7",
       temperature = "0",
       thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -707,7 +707,7 @@ object CanonicalShortGameTestCase {
       stopCount = "10",
       temperature = "0",
       thermograph = "Thermograph(0,[0],[0,-1],0,[0],[0,1])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -745,7 +745,7 @@ object CanonicalShortGameTestCase {
       stopCount = "3",
       temperature = "0",
       thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -783,7 +783,7 @@ object CanonicalShortGameTestCase {
       stopCount = "4",
       temperature = "0",
       thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -821,7 +821,7 @@ object CanonicalShortGameTestCase {
       stopCount = "5",
       temperature = "0",
       thermograph = "Thermograph(0,[],[0],0,[0],[0,1])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -859,7 +859,7 @@ object CanonicalShortGameTestCase {
       stopCount = "9",
       temperature = "0",
       thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -897,7 +897,7 @@ object CanonicalShortGameTestCase {
       stopCount = "9",
       temperature = "0",
       thermograph = "Thermograph(0,[0],[0,-1],0,[],[0])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     // Hot games
@@ -937,7 +937,7 @@ object CanonicalShortGameTestCase {
       stopCount = "5",
       temperature = "3/4",
       thermograph = "Thermograph(9/4,[3/4],[0,-1],9/4,[3/4,1/2,0],[0,1,0,1])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     ),
 
     CanonicalShortGameTestCase(
@@ -975,7 +975,7 @@ object CanonicalShortGameTestCase {
       stopCount = "11",
       temperature = "21/16",
       thermograph = "Thermograph(-5/16,[21/16,1/2,-1/2],[0,-1,0,-1],-5/16,[21/16,7/8,1/4,0],[0,1,0,1,0])",
-      uptimalExpansion = "!!Not a method or member variable: `UptimalExpansion` (in object of class `game.CanonicalShortGame`)"
+      uptimalExpansion = "!!That `game.CanonicalShortGame` is not of type `game.Uptimal`."
     )
 
   )

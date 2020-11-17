@@ -516,10 +516,10 @@ case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceE
         } else {
           val gl = castAs[SidedValue](leval)
           val gr = castAs[SidedValue](reval)
-          val glonside = gl map { _.onside }
-          val gronside = gr map { _.onside }
-          val gloffside = gl map { _.offside }
-          val groffside = gr map { _.offside }
+          val glonside = gl map { _.onsideSimplified }
+          val gronside = gr map { _.onsideSimplified }
+          val gloffside = gl map { _.offsideSimplified }
+          val groffside = gr map { _.offsideSimplified }
           SidedValue(SimplifiedLoopyGame.constructLoopyGame(glonside, gronside), SimplifiedLoopyGame.constructLoopyGame(gloffside, groffside))
         }
       } else {
