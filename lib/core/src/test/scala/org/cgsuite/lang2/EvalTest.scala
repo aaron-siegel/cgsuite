@@ -42,9 +42,9 @@ class EvalTest extends CgscriptSpec {
       ("Rational modulus", "(17/6) % (1/3)", "1/6"),
       ("Nimber addition", "*3+*5", "*6"),
       ("Nim operator", "*(3+5)", "*8"),
-//      ("Nim operator (misere spec)", "*[3]", "*[3]"),
-//      ("Nim operator (misere spec - recursive", "*[[2],0]", "*[2#0]"),
-//      ("Nim operator (misere spec - invalid", "*[\"foo\"]", "!!Invalid misere game specifier: must be a `List` of `Integer`s or `MisereCanonicalGame`s"),
+      ("Nim operator (misere spec)", "*[3]", "*[3]"),
+      ("Nim operator (misere spec - recursive", "*[[2],0]", "*[2#0]"),
+      ("Nim operator (misere spec - invalid", "*[\"foo\"]", "!!Invalid misere game specifier: must be a `List` of `Integer`s or `MisereCanonicalGame`s"),
       ("Nim operator (negative value)", "*(-8)", "!!Nim value is negative: -8"),
       ("Nim operator (invalid type)", "*\"foo\"", "!!No operation `unary*` for argument of type `cgsuite.lang.String`"),
       ("Ups", "^^^^^^+vvv*+^19*3+v14", "^8*2"),
@@ -177,16 +177,7 @@ class EvalTest extends CgscriptSpec {
     ))
 
   }
-/*
-  it should "simplify properly" in {
-    executeTests(Table(
-      header,
-      ("Multiplier simplification", "(*+*)*3", "0"),
-      ("Integer exponent simplification", "2^(*+*)", "1"),
-      ("+- loopy game simplification", "uponth := {0||0|0,pass}; +-(uponth+*)", "0")
-    ))
-  }
-*/
+
   it should "handle comparison operators" in {
     executeTests(Table(
       header,
@@ -315,7 +306,7 @@ class EvalTest extends CgscriptSpec {
       ("Procedure definition - duplicate var", "(x as Integer, x as Integer) -> x", "!!Duplicate symbol: `x`"),
       ("Procedure evaluation", "f(8)", "9"),
       ("Procedure scope 1", "y := 3; f := x as Integer -> x+y; f(5)", "8"),
-//      ("Procedure scope 2", "y := 6; f(5)", "11"),
+      ("Procedure scope 2", "y := 6; f(5)", "8"),
       ("Procedure scope 3", "x := 9; f(5); x", "9"),
       ("Procedure scope 4", "f := temp as Integer -> temp + 1; f(5); temp", "!!That variable is not defined: `temp`"),
       ("Nullary procedure", "f := () -> 3", "() -> 3"),
