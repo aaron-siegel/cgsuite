@@ -933,14 +933,14 @@ class CgscriptClass(
 
     val context = new CompileContext
     val classesCompiling = mutable.HashSet[CgscriptClass]()
-    val sb = new StringBuilder
+    val emitter = new Emitter
 
-    includeInCompilationUnit(context, classesCompiling, sb)
+    includeInCompilationUnit(context, classesCompiling, emitter)
 
     if (CgscriptSystem.isDebug)
-      println(sb.toString)
+      println(emitter.toString)
 
-    eval.interpret(sb.toString)
+    eval.interpret(emitter.toString)
 
     classesCompiling foreach { compiledClass =>
       compiledClass.stage = LifecycleStage.Loaded
@@ -948,12 +948,12 @@ class CgscriptClass(
 
   }
 
-  private def includeInCompilationUnit(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+  private def includeInCompilationUnit(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], emitter: Emitter): Unit = {
 
     enclosingClass match {
 
       case Some(cls) =>
-        cls.includeInCompilationUnit(context, classesCompiling, sb)
+        cls.includeInCompilationUnit(context, classesCompiling, emitter)
         return
 
       case _ =>
@@ -968,14 +968,14 @@ class CgscriptClass(
 
     classesCompiling += this
     ensureElaborated()
-    appendScalaCode(context, classesCompiling, sb)
+    appendScalaCode(context, classesCompiling, emitter)
 
     // Compile all mentioned classes that have not yet been compiled.
-    mentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, sb) }
+    mentionedClasses foreach { _.includeInCompilationUnit(context, classesCompiling, emitter) }
 
   }
 
-  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], sb: StringBuilder): Unit = {
+  private def appendScalaCode(context: CompileContext, classesCompiling: mutable.HashSet[CgscriptClass], emitter: Emitter): Unit = {
 
     logger debug s"$logPrefix Generating compiled code."
 
@@ -994,30 +994,31 @@ class CgscriptClass(
 
     // Generate code.
     if (isSingleton && isSystem)
-      sb append s"case object $scalaClassdefName {$enclosingClause\n\n"
+      emitter println s"case object $scalaClassdefName {$enclosingClause\n"
     else if (isSingleton)
-      sb append s"case object $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
+      emitter println s"case object $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n"
     else
-      sb append s"object $scalaClassdefName {\n\n"
+      emitter println s"object $scalaClassdefName {\n"
 
-    sb append s"""  val _class = $classLocatorCode\n\n"""
+    emitter.indent()
+    emitter println s"""val _class = $classLocatorCode\n"""
 
     if (constructor.isDefined) {
 
       // Class is instantiable.
       assert(!isSingleton, this)
-      sb append "def apply("
-      sb append (
+      emitter print "def apply("
+      emitter print (
         classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
         )
       val applicatorName = if (isSystem) scalaTyperefName else s"$scalaClassdefName$$Impl"
-      sb append s") = $applicatorName("
-      sb append (
+      emitter print s") = $applicatorName("
+      emitter print (
         classInfo.constructorParamVars map { parameter =>
           parameter.id.name
         } mkString ", "
         )
-      sb append ")\n\n"
+      emitter println ")\n"
 
     }
 
@@ -1034,14 +1035,16 @@ class CgscriptClass(
     companionObjectInitializers foreach { initializer =>
       initializer match {
         case variable: Var =>
-          sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
+          emitter println s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n"
         case _: OrdinaryInitializer =>
       }
+      emitter.indent()
       initializer.initializerNode foreach { node =>
-        sb append node.toScalaCode(context)
+        emitter println node.toScalaCode(context)
       }
+      emitter.indent(-1)
       if (initializer.isInstanceOf[Var]) {
-        sb append "\n}\n\n"
+        emitter println "}\n"
       }
     }
 
@@ -1057,36 +1060,39 @@ class CgscriptClass(
     companionObjectUserMethods foreach { method =>
 
       val overrideSpec = if (method.isOverride) "override " else ""
-      sb append s"${overrideSpec}def ${method.scalaName}"
+      emitter print s"${overrideSpec}def ${method.scalaName}"
       if (!method.autoinvoke) {
-        sb append "("
-        sb append (
+        emitter print "("
+        emitter print (
           method.parameters map { _.toScalaCode(context) } mkString ", "
           )
-        sb append ")"
+        emitter print ")"
       }
-      sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
+      emitter println ": " + method.ensureElaborated().scalaTypeName + " = {\n"
 
-      sb append method.body.toScalaCode(context)
+      emitter.indent()
+      emitter println method.body.toScalaCode(context)
+      emitter.indent(-1)
 
-      sb append "\n}\n\n"
+      emitter println "}\n"
 
     }
 
     if (isEnum && !isSystem) {
       classInfo.enumElements.zipWithIndex foreach { case(enumElement, ordinal) =>
         val literal = enumElement.id.name
-        sb append
+        emitter print
           s"""val $literal = new $scalaClassdefName($ordinal, "$literal")
              |""".stripMargin
       }
     }
 
-    sb append "}\n\n"
+    emitter.indent(-1)
+    emitter println "}\n"
 
     if (isEnum && !isSystem) {
 
-      sb append
+      emitter println
         s"""case class $scalaClassdefName(ordinal: Int, literal: String) extends org.cgsuite.lang2.CgscriptObject {$enclosingClause
            |  override def toString = "$nameInPackage." + literal
            |  override def _class = $scalaClassdefName._class
@@ -1096,34 +1102,35 @@ class CgscriptClass(
     } else if (!isSingleton && this != CgscriptClass.Object) {
 
       if (isSystem) {
-        sb append
+        emitter println
           s"""case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock)
              |  extends org.cgsuite.lang2.SystemExtensionObject {$enclosingClause
              |
              |  override def _class = $scalaClassdefName._class
-             |\n""".stripMargin
+             |""".stripMargin
       } else {
-        sb append s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n\n"
+        emitter println s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n"
       }
+
+      emitter.indent()
 
       if (!isSystem) {
         classInfo.constructorParamVars foreach { parameter =>
-          sb append s"def ${parameter.id.name}: ${parameter.ensureElaborated().scalaTypeName}\n\n"
+          emitter println s"def ${parameter.id.name}: ${parameter.ensureElaborated().scalaTypeName}\n"
         }
       }
 
       classInfo.initializers filter { !_.isStatic } foreach { initializer =>
         initializer match {
           case variable: Var =>
-            sb append s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n\n"
+            emitter println s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n"
           case _: OrdinaryInitializer =>
         }
         initializer.initializerNode foreach { node =>
-          sb append node.toScalaCode(context)
+          emitter println node.toScalaCode(context)
         }
-        sb append "\n"
         if (initializer.isInstanceOf[Var]) {
-          sb append "}\n\n"
+          emitter println "}\n"
         }
       }
 
@@ -1132,50 +1139,53 @@ class CgscriptClass(
       userMethods foreach { method =>
 
         val overrideSpec = if (method.isOverride) "override " else ""
-        sb append s"${overrideSpec}def ${method.scalaName}"
+        emitter print s"${overrideSpec}def ${method.scalaName}"
         // TODO This may not work for nested classes (we'd need a recursive way to capture bound type parameters)
         val allTypeParameters = method.parameters flatMap { _.paramType.allTypeVariables }
         val unboundTypeParameters = allTypeParameters.toSet -- thisClass.typeParameters
         if (unboundTypeParameters.nonEmpty) {
-          sb append "["
-          sb append (unboundTypeParameters map { _.scalaTypeName } mkString ", ")
-          sb append "]"
+          emitter print "["
+          emitter print (unboundTypeParameters map { _.scalaTypeName } mkString ", ")
+          emitter print "]"
         }
         if (!method.autoinvoke) {
-          sb append "("
-          sb append (
+          emitter print "("
+          emitter print (
             method.parameters map { _.toScalaCode(context) } mkString ", "
             )
-          sb append ")"
+          emitter print ")"
         }
-        sb append ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
+        emitter print ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
 
-        sb append method.body.toScalaCode(context)
+        emitter.indent()
+        emitter println method.body.toScalaCode(context)
+        emitter.indent(-1)
 
-        sb append "\n}\n\n"
+        emitter println "}\n"
 
       }
 
-      classInfo.localNestedClasses foreach { _.appendScalaCode(context, classesCompiling, sb) }
+      classInfo.localNestedClasses foreach { _.appendScalaCode(context, classesCompiling, emitter) }
 
-      sb append "}\n\n"
+      emitter.indent(-1)
+      emitter println "}\n"
 
       if (constructor.isDefined && !isSystem) {
 
         // Class is instantiable.
 
-        sb append s"case class $scalaClassdefName$$Impl("
-        sb append (
+        emitter print s"case class $scalaClassdefName$$Impl("
+        emitter print (
           classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
           )
-        sb append ")\n"
-        sb append
+        emitter println ")"
+        emitter println
           s"""  extends $scalaClassdefName {$enclosingClause
              |
              |    override def _class = $scalaClassdefName._class
              |
              |}
-             |\n""".stripMargin
+             |""".stripMargin
 
       }
 
@@ -1185,15 +1195,15 @@ class CgscriptClass(
     if (isSystem && this != CgscriptClass.Object) {
 
       if (isSingleton) {
-        sb append
+        emitter println
           s"""implicit def enrich$$$scalaClassdefName(_instance: $scalaTyperefName): $scalaClassdefName.type = {
              |  $scalaClassdefName
-             |}\n\n""".stripMargin
+             |}\n""".stripMargin
       } else {
-        sb append
+        emitter println
           s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
              |  $scalaClassdefName(_instance)
-             |}\n\n""".stripMargin
+             |}\n""".stripMargin
       }
 
     }
