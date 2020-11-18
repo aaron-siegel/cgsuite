@@ -1,7 +1,7 @@
 package org.cgsuite.lang2
 
-import org.cgsuite.core
 import org.cgsuite.core._
+import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 
@@ -26,6 +26,8 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
   implicit def universalOrdering[T]: Ordering[T] = UniversalOrdering.asInstanceOf[Ordering[T]]
 
   implicit def unitToRichUnit(unit: Unit): RichUnit.type = RichUnit
+
+  implicit def collectionToRichCollection[T](collection: Iterable[T]): RichCollection[T] = RichCollection(collection)
 
   implicit def listToRichList[T](list: IndexedSeq[T]): RichList[T] = RichList(list)
 
@@ -68,6 +70,12 @@ trait LowestPriorityCgscriptImplicits {
   }
 
   //implicit def canonicalShortGameToInteger(x: CanonicalShortGame): Integer = x.asInstanceOf[Integer]
+
+}
+
+case class RichCollection[T](collection: Iterable[T]) {
+
+  def toNimber: MisereCanonicalGame = MisereCanonicalGame(collection)
 
 }
 

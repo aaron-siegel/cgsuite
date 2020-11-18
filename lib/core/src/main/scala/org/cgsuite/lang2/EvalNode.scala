@@ -386,7 +386,7 @@ object IdentifierNode {
 
 }
 
-case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
+case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
   private var elaboratedMemberResolution: Option[MemberResolution] = _
   private var isElaboratedInLocalScope: Boolean = _
@@ -523,12 +523,12 @@ object TypeSpecifierNode {
       case TYPE_VARIABLE =>
         TypeVariableNode(tree)
 
-      case IDENTIFIER =>
-        ConcreteTypeSpecifierNode(tree, IdentifierNode(tree), Vector.empty)
+      case IDENTIFIER | DOT =>
+        ConcreteTypeSpecifierNode(tree, ClassSpecifierNode(tree), Vector.empty)
 
       case OF =>
         val typeArguments = tree.children.drop(1) map { TypeSpecifierNode(_) }
-        ConcreteTypeSpecifierNode(tree, IdentifierNode(tree.head), typeArguments)
+        ConcreteTypeSpecifierNode(tree, ClassSpecifierNode(tree.head), typeArguments)
 
     }
 
@@ -570,20 +570,34 @@ case class TypeVariableNode(tree: Tree, id: Symbol, isExpandable: Boolean) exten
 
 }
 
-case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode, typeArgumentNodes: Vector[TypeSpecifierNode]) extends TypeSpecifierNode {
+case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifierNode, typeArgumentNodes: Vector[TypeSpecifierNode]) extends TypeSpecifierNode {
 
   override def children = baseClassIdNode +: typeArgumentNodes
 
   override def toType(domain: ElaborationDomain): CgscriptType = {
 
-    val id = baseClassIdNode.id
+    val baseClass = {
 
-    val classResolution =
-      (domain.cls flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) }) orElse
-        domain.pkg.lookupClass(id) orElse
-        CgscriptPackage.lookupClassByName(id.name)
-    val baseClass = classResolution getOrElse {
-      throw EvalException(s"Unrecognized type symbol: `${id.name}`", token = Some(baseClassIdNode.token))
+      baseClassIdNode match {
+
+        case IdentifierNode(_, id) =>
+          val classResolution =
+            (domain.cls flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) }) orElse
+              domain.pkg.lookupClass(id) orElse
+              CgscriptPackage.lookupClassByName(id.name)
+          classResolution getOrElse {
+            throw EvalException(s"Unrecognized type: `${id.name}`", token = Some(baseClassIdNode.token))
+          }
+
+        case dotNode: DotNode =>
+          dotNode.resolveAsPackageMember(domain) match {
+            case Some(cls: CgscriptClass) => cls
+            case _ =>
+              throw EvalException(s"Unrecognized type: `${dotNode.toNodeStringPrec(0)}`", token = Some(baseClassIdNode.token))
+          }
+
+      }
+
     }
 
     // Check that type arguments are consistent with the base class definition.
@@ -609,7 +623,7 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: IdentifierNode
       case 1 => " of " + typeArgumentNodes.head.toNodeStringPrec(enclosingPrecedence)
       case 2 => " of (" + typeArgumentNodes.map { _.toNodeStringPrec(enclosingPrecedence) }.mkString(", ") + ")"
     }
-    baseClassIdNode.id.name + typeArgumentsStr
+    baseClassIdNode.toNodeStringPrec(0) + typeArgumentsStr
   }
 
 }
@@ -1540,7 +1554,24 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
 
 }
 
-case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) extends EvalNode {
+object ClassSpecifierNode {
+
+  def apply(tree: Tree): ClassSpecifierNode = {
+
+    tree.getType match {
+
+      case DOT => DotNode(tree, EvalNode(tree.head), IdentifierNode(tree.children(1)))
+      case IDENTIFIER => IdentifierNode(tree)
+
+    }
+
+  }
+
+}
+
+trait ClassSpecifierNode extends EvalNode
+
+case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) extends ClassSpecifierNode {
 
   override val children = Seq(antecedent, idNode)
 

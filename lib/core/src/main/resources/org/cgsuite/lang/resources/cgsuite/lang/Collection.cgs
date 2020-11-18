@@ -4,6 +4,8 @@
   */
 system class Collection of `T
 
+  external def op unary* as game.misere.MisereCanonicalGame;
+
   external def Apply(fn as Procedure of (`T,`R)) as Collection of `R;
   //def Apply(fn as Procedure of (`T,`R)) as Collection of `R := error("Subclasses of `Collection` must override method `Apply`");
 

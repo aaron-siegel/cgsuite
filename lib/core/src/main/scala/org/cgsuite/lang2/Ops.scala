@@ -1,20 +1,8 @@
 package org.cgsuite.lang2
 
-import org.antlr.runtime.tree.Tree
-import org.cgsuite.core.Values._
-import org.cgsuite.core._
-import org.cgsuite.core.misere.MisereCanonicalGame
-import org.cgsuite.dsl.IntegerIsIntegral
-import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, StyledTextOutput}
-import org.cgsuite.util.{Coordinates, Grid, Strip}
-
-import scala.collection.immutable.NumericRange
-import scala.collection.mutable
 
 object Ops {
-
-  type MultiOp = Iterable[Any] => Any
 
   val Pos = UnOp("unary+", OperatorPrecedence.Neg, Some { "+" + _ }) { x => s"+$x" }
 

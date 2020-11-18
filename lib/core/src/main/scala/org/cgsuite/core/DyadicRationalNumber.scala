@@ -107,7 +107,7 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
     else Set(DyadicRationalNumber(negativeOne, denominator))
   }
   override def incentives(player: Player): Iterable[DyadicRationalNumber] = {
-    if (isInteger && sign.intValue != player.sign) {
+    if (isInteger && sign != player.sign) {
       Set.empty           // This includes 0
     } else {
       Set(DyadicRationalNumber(negativeOne, denominator))

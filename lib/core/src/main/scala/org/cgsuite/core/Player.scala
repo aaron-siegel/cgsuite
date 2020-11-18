@@ -6,19 +6,19 @@ object Player {
 }
 
 sealed trait Player {
-  def sign: Int
+  def sign: Integer
   def opponent: Player
-  def ordinal: Int
+  def ordinal: Integer
 }
 
 case object Left extends Player {
-  val sign = 1
+  val sign = Values.one
   val opponent = Right
-  val ordinal = 1
+  val ordinal = Values.one
 }
 
 case object Right extends Player {
-  val sign = -1
+  val sign = Values.negativeOne
   val opponent = Left
-  val ordinal = 2
+  val ordinal = Values.two
 }
