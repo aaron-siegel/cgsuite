@@ -768,9 +768,13 @@ case class CoordinatesNode(tree: Tree, coord1: EvalNode, coord2: EvalNode) exten
 
   }
 
-  override def toScalaCode(context: CompileContext) = {
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
-    s"org.cgsuite.util.Coordinates(${coord1.toScalaCode(context)}.intValue, ${coord2.toScalaCode(context)}.intValue)"
+    emitter print "org.cgsuite.util.Coordinates("
+    coord1.toScalaCode(context, emitter)
+    emitter print ".intValue, "
+    coord2.toScalaCode(context, emitter)
+    emitter print ".intValue)"
 
   }
 
@@ -1081,37 +1085,48 @@ case class LoopyGameSpecNode(
 
   }
 
-  override def toScalaCode(context: CompileContext): String = {
-    val sb = new StringBuilder("{\n")
-    val nodeCode = toScalaCode(sb, context, new mutable.HashSet[Symbol]())
-    sb.toString + s"org.cgsuite.core.SidedValue(new org.cgsuite.core.LoopyGame($nodeCode))\n}"
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+
+    emitter print "{ "
+    emitter.indent()
+
+    val nodeName = emitScalaCode(context, emitter, new mutable.HashSet[Symbol]())
+
+    emitter println s"org.cgsuite.core.SidedValue(new org.cgsuite.core.LoopyGame($nodeName))"
+    emitter.indent(-1)
+    emitter println "}"
+
   }
 
-  private def toScalaCode(sb: StringBuilder, context: CompileContext, nodeLabels: mutable.HashSet[Symbol]): String = {
+  private def emitScalaCode(context: CompileContext, emitter: Emitter, nodeLabels: mutable.HashSet[Symbol]): String = {
 
     nodeLabel foreach { nodeLabels += _.id }
 
     val nodeName = context.newTempId()
     val labelName = nodeLabel map { _.id.name } getOrElse nodeName
 
-    sb append s"val $nodeName = "
-    if (nodeLabel.isDefined)
-      sb append s"{ val $labelName = "
-    sb append "new org.cgsuite.core.LoopyGame.Node()\n"
+    emitter print s"val $nodeName = "
+    if (nodeLabel.isDefined) {
+      emitter println "{"
+      emitter.indent()
+      emitter print s"val $labelName = "
+    }
+    emitter println "new org.cgsuite.core.LoopyGame.Node()"
 
-    if (loPass) sb append s"$labelName.addLeftEdge($labelName)\n"
+    if (loPass) emitter println s"$labelName.addLeftEdge($labelName)"
     lo foreach { node =>
-      val nodeCode = loopyOptionToScalaCode(node, sb, context, nodeLabels)
-      sb append s"$labelName.addLeftEdge($nodeCode)\n"
+      loopyOptionToScalaCode(labelName, Left, node, context, emitter, nodeLabels)
     }
-    if (roPass) sb append s"$labelName.addRightEdge($labelName)\n"
+    if (roPass) emitter println s"$labelName.addRightEdge($labelName)"
     ro foreach { node =>
-      val nodeCode = loopyOptionToScalaCode(node, sb, context, nodeLabels)
-      sb append s"$labelName.addRightEdge($nodeCode)\n"
+      loopyOptionToScalaCode(labelName, Right, node, context, emitter, nodeLabels)
     }
 
-    if (nodeLabel.isDefined)
-      sb append s"$labelName }\n"
+    if (nodeLabel.isDefined) {
+      emitter println labelName
+      emitter.indent(-1)
+      emitter println "}"
+    }
 
     nodeLabel foreach { nodeLabels -= _.id }
 
@@ -1119,18 +1134,23 @@ case class LoopyGameSpecNode(
 
   }
 
-  def loopyOptionToScalaCode(node: EvalNode, sb: StringBuilder, context: CompileContext, nodeLabels: mutable.HashSet[Symbol]): String = {
+  private def loopyOptionToScalaCode(labelName: String, player: Player, node: EvalNode, context: CompileContext, emitter: Emitter, nodeLabels: mutable.HashSet[Symbol]): Unit = {
 
     node match {
 
       case loopyGameSpecNode: LoopyGameSpecNode =>
-        loopyGameSpecNode.toScalaCode(sb, context, nodeLabels)
+        val nodeName = loopyGameSpecNode.emitScalaCode(context, emitter, nodeLabels)
+        emitter println s"$labelName.add${player}Edge($nodeName)"
 
       case identifierNode: IdentifierNode if nodeLabels contains identifierNode.id =>
-        identifierNode.id.name
+        emitter println s"$labelName.add${player}Edge(${identifierNode.id.name})"
 
       case _ =>
-        node.toScalaCode(context)
+        emitter println s"$labelName.add${player}Edge {"
+        emitter.indent()
+        node.toScalaCode(context, emitter)
+        emitter.indent(-1)
+        emitter println "\n}"
 
     }
 
