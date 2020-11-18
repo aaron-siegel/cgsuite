@@ -1262,12 +1262,8 @@ case class LoopNode(
     val bodyType = body.ensureElaborated(domain)
 
     forId match {
-
-      case Some(idNode) =>
-        domain.popScope()
-
+      case Some(_) => domain.popScope()
       case None =>
-
     }
 
     pushDownYield match {
@@ -1337,7 +1333,7 @@ case class LoopNode(
       if (from.isDefined) {
         val fromCode = from.get.toScalaCode(context)
         val byCode = by map { _.toScalaCode(context) } getOrElse "org.cgsuite.core.Values.one"
-        s"""var $loopVar = $fromCode
+        s"""var $loopVar: org.cgsuite.core.RationalNumber = $fromCode
            |var $byVar = $byCode
            """
       } else if (in.isDefined) {

@@ -351,7 +351,7 @@ class EvalTest extends CgscriptSpec {
 
     executeTests(Table(
       header,
-      ("Unrecognized type", "5 as Foo", "!!Unrecognized type symbol: `Foo`"),
+      ("Unrecognized type", "5 as Foo", "!!Unrecognized type: `Foo`"),
       ("Type takes parameters", "{3} as Collection", "!!Class `cgsuite.lang.Collection` requires type parameters"),
       ("Invalid number of parameters", "{3} as Collection of (Integer, Boolean)", "!!Incorrect number of type parameters for class: `cgsuite.lang.Collection`")
     ))
