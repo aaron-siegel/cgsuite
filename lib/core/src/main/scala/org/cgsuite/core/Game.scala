@@ -117,7 +117,7 @@ trait Game extends OutputTarget {
 
   def depthHint: Integer = {
     throw NotImplementedException(
-      "That game is loopy (not a short game). If that is intentional, it must implement the `depthHint` method. See the CGSuite documentation for more details."
+      "That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details."
     )
   }
 

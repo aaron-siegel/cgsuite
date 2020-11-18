@@ -1691,7 +1691,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
     elaboratedMember match {
 
-      case cls: CgscriptClass => cls.scalaTyperefName
+      case cls: CgscriptClass => cls.scalaClassdefName
 
       case variable: CgscriptClass#Var =>
         if (isElaboratedAsPackage)

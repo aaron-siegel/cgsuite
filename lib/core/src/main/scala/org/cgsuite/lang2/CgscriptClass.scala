@@ -176,7 +176,7 @@ class CgscriptClass(
     }
   }
 
-  val scalaTyperefName: String = {
+  lazy val scalaTyperefName: String = {
     qualifiedName match {
       case "cgsuite.lang.Nothing" => "Null"
       case "cgsuite.lang.Boolean" => "Boolean"
@@ -186,7 +186,11 @@ class CgscriptClass(
           case None =>
             enclosingClass match {
               case Some(cls) => s"${cls.scalaClassdefName}#$name"
-              case None => scalaClassdefName
+              case None =>
+                if (isSingleton)
+                  s"$scalaClassdefName.type"
+                else
+                  scalaClassdefName
             }
         }
     }
