@@ -121,27 +121,23 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
   }
 
-  override def toScalaCode(context: CompileContext) = {
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     elaboratedMember match {
 
-      case cls: CgscriptClass => cls.scalaClassdefName
+      case cls: CgscriptClass =>
+        emitter print cls.scalaClassdefName
 
-      case variable: CgscriptClass#Var =>
-        if (isElaboratedAsPackage)
-          variable.declaringClass.scalaClassdefName + "." + variable.id.name
-        else {
-          val objStr = antecedent.toScalaCode(context)
-          s"($objStr).${variable.id.name}"
+      case member: Member =>      // CgscriptClass#Var or CgscriptClass#Method
+        if (isElaboratedAsPackage) {
+          emitter print member.declaringClass.scalaClassdefName
+        } else {
+          emitter print "("
+          antecedent.toScalaCode(context, emitter)
+          emitter print ")"
         }
-
-      case method: CgscriptClass#Method =>
-        if (isElaboratedAsPackage)
-          method.declaringClass.scalaClassdefName + "." + method.scalaName
-        else {
-          val objStr = antecedent.toScalaCode(context)
-          s"($objStr).${method.scalaName}"
-        }
+        emitter print "."
+        emitter print member.scalaName
 
     }
 

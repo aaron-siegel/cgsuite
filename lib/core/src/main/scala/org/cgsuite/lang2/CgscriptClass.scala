@@ -165,6 +165,8 @@ class CgscriptClass(
       s"${pkg.qualifiedName}.$nameInPackage"
   }
 
+  def scalaName = scalaClassdefName     // For Member trait - TODO Clean this up?
+
   val scalaClassdefName: String = {
     qualifiedName match {
       case "cgsuite.lang.Nothing" => "Null"
@@ -1251,6 +1253,8 @@ class CgscriptClass(
     val id = idNode.id
 
     def declaringClass = thisClass
+
+    def scalaName = id.name
 
     override def elaborate() = {
 

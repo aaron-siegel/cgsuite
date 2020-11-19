@@ -261,34 +261,65 @@ case class FunctionCallNode(
 
   }
 
-  override def toScalaCode(context: CompileContext) = {
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
-    val functionCode = elaboratedMethod match {
-      case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" => s"_instance.${method.scalaName}"
-      case Some(method) if isElaboratedInLocalScope => method.scalaName
-      case Some(method) if objectType.isEmpty => method.declaringClass.scalaClassdefName + "." + method.scalaName
-      case Some(method) => callSiteNode.asInstanceOf[DotNode].antecedent.toScalaCode(context) + "." + method.scalaName
-      case _ if isEval => callSiteNode.toScalaCode(context) + ".eval"
-      case _ => callSiteNode.toScalaCode(context)
+    emitter print "("
+
+    elaboratedMethod match {
+
+      case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" =>
+        emitter print s"_instance.${method.scalaName}"
+
+      case Some(method) if isElaboratedInLocalScope =>
+        emitter print method.scalaName
+
+      case Some(method) if objectType.isEmpty =>
+        emitter print (method.declaringClass.scalaClassdefName + "." + method.scalaName)
+
+      case Some(method) =>
+        callSiteNode.asInstanceOf[DotNode].antecedent.toScalaCode(context, emitter)
+        emitter print ("." + method.scalaName)
+
+      case _ if isEval =>
+        callSiteNode.toScalaCode(context, emitter)
+        emitter print ".eval"
+
+      case _ =>
+        callSiteNode.toScalaCode(context, emitter)
+
     }
-    val baseArgsCode = {
-      argNodes zip argNames map {
-        case (node, None) => node.toScalaCode(context)
-        case (node, Some(nameNode)) => nameNode.id.name + " = { " + node.toScalaCode(context) + " }"
-      } mkString ", "
-    }
-    val argsCode = {
-      if (isExpandableArgumentPattern) {
-        argNodes.length match {
-          case 0 => "null"                      // Placeholder for nullary procedures
-          case 1 => baseArgsCode
-          case _ => "(" + baseArgsCode + ")"    // Tupleize the inputs
+
+    emitter print "("
+
+    def emitArgs(): Unit = {
+      val namedNodes = argNodes zip argNames
+      for (i <- namedNodes.indices) {
+        namedNodes(i) match {
+          case (node, None) => node.toScalaCode(context, emitter)
+          case (node, Some(nameNode)) =>
+            emitter print (nameNode.id.name + " = { ")
+            node.toScalaCode(context, emitter)
+            emitter print " }"
         }
-      } else {
-        baseArgsCode
+        if (i < namedNodes.length - 1)
+          emitter print ", "
       }
     }
-    s"($functionCode($argsCode))"
+
+    if (isExpandableArgumentPattern) {
+      argNodes.length match {
+        case 0 => emitter print "null" // Placeholder for nullary procedures
+        case 1 => emitArgs()
+        case _ => // Tupleize the inputs
+          emitter print "("
+          emitArgs()
+          emitter print ")"
+      }
+    } else {
+      emitArgs()
+    }
+
+    emitter print "))"
 
   }
 

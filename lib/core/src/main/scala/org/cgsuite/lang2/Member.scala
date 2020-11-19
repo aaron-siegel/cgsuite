@@ -7,6 +7,8 @@ trait Member extends MemberResolution {
 
   def mentionedClasses: Iterable[CgscriptClass]
 
+  def scalaName: String
+
   var isElaborating = false
 
   private var elaboratedResultTypeRef: CgscriptType = _
