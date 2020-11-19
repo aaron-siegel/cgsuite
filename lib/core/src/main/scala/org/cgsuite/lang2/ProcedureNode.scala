@@ -52,7 +52,7 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
 
   }
 
-  override def toScalaCode(context: CompileContext) = {
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     val paramNames = parameters map { _.id.name } mkString ", "
 
@@ -70,11 +70,14 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
       case _ => s"($paramTypeNames)"
     }
 
-    val bodyCode = body.toScalaCode(context)
-
     val escapedNodeString = StringEscapeUtils.ESCAPE_JAVA.translate(toNodeString)
 
-    s"""org.cgsuite.lang2.Procedure[$typeCode, ${body.elaboratedType.scalaTypeName}]($arity, "$escapedNodeString"){ $paramNamesCode => { $bodyCode } }"""
+    emitter println s"""org.cgsuite.lang2.Procedure[$typeCode, ${body.elaboratedType.scalaTypeName}]($arity, "$escapedNodeString") { $paramNamesCode => {"""
+    emitter.indent()
+    body.toScalaCode(context, emitter)
+    emitter println ""
+    emitter.indent(-1)
+    emitter println "}}"
 
   }
 

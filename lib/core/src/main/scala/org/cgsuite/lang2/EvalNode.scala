@@ -204,9 +204,7 @@ trait EvalNode extends Node {
     emitter.toString
   }
 
-  def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
-    emitter print toScalaCode(context)
-  }
+  def toScalaCode(context: CompileContext, emitter: Emitter): Unit
 
   def mentionedClasses: Set[CgscriptClass] = {
     val classes = mutable.HashSet[CgscriptClass]()
@@ -682,7 +680,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 
   override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "("
-    emitter print op.toScalaCode(operand.toScalaCode(context))
+    op.emitScalaCode(context, emitter, operand)
     emitter print ")"
   }
 
@@ -738,7 +736,7 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
       emitter print ")"
     } else {
       emitter print "("
-      emitter print op.toScalaCode(operand1.toScalaCode(context), operand2.toScalaCode(context))
+      op.emitScalaCode(context, emitter, operand1, operand2)
       emitter print ")"
     }
   }
@@ -1346,10 +1344,14 @@ case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppr
     } else {
       val regularOutput = statements map {
         case assignToNode: AssignToNode =>
+          val emitter = new Emitter
           val varName = assignToNode.idNode.id.name
-          (s"${assignToNode.expr.toScalaCode(context)}", Some(varName))
+          assignToNode.expr.toScalaCode(context, emitter)
+          (emitter.toString, Some(varName))
         case node =>
-          (s"${node.toScalaCode(context)}", None)
+          val emitter = new Emitter
+          node.toScalaCode(context, emitter)
+          (emitter.toString, None)
       }
       if (suppressOutput)
         regularOutput :+ (("org.cgsuite.output.EmptyOutput", None))
