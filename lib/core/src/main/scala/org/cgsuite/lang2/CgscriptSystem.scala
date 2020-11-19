@@ -9,7 +9,7 @@ import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.parser.ParserUtil
-import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput, TextOutput}
+import org.cgsuite.output.{EmptyOutput, GridOutput, Output, TextOutput}
 import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
@@ -143,8 +143,7 @@ private[lang2] object CgscriptSystem {
         val elaboratedType = node.ensureElaborated(domain)
         node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
         Thread.sleep(10)
-        (elaboratedType,
-          node.toScalaCodeWithVarDecls(new CompileContext))
+        (elaboratedType, generateScalaCodeWithVarDecls(node))
       } catch {
         case exc: Throwable => exc.printStackTrace(); return scala.Right(exc)
       } finally {
@@ -164,11 +163,9 @@ private[lang2] object CgscriptSystem {
 
       val wrappedLine =
         s"""val __object = try { scala.Left {
-           |{
            |
            |$line
            |
-           |}
            |} } catch {
            |  case t: Throwable => scala.Right(t)
            |}
@@ -198,6 +195,41 @@ private[lang2] object CgscriptSystem {
     val result = (interpreter valueOfTerm "__output").get.asInstanceOf[Either[Output, Throwable]]
     result
 
+  }
+
+  def generateScalaCodeWithVarDecls(sequenceNode: StatementSequenceNode): Seq[(String, Option[String])] = {
+
+    if (sequenceNode.statements.isEmpty) {
+
+      Vector(("org.cgsuite.output.EmptyOutput", None))
+
+    } else {
+
+      val context = new CompileContext
+
+      val regularOutput = sequenceNode.statements map {
+
+        case assignToNode: AssignToNode =>
+          val emitter = new Emitter
+          emitter.indent()
+          val varName = assignToNode.idNode.id.name
+          assignToNode.expr.emitScalaCode(context, emitter)
+          (emitter.toString, Some(varName))
+
+        case node =>
+          val emitter = new Emitter
+          emitter.indent()
+          node.emitScalaCode(context, emitter)
+          (emitter.toString, None)
+
+      }
+
+      if (sequenceNode.suppressOutput)
+        regularOutput :+ (("org.cgsuite.output.EmptyOutput", None))
+      else
+        regularOutput
+
+    }
   }
 
   def setDebug(debug: Boolean): Unit = {

@@ -256,6 +256,24 @@ class EvalTest extends CgscriptSpec {
     ))
   }
 
+  it should "handle if/then/else properly" in {
+
+    executeTests(Table(
+      header,
+      ("If statement that's true", "if 3 < 4 then 10 end", "10"),
+      ("If statement that's false", "if 3 > 4 then 10 end", ""),
+      ("If/else that's true", "if 3 < 4 then 10 else 12 end", "10"),
+      ("If/else that's false", "if 3 > 4 then 10 else 12 end", "12"),
+      ("If/elseif #1", "if 3 < 4 then 10 elseif 4 < 5 then 12 end", "10"),
+      ("If/elseif #2", "if 3 > 4 then 10 elseif 4 < 5 then 12 end", "12"),
+      ("If/elseif #3", "if 3 > 4 then 10 elseif 4 > 5 then 12 end", ""),
+      ("If/elseif/else #1", "if 3 < 4 then 10 elseif 4 < 5 then 12 else 14 end", "10"),
+      ("If/elseif/else #2", "if 3 > 4 then 10 elseif 4 < 5 then 12 else 14 end", "12"),
+      ("If/elseif/else #3", "if 3 > 4 then 10 elseif 4 > 5 then 12 else 14 end", "14")
+    ))
+
+  }
+
   it should "handle various types of loops correctly" in {
 
     // (name, initializer, fn, for-snippet, result, optional-sorted-result, sum)

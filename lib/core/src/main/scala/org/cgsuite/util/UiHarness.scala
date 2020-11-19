@@ -16,8 +16,6 @@ object UiHarness {
 
 trait UiHarness {
 
-  def clearUiVars(): Unit
-
   def createExplorer(g: Game): Explorer
 
   def print(obj: AnyRef): Unit

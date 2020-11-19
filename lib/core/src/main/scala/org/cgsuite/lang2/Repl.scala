@@ -22,8 +22,6 @@ object Repl {
 
   val instruction = "Type CGScript expressions for evaluation, or :help for a list of REPL commands."
 
-  val replVarMap = mutable.AnyRefMap[Symbol, Any]()
-
   def main(args: Array[String]) {
 
     println(welcome)
@@ -53,7 +51,6 @@ object Repl {
     tokens.head match {
       case "clear" =>
         CgscriptClass.clearAll()
-        replVarMap.clear()
         false
       case "debug" =>
         tokens.toList.tail match {
@@ -126,10 +123,6 @@ object Repl {
 }
 
 object ReplUiHarness extends UiHarness {
-
-  override def clearUiVars(): Unit = {
-    Repl.replVarMap.clear()
-  }
 
   override def createExplorer(g: Game): Explorer = {
     throw EvalException("The Explorer is not available in the CGSuite REPL.")

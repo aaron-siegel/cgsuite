@@ -7,7 +7,6 @@ import org.cgsuite.util.UiHarness
 object System {
 
   def clearAll(): Unit = {
-    UiHarness.uiHarness.clearUiVars()
     CgscriptClass.clearAll()
   }
 

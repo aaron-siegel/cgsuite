@@ -72,6 +72,7 @@ object CgscriptClass {
   Object.ensureDeclared()
 
   def clearAll() {
+    // TODO Unload the interpreter?
     CanonicalShortGameOps.reinit()
     MisereCanonicalGameOps.reinit()
     CgscriptPackage.classDictionary.values foreach { _.unload() }
@@ -1035,7 +1036,7 @@ class CgscriptClass(
     companionObjectInitializers foreach { initializer =>
       initializer match {
         case variable: Var =>
-          emitter println s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n"
+          emitter println s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {"
           emitter.indent()
         case _: OrdinaryInitializer =>
       }
@@ -1044,7 +1045,7 @@ class CgscriptClass(
       }
       if (initializer.isInstanceOf[Var]) {
         emitter.indent(-1)
-        emitter println "}\n"
+        emitter println "\n}\n"
       }
     }
 
@@ -1066,13 +1067,11 @@ class CgscriptClass(
         Parameter.emitScalaCode(method.parameters, context, emitter)
         emitter print ")"
       }
-      emitter println ": " + method.ensureElaborated().scalaTypeName + " = {\n"
-      emitter.indent()
+      emitter print ": " + method.ensureElaborated().scalaTypeName + " = "
 
       method.body.emitScalaCode(context, emitter)
 
-      emitter.indent(-1)
-      emitter println "}\n"
+      emitter println "\n"
 
     }
 
@@ -1151,13 +1150,11 @@ class CgscriptClass(
           Parameter.emitScalaCode(method.parameters, context, emitter)
           emitter print ")"
         }
-        emitter print ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
-        emitter.indent()
+        emitter print ": " + method.ensureElaborated().scalaTypeName + " = "
 
         method.body.emitScalaCode(context, emitter)
 
-        emitter.indent(-1)
-        emitter println "}\n"
+        emitter println "\n"
 
       }
 

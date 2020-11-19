@@ -1104,7 +1104,7 @@ case class LoopyGameSpecNode(
 
     emitter println s"org.cgsuite.core.SidedValue(new org.cgsuite.core.LoopyGame($nodeName))"
     emitter.indent(-1)
-    emitter println "}"
+    emitter print "}"
 
   }
 
@@ -1198,6 +1198,13 @@ case class LoopyGameSpecNode(
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
 
+  elseNode match {
+    case None =>
+    case Some(_: StatementSequenceNode) =>
+    case Some(_: IfNode) =>
+    case _ => assert(assertion = false, "unexpected node type for elseNode")
+  }
+
   override val children = Seq(condition, ifNode) ++ elseNode
 
   override def elaborateImpl(domain: ElaborationDomain) = {
@@ -1229,17 +1236,16 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     emitter.indent()
     emitter print "if ("
     condition.emitScalaCode(context, emitter)
-    emitter println ") {"
-    emitter.indent()
+    emitter print ") "
     ifNode.emitScalaCode(context, emitter)
-    emitter.indent(-1)
-    elseNode foreach { node =>
-      emitter println "} else {"
-      emitter.indent()
-      node.emitScalaCode(context, emitter)
-      emitter.indent(-1)
+    elseNode match {
+      case Some(node) =>
+        emitter print " else "
+        node.emitScalaCode(context, emitter)
+      case None =>
+        emitter print " else null"
     }
-    emitter println "}"
+    emitter println ""
     if (elaboratedType.baseClass == CgscriptClass.NothingClass) {
       emitter println "null"
     }
@@ -1328,29 +1334,7 @@ case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppr
         emitter println ";"       // The semicolon is necessary in various strange parsing situations with newlines
       }
       emitter.indent(-1)
-      emitter println "}"
-    }
-  }
-
-  def toScalaCodeWithVarDecls(context: CompileContext): Seq[(String, Option[String])] = {
-    if (statements.isEmpty) {
-      Vector(("org.cgsuite.output.EmptyOutput", None))
-    } else {
-      val regularOutput = statements map {
-        case assignToNode: AssignToNode =>
-          val emitter = new Emitter
-          val varName = assignToNode.idNode.id.name
-          assignToNode.expr.emitScalaCode(context, emitter)
-          (emitter.toString, Some(varName))
-        case node =>
-          val emitter = new Emitter
-          node.emitScalaCode(context, emitter)
-          (emitter.toString, None)
-      }
-      if (suppressOutput)
-        regularOutput :+ (("org.cgsuite.output.EmptyOutput", None))
-      else
-        regularOutput
+      emitter print "}"
     }
   }
 
