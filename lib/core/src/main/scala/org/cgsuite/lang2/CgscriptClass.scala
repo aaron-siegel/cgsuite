@@ -21,6 +21,8 @@ import scala.tools.nsc.interpreter.IMain
 
 object CgscriptClass {
 
+  // TODO Validate that method overrides have compatible return types
+
   private[lang2] val logger = Logger(LoggerFactory.getLogger(classOf[CgscriptClass]))
 
   private var nextClassOrdinal = 0
@@ -231,8 +233,13 @@ class CgscriptClass(
   }
 
   override def declNode = {
-    ensureDeclaredPhase1()
-    Option(classInfoRef.declNode)
+    enclosingClass match {
+      case Some(cls) => cls.declNode
+      case _ =>
+        ensureDeclaredPhase1()
+        assert(classInfoRef != null)
+        Option(classInfoRef.declNode)
+    }
   }
 
   def isScript = {
@@ -347,6 +354,10 @@ class CgscriptClass(
     enclosingClass match {
       case Some(cls) => cls.ensureDeclaredPhase1()
       case None =>
+        if (stage == LifecycleStage.DeclaringPhase1) {
+          // TODO Better error message/handling here?
+          sys.error("circular class definition?: " + qualifiedName)
+        }
         stage match {
           case LifecycleStage.New | LifecycleStage.Unloaded => declarePhase1()
           case _ =>   // Nothing to do
@@ -357,11 +368,6 @@ class CgscriptClass(
   private def declarePhase1(): Unit = {
 
     logDebug(s"Declaring class (phase 1).")
-
-    if (stage == LifecycleStage.DeclaringPhase1) {
-      // TODO Better error message/handling here?
-      sys.error("circular class definition?: " + qualifiedName)
-    }
 
     // Force constants to declare first
     pkg lookupClass 'constants foreach { constantsCls =>

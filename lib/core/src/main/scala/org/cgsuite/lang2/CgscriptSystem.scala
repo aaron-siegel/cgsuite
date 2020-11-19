@@ -9,7 +9,7 @@ import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang2.parser.ParserUtil
-import org.cgsuite.output.{EmptyOutput, GridOutput, Output, TextOutput}
+import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StripOutput, TextOutput}
 import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
@@ -65,6 +65,7 @@ private[lang2] object CgscriptSystem {
 
     "cgsuite.util.output.EmptyOutput" -> classOf[EmptyOutput],
     "cgsuite.util.output.GridOutput" -> classOf[GridOutput],
+    "cgsuite.util.output.StripOutput" -> classOf[StripOutput],
     "cgsuite.util.output.TextOutput" -> classOf[TextOutput],
     "cgsuite.lang.Output" -> classOf[Output],
 

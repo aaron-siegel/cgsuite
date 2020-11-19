@@ -194,7 +194,8 @@ case class LoopNode(
     emitter println s"var $continueVar = true"
 
     from foreach { fromNode =>
-      emitter print s"var $loopVar: org.cgsuite.core.RationalNumber = "
+      // TODO Validate loopVar is Integer
+      emitter print s"var $loopVar: org.cgsuite.core.Integer = "
       fromNode.emitScalaCode(context, emitter)
       emitter println ""
       by foreach { byNode =>

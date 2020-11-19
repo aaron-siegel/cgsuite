@@ -7,7 +7,7 @@ import java.io.PrintWriter
 import javax.swing.{Icon, ImageIcon}
 import org.cgsuite.exception.SystemException
 import org.cgsuite.lang.EnumObject
-import org.cgsuite.util.Grid
+import org.cgsuite.util.{Grid, Strip}
 
 import scala.collection.mutable
 
@@ -29,7 +29,7 @@ object GridOutput {
     )
   }
 
-  private def imageDimensions(grid: Grid, cellSize: Dimension, gap: Int, lineThickness: Int): Dimension = {
+  private[output] def imageDimensions(grid: Grid, cellSize: Dimension, gap: Int, lineThickness: Int): Dimension = {
     new Dimension(
       (grid.colCount * (cellSize.width + 2 * gap + lineThickness)) + lineThickness,
       (grid.rowCount * (cellSize.height + 2 * gap + lineThickness)) + lineThickness
@@ -51,13 +51,17 @@ object GridOutput {
 
 }
 
-case class GridOutput(grid: Grid, iconEnumValues: IndexedSeq[_], alt: String) extends AbstractOutput {
+trait GenGridOutput extends AbstractOutput {
+
+  def grid: Grid
+  def iconEnumValues: IndexedSeq[_]
+  def alt: String
 
   lazy val icons = iconEnumValues map {
     case x: EnumObject => GridOutput.lookupIcon(x.literal)
   }
 
-  lazy val cellSize = GridOutput.iconDimensions(icons, false)
+  lazy val cellSize = GridOutput.iconDimensions(icons, forceSquares = false)
   lazy val size = GridOutput.imageDimensions(grid, cellSize, 1, 1)
 
   def write(out: PrintWriter, mode: Output.Mode) {
@@ -89,4 +93,10 @@ case class GridOutput(grid: Grid, iconEnumValues: IndexedSeq[_], alt: String) ex
     }
 
   }
+}
+
+case class GridOutput(grid: Grid, iconEnumValues: IndexedSeq[_], alt: String) extends GenGridOutput
+
+case class StripOutput(strip: Strip, iconEnumValues: IndexedSeq[_], alt: String) extends GenGridOutput {
+  def grid = strip.toGrid
 }

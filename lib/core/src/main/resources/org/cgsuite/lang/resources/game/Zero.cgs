@@ -6,4 +6,8 @@ singleton system class Zero extends Integer, Nimber
 
   external override def op unary- as Zero;
 
+  external def op+(that as Zero) as Zero;
+
+  external def op-(that as Zero) as Zero;
+
 end

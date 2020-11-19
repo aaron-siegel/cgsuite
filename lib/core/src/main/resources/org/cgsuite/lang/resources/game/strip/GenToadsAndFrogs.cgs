@@ -5,37 +5,34 @@ class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) exten
   var minMove := if backsliding then -1 else 1 end;
   var maxMove := maxJump + 1;
 
-  class Position(strip as Strip) extends StripGame
+  override def StripOptions(strip as Strip, player as Player) begin
 
-    override def OptionsFor(player as Player) begin
+    var us := player.Ordinal;
+    var them := player.Opponent.Ordinal;
 
-      var us := player.Ordinal;
-      var them := player.Opponent.Ordinal;
-
-      for n in strip FindAll us
-      for k from minMove to maxMove
-      while k < 2 or strip[n+(k-1)*player.Sign] == them
-      where k != 0 and strip[n+k*player.Sign] == 0
-      yield
-        Position(strip Updated {n => 0, n+k*player.Sign => us})
-      end
-
+    for n in strip FindAll us
+    for k from minMove to maxMove
+    while k < 2 or strip[n+(k-1)*player.Sign] == them
+    where k != 0 and strip[n+k*player.Sign] == 0
+    yield
+      strip Updated {n => 0, n+k*player.Sign => us}
     end
 
-    override def DepthHint begin
+  end
 
-      var toadCount := 0;
-      var leapCount := 0;
+  override def DepthHint(strip as Strip) begin
 
-      for n from 1 to strip.Length do
-        if strip[n] == 1 then toadCount := toadCount + 1;
-        elseif strip[n] == 2 then leapCount := leapCount + toadCount;
-        end
+    // TODO The "1-1" hacks shouldn't be necessary here
+    var toadCount := 1-1;
+    var leapCount := 1-1;
+
+    for n from 1 to strip.Length do
+      if strip[n] == 1 then toadCount := toadCount + 1;
+      elseif strip[n] == 2 then leapCount := leapCount + toadCount;
       end
-
-      leapCount
-
     end
+
+    leapCount
 
   end
 
