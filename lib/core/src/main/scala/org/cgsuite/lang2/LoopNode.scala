@@ -156,13 +156,15 @@ case class LoopNode(
 
   }
 
-  override def toScalaCode(context: CompileContext): String = toScalaCode(context, None)
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+    emitScalaCode(context, emitter, None)
+  }
 
-  def toScalaCode(context: CompileContext, pushdownYieldVar: Option[String]): String = {
+  def emitScalaCode(context: CompileContext, emitter: Emitter, pushdownYieldVar: Option[String]): Unit = {
 
     val continueVar = context.newTempId()
     val tempResultVar = context.newTempId()
-    val byVar = context.newTempId()
+    val byVarOpt = by map { _ => context.newTempId() }
     val loopVar = {
       if (forId.isDefined)
         forId.get.id.name
@@ -183,75 +185,175 @@ case class LoopNode(
       else
         ""
     }
-    val initCode = {
-      if (from.isDefined) {
-        val fromCode = from.get.toScalaCode(context)
-        val byCode = by map { _.toScalaCode(context) } getOrElse "org.cgsuite.core.Values.one"
-        s"""var $loopVar: org.cgsuite.core.RationalNumber = $fromCode
-           |var $byVar = $byCode
-           """
-      } else if (in.isDefined) {
-        val inCode = in.get.toScalaCode(context)
-        s"val $iteratorVar = $inCode.iterator"
-      } else
-        ""
-    }
-    val yieldInitCode = {
-      if (isYield && pushdownYieldVar.isEmpty) {
-        loopType match {
-          case YieldSum =>
-            s"var $yieldResultVar: ${elaboratedType.scalaTypeName} = null"
-          case YieldTable =>
-            s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[IndexedSeq[_]]"
-          case _ =>
-            val yieldType = elaboratedType.typeArguments.head
-            s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
-        }
-      } else {
-        ""
+
+    emitter println "{  // Begin loop"
+    emitter.indent()
+
+    // Emit initialization code
+
+    emitter println s"var $continueVar = true"
+
+    from foreach { fromNode =>
+      emitter print s"var $loopVar: org.cgsuite.core.RationalNumber = "
+      fromNode.toScalaCode(context, emitter)
+      emitter println ""
+      by foreach { byNode =>
+        emitter print s"var ${byVarOpt.get} = "
+        byNode.toScalaCode(context, emitter)
+        emitter println ""
       }
-    }
-    val checkIfDoneCode = {
-      if (to.isDefined) {
-        val toCode = to.get.toScalaCode(context)
-        s"$continueVar = if ($byVar < org.cgsuite.core.Values.zero) $loopVar >= $toCode else $loopVar <= $toCode"
-      } else if (in.isDefined)
-        s"$continueVar = $iteratorVar.hasNext"
-      else
-        ""
-    }
-    val iterateCode = {
-      if (in.isDefined)
-        s"val $loopVar = $iteratorVar.next()"
-      else
-        ""
-    }
-    val byCode = by map { _.toScalaCode(context) } getOrElse "org.cgsuite.core.Values.one"
-    val incrementCode = if (from.isDefined) s"$loopVar = $loopVar + $byCode" else ""
-    val whileCode = `while` map { s"$continueVar = " + _.toScalaCode(context) } getOrElse ""
-    val whereCode = where map { _.toScalaCode(context) } getOrElse "true"
-    val bodyCode = pushDownYield match {
-      case Some(loopBody) => loopBody.toScalaCode(context, Some(yieldResultVar))
-      case None => body.toScalaCode(context)
-    }
-    val yieldUpdateCode = {
-      if (isYield && loopType == LoopNode.YieldSum) {
-        s"$yieldResultVar = if ($yieldResultVar == null) $tempResultVar else $yieldResultVar + $tempResultVar"
-      } else if (isYield && pushDownYield.isEmpty) {
-        s"$yieldResultVar += $tempResultVar"
-      } else {
-        ""
-      }
-    }
-    val yieldReturnCode = loopType match {
-      case LoopNode.Do => "null"
-      case LoopNode.YieldList => s"$yieldResultVar.toVector"
-      case LoopNode.YieldMap => s"$yieldResultVar.asInstanceOf[scala.collection.mutable.ArrayBuffer[(Any, Any)]].toMap"
-      case LoopNode.YieldSet => s"$yieldResultVar.toSet"
-      case LoopNode.YieldTable => s"org.cgsuite.lang2.Table($yieldResultVar.toIndexedSeq)(org.cgsuite.lang2.CgscriptClass.instanceToOutput)"
-      case LoopNode.YieldSum => s"if ($yieldResultVar == null) org.cgsuite.core.Values.zero else $yieldResultVar"
     }
 
+    in foreach { inNode =>
+      emitter print s"val $iteratorVar = "
+      inNode.toScalaCode(context, emitter)
+      emitter println ".iterator"
+    }
+
+    if (isYield && pushdownYieldVar.isEmpty) {
+      loopType match {
+        case YieldSum =>
+          emitter println s"var $yieldResultVar: ${elaboratedType.scalaTypeName} = null"
+        case YieldTable =>
+          emitter println s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[IndexedSeq[_]]"
+        case _ =>
+          val yieldType = elaboratedType.typeArguments.head
+          emitter println s"val $yieldResultVar = new scala.collection.mutable.ArrayBuffer[${yieldType.scalaTypeName}]"
+      }
+    }
+
+    // Emit main loop
+
+    emitter println s"while ($continueVar) {"
+    emitter.indent()
+    emitter println "if (Thread.interrupted())"
+    emitter.indent()
+    emitter println """throw org.cgsuite.exception.CalculationCanceledException("Calculation canceled by user."/*, token = Some(token)*/)"""
+    emitter.indent(-1)
+
+    // Emit code to check if from-loop is done
+
+    to foreach { toNode =>
+      byVarOpt match {
+        case Some(byVar) =>
+          emitter print s"$continueVar = if ($byVar < org.cgsuite.core.Values.zero) $loopVar >= "
+          toNode.toScalaCode(context, emitter)
+          emitter print s" else $loopVar <= "
+          toNode.toScalaCode(context, emitter)
+        case None =>
+          emitter println s"$continueVar = $loopVar <= "
+          toNode.toScalaCode(context, emitter)
+      }
+      emitter println ""
+    }
+
+    // Emit code to check if in-loop is done
+
+    in foreach { _ =>
+      emitter println s"$continueVar = $iteratorVar.hasNext"
+    }
+
+    emitter println s"if ($continueVar) {"
+    emitter.indent()
+
+    // Emit code to increment the iterator
+
+    in foreach { _ =>
+      emitter println s"val $loopVar = $iteratorVar.next();"
+    }
+
+    // Emit code to check if while condition is met
+
+    `while` foreach { whileNode =>
+      emitter print s"$continueVar = "
+      whileNode.toScalaCode(context, emitter)
+      emitter println ""
+      emitter println s"if ($continueVar) {"
+      emitter.indent()
+    }
+
+    // Emit code to check if where condition is met
+
+    where foreach { whereNode =>
+      emitter print "if ("
+      whereNode.toScalaCode(context, emitter)
+      emitter println ") {"
+      emitter.indent()
+    }
+
+    // Emit loop body
+
+    if (isYield) {
+      emitter println s"var $tempResultVar = {"
+      emitter.indent()
+    }
+
+    pushDownYield match {
+      case Some(loopBody) => loopBody.emitScalaCode(context, emitter, Some(yieldResultVar))
+      case None => body.toScalaCode(context, emitter)
+    }
+
+    emitter println ""
+
+    if (isYield) {
+      emitter.indent(-1)
+      emitter println "}"
+    }
+
+    // Emit code for yield-update
+
+    if (isYield && loopType == LoopNode.YieldSum) {
+      emitter println s"$yieldResultVar = if ($yieldResultVar == null) $tempResultVar else $yieldResultVar + $tempResultVar"
+    } else if (isYield && pushDownYield.isEmpty) {
+      emitter println s"$yieldResultVar += $tempResultVar"
+    }
+
+    if (where.isDefined) {
+      emitter.indent(-1)
+      emitter println "}"
+    }
+
+    // Emit increment code
+
+    if (from.isDefined) {
+      emitter print s"$loopVar = $loopVar + "
+      by match {
+        case Some(byNode) => byNode.toScalaCode(context, emitter)
+        case None => emitter print "org.cgsuite.core.Values.one"
+      }
+      emitter println ""
+    }
+
+    // Close brackets
+
+    if (`while`.isDefined) {
+      emitter.indent(-1)
+      emitter println "}"
+    }
+
+    emitter.indent(-1)
+    emitter println "}"
+
+    emitter.indent(-1)
+    emitter println "}"
+
+    // Create return value
+
+    emitter println {
+      loopType match {
+        case LoopNode.Do => "null"
+        case LoopNode.YieldList => s"$yieldResultVar.toVector"
+        case LoopNode.YieldMap => s"$yieldResultVar.asInstanceOf[scala.collection.mutable.ArrayBuffer[(Any, Any)]].toMap"
+        case LoopNode.YieldSet => s"$yieldResultVar.toSet"
+        case LoopNode.YieldTable => s"org.cgsuite.lang2.Table($yieldResultVar.toIndexedSeq)(org.cgsuite.lang2.CgscriptClass.instanceToOutput)"
+        case LoopNode.YieldSum => s"if ($yieldResultVar == null) org.cgsuite.core.Values.zero else $yieldResultVar"
+      }
+    }
+
+    emitter.indent(-1)
+    emitter println "}  // End loop"
+
+    /*
     s"""{
        |  var $continueVar = true
        |  $initCode
@@ -277,6 +379,7 @@ case class LoopNode(
        |  $yieldReturnCode
        |}
        |""".stripMargin
+     */
 
   }
 

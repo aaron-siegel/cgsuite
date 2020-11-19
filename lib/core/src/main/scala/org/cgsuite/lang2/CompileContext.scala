@@ -28,7 +28,7 @@ class Emitter {
     val lines = str split '\n'
     if (lines.nonEmpty) {
       lines dropRight 1 foreach { append(_, addNewline = true) }
-      append(lines.last, str.last == '\n')
+      append(lines.last, str.nonEmpty && str.last == '\n')
     }
   }
 
