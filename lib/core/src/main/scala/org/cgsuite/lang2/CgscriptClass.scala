@@ -1010,9 +1010,7 @@ class CgscriptClass(
       // Class is instantiable.
       assert(!isSingleton, this)
       emitter print "def apply("
-      emitter print (
-        classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
-        )
+      Parameter.emitScalaCode(classInfo.constructor.get.parameters, context, emitter)
       val applicatorName = if (isSystem) scalaTyperefName else s"$scalaClassdefName$$Impl"
       emitter print s") = $applicatorName("
       emitter print (
@@ -1038,14 +1036,14 @@ class CgscriptClass(
       initializer match {
         case variable: Var =>
           emitter println s"val ${variable.id.name}: ${variable.ensureElaborated().scalaTypeName} = {\n"
+          emitter.indent()
         case _: OrdinaryInitializer =>
       }
-      emitter.indent()
       initializer.initializerNode foreach { node =>
-        emitter println node.toScalaCode(context)
+        node.toScalaCode(context, emitter)
       }
-      emitter.indent(-1)
       if (initializer.isInstanceOf[Var]) {
+        emitter.indent(-1)
         emitter println "}\n"
       }
     }
@@ -1065,17 +1063,15 @@ class CgscriptClass(
       emitter print s"${overrideSpec}def ${method.scalaName}"
       if (!method.autoinvoke) {
         emitter print "("
-        emitter print (
-          method.parameters map { _.toScalaCode(context) } mkString ", "
-          )
+        Parameter.emitScalaCode(method.parameters, context, emitter)
         emitter print ")"
       }
       emitter println ": " + method.ensureElaborated().scalaTypeName + " = {\n"
-
       emitter.indent()
-      emitter println method.body.toScalaCode(context)
-      emitter.indent(-1)
 
+      method.body.toScalaCode(context, emitter)
+
+      emitter.indent(-1)
       emitter println "}\n"
 
     }
@@ -1129,7 +1125,7 @@ class CgscriptClass(
           case _: OrdinaryInitializer =>
         }
         initializer.initializerNode foreach { node =>
-          emitter println node.toScalaCode(context)
+          node.toScalaCode(context, emitter)
         }
         if (initializer.isInstanceOf[Var]) {
           emitter println "}\n"
@@ -1152,17 +1148,15 @@ class CgscriptClass(
         }
         if (!method.autoinvoke) {
           emitter print "("
-          emitter print (
-            method.parameters map { _.toScalaCode(context) } mkString ", "
-            )
+          Parameter.emitScalaCode(method.parameters, context, emitter)
           emitter print ")"
         }
         emitter print ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
-
         emitter.indent()
-        emitter println method.body.toScalaCode(context)
-        emitter.indent(-1)
 
+        method.body.toScalaCode(context, emitter)
+
+        emitter.indent(-1)
         emitter println "}\n"
 
       }
@@ -1177,9 +1171,7 @@ class CgscriptClass(
         // Class is instantiable.
 
         emitter print s"case class $scalaClassdefName$$Impl("
-        emitter print (
-          classInfo.constructor.get.parameters map { _.toScalaCode(context) } mkString ", "
-          )
+        Parameter.emitScalaCode(classInfo.constructor.get.parameters, context, emitter)
         emitter println ")"
         emitter println
           s"""  extends $scalaClassdefName {$enclosingClause

@@ -198,12 +198,6 @@ trait EvalNode extends Node {
 
   def elaborateImpl(domain: ElaborationDomain): CgscriptType
 
-  def toScalaCode(context: CompileContext): String = {
-    val emitter = new Emitter
-    toScalaCode(context, emitter)
-    emitter.toString
-  }
-
   def toScalaCode(context: CompileContext, emitter: Emitter): Unit
 
   def mentionedClasses: Set[CgscriptClass] = {

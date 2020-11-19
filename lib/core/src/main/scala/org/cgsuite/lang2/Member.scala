@@ -40,6 +40,18 @@ trait MemberResolution {
 
 case class MethodSignature(id: Symbol, paramTypes: Vector[CgscriptType])
 
+object Parameter {
+
+  def emitScalaCode(parameters: IndexedSeq[Parameter], context: CompileContext, emitter: Emitter): Unit = {
+    for (i <- parameters.indices) {
+      parameters(i).emitScalaCode(context, emitter)
+      if (i < parameters.length - 1)
+        emitter print ", "
+    }
+  }
+
+}
+
 case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultValue: Option[EvalNode], isExpandable: Boolean) {
 
   val id = idNode.id
@@ -58,12 +70,15 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultVal
     paramType.mentionedClasses ++ (defaultValue.toIterable flatMap { _.mentionedClasses })
   }
 
-  def toScalaCode(context: CompileContext): String = {
-    val defaultValueClause = defaultValue match {
-      case Some(node) => " = " + node.toScalaCode(context)
-      case None => ""
+  def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+
+    emitter print s"$name: ${paramType.scalaTypeName}"
+
+    defaultValue foreach { node =>
+      emitter print " = "
+      node.toScalaCode(context, emitter)
     }
-    s"$name: ${paramType.scalaTypeName}$defaultValueClause"
+
   }
 
 }
