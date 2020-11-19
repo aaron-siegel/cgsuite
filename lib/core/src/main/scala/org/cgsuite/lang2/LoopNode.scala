@@ -156,7 +156,7 @@ case class LoopNode(
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitScalaCode(context, emitter, None)
   }
 
@@ -195,18 +195,18 @@ case class LoopNode(
 
     from foreach { fromNode =>
       emitter print s"var $loopVar: org.cgsuite.core.RationalNumber = "
-      fromNode.toScalaCode(context, emitter)
+      fromNode.emitScalaCode(context, emitter)
       emitter println ""
       by foreach { byNode =>
         emitter print s"var ${byVarOpt.get} = "
-        byNode.toScalaCode(context, emitter)
+        byNode.emitScalaCode(context, emitter)
         emitter println ""
       }
     }
 
     in foreach { inNode =>
       emitter print s"val $iteratorVar = "
-      inNode.toScalaCode(context, emitter)
+      inNode.emitScalaCode(context, emitter)
       emitter println ".iterator"
     }
 
@@ -237,12 +237,12 @@ case class LoopNode(
       byVarOpt match {
         case Some(byVar) =>
           emitter print s"$continueVar = if ($byVar < org.cgsuite.core.Values.zero) $loopVar >= "
-          toNode.toScalaCode(context, emitter)
+          toNode.emitScalaCode(context, emitter)
           emitter print s" else $loopVar <= "
-          toNode.toScalaCode(context, emitter)
+          toNode.emitScalaCode(context, emitter)
         case None =>
           emitter println s"$continueVar = $loopVar <= "
-          toNode.toScalaCode(context, emitter)
+          toNode.emitScalaCode(context, emitter)
       }
       emitter println ""
     }
@@ -266,7 +266,7 @@ case class LoopNode(
 
     `while` foreach { whileNode =>
       emitter print s"$continueVar = "
-      whileNode.toScalaCode(context, emitter)
+      whileNode.emitScalaCode(context, emitter)
       emitter println ""
       emitter println s"if ($continueVar) {"
       emitter.indent()
@@ -276,7 +276,7 @@ case class LoopNode(
 
     where foreach { whereNode =>
       emitter print "if ("
-      whereNode.toScalaCode(context, emitter)
+      whereNode.emitScalaCode(context, emitter)
       emitter println ") {"
       emitter.indent()
     }
@@ -290,7 +290,7 @@ case class LoopNode(
 
     pushDownYield match {
       case Some(loopBody) => loopBody.emitScalaCode(context, emitter, Some(yieldResultVar))
-      case None => body.toScalaCode(context, emitter)
+      case None => body.emitScalaCode(context, emitter)
     }
 
     emitter println ""
@@ -318,7 +318,7 @@ case class LoopNode(
     if (from.isDefined) {
       emitter print s"$loopVar = $loopVar + "
       by match {
-        case Some(byNode) => byNode.toScalaCode(context, emitter)
+        case Some(byNode) => byNode.emitScalaCode(context, emitter)
         case None => emitter print "org.cgsuite.core.Values.one"
       }
       emitter println ""

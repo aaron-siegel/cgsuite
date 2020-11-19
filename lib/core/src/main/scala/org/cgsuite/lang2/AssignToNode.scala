@@ -26,16 +26,16 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     declType match {
       case AssignmentDeclType.VarDecl | AssignmentDeclType.ClassVarDecl =>
         emitter print s"var $varName: ${elaboratedType.scalaTypeName} = "
-        expr.toScalaCode(context, emitter)
+        expr.emitScalaCode(context, emitter)
         emitter print s"; $varName;"
       case AssignmentDeclType.Ordinary =>
         emitter print s"{ $varName = "
-        expr.toScalaCode(context, emitter)
+        expr.emitScalaCode(context, emitter)
         emitter print s"; $varName; }"
     }
 

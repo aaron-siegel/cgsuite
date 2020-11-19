@@ -76,7 +76,7 @@ case class Parameter(idNode: IdentifierNode, paramType: CgscriptType, defaultVal
 
     defaultValue foreach { node =>
       emitter print " = "
-      node.toScalaCode(context, emitter)
+      node.emitScalaCode(context, emitter)
     }
 
   }

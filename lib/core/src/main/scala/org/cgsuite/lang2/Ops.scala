@@ -104,18 +104,18 @@ object Ops {
 
   val MakeCoordinates = CustomBinOp("(,)", OperatorPrecedence.Primary, Some { "(" + _ + ", " + _ + ")" }) { (context, emitter, operand1, operand2) =>
     emitter print "org.cgsuite.util.Coordinates("
-    operand1.toScalaCode(context, emitter)
+    operand1.emitScalaCode(context, emitter)
     emitter print ", "
-    operand2.toScalaCode(context, emitter)
+    operand2.emitScalaCode(context, emitter)
     emitter print ")"
   }
 
   val Range = InfixBinOp("..", OperatorPrecedence.Range, "???")
 
   val ArrayReference = CustomBinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) { (context, emitter, operand1, operand2) =>
-    operand1.toScalaCode(context, emitter)
+    operand1.emitScalaCode(context, emitter)
     emitter print "("
-    operand2.toScalaCode(context, emitter)
+    operand2.emitScalaCode(context, emitter)
     emitter print ")"
   }
 
@@ -161,7 +161,7 @@ case class PrefixUnOp(name: String, precedence: Int, scalaOp: String, toOpString
   override def emitScalaCode(context: CompileContext, emitter: Emitter, operand: EvalNode): Unit = {
     emitter print "("
     emitter print scalaOp
-    operand.toScalaCode(context, emitter)
+    operand.emitScalaCode(context, emitter)
     emitter print ")"
   }
 
@@ -171,7 +171,7 @@ case class MethodUnOp(name: String, precedence: Int, scalaMethod: String, toOpSt
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter, operand: EvalNode): Unit = {
     emitter print "("
-    operand.toScalaCode(context, emitter)
+    operand.emitScalaCode(context, emitter)
     emitter print "."
     emitter print scalaMethod
     emitter print ")"
@@ -213,9 +213,9 @@ case class InfixBinOp(name: String, precedence: Int, scalaOp: String, toOpString
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode): Unit = {
     emitter print "("
-    operand1.toScalaCode(context, emitter)
+    operand1.emitScalaCode(context, emitter)
     emitter print s" $scalaOp "
-    operand2.toScalaCode(context, emitter)
+    operand2.emitScalaCode(context, emitter)
     emitter print ")"
   }
 
@@ -224,11 +224,11 @@ case class InfixBinOp(name: String, precedence: Int, scalaOp: String, toOpString
 case class MethodBinOp(name: String, precedence: Int, scalaMethod: String, toOpStringOpt: Option[(String, String) => String] = None) extends BinOp {
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode): Unit = {
-    operand1.toScalaCode(context, emitter)
+    operand1.emitScalaCode(context, emitter)
     emitter print "."
     emitter print scalaMethod
     emitter print "("
-    operand2.toScalaCode(context, emitter)
+    operand2.emitScalaCode(context, emitter)
     emitter print ")"
   }
 

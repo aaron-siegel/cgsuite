@@ -261,7 +261,7 @@ case class FunctionCallNode(
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     emitter print "("
 
@@ -277,15 +277,15 @@ case class FunctionCallNode(
         emitter print (method.declaringClass.scalaClassdefName + "." + method.scalaName)
 
       case Some(method) =>
-        callSiteNode.asInstanceOf[DotNode].antecedent.toScalaCode(context, emitter)
+        callSiteNode.asInstanceOf[DotNode].antecedent.emitScalaCode(context, emitter)
         emitter print ("." + method.scalaName)
 
       case _ if isEval =>
-        callSiteNode.toScalaCode(context, emitter)
+        callSiteNode.emitScalaCode(context, emitter)
         emitter print ".eval"
 
       case _ =>
-        callSiteNode.toScalaCode(context, emitter)
+        callSiteNode.emitScalaCode(context, emitter)
 
     }
 
@@ -295,10 +295,10 @@ case class FunctionCallNode(
       val namedNodes = argNodes zip argNames
       for (i <- namedNodes.indices) {
         namedNodes(i) match {
-          case (node, None) => node.toScalaCode(context, emitter)
+          case (node, None) => node.emitScalaCode(context, emitter)
           case (node, Some(nameNode)) =>
             emitter print (nameNode.id.name + " = { ")
-            node.toScalaCode(context, emitter)
+            node.emitScalaCode(context, emitter)
             emitter print " }"
         }
         if (i < namedNodes.length - 1)

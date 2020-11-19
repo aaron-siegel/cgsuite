@@ -198,7 +198,7 @@ trait EvalNode extends Node {
 
   def elaborateImpl(domain: ElaborationDomain): CgscriptType
 
-  def toScalaCode(context: CompileContext, emitter: Emitter): Unit
+  def emitScalaCode(context: CompileContext, emitter: Emitter): Unit
 
   def mentionedClasses: Set[CgscriptClass] = {
     val classes = mutable.HashSet[CgscriptClass]()
@@ -246,7 +246,7 @@ case class NullNode(tree: Tree) extends ConstantNode {
 
   override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.NothingClass)
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "null"
   }
 
@@ -258,7 +258,7 @@ case class StarNode(tree: Tree) extends ConstantNode {
 
   override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.Nimber)
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "org.cgsuite.core.Values.star"
   }
 
@@ -268,7 +268,7 @@ case class BooleanNode(tree: Tree, override val constantValue: Boolean) extends 
 
   override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.Boolean)
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter) {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter) {
     emitter print constantValue.toString
   }
 
@@ -283,7 +283,7 @@ case class IntegerNode(tree: Tree, override val constantValue: Integer) extends 
       CgscriptType(CgscriptClass.Integer)
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     if (constantValue.isZero)
       emitter print s"org.cgsuite.core.Values.zero"
     else if (constantValue.isSmallInteger)
@@ -298,7 +298,7 @@ case class StringNode(tree: Tree, override val constantValue: String) extends Co
 
   override def elaborateImpl(domain: ElaborationDomain) = CgscriptType(CgscriptClass.String)
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print ("\"" + StringEscapeUtils.ESCAPE_JAVA.translate(constantValue) + "\"")
   }
 
@@ -316,7 +316,7 @@ case class ThisNode(tree: Tree) extends EvalNode {
     CgscriptType(thisClass, thisClass.typeParameters)
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print literal
   }
 
@@ -364,9 +364,9 @@ case class AsNode(tree: Tree, exprNode: EvalNode, typeSpecNode: TypeSpecifierNod
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
-    exprNode.toScalaCode(context, emitter)
+    exprNode.emitScalaCode(context, emitter)
     val scalaTypeName = elaboratedType.scalaTypeName
     emitter print s".asInstanceOf[$scalaTypeName]"
 
@@ -485,7 +485,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     val scalaId = elaboratedMemberResolution match {
 
@@ -564,7 +564,7 @@ trait TypeSpecifierNode extends EvalNode {
 
   override def elaborateImpl(domain: ElaborationDomain) = ???
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = ???
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = ???
 
 }
 
@@ -672,7 +672,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "("
     op.emitScalaCode(context, emitter, operand)
     emitter print ")"
@@ -721,12 +721,12 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     if (operand1Type.baseClass == CgscriptClass.List && op.id.name == "[]") {
       emitter print "("
-      operand1.toScalaCode(context, emitter)
+      operand1.emitScalaCode(context, emitter)
       emitter print ")._lookup("
-      operand2.toScalaCode(context, emitter)
+      operand2.emitScalaCode(context, emitter)
       emitter print ")"
     } else {
       emitter print "("
@@ -771,12 +771,12 @@ case class CoordinatesNode(tree: Tree, coord1: EvalNode, coord2: EvalNode) exten
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     emitter print "org.cgsuite.util.Coordinates("
-    coord1.toScalaCode(context, emitter)
+    coord1.emitScalaCode(context, emitter)
     emitter print ".intValue, "
-    coord2.toScalaCode(context, emitter)
+    coord2.emitScalaCode(context, emitter)
     emitter print ".intValue)"
 
   }
@@ -804,10 +804,10 @@ trait CollectionNode extends EvalNode {
     CgscriptType(collectionClass, Vector(joinedElementType))
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print s"$scalaCollectionClassName("
     for (i <- elements.indices) {
-      elements(i).toScalaCode(context, emitter)
+      elements(i).emitScalaCode(context, emitter)
       if (i < elements.length - 1)
         emitter print ", "
     }
@@ -894,10 +894,10 @@ case class MapNode(tree: Tree, elements: Vector[MapPairNode]) extends EvalNode {
     CgscriptType(CgscriptClass.Map, Vector(joinedKeyType, joinedValueType))
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "Map("
     for (i <- elements.indices) {
-      elements(i).toScalaCode(context, emitter)
+      elements(i).emitScalaCode(context, emitter)
       if (i < elements.length - 1)
         emitter print ", "
     }
@@ -930,11 +930,11 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
     )
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "("
-    from.toScalaCode(context, emitter)
+    from.emitScalaCode(context, emitter)
     emitter print " -> "
-    to.toScalaCode(context, emitter)
+    to.emitScalaCode(context, emitter)
     emitter print ")"
   }
 
@@ -967,7 +967,7 @@ case class GameSpecNode(tree: Tree, lo: Vector[EvalNode], ro: Vector[EvalNode], 
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     val antecedent = {
       elaboratedType.baseClass match {
@@ -983,13 +983,13 @@ case class GameSpecNode(tree: Tree, lo: Vector[EvalNode], ro: Vector[EvalNode], 
     if (elaboratedType.baseClass != CgscriptClass.Zero) {
       emitter print "("
       for (i <- lo.indices) {
-        lo(i).toScalaCode(context, emitter)
+        lo(i).emitScalaCode(context, emitter)
         if (i < lo.length - 1)
           emitter print ", "
       }
       emitter print ")("
       for (i <- ro.indices) {
-        ro(i).toScalaCode(context, emitter)
+        ro(i).emitScalaCode(context, emitter)
         if (i < ro.length - 1)
           emitter print ", "
       }
@@ -1095,7 +1095,7 @@ case class LoopyGameSpecNode(
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     emitter print "{ "
     emitter.indent()
@@ -1165,7 +1165,7 @@ case class LoopyGameSpecNode(
       case _ =>
         emitter println s"$labelName.add${player}Edge {"
         emitter.indent()
-        node.toScalaCode(context, emitter)
+        node.emitScalaCode(context, emitter)
         emitter.indent(-1)
         emitter println "\n}"
 
@@ -1223,20 +1223,20 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     emitter println "{"
     emitter.indent()
     emitter print "if ("
-    condition.toScalaCode(context, emitter)
+    condition.emitScalaCode(context, emitter)
     emitter println ") {"
     emitter.indent()
-    ifNode.toScalaCode(context, emitter)
+    ifNode.emitScalaCode(context, emitter)
     emitter.indent(-1)
     elseNode foreach { node =>
       emitter println "} else {"
       emitter.indent()
-      node.toScalaCode(context, emitter)
+      node.emitScalaCode(context, emitter)
       emitter.indent(-1)
     }
     emitter println "}"
@@ -1263,9 +1263,9 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
     CgscriptType(CgscriptClass.NothingClass)
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "throw org.cgsuite.exception.EvalException("
-    msg.toScalaCode(context, emitter)
+    msg.emitScalaCode(context, emitter)
     emitter print ")"
   }
 
@@ -1317,14 +1317,14 @@ case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppr
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     if (statements.isEmpty) {
       emitter println "org.cgsuite.output.EmptyOutput"
     } else {
       emitter println "{"
       emitter.indent()
       statements foreach { node =>
-        node.toScalaCode(context, emitter)
+        node.emitScalaCode(context, emitter)
         emitter println ";"       // The semicolon is necessary in various strange parsing situations with newlines
       }
       emitter.indent(-1)
@@ -1340,11 +1340,11 @@ case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppr
         case assignToNode: AssignToNode =>
           val emitter = new Emitter
           val varName = assignToNode.idNode.id.name
-          assignToNode.expr.toScalaCode(context, emitter)
+          assignToNode.expr.emitScalaCode(context, emitter)
           (emitter.toString, Some(varName))
         case node =>
           val emitter = new Emitter
-          node.toScalaCode(context, emitter)
+          node.emitScalaCode(context, emitter)
           (emitter.toString, None)
       }
       if (suppressOutput)

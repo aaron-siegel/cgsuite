@@ -1040,7 +1040,7 @@ class CgscriptClass(
         case _: OrdinaryInitializer =>
       }
       initializer.initializerNode foreach { node =>
-        node.toScalaCode(context, emitter)
+        node.emitScalaCode(context, emitter)
       }
       if (initializer.isInstanceOf[Var]) {
         emitter.indent(-1)
@@ -1069,7 +1069,7 @@ class CgscriptClass(
       emitter println ": " + method.ensureElaborated().scalaTypeName + " = {\n"
       emitter.indent()
 
-      method.body.toScalaCode(context, emitter)
+      method.body.emitScalaCode(context, emitter)
 
       emitter.indent(-1)
       emitter println "}\n"
@@ -1125,7 +1125,7 @@ class CgscriptClass(
           case _: OrdinaryInitializer =>
         }
         initializer.initializerNode foreach { node =>
-          node.toScalaCode(context, emitter)
+          node.emitScalaCode(context, emitter)
         }
         if (initializer.isInstanceOf[Var]) {
           emitter println "}\n"
@@ -1154,7 +1154,7 @@ class CgscriptClass(
         emitter print ": " + method.ensureElaborated().scalaTypeName + " = {\n\n"
         emitter.indent()
 
-        method.body.toScalaCode(context, emitter)
+        method.body.emitScalaCode(context, emitter)
 
         emitter.indent(-1)
         emitter println "}\n"

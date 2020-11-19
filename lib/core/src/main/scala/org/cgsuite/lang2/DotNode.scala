@@ -121,7 +121,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
   }
 
-  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
     elaboratedMember match {
 
@@ -133,7 +133,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
           emitter print member.declaringClass.scalaClassdefName
         } else {
           emitter print "("
-          antecedent.toScalaCode(context, emitter)
+          antecedent.emitScalaCode(context, emitter)
           emitter print ")"
         }
         emitter print "."
