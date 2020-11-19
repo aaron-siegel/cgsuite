@@ -812,9 +812,14 @@ trait CollectionNode extends EvalNode {
     CgscriptType(collectionClass, Vector(joinedElementType))
   }
 
-  override def toScalaCode(context: CompileContext) = {
-    val elementsCode = elements map { _.toScalaCode(context) } mkString ", "
-    s"$scalaCollectionClassName($elementsCode)"
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+    emitter print s"$scalaCollectionClassName("
+    for (i <- elements.indices) {
+      elements(i).toScalaCode(context, emitter)
+      if (i < elements.length - 1)
+        emitter print ", "
+    }
+    emitter print ")"
   }
 
 }
@@ -933,10 +938,12 @@ case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNod
     )
   }
 
-  override def toScalaCode(context: CompileContext) = {
-    val fromCode = from.toScalaCode(context)
-    val toCode = to.toScalaCode(context)
-    s"($fromCode -> $toCode)"
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+    emitter print "("
+    from.toScalaCode(context, emitter)
+    emitter print " -> "
+    to.toScalaCode(context, emitter)
+    emitter print ")"
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = s"${from.toNodeString} => ${to.toNodeString}"
@@ -1224,15 +1231,28 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
 
   }
 
-  override def toScalaCode(context: CompileContext) = {
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
-    val conditionCode = condition.toScalaCode(context)
-    val ifCode = ifNode.toScalaCode(context)
-    val elseCode = elseNode map { _.toScalaCode(context) }
-    val elseClause = elseCode map { code => s"else { $code }" } getOrElse ""
-    val nullClause = if (elaboratedType.baseClass == CgscriptClass.NothingClass) "; null" else ""
-
-    s"{if ($conditionCode) { $ifCode } $elseClause$nullClause}"
+    emitter println "{"
+    emitter.indent()
+    emitter print "if ("
+    condition.toScalaCode(context, emitter)
+    emitter println ") {"
+    emitter.indent()
+    ifNode.toScalaCode(context, emitter)
+    emitter.indent(-1)
+    elseNode foreach { node =>
+      emitter println "} else {"
+      emitter.indent()
+      node.toScalaCode(context, emitter)
+      emitter.indent(-1)
+    }
+    emitter println "}"
+    if (elaboratedType.baseClass == CgscriptClass.NothingClass) {
+      emitter println "null"
+    }
+    emitter.indent(-1)
+    emitter println "}"
 
   }
 
@@ -1251,9 +1271,10 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
     CgscriptType(CgscriptClass.NothingClass)
   }
 
-  override def toScalaCode(context: CompileContext) = {
-    val msgCode = msg.toScalaCode(context)
-    s"throw org.cgsuite.exception.EvalException($msgCode.toString)"
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
+    emitter print "throw org.cgsuite.exception.EvalException("
+    msg.toScalaCode(context, emitter)
+    emitter print ")"
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = s"error(${msg.toNodeString})"
@@ -1284,7 +1305,7 @@ object StatementSequenceNode {
   }
 }
 
-case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean, topLevel: Boolean) extends EvalNode {
+case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppressOutput: Boolean, topLevel: Boolean) extends EvalNode {
 
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
 
@@ -1304,13 +1325,18 @@ case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppress
 
   }
 
-  override def toScalaCode(context: CompileContext) = {
+  override def toScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     if (statements.isEmpty) {
-      "org.cgsuite.output.EmptyOutput"
+      emitter println "org.cgsuite.output.EmptyOutput"
     } else {
-      "{\n" +
-        (statements map { _.toScalaCode(context) } mkString ";\n") +
-      "}\n"
+      emitter println "{"
+      emitter.indent()
+      statements foreach { node =>
+        node.toScalaCode(context, emitter)
+        emitter println ";"       // The semicolon is necessary in various strange parsing situations with newlines
+      }
+      emitter.indent(-1)
+      emitter println "}"
     }
   }
 
