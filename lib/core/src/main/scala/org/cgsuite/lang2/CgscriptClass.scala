@@ -161,6 +161,8 @@ class CgscriptClass(
     case None => name
   }
 
+  val isConstantsClass = nameInPackage == "constants"
+
   val qualifiedName: String = {
     if (pkg.isRoot)
       nameInPackage

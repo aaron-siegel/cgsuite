@@ -47,6 +47,8 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   def isRoot: Boolean = parent.isEmpty
 
+  def allKnownClasses = classes.values.toVector
+
   def declareSubpackage(name: String): CgscriptPackage = {
     subpackages.getOrElseUpdate(name, new CgscriptPackage(Some(this), name))
   }

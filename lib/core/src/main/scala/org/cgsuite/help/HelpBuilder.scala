@@ -4,7 +4,7 @@ import better.files._
 import com.typesafe.scalalogging.Logger
 import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
-import org.cgsuite.lang._
+import org.cgsuite.lang2._
 import org.cgsuite.util.{LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
 
@@ -179,13 +179,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         }
       }
 
-      val regularMembers = {
-        cls.classInfo.allNonSuperMembersInScope.values.toVector
-      }
+      val regularMembers = cls.classInfo.localMembers
 
       val members = {
-        if (cls.isPackageObject)
-          regularMembers.filter { _.declaringClass == cls } ++ cls.pkg.allClasses
+        if (cls.isConstantsClass)
+          regularMembers.filter { _.declaringClass == cls } ++ cls.pkg.allKnownClasses
         else
           regularMembers
       } sortBy { _.id.name }
@@ -201,7 +199,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         if (cls.classInfo.staticVars.isEmpty)
           ""
         else
-          makeMemberSummary(cls, cls.classInfo.staticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
+          makeMemberSummary(cls, cls.classInfo.staticVars.values.toVector sortBy { _.id.name }, "<h2>Static Members</h2>")
       }
 
       val memberSummary = makeMemberSummary(cls, members filter {
@@ -225,7 +223,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       val enumElementDetails = cls.classInfo.enumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val staticMemberDetails = cls.classInfo.staticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+      val staticMemberDetails = cls.classInfo.staticVars.values.toVector sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
       val memberDetails = members filterNot { _.declaringClass == null } map makeMemberDetail mkString "\n<p>\n"
 
@@ -255,21 +253,21 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       val backref = "../" * (cls.pkg.path.length + 1)
 
       val modifiersStr = {
-        if (cls.isPackageObject)
+        if (cls.isConstantsClass)
           ""
         else
           cls.classInfo.modifiers.allModifiers map { _.getText } mkString " "
       }
 
       val packageStr = {
-        if (cls.isPackageObject)
+        if (cls.isConstantsClass)
           ""
         else
           s"""<p><code>package <a href="constants.html">${cls.pkg.qualifiedName}</a></code>"""
       }
 
       val classtypeStr = {
-        if (cls.isPackageObject)
+        if (cls.isConstantsClass)
           "package"
         else
           "class"   // TODO enums
@@ -279,7 +277,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         s"${linkBuilder hyperlinkToClass sup}"
       }
 
-      assert(supers.isEmpty || !cls.isPackageObject)
+      assert(supers.isEmpty || !cls.isConstantsClass)
 
       val extendsStr = {
         if (supers.isEmpty)
@@ -293,7 +291,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
          |<head>
          |  <link rel="stylesheet" href="${"../" * cls.pkg.path.length}../cgsuite.css" type="text/css">
          |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-         |  <title>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.qualifiedName}</title>
+         |  <title>${if (cls.isConstantsClass) cls.pkg.qualifiedName else cls.qualifiedName}</title>
          |</head>
          |
          |<body><div class="spacer">
@@ -303,10 +301,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
          |<p>
          |
          |$packageStr
-         |<h1>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.name}</h1>
+         |<h1>${if (cls.isConstantsClass) cls.pkg.qualifiedName else cls.name}</h1>
          |
          |<p><div class="section">
-         |  <code>$modifiersStr $classtypeStr <b>${if (cls.isPackageObject) cls.pkg.qualifiedName else cls.name}</b>${makeParameters(cls)}$extendsStr</code>
+         |  <code>$modifiersStr $classtypeStr <b>${if (cls.isConstantsClass) cls.pkg.qualifiedName else cls.name}</b>${makeParameters(cls)}$extendsStr</code>
          |</div></p>
          |
          |""".stripMargin
@@ -328,7 +326,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       val rows = members map { member =>
 
         val etype = entityType(member)
-        val name = member.idNode.id.name
+        val name = member.id.name
         val memberLink = {
           if (member.declaringClass == null)
             linkBuilder.hyperlinkToClass(member.asInstanceOf[CgscriptClass], textOpt = Some(name))
@@ -360,7 +358,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
     def makeMemberDetail(member: Member): String = {
 
-      val name = member.idNode.id.name
+      val name = member.id.name
 
       val parametersStr = makeParameters(member)
 
@@ -408,16 +406,17 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         case None if member.declaringClass != null =>
           // Traverse the ancestor tree of the member's declaring class in standard order
           // and pick the first occurrence of a doc comment.
-          val docOccurrence = member.declaringClass.ancestors.reverse find { ancestorClass =>
-            val ancestorMemberOpt = ancestorClass.lookupMember(member.id)
-            ancestorMemberOpt exists { ancestorMember =>
-              ancestorMember.declaringClass == ancestorClass &&
-                ancestorMember.declNode.flatMap { _.docComment }.nonEmpty
+          val docOccurrences = member.declaringClass.ancestors.reverse flatMap { ancestorClass =>
+            val ancestorMemberResolution = ancestorClass.resolveMember(member.id)
+            val ancestorMember = (ancestorMemberResolution, member) match {
+              case (Some(methodGroup: CgscriptClass#MethodGroup), method: CgscriptClass#Method) =>
+                methodGroup.methods find { _.parameters == method.parameters }
+              case (Some(m: Member), _) => Some(m)
+              case _ => None
             }
+            ancestorMember flatMap { _.declNode flatMap { _.docComment } } map { (_, ancestorClass) }
           }
-          docOccurrence map { ancestorClass =>
-            (ancestorClass.lookupMember(member.id).get.declNode.get.docComment.get, ancestorClass)
-          }
+          docOccurrences.headOption
 
         case _ => None
 
@@ -443,7 +442,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           if (parameter.paramType == CgscriptClass.Object)
             ""
           else
-            " as " + linkBuilder.hyperlinkToClass(parameter.paramType)
+            " as " + linkBuilder.hyperlinkToClass(parameter.paramType.baseClass)
         }
 
         val expandString = if (parameter.isExpandable) " ..." else ""
@@ -593,18 +592,18 @@ case class HelpLinkBuilder(
 
     val classRef = relativeRef(targetClass)
     val memberRef = targetMemberOpt match {
-      case Some(member) => s"#${member.idNode.id.name}"
+      case Some(member) => s"#${member.id.name}"
       case None => ""
     }
     val refText = {
       if (referringClass contains targetClass) {
         targetMemberOpt match {
-          case Some(member) => member.idNode.id.name
+          case Some(member) => member.id.name
           case None => targetClass.name
         }
       } else {
         targetMemberOpt match {
-          case Some(member) => s"${qualifiedRefName(targetClass)}.${member.idNode.id.name}"
+          case Some(member) => s"${qualifiedRefName(targetClass)}.${member.id.name}"
           case None => qualifiedRefName(targetClass)
         }
       }
@@ -653,8 +652,8 @@ case class HelpLinkBuilder(
 
     refcls match {
       case Some(clsref) =>
-        clsref lookupMember memberId match {
-          case Some(member) => (Some(clsref), Some(member))
+        clsref resolveMember memberId match {
+          case Some(member: Member) => (Some(clsref), Some(member))
           case None => (None, None)
         }
       case None => (None, None)
