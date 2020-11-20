@@ -1304,7 +1304,6 @@ class CgscriptClass(
     val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
     def signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
-    val ordinal = CallSite.newCallSiteOrdinal
     val locationMessage = s"in call to `$qualifiedName`"
     def parameterTypeList = CgscriptTypeList(parameters map { _.paramType })
 
@@ -1409,7 +1408,7 @@ class CgscriptClass(
 
   }
 
-  trait Constructor extends Method with CallSite {
+  trait Constructor extends Method {
 
     def autoinvoke = false
     def isStatic = false
@@ -1438,8 +1437,6 @@ class CgscriptClass(
     }
 
     override def declNode = None
-
-    override def referenceToken = Some(idNode.token)
 
     override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
