@@ -1,12 +1,8 @@
 package org.cgsuite.lang2
 
-import org.cgsuite.exception.{CgsuiteException, SyntaxException}
-import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.EmptyOutput
 import org.scalatest.prop.{PropertyChecks, TableFor3}
 import org.scalatest.{FlatSpec, Matchers}
-
-import scala.collection.mutable
 
 // CGScript Functional Tests.
 

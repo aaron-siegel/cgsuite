@@ -22,13 +22,13 @@ object CgscriptClasspath {
       case Some(home) => home/"../lib/core/src/main/resources/org/cgsuite/lang/resources"
       case None =>
         // Search in the production jar.
-        val uri = org.cgsuite.lang.CgscriptClasspath.getClass.getResource("resources").toURI
+        val uri = org.cgsuite.lang2.CgscriptClasspath.getClass.getResource("/org/cgsuite/lang/resources").toURI
         if (uri.getScheme == "jar") {
           FileSystemProvider.installedProviders find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
             provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
           }
         }
-        File(org.cgsuite.lang.CgscriptClasspath.getClass.getResource("resources").toURI)
+        File(org.cgsuite.lang2.CgscriptClasspath.getClass.getResource("/org/cgsuite/lang/resources").toURI)
     }
   }
 

@@ -9,9 +9,9 @@ import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
 import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.Node.treeToRichTree
+import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang.parser.ParserUtil
+import org.cgsuite.lang2.parser.ParserUtil
 import org.cgsuite.output._
 import org.slf4j.LoggerFactory
 
@@ -110,7 +110,7 @@ object CgscriptClass {
     val classdef: CgscriptClassDef = {
       explicitDefinition match {
         case Some(text) => ExplicitClassDef(text)
-        case None => UrlClassDef(CgscriptClasspath.systemDir, org.cgsuite.lang.CgscriptClasspath.getClass.getResource(s"resources/$path.cgs"))
+        case None => UrlClassDef(CgscriptClasspath.systemDir, org.cgsuite.lang2.CgscriptClasspath.getClass.getResource(s"/org/cgsuite/lang/resources/$path.cgs"))
       }
     }
     val components = name.split("\\.").toSeq

@@ -43,7 +43,7 @@ object Table {
 
 case class Table (
   rows: IndexedSeq[IndexedSeq[_]],
-  format: Set[org.cgsuite.lang.Table.Format.Value] = Set(org.cgsuite.lang.Table.Format.HorizontalGridLines, org.cgsuite.lang.Table.Format.VerticalGridLines)
+  format: Set[Table.Format.Value] = Set(Table.Format.HorizontalGridLines, Table.Format.VerticalGridLines)
   )(outputBuilder: Any => Output) extends Iterable[IndexedSeq[_]] with OutputTarget {
 
   def iterator: Iterator[IndexedSeq[_]] = rows.iterator

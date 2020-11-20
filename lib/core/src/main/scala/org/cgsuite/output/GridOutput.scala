@@ -6,7 +6,6 @@ import java.io.PrintWriter
 
 import javax.swing.{Icon, ImageIcon}
 import org.cgsuite.exception.SystemException
-import org.cgsuite.lang.EnumObject
 import org.cgsuite.util.{Grid, Strip}
 
 import scala.collection.mutable
@@ -57,10 +56,12 @@ trait GenGridOutput extends AbstractOutput {
   def iconEnumValues: IndexedSeq[_]
   def alt: String
 
+  /*
   lazy val icons = iconEnumValues map {
     case x: EnumObject => GridOutput.lookupIcon(x.literal)
   }
-
+  */
+  val icons: Seq[Icon] = Seq()    // TODO Fix this
   lazy val cellSize = GridOutput.iconDimensions(icons, forceSquares = false)
   lazy val size = GridOutput.imageDimensions(grid, cellSize, 1, 1)
 

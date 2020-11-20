@@ -3,7 +3,7 @@ package org.cgsuite.lang2
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.Node.treeToRichTree
+import org.cgsuite.lang2.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
 
 object DeclarationNode {

@@ -2,7 +2,7 @@ package org.cgsuite.exception
 
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.lang.Node._
+import org.cgsuite.lang2.Node._
 
 object EvalException {
 

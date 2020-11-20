@@ -7,11 +7,8 @@ import ch.qos.logback.classic.{Level, Logger}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.runtime.Token
 import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
-import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable
 
 object EvalUtil extends LazyLogging {
 

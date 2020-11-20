@@ -2,8 +2,9 @@ package org.cgsuite.lang2
 
 import org.antlr.runtime.CommonToken
 import org.antlr.runtime.tree.{CommonTree, Tree}
-import org.cgsuite.lang.Node._
-import org.cgsuite.lang.parser.{CgsuiteParser, CgsuiteTree}
+import org.cgsuite.lang.parser.CgsuiteParser
+import org.cgsuite.lang2.Node._
+import org.cgsuite.lang2.parser.CgsuiteTree
 
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions

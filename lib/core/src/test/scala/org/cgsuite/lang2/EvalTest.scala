@@ -2,6 +2,25 @@ package org.cgsuite.lang2
 
 class EvalTest extends CgscriptSpec {
 
+  /*
+
+    testExpr("*", star)
+    testExpr("*2", starTwo)
+    testExpr("*(1+1)", starTwo)
+    testExpr("^", up)
+    testExpr("^*", upStar)
+    testExpr("^*2", up + starTwo)
+    testExpr("^^", up + up)
+    testExpr("^^^", up + up + up)
+    testExpr("^3", up + up + up)
+    testExpr("^^*", up + up + star)
+    testExpr("v", down)
+    testExpr("vv", down + down)
+    testExpr("v3", down + down + down)
+    testExpr("v3*2", down + down + down + starTwo)
+
+   */
+
   "CGScript" should "process basic expressions" in {
 
     executeTests(Table(
