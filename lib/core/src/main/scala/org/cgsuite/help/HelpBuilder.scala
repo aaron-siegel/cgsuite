@@ -4,7 +4,7 @@ import better.files._
 import com.typesafe.scalalogging.Logger
 import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
-import org.cgsuite.lang2._
+import org.cgsuite.lang._
 import org.cgsuite.util.{LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
 

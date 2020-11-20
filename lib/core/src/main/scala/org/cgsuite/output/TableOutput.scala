@@ -3,7 +3,7 @@ package org.cgsuite.output
 import java.awt.{Color, Dimension, Graphics2D}
 import java.io.PrintWriter
 
-import org.cgsuite.lang2.Table.Format
+import org.cgsuite.lang.Table.Format
 
 object TableOutput {
 
