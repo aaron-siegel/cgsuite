@@ -9,7 +9,8 @@ import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
 import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.Node.treeToRichTree
+import org.cgsuite.lang.node.Node.treeToRichTree
+import org.cgsuite.lang.node._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output._

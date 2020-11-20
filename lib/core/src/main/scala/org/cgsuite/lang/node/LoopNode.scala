@@ -1,10 +1,11 @@
-package org.cgsuite.lang
+package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
+import org.cgsuite.lang._
+import org.cgsuite.lang.node.LoopNode._
+import org.cgsuite.lang.node.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
-import org.cgsuite.lang.LoopNode._
-import org.cgsuite.lang.Node.treeToRichTree
 
 import scala.collection.mutable
 

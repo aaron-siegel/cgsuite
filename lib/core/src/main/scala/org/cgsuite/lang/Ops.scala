@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.cgsuite.lang.node.EvalNode
 import org.cgsuite.output.{Output, StyledTextOutput}
 
 object Ops {

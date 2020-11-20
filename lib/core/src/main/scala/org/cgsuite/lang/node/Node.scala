@@ -1,9 +1,9 @@
-package org.cgsuite.lang
+package org.cgsuite.lang.node
 
 import org.antlr.runtime.CommonToken
 import org.antlr.runtime.tree.{CommonTree, Tree}
 import org.cgsuite.lang.parser.CgsuiteParser
-import org.cgsuite.lang.Node._
+import org.cgsuite.lang.node.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteTree
 
 import scala.collection.JavaConversions._

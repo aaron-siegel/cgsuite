@@ -1,6 +1,7 @@
-package org.cgsuite.lang
+package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
+import org.cgsuite.lang._
 
 import scala.collection.mutable
 

@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.cgsuite.lang.node.{EvalNode, IdentifierNode, MemberDeclarationNode}
+
 
 trait Member extends MemberResolution {
 
