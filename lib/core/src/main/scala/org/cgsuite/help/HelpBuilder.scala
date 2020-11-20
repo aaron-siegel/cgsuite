@@ -43,7 +43,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
 
-  CgscriptClass.Object.ensureDeclared()
+  CgscriptSystem.evaluate("0")
 
   private[help] val allClasses = CgscriptPackage.allClasses filter { cls =>
     cls.classdef match {
@@ -273,6 +273,20 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           "class"   // TODO enums
       }
 
+      val typedClassname = {
+        if (cls.isConstantsClass) {
+          cls.pkg.qualifiedName
+        } else {
+          cls.typeParameters.length match {
+            case 0 => s"<b>${cls.name}</b>"
+            case 1 => s"<b>${cls.name}</b> of " + makeType(cls.typeParameters.head)
+            case 2 =>
+              val typeParametersString = cls.typeParameters map makeType mkString ", "
+              s"<b>${cls.name}</b> of ($typeParametersString)"
+          }
+        }
+      }
+
       val supers = cls.classInfo.supers filterNot { _ == CgscriptClass.Object } map { sup =>
         s"${linkBuilder hyperlinkToClass sup}"
       }
@@ -304,7 +318,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
          |<h1>${if (cls.isConstantsClass) cls.pkg.qualifiedName else cls.name}</h1>
          |
          |<p><div class="section">
-         |  <code>$modifiersStr $classtypeStr <b>${if (cls.isConstantsClass) cls.pkg.qualifiedName else cls.name}</b>${makeParameters(cls)}$extendsStr</code>
+         |  <code>$modifiersStr $classtypeStr $typedClassname${makeParameters(cls)}$extendsStr</code>
          |</div></p>
          |
          |""".stripMargin
@@ -442,7 +456,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           if (parameter.paramType == CgscriptClass.Object)
             ""
           else
-            " as " + linkBuilder.hyperlinkToClass(parameter.paramType.baseClass)
+            " as " + makeType(parameter.paramType)
         }
 
         val expandString = if (parameter.isExpandable) " ..." else ""
@@ -457,6 +471,28 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       }
 
       s"(${strings mkString ", "})"
+
+    }
+
+    def makeType(typ: CgscriptType): String = {
+
+      typ match {
+
+        case TypeVariable(symbol, isExpandable) =>
+          val expander = if (isExpandable) "*" else ""
+          s"${symbol.name}$expander"
+
+        case ConcreteType(baseClass, typeArguments) =>
+          val classLink = linkBuilder.hyperlinkToClass(baseClass)
+          typeArguments.length match {
+            case 0 => classLink
+            case 1 => s"$classLink of ${makeType(typeArguments.head)}"
+            case _ =>
+              val typeArgumentsString = typeArguments map makeType mkString ", "
+              s"$classLink of ($typeArgumentsString)"
+          }
+
+      }
 
     }
 
@@ -654,6 +690,7 @@ case class HelpLinkBuilder(
       case Some(clsref) =>
         clsref resolveMember memberId match {
           case Some(member: Member) => (Some(clsref), Some(member))
+          case Some(methodGroup: CgscriptClass#MethodGroup) => (None, None)       // TODO Handle methods
           case None => (None, None)
         }
       case None => (None, None)

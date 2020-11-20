@@ -19,7 +19,7 @@ import scala.collection.mutable
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interpreter.{IMain, IR}
 
-private[lang] object CgscriptSystem {
+private[cgsuite] object CgscriptSystem {
 
   val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
