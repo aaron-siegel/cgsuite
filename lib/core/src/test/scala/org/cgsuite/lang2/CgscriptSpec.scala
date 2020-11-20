@@ -17,6 +17,7 @@ trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
   val testPackage = CgscriptPackage.root declareSubpackage "test"
 
   def decl(name: String, explicitDefinition: String): Unit = {
+    println(s"Declaring test class: $name")
     CgscriptClass declareSystemClass (name, explicitDefinition = Some(explicitDefinition))
   }
 
@@ -36,8 +37,8 @@ trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
           thrown.tokenStack should not be empty
          */
       } else {
-        result.right foreach { _.printStackTrace }
-        assert(result.isLeft)
+        // Not expecting an exception, so throw one if found (for debugging)
+        result.right foreach { throw _ }
         if (expectedOutput == null) {
           assert(result.left.get == EmptyOutput)
         } else {

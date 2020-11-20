@@ -769,9 +769,13 @@ class CgscriptClass(
 
     private def throwExceptionForDuplicateSymbol(symbol: Symbol, members: Vector[Member]): Nothing = {
 
-      val locallyDefinedMembers = members filter { member =>
+      val locallyDefinedNonMethods = members filter { member =>
         member.declaringClass == thisClass && !member.isInstanceOf[CgscriptClass#Method]
       }
+      val firstLocallyDefinedMethod = members find { member =>
+        member.declaringClass == thisClass && member.isInstanceOf[CgscriptClass#Method]
+      }
+      val locallyDefinedMembers = locallyDefinedNonMethods ++ firstLocallyDefinedMethod
       val superclassesDefining = members.map { _.declaringClass }.filterNot { _ == thisClass }.distinct
 
       locallyDefinedMembers.size match {
@@ -792,7 +796,7 @@ class CgscriptClass(
 
         case _ =>
           throw EvalException(
-            s"Duplicate symbol `${id.name}` in class `$qualifiedName`",
+            s"Duplicate symbol `${symbol.name}` in class `$qualifiedName`",
             token = locallyDefinedMembers(1).declNode map { _.idNode.token }
           )
 
@@ -1288,6 +1292,8 @@ class CgscriptClass(
     val methodName = idNode.id.name
     val scalaName = methodName match {
       case "Apply" if isExternal => "map"
+      case "ToList" if isExternal => "toVector"
+      case "ContainsKey" if isExternal => "contains"
       case "Class" => "_class"
       case "ForAll" => "forall"
       case _ => methodName.updated(0, methodName.charAt(0).toLower)
