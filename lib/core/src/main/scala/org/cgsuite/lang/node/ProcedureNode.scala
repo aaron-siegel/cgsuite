@@ -4,7 +4,7 @@ import org.antlr.runtime.tree.Tree
 import org.apache.commons.text.StringEscapeUtils
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang._
-import org.cgsuite.lang.node.Node.treeToRichTree
+import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
 
 object ProcedureNode {

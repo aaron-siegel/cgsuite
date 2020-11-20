@@ -3,7 +3,7 @@ package org.cgsuite.lang.node
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.parser.CgsuiteLexer.BIGRARROW
-import org.cgsuite.lang.node.Node.treeToRichTree
+import org.cgsuite.lang.parser.RichTree.treeToRichTree
 import org.cgsuite.lang._
 
 import scala.collection.mutable

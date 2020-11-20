@@ -7,8 +7,8 @@ import org.cgsuite.core._
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang._
-import org.cgsuite.lang.node.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
 import scala.collection.mutable
 
