@@ -227,9 +227,15 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
     that match {
       case thatConcreteType: ConcreteType =>
         baseClass <= thatConcreteType.baseClass && {
-          // TODO This is not the right general logic for type variable inheritance
-          typeArguments zip thatConcreteType.typeArguments forall { case (thisParam, thatParam) =>
-            thisParam matches thatParam
+          // thatConcreteType.baseClass is an ancestor of baseClass. Now we need to "project" this type onto
+          // the base class of thatConcreteType so that we can compare the type arguments.
+          val genericProjection = baseClass.classInfo.ancestorTypes find { _.baseClass == thatConcreteType.baseClass } getOrElse {
+            sys.error("this should never happen, since we already checked that baseClass <= thatConcreteType.baseClass")
+          }
+          val projection = genericProjection.substituteAll(baseClass.typeParameters zip this.typeArguments)
+          projection.typeArguments zip thatConcreteType.typeArguments forall { case (thisArg, thatArg) =>
+            // TODO We are currently assuming ALL parameters are covariant - not a great assumption!
+            thisArg matches thatArg
           }
         }
       case _: TypeVariable => true
