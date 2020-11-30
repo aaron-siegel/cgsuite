@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Set of `T extends Collection
+system class Set of `T extends Collection of `T
 
   external override def Apply(fn as Procedure of (`T,`R)) as Set of `R;
 

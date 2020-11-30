@@ -51,7 +51,7 @@ object ClassDeclarationNode {
       case _ => Vector.empty
     }
     val extendsClause = tree.children find { _.getType == EXTENDS } match {
-      case Some(t) => t.children map { EvalNode(_) }
+      case Some(t) => t.children map { TypeSpecifierNode(_) }
       case None => Vector.empty
     }
     val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) }
@@ -90,7 +90,7 @@ case class ClassDeclarationNode(
   typeParameters: Vector[TypeVariableNode],
   isEnum: Boolean,
   modifiers: Modifiers,
-  extendsClause: Vector[Node],
+  extendsClause: Vector[TypeSpecifierNode],
   constructorParams: Option[ParametersNode],
   nestedClassDeclarations: Vector[ClassDeclarationNode],
   methodDeclarations: Vector[MethodDeclarationNode],

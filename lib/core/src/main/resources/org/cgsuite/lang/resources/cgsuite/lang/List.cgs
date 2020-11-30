@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class List of `T extends Collection
+system class List of `T extends Collection of `T
 
   external def op[](index as Integer) as `T;
 

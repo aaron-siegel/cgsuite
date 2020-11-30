@@ -628,35 +628,29 @@ class CgscriptClass(
 
     val enumElementNodes = declNode.enumElements
 
-    val supers: Vector[CgscriptClass] = {
+    val superTypes: Vector[ConcreteType] = {
 
       if (qualifiedName == "cgsuite.lang.Object") {
         Vector.empty
       } else if (declNode.extendsClause.isEmpty) {
-        Vector(if (declNode.isEnum) CgscriptClass.Enum else CgscriptClass.Object)
+        Vector(if (declNode.isEnum) ConcreteType(CgscriptClass.Enum) else ConcreteType(CgscriptClass.Object))
       } else {
 
         declNode.extendsClause map {
-          case IdentifierNode(tree, superId) =>
-            // Try looking this id up two ways:
-            // First, if this is a nested class, then look it up as some other nested class
-            // of this class's enclosing class;
-            // Then try looking it up as a global class.
-            enclosingClass flatMap { _.classInfoRef.allInstanceNestedClassesInScope get superId } getOrElse {
-              pkg lookupClass superId getOrElse {
-                CgscriptPackage lookupClassByName superId.name getOrElse {
-                  throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
-                }
-              }
-            }
-          case node: DotNode =>
-            Option(node.ensureElaborated(new ElaborationDomain(pkg, Some(thisClass))).baseClass) getOrElse {
-              sys.error("not found")
-            }
+
+          case node@ConcreteTypeSpecifierNode(_, _, _) =>
+            node.toType(ElaborationDomain(thisClass), allowInstanceNestedClasses = false)
+
+          case node@_ =>
+            throw EvalException(s"Illegal type variable in `extends` clause", node.tree)
+
         }
 
       }
+
     }
+
+    val supers: Vector[CgscriptClass] = superTypes map { _.baseClass }
 
     supers foreach { _.ensureDeclaredPhase1() }
 

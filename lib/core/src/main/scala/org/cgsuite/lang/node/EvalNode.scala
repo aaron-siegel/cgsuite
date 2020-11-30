@@ -597,15 +597,28 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifier
 
   override def children = baseClassIdNode +: typeArgumentNodes
 
-  override def toType(domain: ElaborationDomain): CgscriptType = {
+  override def toType(domain: ElaborationDomain): ConcreteType = toType(domain, allowInstanceNestedClasses = true)
+
+  // If allowInstanceNestedClasses == true, then we allow this type to be resolved to a nested class
+  // defined in the domain's scope class. If allowInstanceNestedClasses == false, then we only allow resolution
+  // to other nested classes of the enclosing class (or no nested classes, if the scope class has no enclosing
+  // class). The case allowInstanceNestedClasses == false is necessary mainly for parsing an `extends` clause.
+  def toType(domain: ElaborationDomain, allowInstanceNestedClasses: Boolean): ConcreteType = {
 
     val baseClass = {
 
       baseClassIdNode match {
 
         case IdentifierNode(_, id) =>
+          val nestedClassResolution = {
+            if (allowInstanceNestedClasses) {
+              domain.cls flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) }
+            } else {
+              domain.cls flatMap { _.enclosingClass flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) } }
+            }
+          }
           val classResolution =
-            (domain.cls flatMap { _.classInfo.allInstanceNestedClassesInScope.get(id) }) orElse
+            nestedClassResolution orElse
               domain.pkg.lookupClass(id) orElse
               CgscriptPackage.lookupClassByName(id.name)
           classResolution getOrElse {
@@ -635,7 +648,7 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifier
       throw EvalException(s"Incorrect number of type parameters for class: `${baseClass.qualifiedName}`")
     }
 
-    CgscriptType(baseClass, typeArguments)
+    ConcreteType(baseClass, typeArguments)
 
   }
 
