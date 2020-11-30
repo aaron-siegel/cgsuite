@@ -78,6 +78,66 @@ class DeclTest extends CgscriptSpec {
 
   }
 
+  it should "correctly inherit ancestor types" in {
+
+    testPackage declareSubpackage "ancestor"
+    CgscriptClass declareSystemClass ("test.ancestor.Ancestor1", explicitDefinition = Some("class Ancestor1 of `T end"))
+    CgscriptClass declareSystemClass ("test.ancestor.Ancestor2", explicitDefinition = Some("class Ancestor2 of `T end"))
+    decl("test.ancestor.ConcreteSubclass", "class ConcreteSubclass extends Ancestor1 of Integer end")
+    decl("test.ancestor.SubclassWithTypeVariable1", "class SubclassWithTypeVariable1 of `T extends Ancestor1 of `T end")
+    decl("test.ancestor.SubclassWithTypeVariable2", "class SubclassWithTypeVariable2 of `T extends Ancestor1 of Collection of `T end")
+    decl("test.ancestor.SubclassWithTypeVariable3", "class SubclassWithTypeVariable3 of `U extends Ancestor1 of Collection of `U end")
+    decl("test.ancestor.ConcreteSubsubclass", "class ConcreteSubsubclass extends SubclassWithTypeVariable3 of Integer end")
+    decl("test.ancestor.MultipleInheritance1", "class MultipleInheritance1 extends SubclassWithTypeVariable3 of Integer, SubclassWithTypeVariable1 of Collection of Integer end")
+    decl("test.ancestor.IllegalMultipleInheritance", "class IllegalMultipleInheritance extends SubclassWithTypeVariable3 of Integer, SubclassWithTypeVariable1 of Integer end")
+
+    val objectType = CgscriptClass.Object.mostGenericType
+    val ancestor1 = CgscriptPackage.lookupClassByName("test.ancestor.Ancestor1").get
+    val ancestor2 = CgscriptPackage.lookupClassByName("test.ancestor.Ancestor2").get
+    val subclassWithTypeVariable1 = CgscriptPackage.lookupClassByName("test.ancestor.SubclassWithTypeVariable1").get
+    val subclassWithTypeVariable3 = CgscriptPackage.lookupClassByName("test.ancestor.SubclassWithTypeVariable3").get
+
+    def assertAncestors(className: String, expectedProperAncestors: CgscriptType*): Unit = {
+      CgscriptPackage.lookupClassByName(className).get.classInfo.properAncestorTypes shouldBe (objectType +: expectedProperAncestors.toVector)
+    }
+
+    assertAncestors(
+      "test.ancestor.ConcreteSubclass",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)
+    )
+    assertAncestors(
+      "test.ancestor.SubclassWithTypeVariable1",
+      ancestor1.mostGenericType
+    )
+    assertAncestors(
+      "test.ancestor.SubclassWithTypeVariable2",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.mostGenericType)
+    )
+    assertAncestors(
+      "test.ancestor.SubclassWithTypeVariable3",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(TypeVariable(Symbol("`U"))))
+    )
+    assertAncestors(
+      "test.ancestor.ConcreteSubsubclass",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)),
+      subclassWithTypeVariable3.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)
+    )
+    assertAncestors(
+      "test.ancestor.MultipleInheritance1",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)),
+      subclassWithTypeVariable1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)),
+      subclassWithTypeVariable3.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)
+    )
+
+    executeTests(Table(
+      header,
+      ("Illegal multiple inheritance", "test.ancestor.IllegalMultipleInheritance",
+        "!!Class `test.ancestor.IllegalMultipleInheritance` extends multiple conflicting types: `test.ancestor.Ancestor1 of game.Integer`, `test.ancestor.Ancestor1 of cgsuite.lang.Collection of game.Integer`")
+    ))
+
+  }
+
+  /*
   it should "handle methods, constructors, and initializers correctly" in {
 
     testPackage declareSubpackage "init"
@@ -112,7 +172,7 @@ class DeclTest extends CgscriptSpec {
     ))
 
   }
-/*
+
   it should "handle mutables correctly" in {
 
     testPackage declareSubpackage "mutables"

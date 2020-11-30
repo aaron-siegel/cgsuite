@@ -153,6 +153,10 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
     ConcreteType(baseClass, typeArguments map { _.substitute(variable, substitution) })
   }
 
+  override def substituteAll(substitutions: Iterable[(TypeVariable, CgscriptType)]): ConcreteType = {
+    super.substituteAll(substitutions).asInstanceOf[ConcreteType]
+  }
+
   override def unboundTypeSubstitutions(instanceType: CgscriptType) = {
 
     assert(instanceType.baseClass.ancestors contains baseClass, (this, instanceType))

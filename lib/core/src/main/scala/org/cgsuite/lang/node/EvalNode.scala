@@ -561,7 +561,11 @@ object TypeSpecifierNode {
 
 trait TypeSpecifierNode extends EvalNode {
 
-  def toType(domain: ElaborationDomain): CgscriptType
+  // If allowInstanceNestedClasses == true, then we allow this type to be resolved to a nested class
+  // defined in the domain's scope class. If allowInstanceNestedClasses == false, then we only allow resolution
+  // to other nested classes of the enclosing class (or no nested classes, if the scope class has no enclosing
+  // class). The case allowInstanceNestedClasses == false is necessary mainly for parsing an `extends` clause.
+  def toType(domain: ElaborationDomain, allowInstanceNestedClasses: Boolean = true): CgscriptType
 
   override def elaborateImpl(domain: ElaborationDomain) = ???
 
@@ -585,7 +589,7 @@ case class TypeVariableNode(tree: Tree, id: Symbol, isExpandable: Boolean) exten
 
   def toType = TypeVariable(id, isExpandable)
 
-  override def toType(domain: ElaborationDomain) = toType
+  override def toType(domain: ElaborationDomain, allowInstanceNestedClasses: Boolean = true) = toType
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = {
     s"`${id.name}${if (isExpandable) "*" else ""}"
@@ -597,13 +601,7 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifier
 
   override def children = baseClassIdNode +: typeArgumentNodes
 
-  override def toType(domain: ElaborationDomain): ConcreteType = toType(domain, allowInstanceNestedClasses = true)
-
-  // If allowInstanceNestedClasses == true, then we allow this type to be resolved to a nested class
-  // defined in the domain's scope class. If allowInstanceNestedClasses == false, then we only allow resolution
-  // to other nested classes of the enclosing class (or no nested classes, if the scope class has no enclosing
-  // class). The case allowInstanceNestedClasses == false is necessary mainly for parsing an `extends` clause.
-  def toType(domain: ElaborationDomain, allowInstanceNestedClasses: Boolean): ConcreteType = {
+  override def toType(domain: ElaborationDomain, allowInstanceNestedClasses: Boolean = true): ConcreteType = {
 
     val baseClass = {
 
@@ -637,7 +635,7 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifier
     }
 
     // Check that type arguments are consistent with the base class definition.
-    val typeArguments = typeArgumentNodes map { _.toType(domain) }
+    val typeArguments = typeArgumentNodes map { _.toType(domain, allowInstanceNestedClasses) }
     if (typeArguments.isEmpty && baseClass.typeParameters.nonEmpty) {
       throw EvalException(s"Class `${baseClass.qualifiedName}` requires type parameters")
     } else if (

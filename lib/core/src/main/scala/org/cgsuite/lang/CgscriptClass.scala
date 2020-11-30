@@ -270,6 +270,11 @@ class CgscriptClass(
 
   def mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
 
+  def substituteForTypeParameters(typeArguments: CgscriptType*): ConcreteType = {
+    assert(typeArguments.length == typeParameters.length)
+    ConcreteType(this, typeArguments.toVector)
+  }
+
   def <=(that: CgscriptClass) = ancestors contains that
 
   def resolveMember(id: Symbol): Option[MemberResolution] = {
@@ -638,11 +643,11 @@ class CgscriptClass(
 
         declNode.extendsClause map {
 
-          case node@ConcreteTypeSpecifierNode(_, _, _) =>
-            node.toType(ElaborationDomain(thisClass), allowInstanceNestedClasses = false)
+          case concreteNode: ConcreteTypeSpecifierNode =>
+            concreteNode.toType(ElaborationDomain(thisClass), allowInstanceNestedClasses = false)
 
-          case node@_ =>
-            throw EvalException(s"Illegal type variable in `extends` clause", node.tree)
+          case _ =>
+            throw EvalException(s"Illegal type variable in `extends` clause", declNode.tree)
 
         }
 
@@ -652,11 +657,49 @@ class CgscriptClass(
 
     val supers: Vector[CgscriptClass] = superTypes map { _.baseClass }
 
-    supers foreach { _.ensureDeclaredPhase1() }
+    def ensureFullyDeclaredPhase1(baseType: ConcreteType): Unit = {
+      baseType.baseClass.ensureDeclaredPhase1()
+      baseType.typeArguments foreach {
+        case concreteType: ConcreteType => ensureFullyDeclaredPhase1(concreteType)
+        case _ =>
+      }
+    }
 
-    val properAncestors: Vector[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
+    superTypes foreach ensureFullyDeclaredPhase1
 
-    val ancestors = properAncestors :+ CgscriptClass.this
+    val properAncestorTypes: Vector[ConcreteType] = {
+      val allResolvedTypes = superTypes.reverse flatMap { superType =>
+        val superTypeAncestors = superType.baseClass.classInfo.ancestorTypes
+        assert(superType.baseClass.typeParameters.length == superType.typeArguments.length)
+        val substitutions = superType.baseClass.typeParameters zip superType.typeArguments
+        superTypeAncestors map { ancestor =>
+          ancestor substituteAll substitutions
+        }
+      }
+      // Check that if a class appears multiple times, it's identical
+      allResolvedTypes groupBy { _.baseClass } foreach { case (_, types) =>
+        val resolvedType = types.head
+        val conflictingTypeOpt = types find { _ != resolvedType }
+        conflictingTypeOpt match {
+          case None =>
+          case Some(conflictingType) =>
+            throw EvalException(
+              s"Class `$qualifiedName` extends multiple conflicting types: `${resolvedType.qualifiedName}`, `${conflictingType.qualifiedName}`",
+              declNode.tree
+            )
+        }
+      }
+      allResolvedTypes.distinct
+    }
+
+    val properAncestors: Vector[CgscriptClass] = properAncestorTypes map { _.baseClass }
+
+    val ancestors = properAncestors :+ thisClass
+
+    val ancestorTypes = properAncestorTypes :+ ConcreteType(thisClass, typeParameters)
+
+    // Just to be safe, we check once more that each class appears at most once as a base class in ancestorTypes
+    assert(ancestorTypes groupBy { _.baseClass } forall { case (_, types) => types.size == 1 })
 
     val initializers: Vector[Initializer] = declNode.initializers map {
       case blockNode: InitializerBlockNode =>
