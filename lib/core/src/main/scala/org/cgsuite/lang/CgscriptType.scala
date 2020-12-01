@@ -68,9 +68,9 @@ case class TypeVariable(id: Symbol, isExpandable: Boolean = false) extends Cgscr
 
   override def scalaTypeName = s"__typevar_${id.name.drop(1)}"
 
-  override def baseClass = sys.error("type variable cannot resolve to a class (this should never happen)")
+  override def baseClass = CgscriptClass.Object
 
-  override def typeArguments = sys.error("type variable cannot resolve to a class (this should never happen)")
+  override def typeArguments = Vector.empty
 
   override def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("type variable cannot resolve to a class (this should never happen)")
 

@@ -193,7 +193,8 @@ class CgscriptClass(
           case Some(cls) => cls.getName
           case None =>
             enclosingClass match {
-              case Some(cls) => s"${cls.scalaClassdefName}#$name"
+              // TODO We need type projections for nested classes... not just methods...
+              case Some(cls) => s"${cls.scalaClassdefName}${cls.scalaTypeParametersBlock}#$name"
               case None =>
                 if (isSingleton)
                   s"$scalaClassdefName.type"
@@ -204,7 +205,7 @@ class CgscriptClass(
     }
   }
 
-  val scalaClassrefName: String = {
+  lazy val scalaClassrefName: String = {
     qualifiedName match {
       case "cgsuite.lang.Nothing" => "null"
       case _ =>
@@ -212,6 +213,15 @@ class CgscriptClass(
           case Some(cls) => cls.getName
           case None => scalaClassdefName
         }
+    }
+  }
+
+  lazy val scalaTypeParametersBlock = {
+    if (typeParameters.isEmpty) {
+      ""
+    } else {
+      val typeParametersString = typeParameters map { _.scalaTypeName } mkString ", "
+      s"[$typeParametersString]"
     }
   }
 
@@ -1049,18 +1059,11 @@ class CgscriptClass(
 
     logger debug s"$logPrefix Generating compiled code."
 
-    val nonObjectSupers = classInfo.supers filterNot { _ == CgscriptClass.Object } map { _.scalaTyperefName }
+    val nonObjectSupers = classInfo.superTypes filterNot { _.baseClass == CgscriptClass.Object } map {
+      _.scalaTypeName
+    }
     val extendsClause = (nonObjectSupers :+ "org.cgsuite.lang.CgscriptObject") mkString " with "
     val enclosingClause = if (this == topClass) " enclosingObject =>"
-
-    val genericTypeParametersBlock = {
-      if (typeParameters.isEmpty) {
-        ""
-      } else {
-        val typeParametersString = typeParameters map { _.scalaTypeName } mkString ", "
-        s"[$typeParametersString]"
-      }
-    }
 
     // Generate code.
     if (isSingleton && isSystem)
@@ -1167,13 +1170,13 @@ class CgscriptClass(
 
       if (isSystem) {
         emitter println
-          s"""case class $scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock)
+          s"""case class $scalaClassdefName$scalaTypeParametersBlock(_instance: $scalaTyperefName$scalaTypeParametersBlock)
              |  extends org.cgsuite.lang.SystemExtensionObject {$enclosingClause
              |
              |  override def _class = $scalaClassdefName._class
              |""".stripMargin
       } else {
-        emitter println s"trait $scalaClassdefName\n  extends $extendsClause {$enclosingClause\n"
+        emitter println s"trait $scalaClassdefName$scalaTypeParametersBlock\n  extends $extendsClause {$enclosingClause\n"
       }
 
       emitter.indent()
@@ -1259,7 +1262,7 @@ class CgscriptClass(
              |}\n""".stripMargin
       } else {
         emitter println
-          s"""implicit def enrich$$$scalaClassdefName$genericTypeParametersBlock(_instance: $scalaTyperefName$genericTypeParametersBlock): $scalaClassdefName$genericTypeParametersBlock = {
+          s"""implicit def enrich$$$scalaClassdefName$scalaTypeParametersBlock(_instance: $scalaTyperefName$scalaTypeParametersBlock): $scalaClassdefName$scalaTypeParametersBlock = {
              |  $scalaClassdefName(_instance)
              |}\n""".stripMargin
       }

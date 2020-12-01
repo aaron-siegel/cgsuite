@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.exception.EvalException
-import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
+import org.cgsuite.output.{EmptyOutput, Output, OutputTarget, StyledTextOutput}
 
 object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
@@ -69,6 +69,8 @@ trait LowestPriorityCgscriptImplicits {
     }
   }
 
+  implicit def anyToRichAny(x: Any): RichAny = RichAny(x)
+
   //implicit def canonicalShortGameToInteger(x: CanonicalShortGame): Integer = x.asInstanceOf[Integer]
 
 }
@@ -122,6 +124,17 @@ case class RichOutput(output: Output) {
     outputSum.append(output)
     outputSum.append(that)
     outputSum
+  }
+
+}
+
+case class RichAny(any: Any) {
+
+  def toOutput = {
+    any match {
+      case ot: OutputTarget => ot.toOutput
+      case _ => new StyledTextOutput(any.toString)
+    }
   }
 
 }
