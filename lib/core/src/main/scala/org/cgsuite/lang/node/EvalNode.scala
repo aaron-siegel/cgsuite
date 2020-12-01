@@ -468,7 +468,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
         case Some(methodGroup: CgscriptClass#MethodGroup) =>
           methodGroup.autoinvokeMethod match {
-            case Some(method) => method.ensureElaborated()
+            case Some(methodProjection) => methodProjection.ensureElaborated()
             case None => throw EvalException(s"Method `${methodGroup.qualifiedName}` requires arguments")
           }
 
@@ -494,7 +494,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
       case Some(methodGroup: CgscriptClass#MethodGroup) =>
         assert(methodGroup.autoinvokeMethod.isDefined, "should have been caught during elaboration")
-        val method = methodGroup.autoinvokeMethod.get
+        val method = methodGroup.autoinvokeMethod.get.method
         if (method.isExternal && method.methodName != "EnclosingObject")
           s"_instance.${method.scalaName}"
         else
@@ -678,7 +678,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
     val opMethod = FunctionCallNode.lookupMethodWithImplicits(operandType, op.id, Vector.empty)
     // TODO Unary opMethods need to be enforced as having no args
     opMethod match {
-      case Some(method) => method.ensureElaborated()
+      case Some(methodProjection) => methodProjection.ensureElaborated()
       case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass.qualifiedName}`", tree)
     }
 

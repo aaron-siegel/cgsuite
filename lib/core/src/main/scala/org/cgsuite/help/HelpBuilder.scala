@@ -424,7 +424,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
             val ancestorMemberResolution = ancestorClass.resolveMember(member.id)
             val ancestorMember = (ancestorMemberResolution, member) match {
               case (Some(methodGroup: CgscriptClass#MethodGroup), method: CgscriptClass#Method) =>
-                methodGroup.methods find { _.parameters == method.parameters }
+                methodGroup.methods find { _.method.parameters == method.parameters } map { _.method }
               case (Some(m: Member), _) => Some(m)
               case _ => None
             }

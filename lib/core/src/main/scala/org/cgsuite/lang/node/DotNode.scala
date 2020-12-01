@@ -109,9 +109,10 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
       doResolutionForElaboration(domain) match {
 
         case methodGroup: CgscriptClass#MethodGroup =>
-          methodGroup.autoinvokeMethod getOrElse {
+          val methodProjection = methodGroup.autoinvokeMethod getOrElse {
             throw EvalException(s"Method `${methodGroup.qualifiedName}` requires arguments")
           }
+          methodProjection.method
 
         case member: Member => member
 

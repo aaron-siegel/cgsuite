@@ -314,7 +314,7 @@ class CgscriptClass(
     id: Symbol,
     argumentTypes: Vector[CgscriptType],
     namedArgumentTypes: Map[Symbol, CgscriptType],
-    objectType: Option[CgscriptType] = None): Option[CgscriptClass#Method] = {
+    objectType: Option[CgscriptType] = None): Option[MethodProjection] = {
 
     resolveMember(id) match {
       case Some(methodGroup: MethodGroup) => methodGroup.lookupMethod(argumentTypes, namedArgumentTypes, objectType)
@@ -328,7 +328,7 @@ class CgscriptClass(
     argumentTypes: Vector[CgscriptType],
     namedArgumentTypes: Map[Symbol, CgscriptType],
     objectType: Option[CgscriptType] = None,
-    withImplicits: Boolean = false): CgscriptClass#Method = {
+    withImplicits: Boolean = false): MethodProjection = {
 
     resolveMember(id) match {
       case Some(methodGroup: MethodGroup) => methodGroup.resolveToMethod(argumentTypes, namedArgumentTypes, objectType, withImplicits)
@@ -844,11 +844,28 @@ class CgscriptClass(
 
     }
 
-    private def validateMethods(methods: Vector[CgscriptClass#Method]): Vector[CgscriptClass#Method] = {
+    private def validateMethods(methods: Vector[CgscriptClass#Method]): Vector[MethodProjection] = {
 
-      val groupedBySignature = methods.distinct groupBy { _.parameterTypeList }
+      // Compute the type substitutions for each method.
 
-      val resolved = groupedBySignature map { case (_, matchingMethods) =>
+      val typeSubstitutions = {
+        methods.distinct map { method =>
+          val ancestorType = ancestorTypes find { _.baseClass == method.declaringClass } getOrElse {
+            sys.error("This should never happen - it means the method's declaring class was not found among the ancestors of this class")
+          }
+          method -> (ancestorType.baseClass.typeParameters zip ancestorType.typeArguments)
+        }
+      }.toMap
+
+      // Compute the signature projection of each method.
+
+      val groupedBySignatureProjection = methods.distinct groupBy { method =>
+        method.parameterTypeList.substituteAll(typeSubstitutions(method))
+      }
+
+      // Resolve each (projected) signature to a specific method.
+
+      val resolved = groupedBySignatureProjection map { case (signatureProjection, matchingMethods) =>
 
         val localDeclarations = matchingMethods filter { _.declaringClass == thisClass }
 
@@ -891,7 +908,7 @@ class CgscriptClass(
           )
         }
 
-        mostSpecificMethods.head
+        MethodProjection(mostSpecificMethods.head, typeSubstitutions(mostSpecificMethods.head), signatureProjection)
 
       }
 
@@ -1492,25 +1509,25 @@ class CgscriptClass(
     parametersNode: Option[ParametersNode]
   ) extends Constructor
 
-  case class MethodGroup(override val id: Symbol, methods: Vector[CgscriptClass#Method]) extends MemberResolution {
+  case class MethodGroup(override val id: Symbol, methods: Vector[MethodProjection]) extends MemberResolution {
 
     override def declaringClass = thisClass
 
-    val isPureAutoinvoke = methods.size == 1 && methods.head.autoinvoke
+    val isPureAutoinvoke = methods.size == 1 && methods.head.method.autoinvoke
 
-    val autoinvokeMethod = methods find { _.autoinvoke }
+    val autoinvokeMethod = methods find { _.method.autoinvoke }
 
-    def name = methods.head.methodName
+    def name = methods.head.method.methodName
 
-    def qualifiedName = methods.head.qualifiedName
+    def qualifiedName = methods.head.method.qualifiedName
 
-    def isStatic = methods.head.isStatic
+    def isStatic = methods.head.method.isStatic
 
     def lookupMethod(
       argumentTypes: Vector[CgscriptType],
       namedArgumentTypes: Map[Symbol, CgscriptType],
       objectType: Option[CgscriptType] = None
-      ): Option[CgscriptClass#Method] = {
+      ): Option[MethodProjection] = {
 
       /** This assertion is not valid for implicit resolutions
       assert(
@@ -1529,19 +1546,19 @@ class CgscriptClass(
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
 
       // Determine which methods match the specified arguments
-      val matchingMethods = methods filter { method =>
+      val matchingMethods = methods filter { methodProjection =>
 
         val typeParameterSubstitutions = objectType map { _.typeArguments } getOrElse Vector.empty
-        val substitutedParameterTypeList = method.parameterTypeList substituteAll (typeParameters zip typeParameterSubstitutions)
+        val substitutedParameterTypeList = methodProjection.signatureProjection substituteAll (typeParameters zip typeParameterSubstitutions)
 
         val requiredParametersAreSatisfied = substitutedParameterTypeList.types.indices forall { index =>
           if (index < argumentTypes.length) {
             argumentTypes(index) matches substitutedParameterTypeList.types(index)
           } else {
-            val optNamedArgumentType = namedArgumentTypes get method.parameters(index).id
+            val optNamedArgumentType = namedArgumentTypes get methodProjection.method.parameters(index).id
             optNamedArgumentType match {
               case Some(argumentType) => argumentType matches substitutedParameterTypeList.types(index)
-              case None => method.parameters(index).defaultValue.isDefined
+              case None => methodProjection.method.parameters(index).defaultValue.isDefined
             }
           }
         }
@@ -1549,7 +1566,7 @@ class CgscriptClass(
         val allArgumentsAreValid = {
           argumentTypes.length <= substitutedParameterTypeList.types.length && {
             namedArgumentTypes.keys forall { id =>
-              method.parameters exists { _.id == id }
+              methodProjection.method.parameters exists { _.id == id }
             }
           }
         }
@@ -1572,7 +1589,7 @@ class CgscriptClass(
       namedArgumentTypes: Map[Symbol, CgscriptType],
       objectType: Option[CgscriptType] = None,
       withImplicits: Boolean = false
-      ): CgscriptClass#Method = {
+      ): MethodProjection = {
 
       // The following strings are used for error reporting:
       def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
@@ -1621,13 +1638,31 @@ class CgscriptClass(
 
     }
 
-    def reduceMethodList(methods: Vector[CgscriptClass#Method]) = {
-      methods filterNot { method =>
+    def reduceMethodList(methods: Vector[MethodProjection]) = {
+      methods filterNot { methodProjection =>
         methods exists { other =>
-          method != other && other.parameterTypeList <= method.parameterTypeList
+          methodProjection != other && other.signatureProjection <= methodProjection.signatureProjection
         }
       }
     }
+
+  }
+
+  case class MethodProjection(
+    method: CgscriptClass#Method,
+    typeSubstitutions: Iterable[(TypeVariable, CgscriptType)],
+    signatureProjection: CgscriptTypeList
+  ) {
+
+    def ensureElaborated(): CgscriptType = {
+      val rawType = method.ensureElaborated()
+      rawType.substituteAll(typeSubstitutions)
+    }
+
+    def declaringClass = method.declaringClass
+    def isExternal = method.isExternal
+    def methodName = method.methodName
+    def scalaName = method.scalaName
 
   }
 

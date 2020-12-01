@@ -22,7 +22,7 @@ object FunctionCallNode {
     FunctionCallNode(tree, callSite, args, argNames)
   }
 
-  def lookupMethodWithImplicits(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
+  def lookupMethodWithImplicits(objectType: CgscriptType, methodId: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#MethodProjection] = {
 
     objectType.baseClass.lookupInstanceMethod(methodId, argTypes, Map.empty, Some(objectType)) orElse {
 
@@ -99,7 +99,7 @@ case class FunctionCallNode(
   override val children = argNodes ++ argNames.flatten :+ callSiteNode
 
   var objectType: Option[CgscriptType] = _
-  var elaboratedMethod: Option[CgscriptClass#Method] = _
+  var elaboratedMethod: Option[CgscriptClass#MethodProjection] = _
   var isElaboratedInLocalScope: Boolean = _
   var isEval: Boolean = false
   var isExpandableArgumentPattern: Boolean = false
@@ -195,7 +195,7 @@ case class FunctionCallNode(
               case None => methodType
             }
             // TODO This won't work for named parameters:
-            substitutedType.substituteForUnboundTypeParameters(method.parameterTypeList.types, argTypes)
+            substitutedType.substituteForUnboundTypeParameters(method.signatureProjection.types, argTypes)
 
           case None =>
 

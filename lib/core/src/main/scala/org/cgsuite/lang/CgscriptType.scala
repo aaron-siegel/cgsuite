@@ -48,7 +48,7 @@ sealed trait CgscriptType {
 
   def join(that: CgscriptType): CgscriptType
 
-  def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#Method]
+  def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]): Option[CgscriptClass#MethodProjection]
 
   def matches(that: CgscriptType): Boolean
 
@@ -218,7 +218,7 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
     reducedCommonAncestors
   }
 
-  override def resolveMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#Method] = {
+  override def resolveMethod(id: Symbol, argumentTypes: Vector[CgscriptType]): Option[CgscriptClass#MethodProjection] = {
     baseClass.lookupInstanceMethod(id, argumentTypes, Map.empty, Some(this))
   }
 
