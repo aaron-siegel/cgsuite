@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+class FoxAndGeeseCoordinates(fox as Coordinates, geese as Set of Coordinates)
+end
