@@ -2,7 +2,7 @@
 
 singleton class Domineering extends GridRuleset
 
-  override def GridOptions(grid as Grid, player as Player) begin
+  override def Options(grid as Grid, player as Player) begin
 
     var directions := if player == Left then [(1,0)] else [(0,1)] end;
 
@@ -16,7 +16,7 @@ singleton class Domineering extends GridRuleset
 
   end
 
-  override def GridDecomposition(grid as Grid) begin
+  override def Decomposition(grid as Grid) begin
     for component in grid.Decomposition(1) yield
       component SymmetryInvariant Symmetry.Flip
     end

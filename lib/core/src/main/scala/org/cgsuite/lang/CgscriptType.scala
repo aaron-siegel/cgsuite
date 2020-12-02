@@ -106,7 +106,11 @@ case class TypeVariable(id: Symbol, isExpandable: Boolean = false) extends Cgscr
 
 }
 
-case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[CgscriptType] = Vector.empty) extends CgscriptType {
+case class ConcreteType(
+  baseClass: CgscriptClass,
+  typeArguments: Vector[CgscriptType] = Vector.empty,
+  nestProjection: Iterable[(TypeVariable, CgscriptType)] = Vector.empty
+) extends CgscriptType {
 
   if (baseClass.isDeclaredPhase1 && (baseClass.typeParameters.isEmpty || !baseClass.typeParameters.head.isExpandable))
     assert(baseClass.typeParameters.length == typeArguments.length, (this, baseClass.typeParameters))
@@ -129,7 +133,7 @@ case class ConcreteType(baseClass: CgscriptClass, typeArguments: Vector[Cgscript
   }
 
   def scalaTypeName: String = {
-    val baseName = baseClass.scalaTyperefName
+    val baseName = baseClass.scalaTyperefName(nestProjection)
     // TODO This is a temporary hack
     if ((baseName endsWith "IndexedSeq") || (baseName endsWith "Set") || (baseName endsWith "Iterable")) {
       val typeArgument = typeArguments.headOption map { _.scalaTypeName } getOrElse "Any"

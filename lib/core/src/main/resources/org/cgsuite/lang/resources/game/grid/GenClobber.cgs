@@ -10,7 +10,7 @@ class GenClobber(
   var clobberedAsList := [clobbered[Left], clobbered[Right]];
   var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
 
-  override def GridOptions(grid as Grid, player as Player) begin
+  override def Options(grid as Grid, player as Player) begin
 
     var us := player.Ordinal;
 
@@ -26,7 +26,7 @@ class GenClobber(
 
   end
 
-  override def GridDecomposition(grid as Grid) begin
+  override def Decomposition(grid as Grid) begin
     if maxDistance == 1 then
       grid.Decomposition(0, directions)
     else

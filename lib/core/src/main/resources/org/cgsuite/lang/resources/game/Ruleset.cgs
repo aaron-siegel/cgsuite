@@ -1,8 +1,25 @@
 /*${cgsuite.banner}*/
 
-class Ruleset
-/*
-  def Eval(args...) := Position(args);
-  def Position(args...) := error("Subclasses of `Ruleset` must define a nested class `Position`.");
-*/
+class Ruleset of `T
+
+  def Eval(arg as `T) := Position(arg);
+
+  def Options(arg as `T, player as Player) as Collection of `T := error("Subclasses of `Ruleset` must override `Options`.");
+
+  def Decomposition(arg as `T) as Collection of `T := [arg];
+
+  def MakeOutput(arg as `T) as Output := arg.ToOutput;
+
+  class Position(arg as `T) extends Game
+
+    override def Decomposition :=
+      listof(Position(subArg) for subArg in EnclosingObject.Decomposition(arg));
+
+    override def OptionsFor(player as Player) :=
+      listof(Position(option) for option in EnclosingObject.Options(arg, player));
+
+    override def ToOutput := MakeOutput(arg);
+
+  end
+
 end

@@ -214,7 +214,7 @@ trait EvalNode extends Node {
 
   def addTypeToClasses(classes: mutable.HashSet[CgscriptClass], cgscriptType: CgscriptType): Unit = {
     cgscriptType match {
-      case ConcreteType(cls, typeParameters) =>
+      case ConcreteType(cls, typeParameters, _) =>
         classes += cls
         typeParameters foreach { addTypeToClasses(classes, _) }
       case TypeVariable(_, _) =>

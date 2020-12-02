@@ -184,7 +184,9 @@ class CgscriptClass(
     }
   }
 
-  lazy val scalaTyperefName: String = {
+  lazy val scalaTyperefName: String = scalaTyperefName(Iterable.empty)
+
+  def scalaTyperefName(nestProjection: Iterable[(TypeVariable, CgscriptType)]): String = {
     qualifiedName match {
       case "cgsuite.lang.Nothing" => "Null"
       case "cgsuite.lang.Boolean" => "Boolean"
@@ -193,8 +195,8 @@ class CgscriptClass(
           case Some(cls) => cls.getName
           case None =>
             enclosingClass match {
-              // TODO We need type projections for nested classes... not just methods...
-              case Some(cls) => s"${cls.scalaClassdefName}${cls.scalaTypeParametersBlock}#$name"
+              case Some(cls) =>
+                s"${cls.scalaClassdefName}${cls.scalaTypeParametersBlock(nestProjection)}#$name"
               case None =>
                 if (isSingleton)
                   s"$scalaClassdefName.type"
@@ -216,11 +218,13 @@ class CgscriptClass(
     }
   }
 
-  lazy val scalaTypeParametersBlock = {
+  lazy val scalaTypeParametersBlock: String = scalaTypeParametersBlock(Iterable.empty)
+
+  def scalaTypeParametersBlock(typeSubstitutions: Iterable[(TypeVariable, CgscriptType)]): String = {
     if (typeParameters.isEmpty) {
       ""
     } else {
-      val typeParametersString = typeParameters map { _.scalaTypeName } mkString ", "
+      val typeParametersString = typeParameters map { _.substituteAll(typeSubstitutions).scalaTypeName } mkString ", "
       s"[$typeParametersString]"
     }
   }
@@ -1632,10 +1636,10 @@ class CgscriptClass(
     def availableImplicits(typ: CgscriptType): Vector[CgscriptType] = {
 
       typ match {
-        case ConcreteType(CgscriptClass.SidedValue, _) => Vector(typ, CgscriptType(CgscriptClass.CanonicalStopper), CgscriptType(CgscriptClass.Pseudonumber))
-        case ConcreteType(CgscriptClass.CanonicalShortGame, _) => Vector(typ, CgscriptType(CgscriptClass.Uptimal))
-        case ConcreteType(CgscriptClass.Rational, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
-        case ConcreteType(CgscriptClass.DyadicRational, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
+        case ConcreteType(CgscriptClass.SidedValue, _, _) => Vector(typ, CgscriptType(CgscriptClass.CanonicalStopper), CgscriptType(CgscriptClass.Pseudonumber))
+        case ConcreteType(CgscriptClass.CanonicalShortGame, _, _) => Vector(typ, CgscriptType(CgscriptClass.Uptimal))
+        case ConcreteType(CgscriptClass.Rational, _, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
+        case ConcreteType(CgscriptClass.DyadicRational, _, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
         case _ => Vector(typ)
       }
 
@@ -1658,8 +1662,21 @@ class CgscriptClass(
   ) {
 
     def ensureElaborated(): CgscriptType = {
+
       val rawType = method.ensureElaborated()
-      rawType.substituteAll(typeSubstitutions)
+      val projectedType = {
+        // Special projection: "EnclosingObject" is a hard-coded specially typed exception.
+        if (method.methodName == "EnclosingObject" && method.parameters.isEmpty) {
+          (enclosingClass getOrElse CgscriptClass.NothingClass).mostGenericType
+        } else {
+          rawType.substituteAll(typeSubstitutions)
+        }
+      }
+      projectedType match {
+        case concreteType: ConcreteType => concreteType.copy(nestProjection = typeSubstitutions)
+        case _ => projectedType
+      }
+
     }
 
     def declaringClass = method.declaringClass

@@ -2,7 +2,7 @@
 
 singleton class Amazons extends GridRuleset
 
-  override def GridOptions(grid as Grid, player as Player) begin
+  override def Options(grid as Grid, player as Player) begin
 
     var us := player.Ordinal;
 
