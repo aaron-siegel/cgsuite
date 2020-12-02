@@ -27,9 +27,12 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def reduce(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
-    val decomp = g.decomposition
-    if (decomp.size == 1 && decomp.head == this) {
-      reduce2(g, tt, visited)
+    val subst = g.substitution match {
+      case g: G => g
+    }
+    val decomp = subst.decomposition
+    if (decomp.size == 1 && decomp.head == subst) {
+      reduce2(subst, tt, visited)
     } else {
       var result: T = zero
       val it = decomp.iterator

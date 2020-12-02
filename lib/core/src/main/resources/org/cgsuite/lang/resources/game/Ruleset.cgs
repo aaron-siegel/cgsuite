@@ -8,12 +8,28 @@ class Ruleset of `T
 
   def Decomposition(arg as `T) as Collection of `T := [arg];
 
+  def Substitution(arg as `T) as Game := Nothing;
+
   def MakeOutput(arg as `T) as Output := arg.ToOutput;
+
+  def DepthHint(arg as `T) as Integer :=
+    error("That game is loopy (not a short game). If that is intentional, its Ruleset must implement the `DepthHint` method. See the CGSuite documentation for more details.");
 
   class Position(arg as `T) extends Game
 
     override def Decomposition :=
       listof(Position(subArg) for subArg in EnclosingObject.Decomposition(arg));
+
+    override def Substitution as Game begin
+      var substitution := EnclosingObject.Substitution(arg);
+      if substitution != Nothing then
+        substitution
+      else
+        this
+      end
+    end
+
+    override def DepthHint := EnclosingObject.DepthHint(arg);
 
     override def OptionsFor(player as Player) :=
       listof(Position(option) for option in EnclosingObject.Options(arg, player));

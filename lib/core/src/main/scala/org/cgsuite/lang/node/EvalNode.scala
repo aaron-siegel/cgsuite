@@ -414,10 +414,14 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
   def resolveAsPackage(domain: ElaborationDomain): Option[CgscriptPackage] = {
 
-    val shadowingResolution = domain.typeOf(id) orElse
+    // TODO: Fix this. We need a symbol table in CgscriptClass that
+    // can be consulted *during* classInfo construction.
+    val shadowingResolution: Option[MemberResolution] = None
+    /*
+      domain.typeOf(id) orElse
       resolveAsLocalMember(domain.cls) orElse
       resolveAsPackageMember(domain.cls)
-
+    */
     shadowingResolution match {
       case Some(_) => None
       case None => CgscriptPackage.root.lookupSubpackage(id)

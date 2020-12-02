@@ -203,7 +203,7 @@ case class ConcreteType(
       else if (ancestor.typeParameters == baseClass.typeParameters)
         ConcreteType(ancestor, typeArguments)
       else
-        sys.error("complex type parameter inheritance is not yet handled")
+        sys.error(s"complex type parameter inheritance is not yet handled: $this")
     }
   }
 

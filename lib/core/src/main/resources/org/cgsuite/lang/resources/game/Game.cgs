@@ -73,6 +73,8 @@ system class Game
 
   def Decomposition := [this];
 
+  external def Substitution as Game;
+
   def LeftOptions as Collection of Game := OptionsFor(Left);
 
   def RightOptions as Collection of Game := OptionsFor(Right);

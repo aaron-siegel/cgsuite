@@ -63,7 +63,8 @@ trait Game extends OutputTarget {
     nodeMap.get(this) match {
       case Some(nodes) => nodes
       case None =>
-        val decomp = decomposition
+        val subst = substitution
+        val decomp = subst.decomposition
         if (decomp.size == 1 && decomp.head == this) {
           buildNodeMapR(tt, nodeMap)
         } else {
@@ -175,5 +176,7 @@ trait Game extends OutputTarget {
   }
 
   def decomposition: Iterable[_] = Seq(this)
+
+  def substitution: Game = this
 
 }
