@@ -30,7 +30,7 @@ trait ImpartialGame extends Game {
 
   def +(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(DisjunctiveSum, this, that)
 
-  def -(that: ImpartialGame): ImpartialGame = this + this
+  def -(that: ImpartialGame): ImpartialGame = this + that
 
   override def optionsFor(player: Player): Iterable[ImpartialGame] = options
 
