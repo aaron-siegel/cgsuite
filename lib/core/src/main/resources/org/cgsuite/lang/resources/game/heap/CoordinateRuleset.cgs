@@ -2,10 +2,8 @@
 
 class CoordinateRuleset extends ImpartialRuleset of Coordinates
 
-/*
   def NimValueTable(maxRow as Integer, maxCol as Integer) begin
-    tableof(listof(Position((m, n)).NimValue for n from 0 to maxCol) for m from 0 to maxRow)
+    tableof(listof(Eval((m, n)).NimValue for n from 0 to maxCol) for m from 0 to maxRow)
   end
-*/
 
 end

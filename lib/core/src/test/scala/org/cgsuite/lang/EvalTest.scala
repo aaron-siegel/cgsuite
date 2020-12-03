@@ -73,6 +73,8 @@ class EvalTest extends CgscriptSpec {
       ("Integer plus canonical game", "2 + (1+*)", "3*"),
       ("Integer minus rational", "2 - 3/4", "5/4"),
       ("Integer minus canonical game", "2 - (1+*)", "1*"),
+      ("Integer times dyadic rational", "2 * (3/4 as DyadicRational)", "3/2"),
+      ("Integer times rational", "2 * 7/3", "14/3"),
       ("Dyadic plus non-dyadic", "1/2 + 1/3", "5/6"),
       ("Dyadic times non-dyadic", "(1/2) * (1/3)", "1/6"),
       ("Ordinal plus integer", "omega + 5", "\u03C9+5"),

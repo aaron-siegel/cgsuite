@@ -21,6 +21,8 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
 
   external def op*(that as Integer) as Integer;
 
+  external def op*(that as DyadicRational) as DyadicRational;
+
   external def op*(that as CanonicalShortGame) as CanonicalShortGame;
 
   external def op*(that as CanonicalStopper) as CanonicalStopper;

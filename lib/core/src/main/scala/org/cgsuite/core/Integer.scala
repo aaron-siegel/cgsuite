@@ -117,6 +117,9 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
   def ^(other: Integer) = Integer(bigIntValue ^ other.bigIntValue)
 
+  // This override is necessary to resolve ambiguities:
+  override def *(other: DyadicRationalNumber): DyadicRationalNumber = super[DyadicRationalNumber].*(other)
+
   def *(other: CanonicalShortGame): CanonicalShortGame = other.nCopies(this)
   def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
   def *(other: SidedValue): SidedValue = other.nCopies(this)

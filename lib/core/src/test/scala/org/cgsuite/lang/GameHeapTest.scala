@@ -102,7 +102,7 @@ class GameHeapTest extends CgscriptSpec {
       ("game.heap.FibonacciNim", "10", "[0,2,2,2,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]", "[0,2,2,2,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]"),
       ("game.heap.TakeAway(3)", "10", "[0,2,2,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]", "[0,2,2,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]"),
       ("game.heap.Mem", "1", "[3,3,3,3,2,2,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0]", "[3,3,3,3,2,2,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0]"),
-      ("game.heap.GenMem((memory, j) -> j != memory)", "9", "[6,6,6,4,6,6,3,6,6,6,6,6,6,6,6,6,6,6,6,6,6]", "[6,6,6,4,6,6,3,6,6,6,6,6,6,6,6,6,6,6,6,6,6]")
+      ("game.heap.GenMem(coord as Coordinates -> coord.Col != coord.Row)", "9", "[6,6,6,4,6,6,3,6,6,6,6,6,6,6,6,6,6,6,6,6,6]", "[6,6,6,4,6,6,3,6,6,6,6,6,6,6,6,6,6,6,6,6,6]")
 
     )
 
@@ -115,7 +115,7 @@ class GameHeapTest extends CgscriptSpec {
     }
 
     val moreTests = Seq(
-      ("game.heap.GenMem.NimValueTable", "game.heap.GenMem((memory, j) -> j != memory).NimValueTable(10, 10)",
+      ("game.heap.GenMem.NimValueTable", "game.heap.GenMem(coord as Coordinates -> coord.Col != coord.Row).NimValueTable(10, 10)",
         """0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0
           |--+---+---+---+---+---+---+---+---+---+--
           |1 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1
@@ -153,7 +153,7 @@ class GameHeapTest extends CgscriptSpec {
       println(s"r = $r: ${ppos mkString " "}")
       (s"game.heap.GenWythoff($r) P-positions",
         s"""rs := game.heap.GenWythoff($r);
-           |[${ppos mkString ","}].Apply(coord -> rs(coord).NimValue)
+           |[${ppos mkString ","}].Apply(coord as Coordinates -> rs(coord).NimValue)
            |""".stripMargin,
         "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]")
     }
