@@ -5,7 +5,7 @@ class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) exten
   var minMove := if backsliding then -1 else 1 end;
   var maxMove := maxJump + 1;
 
-  override def StripOptions(strip as Strip, player as Player) begin
+  override def Options(strip as Strip, player as Player) begin
 
     var us := player.Ordinal;
     var them := player.Opponent.Ordinal;

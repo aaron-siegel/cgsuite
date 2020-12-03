@@ -197,13 +197,8 @@ case class ConcreteType(
   }
 
   def ancestorTypes: Vector[ConcreteType] = {
-    baseClass.ancestors map { ancestor =>
-      if (ancestor.typeParameters.isEmpty)
-        ConcreteType(ancestor)
-      else if (ancestor.typeParameters == baseClass.typeParameters)
-        ConcreteType(ancestor, typeArguments)
-      else
-        sys.error(s"complex type parameter inheritance is not yet handled: $this")
+    baseClass.classInfo.ancestorTypes map { genericAncestorType =>
+      genericAncestorType.substituteAll(baseClass.typeParameters zip typeArguments)
     }
   }
 

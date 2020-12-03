@@ -20,6 +20,8 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def makeOptions(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): O
 
+  def shortcut(g: G): Option[T]
+
   def reduce(g: G, tt: TranspositionTable[T]): T = {
     visitorCache.clear()
     reduce(g, tt, visitorCache)
@@ -49,20 +51,24 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   private def reduce2(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
-    tt.get(g) match {
-      case Some(x: T) => x
-      case None if !visited.contains(g) =>
-        visited += g
-        try {
-          val opts = makeOptions(g, tt, visited)
-          val result = construct(opts)
-          tt.put(g, result)
-          result
-        } finally {
-          visited -= g
+    shortcut(g) match {
+      case Some(t) => t
+      case None =>
+        tt.get(g) match {
+          case Some(x: T) => x
+          case None if !visited.contains(g) =>
+            visited += g
+            try {
+              val opts = makeOptions(g, tt, visited)
+              val result = construct(opts)
+              tt.put(g, result)
+              result
+            } finally {
+              visited -= g
+            }
+          case _ =>
+            throw NotShortGameException(loopyExceptionMsg)
         }
-      case _ =>
-        throw NotShortGameException(loopyExceptionMsg)
     }
 
   }
@@ -104,6 +110,13 @@ private[core] case object CanonicalShortGameReducer extends PartizanLoopfreeRedu
 
   override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."
 
+  override def shortcut(g: Game) = {
+    g match {
+      case a: CanonicalShortGame => Some(a)
+      case _ => None
+    }
+  }
+
 }
 
 private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] {
@@ -116,6 +129,13 @@ private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] 
 
   override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `NimValue`."
 
+  override def shortcut(g: ImpartialGame) = {
+    g match {
+      case m: Nimber => Some(m.nimValue.intValue)
+      case _ => None
+    }
+  }
+
 }
 
 private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeReducer[MisereCanonicalGame] {
@@ -127,5 +147,13 @@ private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeRe
   override def construct(opts: Iterable[MisereCanonicalGame]) = MisereCanonicalGame(opts.toSeq : _*)
 
   override def loopyExceptionMsg = s"That is not a short game."
+
+  override def shortcut(g: ImpartialGame) = {
+    g match {
+      case a: MisereCanonicalGame => Some(a)
+      case m: Nimber => Some(m.misereCanonicalForm)
+      case _ => None
+    }
+  }
 
 }

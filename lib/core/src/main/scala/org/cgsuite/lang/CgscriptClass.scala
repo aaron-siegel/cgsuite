@@ -291,6 +291,8 @@ class CgscriptClass(
 
   def <=(that: CgscriptClass) = ancestors contains that
 
+  def <(that: CgscriptClass) = this <= that && this != that
+
   def resolveMember(id: Symbol): Option[MemberResolution] = {
     resolveInstanceMember(id) orElse resolveStaticMember(id)
   }
@@ -1022,7 +1024,7 @@ class CgscriptClass(
     includeInCompilationUnit(context, classesCompiling, emitter)
 
     if (CgscriptSystem.isDebug)
-      println(emitter.toString)
+      println(emitter.toStringWithLineNumbers)
 
     eval.interpret(emitter.toString)
 
@@ -1173,9 +1175,20 @@ class CgscriptClass(
     } else if (!isSingleton && this != CgscriptClass.Object) {
 
       if (isSystem) {
+        // We'll need to mix in any non-system antecedents as traits.
+        val nonSystemAncestors = classInfo.ancestorTypes filterNot { _.baseClass.isSystem }
+        val mostSpecificNonSystemAncestors = nonSystemAncestors filterNot { ancestor => nonSystemAncestors exists {
+          _.baseClass < ancestor.baseClass
+        }}
+        val withClause = {
+          if (mostSpecificNonSystemAncestors.isEmpty)
+            ""
+          else
+            " with " + (mostSpecificNonSystemAncestors map { _.scalaTypeName } mkString " with ")
+        }
         emitter println
           s"""case class $scalaClassdefName$scalaTypeParametersBlock(_instance: $scalaTyperefName$scalaTypeParametersBlock)
-             |  extends org.cgsuite.lang.SystemExtensionObject {$enclosingClause
+             |  extends org.cgsuite.lang.SystemExtensionObject$withClause {$enclosingClause
              |
              |  override def _class = $scalaClassdefName._class
              |""".stripMargin

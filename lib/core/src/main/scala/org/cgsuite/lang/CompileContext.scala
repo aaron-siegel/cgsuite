@@ -39,6 +39,15 @@ class Emitter {
 
   override def toString = sb.toString
 
+  def toStringWithLineNumbers = {
+    val str = toString
+    val lines = str split '\n'
+    val numberedLines = lines.zipWithIndex map { case (line, index) =>
+      f"$index%4d  $line"
+    }
+    numberedLines mkString "\n"
+  }
+
   private def append(str: String, addNewline: Boolean): Unit = {
 
     if (atNewline)

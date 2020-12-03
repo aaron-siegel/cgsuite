@@ -2,7 +2,7 @@
 
 class GenWythoff(r as Integer) extends CoordinateRuleset
 
-  override def CoordinateOptions(coord as Coordinates) begin
+  override def Options(coord as Coordinates) begin
     var m := coord.Row;
     var n := coord.Col;
     var diag := (m Min n) + r - 1;

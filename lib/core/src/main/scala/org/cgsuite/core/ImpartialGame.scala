@@ -73,4 +73,6 @@ trait ImpartialGame extends Game {
     MisereCanonicalGameReducer.reduce(this, tc.tableFor[MisereCanonicalGame]('MisereCanonicalGame))
   }
 
+  override def substitution: ImpartialGame = this
+
 }

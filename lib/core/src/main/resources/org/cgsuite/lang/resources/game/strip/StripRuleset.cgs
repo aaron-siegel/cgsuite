@@ -1,29 +1,13 @@
 /*${cgsuite.banner}*/
 
-class StripRuleset extends Ruleset
+class StripRuleset extends Ruleset of Strip
 
-  def Eval(strip as Strip) := Position(strip);
-
-  def Eval(str as String) := Position(Strip.Parse(str, CharMap));
-
-  def StripOptions(strip as Strip, player as Player) as Collection of Strip := error("Subclasses of `StripRuleset` must override `StripOptions`.");
-
-  def DepthHint(strip as Strip) as Integer := error("That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.");
+  def Eval(str as String) := Eval(Strip.Parse(str, CharMap));
 
   def CharMap as String := error("Subclasses of `StripRuleset` must override `CharMap`.");
 
   def Icons as List of Icon := error("Subclasses of `StripRuleset` must override `Icons`.");
 
-  class Position(strip as Strip) extends Game
-
-    override def OptionsFor(player as Player) :=
-      listof(Position(stripOption) for stripOption in StripOptions(strip, player));
-
-    override def ToOutput :=
-      cgsuite.util.output.StripOutput(strip, Icons, EnclosingObject.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
-
-    override def DepthHint := (EnclosingObject as StripRuleset).DepthHint(strip);
-
-  end
+  override def MakeOutput(strip as Strip) := cgsuite.util.output.StripOutput(strip, Icons, EnclosingObject.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
 
 end

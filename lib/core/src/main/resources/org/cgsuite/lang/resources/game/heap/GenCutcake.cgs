@@ -1,29 +1,23 @@
 /*${cgsuite.banner}*/
 
-class GenCutcake(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset, twisted as Boolean ? false) extends Ruleset
+class GenCutcake(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset, twisted as Boolean ? false) extends Ruleset of Coordinates
 
-  def Eval(coord as Coordinates) := Position(coord);
-  
-  class Position(coord as Coordinates) extends Game
-  
-    override def OptionsFor(player as Player) begin
-    
-      var twist := if twisted then coord.Swap else coord end;
-    
-      if player == Left then
-        var a := twist.Row;
-        for summands in leftRuleset.HeapOptions(twist.Col) yield
-          sumof(Position((a,b)) for b in summands)
-        end
-      else
-        var b := twist.Col;
-        for summands in rightRuleset.HeapOptions(twist.Row) yield
-          sumof(Position((a,b)) for a in summands)
-        end
+  override def ComponentwiseOptions(coord as Coordinates, player as Player) begin
+
+    var twist := if twisted then coord.Swap else coord end;
+
+    if player == Left then
+      var a := twist.Row;
+      for summands in leftRuleset.HeapOptions(twist.Col) yield
+        listof((a,b) for b in summands)
       end
-    
+    else
+      var b := twist.Col;
+      for summands in rightRuleset.HeapOptions(twist.Row) yield
+        listof((a,b) for a in summands)
+      end
     end
-  
+
   end
 
 end

@@ -2,9 +2,11 @@
 
 class Ruleset of `T
 
-  def Eval(arg as `T) := Position(arg);
+  def Eval(arg as `T) as Game := Position(arg);
 
   def Options(arg as `T, player as Player) as Collection of `T := error("Subclasses of `Ruleset` must override `Options`.");
+
+  def ComponentwiseOptions(arg as `T, player as Player) as Collection of List of `T := Nothing;
 
   def Decomposition(arg as `T) as Collection of `T := [arg];
 
@@ -31,8 +33,14 @@ class Ruleset of `T
 
     override def DepthHint := EnclosingObject.DepthHint(arg);
 
-    override def OptionsFor(player as Player) :=
-      listof(Position(option) for option in EnclosingObject.Options(arg, player));
+    override def OptionsFor(player as Player) as Collection of Game begin
+      var cwo := EnclosingObject.ComponentwiseOptions(arg, player);
+      if cwo != Nothing then
+        listof(sumof(Position(component) for component in option) for option in cwo);
+      else
+        listof(Position(option) for option in EnclosingObject.Options(arg, player))
+      end
+    end
 
     override def ToOutput := MakeOutput(arg);
 

@@ -1,20 +1,14 @@
 /*${cgsuite.banner}*/
 
-class PartizanCoordinateRuleset(leftRuleset as CoordinateRuleset, rightRuleset as CoordinateRuleset) extends Ruleset
+class PartizanCoordinateRuleset(leftRuleset as CoordinateRuleset, rightRuleset as CoordinateRuleset) extends Ruleset of Coordinates
 
-  def Eval(coord as Coordinates) := Position(coord);
-  
+  override def Options(coordinates as Coordinates player as Player) begin
+    var ruleset := if player == Left then leftRuleset else rightRuleset end;
+    ruleset Options coord Apply (c -> Position(c))
+  end
+
   def GameValueTable(maxRow as Integer, maxCol as Integer) begin
     tableof(listof(Position((m, n)).GameValue for n from 1 to maxCol) for m from 1 to maxRow)
-  end
-  
-  class Position(coord as Coordinates) extends Game
-
-    override def OptionsFor(player as Player) begin
-      var ruleset := if player == Left then leftRuleset else rightRuleset end;
-      ruleset CoordinateOptions coord Apply (c -> Position(c))
-    end
-
   end
 
 end

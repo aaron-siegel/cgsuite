@@ -6,6 +6,7 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.exception.InvalidArgumentException
 
 import scala.language.postfixOps
@@ -46,6 +47,10 @@ trait Nimber extends ImpartialGame with Uptimal {
 
   override def outcomeClass: ImpartialOutcomeClass = {
     if (nimValue.isZero) OutcomeClass.P else OutcomeClass.N
+  }
+
+  override def misereCanonicalForm: MisereCanonicalGame = {
+    MisereCanonicalGame.nimHeap(intNimValue)
   }
 
   override def toString = s"*$nimValue"

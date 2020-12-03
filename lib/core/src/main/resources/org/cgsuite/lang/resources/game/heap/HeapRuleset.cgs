@@ -1,12 +1,14 @@
 /*${cgsuite.banner}*/
 
-system class HeapRuleset extends Ruleset
+system class HeapRuleset extends ImpartialRuleset of Integer
 
   def CakeProduct(that as HeapRuleset, twisted as Boolean ? false) := GenCutcake(this, that, twisted);
 
-  def Eval(heapSize as Integer) := Position(heapSize);
+  override def ComponentwiseOptions(heapSize as Integer) := HeapOptions(heapSize);
 
-  external def HeapOptions(heapSize as Integer) as Collection of Collection of Integer;
+  override def Substitution(heapSize as Integer) as Nimber := *(HeapNimValue(heapSize));
+
+  external def HeapOptions(heapSize as Integer) as Collection of List of Integer;
   //def HeapOptions(heapSize as Integer) as Collection of Collection of Integer := error("Subclasses of `HeapRuleset` must override `HeapOptions`.");
 
   external def HeapNimValue(heapSize as Integer) as Integer;
@@ -14,14 +16,5 @@ system class HeapRuleset extends Ruleset
   external def NimValueSequence(toHeapSize as Integer) as List of Integer;
 
   external def CheckPeriodicity(toHeapSize as Integer) as Periodicity;
-
-  class Position(heapSize as Integer) extends ImpartialGame
-
-    override def Options := HeapOptions(heapSize) Apply
-      (heaps as Collection of Integer -> if heaps.IsEmpty then 0 else sumof(Position(n) for n in heaps) end as ImpartialGame);
-
-    override def NimValue := HeapNimValue(heapSize);
-
-  end
 
 end
