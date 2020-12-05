@@ -17,7 +17,6 @@ import org.cgsuite.core.Left$;
 import org.cgsuite.core.Right$;
 import org.cgsuite.lang.CgscriptClass;
 import org.cgsuite.lang.CgscriptPackage;
-import org.cgsuite.lang.StandardObject;
 import org.cgsuite.output.GridOutput;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.StyledTextOutput;
@@ -415,7 +414,8 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             this.editorPanel = editorFor(node.getG());
             this.editorScrollPane.setViewportView(editorPanel);
             this.addPositionButton.setEnabled(true);
-            this.typeLabel.setText("Exploring " + CgscriptClass.of(node.getG()).qualifiedName() + ".");
+            // TODO Fix this
+//            this.typeLabel.setText("Exploring " + CgscriptClass.of(node.getG()).qualifiedName() + ".");
         }
     }
     
@@ -424,13 +424,15 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     private EditorPanel editorFor(Game g)
     {
         Output output = g.toOutput();
-        CgscriptClass type = CgscriptClass.of(g);
+        // TODO Fix this
+        CgscriptClass type = null; // CgscriptClass.of(g);
         boolean isGridRuleset = type.enclosingClass().isDefined() &&
                 type.enclosingClass().get().ancestors().contains(gridRuleset);
         if (isGridRuleset && output instanceof GridOutput)
         {
             GridOutput gridOutput = (GridOutput) output;
-            return new GridEditorPanel(type, ((StandardObject) g).enclosingObj(), gridOutput.grid(), gridOutput.icons());
+            // TODO Fix this
+            return null; // new GridEditorPanel(type, ((StandardObject) g).enclosingObj(), gridOutput.grid(), gridOutput.icons());
         }
         else
         {

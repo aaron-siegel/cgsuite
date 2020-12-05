@@ -7,6 +7,7 @@
             <suite-component/>
             <module-dependencies/>
             <public-packages>
+                <package>better.files</package>
                 <package>cc.redberry.combinatorics</package>
                 <package>cc.redberry.libdivide4j</package>
                 <package>cc.redberry.rings</package>
@@ -77,6 +78,30 @@
                 <package>ch.qos.logback.core.status</package>
                 <package>ch.qos.logback.core.subst</package>
                 <package>ch.qos.logback.core.util</package>
+                <package>com.google.common.annotations</package>
+                <package>com.google.common.base</package>
+                <package>com.google.common.base.internal</package>
+                <package>com.google.common.cache</package>
+                <package>com.google.common.collect</package>
+                <package>com.google.common.escape</package>
+                <package>com.google.common.eventbus</package>
+                <package>com.google.common.graph</package>
+                <package>com.google.common.hash</package>
+                <package>com.google.common.html</package>
+                <package>com.google.common.io</package>
+                <package>com.google.common.math</package>
+                <package>com.google.common.net</package>
+                <package>com.google.common.primitives</package>
+                <package>com.google.common.reflect</package>
+                <package>com.google.common.util.concurrent</package>
+                <package>com.google.common.xml</package>
+                <package>com.google.errorprone.annotations</package>
+                <package>com.google.errorprone.annotations.concurrent</package>
+                <package>com.google.j2objc.annotations</package>
+                <package>com.google.thirdparty.publicsuffix</package>
+                <package>com.sun.jna</package>
+                <package>com.sun.jna.ptr</package>
+                <package>com.sun.jna.win32</package>
                 <package>com.typesafe.scalalogging</package>
                 <package>gnu.trove</package>
                 <package>gnu.trove.decorator</package>
@@ -101,6 +126,13 @@
                 <package>gnu.trove.stack</package>
                 <package>gnu.trove.stack.array</package>
                 <package>gnu.trove.strategy</package>
+                <package>io.methvin.better.files</package>
+                <package>io.methvin.watcher</package>
+                <package>io.methvin.watchservice</package>
+                <package>io.methvin.watchservice.jna</package>
+                <package>javax.annotation</package>
+                <package>javax.annotation.concurrent</package>
+                <package>javax.annotation.meta</package>
                 <package>org.antlr</package>
                 <package>org.antlr.analysis</package>
                 <package>org.antlr.codegen</package>
@@ -111,6 +143,23 @@
                 <package>org.antlr.runtime.misc</package>
                 <package>org.antlr.runtime.tree</package>
                 <package>org.antlr.tool</package>
+                <package>org.apache.commons.lang3</package>
+                <package>org.apache.commons.lang3.arch</package>
+                <package>org.apache.commons.lang3.builder</package>
+                <package>org.apache.commons.lang3.compare</package>
+                <package>org.apache.commons.lang3.concurrent</package>
+                <package>org.apache.commons.lang3.concurrent.locks</package>
+                <package>org.apache.commons.lang3.event</package>
+                <package>org.apache.commons.lang3.exception</package>
+                <package>org.apache.commons.lang3.function</package>
+                <package>org.apache.commons.lang3.math</package>
+                <package>org.apache.commons.lang3.mutable</package>
+                <package>org.apache.commons.lang3.reflect</package>
+                <package>org.apache.commons.lang3.stream</package>
+                <package>org.apache.commons.lang3.text</package>
+                <package>org.apache.commons.lang3.text.translate</package>
+                <package>org.apache.commons.lang3.time</package>
+                <package>org.apache.commons.lang3.tuple</package>
                 <package>org.apache.commons.math3</package>
                 <package>org.apache.commons.math3.analysis</package>
                 <package>org.apache.commons.math3.analysis.differentiation</package>
@@ -172,16 +221,53 @@
                 <package>org.apache.commons.math3.stat.regression</package>
                 <package>org.apache.commons.math3.transform</package>
                 <package>org.apache.commons.math3.util</package>
+                <package>org.apache.commons.text</package>
+                <package>org.apache.commons.text.diff</package>
+                <package>org.apache.commons.text.io</package>
+                <package>org.apache.commons.text.lookup</package>
+                <package>org.apache.commons.text.matcher</package>
+                <package>org.apache.commons.text.similarity</package>
+                <package>org.apache.commons.text.translate</package>
                 <package>org.cgsuite.core</package>
                 <package>org.cgsuite.core.impartial</package>
+                <package>org.cgsuite.core.misere</package>
                 <package>org.cgsuite.dsl</package>
                 <package>org.cgsuite.exception</package>
-                <package>org.cgsuite.explorer</package>
                 <package>org.cgsuite.help</package>
                 <package>org.cgsuite.lang</package>
+                <package>org.cgsuite.lang.node</package>
                 <package>org.cgsuite.lang.parser</package>
                 <package>org.cgsuite.output</package>
                 <package>org.cgsuite.util</package>
+                <package>org.codehaus.mojo.animal_sniffer</package>
+                <package>org.fusesource.hawtjni.runtime</package>
+                <package>org.fusesource.jansi</package>
+                <package>org.fusesource.jansi.internal</package>
+                <package>org.jline.builtins</package>
+                <package>org.jline.builtins.ssh</package>
+                <package>org.jline.builtins.telnet</package>
+                <package>org.jline.keymap</package>
+                <package>org.jline.reader</package>
+                <package>org.jline.reader.impl</package>
+                <package>org.jline.reader.impl.completer</package>
+                <package>org.jline.reader.impl.history</package>
+                <package>org.jline.style</package>
+                <package>org.jline.terminal</package>
+                <package>org.jline.terminal.impl</package>
+                <package>org.jline.terminal.impl.jansi</package>
+                <package>org.jline.terminal.impl.jansi.freebsd</package>
+                <package>org.jline.terminal.impl.jansi.linux</package>
+                <package>org.jline.terminal.impl.jansi.osx</package>
+                <package>org.jline.terminal.impl.jansi.solaris</package>
+                <package>org.jline.terminal.impl.jansi.win</package>
+                <package>org.jline.terminal.impl.jna</package>
+                <package>org.jline.terminal.impl.jna.freebsd</package>
+                <package>org.jline.terminal.impl.jna.linux</package>
+                <package>org.jline.terminal.impl.jna.osx</package>
+                <package>org.jline.terminal.impl.jna.solaris</package>
+                <package>org.jline.terminal.impl.jna.win</package>
+                <package>org.jline.terminal.spi</package>
+                <package>org.jline.utils</package>
                 <package>org.slf4j</package>
                 <package>org.slf4j.event</package>
                 <package>org.slf4j.helpers</package>
@@ -227,18 +313,94 @@
                 <package>scala.reflect.io</package>
                 <package>scala.reflect.macros</package>
                 <package>scala.reflect.macros.blackbox</package>
+                <package>scala.reflect.macros.compiler</package>
+                <package>scala.reflect.macros.contexts</package>
                 <package>scala.reflect.macros.internal</package>
+                <package>scala.reflect.macros.runtime</package>
+                <package>scala.reflect.macros.util</package>
                 <package>scala.reflect.macros.whitebox</package>
+                <package>scala.reflect.quasiquotes</package>
+                <package>scala.reflect.reify</package>
+                <package>scala.reflect.reify.codegen</package>
+                <package>scala.reflect.reify.phases</package>
+                <package>scala.reflect.reify.utils</package>
                 <package>scala.reflect.runtime</package>
                 <package>scala.runtime</package>
                 <package>scala.runtime.java8</package>
                 <package>scala.sys</package>
                 <package>scala.sys.process</package>
                 <package>scala.text</package>
+                <package>scala.tools.ant</package>
+                <package>scala.tools.ant.sabbus</package>
+                <package>scala.tools.asm</package>
+                <package>scala.tools.asm.commons</package>
+                <package>scala.tools.asm.signature</package>
+                <package>scala.tools.asm.tree</package>
+                <package>scala.tools.asm.tree.analysis</package>
+                <package>scala.tools.asm.util</package>
+                <package>scala.tools.cmd</package>
+                <package>scala.tools.fusesource_embedded.hawtjni.runtime</package>
+                <package>scala.tools.fusesource_embedded.jansi</package>
+                <package>scala.tools.fusesource_embedded.jansi.internal</package>
+                <package>scala.tools.jline_embedded</package>
+                <package>scala.tools.jline_embedded.console</package>
+                <package>scala.tools.jline_embedded.console.completer</package>
+                <package>scala.tools.jline_embedded.console.history</package>
+                <package>scala.tools.jline_embedded.internal</package>
+                <package>scala.tools.nsc</package>
+                <package>scala.tools.nsc.ast</package>
+                <package>scala.tools.nsc.ast.parser</package>
+                <package>scala.tools.nsc.ast.parser.xml</package>
+                <package>scala.tools.nsc.backend</package>
+                <package>scala.tools.nsc.backend.jvm</package>
+                <package>scala.tools.nsc.backend.jvm.analysis</package>
+                <package>scala.tools.nsc.backend.jvm.opt</package>
+                <package>scala.tools.nsc.classpath</package>
+                <package>scala.tools.nsc.doc</package>
+                <package>scala.tools.nsc.doc.base</package>
+                <package>scala.tools.nsc.doc.base.comment</package>
+                <package>scala.tools.nsc.doc.doclet</package>
+                <package>scala.tools.nsc.doc.html</package>
+                <package>scala.tools.nsc.doc.html.page</package>
+                <package>scala.tools.nsc.doc.html.page.diagram</package>
+                <package>scala.tools.nsc.doc.model</package>
+                <package>scala.tools.nsc.doc.model.diagram</package>
+                <package>scala.tools.nsc.interactive</package>
+                <package>scala.tools.nsc.interactive.tests</package>
+                <package>scala.tools.nsc.interactive.tests.core</package>
+                <package>scala.tools.nsc.interpreter</package>
+                <package>scala.tools.nsc.interpreter.jline</package>
+                <package>scala.tools.nsc.interpreter.jline_embedded</package>
+                <package>scala.tools.nsc.interpreter.session</package>
+                <package>scala.tools.nsc.io</package>
+                <package>scala.tools.nsc.javac</package>
+                <package>scala.tools.nsc.plugins</package>
+                <package>scala.tools.nsc.profile</package>
+                <package>scala.tools.nsc.reporters</package>
+                <package>scala.tools.nsc.settings</package>
+                <package>scala.tools.nsc.symtab</package>
+                <package>scala.tools.nsc.symtab.classfile</package>
+                <package>scala.tools.nsc.transform</package>
+                <package>scala.tools.nsc.transform.async</package>
+                <package>scala.tools.nsc.transform.patmat</package>
+                <package>scala.tools.nsc.typechecker</package>
+                <package>scala.tools.nsc.util</package>
+                <package>scala.tools.reflect</package>
+                <package>scala.tools.util</package>
                 <package>scala.util</package>
                 <package>scala.util.control</package>
                 <package>scala.util.hashing</package>
                 <package>scala.util.matching</package>
+                <package>scala.xml</package>
+                <package>scala.xml.dtd</package>
+                <package>scala.xml.dtd.impl</package>
+                <package>scala.xml.factory</package>
+                <package>scala.xml.include</package>
+                <package>scala.xml.include.sax</package>
+                <package>scala.xml.parsing</package>
+                <package>scala.xml.persistent</package>
+                <package>scala.xml.pull</package>
+                <package>scala.xml.transform</package>
             </public-packages>
             <class-path-extension>
                 <runtime-relative-path>ext/cgsuite-core.jar</runtime-relative-path>

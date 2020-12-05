@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.cgsuite.lang.CgscriptClasspath;
+import org.cgsuite.lang.CgscriptSystem;
 import org.cgsuite.lang.EvalUtil;
 import org.cgsuite.output.Output;
 import org.openide.util.RequestProcessor;
@@ -72,7 +73,11 @@ public class CalculationCapsule implements Runnable
             try
             {
                 long startTime = System.nanoTime();
-                output = JavaConverters.seqAsJavaList(EvalUtil.evaluate(text, varMap));
+                log.info(System.getProperty("java.class.path"));
+                log.info("Evaluating expression: " + text);
+                scala.tools.nsc.Settings settings = new scala.tools.nsc.Settings();
+                scala.tools.nsc.interpreter.IMain interpreter = new scala.tools.nsc.interpreter.IMain(settings);
+                output = JavaConverters.seqAsJavaList(CgscriptSystem.evaluateToOutput(text));
                 long duration = System.nanoTime() - startTime;
                 log.info(String.format("Calculation finished in %d.%03d seconds.", duration / 1000000000L, (duration % 1000000000L) / 1000000L));
             }

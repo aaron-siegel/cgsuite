@@ -31,7 +31,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         {
             AND, AS, BEGIN, BREAK, BY, CLASS_VAR, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ERROR,
             FALSE, FINALLY, FOR, FOREACH, FROM, IF, IN, IS, LISTOF, MAPOF,
-            NEG, NOT, OP, OR, PASS, POS, RETURN, SETOF, SQUOTE, SUMOF, SUPER,
+            NOT, OP, OR, PASS, RETURN, SETOF, SQUOTE, SUMOF, SUPER,
             TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE, YIELD
         });
         tokenTypes.put("DeclKeyword", new int[]

@@ -205,12 +205,6 @@ public final class WorksheetTopComponent extends TopComponent
         private ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
         
         @Override
-        public void clearUiVars()
-        {
-            WorksheetPanel.WORKSPACE_VAR_MAP.clear();
-        }
-
-        @Override
         public Explorer createExplorer(Game g)
         {
             return explorerService.newExplorer(g);
