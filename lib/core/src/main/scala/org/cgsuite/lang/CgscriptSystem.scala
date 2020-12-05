@@ -6,7 +6,7 @@ import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{EvalException, SyntaxException}
 import org.cgsuite.lang.node.{AssignToNode, StatementSequenceNode}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
@@ -19,7 +19,7 @@ import scala.collection.mutable
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interpreter.{IMain, IR}
 
-private[cgsuite] object CgscriptSystem {
+object CgscriptSystem {
 
   val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
@@ -132,6 +132,13 @@ private[cgsuite] object CgscriptSystem {
       case _ =>
     }
 
+  }
+
+  def evaluateToOutput(str: String): Vector[Output] = {
+    evaluate(str) match {
+      case scala.Left(output) => Vector(output)
+      case scala.Right(exc) => EvalUtil.throwableToOutput(str, exc)
+    }
   }
 
   def evaluate(str: String): Either[Output, Throwable] = {

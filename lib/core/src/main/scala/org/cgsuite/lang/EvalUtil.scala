@@ -19,6 +19,14 @@ object EvalUtil extends LazyLogging {
     }
   }
 
+  def throwableToOutput(input: String, exc: Throwable): Vector[Output] = {
+    exc match {
+      case syntaxException: SyntaxException => syntaxExceptionToOutput(input, syntaxException, includeLine = true)
+      case cgsuiteException: CgsuiteException => cgsuiteExceptionToOutput(input, cgsuiteException)
+      case _ => defaultThrowableToOutput(input, exc)
+    }
+  }
+
   private def syntaxExceptionToOutput(input: String, exc: SyntaxException, includeLine: Boolean): Vector[Output] = {
 
     val recog = exc.exc
@@ -77,7 +85,7 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def throwableToOutput(input: String, exc: Throwable): Vector[Output] = {
+  private def defaultThrowableToOutput(input: String, exc: Throwable): Vector[Output] = {
 
     val sw = new StringWriter
     exc.printStackTrace(new PrintWriter(sw))

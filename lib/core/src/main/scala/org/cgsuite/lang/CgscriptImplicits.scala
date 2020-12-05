@@ -5,6 +5,8 @@ import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{EmptyOutput, Output, OutputTarget, StyledTextOutput}
 
+import scala.language.implicitConversions
+
 object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
   // TODO Intelligent type conversion with good error messages

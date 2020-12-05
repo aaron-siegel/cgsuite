@@ -482,7 +482,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
           val expander = if (isExpandable) "*" else ""
           s"${symbol.name}$expander"
 
-        case ConcreteType(baseClass, typeArguments) =>
+        case ConcreteType(baseClass, typeArguments, _) =>
           val classLink = linkBuilder.hyperlinkToClass(baseClass)
           typeArguments.length match {
             case 0 => classLink

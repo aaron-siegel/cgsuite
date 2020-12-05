@@ -2,6 +2,8 @@ package org.cgsuite
 
 import org.cgsuite.core._
 
+import scala.language.implicitConversions
+
 package object dsl extends ValuesTrait {
 
   implicit def longToInteger(x: Long): Integer = Integer(x)

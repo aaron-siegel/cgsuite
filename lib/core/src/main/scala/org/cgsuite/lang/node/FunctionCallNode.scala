@@ -69,9 +69,9 @@ object FunctionCallNode {
   def availableImplicits(typ: CgscriptType): Vector[CgscriptType] = {
 
     typ match {
-      case ConcreteType(CgscriptClass.CanonicalShortGame, _) => Vector(typ, CgscriptType(CgscriptClass.Uptimal))
-      case ConcreteType(CgscriptClass.Rational, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
-      case ConcreteType(CgscriptClass.DyadicRational, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
+      case ConcreteType(CgscriptClass.CanonicalShortGame, _, _) => Vector(typ, CgscriptType(CgscriptClass.Uptimal))
+      case ConcreteType(CgscriptClass.Rational, _, _) => Vector(typ, CgscriptType(CgscriptClass.DyadicRational), CgscriptType(CgscriptClass.Integer))
+      case ConcreteType(CgscriptClass.DyadicRational, _, _) => Vector(typ, CgscriptType(CgscriptClass.Integer))
       case _ => Vector(typ)
     }
 
