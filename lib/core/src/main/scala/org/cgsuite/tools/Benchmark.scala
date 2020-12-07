@@ -53,7 +53,7 @@ object Benchmark {
   }
 
   def gitHasLocalChanges(): Boolean = {
-    val process = Runtime.getRuntime.exec("git status")
+    val process = Runtime.getRuntime.exec("git diff HEAD")
     val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
     val line = reader.readLine()
     reader.close()
