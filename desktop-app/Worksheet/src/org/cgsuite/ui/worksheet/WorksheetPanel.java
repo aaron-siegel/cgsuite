@@ -72,6 +72,7 @@ public class WorksheetPanel extends JPanel
     
     private Queue<List<Output>> outputQueue;
     private OutputBox calculatingOutputBox;
+    private boolean initialized = false;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
@@ -98,10 +99,7 @@ public class WorksheetPanel extends JPanel
 
     public void initialize()
     {
-        // Forcibly instantiate a CanonicalShortGame so that the interface will seem snappier
-        // once the user starts using it
-        new CalculationCapsule(WORKSPACE_VAR_MAP, "{1|1/2}").runAndWait();
-        processCommand("startup();");
+        processCommand("{1|1/2}; startup();");
         getBuffer();
         
         getViewport().addComponentListener(new ComponentAdapter()
@@ -285,7 +283,7 @@ public class WorksheetPanel extends JPanel
 
         try
         {
-            finished = task.waitFinished(50);
+            finished = task.waitFinished(25);
         }
         catch (InterruptedException exc)
         {
@@ -353,11 +351,12 @@ public class WorksheetPanel extends JPanel
         {
             remove(calculatingOutputBox);
             calculatingOutputBox = null;
+            initialized = true;
             update = true;
         }
         else if (currentCapsule != null && calculatingOutputBox == null)
         {
-            calculatingOutputBox = makeOutputBox(new StyledTextOutput("Calculating ..."));
+            calculatingOutputBox = makeOutputBox(new StyledTextOutput(initialized ? "Calculating ..." : "Initializing ..."));
             add(calculatingOutputBox);
             update = true;
         }

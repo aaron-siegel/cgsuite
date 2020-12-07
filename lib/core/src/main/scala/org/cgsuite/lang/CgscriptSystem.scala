@@ -21,6 +21,8 @@ import scala.tools.nsc.interpreter.{IMain, IR}
 
 object CgscriptSystem {
 
+  private[lang] val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(CgscriptSystem.getClass))
+
   val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Object" -> classOf[AnyRef],
@@ -180,8 +182,7 @@ object CgscriptSystem {
            |val __output = __object.left map { $extractorCode }
            |""".stripMargin
 
-      if (debug)
-        println(wrappedLine)
+      logger.debug(wrappedLine)
 
       interpreter interpret wrappedLine match {
         case IR.Error | IR.Incomplete =>
@@ -248,8 +249,8 @@ object CgscriptSystem {
   object DebugOutput extends java.io.OutputStream {
 
     override def write(b: Int): Unit = {
-      if (debug)
-        Console.out.write(b)
+      //if (debug)
+        //Console.out.write(b)
     }
 
   }

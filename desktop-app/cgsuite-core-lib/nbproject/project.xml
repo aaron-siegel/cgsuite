@@ -234,6 +234,7 @@
                 <package>org.cgsuite.dsl</package>
                 <package>org.cgsuite.exception</package>
                 <package>org.cgsuite.help</package>
+                <package>org.cgsuite.kernel</package>
                 <package>org.cgsuite.lang</package>
                 <package>org.cgsuite.lang.node</package>
                 <package>org.cgsuite.lang.parser</package>

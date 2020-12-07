@@ -1023,8 +1023,9 @@ class CgscriptClass(
 
     includeInCompilationUnit(context, classesCompiling, emitter)
 
-    if (CgscriptSystem.isDebug)
-      println(emitter.toStringWithLineNumbers)
+    emitter.toNumberedLines foreach { line =>
+      logger.debug(line)
+    }
 
     eval.interpret(emitter.toString)
 
