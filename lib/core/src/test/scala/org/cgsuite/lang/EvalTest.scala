@@ -29,6 +29,7 @@ class EvalTest extends CgscriptSpec {
       ("Semicolon suppress output", "0;", null),
       ("Semicolon doesn't suppress inside complex block", "begin 0; end", "0"),
       ("More complex semicolon suppression", "begin 0; end;", null),
+      ("Errors interrupt semicolon sequence", "0/0; 5", "!!/ by zero"),
       ("Variable assignment", "g := 7", "7"),
       ("Variable retrieval", "g", "7"),
       ("Variable assignment with var", "var h := 5", "5"),
