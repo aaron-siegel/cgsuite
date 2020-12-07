@@ -23,6 +23,14 @@
     <scala.version>2.12.12</scala.version>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>typesafe.com</id>
+      <name>Typesafe Repository</name>
+      <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.scala-lang</groupId>
@@ -78,6 +86,11 @@
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
       <version>0.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hyperic</groupId>
+      <artifactId>sigar</artifactId>
+      <version>1.6.4</version>
     </dependency>
 
     <!-- Test -->

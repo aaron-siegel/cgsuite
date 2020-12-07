@@ -7,6 +7,9 @@ system class TakeAndBreak(code as String) extends HeapRuleset
   // TODO This override shouldn't be necessary - system class inheritance is currently broken
   override def ComponentwiseOptions(heapSize as Integer) := HeapOptions(heapSize);
 
+  // TODO This override shouldn't be necessary - system class inheritance is currently broken
+  override def Substitution(heapSize as Integer) as Nimber := *(HeapNimValue(heapSize));
+
   external override def HeapOptions(heapSize as Integer) as Collection of List of Integer;
 
   external static def FromSubtractionSet(subtset as Collection of Object, codeDigit as String, allbut as Boolean ? false) as TakeAndBreak;

@@ -6,7 +6,7 @@ import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
-import org.cgsuite.exception.{EvalException, SyntaxException}
+import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.node.{AssignToNode, StatementSequenceNode}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
@@ -18,6 +18,7 @@ import scala.collection.immutable.NumericRange
 import scala.collection.mutable
 import scala.tools.nsc.Settings
 import scala.tools.nsc.interpreter.{IMain, IR}
+import scala.util.control.Breaks.{break, breakable}
 
 object CgscriptSystem {
 
@@ -127,8 +128,10 @@ object CgscriptSystem {
 
     interpreter = new IMain(settings, new PrintWriter(DebugOutput))
     domain = new ElaborationDomain(CgscriptPackage.root, None)
-    interpreter.interpret("import org.cgsuite.dsl._")
-    interpreter.interpret("import org.cgsuite.lang.CgscriptImplicits._")
+    interpreter.beQuietDuring {
+      interpreter.interpret("import org.cgsuite.dsl._")
+      interpreter.interpret("import org.cgsuite.lang.CgscriptImplicits._")
+    }
     evaluate("0") match {
       case scala.Right(exc) => throw exc
       case _ =>
@@ -145,14 +148,14 @@ object CgscriptSystem {
 
   def evaluate(str: String): Either[Output, Throwable] = {
 
-    val (elaboratedType, code) = {
+    val (elaboratedType, node, code) = {
       try {
         val tree = ParserUtil.parseScript(str)
         val node = StatementSequenceNode(tree.children.head, topLevel = true)
         val elaboratedType = node.ensureElaborated(domain)
         node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
         Thread.sleep(10)
-        (elaboratedType, generateScalaCodeWithVarDecls(node))
+        (elaboratedType, node, generateScalaCodeWithVarDecls(node))
       } catch {
         case exc: Throwable => exc.printStackTrace(); return scala.Right(exc)
       } finally {
@@ -161,47 +164,62 @@ object CgscriptSystem {
       }
     }
 
+    breakable {
+
+      for ((line, varNameOpt) <- code) {
+
+        val wrappedLine =
+          s"""val __object = try { scala.Left {
+             |
+             |$line
+             |
+             |} } catch {
+             |  case t: Throwable => scala.Right(t)
+             |}
+             |""".stripMargin
+
+        logger.debug(wrappedLine)
+
+        interpreter.beQuietDuring {
+          interpreter interpret wrappedLine match {
+            case IR.Error | IR.Incomplete =>
+              throw EvalException("Internal error.")
+            case IR.Success =>
+          }
+
+          val result = (interpreter valueOfTerm "__object").get.asInstanceOf[Either[Any, Throwable]]
+          if (result.isLeft) {
+            varNameOpt foreach { varName =>
+              interpreter interpret s"val $varName = __object.left.get"
+            }
+          } else {
+            break
+          }
+        }
+
+      }
+
+    }
+
     val extractorCode = {
-      if (elaboratedType.baseClass == CgscriptClass.NothingClass)
+      if (node.suppressOutput || elaboratedType.baseClass == CgscriptClass.NothingClass)
         "_ => org.cgsuite.output.EmptyOutput"
       else
         "result => Option(result) map { _.toOutput } getOrElse org.cgsuite.output.EmptyOutput"
     }
 
-    code foreach { case (line, varNameOpt) =>
+    val outputCode = s"val __output = __object.left map { $extractorCode }"
 
-      val wrappedLine =
-        s"""val __object = try { scala.Left {
-           |
-           |$line
-           |
-           |} } catch {
-           |  case t: Throwable => scala.Right(t)
-           |}
-           |
-           |val __output = __object.left map { $extractorCode }
-           |""".stripMargin
-
-      logger.debug(wrappedLine)
-
-      interpreter interpret wrappedLine match {
+    interpreter.beQuietDuring {
+      interpreter interpret outputCode match {
         case IR.Error | IR.Incomplete =>
           throw EvalException("Internal error.")
         case IR.Success =>
       }
 
-      // TODO Don't interpret subsequent lines if we get an error
-      val result = (interpreter valueOfTerm "__object").get.asInstanceOf[Either[Any, Throwable]]
-      if (result.isLeft) {
-        varNameOpt foreach { varName =>
-          interpreter interpret s"val $varName = __object.left.get"
-        }
-      }
-
+      val result = (interpreter valueOfTerm "__output").get.asInstanceOf[Either[Output, Throwable]]
+      result
     }
-
-    val result = (interpreter valueOfTerm "__output").get.asInstanceOf[Either[Output, Throwable]]
-    result
 
   }
 
