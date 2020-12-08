@@ -214,10 +214,15 @@ case class FunctionCallNode(
         // TODO Named parameter validation for constructor args
         val callSiteType = callSiteNode.ensureElaborated(domain)
         if (callSiteType.baseClass == CgscriptClass.Class) {
-          callSiteType.typeArguments.head.baseClass.constructor match {
-            case Some(constructor) => constructor.ensureElaborated()
-            case None =>
-              throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
+          val cls = callSiteType.typeArguments.head.baseClass
+          if (cls.isScript) {
+            cls.scriptBody.ensureElaborated()
+          } else {
+            cls.constructor match {
+              case Some(constructor) => constructor.ensureElaborated()
+              case None =>
+                throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
+            }
           }
         } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
           // TODO Validate args? Type-infer the procedure?

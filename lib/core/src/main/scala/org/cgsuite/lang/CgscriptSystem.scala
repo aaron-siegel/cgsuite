@@ -7,7 +7,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.node.{AssignToNode, StatementSequenceNode}
+import org.cgsuite.lang.node.{AssignToNode, EvalNode, FunctionCallNode, StatementSequenceNode}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
 import org.cgsuite.output._
@@ -229,7 +229,7 @@ object CgscriptSystem {
 
   }
 
-  def generateScalaCodeWithVarDecls(sequenceNode: StatementSequenceNode): Seq[(String, Option[String])] = {
+  def generateScalaCodeWithVarDecls(sequenceNode: StatementSequenceNode): Vector[(String, Option[String])] = {
 
     if (sequenceNode.statements.isEmpty) {
 
@@ -239,20 +239,29 @@ object CgscriptSystem {
 
       val context = new CompileContext
 
-      val regularOutput = sequenceNode.statements map {
+      val regularOutput = sequenceNode.statements flatMap {
+
+        // Recursively expand calls to scripts. This is a little janky, but should work for now
+        // TODO Scripts take awhile b/c they require N calls to the interpreter
+
+        case functionCallNode@FunctionCallNode(_, callSiteNode: EvalNode, _, _)
+          if functionCallNode.elaboratedMethod.isEmpty &&
+            callSiteNode.elaboratedType.baseClass == CgscriptClass.Class &&
+            callSiteNode.elaboratedType.typeArguments.head.baseClass.isScript =>
+          generateScalaCodeWithVarDecls(callSiteNode.elaboratedType.typeArguments.head.baseClass.scriptBody.node)
 
         case assignToNode: AssignToNode =>
           val emitter = new Emitter
           emitter.indent()
           val varName = assignToNode.idNode.id.name
           assignToNode.expr.emitScalaCode(context, emitter)
-          (emitter.toString, Some(varName))
+          Some((emitter.toString, Some(varName)))
 
         case node =>
           val emitter = new Emitter
           emitter.indent()
           node.emitScalaCode(context, emitter)
-          (emitter.toString, None)
+          Some((emitter.toString, None))
 
       }
 

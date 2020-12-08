@@ -245,7 +245,7 @@ class CgscriptClass(
     ensureDeclaredPhase1()
     if (!isTopClass)
       topClass.ensureDeclaredPhase2()     // I'm not 100% sure abt this pattern
-    assert(classInfoRef != null, this)
+    assert(isScript || classInfoRef != null, this)
     classInfoRef
   }
 
@@ -261,7 +261,7 @@ class CgscriptClass(
 
   def isScript = {
     ensureDeclaredPhase1()
-    false // TODO
+    scriptRef != null
   }
 
   def ancestors: Vector[CgscriptClass] = classInfo.ancestors
@@ -272,7 +272,7 @@ class CgscriptClass(
 
   def isMutable: Boolean = classInfo.modifiers.hasMutable
 
-  def isSingleton: Boolean = classInfo.modifiers.hasSingleton
+  def isSingleton: Boolean = !isScript && classInfo.modifiers.hasSingleton
 
   def isStatic: Boolean = classInfo.modifiers.hasStatic
 
@@ -280,7 +280,9 @@ class CgscriptClass(
 
   def constructor: Option[Constructor] = classInfo.constructor
 
-  def typeParameters: Vector[TypeVariable] = classInfo.typeParameters
+  def scriptBody: ScriptBody = scriptRef
+
+  def typeParameters: Vector[TypeVariable] = if (isScript) Vector.empty else classInfo.typeParameters
 
   def mostGenericType: ConcreteType = ConcreteType(this, typeParameters)
 
@@ -366,6 +368,7 @@ class CgscriptClass(
 
   private var stage: LifecycleStage.Value = LifecycleStage.New
   private var classInfoRef: ClassInfo = _
+  private var scriptRef: ScriptBody = _
 
   def ensureDeclared(): Unit = {
     ensureDeclaredPhase1()
@@ -411,7 +414,7 @@ class CgscriptClass(
       tree.getType match {
 
         case SCRIPT =>
-          val node = StatementSequenceNode(tree.children.head)
+          val node = StatementSequenceNode(tree.children.head, topLevel = true)
           logDebug(s"Script Node: $node")
           declareScriptPhase1(node)
 
@@ -448,14 +451,22 @@ class CgscriptClass(
 
   private def declarePhase2(): Unit = {
 
-    assert(classInfoRef != null, this)
+    if (classInfoRef != null) {
 
-    classInfoRef.supers foreach { _.ensureDeclaredPhase2() }
+      assert(classInfoRef != null, this)
 
-    // Declare nested classes
-    classInfoRef.declNode.nestedClassDeclarations foreach { decl =>
-      val id = decl.idNode.id
-      classInfoRef.localNestedClasses.find { _.id == id }.get.declareClassPhase1(decl)
+      classInfoRef.supers foreach { _.ensureDeclaredPhase2() }
+
+      // Declare nested classes
+      classInfoRef.declNode.nestedClassDeclarations foreach { decl =>
+        val id = decl.idNode.id
+        classInfoRef.localNestedClasses.find { _.id == id }.get.declareClassPhase1(decl)
+      }
+
+    } else {
+
+      assert(scriptBody != null, this)
+
     }
 
     //validateClass()
@@ -488,6 +499,9 @@ class CgscriptClass(
   }
 
   def ensureCompiled(eval: IMain): Unit = {
+
+    if (isScript)
+      return
 
     stage match {
 
@@ -586,6 +600,7 @@ class CgscriptClass(
   private def declareScriptPhase1(node: StatementSequenceNode): Unit = {
 
     classInfoRef = null
+    scriptRef = ScriptBody(node)
 
   }
 
@@ -594,6 +609,7 @@ class CgscriptClass(
     logger debug s"$logPrefix Declaring class."
 
     classInfoRef = new ClassInfo(node)
+    scriptRef = null
 
     logger debug s"$logPrefix Done declaring class (phase 1)."
 
@@ -1008,6 +1024,14 @@ class CgscriptClass(
           )
       }
 
+    }
+
+  }
+
+  case class ScriptBody(node: StatementSequenceNode) {
+
+    def ensureElaborated(): CgscriptType = {
+      node.ensureElaborated(new ElaborationDomain(pkg, None))
     }
 
   }

@@ -480,7 +480,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
         case Some(cls: CgscriptClass) if cls.isSingleton => CgscriptType(cls)
 
-        case Some(cls: CgscriptClass) => CgscriptType(CgscriptClass.Class, Vector(CgscriptType(cls)))
+        case Some(cls: CgscriptClass) => CgscriptType(CgscriptClass.Class, Vector(cls.mostGenericType))
 
         case None => throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
 

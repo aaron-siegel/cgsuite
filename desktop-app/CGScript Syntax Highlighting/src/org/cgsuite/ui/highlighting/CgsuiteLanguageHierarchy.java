@@ -32,7 +32,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
             AND, AS, BEGIN, BREAK, BY, CLASS_VAR, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ERROR,
             FALSE, FINALLY, FOR, FOREACH, FROM, IF, IN, IS, LISTOF, MAPOF,
             NOT, OF, OP, OR, PASS, RETURN, SETOF, SQUOTE, SUMOF, SUPER,
-            TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE, YIELD
+            TABLEOF, THEN, THIS, TO, TRUE, TRY, UNARY, VAR, WHERE, WHILE, YIELD
         });
         tokenTypes.put("DeclKeyword", new int[]
         {
@@ -41,7 +41,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         });
         tokenTypes.put("DeclId", new int[] { DECL_ID });
         tokenTypes.put("InfixOp", new int[] { INFIX_OP });
-        tokenTypes.put("Identifier", new int[] { IDENTIFIER });
+        tokenTypes.put("Identifier", new int[] { IDENTIFIER, TYPE_VARIABLE });
         tokenTypes.put("Number", new int[] { INTEGER });
         tokenTypes.put("String", new int[] { STRING });
         tokenTypes.put("Comment", new int[] { SL_COMMENT, ML_COMMENT });
