@@ -8,6 +8,8 @@ class GridRuleset extends Ruleset of Grid
 
   def Icons as List of Icon := error("Subclasses of `GridRuleset` must override `Icons`.");
 
-  override def MakeOutput(grid as Grid) := cgsuite.util.output.GridOutput(grid, Icons, EnclosingObject.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
+  var IconNames := listof(icon.Literal for icon in Icons);
+
+  override def MakeOutput(grid as Grid) := cgsuite.util.output.GridOutput(grid, IconNames, EnclosingObject.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
 
 end

@@ -41,7 +41,7 @@ object Grid {
 
 }
 
-class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] {
+class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] with Serializable {
 
   def apply(coord: Coordinates) = get(coord)
 

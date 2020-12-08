@@ -37,7 +37,7 @@ object GridOutput {
 
   private val icons = mutable.Map[String, Icon]()
 
-  def lookupIcon(name: String) = {
+  def lookupSystemIcon(name: String) = {
     icons.getOrElseUpdate(name, {
       val url =
         Option(classOf[GridOutput].getResource("resources/" + name + ".png")) orElse
@@ -53,15 +53,10 @@ object GridOutput {
 trait GenGridOutput extends AbstractOutput {
 
   def grid: Grid
-  def iconEnumValues: IndexedSeq[_]
+  def iconNames: IndexedSeq[String]
   def alt: String
 
-  /*
-  lazy val icons = iconEnumValues map {
-    case x: EnumObject => GridOutput.lookupIcon(x.literal)
-  }
-  */
-  val icons: Seq[Icon] = Seq()    // TODO Fix this
+  lazy val icons: IndexedSeq[Icon] = iconNames map GridOutput.lookupSystemIcon
   lazy val cellSize = GridOutput.iconDimensions(icons, forceSquares = false)
   lazy val size = GridOutput.imageDimensions(grid, cellSize, 1, 1)
 
@@ -96,8 +91,8 @@ trait GenGridOutput extends AbstractOutput {
   }
 }
 
-case class GridOutput(grid: Grid, iconEnumValues: IndexedSeq[_], alt: String) extends GenGridOutput
+case class GridOutput(grid: Grid, iconNames: IndexedSeq[String], alt: String) extends GenGridOutput
 
-case class StripOutput(strip: Strip, iconEnumValues: IndexedSeq[_], alt: String) extends GenGridOutput {
+case class StripOutput(strip: Strip, iconNames: IndexedSeq[String], alt: String) extends GenGridOutput {
   def grid = strip.toGrid
 }

@@ -128,7 +128,8 @@ object CgscriptSystem {
 
     interpreter = new IMain(settings, new PrintWriter(DebugOutput))
     domain = new ElaborationDomain(CgscriptPackage.root, None)
-    interpreter.beQuietDuring {
+
+    beQuietDuring {
       interpreter.interpret("import org.cgsuite.dsl._")
       interpreter.interpret("import org.cgsuite.lang.CgscriptImplicits._")
     }
@@ -137,6 +138,11 @@ object CgscriptSystem {
       case _ =>
     }
 
+  }
+
+  def beQuietDuring[T](body: => T): T = {
+    //body
+    interpreter.beQuietDuring(body)
   }
 
   def evaluateToOutput(str: String): Vector[Output] = {
@@ -180,7 +186,7 @@ object CgscriptSystem {
 
         logger.debug(wrappedLine)
 
-        interpreter.beQuietDuring {
+        beQuietDuring {
           interpreter interpret wrappedLine match {
             case IR.Error | IR.Incomplete =>
               throw EvalException("Internal error.")
@@ -210,7 +216,7 @@ object CgscriptSystem {
 
     val outputCode = s"val __output = __object.left map { $extractorCode }"
 
-    interpreter.beQuietDuring {
+    beQuietDuring {
       interpreter interpret outputCode match {
         case IR.Error | IR.Incomplete =>
           throw EvalException("Internal error.")

@@ -23,7 +23,7 @@ object Strip {
 
 }
 
-class Strip private[util] (private val values: Array[Byte]) {
+class Strip private[util] (private val values: Array[Byte]) extends Serializable {
 
   def length = values.length
 
