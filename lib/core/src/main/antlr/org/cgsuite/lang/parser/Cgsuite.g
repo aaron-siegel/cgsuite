@@ -465,13 +465,21 @@ assignmentToken
     ;
     
 functionExpression
-    : (procedureAntecedent RARROW) => procedureAntecedent RARROW^ functionExpression
+    : (functionAntecedent RARROW) => functionAntecedent RARROW^ functionExpression
     | asExpression
     ;
 
-procedureAntecedent
-    : IDENTIFIER asClause? -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER IDENTIFIER asClause?))
-    | LPAREN! methodParameterList RPAREN!
+functionAntecedent
+    : functionParameter -> ^(METHOD_PARAMETER_LIST functionParameter)
+    | LPAREN! functionParameterList RPAREN!
+    ;
+
+functionParameterList
+    : (functionParameter (COMMA functionParameter)*)? -> ^(METHOD_PARAMETER_LIST functionParameter*)
+    ;
+
+functionParameter
+    : IDENTIFIER asClause? -> ^(METHOD_PARAMETER IDENTIFIER asClause?)
     ;
 
 // TODO Is this the right precedence?

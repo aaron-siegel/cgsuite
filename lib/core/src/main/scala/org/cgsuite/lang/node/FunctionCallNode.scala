@@ -93,9 +93,6 @@ case class FunctionCallNode(
   argNames: Vector[Option[IdentifierNode]]
   ) extends EvalNode {
 
-  // TODO Are we being sufficiently careful that procedures have a stricter call syntax
-  // (no named or default parameters)?
-
   override val children = argNodes ++ argNames.flatten :+ callSiteNode
 
   var objectType: Option[CgscriptType] = _
@@ -144,8 +141,6 @@ case class FunctionCallNode(
 
     }
 
-    val argTypes = argNodes map { _.ensureElaborated(domain) }
-
     // Syntactic validation of arguments: check that named parameters appear
     // strictly after ordinary arguments
     val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
@@ -166,6 +161,8 @@ case class FunctionCallNode(
         )
       }
     }
+
+    val argTypes = argNodes map { _.ensureElaborated(domain) }
 
     val ordinaryArgumentTypes = argNodes.indices.toVector collect {
       case n if argNames(n).isEmpty => argTypes(n)
