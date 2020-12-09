@@ -262,7 +262,11 @@ case class FunctionCallNode(
                 case Some(name) => method.signatureProjection.types(method.method.parameters.indexWhere { _.name == name.id.name })
               }
             }
-            procedureNode.ensureElaborated(domain, Some(inferredType))
+            val substitutedType = objectType match {
+              case Some(typ) => inferredType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
+              case None => inferredType
+            }
+            procedureNode.ensureElaborated(domain, Some(substitutedType))
           case _ =>
         }
       }

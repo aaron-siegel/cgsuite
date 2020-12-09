@@ -374,8 +374,8 @@ methodParameterList
     ;
     
 methodParameter
-    : IDENTIFIER asClause? (questionClause | DOTDOTDOT)?
-      -> ^(METHOD_PARAMETER IDENTIFIER asClause? questionClause? DOTDOTDOT?)
+    : IDENTIFIER asClause (questionClause | DOTDOTDOT)?
+      -> ^(METHOD_PARAMETER IDENTIFIER asClause questionClause? DOTDOTDOT?)
     ;
 
 asClause

@@ -124,8 +124,9 @@ class EvalTest extends CgscriptSpec {
       ("Game specifier containing non-value game", "{game.grid.Domineering(\"..|..\")|-1}", "'{Domineering(\"..|..\")|-1}'"),
       ("Illegal object in game specifier", "{0|false}", "!!Invalid game specifier: objects must be of type `Game` or `SidedValue`"),
       ("Integer out of bounds", "{2^100|0}", "!!Integer out of bounds in game specifier (must satisfy -2147483648 <= n <= 2147483647)"),
-      ("Max options exceeded", "{1|*16384}", "!!Too many options for `CanonicalShortGame` (must have at most 16383 Left options and 16383 Right options)")
-      //("Explicit game ordinal sum", "'{*|*}':1", "^")
+      ("Max options exceeded", "{1|*16384}", "!!Too many options for `CanonicalShortGame` (must have at most 16383 Left options and 16383 Right options)"),
+      ("Explicit game", "'{*|*}'", "'{*|*}'"),
+      ("Explicit game ordinal sum", "('{*|*}':1).CanonicalForm", "^")
     ))
   }
 
@@ -343,6 +344,7 @@ class EvalTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("Procedure definition", "f := x as Integer -> x+1", "x as game.Integer -> x + 1"),
+      ("Procedure definition - illegal unspecified type", "x -> x+1", "!!The type of parameter `x` cannot be inferred and must be specified explicitly."),
       ("Procedure definition - duplicate var", "(x as Integer, x as Integer) -> x", "!!Duplicate symbol: `x`"),
       ("Procedure evaluation", "f(8)", "9"),
       ("Procedure scope 1", "y := 3; f := x as Integer -> x+y; f(5)", "8"),

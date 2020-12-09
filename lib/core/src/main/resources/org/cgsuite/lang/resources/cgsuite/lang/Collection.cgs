@@ -68,7 +68,7 @@ system class Collection of `T
     * The ~mex~ of a collection $c$ is defined to be the least
     * non-negative [[Integer]] that is not an element of $c$.
     */
-  external def Mex as Integer;
+//  external def Mex as Integer;
 
   /** A minimal element of this collection. If there are multiple
     * distinct minima, then the first such element (in iteration
