@@ -8,6 +8,8 @@ class StripRuleset extends Ruleset of Strip
 
   def Icons as List of Icon := error("Subclasses of `StripRuleset` must override `Icons`.");
 
-  override def MakeOutput(strip as Strip) := cgsuite.util.output.StripOutput(strip, Icons, EnclosingObject.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
+  var IconNames := listof(icon.Literal for icon in Icons);
+
+  override def MakeOutput(strip as Strip) := cgsuite.util.output.StripOutput(strip, IconNames, EnclosingObject.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
 
 end

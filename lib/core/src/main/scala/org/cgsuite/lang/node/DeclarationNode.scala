@@ -143,9 +143,7 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
           inferredTypes match {
             case Some(types) => types(n)
             case None =>
-              CgscriptType(CgscriptClass.Object)
-              // TODO Real error msg
-              //throw EvalException("Cannot infer type", tree)
+              throw EvalException(s"The type of parameter `${node.id.id.name}` cannot be inferred and must be specified explicitly.")
           }
         case Some(typeSpecNode) => typeSpecNode.toType(domain)
           /*

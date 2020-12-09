@@ -16,7 +16,7 @@ system class List of `T extends Collection of `T
 
   external def Sorted as List of `T;
 
-  external def Updated(index as Integer, value) as List of `T;
+  external def Updated(index as Integer, value as `T) as List of `T;
 
   external def MkOutput(sep as String) as Output;
 
