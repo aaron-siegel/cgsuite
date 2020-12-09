@@ -33,6 +33,8 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
   implicit def listToRichList[T](list: IndexedSeq[T]): RichList[T] = RichList(list)
 
+  implicit def mapToRichMap[K,V](map: Map[K,V]): RichMap[K,V] = RichMap(map)
+
   // TODO Output enrichment wouldn't be necessary if Output were recoded in scala
   implicit def outputToRichOutput(output: Output): RichOutput = RichOutput(output)
 
@@ -110,6 +112,8 @@ case class RichList[T](list: IndexedSeq[T]) {
 case class RichMap[K, V](map: Map[K, V]) {
 
   def _lookup(key: K) = map(key)
+
+  def entries: Iterable[(K, V)] = map
 
 }
 

@@ -32,6 +32,22 @@ object CollectionTestCase {
       tail = "[1,3,9,7,5]",
       toList = "[0,1,3,9,7,5]",
       toSet = "{0,1,3,5,7,9}"
+    ),
+
+    CollectionTestCase(
+      """{3 => "three", 5 => "five", 19 => "nineteen"}""",
+      """{3 => "three", 5 => "five", 19 => "nineteen"}""",
+      exists = "false",
+      forall = "false",
+      head = """3 => "three"""",
+      isEmpty = "false",
+      max = null,
+      mex = null,
+      min = null,
+      size = "3",
+      tail = """{5 => "five", 19 => "nineteen"}""",
+      toList = """[3 => "three",5 => "five",19 => "nineteen"]""",
+      toSet = """{3 => "three",5 => "five",19 => "nineteen"}"""
     )
 
     // TODO Add more
