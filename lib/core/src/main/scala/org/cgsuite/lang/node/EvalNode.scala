@@ -191,13 +191,21 @@ trait EvalNode extends Node {
       elaboratedTypeRef
   }
 
-  def ensureElaborated(domain: ElaborationDomain): CgscriptType = {
-    if (elaboratedTypeRef == null)
-      elaboratedTypeRef = elaborateImpl(domain)
+  def ensureElaborated(domain: ElaborationDomain, inferredTypeOpt: Option[CgscriptType] = None): CgscriptType = {
+    if (elaboratedTypeRef == null) {
+      elaboratedTypeRef = inferredTypeOpt match {
+        case Some(inferredType) => elaborateImplWithInferredType(domain, inferredType)
+        case None => elaborateImpl(domain)
+      }
+    }
     elaboratedTypeRef
   }
 
   def elaborateImpl(domain: ElaborationDomain): CgscriptType
+
+  def elaborateImplWithInferredType(domain: ElaborationDomain, inferredType: CgscriptType): CgscriptType = {
+    sys.error("not supported")
+  }
 
   def emitScalaCode(context: CompileContext, emitter: Emitter): Unit
 

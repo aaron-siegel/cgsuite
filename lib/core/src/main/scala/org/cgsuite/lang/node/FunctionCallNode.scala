@@ -162,7 +162,13 @@ case class FunctionCallNode(
       }
     }
 
-    val argTypes = argNodes map { _.ensureElaborated(domain) }
+    val argTypes = argNodes map {
+      // If it's a function with an unspecified parameter, then we don't elaborate yet --
+      // we'll try to do type-inference, then come back and elaborate later
+      case procedureNode: ProcedureNode if procedureNode.hasUnspecifiedTypes =>
+        ConcreteType(CgscriptClass.Procedure, Vector.fill(procedureNode.parametersNode.parameterNodes.size + 1)(UnspecifiedType))
+      case node => node.ensureElaborated(domain)
+    }
 
     val ordinaryArgumentTypes = argNodes.indices.toVector collect {
       case n if argNames(n).isEmpty => argTypes(n)
@@ -174,7 +180,7 @@ case class FunctionCallNode(
       }
     }.toMap
 
-    elaboratedMethodGroup match {
+    val elaboratedType = elaboratedMethodGroup match {
 
       case Some(methodGroup) =>
         // First try elaborating without implicits.
@@ -191,7 +197,14 @@ case class FunctionCallNode(
               case Some(typ) => methodType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
               case None => methodType
             }
-            // TODO This won't work for named parameters:
+            // Substitute for unbound type parameters. That is, figure out which parameter types have
+            // (necessarily unbound) type variables, and map them on to argument types. For example, if
+            // there is a parameter type (List of `T) that maps on to an argument type (List of Game),
+            // then it witnesses the substitution `T -> Game, and that substitution will be applied
+            // to the return type.
+            // (Example: consider MyMethod(x as List of `T) as `T
+            //           if myVar has type (List of Game), then MyMethod(myVar) will elaborate to (Game)
+            // TODO This won't work for named parameters
             substitutedType.substituteForUnboundTypeParameters(method.signatureProjection.types, argTypes)
 
           case None =>
@@ -200,23 +213,25 @@ case class FunctionCallNode(
             val method = methodGroup.resolveToMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType, withImplicits = true)
             elaboratedMethod = Some(method)
             method.ensureElaborated()
-          // Note we DON'T allow implicits on generics (currently); hence we don't do type substitution here.
-          // TODO This may fail in some edge cases where the same method has both generic parameters and non-generic
-          // implicits; more attention is needed here eventually.
+            // Note we DON'T allow implicits on generics (currently); hence we don't do type substitution here.
+            // TODO This may fail in some edge cases where the same method has both generic parameters and non-generic
+            // implicits; more attention is needed here eventually.
 
         }
 
       case None =>
-        elaboratedMethod = None
         // TODO Named parameter validation for constructor args
         val callSiteType = callSiteNode.ensureElaborated(domain)
         if (callSiteType.baseClass == CgscriptClass.Class) {
           val cls = callSiteType.typeArguments.head.baseClass
           if (cls.isScript) {
+            elaboratedMethod = None
             cls.scriptBody.ensureElaborated()
           } else {
             cls.constructor match {
-              case Some(constructor) => constructor.ensureElaborated()
+              case Some(constructor) =>
+                elaboratedMethod = None     // TODO
+                constructor.ensureElaborated()
               case None =>
                 throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
             }
@@ -224,15 +239,36 @@ case class FunctionCallNode(
         } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
           // TODO Validate args? Type-infer the procedure?
           isExpandableArgumentPattern = true
+          elaboratedMethod = None
           callSiteType.typeArguments.last
         } else {
           // Eval method
           isEval = true
           val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, ordinaryArgumentTypes, namedArgumentTypes, Some(callSiteType))
+          elaboratedMethod = None     // TODO
           evalMethod.ensureElaborated()
         }
 
     }
+
+    // Ok, now go back and elaborate any arguments that are functions with unspecified type parameters.
+    elaboratedMethod foreach { method =>
+      argNodes.zipWithIndex foreach { case (argNode, n) =>
+        argNode match {
+          case procedureNode: ProcedureNode if procedureNode.hasUnspecifiedTypes =>
+            val inferredType = {
+              argNames(n) match {
+                case None => method.signatureProjection.types(n)
+                case Some(name) => method.signatureProjection.types(method.method.parameters.indexWhere { _.name == name.id.name })
+              }
+            }
+            procedureNode.ensureElaborated(domain, Some(inferredType))
+          case _ =>
+        }
+      }
+    }
+
+    elaboratedType
 
   }
 

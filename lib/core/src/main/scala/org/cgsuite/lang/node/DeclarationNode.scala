@@ -135,18 +135,25 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
 
   override val children = parameterNodes
 
-  def toParameters(domain: ElaborationDomain): Vector[Parameter] = {
+  def toParameters(domain: ElaborationDomain, inferredTypes: Option[Vector[CgscriptType]] = None): Vector[Parameter] = {
 
-    parameterNodes.map { n =>
-      val ttype = n.typeSpecifier match {
-        case None => CgscriptType(CgscriptClass.Object)
+    parameterNodes.zipWithIndex map { case (node, n) =>
+      val ttype = node.typeSpecifier match {
+        case None =>
+          inferredTypes match {
+            case Some(types) => types(n)
+            case None =>
+              CgscriptType(CgscriptClass.Object)
+              // TODO Real error msg
+              //throw EvalException("Cannot infer type", tree)
+          }
         case Some(typeSpecNode) => typeSpecNode.toType(domain)
           /*
         case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
           throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
         }*/
       }
-      Parameter(n.id, ttype, n.defaultValue, n.isExpandable)
+      Parameter(node.id, ttype, node.defaultValue, node.isExpandable)
     }
 
   }

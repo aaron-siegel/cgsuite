@@ -20,6 +20,12 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
 
   def arity = parameters.length
 
+  val hasUnspecifiedTypes = parametersNode.parameterNodes exists { _.typeSpecifier.isEmpty }
+
+  if (hasUnspecifiedTypes && (parametersNode.parameterNodes exists { _.typeSpecifier.nonEmpty })) {
+    sys.error("Mixed parameter types (specified & unspecified) not currently supported")
+  }
+
   override val children = (parametersNode.parameterNodes flatMap { _.defaultValue }) :+ body
 
   override def toNodeStringPrec(enclosingPrecedence: Int) = {
@@ -34,7 +40,7 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
     s"$parametersString -> $bodyString"
   }
 
-  override def elaborateImpl(domain: ElaborationDomain) = {
+  override def elaborateImpl(domain: ElaborationDomain): ConcreteType = {
 
     parameters = parametersNode.toParameters(domain)
 
@@ -44,12 +50,45 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
         throw EvalException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
       }
       domain.insertId(param.id, param.paramType)
-      param.defaultValue foreach { _.ensureElaborated(domain) }
+      assert(param.defaultValue.isEmpty)
     }
     val resultType = body.ensureElaborated(domain)
     domain.popScope()
 
     ConcreteType(CgscriptClass.Procedure, (parameters map { _.paramType }) :+ resultType)
+
+  }
+
+  override def elaborateImplWithInferredType(domain: ElaborationDomain, inferredType: CgscriptType): ConcreteType = {
+
+    inferredType match {
+      case ConcreteType(CgscriptClass.Procedure, typeArguments, _) =>
+
+        assert(typeArguments.nonEmpty)      // Must have a result type
+
+        parameters = parametersNode.toParameters(domain, Some(typeArguments.dropRight(1)))
+
+        domain.pushScope()
+        parameters zip typeArguments foreach { case (param, inferredParamType) =>
+          if (domain.isDefinedInLocalScope(param.id)) {
+            throw EvalException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
+          }
+          domain.insertId(param.id, inferredParamType)
+          assert(param.defaultValue.isEmpty)
+        }
+        val resultType = body.ensureElaborated(domain)
+        domain.popScope()
+
+        val inferredResultType = typeArguments.last
+        if (resultType matches inferredResultType) {
+          ConcreteType(CgscriptClass.Procedure, typeArguments.dropRight(1) :+ resultType)
+        } else {
+          throw EvalException("need a good error msg")
+        }
+
+      case _ =>
+        sys.error("This should never happen (type match should have failed earlier)")
+    }
 
   }
 

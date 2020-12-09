@@ -163,15 +163,21 @@ case class ConcreteType(
 
   override def unboundTypeSubstitutions(instanceType: CgscriptType) = {
 
-    assert(instanceType.baseClass.ancestors contains baseClass, (this, instanceType))
+    if (instanceType == UnspecifiedType)
+      Map.empty
+    else {
 
-    // TODO We need to properly manifest derived types as their generified ancestors
-    assert(instanceType.typeArguments.length == typeArguments.length, (instanceType, typeArguments))
-    val nestedSubstitutions = typeArguments zip instanceType.typeArguments flatMap { case (thisTypeArgument, thatTypeArgument) =>
-      thisTypeArgument.unboundTypeSubstitutions(thatTypeArgument)
-    }
-    nestedSubstitutions.groupBy { _._1 } mapValues { substitutions =>
-      substitutions map { _._2 } reduce { _ join _ }
+      assert(instanceType.baseClass.ancestors contains baseClass, (this, instanceType))
+
+      // TODO We need to properly manifest derived types as their generified ancestors
+      assert(instanceType.typeArguments.length == typeArguments.length, (instanceType, typeArguments))
+      val nestedSubstitutions = typeArguments zip instanceType.typeArguments flatMap { case (thisTypeArgument, thatTypeArgument) =>
+        thisTypeArgument.unboundTypeSubstitutions(thatTypeArgument)
+      }
+      nestedSubstitutions.groupBy { _._1 } mapValues { substitutions =>
+        substitutions map { _._2 } reduce { _ join _ }
+      }
+
     }
 
   }
@@ -303,6 +309,32 @@ case class IntersectionType(components: Vector[ConcreteType]) extends CgscriptTy
   override def mentionedClasses = {
     components flatMap { _.mentionedClasses }
   }
+
+}
+
+case object UnspecifiedType extends CgscriptType {
+
+  override def qualifiedName = "?"
+
+  override def scalaTypeName = sys.error("attempt to convert unspecified type")
+
+  override def baseClass = sys.error("attempt to convert unspecified type")
+
+  override def typeArguments = sys.error("attempt to convert unspecified type")
+
+  override def substitute(variable: TypeVariable, substitution: CgscriptType) = this
+
+  override def allTypeVariables =  sys.error("attempt to convert unspecified type")
+
+  override def unboundTypeSubstitutions(instanceType: CgscriptType) = sys.error("attempt to convert unspecified type")
+
+  override def join(that: CgscriptType) = sys.error("attempt to convert unspecified type")
+
+  override def resolveMethod(id: Symbol, argTypes: Vector[CgscriptType]) = sys.error("attempt to convert unspecified type")
+
+  override def matches(that: CgscriptType) = true
+
+  override def mentionedClasses = sys.error("attempt to convert unspecified type")
 
 }
 
