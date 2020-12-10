@@ -20,6 +20,8 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def makeOptions(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): O
 
+  def substitution(g: G): G
+
   def shortcut(g: G): Option[T]
 
   def reduce(g: G, tt: TranspositionTable[T]): T = {
@@ -29,7 +31,7 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def reduce(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
-    val subst = g.substitution match {
+    val subst = substitution(g) match {
       case g: G => g
     }
     val decomp = subst.decomposition
@@ -110,6 +112,8 @@ private[core] case object CanonicalShortGameReducer extends PartizanLoopfreeRedu
 
   override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."
 
+  override def substitution(g: Game) = g.substitution
+
   override def shortcut(g: Game) = {
     g match {
       case a: CanonicalShortGame => Some(a)
@@ -129,6 +133,8 @@ private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] 
 
   override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `NimValue`."
 
+  override def substitution(g: ImpartialGame) = g.substitution
+
   override def shortcut(g: ImpartialGame) = {
     g match {
       case m: Nimber => Some(m.nimValue.intValue)
@@ -147,6 +153,8 @@ private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeRe
   override def construct(opts: Iterable[MisereCanonicalGame]) = MisereCanonicalGame(opts.toSeq : _*)
 
   override def loopyExceptionMsg = s"That is not a short game."
+
+  override def substitution(g: ImpartialGame) = g
 
   override def shortcut(g: ImpartialGame) = {
     g match {

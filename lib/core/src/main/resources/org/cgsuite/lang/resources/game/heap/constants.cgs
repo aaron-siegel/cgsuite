@@ -16,7 +16,7 @@ singleton class constants
 
   var MaundyCake := GenCutcake(TakeAndBreak("{2+}=.0"), TakeAndBreak("{2+}=.0"));
 
-  var Mem := GenMem(coord as Coordinates -> coord.Col <= coord.Row);
+  var Mem := GenMem((memory as Integer, j as Integer) -> memory <= j);
 
   var Nim := TakeAndBreak("0.[3]");
 
@@ -33,7 +33,7 @@ singleton class constants
 
   def Subtraction(subtset as Collection of Integer, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
 
-  def TakeAway(limit as DyadicRational) := GenMem(coord as Coordinates -> coord.Row <= coord.Col * limit);
+  def TakeAway(limit as DyadicRational) := GenMem((memory as Integer, j as Integer) -> j <= memory * limit);
 /*
   def TakeAway(arg) begin
     if arg is DyadicRational then GenMem((memory, j) -> j <= memory * arg)

@@ -51,7 +51,7 @@ system class ImpartialGame extends Game
     *
     *
     */
-  external def MisereCanonicalForm as Object;   // TODO
+  external def MisereCanonicalForm as game.misere.MisereCanonicalGame;
 
   external def MisereNimValue as Integer;
 

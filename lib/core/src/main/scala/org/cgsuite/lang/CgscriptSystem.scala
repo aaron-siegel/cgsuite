@@ -141,8 +141,8 @@ object CgscriptSystem {
   }
 
   def beQuietDuring[T](body: => T): T = {
-    //body
-    interpreter.beQuietDuring(body)
+    body
+    //interpreter.beQuietDuring(body)
   }
 
   def evaluateToOutput(str: String): Vector[Output] = {
@@ -282,8 +282,8 @@ object CgscriptSystem {
   object DebugOutput extends java.io.OutputStream {
 
     override def write(b: Int): Unit = {
-      //if (debug)
-        //Console.out.write(b)
+      if (debug)
+        Console.out.write(b)
     }
 
   }

@@ -1,11 +1,11 @@
 /*${cgsuite.banner}*/
 
-class GenMem(predicate as Procedure of (Coordinates, Boolean)) extends CoordinateRuleset
+class GenMem(predicate as Procedure of (Integer, Integer, Boolean)) extends CoordinateRuleset
 
   override def Options(coord as Coordinates) begin
     var n := coord.Row;
     var memory := coord.Col;
-    listof((n - j, j) for j from 1 to n where predicate((j, memory)))
+    listof((n - j, j) for j from 1 to n where predicate(memory, j))
   end
 
 end

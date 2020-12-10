@@ -138,6 +138,11 @@ case class ConcreteType(
     if ((baseName endsWith "IndexedSeq") || (baseName endsWith "Set") || (baseName endsWith "Iterable")) {
       val typeArgument = typeArguments.headOption map { _.scalaTypeName } getOrElse "Any"
       s"$baseName[$typeArgument]"
+    } else if (baseName endsWith "Procedure") {
+      // TODO This is another temporary hack (needs a better treatment of expandable type variables)
+      val parametersTypeString = typeArguments.dropRight(1) map { _.scalaTypeName } mkString ", "
+      val resultTypeString = typeArguments.last.scalaTypeName
+      s"$baseName[($parametersTypeString), $resultTypeString]"
     } else {
       val typeArgumentsBlock = {
         if (typeArguments.isEmpty)
