@@ -113,10 +113,7 @@ object CgscriptSystem {
   var domain: ElaborationDomain = _
   var debug: Boolean = _
 
-  setDebug(true)
-
-  if (debug)
-    LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.DEBUG)
+  setDebug(false)
 
   initialize()
 
@@ -141,8 +138,10 @@ object CgscriptSystem {
   }
 
   def beQuietDuring[T](body: => T): T = {
-    body
-    //interpreter.beQuietDuring(body)
+    if (debug)
+      body
+    else
+      interpreter.beQuietDuring(body)
   }
 
   def evaluateToOutput(str: String): Vector[Output] = {
@@ -275,6 +274,8 @@ object CgscriptSystem {
 
   def setDebug(debug: Boolean): Unit = {
     this.debug = debug
+    val logLevel = if (debug) Level.DEBUG else Level.INFO
+    LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(logLevel)
   }
 
   def isDebug: Boolean = debug

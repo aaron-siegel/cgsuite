@@ -20,11 +20,18 @@ object Repl {
 
   val welcome = s"Welcome to the CGSuite REPL, Version $version."
 
+  val debugMode = "Debug logging is enabled."
+
   val instruction = "Type CGScript expressions for evaluation, or :help for a list of REPL commands."
 
   def main(args: Array[String]) {
 
     println(welcome)
+
+    if (args.nonEmpty && args.head == "debug") {
+      CgscriptSystem.setDebug(true)
+      println(debugMode)
+    }
 
     val terminal = TerminalBuilder.builder().jansi(true).dumb(true).build()
     val lineReader = LineReaderBuilder.builder().expander(NullExpander).terminal(terminal).build()
