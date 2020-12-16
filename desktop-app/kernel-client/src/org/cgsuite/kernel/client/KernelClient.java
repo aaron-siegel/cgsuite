@@ -33,6 +33,8 @@ import scala.collection.JavaConverters;
  * @author asiegel
  */
 public class KernelClient {
+    
+    public final static int DEFAULT_HEAP_SIZE_MB = 1024;
 
     private final static Logger log = Logger.getLogger(KernelClient.class.getName());
 
