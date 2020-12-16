@@ -34,6 +34,8 @@ singleton class constants
   def Subtraction(subtset as Collection of Integer, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
 
   def TakeAway(limit as DyadicRational) := GenMem((memory as Integer, j as Integer) -> j <= memory * limit);
+  
+  def TakeAway(limit as Procedure of (Integer, Rational)) := GenMem((memory as Integer, j as Integer) -> j <= limit(memory));
 /*
   def TakeAway(arg) begin
     if arg is DyadicRational then GenMem((memory, j) -> j <= memory * arg)

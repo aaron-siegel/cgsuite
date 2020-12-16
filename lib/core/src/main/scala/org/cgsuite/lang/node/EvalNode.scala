@@ -805,7 +805,7 @@ case class CoordinatesNode(tree: Tree, coord1: EvalNode, coord2: EvalNode) exten
 
   }
 
-  override def toNodeStringPrec(enclosingPrecedence: Int) = ???
+  override def toNodeStringPrec(enclosingPrecedence: Int) = s"(${coord1.toNodeString}, ${coord2.toNodeString})"
 
 }
 

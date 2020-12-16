@@ -5,7 +5,7 @@ import java.util
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
-case class Procedure[T, R](arity: Integer, nodeString: String)(val fn: T => R) extends OutputTarget {
+case class Procedure[-T, +R](arity: Integer, nodeString: String)(val fn: T => R) extends OutputTarget {
 
   def apply(arguments: T): R = fn(arguments)
 
