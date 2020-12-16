@@ -6,6 +6,8 @@ singleton system class System
 
   external def Error(msg as String) as Nothing;
 
-  external def Print(obj) as Nothing;
+  external def Print(obj as Object) as Nothing;
+
+  external def PrintSystemInfo() as Nothing;
 
 end

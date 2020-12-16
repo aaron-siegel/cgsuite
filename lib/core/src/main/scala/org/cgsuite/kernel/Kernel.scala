@@ -7,8 +7,11 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.{Level, LoggerContext}
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.FileAppender
+import org.cgsuite.core.Game
 import org.cgsuite.kernel.Kernel.logger
-import org.cgsuite.lang.CgscriptSystem
+import org.cgsuite.lang.{CgscriptClasspath, CgscriptSystem, EvalUtil}
+import org.cgsuite.output.Output
+import org.cgsuite.util.UiHarness
 import org.slf4j.LoggerFactory
 
 object Kernel {
@@ -51,29 +54,28 @@ object Kernel {
 
 class Kernel() {
 
+  val out = new ObjectOutputStream(System.out)
+  out.flush()
+  logger.info("Output stream initialized.")
+  val in = new ObjectInputStream(System.in)
+  logger.info("Input stream initialized.")
+
   def start(): Unit = {
 
     logger.info("CGSuite Kernel is starting up.")
 
+    UiHarness.setUiHarness(KernelUiHarness)
     CgscriptSystem.evaluate("0")
 
     logger.info("Kernel initialized.")
-
-    val out = new ObjectOutputStream(System.out)
-    out.flush()
-    logger.info("Output stream initialized.")
-    val in = new ObjectInputStream(System.in)
-    logger.info("Input stream initialized.")
 
     while (true) {
 
       val request = in.readObject().asInstanceOf[KernelRequest]
       logger.info("Received request: " + request.input)
+      CgscriptClasspath.reloadModifiedFiles()
       val output = CgscriptSystem.evaluateToOutput(request.input)
-      val response = KernelResponse(output)
-      logger.info("Writing response: " + response)
-      out.writeObject(response)
-      out.flush()
+      send(output, isFinal = true)
 
     }
 
@@ -96,6 +98,26 @@ class Kernel() {
 
     }
 */
+  }
+
+  def send(output: Vector[Output], isFinal: Boolean): Unit = {
+
+    val response = KernelResponse(output, isFinal)
+    logger.info("Writing response: " + response)
+    out.writeObject(response)
+    out.flush()
+
+  }
+
+  object KernelUiHarness extends UiHarness {
+
+    override def createExplorer(g: Game) = ???
+
+    override def print(obj: AnyRef): Unit = {
+      val output = EvalUtil.objectToOutput(obj)
+      output foreach { out => send(output, isFinal = false) }
+    }
+
   }
 
 }

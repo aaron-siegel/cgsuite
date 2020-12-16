@@ -165,8 +165,12 @@ public class KernelClient {
                     log.info("Posting request to kernel: " + query.input);
                     out.writeObject(request);
                     out.flush();
-                    final KernelResponse response = (KernelResponse) in.readObject();
-                    SwingUtilities.invokeLater(() -> query.callback.receive(response));
+                    boolean done = false;
+                    while (!done) {
+                        final KernelResponse response = (KernelResponse) in.readObject();
+                        SwingUtilities.invokeLater(() -> query.callback.receive(response));
+                        done = response.isFinal();
+                    }
                 } catch (IOException | ClassNotFoundException exc) {
                     throw new RuntimeException(exc);
                 }
