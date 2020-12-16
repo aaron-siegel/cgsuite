@@ -208,7 +208,7 @@ class DeclTest extends CgscriptSpec {
     testPackage declareSubpackage "game"
     decl("test.game.GameWithHackedOptions",
       """class GameWithHackedOptions(args) extends Game
-        |  override def OptionsFor(player as Player) := args;
+        |  override def Options(player as Player) := args;
         |end
       """.stripMargin)
     decl("test.game.ImpartialGameWithHackedOptions",

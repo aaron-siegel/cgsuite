@@ -81,8 +81,8 @@ private[core] trait PartizanLoopfreeReducer[T] extends LoopfreeReducer[Game, (It
 
   override def makeOptions(g: Game, tt: TranspositionTable[T], visited: mutable.Set[Game]): (Iterable[T], Iterable[T]) = {
 
-    val lo = g optionsFor Left map { reduce(_, tt, visited) }
-    val ro = g optionsFor Right map { reduce(_, tt, visited) }
+    val lo = g options Left map { reduce(_, tt, visited) }
+    val ro = g options Right map { reduce(_, tt, visited) }
     (lo, ro)
 
   }

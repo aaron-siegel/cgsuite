@@ -59,6 +59,6 @@ system class ImpartialGame extends Game
 
   external def Options as Collection of ImpartialGame; // := error("Subclasses of `ImpartialGame` must override the `Options` method.");
 
-  //override def OptionsFor(player as Player) as Collection of ImpartialGame := Options;
+  //override def Options(player as Player) as Collection of ImpartialGame := Options;
 
 end

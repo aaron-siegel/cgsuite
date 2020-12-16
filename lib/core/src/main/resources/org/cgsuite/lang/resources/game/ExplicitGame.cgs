@@ -2,7 +2,7 @@
 
 system class ExplicitGame extends Game
 
-  override external def OptionsFor(player as Player) as List of Game;
+  override external def Options(player as Player) as List of Game;
 
   /*
   override def ToOutput := "'{" + LeftOptions.ToList.Sorted.MkOutput(",") + "|" +

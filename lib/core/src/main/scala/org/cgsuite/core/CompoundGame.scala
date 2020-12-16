@@ -13,20 +13,20 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
     }
   }
 
-  def optionsFor(player: Player) = compoundType match {
+  def options(player: Player) = compoundType match {
 
     case DisjunctiveSum =>
-      g.optionsFor(player).map { CompoundGame(DisjunctiveSum, _, h) } ++
-      h.optionsFor(player).map { CompoundGame(DisjunctiveSum, g, _) }
+      g.options(player).map { CompoundGame(DisjunctiveSum, _, h) } ++
+      h.options(player).map { CompoundGame(DisjunctiveSum, g, _) }
 
     case OrdinalSum =>
-      g.optionsFor(player) ++ h.optionsFor(player).map { CompoundGame(OrdinalSum, g, _) }
+      g.options(player) ++ h.options(player).map { CompoundGame(OrdinalSum, g, _) }
 
     case OrdinalProduct =>
       for {
         p <- Seq(Left, Right)
-        hOpt <- h.optionsFor(p)
-        gOpt <- (if (p == Left) g else -g).optionsFor(player)
+        hOpt <- h.options(p)
+        gOpt <- (if (p == Left) g else -g).options(player)
       } yield {
         CompoundGame(OrdinalProduct, g, hOpt) ordinalSum gOpt
       }
@@ -34,8 +34,8 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
     case ConwayProduct =>
       for {
         p <- Seq(Left, Right)
-        gOpt <- g.optionsFor(p)
-        hOpt <- h.optionsFor(if (player == Left) p else p.opponent)
+        gOpt <- g.options(p)
+        hOpt <- h.options(if (player == Left) p else p.opponent)
       } yield {
         CompoundGame(ConwayProduct, gOpt, h) + CompoundGame(ConwayProduct, g, hOpt) - CompoundGame(ConwayProduct, gOpt, hOpt)
       }

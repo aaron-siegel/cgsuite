@@ -40,7 +40,7 @@ trait Nimber extends ImpartialGame with Uptimal {
   def -(other: Nimber) = Nimber(intNimValue ^ other.intNimValue)
   override def unary_- = this
 
-  override def optionsFor(player: Player): Iterable[Nimber] = options
+  override def options(player: Player): Iterable[Nimber] = options
   override def options: Iterable[Nimber] = {
     (0 until intNimValue) map { Nimber(_) } toSet
   }

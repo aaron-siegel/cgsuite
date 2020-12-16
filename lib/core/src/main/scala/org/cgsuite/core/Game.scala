@@ -16,7 +16,7 @@ trait Game extends OutputTarget {
 
   def -(that: Game): Game = this + (-that)
 
-  def optionsFor(player: Player): Iterable[Game]
+  def options(player: Player): Iterable[Game]
 
   def canonicalForm: CanonicalShortGame = {
     canonicalForm(new TranspositionCache())
@@ -90,7 +90,7 @@ trait Game extends OutputTarget {
     val offsideNode = new LoopyGame.Node()
     nodeMap.put(this, (onsideNode, offsideNode))
     val depth = depthHint
-    optionsFor(Left) foreach { g =>
+    options(Left) foreach { g =>
       if (g.depthHint < depth) {
         val value = g.loopyGameValue(tt)
         onsideNode.addLeftEdge(value.onsideSimplified.loopyGame)
@@ -101,7 +101,7 @@ trait Game extends OutputTarget {
         offsideNode.addLeftEdge(offsideTarget)
       }
     }
-    optionsFor(Right) foreach { g =>
+    options(Right) foreach { g =>
       if (g.depthHint < depth) {
         val value = g.loopyGameValue(tt)
         onsideNode.addRightEdge(value.onsideSimplified.loopyGame)
@@ -126,13 +126,13 @@ trait Game extends OutputTarget {
 
   def gameName: String = getClass.getName
 
-  def leftOptions: Iterable[Game] = optionsFor(Left)
+  def leftOptions: Iterable[Game] = options(Left)
   
-  def rightOptions: Iterable[Game] = optionsFor(Right)
+  def rightOptions: Iterable[Game] = options(Right)
 
   def sensibleOptions(player: Player): Iterable[Game] = {
-    val allOptions = this optionsFor player
-    val canonicalOptions = canonicalForm optionsFor player
+    val allOptions = this options player
+    val canonicalOptions = canonicalForm options player
     canonicalOptions flatMap { k =>
       if (player == Left)
         allOptions find { _.canonicalForm >= k }
@@ -142,14 +142,14 @@ trait Game extends OutputTarget {
   }
 
   def sensibleLines(player: Player): Iterable[IndexedSeq[Game]] = {
-    val canonicalOptions = canonicalForm optionsFor player
+    val canonicalOptions = canonicalForm options player
     canonicalOptions map { k =>
       val thisCanonicalForm = canonicalForm
       val line = mutable.ArrayBuffer[Game]()
       var done = false
       var current = this
       while (!done) {
-        val options = current optionsFor player
+        val options = current options player
         val sensibleOption = {
           if (player == Left)
             options find { _.canonicalForm >= k }
@@ -160,7 +160,7 @@ trait Game extends OutputTarget {
         done = line.last.canonicalForm == k
         if (!done) {
           // Find a reverting option
-          val options = line.last optionsFor player.opponent
+          val options = line.last options player.opponent
           val revertingOption = {
             if (player == Left)
               options find { _.canonicalForm <= thisCanonicalForm }
