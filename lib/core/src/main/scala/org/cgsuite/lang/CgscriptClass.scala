@@ -1408,7 +1408,7 @@ class CgscriptClass(
     val locationMessage = s"in call to `$qualifiedName`"
     def parameterTypeList = CgscriptTypeList(parameters map { _.paramType })
 
-    var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
+    def asDefaultProjection: MethodProjection = MethodProjection(this, Vector.empty, parameterTypeList)
 
   }
 

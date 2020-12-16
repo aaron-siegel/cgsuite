@@ -43,7 +43,7 @@ class GenClobber(
     (if clob Contains grid[c+n*d] then [c+n*d] else [] end) as List of Coordinates
   end
 
-  override def CharMap := if clobbered.Values.Exists(x as Set of Integer -> x Contains 0) then ".xo#" else ".xo" end;
+  override def CharMap := if clobbered.Values.Exists(x -> x Contains 0) then ".xo#" else ".xo" end;
 
   override def Icons begin
   

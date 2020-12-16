@@ -103,22 +103,20 @@ case class FunctionCallNode(
 
   override def elaborateImpl(domain: ElaborationDomain) = {
 
-    val elaboratedMethodGroup = callSiteNode match {
+    val (elaboratedMethodGroup, objType) = callSiteNode match {
 
       case idNode: IdentifierNode =>
 
         idNode.resolveAsLocalMember(domain.cls) match {
           case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
             isElaboratedInLocalScope = true
-            objectType = None
-            Some(methodGroup)
-          case Some(_) => None
+            (Some(methodGroup), None)
+          case Some(_) => (None, None)
           case None => idNode.resolveAsPackageMember(domain.cls) match {
             case Some(methodGroup: CgscriptClass#MethodGroup) if !methodGroup.isPureAutoinvoke =>
               isElaboratedInLocalScope = false
-              objectType = None
-              Some(methodGroup)
-            case _ => None
+              (Some(methodGroup), None)
+            case _ => (None, None)
           }
         }
 
@@ -127,19 +125,19 @@ case class FunctionCallNode(
         dotNode.doResolutionForElaboration(domain) match {
           case methodGroup: CgscriptClass#MethodGroup if !methodGroup.isPureAutoinvoke =>
             isElaboratedInLocalScope = false
-            objectType = {
-              if (dotNode.isElaboratedAsPackage)
-                None
-              else
-                Some(dotNode.antecedent.ensureElaborated(domain))
-            }
-            Some(methodGroup)
-          case _ => None
+            if (dotNode.isElaboratedAsPackage)
+              (Some(methodGroup), None)
+            else
+              (Some(methodGroup), Some(dotNode.antecedent.ensureElaborated(domain)))
+          case _ =>
+            (None, None)
         }
 
-      case _ => None
+      case _ => (None, None)
 
     }
+
+    objectType = objType
 
     // Syntactic validation of arguments: check that named parameters appear
     // strictly after ordinary arguments
@@ -230,7 +228,7 @@ case class FunctionCallNode(
           } else {
             cls.constructor match {
               case Some(constructor) =>
-                elaboratedMethod = None     // TODO
+                elaboratedMethod = Some(constructor.asDefaultProjection)
                 constructor.ensureElaborated()
               case None =>
                 throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
@@ -309,6 +307,9 @@ case class FunctionCallNode(
     emitter print "("
 
     elaboratedMethod match {
+
+      case Some(method) if method.method.isInstanceOf[CgscriptClass#Constructor] =>
+        callSiteNode.emitScalaCode(context, emitter)
 
       case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" =>
         emitter print s"_instance.${method.scalaName}"

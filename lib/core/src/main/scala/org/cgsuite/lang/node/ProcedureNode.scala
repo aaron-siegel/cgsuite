@@ -94,6 +94,8 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
+    assert(parameters != null, tree.toStringTree)
+
     val paramNames = parameters map { _.id.name } mkString ", "
 
     val paramTypeNames = parameters map { _.paramType.scalaTypeName } mkString ", "
