@@ -551,7 +551,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
                 this.currentCapsule = capsule;
             }
 
-            analysisWorksheetPanel.postOutput(output);
+            //analysisWorksheetPanel.postOutput(output);
         }
         
         analysisScrollPane.validate();
@@ -580,7 +580,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         assert output != null;
         currentCapsule = null;
         
-        analysisWorksheetPanel.postOutput(output);
+        //analysisWorksheetPanel.postOutput(output);
         analysisScrollPane.validate();
     }
 

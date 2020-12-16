@@ -46,8 +46,6 @@ public final class WorksheetTopComponent extends TopComponent
         setToolTipText(NbBundle.getMessage(WorksheetTopComponent.class, "HINT_WorksheetTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
-        
-        UiHarness$.MODULE$.setUiHarness(new WorksheetUiHarness());
     }
 
     /** This method is called from within the constructor to
@@ -193,30 +191,6 @@ public final class WorksheetTopComponent extends TopComponent
     protected String preferredID()
     {
         return PREFERRED_ID;
-    }
-    
-    public void postOutput(List<Output> output)
-    {
-        worksheetPanel1.postOutput(output);
-    }
-    
-    class WorksheetUiHarness implements UiHarness {
-        
-        private ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
-        
-        @Override
-        public Explorer createExplorer(Game g)
-        {
-            return explorerService.newExplorer(g);
-        }
-
-        @Override
-        public void print(Object obj)
-        {
-            List<Output> output = JavaConverters.seqAsJavaList(EvalUtil.objectToOutput(obj));
-            postOutput(output);
-        }
-
     }
 
 }

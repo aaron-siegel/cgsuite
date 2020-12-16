@@ -22,14 +22,18 @@ import java.awt.event.KeyListener;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.cgsuite.kernel.KernelResponse;
+import org.cgsuite.kernel.client.KernelClient;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.OutputBox;
 import org.cgsuite.output.StyledTextOutput;
@@ -41,6 +45,7 @@ import org.openide.util.TaskListener;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import scala.Symbol;
+import scala.collection.JavaConverters;
 import scala.collection.mutable.AnyRefMap;
 
 
@@ -52,17 +57,16 @@ import scala.collection.mutable.AnyRefMap;
  * @author asiegel
  */
 public class WorksheetPanel extends JPanel
-    implements Scrollable, KeyListener, TaskListener, DocumentListener, CommandListener
+    implements Scrollable, KeyListener, DocumentListener, CommandListener
 {
-    final static AnyRefMap<Symbol,Object> WORKSPACE_VAR_MAP = new AnyRefMap<Symbol,Object>();
-    
+    private final static Logger log = Logger.getLogger(WorksheetPanel.class.getName());
+
     private boolean deferredAdvance;
     
     private InputPanel activeInputPanel;
-    
-    private CalculationCapsule currentCapsule;
-    private RequestProcessor.Task currentTask;
     private Box.Filler strut;
+    
+    private boolean isCalculating = false;
 
     private String commandHistoryPrefix;
     private int commandHistoryIndex;
@@ -70,7 +74,7 @@ public class WorksheetPanel extends JPanel
     
     private CommandHistoryBuffer buffer;
     
-    private Queue<List<Output>> outputQueue;
+    private Queue<KernelResponse> responseQueue;
     private OutputBox calculatingOutputBox;
     private boolean initialized = false;
 
@@ -78,7 +82,7 @@ public class WorksheetPanel extends JPanel
     public WorksheetPanel()
     {
         initComponents();
-        outputQueue = new LinkedBlockingQueue<List<Output>>();
+        responseQueue = new LinkedBlockingQueue<KernelResponse>();
         strut = (Box.Filler) Box.createHorizontalStrut(0);
         strut.setAlignmentX(LEFT_ALIGNMENT);
         add(strut);
@@ -129,14 +133,7 @@ public class WorksheetPanel extends JPanel
                 catch (InterruptedException exc)
                 {
                 }
-                SwingUtilities.invokeLater(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        updateFocus();
-                    }
-                });
+                SwingUtilities.invokeLater(() -> updateFocus());
             }
         };
         
@@ -265,6 +262,7 @@ public class WorksheetPanel extends JPanel
         activeInputPanel.getInputPane().removeKeyListener(this);
         activeInputPanel.getInputPane().getDocument().removeDocumentListener(this);
         activeInputPanel.deactivate();
+        activeInputPanel.requestFocusInWindow();
         activeInputPanel = null;
         commandHistoryPrefix = null;
         processCommand(source.getText());
@@ -273,88 +271,53 @@ public class WorksheetPanel extends JPanel
     private synchronized void processCommand(String command)
     {
         assert SwingUtilities.isEventDispatchThread();
-        
-        CalculationCapsule capsule = new CalculationCapsule(WORKSPACE_VAR_MAP, command);
-        RequestProcessor.Task task = capsule.createTask();
-        task.addTaskListener(this);
-        task.schedule(0);
-
-        boolean finished = false;
-
-        try
-        {
-            finished = task.waitFinished(25);
-        }
-        catch (InterruptedException exc)
-        {
-        }
-        
-        if (finished)
-        {
-            /*
-            if (capsule.isErrorOutput())
-                getToolkit().beep();
-            */
-            assert capsule.getOutput() != null;
-            
-            postOutput(capsule.getOutput());
-        }
-        else
-        {
-            this.currentCapsule = capsule;
-            this.currentTask = task;
-        }
-        
-        drainOutput();
-
-        if (finished)
-        {
-            advanceToNext();
-        }
-        else
-        {
-            this.requestFocusInWindow();
-        }
-    }
-
-    public synchronized void postOutput(List<Output> output)
-    {
-        outputQueue.add(output);
-        
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                drainOutput();
-            }
-        });
+        assert !isCalculating;
+        isCalculating = true;
+        log.info("Posting request to kernel: " + command);
+        KernelClient.client.postRequest(command, response -> receiveResponse(response));
+        Timer timer = new Timer(250, e -> drainOutput());
+        timer.setRepeats(false);
+        timer.start();
     }
     
+    private synchronized void receiveResponse(KernelResponse response)
+    {
+        log.info("Received response from kernel: " + response);
+        responseQueue.add(response);
+        SwingUtilities.invokeLater(() -> drainOutput());
+    }
+
     private synchronized void drainOutput()
     {
         assert SwingUtilities.isEventDispatchThread();
         
         boolean update = false;
         
-        while (!outputQueue.isEmpty())
+        while (!responseQueue.isEmpty())
         {
-            List<Output> outputs = outputQueue.remove();
-            for (Output output : outputs)
+            KernelResponse response = responseQueue.remove();
+            log.info("Processing response from kernel: " + response);
+            for (Output output : JavaConverters.seqAsJavaList(response.output()))
             {
                 add(makeOutputBox(output), calculatingOutputBox == null ? getComponentCount() : getComponentCount()-1);
                 update = true;
             }
+            if (response.isFinal())
+            {
+                assert responseQueue.isEmpty();
+                isCalculating = false;
+                advanceToNext();
+            }
         }
         
-        if (currentCapsule == null && calculatingOutputBox != null)
+        if (!isCalculating && calculatingOutputBox != null)
         {
             remove(calculatingOutputBox);
             calculatingOutputBox = null;
             initialized = true;
             update = true;
         }
-        else if (currentCapsule != null && calculatingOutputBox == null)
+        else if (isCalculating && calculatingOutputBox == null)
         {
             calculatingOutputBox = makeOutputBox(new StyledTextOutput(initialized ? "Calculating ..." : "Initializing ..."));
             add(calculatingOutputBox);
@@ -382,33 +345,6 @@ public class WorksheetPanel extends JPanel
     public void clear()
     {
         this.removeAll();
-    }
-
-    @Override
-    public synchronized void taskFinished(Task task)
-    {
-        if (currentCapsule == null)
-            return;
-        
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                List<Output> output = currentCapsule.getOutput();
-                assert output != null;
-                /*
-                if (currentCapsule.isErrorOutput())
-                    getToolkit().beep();
-                */
-                currentCapsule = null;
-                currentTask = null;
-
-                postOutput(output);
-                drainOutput();
-                advanceToNext();
-            }
-        });
     }
 
     private void advanceToNext()
@@ -489,10 +425,7 @@ public class WorksheetPanel extends JPanel
     
     public void killCalculation()
     {
-        if (currentTask != null)
-        {
-            currentTask.cancel();
-        }
+        // TODO
     }
     
     @Override
