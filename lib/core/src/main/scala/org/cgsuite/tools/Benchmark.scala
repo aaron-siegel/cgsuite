@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import org.cgsuite.lang.CgscriptSystem
+import org.hyperic.sigar.{Sigar, SigarException}
 import org.slf4j.LoggerFactory
 
 object Benchmark {
@@ -95,9 +96,11 @@ case class Benchmark(instances: Vector[Benchmark.Instance]) {
          |Java Version   : ${util.Properties.javaVersion}
          |Scala Version  : ${util.Properties.versionNumberString}
          |OS             : ${System.getProperty("os.name")} ${System.getProperty("os.version")}
+         |CPU vCores     : $cpuInfo
          |Heap Memory    : ${java.lang.Runtime.getRuntime.maxMemory >> 20} MB
          |""".stripMargin
 
+    Thread.sleep(50)
     emitln(systemInformation)
 
     instances foreach { instance =>
@@ -128,6 +131,21 @@ case class Benchmark(instances: Vector[Benchmark.Instance]) {
       println(str)
       if (!consoleOnly)
         writer.println(str)
+    }
+
+  }
+
+  lazy val sigar: Sigar = new Sigar
+
+  def cpuInfo: String = {
+
+    try {
+      val cpuInfo = sigar.getCpuInfoList
+      s"${cpuInfo.length} x ${cpuInfo.head.getMhz} MHz (${cpuInfo.head.getVendor} ${cpuInfo.head.getModel})"
+    } catch {
+      case exc: Throwable =>
+        exc.printStackTrace()
+        "<unavailable>"
     }
 
   }
