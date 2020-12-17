@@ -19,15 +19,7 @@ object EvalUtil extends LazyLogging {
     }
   }
 
-  def throwableToOutput(input: String, exc: Throwable): Vector[Output] = {
-    exc match {
-      case syntaxException: SyntaxException => syntaxExceptionToOutput(input, syntaxException, includeLine = true)
-      case cgsuiteException: CgsuiteException => cgsuiteExceptionToOutput(input, cgsuiteException)
-      case _ => defaultThrowableToOutput(input, exc)
-    }
-  }
-
-  private def syntaxExceptionToOutput(input: String, exc: SyntaxException, includeLine: Boolean): Vector[Output] = {
+  def syntaxExceptionToOutput(input: String, exc: SyntaxException, includeLine: Boolean): Vector[Output] = {
 
     val recog = exc.exc
     val line = recog.line
@@ -40,7 +32,7 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
+  def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
 
     val exceptionLimit: Int = {
       if (LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].getLevel == Level.DEBUG)
@@ -85,7 +77,7 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def defaultThrowableToOutput(input: String, exc: Throwable): Vector[Output] = {
+  def defaultThrowableToOutput(exc: Throwable): Vector[Output] = {
 
     val sw = new StringWriter
     exc.printStackTrace(new PrintWriter(sw))

@@ -5,14 +5,12 @@
  */
 package org.cgsuite.kernel.client;
 
-import org.cgsuite.kernel.KernelResponse;
-
 /**
  *
  * @author asiegel
  */
 public interface KernelCallback {
     
-    public void receive(KernelResponse response);
+    public void receive(KernelDispatch dispatch);
     
 }

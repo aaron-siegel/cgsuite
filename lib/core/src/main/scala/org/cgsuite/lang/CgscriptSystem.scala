@@ -6,7 +6,8 @@ import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
+import org.cgsuite.lang.EvalUtil.{cgsuiteExceptionToOutput, defaultThrowableToOutput, syntaxExceptionToOutput}
 import org.cgsuite.lang.node.{AssignToNode, EvalNode, FunctionCallNode, StatementSequenceNode}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
@@ -144,10 +145,17 @@ object CgscriptSystem {
       interpreter.beQuietDuring(body)
   }
 
-  def evaluateToOutput(str: String): Vector[Output] = {
+  // Evaluate the input string; then convert any exceptions of type
+  // SyntaxException or CgsuiteException into appropriate error messages.
+
+  def evaluateAndProcessExceptions(str: String): Either[Vector[Output], Throwable] = {
     evaluate(str) match {
-      case scala.Left(output) => Vector(output)
-      case scala.Right(exc) => EvalUtil.throwableToOutput(str, exc)
+      case scala.Left(output) => scala.Left(Vector(output))
+      case scala.Right(syntaxException: SyntaxException) =>
+        scala.Left(EvalUtil.syntaxExceptionToOutput(str, syntaxException, includeLine = true))
+      case scala.Right(cgsuiteException: CgsuiteException) =>
+        scala.Left(EvalUtil.cgsuiteExceptionToOutput(str, cgsuiteException))
+      case scala.Right(exc) => scala.Right(exc)
     }
   }
 
@@ -162,7 +170,7 @@ object CgscriptSystem {
         Thread.sleep(10)
         (elaboratedType, node, generateScalaCodeWithVarDecls(node))
       } catch {
-        case exc: Throwable => exc.printStackTrace(); return scala.Right(exc)
+        case exc: Throwable => return scala.Right(exc)
       } finally {
         // If an exception was thrown during elaboration, we need to clear out the scope stack
         domain.popScopeToTopLevel()

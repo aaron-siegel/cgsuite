@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.cgsuite.kernel.KernelResponse;
 import org.cgsuite.kernel.client.KernelClient;
+import org.cgsuite.kernel.client.KernelDispatch;
 import org.cgsuite.lang.CgscriptClasspath;
 import org.cgsuite.lang.CgscriptSystem;
 import org.cgsuite.lang.EvalUtil;
@@ -114,8 +115,8 @@ public class CalculationCapsule implements Runnable
         }
     }
     
-    synchronized void wakeup(KernelResponse response) {
-        output = JavaConverters.seqAsJavaList(response.output());
+    synchronized void wakeup(KernelDispatch dispatch) {
+        output = dispatch.getOutput();
         notifyAll();
     }
     

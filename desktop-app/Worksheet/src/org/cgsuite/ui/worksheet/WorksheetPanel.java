@@ -22,6 +22,7 @@ import java.awt.event.KeyListener;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JPanel;
@@ -34,6 +35,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.cgsuite.kernel.KernelResponse;
 import org.cgsuite.kernel.client.KernelClient;
+import org.cgsuite.kernel.client.KernelDispatch;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.OutputBox;
 import org.cgsuite.output.StyledTextOutput;
@@ -59,7 +61,7 @@ import scala.collection.mutable.AnyRefMap;
 public class WorksheetPanel extends JPanel
     implements Scrollable, KeyListener, DocumentListener, CommandListener
 {
-    private final static Logger log = Logger.getLogger(WorksheetPanel.class.getName());
+    private final static Logger logger = Logger.getLogger(WorksheetPanel.class.getName());
 
     private boolean deferredAdvance;
     
@@ -74,7 +76,7 @@ public class WorksheetPanel extends JPanel
     
     private CommandHistoryBuffer buffer;
     
-    private Queue<KernelResponse> responseQueue;
+    private Queue<KernelDispatch> responseQueue;
     private OutputBox calculatingOutputBox;
     private boolean initialized = false;
 
@@ -82,7 +84,7 @@ public class WorksheetPanel extends JPanel
     public WorksheetPanel()
     {
         initComponents();
-        responseQueue = new LinkedBlockingQueue<KernelResponse>();
+        responseQueue = new LinkedBlockingQueue<KernelDispatch>();
         strut = (Box.Filler) Box.createHorizontalStrut(0);
         strut.setAlignmentX(LEFT_ALIGNMENT);
         add(strut);
@@ -273,17 +275,17 @@ public class WorksheetPanel extends JPanel
         assert SwingUtilities.isEventDispatchThread();
         assert !isCalculating;
         isCalculating = true;
-        log.info("Posting request to kernel: " + command);
-        KernelClient.client.postRequest(command, response -> receiveResponse(response));
+        logger.log(Level.INFO, "Posting request to kernel: {0}", command);
+        KernelClient.client.postRequest(command, dispatch -> receiveDispatch(dispatch));
         Timer timer = new Timer(250, e -> drainOutput());
         timer.setRepeats(false);
         timer.start();
     }
     
-    private synchronized void receiveResponse(KernelResponse response)
+    private synchronized void receiveDispatch(KernelDispatch dispatch)
     {
-        log.info("Received response from kernel: " + response);
-        responseQueue.add(response);
+        logger.log(Level.INFO, "Received response from kernel: {0}", dispatch);
+        responseQueue.add(dispatch);
         SwingUtilities.invokeLater(() -> drainOutput());
     }
 
@@ -295,14 +297,14 @@ public class WorksheetPanel extends JPanel
         
         while (!responseQueue.isEmpty())
         {
-            KernelResponse response = responseQueue.remove();
-            log.info("Processing response from kernel: " + response);
-            for (Output output : JavaConverters.seqAsJavaList(response.output()))
+            KernelDispatch dispatch = responseQueue.remove();
+            logger.log(Level.INFO, "Processing response from kernel: {0}", dispatch);
+            for (Output output : dispatch.getOutput())
             {
                 add(makeOutputBox(output), calculatingOutputBox == null ? getComponentCount() : getComponentCount()-1);
                 update = true;
             }
-            if (response.isFinal())
+            if (dispatch.isFinal())
             {
                 assert responseQueue.isEmpty();
                 isCalculating = false;

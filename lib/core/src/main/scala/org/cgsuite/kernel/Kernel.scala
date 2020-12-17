@@ -74,7 +74,7 @@ class Kernel() {
       val request = in.readObject().asInstanceOf[KernelRequest]
       logger.info("Received request: " + request.input)
       CgscriptClasspath.reloadModifiedFiles()
-      val output = CgscriptSystem.evaluateToOutput(request.input)
+      val output = CgscriptSystem.evaluateAndProcessExceptions(request.input)
       send(output, isFinal = true)
 
     }
@@ -100,9 +100,9 @@ class Kernel() {
 */
   }
 
-  def send(output: Vector[Output], isFinal: Boolean): Unit = {
+  def send(output: Either[Vector[Output], Throwable], isFinal: Boolean): Unit = {
 
-    val response = KernelResponse(output, isFinal)
+    val response = KernelResponse(output.left.getOrElse(null), output.right.getOrElse(null), isFinal)
     logger.info("Writing response: " + response)
     out.writeObject(response)
     out.flush()
@@ -115,7 +115,7 @@ class Kernel() {
 
     override def print(obj: AnyRef): Unit = {
       val output = EvalUtil.objectToOutput(obj)
-      output foreach { out => send(output, isFinal = false) }
+      send(scala.Left(output), isFinal = false)
     }
 
   }
