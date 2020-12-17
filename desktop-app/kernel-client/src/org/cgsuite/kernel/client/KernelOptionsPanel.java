@@ -5,8 +5,6 @@
  */
 package org.cgsuite.kernel.client;
 
-import org.openide.util.NbPreferences;
-
 final class KernelOptionsPanel extends javax.swing.JPanel {
 
     private final KernelOptionsPanelController controller;
@@ -75,13 +73,11 @@ final class KernelOptionsPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        jSpinner1.setValue(Integer.valueOf(
-            NbPreferences.forModule(KernelOptionsPanel.class).get("heapSize", String.valueOf(KernelClient.DEFAULT_HEAP_SIZE_MB))
-        ));
+        jSpinner1.setValue(KernelOptions.getHeapSizeMb());
     }
 
     void store() {
-        NbPreferences.forModule(KernelOptionsPanel.class).put("heapSize", jSpinner1.getValue().toString());
+        KernelOptions.setHeapSizeMb((int) jSpinner1.getValue());
     }
 
     boolean valid() {

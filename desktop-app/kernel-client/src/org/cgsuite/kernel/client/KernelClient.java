@@ -12,20 +12,14 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.cgsuite.kernel.KernelRequest;
 import org.cgsuite.kernel.KernelResponse;
 import org.cgsuite.output.Output;
+import org.cgsuite.output.StyledTextOutput;
 import scala.collection.JavaConverters;
 
 /**
@@ -33,8 +27,6 @@ import scala.collection.JavaConverters;
  * @author asiegel
  */
 public class KernelClient {
-    
-    public final static int DEFAULT_HEAP_SIZE_MB = 1024;
 
     private final static Logger log = Logger.getLogger(KernelClient.class.getName());
 
@@ -47,18 +39,66 @@ public class KernelClient {
     }
     
     Process kernelProcess;
+    Thread kernelDispatchThread;
     Socket socket;
     ObjectInputStream in;
     ObjectOutputStream out;
     
-    final Object lock = new Object();
+    boolean resetting = false;
     LinkedList<KernelQuery> queue = new LinkedList<>();
     
     public KernelClient() {
+       
+        startKernel();
         
+    }
+    
+    public synchronized void postRequest(String input, KernelCallback callback) {
+        
+        queue.add(new KernelQuery(input, callback));
+        notifyAll();
+        
+    }
+    
+    synchronized KernelQuery peekQuery() {
+        
+        return queue.peek();
+        
+    }
+    
+    synchronized KernelQuery popQuery() {
+        
+        return queue.pop();
+        
+    }
+    
+    synchronized boolean isQueryAvailable() {
+        
+        return !queue.isEmpty();
+        
+    }
+    
+    synchronized KernelQuery waitForQuery() throws InterruptedException {
+        
+        if (queue.isEmpty()) {
+            try {
+                wait();
+            } catch (InterruptedException exc) {
+            }
+        }
+
+        return queue.peek();
+        
+    }
+    
+    void startKernel() {
+         
         try {
+            
             String[] command = new String[] {
                 System.getProperty("java.home") + "/bin/java",
+                "-Xmx" + KernelOptions.getHeapSizeMb() + "m",
+                "-Xss4m",
                 "-cp",
                 "build/cluster/modules/ext/cgsuite-core.jar",
                 "org.cgsuite.kernel.Kernel"
@@ -110,32 +150,32 @@ public class KernelClient {
             throw new RuntimeException(exc);
         }
         
-        log.info("Hello A");
-        new Thread(new KernelDispatcher()).start();
-        log.info("Hello B");
-                
-    }
-    
-    public synchronized void postRequest(String input, KernelCallback callback) {
-        
-        queue.add(new KernelQuery(input, callback));
-        log.info("Hello there");
-        notifyAll();
-        
-    }
-    
-    synchronized KernelQuery popQuery() {
-        
-        log.info("popQuery: " + queue);
-        if (queue.isEmpty()) {
-            try {
-                wait();
-            } catch (InterruptedException exc) {
-            }
-        }
+        kernelDispatchThread = new Thread(new KernelDispatcher());
+        kernelDispatchThread.start();
 
-        assert(!queue.isEmpty());
-        return queue.pop();
+    }
+    
+    public void resetKernel() {
+        
+        log.info("Resetting kernel.");
+        resetting = true;
+        try {
+            log.info("Destroying kernel process ...");
+            kernelProcess.destroyForcibly().waitFor();
+        } catch (InterruptedException exc)
+        {
+        }
+        try {
+            log.info("Waiting for dispatch thread to finish ...");
+            synchronized (this) {
+                notifyAll();
+            }
+            kernelDispatchThread.join();
+        } catch (InterruptedException exc)
+        {
+        }
+        resetting = false;
+        startKernel();
         
     }
     
@@ -155,26 +195,44 @@ public class KernelClient {
 
         @Override
         public void run() {
-
-            while (true) {
-                
-                final KernelQuery query = popQuery();
+            
+            while (!resetting) {
 
                 try {
-                    KernelRequest request = new KernelRequest(query.input);
-                    log.info("Posting request to kernel: " + query.input);
-                    out.writeObject(request);
-                    out.flush();
-                    boolean done = false;
-                    while (!done) {
-                        final KernelResponse response = (KernelResponse) in.readObject();
-                        SwingUtilities.invokeLater(() -> query.callback.receive(response));
-                        done = response.isFinal();
+                    final KernelQuery query = waitForQuery();
+                    if (!resetting) {
+                        assert(query != null);
+                        KernelRequest request = new KernelRequest(query.input);
+                        log.info("Posting request to kernel: " + query.input);
+                        out.writeObject(request);
+                        out.flush();
+                        boolean done = false;
+                        while (!done) {
+                            final KernelResponse response = (KernelResponse) in.readObject();
+                            SwingUtilities.invokeLater(() -> query.callback.receive(response));
+                            done = response.isFinal();
+                        }
+                        popQuery();
                     }
-                } catch (IOException | ClassNotFoundException exc) {
-                    throw new RuntimeException(exc);
+                } catch (IOException | ClassNotFoundException | InterruptedException exc) {
+                    if (!resetting) {
+                        throw new RuntimeException(exc);
+                    }
                 }
                 
+            }
+            
+            log.info("Kernel dispatch thread received reset; shutting down.");
+            
+            final KernelResponse resetResponse = KernelResponse.apply(
+                JavaConverters.collectionAsScalaIterable(
+                        Collections.<Output>singleton(new StyledTextOutput("Kernel was reset."))
+                ).toVector(),
+                true
+            );
+            while (isQueryAvailable()) {
+                final KernelQuery query = popQuery();
+                SwingUtilities.invokeLater(() -> query.callback.receive(resetResponse));
             }
             
         }
