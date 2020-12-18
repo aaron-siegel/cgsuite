@@ -320,9 +320,46 @@ case class FunctionCallNode(
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
+    // There are three possibilities for the call site:
+    // (i) A local method (just a name);
+    // (ii) A method call on an evaluated expression; or
+    // (iii) Just an evaluated expression.
+
+    val (objNode, methodName) = elaboratedMethod match {
+
+      case Some(method) if method.method.isInstanceOf[CgscriptClass#Constructor] =>
+        (Some(callSiteNode), None)
+
+      case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" =>
+        (None, Some(s"_instance.${method.scalaName}"))
+
+      case Some(method) if isElaboratedInLocalScope =>
+        (None, Some(method.scalaName))
+
+      case Some(method) if objectType.isEmpty =>
+        (None, Some(s"${method.declaringClass.scalaClassdefName}.${method.scalaName}"))
+
+      case Some(method) =>
+        (Some(callSiteNode.asInstanceOf[DotNode].antecedent), Some(method.scalaName))
+
+      case _ if isEval =>
+        (Some(callSiteNode), Some("eval"))
+
+      case _ =>
+        (Some(callSiteNode), None)
+
+    }
+
     emitter print "{ "
 
+    val objVarOpt = objNode map { _ => context.newTempId() }
     val argVars = argNodes map { _ => context.newTempId() }
+
+    objNode foreach { node =>
+      emitter print s"val ${objVarOpt.get} = "
+      node.emitScalaCode(context, emitter)
+      emitter print "; "
+    }
 
     for (i <- argNodes.indices) {
       // TODO Explicit typing only works for methods currently; it's needed for function calls too
@@ -330,9 +367,9 @@ case class FunctionCallNode(
         // Bit of a hack currently; we'd like to get fully resolved parameter types in all cases
         case Some(paramTypes) if paramTypes(i).allTypeVariables.isEmpty =>
           val scalaTypeName = paramTypes(i).scalaTypeName
-          emitter print s"var ${argVars(i)}: $scalaTypeName = "
+          emitter print s"val ${argVars(i)}: $scalaTypeName = "
         case _ =>
-          emitter print s"var ${argVars(i)} = "
+          emitter print s"val ${argVars(i)} = "
       }
       argNodes(i).emitScalaCode(context, emitter)
       emitter print "; "
@@ -341,31 +378,13 @@ case class FunctionCallNode(
     if (context.generateStackTraceInfo)
       emitter.printTry()
 
-    elaboratedMethod match {
-
-      case Some(method) if method.method.isInstanceOf[CgscriptClass#Constructor] =>
-        callSiteNode.emitScalaCode(context, emitter)
-
-      case Some(method) if isElaboratedInLocalScope && method.isExternal && method.methodName != "EnclosingObject" =>
-        emitter print s"_instance.${method.scalaName}"
-
-      case Some(method) if isElaboratedInLocalScope =>
-        emitter print method.scalaName
-
-      case Some(method) if objectType.isEmpty =>
-        emitter print (method.declaringClass.scalaClassdefName + "." + method.scalaName)
-
-      case Some(method) =>
-        callSiteNode.asInstanceOf[DotNode].antecedent.emitScalaCode(context, emitter)
-        emitter print ("." + method.scalaName)
-
-      case _ if isEval =>
-        callSiteNode.emitScalaCode(context, emitter)
-        emitter print ".eval"
-
-      case _ =>
-        callSiteNode.emitScalaCode(context, emitter)
-
+    emitter print {
+      (objVarOpt, methodName) match {
+        case (Some(objVar), Some(name)) => s"$objVar.$name"
+        case (Some(objVar), None) => objVar
+        case (None, Some(name)) => name
+        case (None, None) => sys.error("can't happen")
+      }
     }
 
     emitter print "("

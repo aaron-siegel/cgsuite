@@ -7,7 +7,6 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
-import org.cgsuite.lang.EvalUtil.{cgsuiteExceptionToOutput, defaultThrowableToOutput, syntaxExceptionToOutput}
 import org.cgsuite.lang.node.{AssignToNode, EvalNode, FunctionCallNode, StatementSequenceNode}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.parser.RichTree.treeToRichTree

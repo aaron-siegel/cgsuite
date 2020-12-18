@@ -544,7 +544,7 @@ addExpr
     ;
 
 binaryPlusMinus
-    : PLUSMINUS sidleExpr -> ^(PLUS ^(PLUSMINUS sidleExpr))
+    : PLUSMINUS sidleExpr -> ^(PLUS[$PLUSMINUS] ^(PLUSMINUS sidleExpr))
     ;
 
 sidleExpr

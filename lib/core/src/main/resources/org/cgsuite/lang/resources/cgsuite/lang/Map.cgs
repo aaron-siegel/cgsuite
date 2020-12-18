@@ -4,7 +4,7 @@ system class Map of (`K, `V) extends Collection of MapEntry of (`K, `V)
 
   external def op[](key as `K) as `V;
 
-  external def ContainsKey(key as Object) as Boolean;
+  external def ContainsKey(key as `K) as Boolean;
 
   external def Keys as Set of `K;
 
