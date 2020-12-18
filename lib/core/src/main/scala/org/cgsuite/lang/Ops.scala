@@ -7,13 +7,13 @@ object Ops {
 
   // Unary
 
-  val Pos = PrefixUnOp("unary+", OperatorPrecedence.Neg, "+", Some { "+" + _ })
-  val Neg = PrefixUnOp("unary-", OperatorPrecedence.Neg, "-", Some { "-" + _ })
-  val PlusMinus = MethodUnOp("unary+-", OperatorPrecedence.Neg, "switch", Some { "+-" + _ })
-  val Not = PrefixUnOp("not", OperatorPrecedence.Not, "!")
-  val MakeNimber = MethodUnOp("unary*", OperatorPrecedence.Nim, "toNimber", Some { "*" + _ })
-  val MakeUpMultiple = MethodUnOp("unary^", OperatorPrecedence.Nim, "toUp", Some { "^" + _ })
-  val MakeDownMultiple = MethodUnOp("unaryv", OperatorPrecedence.Nim, "toDown", Some { "v" + _ })
+  val Pos = PrefixUnOp("unary+", OperatorPrecedence.Neg, "+")
+  val Neg = PrefixUnOp("unary-", OperatorPrecedence.Neg, "-")
+  val PlusMinus = MethodUnOp("unary+-", OperatorPrecedence.Neg, "switch")
+  val Not = PrefixUnOp("not", OperatorPrecedence.Not, "!", Some { a => s"not $a"})
+  val MakeNimber = MethodUnOp("unary*", OperatorPrecedence.Nim, "toNimber")
+  val MakeUpMultiple = MethodUnOp("unary^", OperatorPrecedence.Nim, "toUp")
+  val MakeDownMultiple = MethodUnOp("unaryv", OperatorPrecedence.Nim, "toDown")
 
   // Binary
 
@@ -62,46 +62,48 @@ object OperatorPrecedence {
 
 }
 
-trait UnOp {
-
-  def name: String
-
-  def precedence: Int
-
-  def toOpStringOpt: Option[String => String]
-
-  def emitScalaCode(context: CompileContext, emitter: Emitter, operand: EvalNode)
+case class UnOp(name: String, precedence: Int, toOpStringOpt: Option[String => String])(scalaCode: String => String) {
 
   val id = Symbol(name)
+
+  val shortName = name stripPrefix "unary"
 
   val toOpString: String => String = { op =>
     toOpStringOpt match {
       case Some(fn) => fn(op)
-      case None => s"$name $op"
+      case None => s"$shortName$op"
     }
   }
 
-}
+  def emitScalaCode(context: CompileContext, emitter: Emitter, operand: EvalNode, opToken: Token): Unit = {
 
-case class PrefixUnOp(name: String, precedence: Int, scalaOp: String, toOpStringOpt: Option[String => String] = None) extends UnOp {
-
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand: EvalNode): Unit = {
-    emitter print "("
-    emitter print scalaOp
+    val tmp = context.newTempId()
+    emitter print s"{ val $tmp = ("
     operand.emitScalaCode(context, emitter)
-    emitter print ")"
+    emitter print "); "
+    if (context.generateStackTraceInfo)
+      emitter.printTry()
+    emitter print scalaCode(tmp)
+    if (context.generateStackTraceInfo)
+      emitter.printCatch(opToken)
+    emitter print " }"
+
   }
 
 }
 
-case class MethodUnOp(name: String, precedence: Int, scalaMethod: String, toOpStringOpt: Option[String => String] = None) extends UnOp {
+object PrefixUnOp {
 
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand: EvalNode): Unit = {
-    emitter print "("
-    operand.emitScalaCode(context, emitter)
-    emitter print "."
-    emitter print scalaMethod
-    emitter print ")"
+  def apply(name: String, precedence: Int, scalaOp: String, toOpStringOpt: Option[String => String] = None): UnOp = {
+    UnOp(name, precedence, toOpStringOpt) { a => s"$scalaOp$a" }
+  }
+
+}
+
+object MethodUnOp {
+
+  def apply(name: String, precedence: Int, scalaMethod: String, toOpStringOpt: Option[String => String] = None): UnOp = {
+    UnOp(name, precedence, toOpStringOpt) { a => s"$a.$scalaMethod" }
   }
 
 }

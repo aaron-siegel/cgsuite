@@ -702,7 +702,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
     emitter print "("
-    op.emitScalaCode(context, emitter, operand)
+    op.emitScalaCode(context, emitter, operand, tree.token)
     emitter print ")"
   }
 
