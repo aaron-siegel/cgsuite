@@ -507,6 +507,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
       case Some(methodGroup: CgscriptClass#MethodGroup) =>
         assert(methodGroup.autoinvokeMethod.isDefined, "should have been caught during elaboration")
         val method = methodGroup.autoinvokeMethod.get.method
+        emitter print "{ "
         if (context.generateStackTraceInfo)
           emitter.printTry()
         if (method.isExternal && method.methodName != "EnclosingObject")
@@ -515,6 +516,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
           emitter print method.scalaName
         if (context.generateStackTraceInfo)
           emitter.printCatch(tree.token)
+        emitter print " }"
 
       case Some(variable: CgscriptClass#Var) =>
         if (isElaboratedInLocalScope)

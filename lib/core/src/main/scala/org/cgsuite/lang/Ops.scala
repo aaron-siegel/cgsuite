@@ -2,124 +2,49 @@ package org.cgsuite.lang
 
 import org.antlr.runtime.Token
 import org.cgsuite.lang.node.EvalNode
-import org.cgsuite.output.{Output, StyledTextOutput}
 
 object Ops {
 
+  // Unary
+
   val Pos = PrefixUnOp("unary+", OperatorPrecedence.Neg, "+", Some { "+" + _ })
-
   val Neg = PrefixUnOp("unary-", OperatorPrecedence.Neg, "-", Some { "-" + _ })
-
   val PlusMinus = MethodUnOp("unary+-", OperatorPrecedence.Neg, "switch", Some { "+-" + _ })
-
-  val Plus = InfixBinOp("+", OperatorPrecedence.Plus, "+")
-
-  def toOutput(str: String) = new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
-
-  def outputSum(o1: Output, o2: Output) = {
-    val result = new StyledTextOutput()
-    result.appendOutput(o1)
-    result.appendOutput(o2)
-    result
-  }
-
-  val Minus = InfixBinOp("-", OperatorPrecedence.Plus, "-")
-
-  val OrdinalPlus = MethodBinOp(":", OperatorPrecedence.OrdinalSum, "ordinalSum")
-
-  val Times = InfixBinOp("*", OperatorPrecedence.Mult, "*")
-
-  val Div = InfixBinOp("/", OperatorPrecedence.Mult, "/")
-
-  val Mod = InfixBinOp("%", OperatorPrecedence.Mult, "%")
-
-  val Exp = MethodBinOp("^", OperatorPrecedence.Exp, "exp")
-
-  val Equals = InfixBinOp("==", OperatorPrecedence.Relational, "==")
-
-  val Neq = InfixBinOp("!=", OperatorPrecedence.Relational, "!=")
-
-  val Leq = InfixBinOp("<=", OperatorPrecedence.Relational, "<=")
-  val Geq = CustomBinOp(">=", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    Leq.emitScalaCode(context, emitter, operand2, operand1, opToken)
-  }
-  val Lt = CustomBinOp("<", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(("
-    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print ") && !("
-    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val Gt = CustomBinOp(">", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print ") && ("
-    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val Confused = CustomBinOp("<>", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print ") && !("
-    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val LConfused = CustomBinOp("<|", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(!("
-    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val GConfused = CustomBinOp("|>", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val RefEquals = CustomBinOp("===", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(("
-    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print ") && ("
-    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val RefNeq = CustomBinOp("!==", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print ") || !("
-    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
-    emitter print "))"
-  }
-  val Compare = InfixBinOp("<=>", OperatorPrecedence.Relational, "???")
-
   val Not = PrefixUnOp("not", OperatorPrecedence.Not, "!")
-  val And = InfixBinOp("and", OperatorPrecedence.And, "&&")
-  val Or = InfixBinOp("or", OperatorPrecedence.Or, "||")
-
-  val Is = InfixBinOp("is", OperatorPrecedence.Is, "???")
-
   val MakeNimber = MethodUnOp("unary*", OperatorPrecedence.Nim, "toNimber", Some { "*" + _ })
-
   val MakeUpMultiple = MethodUnOp("unary^", OperatorPrecedence.Nim, "toUp", Some { "^" + _ })
-
   val MakeDownMultiple = MethodUnOp("unaryv", OperatorPrecedence.Nim, "toDown", Some { "v" + _ })
 
+  // Binary
+
+  val Plus = InfixBinOp("+", OperatorPrecedence.Plus, "+")
+  val Minus = InfixBinOp("-", OperatorPrecedence.Plus, "-")
+  val OrdinalPlus = MethodBinOp(":", OperatorPrecedence.OrdinalSum, "ordinalSum")
+  val Times = InfixBinOp("*", OperatorPrecedence.Mult, "*")
+  val Div = InfixBinOp("/", OperatorPrecedence.Mult, "/")
+  val Mod = InfixBinOp("%", OperatorPrecedence.Mult, "%")
+  val Exp = MethodBinOp("^", OperatorPrecedence.Exp, "exp")
+  val Equals = InfixBinOp("==", OperatorPrecedence.Relational, "==")
+  val Neq = InfixBinOp("!=", OperatorPrecedence.Relational, "!=")
+  val Leq       = BinOp("<=",  OperatorPrecedence.Relational) { (a, b) => s"$a <= $b" }
+  val Geq       = BinOp(">=",  OperatorPrecedence.Relational) { (a, b) => s"$b <= $a" }
+  val Lt        = BinOp("<",   OperatorPrecedence.Relational) { (a, b) => s"($a <= $b && !($b <= $a))"}
+  val Gt        = BinOp("<",   OperatorPrecedence.Relational) { (a, b) => s"(!($a <= $b) && $b <= $a)"}
+  val Confused  = BinOp("<>",  OperatorPrecedence.Relational) { (a, b) => s"(!($a <= $b) && !($b <= $a))"}
+  val LConfused = BinOp("<|",  OperatorPrecedence.Relational) { (a, b) => s"(!($b <= $a))" }
+  val GConfused = BinOp("|>",  OperatorPrecedence.Relational) { (a, b) => s"(!($a <= $b))" }
+  val RefEquals = BinOp("===", OperatorPrecedence.Relational) { (a, b) => s"(($a <= $b) && ($b <= $a))" }
+  val RefNeq    = BinOp("!==", OperatorPrecedence.Relational) { (a, b) => s"(!($a <= $b) || !($b <= $a))" }
+  val Compare   = InfixBinOp("<=>", OperatorPrecedence.Relational, "???")
+  val And = InfixBinOp("and", OperatorPrecedence.And, "&&")
+  val Or = InfixBinOp("or", OperatorPrecedence.Or, "||")
+  val Is = InfixBinOp("is", OperatorPrecedence.Is, "???")
   val MakeSides = InfixBinOp("&", OperatorPrecedence.Sidle, "&")
-
-  val MakeCoordinates = CustomBinOp("(,)", OperatorPrecedence.Primary, Some { "(" + _ + ", " + _ + ")" }) { (context, emitter, operand1, operand2, opToken) =>
-    emitter print "org.cgsuite.util.Coordinates("
-    operand1.emitScalaCode(context, emitter)
-    emitter print ", "
-    operand2.emitScalaCode(context, emitter)
-    emitter print ")"
+  val MakeCoordinates = BinOp("(,)", OperatorPrecedence.Primary, Some { (a, b) => s"($a, $b)" }) { (a, b) =>
+    s"org.cgsuite.util.Coordinates($a, $b)"
   }
-
   val Range = InfixBinOp("..", OperatorPrecedence.Range, "???")
-
-  val ArrayReference = CustomBinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) { (context, emitter, operand1, operand2, opToken) =>
-    operand1.emitScalaCode(context, emitter)
-    emitter print "("
-    operand2.emitScalaCode(context, emitter)
-    emitter print ")"
-  }
+  val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix, Some { (a, b) => s"$a[$b]" }) { (a, b) => s"$a($b)" }
 
 }
 
@@ -181,15 +106,7 @@ case class MethodUnOp(name: String, precedence: Int, scalaMethod: String, toOpSt
 
 }
 
-trait BinOp {
-
-  def name: String
-
-  def precedence: Int
-
-  def toOpStringOpt: Option[(String, String) => String]
-
-  def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token)
+case class BinOp(name: String, precedence: Int, toOpStringOpt: Option[(String, String) => String] = None)(scalaCode: (String, String) => String) {
 
   val id = Symbol(name)
 
@@ -209,58 +126,38 @@ trait BinOp {
     }
   }
 
-}
+  def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
 
-case class InfixBinOp(name: String, precedence: Int, scalaOp: String, toOpStringOpt: Option[(String, String) => String] = None) extends BinOp {
-
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
-
-    if (context.generateStackTraceInfo) {
-
-      val tmp1 = context.newTempId()
-      val tmp2 = context.newTempId()
-      emitter print s"{ val $tmp1 = ("
-      operand1.emitScalaCode(context, emitter)
-      emitter print s"); val $tmp2 = ("
-      operand2.emitScalaCode(context, emitter)
-      emitter print "); "
-      emitter.printTry()
-      emitter print s"$tmp1 $scalaOp $tmp2"
-      emitter.printCatch(opToken)
-      emitter print " }"
-
-    } else {
-
-      emitter print "("
-      operand1.emitScalaCode(context, emitter)
-      emitter print s" $scalaOp "
-      operand2.emitScalaCode(context, emitter)
-      emitter print ")"
-
-    }
-
-  }
-
-}
-
-case class MethodBinOp(name: String, precedence: Int, scalaMethod: String, toOpStringOpt: Option[(String, String) => String] = None) extends BinOp {
-
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
+    val tmp1 = context.newTempId()
+    val tmp2 = context.newTempId()
+    emitter print s"{ val $tmp1 = ("
     operand1.emitScalaCode(context, emitter)
-    emitter print "."
-    emitter print scalaMethod
-    emitter print "("
+    emitter print s"); val $tmp2 = ("
     operand2.emitScalaCode(context, emitter)
-    emitter print ")"
+    emitter print "); "
+    if (context.generateStackTraceInfo)
+      emitter.printTry()
+    emitter print scalaCode(tmp1, tmp2)
+    if (context.generateStackTraceInfo)
+      emitter.printCatch(opToken)
+    emitter print " }"
+
   }
 
 }
 
-case class CustomBinOp(name: String, precedence: Int, toOpStringOpt: Option[(String, String) => String] = None)
-                      (emit: (CompileContext, Emitter, EvalNode, EvalNode, Token) => Unit) extends BinOp {
+object InfixBinOp {
 
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
-    emit(context, emitter, operand1, operand2, opToken)
+  def apply(name: String, precedence: Int, scalaOp: String, toOpStringOpt: Option[(String, String) => String] = None): BinOp = {
+    BinOp(name, precedence, toOpStringOpt) { (a, b) => s"$a $scalaOp $b" }
+  }
+
+}
+
+object MethodBinOp {
+
+  def apply(name: String, precedence: Int, scalaMethod: String, toOpStringOpt: Option[(String, String) => String] = None): BinOp = {
+    BinOp(name, precedence, toOpStringOpt) { (a, b) => s"$a.$scalaMethod($b)" }
   }
 
 }
