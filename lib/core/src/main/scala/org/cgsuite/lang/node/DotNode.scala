@@ -3,6 +3,7 @@ package org.cgsuite.lang.node
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang._
+import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
 import scala.collection.mutable
 
@@ -130,16 +131,20 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
       case cls: CgscriptClass =>
         emitter print cls.scalaClassdefName
 
-      case member: Member =>      // CgscriptClass#Var or CgscriptClass#Method
-        if (isElaboratedAsPackage) {
-          emitter print member.declaringClass.scalaClassdefName
-        } else {
-          emitter print "("
-          antecedent.emitScalaCode(context, emitter)
-          emitter print ")"
-        }
-        emitter print "."
-        emitter print member.scalaName
+      case member: Member if isElaboratedAsPackage =>     // CgscriptClass#Var or CgscriptClass#Method
+        emitter print s"${member.declaringClass.scalaClassdefName}.${member.scalaName}"
+
+      case member: Member =>
+        val objVar = context.newTempId()
+        emitter print s"{ val $objVar = "
+        antecedent.emitScalaCode(context, emitter)
+        emitter print "; "
+        if (context.generateStackTraceInfo)
+          emitter.printTry()
+        emitter print s"$objVar.${member.scalaName}"
+        if (context.generateStackTraceInfo)
+          emitter.printCatch(tree.token)
+        emitter print " }"
 
     }
 
