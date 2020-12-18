@@ -500,32 +500,34 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
-    val scalaId = elaboratedMemberResolution match {
+    elaboratedMemberResolution match {
 
-      case None => id.name        // Local variable
+      case None => emitter print id.name        // Local variable
 
       case Some(methodGroup: CgscriptClass#MethodGroup) =>
         assert(methodGroup.autoinvokeMethod.isDefined, "should have been caught during elaboration")
         val method = methodGroup.autoinvokeMethod.get.method
+        if (context.generateStackTraceInfo)
+          emitter.printTry()
         if (method.isExternal && method.methodName != "EnclosingObject")
-          s"_instance.${method.scalaName}"
+          emitter print s"_instance.${method.scalaName}"
         else
-          method.scalaName
+          emitter print method.scalaName
+        if (context.generateStackTraceInfo)
+          emitter.printCatch(tree.token)
 
       case Some(variable: CgscriptClass#Var) =>
         if (isElaboratedInLocalScope)
-          variable.id.name
+          emitter print variable.id.name
         else
-          variable.declaringClass.scalaClassdefName + "." + variable.id.name
+          emitter print variable.declaringClass.scalaClassdefName + "." + variable.id.name
 
       case Some(cls: CgscriptClass) =>
-        cls.scalaClassrefName
+        emitter print cls.scalaClassrefName
 
       case None => sys.error("this should have been caught during elaboration")
 
     }
-
-    emitter print scalaId
 
   }
 
