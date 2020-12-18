@@ -1,6 +1,9 @@
 package org.cgsuite.lang
 
-class CompileContext {
+import org.antlr.runtime.Token
+import org.apache.commons.text.StringEscapeUtils
+
+class CompileContext(val generateStackTraceInfo: Boolean) {
 
   private var nextTempId = 0
 
@@ -35,6 +38,21 @@ class Emitter {
   def println(any: Any): Unit = {
     print(any)
     append("", addNewline = true)
+  }
+
+  def printTry(): Unit = {
+    print("try { ")
+  }
+
+  def printCatch(token: Token): Unit = {
+    println(" } catch { case exc: org.cgsuite.exception.CgsuiteException =>")
+    indent()
+    val sourceName = StringEscapeUtils.escapeJava(token.getInputStream.getSourceName)
+    val line = token.getLine
+    val col = token.getCharPositionInLine
+    println(s"""exc.addStackElement("$sourceName", $line, $col); throw exc""")
+    indent(-1)
+    println("}")
   }
 
   override def toString = sb.toString

@@ -498,7 +498,7 @@ class CgscriptClass(
 
   }
 
-  def ensureCompiled(eval: IMain): Unit = {
+  def ensureCompiled(eval: IMain, generateStackTraceInfo: Boolean): Unit = {
 
     if (isScript)
       return
@@ -507,10 +507,10 @@ class CgscriptClass(
 
       case LifecycleStage.New | LifecycleStage.DeclaredPhase1 | LifecycleStage.Declared | LifecycleStage.Unloaded =>
         enclosingClass match {
-          case Some(cls) => cls.ensureCompiled(eval)    // TODO What if no longer exists?
+          case Some(cls) => cls.ensureCompiled(eval, generateStackTraceInfo)    // TODO What if no longer exists?
           case _ =>
             ensureDeclared()
-            compile(eval)
+            compile(eval, generateStackTraceInfo)
         }
 
       case LifecycleStage.DeclaringPhase1 | LifecycleStage.DeclaringPhase2 =>
@@ -1039,9 +1039,9 @@ class CgscriptClass(
   ///////////////////////////////////////////////////////////////
   // Compilation (Scala code generation)
 
-  private def compile(eval: IMain): Unit = {
+  private def compile(eval: IMain, generateStackTraceInfo: Boolean): Unit = {
 
-    val context = new CompileContext
+    val context = new CompileContext(generateStackTraceInfo)
     val classesCompiling = mutable.HashSet[CgscriptClass]()
     val emitter = new Emitter
 

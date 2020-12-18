@@ -96,6 +96,7 @@ case class FunctionCallNode(
   override val children = argNodes ++ argNames.flatten :+ callSiteNode
 
   var objectType: Option[CgscriptType] = _
+  var paramTypesForArguments: Option[Vector[CgscriptType]] = _
   var elaboratedMethod: Option[CgscriptClass#MethodProjection] = _
   var isElaboratedInLocalScope: Boolean = _
   var isEval: Boolean = false
@@ -249,6 +250,21 @@ case class FunctionCallNode(
 
     }
 
+    paramTypesForArguments = elaboratedMethod map { method =>
+      argNodes.indices.toVector map { i =>
+        val genericParamType = {
+          argNames(i) match {
+            case None => method.signatureProjection.types(i)
+            case Some(name) => method.signatureProjection.types(method.method.parameters.indexWhere { _.name == name.id.name })
+          }
+        }
+        objectType match {
+          case Some(typ) => genericParamType.substituteAll(typ.baseClass.typeParameters zip typ.typeArguments)
+          case None => genericParamType
+        }
+      }
+    }
+
     // Ok, now go back and elaborate any arguments that are functions with unspecified type parameters.
     elaboratedMethod foreach { method =>
       argNodes.zipWithIndex foreach { case (argNode, n) =>
@@ -304,7 +320,26 @@ case class FunctionCallNode(
 
   override def emitScalaCode(context: CompileContext, emitter: Emitter): Unit = {
 
-    emitter print "("
+    emitter print "{ "
+
+    val argVars = argNodes map { _ => context.newTempId() }
+
+    for (i <- argNodes.indices) {
+      // TODO Explicit typing only works for methods currently; it's needed for function calls too
+      paramTypesForArguments match {
+        // Bit of a hack currently; we'd like to get fully resolved parameter types in all cases
+        case Some(paramTypes) if paramTypes(i).allTypeVariables.isEmpty =>
+          val scalaTypeName = paramTypes(i).scalaTypeName
+          emitter print s"var ${argVars(i)}: $scalaTypeName = "
+        case _ =>
+          emitter print s"var ${argVars(i)} = "
+      }
+      argNodes(i).emitScalaCode(context, emitter)
+      emitter print "; "
+    }
+
+    if (context.generateStackTraceInfo)
+      emitter.printTry()
 
     elaboratedMethod match {
 
@@ -336,16 +371,12 @@ case class FunctionCallNode(
     emitter print "("
 
     def emitArgs(): Unit = {
-      val namedNodes = argNodes zip argNames
-      for (i <- namedNodes.indices) {
-        namedNodes(i) match {
-          case (node, None) => node.emitScalaCode(context, emitter)
-          case (node, Some(nameNode)) =>
-            emitter print (nameNode.id.name + " = { ")
-            node.emitScalaCode(context, emitter)
-            emitter print " }"
+      for (i <- argNames.indices) {
+        argNames(i) match {
+          case None => emitter print argVars(i)
+          case Some(nameNode) => emitter print s"${nameNode.id.name} = ${argVars(i)}"
         }
-        if (i < namedNodes.length - 1)
+        if (i < argNames.length - 1)
           emitter print ", "
       }
     }
@@ -363,7 +394,12 @@ case class FunctionCallNode(
       emitArgs()
     }
 
-    emitter print "))"
+    emitter print ")"
+
+    if (context.generateStackTraceInfo)
+      emitter.printCatch(tree.token)
+
+    emitter print " }"
 
   }
 

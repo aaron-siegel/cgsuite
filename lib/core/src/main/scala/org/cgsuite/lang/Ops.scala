@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.antlr.runtime.Token
 import org.cgsuite.lang.node.EvalNode
 import org.cgsuite.output.{Output, StyledTextOutput}
 
@@ -39,52 +40,52 @@ object Ops {
   val Neq = InfixBinOp("!=", OperatorPrecedence.Relational, "!=")
 
   val Leq = InfixBinOp("<=", OperatorPrecedence.Relational, "<=")
-  val Geq = CustomBinOp(">=", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
-    Leq.emitScalaCode(context, emitter, operand2, operand1)
+  val Geq = CustomBinOp(">=", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
+    Leq.emitScalaCode(context, emitter, operand2, operand1, opToken)
   }
-  val Lt = CustomBinOp("<", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val Lt = CustomBinOp("<", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(("
-    Leq.emitScalaCode(context, emitter, operand1, operand2)
+    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print ") && !("
-    Geq.emitScalaCode(context, emitter, operand1, operand2)
+    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
-  val Gt = CustomBinOp(">", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val Gt = CustomBinOp(">", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2)
+    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print ") && ("
-    Geq.emitScalaCode(context, emitter, operand1, operand2)
+    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
-  val Confused = CustomBinOp("<>", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val Confused = CustomBinOp("<>", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2)
+    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print ") && !("
-    Geq.emitScalaCode(context, emitter, operand1, operand2)
+    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
-  val LConfused = CustomBinOp("<|", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val LConfused = CustomBinOp("<|", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(!("
-    Geq.emitScalaCode(context, emitter, operand1, operand2)
+    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
-  val GConfused = CustomBinOp("|>", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val GConfused = CustomBinOp("|>", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2)
+    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
-  val RefEquals = CustomBinOp("===", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val RefEquals = CustomBinOp("===", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(("
-    Leq.emitScalaCode(context, emitter, operand1, operand2)
+    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print ") && ("
-    Geq.emitScalaCode(context, emitter, operand1, operand2)
+    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
-  val RefNeq = CustomBinOp("!==", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2) =>
+  val RefNeq = CustomBinOp("!==", OperatorPrecedence.Relational) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "(!("
-    Leq.emitScalaCode(context, emitter, operand1, operand2)
+    Leq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print ") || !("
-    Geq.emitScalaCode(context, emitter, operand1, operand2)
+    Geq.emitScalaCode(context, emitter, operand1, operand2, opToken)
     emitter print "))"
   }
   val Compare = InfixBinOp("<=>", OperatorPrecedence.Relational, "???")
@@ -103,7 +104,7 @@ object Ops {
 
   val MakeSides = InfixBinOp("&", OperatorPrecedence.Sidle, "&")
 
-  val MakeCoordinates = CustomBinOp("(,)", OperatorPrecedence.Primary, Some { "(" + _ + ", " + _ + ")" }) { (context, emitter, operand1, operand2) =>
+  val MakeCoordinates = CustomBinOp("(,)", OperatorPrecedence.Primary, Some { "(" + _ + ", " + _ + ")" }) { (context, emitter, operand1, operand2, opToken) =>
     emitter print "org.cgsuite.util.Coordinates("
     operand1.emitScalaCode(context, emitter)
     emitter print ", "
@@ -113,7 +114,7 @@ object Ops {
 
   val Range = InfixBinOp("..", OperatorPrecedence.Range, "???")
 
-  val ArrayReference = CustomBinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) { (context, emitter, operand1, operand2) =>
+  val ArrayReference = CustomBinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) { (context, emitter, operand1, operand2, opToken) =>
     operand1.emitScalaCode(context, emitter)
     emitter print "("
     operand2.emitScalaCode(context, emitter)
@@ -188,7 +189,7 @@ trait BinOp {
 
   def toOpStringOpt: Option[(String, String) => String]
 
-  def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode)
+  def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token)
 
   val id = Symbol(name)
 
@@ -212,19 +213,39 @@ trait BinOp {
 
 case class InfixBinOp(name: String, precedence: Int, scalaOp: String, toOpStringOpt: Option[(String, String) => String] = None) extends BinOp {
 
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode): Unit = {
-    emitter print "("
-    operand1.emitScalaCode(context, emitter)
-    emitter print s" $scalaOp "
-    operand2.emitScalaCode(context, emitter)
-    emitter print ")"
+  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
+
+    if (context.generateStackTraceInfo) {
+
+      val tmp1 = context.newTempId()
+      val tmp2 = context.newTempId()
+      emitter print s"{ val $tmp1 = ("
+      operand1.emitScalaCode(context, emitter)
+      emitter print s"); val $tmp2 = ("
+      operand2.emitScalaCode(context, emitter)
+      emitter print "); "
+      emitter.printTry()
+      emitter print s"$tmp1 $scalaOp $tmp2"
+      emitter.printCatch(opToken)
+      emitter print " }"
+
+    } else {
+
+      emitter print "("
+      operand1.emitScalaCode(context, emitter)
+      emitter print s" $scalaOp "
+      operand2.emitScalaCode(context, emitter)
+      emitter print ")"
+
+    }
+
   }
 
 }
 
 case class MethodBinOp(name: String, precedence: Int, scalaMethod: String, toOpStringOpt: Option[(String, String) => String] = None) extends BinOp {
 
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode): Unit = {
+  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
     operand1.emitScalaCode(context, emitter)
     emitter print "."
     emitter print scalaMethod
@@ -236,10 +257,10 @@ case class MethodBinOp(name: String, precedence: Int, scalaMethod: String, toOpS
 }
 
 case class CustomBinOp(name: String, precedence: Int, toOpStringOpt: Option[(String, String) => String] = None)
-                      (emit: (CompileContext, Emitter, EvalNode, EvalNode) => Unit) extends BinOp {
+                      (emit: (CompileContext, Emitter, EvalNode, EvalNode, Token) => Unit) extends BinOp {
 
-  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode): Unit = {
-    emit(context, emitter, operand1, operand2)
+  override def emitScalaCode(context: CompileContext, emitter: Emitter, operand1: EvalNode, operand2: EvalNode, opToken: Token): Unit = {
+    emit(context, emitter, operand1, operand2, opToken)
   }
 
 }

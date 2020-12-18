@@ -754,7 +754,7 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
       emitter print ")"
     } else {
       emitter print "("
-      op.emitScalaCode(context, emitter, operand1, operand2)
+      op.emitScalaCode(context, emitter, operand1, operand2, tree.token)
       emitter print ")"
     }
   }

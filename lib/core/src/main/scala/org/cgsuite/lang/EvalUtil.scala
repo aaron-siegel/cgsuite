@@ -6,7 +6,7 @@ import java.util
 import ch.qos.logback.classic.{Level, Logger}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.runtime.Token
-import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
+import org.cgsuite.exception.{CgsuiteException, EvalException, StackElement, SyntaxException}
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 import org.slf4j.LoggerFactory
 
@@ -44,12 +44,12 @@ object EvalUtil extends LazyLogging {
     val message: Output = errorOutput(exc.getMessage)
 
     val stack: Vector[Output] = {
-      if (exc.tokenStack.length <= 30)
-        exc.tokenStack flatMap { toLineColOutput(_, input) }
+      if (exc.stackTrace.length <= 30)
+        exc.stackTrace flatMap { toLineColOutput(_, input) }
       else {
-        (exc.tokenStack take 15 flatMap { toLineColOutput(_, input) }) ++
+        (exc.stackTrace take 15 flatMap { toLineColOutput(_, input) }) ++
           Vector(errorOutput("  ......")) ++
-          (exc.tokenStack takeRight 15 flatMap { toLineColOutput(_, input) })
+          (exc.stackTrace takeRight 15 flatMap { toLineColOutput(_, input) })
       }
     }.toVector
 
@@ -86,9 +86,8 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def toLineColOutput(token: Token, input: String): Vector[Output] = {
-    assert(token.getInputStream != null, s"Input stream is null: $token")
-    toLineColOutput(token.getInputStream.getSourceName, input, token.getLine, token.getCharPositionInLine)
+  private def toLineColOutput(stackElement: StackElement, input: String): Vector[Output] = {
+    toLineColOutput(stackElement.source, input, stackElement.line, stackElement.col)
   }
 
   private def toLineColOutput(source: String, input: String, line: Int, col: Int): Vector[Output] = {
@@ -110,11 +109,11 @@ object EvalUtil extends LazyLogging {
       val pointer = (" " * Math.min(col - 1, 23)) + (if (col == 0) "^^" else "^^^")
       Vector(
         errorOutput("  at worksheet input:"),
-        errorOutput(s"  $snippet"),
-        errorOutput(s"  $pointer")
+        errorOutput(s"    $snippet"),
+        errorOutput(s"    $pointer")
       )
     } else {
-      Vector(errorOutput(s"  at $source line $line:$col"))
+      Vector(errorOutput(s"  at $source line $line:${col + 1}"))
     }
   }
 

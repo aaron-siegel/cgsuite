@@ -25,6 +25,8 @@ object CgscriptSystem {
 
   private[lang] val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(CgscriptSystem.getClass))
 
+  val generateStackTraceInfo = true
+
   val baseSystemClasses: Seq[(String, Class[_])] = Seq(
 
     "cgsuite.lang.Object" -> classOf[AnyRef],
@@ -166,7 +168,7 @@ object CgscriptSystem {
         val tree = ParserUtil.parseScript(str)
         val node = StatementSequenceNode(tree.children.head, topLevel = true)
         val elaboratedType = node.ensureElaborated(domain)
-        node.mentionedClasses foreach { _.ensureCompiled(interpreter) }
+        node.mentionedClasses foreach { _.ensureCompiled(interpreter, generateStackTraceInfo) }
         Thread.sleep(10)
         (elaboratedType, node, generateScalaCodeWithVarDecls(node))
       } catch {
@@ -244,7 +246,7 @@ object CgscriptSystem {
 
     } else {
 
-      val context = new CompileContext
+      val context = new CompileContext(generateStackTraceInfo)
 
       val regularOutput = sequenceNode.statements flatMap {
 

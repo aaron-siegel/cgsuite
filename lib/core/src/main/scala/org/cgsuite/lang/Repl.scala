@@ -4,7 +4,7 @@ import java.lang.{System => JSystem}
 
 import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core.{CanonicalShortGame, Game}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.util.{Explorer, UiHarness}
 import org.jline.reader.{Expander, History, LineReaderBuilder}
@@ -106,9 +106,9 @@ object Repl {
     val start = JSystem.nanoTime
     try {
       CgscriptClasspath.reloadModifiedFiles()
-      val result = CgscriptSystem.evaluate(str)
+      val result = CgscriptSystem.evaluateAndProcessExceptions(str)
       result match {
-        case Left(output) => println(output)
+        case Left(output) => output foreach println
         case Right(t) => t.printStackTrace()
       }
     } catch {
