@@ -1,13 +1,13 @@
 package org.cgsuite.tools
 
 import java.awt.image.BufferedImage
-import java.awt.{BasicStroke, BorderLayout, Color, Dimension, Graphics, Graphics2D, LinearGradientPaint}
+import java.awt._
 import java.io.File
 
 import javax.imageio.ImageIO
-import javax.swing.{JFrame, JLabel, JPanel}
+import javax.swing.{JFrame, JPanel}
 
-object RenderLogo {
+object SplashGraphicGenerator {
 
   def main(args: Array[String]): Unit = {
 
@@ -137,7 +137,7 @@ class LogoPanel extends JPanel() {
   override def paint(g: Graphics): Unit = {
 
     super.paint(g)
-    RenderLogo.renderToGraphics(g.asInstanceOf[Graphics2D])
+    SplashGraphicGenerator.renderToGraphics(g.asInstanceOf[Graphics2D])
 
   }
 

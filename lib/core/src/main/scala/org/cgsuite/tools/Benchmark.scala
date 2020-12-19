@@ -1,11 +1,11 @@
 package org.cgsuite.tools
 
-import java.io.{BufferedReader, File, FileOutputStream, InputStreamReader, PrintWriter}
+import java.io._
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import org.cgsuite.lang.CgscriptSystem
-import org.hyperic.sigar.{Sigar, SigarException}
+import org.hyperic.sigar.Sigar
 import org.slf4j.LoggerFactory
 
 object Benchmark {
@@ -15,8 +15,9 @@ object Benchmark {
     Instance("Warmup", """game.grid.Amazons("x|o"); game.grid.Clobber("x|o"); game.heap.Nim(20); game.strip.ToadsAndFrogs("t.f");"""),
     Instance("Heated *14", """*14 Heat 1;"""),
     Instance("Big Output", """*12 Heat 1"""),
-    Instance("Kayles", "game.heap.Kayles(40000).NimValue;"),
-    Instance("Amazons", """game.grid.Amazons("x......|o......").CanonicalForm;"""),
+    Instance("Kayles 40000", "game.heap.Kayles(40000).NimValue;"),
+    Instance("Clobber 4x4", """game.grid.Clobber("xoxo|oxox|xoxo|oxox").CanonicalForm;"""),
+    Instance("Amazons 2x7", """game.grid.Amazons("x......|o......").CanonicalForm;"""),
   )
   val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss")
 
