@@ -8,7 +8,7 @@ package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.{ArithmeticException, EvalException}
+import org.cgsuite.exception.{ArithmeticException, EvalException, OverflowException}
 import org.cgsuite.util.Coordinates
 
 object Integer {
@@ -81,7 +81,12 @@ object Integer {
 trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   
   def bigIntValue: BigInt
-  override def intValue = bigIntValue.intValue()
+  override def intValue = {
+    if (bigIntValue.bigInteger.bitLength() <= 32)
+      bigIntValue.intValue()
+    else
+      throw OverflowException("Overflow.")
+  }
   def longValue = bigIntValue.longValue()
   def floatValue = bigIntValue.floatValue()
   def doubleValue = bigIntValue.doubleValue()

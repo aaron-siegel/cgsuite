@@ -1393,10 +1393,12 @@ class CgscriptClass(
 
     val methodName = idNode.id.name
     val scalaName = methodName match {
+      case "Append" if isExternal => ":+"
       case "Apply" if isExternal => "map"
       case "ToList" if isExternal => "toVector"
       case "ContainsKey" if isExternal => "contains"
       case "Values" if isExternal => "values.toSet"
+      case "Updated" if isExternal => "_updated"
       case "Class" => "_class"
       case "ForAll" => "forall"
       case _ => methodName.updated(0, methodName.charAt(0).toLower)

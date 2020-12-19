@@ -88,12 +88,26 @@ case class RichCollection[T](collection: Iterable[T]) {
 case class RichList[T](list: IndexedSeq[T]) {
 
   def _lookup(index: org.cgsuite.core.Integer): T = {
-    list(index.intValue - 1)
+    try {
+      list(index.intValue - 1)
+    } catch {
+      case _: IndexOutOfBoundsException =>
+        throw EvalException(s"List index out of bounds: $index")
+    }
+  }
+
+  def _updated(index: org.cgsuite.core.Integer, element: T) = {
+    try {
+      list.updated(index.intValue - 1, element)
+    } catch {
+      case _: IndexOutOfBoundsException =>
+        throw EvalException(s"List index out of bounds: $index")
+    }
   }
 
   def mkOutput(sep: String, parens: String = ""): StyledTextOutput = {
     val output = new StyledTextOutput
-    if (parens.length >= 1)
+    if (parens.nonEmpty)
       output appendMath parens.substring(0, 1)
     var first = true
     list foreach { x =>
