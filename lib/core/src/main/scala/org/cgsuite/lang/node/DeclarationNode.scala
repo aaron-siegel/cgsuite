@@ -2,7 +2,7 @@ package org.cgsuite.lang.node
 
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.ElaborationException
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
@@ -122,7 +122,7 @@ object ParametersNode {
     }
     val invalidExpandedParameter = parameters.dropRight(1).find { _.isExpandable }
     invalidExpandedParameter foreach { paramNode =>
-      throw EvalException(
+      throw ElaborationException(
         s"Invalid expansion for parameter `${paramNode.id.id.name}`: must be in last position",
         paramNode.tree
       )
@@ -143,12 +143,15 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
           inferredTypes match {
             case Some(types) => types(n)
             case None =>
-              throw EvalException(s"The type of parameter `${node.id.id.name}` cannot be inferred and must be specified explicitly.")
+              throw ElaborationException(
+                s"The type of parameter `${node.id.id.name}` cannot be inferred and must be specified explicitly.",
+                node.id.tree
+              )
           }
         case Some(typeSpecNode) => typeSpecNode.toType(domain)
           /*
         case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
-          throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
+          throw ElaborationException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
         }*/
       }
       Parameter(node.id, ttype, node.defaultValue, node.isExpandable)
@@ -228,7 +231,7 @@ object Modifiers {
     val tokens = tree.children map { _.token }
     tokens foreach { token =>
       if (!(allowed contains token.getType))
-        throw EvalException(s"Modifier `${token.getText}` not permitted here", token = Some(token))
+        throw ElaborationException(s"Modifier `${token.getText}` not permitted here", token = Some(token))
     }
     Modifiers(
       external = tokens find { _.getType == EXTERNAL },

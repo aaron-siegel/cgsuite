@@ -197,7 +197,7 @@ object CgscriptSystem {
         beQuietDuring {
           interpreter interpret wrappedLine match {
             case IR.Error | IR.Incomplete =>
-              throw EvalException("Internal error.")
+              throw EvalException("Compilation error.")
             case IR.Success =>
           }
 
@@ -227,7 +227,7 @@ object CgscriptSystem {
     beQuietDuring {
       interpreter interpret outputCode match {
         case IR.Error | IR.Incomplete =>
-          throw EvalException("Internal error.")
+          throw EvalException("Compilation error.")
         case IR.Success =>
       }
 

@@ -2,7 +2,7 @@ package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
 import org.apache.commons.text.StringEscapeUtils
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.ElaborationException
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
@@ -47,7 +47,7 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
     domain.pushScope()
     parameters foreach { param =>
       if (domain.isDefinedInLocalScope(param.id)) {
-        throw EvalException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
+        throw ElaborationException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
       }
       domain.insertId(param.id, param.paramType)
       assert(param.defaultValue.isEmpty)
@@ -71,7 +71,7 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
         domain.pushScope()
         parameters zip typeArguments foreach { case (param, inferredParamType) =>
           if (domain.isDefinedInLocalScope(param.id)) {
-            throw EvalException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
+            throw ElaborationException(s"Duplicate symbol: `${param.id.name}`", token = Some(param.idNode.token))
           }
           domain.insertId(param.id, inferredParamType)
           assert(param.defaultValue.isEmpty)
@@ -83,7 +83,7 @@ case class ProcedureNode(tree: Tree, parametersNode: ParametersNode, body: EvalN
         if (resultType matches inferredResultType) {
           ConcreteType(CgscriptClass.Procedure, typeArguments.dropRight(1) :+ resultType)
         } else {
-          throw EvalException("need a good error msg")
+          throw ElaborationException("TODO: need a good error msg")
         }
 
       case _ =>

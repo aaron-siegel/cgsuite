@@ -148,7 +148,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
     if (other.isSmallInteger)
       Integer(bigIntValue.pow(other.intValue))
     else
-      throw new EvalException("Overflow.")
+      throw OverflowException("Overflow.")
   }
 
   override def isEven = !bigIntValue.testBit(0)

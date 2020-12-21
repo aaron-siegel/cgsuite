@@ -52,7 +52,9 @@ object CgscriptImplicits extends LowPriorityCgscriptImplicits {
 
 trait LowPriorityCgscriptImplicits extends LowestPriorityCgscriptImplicits {
 
-  implicit def rationalToInteger(x: RationalNumber): Integer = x.asInstanceOf[Integer]
+  implicit def rationalToInteger(x: RationalNumber): Integer = {
+    castSafely(x, "game.Rational", "game.Integer") { _.asInstanceOf[Integer] }
+  }
 
   implicit def sidedValueToCanonicalStopper(x: SidedValue): CanonicalStopper = x.asInstanceOf[CanonicalStopper]
 

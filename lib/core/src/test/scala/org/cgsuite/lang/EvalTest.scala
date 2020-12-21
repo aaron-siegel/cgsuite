@@ -386,7 +386,8 @@ class EvalTest extends CgscriptSpec {
       header,
       ("Unrecognized type", "5 as Foo", "!!Unrecognized type: `Foo`"),
       ("Type takes parameters", "{3} as Collection", "!!Class `cgsuite.lang.Collection` requires type parameters"),
-      ("Invalid number of parameters", "{3} as Collection of (Integer, Boolean)", "!!Incorrect number of type parameters for class: `cgsuite.lang.Collection`")
+      ("Invalid number of parameters", "{3} as Collection of (Integer, Boolean)", "!!Incorrect number of type parameters for class: `cgsuite.lang.Collection`"),
+      ("Rational -> Integer conversion", "*(1/2)", "!!That `game.Rational` is not of type `game.Integer`.")
     ))
 
   }

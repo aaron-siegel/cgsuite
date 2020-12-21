@@ -6,8 +6,8 @@ import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
 object ElaborationException {
 
-  def apply(msg: String, tree: Tree): EvalException = {
-    EvalException(msg, token = Some(tree.token))
+  def apply(msg: String, tree: Tree): ElaborationException = {
+    ElaborationException(msg, token = Some(tree.token))
   }
 
 }

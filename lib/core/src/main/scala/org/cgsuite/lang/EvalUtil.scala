@@ -24,7 +24,7 @@ object EvalUtil extends LazyLogging {
     val recog = exc.exc
     val line = recog.line
     val col = recog.charPositionInLine
-    val message = (if (includeLine && line > 0) s"Error (Line $line:$col): " else "") + exceptionToMessage(recog)
+    val message = if (includeLine && line > 0) s"Error (Line $line:$col): Syntax error." else ""
     if (line <= 0)
       Vector(new StyledTextOutput(message))
     else
@@ -119,13 +119,6 @@ object EvalUtil extends LazyLogging {
 
   def errorOutput(msg: String): Output = {
     new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MONOSPACED, StyledTextOutput.Style.COLOR_RED), msg)
-  }
-
-  private def exceptionToMessage(exc: Throwable) = {
-    if (exc.isInstanceOf[EvalException])
-      exc.getMessage
-    else
-      "Syntax error."
   }
 
 }
