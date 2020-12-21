@@ -1,7 +1,7 @@
 package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.{ElaborationException, EvalException}
+import org.cgsuite.exception.ElaborationException
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
@@ -47,7 +47,7 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
       pkg.lookupConstantMember(idNode.id) orElse pkg.lookupClass(idNode.id) getOrElse {
         throw ElaborationException(
           s"No symbol `${idNode.id.name}` found in package `${pkg.qualifiedName}`",
-          token = Some(tree.token)
+          tree
         )
       }
     }

@@ -1503,7 +1503,7 @@ class CgscriptClass(
       val resultType = resultTypeNode map { _.toType(domain) }
       resultType match {
         case Some(typ) => typ
-        case _ => throw ElaborationException(s"`external` method is missing result type: `$qualifiedName`")
+        case _ => throw ElaborationException(s"`external` method is missing result type: `$qualifiedName`", idNode.tree)
       }
     }
 

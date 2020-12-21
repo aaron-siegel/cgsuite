@@ -4,7 +4,7 @@ import org.antlr.runtime.tree.Tree
 import org.apache.commons.text.StringEscapeUtils
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
-import org.cgsuite.exception.{ElaborationException, EvalException}
+import org.cgsuite.exception.ElaborationException
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -97,7 +97,7 @@ object EvalNode {
       case SQUOTE => GameSpecNode(tree, gameOptions(tree.head.head), gameOptions(tree.head.children(1)), forceExplicit = true)
       case NODE_LABEL => LoopyGameSpecNode(tree)
       case AMPERSAND => BinOpNode(tree, MakeSides)
-      case PASS => throw EvalException("Unexpected `pass`.", tree)
+      case PASS => throw ElaborationException("Unexpected `pass`.", tree)
 
       // Control flow
 
@@ -128,7 +128,7 @@ object EvalNode {
 
       case ASSIGN =>
         if (tree.head.getType != IDENTIFIER)
-          throw EvalException("Syntax error.", tree)
+          throw ElaborationException("Syntax error.", tree)
         AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), AssignmentDeclType.Ordinary)
       case VAR => VarNode(tree)
 
@@ -481,7 +481,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
         case Some(methodGroup: CgscriptClass#MethodGroup) =>
           methodGroup.autoinvokeMethod match {
             case Some(methodProjection) => methodProjection.ensureElaborated()
-            case None => throw EvalException(s"Method `${methodGroup.qualifiedName}` requires arguments")
+            case None => throw ElaborationException(s"Method `${methodGroup.qualifiedName}` requires arguments", token = Some(token))
           }
 
         case Some(variable: CgscriptClass#Var) => variable.ensureElaborated()
@@ -490,7 +490,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends ClassSpecifierNode {
 
         case Some(cls: CgscriptClass) => CgscriptType(CgscriptClass.Class, Vector(cls.mostGenericType))
 
-        case None => throw EvalException(s"That variable is not defined: `${id.name}`", token = Some(token))
+        case None => throw ElaborationException(s"That variable is not defined: `${id.name}`", token = Some(token))
 
       }
 
@@ -636,14 +636,14 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifier
               domain.pkg.lookupClass(id) orElse
               CgscriptPackage.lookupClassByName(id.name)
           classResolution getOrElse {
-            throw EvalException(s"Unrecognized type: `${id.name}`", token = Some(baseClassIdNode.token))
+            throw ElaborationException(s"Unrecognized type: `${id.name}`", token = Some(baseClassIdNode.token))
           }
 
         case dotNode: DotNode =>
           dotNode.resolveAsPackageMember(domain) match {
             case Some(cls: CgscriptClass) => cls
             case _ =>
-              throw EvalException(s"Unrecognized type: `${dotNode.toNodeStringPrec(0)}`", token = Some(baseClassIdNode.token))
+              throw ElaborationException(s"Unrecognized type: `${dotNode.toNodeStringPrec(0)}`", token = Some(baseClassIdNode.token))
           }
 
       }
@@ -653,13 +653,13 @@ case class ConcreteTypeSpecifierNode(tree: Tree, baseClassIdNode: ClassSpecifier
     // Check that type arguments are consistent with the base class definition.
     val typeArguments = typeArgumentNodes map { _.toType(domain, allowInstanceNestedClasses) }
     if (typeArguments.isEmpty && baseClass.typeParameters.nonEmpty) {
-      throw EvalException(s"Class `${baseClass.qualifiedName}` requires type parameters")
+      throw ElaborationException(s"Class `${baseClass.qualifiedName}` requires type parameters", token = Some(baseClassIdNode.token))
     } else if (
       // If the number of parameters disagrees, it's an error, but we have to make
       // an exception for expandable type parameters (Procedures)
       (baseClass.typeParameters.isEmpty || !baseClass.typeParameters.head.isExpandable) &&
         baseClass.typeParameters.size != typeArguments.size) {
-      throw EvalException(s"Incorrect number of type parameters for class: `${baseClass.qualifiedName}`")
+      throw ElaborationException(s"Incorrect number of type parameters for class: `${baseClass.qualifiedName}`", token = Some(baseClassIdNode.token))
     }
 
     ConcreteType(baseClass, typeArguments)
@@ -695,7 +695,7 @@ case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
     // TODO Unary opMethods need to be enforced as having no args
     opMethod match {
       case Some(methodProjection) => methodProjection.ensureElaborated()
-      case _ => throw EvalException(s"No operation `${op.name}` for argument of type `${operandType.baseClass.qualifiedName}`", tree)
+      case _ => throw ElaborationException(s"No operation `${op.name}` for argument of type `${operandType.baseClass.qualifiedName}`", tree)
     }
 
   }
@@ -735,13 +735,13 @@ case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNo
       case Some(method) =>
         val methodType = method.ensureElaborated()
         methodType.substituteAll(operand1Type.baseClass.typeParameters zip operand1Type.typeArguments)
-      case None => throw EvalException(s"No operation `${op.baseId.name}` for arguments of types `${operand1Type.baseClass.qualifiedName}`, `${operand2Type.baseClass.qualifiedName}`", tree)
+      case None => throw ElaborationException(s"No operation `${op.baseId.name}` for arguments of types `${operand1Type.baseClass.qualifiedName}`, `${operand2Type.baseClass.qualifiedName}`", tree)
     }
     if (op.id != op.baseId) {
       val opMethod2 = FunctionCallNode.lookupMethodWithImplicits(operand2Type, op.baseId, Vector(operand1Type))
       val result2 = opMethod2 match {
         case Some(method) => method.ensureElaborated()
-        case None => throw EvalException(s"No operation `${op.baseId.name}` for arguments of types `${operand2Type.baseClass.qualifiedName}`, `${operand1Type.baseClass.qualifiedName}`", tree)
+        case None => throw ElaborationException(s"No operation `${op.baseId.name}` for arguments of types `${operand2Type.baseClass.qualifiedName}`, `${operand1Type.baseClass.qualifiedName}`", tree)
       }
       // TODO Check result1 == result2 and they are Boolean (for relational ops)
     }

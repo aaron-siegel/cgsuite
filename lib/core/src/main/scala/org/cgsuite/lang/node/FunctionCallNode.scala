@@ -1,10 +1,10 @@
 package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.{ElaborationException, EvalException}
+import org.cgsuite.exception.ElaborationException
+import org.cgsuite.lang._
 import org.cgsuite.lang.parser.CgsuiteLexer.BIGRARROW
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
-import org.cgsuite.lang._
 
 import scala.collection.mutable
 

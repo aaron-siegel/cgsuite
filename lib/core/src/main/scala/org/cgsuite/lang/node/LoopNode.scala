@@ -1,7 +1,7 @@
 package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.ElaborationException
 import org.cgsuite.lang._
 import org.cgsuite.lang.node.LoopNode._
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -89,11 +89,13 @@ case class LoopNode(
     val toType = to map { _.ensureElaborated(domain) }
     val byType = by map { _.ensureElaborated(domain) }
 
+    // TODO Validate to/by
+
     val mostGeneralCollection = CgscriptType(CgscriptClass.Collection, Vector(CgscriptType(CgscriptClass.Object)))
 
     inType foreach { typ =>
       if (!(typ matches mostGeneralCollection))
-        throw EvalException(s"Object of type `${typ.qualifiedName}` cannot be expanded as a Collection", in.get.tree)
+        throw ElaborationException(s"Object of type `${typ.qualifiedName}` cannot be expanded as a Collection", in.get.tree)
     }
 
     forId match {
@@ -131,7 +133,10 @@ case class LoopNode(
           case LoopNode.YieldMap => sys.error("TODO")   // TODO
           case LoopNode.YieldTable =>
             if (!bodyType.baseClass.ancestors.contains(CgscriptClass.List))
-              throw EvalException(s"Table row of type `${bodyType.qualifiedName}` cannot be converted to class `cgsuite.lang.List`")
+              throw ElaborationException(
+                s"Table row of type `${bodyType.qualifiedName}` cannot be converted to class `cgsuite.lang.List`",
+                tree
+              )
             else
               CgscriptType(CgscriptClass.Table)
           case LoopNode.YieldSum =>
@@ -142,7 +147,10 @@ case class LoopNode(
               var done = false
               while (!done) {
                 val closureOp = closureType.resolveMethod(Symbol("+"), Vector(closureType)) getOrElse {
-                  throw EvalException(s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`")
+                  throw ElaborationException(
+                    s"Operation `+` is not closed over arguments of type `${closureType.qualifiedName}`",
+                    tree
+                  )
                 }
                 val nextClosureType = closureType join closureOp.ensureElaborated()
                 if (closureType == nextClosureType)
