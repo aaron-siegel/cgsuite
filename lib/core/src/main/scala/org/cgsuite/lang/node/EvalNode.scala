@@ -4,7 +4,7 @@ import org.antlr.runtime.tree.Tree
 import org.apache.commons.text.StringEscapeUtils
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{ElaborationException, EvalException}
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -990,7 +990,7 @@ case class GameSpecNode(tree: Tree, lo: Vector[EvalNode], ro: Vector[EvalNode], 
       else if (allOfType(optionTypes, CgscriptClass.SidedValue))
         sys error "can't be force explicit - need better error msg here"
       else
-        throw EvalException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
+        throw ElaborationException("Invalid game specifier: objects must be of type `Game` or `SidedValue`", tree)
     )
 
   }

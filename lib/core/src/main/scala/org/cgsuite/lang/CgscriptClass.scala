@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.ElaborationException
 import org.cgsuite.lang.node._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
@@ -352,7 +352,7 @@ class CgscriptClass(
       case Some(methodGroup: MethodGroup) => methodGroup.resolveToMethod(argumentTypes, namedArgumentTypes, objectType, withImplicits)
       case None =>
         val objSuffixString = objectType map { typ => s" (for object of type `${typ.qualifiedName}`)" } getOrElse ""
-        throw EvalException(s"No method `${id.name}`$objSuffixString")
+        throw ElaborationException(s"No method `${id.name}`$objSuffixString")
     }
 
   }
@@ -585,7 +585,7 @@ class CgscriptClass(
         (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
 
       case NestedClassDef(_) =>
-        throw EvalException(s"Class no longer exists: `$qualifiedName`")
+        throw ElaborationException(s"Class no longer exists: `$qualifiedName`")
 
     }
 
@@ -627,16 +627,16 @@ class CgscriptClass(
     /*
     val explicitReturnType = node.returnType map { idNode =>
       pkg lookupClass idNode.id orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
-        throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
+        throw ElaborationException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
       }
     } map { CgscriptType(_) }
     */
     val newMethod = {
       if (node.modifiers.hasExternal) {
         if (!classModifiers.hasSystem)
-          throw EvalException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
+          throw ElaborationException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
         if (node.body.isDefined)
-          throw EvalException(s"Method is declared `external` but has a method body", node.tree)
+          throw ElaborationException(s"Method is declared `external` but has a method body", node.tree)
         logger.debug(s"$logPrefix Declaring external method: $name")
         SystemMethod(node.idNode, Some(node), parameters, node.returnType, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)
       } else {
@@ -655,7 +655,7 @@ class CgscriptClass(
     val idNode: IdentifierNode = declNode.idNode
 
     if (idNode.id.name != name)
-      throw EvalException(s"Class name does not match filename: `${idNode.id.name}` (was expecting `$name`)", idNode.tree)
+      throw ElaborationException(s"Class name does not match filename: `${idNode.id.name}` (was expecting `$name`)", idNode.tree)
 
     val modifiers: Modifiers = declNode.modifiers
 
@@ -679,7 +679,7 @@ class CgscriptClass(
             concreteNode.toType(ElaborationDomain(thisClass), allowInstanceNestedClasses = false)
 
           case _ =>
-            throw EvalException(s"Illegal type variable in `extends` clause", declNode.tree)
+            throw ElaborationException(s"Illegal type variable in `extends` clause", declNode.tree)
 
         }
 
@@ -715,7 +715,7 @@ class CgscriptClass(
         conflictingTypeOpt match {
           case None =>
           case Some(conflictingType) =>
-            throw EvalException(
+            throw ElaborationException(
               s"Class `$qualifiedName` extends multiple conflicting types: `${resolvedType.qualifiedName}`, `${conflictingType.qualifiedName}`",
               declNode.tree
             )
@@ -796,7 +796,7 @@ class CgscriptClass(
           // Check for "static consistency": if any method is static, all must be
           val isStatic = locallyDefinedMethods.head.isStatic
           if (methods exists { _.isStatic != isStatic })
-            throw EvalException(s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`", token = locallyDefinedMethods.head.declNode map { _.idNode.token })
+            throw ElaborationException(s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`", token = locallyDefinedMethods.head.declNode map { _.idNode.token })
         }
 
         // TODO Duplicate method signatures
@@ -854,20 +854,20 @@ class CgscriptClass(
 
         case 0 =>
           assert(superclassesDefining.size >= 2)
-          throw EvalException(
+          throw ElaborationException(
             s"Symbol `${symbol.name}` is defined in multiple superclasses: `${superclassesDefining.head.qualifiedName}`, `${superclassesDefining(1).qualifiedName}`",
             token = Some(classInfo.declNode.idNode.token)
           )
 
         case 1 =>
           assert(superclassesDefining.nonEmpty)
-          throw EvalException(
+          throw ElaborationException(
             s"Symbol `${symbol.name}` in class `$qualifiedName` shadows definition in class `${superclassesDefining.head.qualifiedName}`",
             token = locallyDefinedMembers.head.declNode map { _.idNode.token }
           )
 
         case _ =>
-          throw EvalException(
+          throw ElaborationException(
             s"Duplicate symbol `${symbol.name}` in class `$qualifiedName`",
             token = locallyDefinedMembers(1).declNode map { _.idNode.token }
           )
@@ -902,7 +902,7 @@ class CgscriptClass(
         val localDeclarations = matchingMethods filter { _.declaringClass == thisClass }
 
         if (localDeclarations.size > 1) {
-          throw EvalException(
+          throw ElaborationException(
             s"Method `${localDeclarations(1).qualifiedName}` is declared twice with identical signature",
             token = Some(localDeclarations(1).idNode.token)
           )
@@ -910,13 +910,13 @@ class CgscriptClass(
 
         if (localDeclarations.nonEmpty) {
           if (matchingMethods.size == 1 && localDeclarations.head.isOverride) {
-            throw EvalException(
+            throw ElaborationException(
               s"Method `${localDeclarations.head.qualifiedName}` overrides nothing",
               token = Some(localDeclarations.head.idNode.token)
             )
           }
           if (matchingMethods.size > 1 && !localDeclarations.head.isOverride) {
-            throw EvalException(
+            throw ElaborationException(
               s"Method `${localDeclarations.head.qualifiedName}` must be declared with `override`, since it overrides `${matchingMethods(1).qualifiedName}`",
               token = Some(localDeclarations.head.idNode.token)
             )
@@ -933,7 +933,7 @@ class CgscriptClass(
 
         if (mostSpecificMethods.size > 1) {
           assert(localDeclarations.isEmpty)   // Otherwise, localDeclarations.head should have filtered out everything else
-          throw EvalException(
+          throw ElaborationException(
             s"Method `${mostSpecificMethods.head.methodName}` must be declared explicitly in class `$qualifiedName`, " +
               s"because it is defined in multiple superclasses (`${mostSpecificMethods.head.declaringClass.qualifiedName}`, `${mostSpecificMethods(1).declaringClass.qualifiedName}`)",
             token = Some(classInfo.declNode.idNode.token)
@@ -954,7 +954,7 @@ class CgscriptClass(
 
       // Check that singleton => no constructor
       if (constructor.isDefined && declNode.modifiers.hasSingleton) {
-        throw EvalException(
+        throw ElaborationException(
           s"Class `$qualifiedName` cannot have a constructor if declared `singleton`",
           token = Some(idNode.token)
         )
@@ -963,7 +963,7 @@ class CgscriptClass(
       // Check that no superclass is a singleton
       supers foreach { ancestor =>
         if (ancestor.isSingleton) {
-          throw EvalException(
+          throw ElaborationException(
             s"Class `$qualifiedName` cannot extend singleton class `${ancestor.qualifiedName}`",
             token = Some(idNode.token)
           )
@@ -972,7 +972,7 @@ class CgscriptClass(
 
       // Check that constants classes must be singletons
       if (nameInPackage == "constants" && !declNode.modifiers.hasSingleton) {
-        throw EvalException(
+        throw ElaborationException(
           s"Constants class `$qualifiedName` must be declared `singleton`",
           token = Some(idNode.token)
         )
@@ -983,7 +983,7 @@ class CgscriptClass(
         // If we're mutable, check that no (locally declared) nested class is immutable
         declNode.nestedClassDeclarations foreach { nested =>
           if (!nested.modifiers.hasMutable) {
-            throw EvalException(
+            throw ElaborationException(
               s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
               token = Some(nested.idNode.token)
             )
@@ -995,7 +995,7 @@ class CgscriptClass(
       if (!declNode.modifiers.hasMutable) {
         supers foreach { spr =>
           if (spr.isMutable) {
-            throw EvalException(
+            throw ElaborationException(
               s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
               token = Some(classInfoRef.idNode.token)
             )
@@ -1004,7 +1004,7 @@ class CgscriptClass(
         // ... and that there are no mutable vars
         declNode.initializers foreach {
           case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
-            throw EvalException(
+            throw ElaborationException(
               s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
               token = Some(declNode.idNode.token)
             )
@@ -1018,7 +1018,7 @@ class CgscriptClass(
         // a "default" nil value. This could be refactored to be a bit more elegant.
         case VarDeclarationNode(_, AssignToNode(_, idNode, NullNode(_), AssignmentDeclType.ClassVarDecl), modifiers)
           if !modifiers.hasMutable =>
-          throw EvalException(
+          throw ElaborationException(
             s"Immutable variable `${idNode.id.name}` must be assigned a value",
             token = Some(idNode.token)
           )
@@ -1368,7 +1368,7 @@ class CgscriptClass(
           //domain.pushMember(this)  TODO Catch circular references
           val inferredResultType = initializerNode match {
             case Some(node) => node.ensureElaborated(domain)
-            case None => throw EvalException("Class member with no initializer")    // TODO Improve all this
+            case None => throw ElaborationException("Class member with no initializer")    // TODO Improve all this
           }
           //domain.popMember()
           inferredResultType
@@ -1398,7 +1398,7 @@ class CgscriptClass(
       case "ToList" if isExternal => "toVector"
       case "ContainsKey" if isExternal => "contains"
       case "Values" if isExternal => "values.toSet"
-      case "Updated" if isExternal => "_updated"
+      case "Updated" if thisClass == CgscriptClass.List => "_updated"
       case "Class" => "_class"
       case "ForAll" => "forall"
       case _ => methodName.updated(0, methodName.charAt(0).toLower)
@@ -1503,7 +1503,7 @@ class CgscriptClass(
       val resultType = resultTypeNode map { _.toType(domain) }
       resultType match {
         case Some(typ) => typ
-        case _ => throw EvalException(s"`external` method is missing result type: `$qualifiedName`")
+        case _ => throw ElaborationException(s"`external` method is missing result type: `$qualifiedName`")
       }
     }
 
@@ -1625,7 +1625,7 @@ class CgscriptClass(
 
       val reducedMatchingMethods = reduceMethodList(matchingMethods)
       if (reducedMatchingMethods.size >= 2) {
-        throw EvalException(s"Method `$name`$objTypeSuffix is ambiguous when applied to $argTypesString")
+        throw ElaborationException(s"Method `$name`$objTypeSuffix is ambiguous when applied to $argTypesString")
       }
 
       reducedMatchingMethods.headOption
@@ -1669,7 +1669,7 @@ class CgscriptClass(
         }
 
       } getOrElse {
-        throw EvalException(s"Method `$name`$objTypeSuffix cannot be applied to argument types $argTypesString")
+        throw ElaborationException(s"Method `$name`$objTypeSuffix cannot be applied to argument types $argTypesString")
       }
 
     }

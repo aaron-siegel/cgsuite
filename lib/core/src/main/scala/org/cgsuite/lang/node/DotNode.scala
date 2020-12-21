@@ -1,7 +1,7 @@
 package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{ElaborationException, EvalException}
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
 
@@ -45,7 +45,10 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
     antecedentPackage map { pkg =>
       antecedentType = None
       pkg.lookupConstantMember(idNode.id) orElse pkg.lookupClass(idNode.id) getOrElse {
-        throw EvalException(s"No symbol `${idNode.id.name}` found in package `${pkg.qualifiedName}`")
+        throw ElaborationException(
+          s"No symbol `${idNode.id.name}` found in package `${pkg.qualifiedName}`",
+          token = Some(tree.token)
+        )
       }
     }
 
@@ -63,12 +66,18 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
         // This is a class object, so we need to look for a static resolution
         val cls = antecedentType.typeArguments.head.baseClass
         CgscriptClass.Class.resolveInstanceMember(idNode.id) orElse cls.resolveStaticMember(idNode.id) getOrElse {
-          throw EvalException(s"No symbol `${idNode.id.name}` found in class `${cls.qualifiedName}`")
+          throw ElaborationException(
+            s"No symbol `${idNode.id.name}` found in class `${cls.qualifiedName}`",
+            tree
+          )
         }
 
       case _ =>
         antecedentType.baseClass.resolveInstanceMemberWithImplicits(idNode.id) getOrElse {
-          throw EvalException(s"No symbol `${idNode.id.name}` found in class `${antecedentType.baseClass.qualifiedName}`")
+          throw ElaborationException(
+            s"No symbol `${idNode.id.name}` found in class `${antecedentType.baseClass.qualifiedName}`",
+            tree
+          )
         }
 
     }
@@ -111,7 +120,10 @@ case class DotNode(tree: Tree, antecedent: EvalNode, idNode: IdentifierNode) ext
 
         case methodGroup: CgscriptClass#MethodGroup =>
           val methodProjection = methodGroup.autoinvokeMethod getOrElse {
-            throw EvalException(s"Method `${methodGroup.qualifiedName}` requires arguments")
+            throw ElaborationException(
+              s"Method `${methodGroup.qualifiedName}` requires arguments",
+              tree
+            )
           }
           methodProjection.method
 

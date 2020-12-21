@@ -1,7 +1,7 @@
 package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{ElaborationException, EvalException}
 import org.cgsuite.lang.parser.CgsuiteLexer.BIGRARROW
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
 import org.cgsuite.lang._
@@ -145,19 +145,14 @@ case class FunctionCallNode(
     val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
     argNames take (lastOrdinaryArgIndex + 1) foreach {
       case None =>
-      case Some(argNameNode) => throw EvalException(
-        s"Named parameter `${argNameNode.id.name}` appears in earlier position than an ordinary argument",
-        token = Some(argNameNode.token)
-      )
+      case Some(argNameNode) =>
+        throw ElaborationException(s"Named parameter `${argNameNode.id.name}` appears in earlier position than an ordinary argument", argNameNode.tree)
     }
 
     // Syntactic validation of arguments: check for duplicate named parameter
     argNames.flatten groupBy { _.id } foreach { case (id, argNameNodes) =>
       if (argNameNodes.size > 1) {
-        throw EvalException(
-          s"Duplicate parameter name: `${id.name}`",
-          token = Some(argNameNodes(1).token)
-        )
+        throw ElaborationException(s"Duplicate parameter name: `${id.name}`", argNameNodes(1).tree)
       }
     }
 
@@ -209,7 +204,11 @@ case class FunctionCallNode(
           case None =>
 
             // Try elaborating with implicits. This will throw an exception if no elaboration is possible.
-            val method = methodGroup.resolveToMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType, withImplicits = true)
+            val method = try {
+              methodGroup.resolveToMethod(ordinaryArgumentTypes, namedArgumentTypes, objectType, withImplicits = true)
+            } catch {
+              case exc: ElaborationException => exc.addToken(tree.token); throw exc
+            }
             elaboratedMethod = Some(method)
             method.ensureElaborated()
             // Note we DON'T allow implicits on generics (currently); hence we don't do type substitution here.
@@ -232,7 +231,7 @@ case class FunctionCallNode(
                 elaboratedMethod = Some(constructor.asDefaultProjection)
                 constructor.ensureElaborated()
               case None =>
-                throw EvalException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}")
+                throw ElaborationException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}", tree)
             }
           }
         } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
