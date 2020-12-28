@@ -6,7 +6,7 @@ import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
-import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
+import org.cgsuite.exception.{CgsuiteException, CompilationException, EvalException, SyntaxException}
 import org.cgsuite.lang.node.{AssignToNode, EvalNode, FunctionCallNode, StatementSequenceNode}
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
@@ -154,6 +154,8 @@ object CgscriptSystem {
       case scala.Left(output) => scala.Left(Vector(output))
       case scala.Right(syntaxException: SyntaxException) =>
         scala.Left(EvalUtil.syntaxExceptionToOutput(str, syntaxException, includeLine = true))
+      case scala.Right(compilationException: CompilationException) =>
+        scala.Right(compilationException)
       case scala.Right(cgsuiteException: CgsuiteException) =>
         scala.Left(EvalUtil.cgsuiteExceptionToOutput(str, cgsuiteException))
       case scala.Right(exc) => scala.Right(exc)
@@ -195,13 +197,16 @@ object CgscriptSystem {
         logger.debug(wrappedLine)
 
         beQuietDuring {
-          interpreter interpret wrappedLine match {
-            case IR.Error | IR.Incomplete =>
-              throw EvalException("Compilation error.")
-            case IR.Success =>
-          }
 
-          val result = (interpreter valueOfTerm "__object").get.asInstanceOf[Either[Any, Throwable]]
+          val result =
+            interpreter interpret wrappedLine match {
+              case IR.Error | IR.Incomplete =>
+                // Return immediately
+                return scala.Right(CompilationException("Compilation error.", wrappedLine))
+              case IR.Success =>
+                (interpreter valueOfTerm "__object").get.asInstanceOf[Either[Any, Throwable]]
+            }
+
           if (result.isLeft) {
             varNameOpt foreach { varName =>
               interpreter interpret s"val $varName = __object.left.get"
@@ -209,6 +214,7 @@ object CgscriptSystem {
           } else {
             break
           }
+
         }
 
       }
@@ -227,12 +233,10 @@ object CgscriptSystem {
     beQuietDuring {
       interpreter interpret outputCode match {
         case IR.Error | IR.Incomplete =>
-          throw EvalException("Compilation error.")
+          scala.Right(CompilationException("Compilation error.", outputCode))
         case IR.Success =>
+          (interpreter valueOfTerm "__output").get.asInstanceOf[Either[Output, Throwable]]
       }
-
-      val result = (interpreter valueOfTerm "__output").get.asInstanceOf[Either[Output, Throwable]]
-      result
     }
 
   }

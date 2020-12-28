@@ -26,6 +26,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.cgsuite.exception.CompilationException;
 import org.cgsuite.kernel.KernelRequest;
 import org.cgsuite.kernel.KernelResponse;
 import org.cgsuite.output.StyledTextOutput;
@@ -272,6 +273,8 @@ public class KernelClient {
                 "Details of the crash can be found below. You will need to reset<br>" +
                 "the kernel (select \"Reset Kernel\" from the System menu).</html>";
             
+            details = ExceptionUtils.getStackTrace(exc);
+            
         } else if (exc instanceof OutOfMemoryError) {
             
             message =
@@ -289,7 +292,12 @@ public class KernelClient {
                 "to a bug in CGSuite. Please file a bug report at:<br>" +
                 "<a href=\"http://www.cgsuite.org/bugs\">http://www.cgsuite.org/bugs</a><br>&nbsp;<br>" +
                 "Details of the error can be found below.</html>";
-            details = ExceptionUtils.getStackTrace(exc);
+            
+            if (exc instanceof CompilationException) {
+                details = ExceptionUtils.getStackTrace(exc) + "\n-----------\n" + ((CompilationException) exc).input();
+            } else {
+                details = ExceptionUtils.getStackTrace(exc);
+            }
             
         }
         
