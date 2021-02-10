@@ -104,6 +104,50 @@ case class FunctionCallNode(
 
   override def elaborateImpl(domain: ElaborationDomain) = {
 
+    // STEP 1: Syntactic argument validation
+
+    // Syntactic validation of arguments: check that named parameters appear
+    // strictly after ordinary arguments
+    val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
+    argNames take (lastOrdinaryArgIndex + 1) foreach {
+      case None =>
+      case Some(argNameNode) =>
+        throw ElaborationException(s"Named parameter `${argNameNode.id.name}` appears in earlier position than an ordinary argument", argNameNode.tree)
+    }
+
+    // Syntactic validation of arguments: check for duplicate named parameter
+    argNames.flatten groupBy { _.id } foreach { case (id, argNameNodes) =>
+      if (argNameNodes.size > 1) {
+        throw ElaborationException(s"Duplicate parameter name: `${id.name}`", argNameNodes(1).tree)
+      }
+    }
+
+    // STEP 2: Argument type extraction
+
+    // Determine argument types
+    val argTypes = argNodes map {
+      // If it's a function with unspecified parameters, then we don't elaborate yet --
+      // we'll try to do type-inference, then come back and elaborate later
+      case procedureNode: ProcedureNode if procedureNode.hasUnspecifiedTypes =>
+        ConcreteType(CgscriptClass.Procedure, Vector.fill(procedureNode.parametersNode.parameterNodes.size + 1)(UnspecifiedType))
+      case node => node.ensureElaborated(domain)
+    }
+
+    // Extract all the ordinary (unnamed) arguments
+    val ordinaryArgumentTypes = argNodes.indices.toVector collect {
+      case n if argNames(n).isEmpty => argTypes(n)
+    }
+
+    // Extract all the named arguments as a map of Symbol -> CgscriptType
+    val namedArgumentTypes = {
+      argNodes.indices collect {
+        case n if argNames(n).nonEmpty => argNames(n).get.id -> argTypes(n)
+      }
+    }.toMap
+
+    // STEP 3: Is this a method call on an object, a method call in local scope,
+    // or some other type of call?
+
     val (elaboratedMethodGroup, objType) = callSiteNode match {
 
       case idNode: IdentifierNode =>
@@ -140,39 +184,8 @@ case class FunctionCallNode(
 
     objectType = objType
 
-    // Syntactic validation of arguments: check that named parameters appear
-    // strictly after ordinary arguments
-    val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
-    argNames take (lastOrdinaryArgIndex + 1) foreach {
-      case None =>
-      case Some(argNameNode) =>
-        throw ElaborationException(s"Named parameter `${argNameNode.id.name}` appears in earlier position than an ordinary argument", argNameNode.tree)
-    }
-
-    // Syntactic validation of arguments: check for duplicate named parameter
-    argNames.flatten groupBy { _.id } foreach { case (id, argNameNodes) =>
-      if (argNameNodes.size > 1) {
-        throw ElaborationException(s"Duplicate parameter name: `${id.name}`", argNameNodes(1).tree)
-      }
-    }
-
-    val argTypes = argNodes map {
-      // If it's a function with an unspecified parameter, then we don't elaborate yet --
-      // we'll try to do type-inference, then come back and elaborate later
-      case procedureNode: ProcedureNode if procedureNode.hasUnspecifiedTypes =>
-        ConcreteType(CgscriptClass.Procedure, Vector.fill(procedureNode.parametersNode.parameterNodes.size + 1)(UnspecifiedType))
-      case node => node.ensureElaborated(domain)
-    }
-
-    val ordinaryArgumentTypes = argNodes.indices.toVector collect {
-      case n if argNames(n).isEmpty => argTypes(n)
-    }
-
-    val namedArgumentTypes = {
-      argNodes.indices collect {
-        case n if argNames(n).nonEmpty => argNames(n).get.id -> argTypes(n)
-      }
-    }.toMap
+    // STEP 4: Determine the result type of this method/function call. Argument types will
+    // be validated during this step.
 
     val elaboratedType = elaboratedMethodGroup match {
 
@@ -220,31 +233,63 @@ case class FunctionCallNode(
       case None =>
         // TODO Named parameter validation for constructor args
         val callSiteType = callSiteNode.ensureElaborated(domain)
-        if (callSiteType.baseClass == CgscriptClass.Class) {
-          val cls = callSiteType.typeArguments.head.baseClass
-          if (cls.isScript) {
-            elaboratedMethod = None
-            cls.scriptBody.ensureElaborated()
-          } else {
-            cls.constructor match {
-              case Some(constructor) =>
-                elaboratedMethod = Some(constructor.asDefaultProjection)
-                constructor.ensureElaborated()
-              case None =>
-                throw ElaborationException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}", tree)
+        callSiteType.baseClass match {
+
+          case CgscriptClass.Class =>
+            // The call site is a Class. That means we're calling a class constructor.
+            // TODO: Validation
+            val cls = callSiteType.typeArguments.head.baseClass
+            if (cls.isScript) {
+              elaboratedMethod = None
+              cls.scriptBody.ensureElaborated()
+            } else {
+              cls.constructor match {
+                case Some(constructor) =>
+                  elaboratedMethod = Some(constructor.asDefaultProjection)
+                  constructor.ensureElaborated()
+                case None =>
+                  throw ElaborationException(s"Class cannot be directly instantiated: ${callSiteType.typeArguments.head.baseClass.qualifiedName}", tree)
+              }
             }
-          }
-        } else if (callSiteType.baseClass == CgscriptClass.Procedure) {
-          // TODO Validate args? Type-infer the procedure?
-          isExpandableArgumentPattern = true
-          elaboratedMethod = None
-          callSiteType.typeArguments.last
-        } else {
-          // Eval method
-          isEval = true
-          val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, ordinaryArgumentTypes, namedArgumentTypes, Some(callSiteType))
-          elaboratedMethod = None     // TODO
-          evalMethod.ensureElaborated()
+
+          case CgscriptClass.Procedure =>
+            // The call site is a function.
+            // TODO: Implicit conversions
+            if (namedArgumentTypes.nonEmpty)
+              throw ElaborationException(
+                s"Named argument not permitted in function call",
+                argNames.flatten.head.tree
+              )
+            val argumentCount = ordinaryArgumentTypes.length
+            val parameterCount = callSiteType.typeArguments.length - 1
+            if (argumentCount < parameterCount)
+              throw ElaborationException(
+                s"Not enough arguments in function call: $argumentCount (was expecting $parameterCount)",
+                tree
+              )
+            if (argumentCount > parameterCount)
+              throw ElaborationException(
+                s"Too many arguments in function call: $argumentCount (was expecting $parameterCount)",
+                tree
+              )
+            ordinaryArgumentTypes.zipWithIndex zip callSiteType.typeArguments.dropRight(1) foreach { case ((argType, n), paramType) =>
+              if (!(argType matches paramType))
+                throw ElaborationException(
+                  s"Argument of type `${argType.qualifiedName}` is invalid here (was expecting a `${paramType.qualifiedName}`)",
+                  argNodes(n).tree
+                )
+            }
+            isExpandableArgumentPattern = true
+            elaboratedMethod = None
+            callSiteType.typeArguments.last
+
+          case _ =>
+            // For any other call site, we're calling its Eval method.
+            isEval = true
+            val evalMethod = callSiteType.baseClass.resolveInstanceMethod('Eval, ordinaryArgumentTypes, namedArgumentTypes, Some(callSiteType))
+            elaboratedMethod = None     // TODO
+            evalMethod.ensureElaborated()
+
         }
 
     }

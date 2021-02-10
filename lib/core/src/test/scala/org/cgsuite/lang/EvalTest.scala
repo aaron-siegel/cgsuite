@@ -355,8 +355,10 @@ class EvalTest extends CgscriptSpec {
       ("Nullary procedure evaluation", "f()", "3"),
       ("Multiparameter procedure", "f := (x as Integer,y as Integer) -> (x-y)/2", "(x as game.Integer, y as game.Integer) -> (x - y) / 2"),
       ("Multiparameter procedure evaluation", "f(3,4)", "-1/2"),
-//      ("Procedure eval - too few args", "f(3)", "!!Missing required parameter (in procedure call): `y`"),
-//      ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments (in procedure call): 3 (expecting at most 2)"),
+      ("Procedure eval - too few args 1", "f()", "!!Not enough arguments in function call: 0 (was expecting 2)"),
+      ("Procedure eval - too few args 2", "f(3)", "!!Not enough arguments in function call: 1 (was expecting 2)"),
+      ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments in function call: 3 (was expecting 2)"),
+      ("Procedure eval - named arg", "f(3, y => 4)", "!!Named argument not permitted in function call"),
 //      ("Procedure eval - named args", "f(y => 3, x => 4)", "1/2"),
 //      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` (in procedure call) appears in earlier position than an ordinary argument"),
 //      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate named parameter (in procedure call): `x`"),
@@ -393,7 +395,7 @@ class EvalTest extends CgscriptSpec {
   }
 
   // TODO Bring back this test
-  ignore should "validate function calls correctly" in {
+  ignore should "validate method calls correctly" in {
 
     testPackage declareSubpackage "validation"
 
@@ -406,7 +408,7 @@ class EvalTest extends CgscriptSpec {
         |
         |  def Method3(a as Integer, b as Integer, c as String ? "bell") := a + b;
         |
-        |  def Method5(a as Integer, b as Integer, c as Nimber ? *, d ? [], e as Game ? ^*) := a + b;
+        |  def Method5(a as Integer, b as Integer, c as Nimber ? *, d as List of Integer ? [], e as Game ? ^*) := a + b;
         |
         |  class Nested(a as Integer, b as Integer, c as String ? "bell")
         |  end

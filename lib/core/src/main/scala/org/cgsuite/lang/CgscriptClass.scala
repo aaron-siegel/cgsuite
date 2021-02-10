@@ -1590,7 +1590,7 @@ class CgscriptClass(
       */
 
       // The following strings are used for error reporting:
-      def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+      def argTypesString = if (argumentTypes.isEmpty) "()" else argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
 
       // Determine which methods match the specified arguments
@@ -1640,7 +1640,7 @@ class CgscriptClass(
       ): MethodProjection = {
 
       // The following strings are used for error reporting:
-      def argTypesString = argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+      def argTypesString = if (argumentTypes.isEmpty) "()" else argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
       def objTypeSuffix = objectType map { " (of object `" + _.qualifiedName + "`)" } getOrElse ""
 
       lookupMethod(argumentTypes, namedArgumentTypes, objectType) orElse {
