@@ -29,6 +29,11 @@
       <name>Typesafe Repository</name>
       <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
     </repository>
+    <repository>
+      <id>dv8tion</id>
+      <name>m2-dv8tion</name>
+      <url>https://m2.dv8tion.net/releases</url>
+    </repository>
   </repositories>
 
   <dependencies>
@@ -91,6 +96,11 @@
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
       <version>0.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>net.dv8tion</groupId>
+      <artifactId>JDA</artifactId>
+      <version>4.2.1_253</version>
     </dependency>
     <dependency>
       <groupId>org.hyperic</groupId>
