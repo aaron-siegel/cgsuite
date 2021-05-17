@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.entities.{Activity, Message, User}
 import net.dv8tion.jda.api.events.message.{GenericMessageEvent, MessageReceivedEvent, MessageUpdateEvent}
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.requests.GatewayIntent
-import net.dv8tion.jda.api.{EmbedBuilder, JDABuilder}
+import net.dv8tion.jda.api.JDABuilder
 import org.cgsuite.bot.discord.DiscordBot.logger
 import org.cgsuite.core.CanonicalShortGame
 import org.cgsuite.lang.{CgscriptSystem, ReplUiHarness}
