@@ -29,6 +29,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.cgsuite.exception.CompilationException;
 import org.cgsuite.kernel.KernelRequest;
 import org.cgsuite.kernel.KernelResponse;
+import org.cgsuite.kernel.NewExplorerKernelResponse;
+import org.cgsuite.kernel.WorksheetKernelResponse;
 import org.cgsuite.output.StyledTextOutput;
 import scala.collection.JavaConverters;
 
@@ -101,7 +103,7 @@ public class KernelClient {
         
     }
     
-    void startKernel() {
+    final void startKernel() {
          
         try {
             
@@ -220,18 +222,10 @@ public class KernelClient {
                         boolean done = false;
                         while (!done) {
                             KernelResponse response = (KernelResponse) in.readObject();
-                            if (response.output() == null) {
-                                assert response.exc() != null && response.isFinal();
-                                final KernelDispatch dispatch = new KernelDispatch("Kernel error.", response.isFinal());
-                                SwingUtilities.invokeLater(() -> {
-                                    showErrorDialog(response.exc(), false);
-                                    query.callback.receive(dispatch);
-                                });
-                                done = true;
-                            } else {
-                                final KernelDispatch dispatch = new KernelDispatch(JavaConverters.seqAsJavaList(response.output()), response.isFinal());
-                                SwingUtilities.invokeLater(() -> query.callback.receive(dispatch));
-                                done = response.isFinal();
+                            if (response instanceof WorksheetKernelResponse) {
+                                done = dispatchWorksheetResponse((WorksheetKernelResponse) response, query.callback);
+                            } else if (response instanceof NewExplorerKernelResponse) {
+                                dispatchNewExplorerResponse((NewExplorerKernelResponse) response, query.callback);
                             }
                         }
                         long duration = System.currentTimeMillis() - startTime;
@@ -256,6 +250,30 @@ public class KernelClient {
             }
             
         }
+        
+    }
+    
+    public boolean dispatchWorksheetResponse(WorksheetKernelResponse response, KernelCallback callback) {
+        
+        if (response.output() == null) {
+            assert response.exc() != null && response.isFinal();
+            final KernelDispatch dispatch = new KernelDispatch("Kernel error.", response.isFinal());
+            SwingUtilities.invokeLater(() -> {
+                showErrorDialog(response.exc(), false);
+                callback.receive(dispatch);
+            });
+            return true;
+        } else {
+            final KernelDispatch dispatch = new KernelDispatch(JavaConverters.seqAsJavaList(response.output()), response.isFinal());
+            SwingUtilities.invokeLater(() -> callback.receive(dispatch));
+            return response.isFinal();
+        }
+        
+    }
+    
+    public void dispatchNewExplorerResponse(NewExplorerKernelResponse response, KernelCallback callback) {
+        
+        SwingUtilities.invokeLater(() -> callback.receive(new KernelDispatch("An explorer was created.", false)));
         
     }
     

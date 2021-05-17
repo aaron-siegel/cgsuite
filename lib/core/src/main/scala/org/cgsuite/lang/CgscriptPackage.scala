@@ -26,7 +26,7 @@ object CgscriptPackage {
   def lookupClassByName(name: String): Option[CgscriptClass] = classDictionary.get(name)
 
   def lookupConstantMember(id: Symbol): Option[MemberResolution] = {
-    lang.lookupConstantMember(id) orElse util.lookupConstantMember(id) orElse game.lookupConstantMember(id)
+    lang.lookupConstantMember(id) orElse util.lookupConstantMember(id) orElse game.lookupConstantMember(id) orElse ui.lookupConstantMember(id)
   }
 
   def allClasses = classDictionary.values.toVector.distinct sortBy { _.qualifiedName }

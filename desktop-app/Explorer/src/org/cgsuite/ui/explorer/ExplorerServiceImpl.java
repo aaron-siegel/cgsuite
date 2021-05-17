@@ -19,7 +19,7 @@ public class ExplorerServiceImpl implements ExplorerService
 {
 
     @Override
-    public Explorer newExplorer(Game g)
+    public Object newExplorer(Game g)
     {
         return new ExplorerImpl(g);
     }

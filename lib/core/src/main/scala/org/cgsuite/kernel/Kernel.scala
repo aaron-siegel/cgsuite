@@ -11,8 +11,10 @@ import org.cgsuite.core.Game
 import org.cgsuite.kernel.Kernel.logger
 import org.cgsuite.lang.{CgscriptClasspath, CgscriptSystem, EvalUtil}
 import org.cgsuite.output.Output
-import org.cgsuite.util.UiHarness
+import org.cgsuite.util.{Explorer, UiHarness}
 import org.slf4j.LoggerFactory
+
+import scala.collection.mutable
 
 object Kernel {
 
@@ -75,7 +77,7 @@ class Kernel() {
       logger.info("Received request: " + request.input)
       CgscriptClasspath.reloadModifiedFiles()
       val output = CgscriptSystem.evaluateAndProcessExceptions(request.input)
-      send(output, isFinal = true)
+      sendToWorksheet(output, isFinal = true)
 
     }
 
@@ -100,9 +102,15 @@ class Kernel() {
 */
   }
 
-  def send(output: Either[Vector[Output], Throwable], isFinal: Boolean): Unit = {
+  def sendToWorksheet(output: Either[Vector[Output], Throwable], isFinal: Boolean): Unit = {
 
-    val response = KernelResponse(output.left.getOrElse(null), output.right.getOrElse(null), isFinal)
+    val response = WorksheetKernelResponse(output.left.getOrElse(null), output.right.getOrElse(null), isFinal)
+    send(response)
+
+  }
+
+  def send(response: KernelResponse): Unit = {
+
     logger.info("Writing response: " + response)
     out.writeObject(response)
     out.flush()
@@ -111,11 +119,19 @@ class Kernel() {
 
   object KernelUiHarness extends UiHarness {
 
-    override def createExplorer(g: Game) = ???
+    private val knownExplorers = mutable.Map[String, Explorer]()
+
+    override def createExplorer(g: Game): Explorer = {
+      val explorer = new Explorer()
+      val uuid = java.util.UUID.randomUUID().toString
+      knownExplorers(uuid) = explorer
+      send(NewExplorerKernelResponse(uuid, Some(g.toOutput)))
+      explorer
+    }
 
     override def print(obj: AnyRef): Unit = {
       val output = EvalUtil.objectToOutput(obj)
-      send(scala.Left(output), isFinal = false)
+      sendToWorksheet(scala.Left(output), isFinal = false)
     }
 
   }

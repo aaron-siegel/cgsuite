@@ -21,9 +21,3 @@ trait UiHarness {
   def print(obj: AnyRef): Unit
 
 }
-
-trait Explorer {
-
-  def selection: Game
-
-}

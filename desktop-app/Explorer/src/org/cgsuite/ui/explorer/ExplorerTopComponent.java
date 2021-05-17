@@ -411,7 +411,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         }
         else
         {
-            this.editorPanel = editorFor(node.getG());
+            this.editorPanel = new DefaultEditorPanel(node.getG()); //editorFor(node.getG());
             this.editorScrollPane.setViewportView(editorPanel);
             this.addPositionButton.setEnabled(true);
             // TODO Fix this
@@ -419,6 +419,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         }
     }
     
+    /*
     private CgscriptClass gridRuleset = CgscriptPackage.lookupClassByName("game.grid.GridRuleset").get();
     
     private EditorPanel editorFor(Game g)
@@ -439,6 +440,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             return new DefaultEditorPanel(g);
         }
     }
+    */
 
     void writeProperties(java.util.Properties p)
     {

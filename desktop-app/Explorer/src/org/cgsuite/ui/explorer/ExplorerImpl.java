@@ -18,7 +18,7 @@ import org.cgsuite.util.Explorer;
  *
  * @author asiegel
  */
-public class ExplorerImpl implements Explorer
+public class ExplorerImpl
 {
     private ExplorerWindow window;
     private List<ExplorerNode> roots;

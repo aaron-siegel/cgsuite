@@ -14,5 +14,5 @@ import org.cgsuite.util.Explorer;
  */
 public interface ExplorerService
 {
-    Explorer newExplorer(Game g);
+    Object newExplorer(Game g);
 }
