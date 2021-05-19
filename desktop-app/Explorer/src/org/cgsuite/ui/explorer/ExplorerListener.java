@@ -11,5 +11,5 @@ package org.cgsuite.ui.explorer;
  */
 public interface ExplorerListener
 {
-    public void nodeAdded(ExplorerNode node);
+    public void nodeAdded(ExplorerViewNode node);
 }

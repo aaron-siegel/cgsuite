@@ -15,9 +15,11 @@ import java.util.logging.Logger;
 import org.cgsuite.core.Game;
 import org.cgsuite.core.Left$;
 import org.cgsuite.core.Right$;
-import org.cgsuite.lang.CgscriptClass;
-import org.cgsuite.lang.CgscriptPackage;
-import org.cgsuite.output.GridOutput;
+import org.cgsuite.kernel.ExplorerAction;
+import org.cgsuite.kernel.ExplorerKernelRequest;
+import org.cgsuite.kernel.client.KernelCallback;
+import org.cgsuite.kernel.client.KernelClient;
+import org.cgsuite.kernel.client.KernelDispatch;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.StyledTextOutput;
 import org.cgsuite.ui.worksheet.CalculationCapsule;
@@ -49,7 +51,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     
     private String enterCommandHint;
 
-    private ExplorerImpl explorer;
+    private ExplorerView explorerView;
     private EditorPanel editorPanel;
     
     private AnyRefMap<Symbol,Object> varMap = new AnyRefMap<Symbol,Object>();
@@ -57,7 +59,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     
     private String requestedEvaluationText;
     private String activeEvaluationText;
-    private ExplorerNode activeEvaluationNode;
+    private ExplorerViewNode activeEvaluationNode;
 
     public ExplorerTopComponent()
     {
@@ -76,11 +78,11 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         commandComboBox.insertItemAt(enterCommandHint, 0);
         commandComboBox.setSelectedIndex(0);
     }
-
-    public void setExplorer(ExplorerImpl explorer)
+    
+    public void setExplorerView(ExplorerView explorerView)
     {
-        this.explorer = explorer;
-        tree.setExplorer(explorer);
+        this.explorerView = explorerView;
+        tree.setExplorer(explorerView);
         tree.addExplorerTreeListener(this);
         updateEditor();
     }
@@ -215,10 +217,16 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
     private void expandSensibleOptionsMenuItemActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandSensibleOptionsMenuItemActionPerformed
     {//GEN-HEADEREND:event_expandSensibleOptionsMenuItemActionPerformed
-        final ExplorerNode node = tree.getSelectedNode();
+        final ExplorerViewNode node = tree.getSelectedNode();
         if (node == null)
             return;
         
+        KernelClient.client.postRequest(
+            ExplorerKernelRequest.apply(explorerView.getId(), node.getOrdinal(), ExplorerAction.ExpandSensibleOptions()),
+            null
+        );
+        
+        /*
         final Game g = node.getG();
         
         RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(new Runnable()
@@ -244,6 +252,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         }
 
         tree.refresh();
+        */
     }//GEN-LAST:event_expandSensibleOptionsMenuItemActionPerformed
 
     private void treeMouseClicked(java.awt.event.MouseEvent evt)//GEN-FIRST:event_treeMouseClicked
@@ -266,9 +275,9 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
     private void addPositionButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_addPositionButtonActionPerformed
     {//GEN-HEADEREND:event_addPositionButtonActionPerformed
-        Game g = (Game) editorPanel.constructObject();
-        ExplorerNode node = explorer.findOrAdd(g);
-        tree.setSelectedNode(node);
+        /*Game g = (Game) editorPanel.constructObject();
+        ExplorerViewNode node = explorer.findOrAdd(g);
+        tree.setSelectedNode(node);*/
     }//GEN-LAST:event_addPositionButtonActionPerformed
 
     private void commandComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_commandComboBoxActionPerformed
@@ -276,7 +285,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
     }//GEN-LAST:event_commandComboBoxActionPerformed
 
 private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_expandSensibleLinesMenuItemActionPerformed
-        final ExplorerNode node = tree.getSelectedNode();
+        /*final ExplorerViewNode node = tree.getSelectedNode();
         if (node == null)
             return;
         
@@ -297,7 +306,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
 
         for (IndexedSeq<Game> line : leftLines)
         {
-            ExplorerNode curNode = node;
+            ExplorerViewNode curNode = node;
             boolean left = true;
             for (Game follower : JavaConverters.asJavaCollection(line))
             {
@@ -307,7 +316,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
         }
         for (IndexedSeq<Game> line : rightLines)
         {
-            ExplorerNode curNode = node;
+            ExplorerViewNode curNode = node;
             boolean left = false;
             for (Game follower : JavaConverters.asJavaCollection(line))
             {
@@ -316,7 +325,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             }
         }
 
-        tree.refresh();
+        tree.refresh();*/
 }//GEN-LAST:event_expandSensibleLinesMenuItemActionPerformed
 
     private void doTreePopup(MouseEvent evt)
@@ -396,7 +405,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     }
 
     @Override
-    public void selectionPathChanged(List<ExplorerNode> newPath)
+    public void selectionPathChanged(List<ExplorerViewNode> newPath)
     {
         updateEditor();
         reeval();
@@ -404,14 +413,14 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
 
     private void updateEditor()
     {
-        ExplorerNode node = tree.getSelectedNode();
+        ExplorerViewNode node = tree.getSelectedNode();
         if (node == null)
         {
             this.typeLabel.setText("No position is selected.");
         }
         else
         {
-            this.editorPanel = new DefaultEditorPanel(node.getG()); //editorFor(node.getG());
+            this.editorPanel = new DefaultEditorPanel(node.getOutput()); //editorFor(node.getG());
             this.editorScrollPane.setViewportView(editorPanel);
             this.addPositionButton.setEnabled(true);
             // TODO Fix this
@@ -523,7 +532,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             tree.getSelectedNode() != null &&
             !activeEvaluationText.equals(enterCommandHint))
         {
-            varMap.put(Symbol$.MODULE$.apply("Selection"), tree.getSelectedNode().getG());
+            varMap.put(Symbol$.MODULE$.apply("Selection"), tree.getSelectedNode());
             CalculationCapsule capsule = new CalculationCapsule(varMap, activeEvaluationText);
             RequestProcessor.Task task = CalculationCapsule.REQUEST_PROCESSOR.create(capsule);
             task.addTaskListener(this);
@@ -560,13 +569,13 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     }
     
     @Override
-    public ExplorerNode getSelectedNode()
+    public ExplorerViewNode getSelectedNode()
     {
         return tree.getSelectedNode();
     }
     
     @Override
-    public List<ExplorerNode> getSelectionPath()
+    public List<ExplorerViewNode> getSelectionPath()
     {
         return tree.getSelectionPath();
     }

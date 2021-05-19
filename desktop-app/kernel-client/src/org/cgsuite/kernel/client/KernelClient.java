@@ -27,11 +27,17 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.cgsuite.exception.CompilationException;
+import org.cgsuite.kernel.ExplorerUpdatedKernelResponse;
+import org.cgsuite.kernel.InputKernelRequest;
 import org.cgsuite.kernel.KernelRequest;
 import org.cgsuite.kernel.KernelResponse;
 import org.cgsuite.kernel.NewExplorerKernelResponse;
+import org.cgsuite.kernel.NodeExpandedExplorerUpdate;
+import org.cgsuite.kernel.NodeInfo;
+import org.cgsuite.kernel.RootNodeCreatedExplorerUpdate;
 import org.cgsuite.kernel.WorksheetKernelResponse;
 import org.cgsuite.output.StyledTextOutput;
+import org.openide.util.Lookup;
 import scala.collection.JavaConverters;
 
 /**
@@ -67,7 +73,13 @@ public class KernelClient {
     
     public synchronized void postRequest(String input, KernelCallback callback) {
         
-        queue.add(new KernelQuery(input, callback));
+        postRequest(new InputKernelRequest(input), callback);
+        
+    }
+    
+    public synchronized void postRequest(KernelRequest request, KernelCallback callback) {
+        
+        queue.add(new KernelQuery(request, callback));
         notifyAll();
         
     }
@@ -193,11 +205,11 @@ public class KernelClient {
     
     class KernelQuery {
         
-        String input;
+        KernelRequest request;
         KernelCallback callback;
          
-        public KernelQuery(String input, KernelCallback callback) {
-            this.input = input;
+        public KernelQuery(KernelRequest request, KernelCallback callback) {
+            this.request = request;
             this.callback = callback;
         }
        
@@ -214,19 +226,22 @@ public class KernelClient {
                     final KernelQuery query = waitForQuery();
                     if (!resetting) {
                         assert(query != null);
-                        KernelRequest request = new KernelRequest(query.input);
-                        logger.log(Level.INFO, "Posting request to kernel: {0}", query.input);
+                        logger.log(Level.INFO, "Posting request to kernel: {0}", query.request);
                         long startTime = System.currentTimeMillis();
-                        out.writeObject(request);
+                        out.writeObject(query.request);
                         out.flush();
                         boolean done = false;
                         while (!done) {
                             KernelResponse response = (KernelResponse) in.readObject();
+                            logger.log(Level.INFO, "Received response from kernel: {0}", response);
                             if (response instanceof WorksheetKernelResponse) {
-                                done = dispatchWorksheetResponse((WorksheetKernelResponse) response, query.callback);
+                                dispatchWorksheetResponse((WorksheetKernelResponse) response, query.callback);
                             } else if (response instanceof NewExplorerKernelResponse) {
                                 dispatchNewExplorerResponse((NewExplorerKernelResponse) response, query.callback);
+                            } else if (response instanceof ExplorerUpdatedKernelResponse) {
+                                dispatchExplorerUpdatedKernelResponse((ExplorerUpdatedKernelResponse) response, query.callback);
                             }
+                            done = response.isFinal();
                         }
                         long duration = System.currentTimeMillis() - startTime;
                         logger.log(Level.INFO, "Calculation completed in {0} milliseconds.", duration);
@@ -253,7 +268,7 @@ public class KernelClient {
         
     }
     
-    public boolean dispatchWorksheetResponse(WorksheetKernelResponse response, KernelCallback callback) {
+    public void dispatchWorksheetResponse(WorksheetKernelResponse response, KernelCallback callback) {
         
         if (response.output() == null) {
             assert response.exc() != null && response.isFinal();
@@ -262,18 +277,42 @@ public class KernelClient {
                 showErrorDialog(response.exc(), false);
                 callback.receive(dispatch);
             });
-            return true;
         } else {
             final KernelDispatch dispatch = new KernelDispatch(JavaConverters.seqAsJavaList(response.output()), response.isFinal());
             SwingUtilities.invokeLater(() -> callback.receive(dispatch));
-            return response.isFinal();
         }
         
     }
     
     public void dispatchNewExplorerResponse(NewExplorerKernelResponse response, KernelCallback callback) {
         
-        SwingUtilities.invokeLater(() -> callback.receive(new KernelDispatch("An explorer was created.", false)));
+        SwingUtilities.invokeLater(() -> {
+            ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+            explorerService.newExplorerWindow(response.explorerId());
+        });
+        
+    }
+    
+    public void dispatchExplorerUpdatedKernelResponse(ExplorerUpdatedKernelResponse response, KernelCallback callback) {
+        
+        if (response.explorerUpdate() instanceof RootNodeCreatedExplorerUpdate) {
+            RootNodeCreatedExplorerUpdate update = (RootNodeCreatedExplorerUpdate) response.explorerUpdate();
+            SwingUtilities.invokeLater(() -> {
+                ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+                explorerService.rootNodeCreated(response.explorerId(), update.info());
+            });
+        } else if (response.explorerUpdate() instanceof NodeExpandedExplorerUpdate) {
+            NodeExpandedExplorerUpdate update = (NodeExpandedExplorerUpdate) response.explorerUpdate();
+            SwingUtilities.invokeLater(() -> {
+                ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+                explorerService.nodeExpanded(
+                    response.explorerId(),
+                    update.nodeOrdinal(),
+                    JavaConverters.asJavaCollection(update.newLeftOptions()),
+                    JavaConverters.asJavaCollection(update.newRightOptions())
+                );
+            });
+        }
         
     }
     

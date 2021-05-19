@@ -33,5 +33,5 @@ import java.util.List;
 
 public interface ExplorerTreeListener
 {
-    public void selectionPathChanged(List<ExplorerNode> newPath);
+    public void selectionPathChanged(List<ExplorerViewNode> newPath);
 }
