@@ -5,7 +5,7 @@ import java.net.URL
 
 object CgscriptPackage {
 
-  private[lang] val classDictionary = mutable.Map[Symbol, CgscriptClass]()
+  private[lang] val classDictionary = mutable.Map[String, CgscriptClass]()
 
   val root = new CgscriptPackage(None, "$root")
 
@@ -21,17 +21,13 @@ object CgscriptPackage {
   val heap = game.declareSubpackage("heap")
   val misere = game.declareSubpackage("misere")
 
-  def lookupClass(id: Symbol): Option[CgscriptClass] = classDictionary.get(id)
+  def lookupClass(url: URL): Option[CgscriptClass] = classDictionary.values find { _.url contains url }
 
-  // TODO Separate dictionary for URLs?
-  def lookupClass(url: URL): Option[CgscriptClass] = classDictionary.values find { _.url == url }
+  def lookupClassByName(name: String): Option[CgscriptClass] = classDictionary.get(name)
 
-  def lookupConstant(id: Symbol): Option[Resolution] = {
-    lang.lookupConstant(id) orElse util.lookupConstant(id) orElse game.lookupConstant(id)
+  def lookupConstantMember(id: Symbol): Option[MemberResolution] = {
+    lang.lookupConstantMember(id) orElse util.lookupConstantMember(id) orElse game.lookupConstantMember(id) orElse ui.lookupConstantMember(id)
   }
-
-  // Less efficient!
-  def lookupClassByName(name: String): Option[CgscriptClass] = classDictionary.get(Symbol(name))
 
   def allClasses = classDictionary.values.toVector.distinct sortBy { _.qualifiedName }
 
@@ -40,9 +36,7 @@ object CgscriptPackage {
 case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   private val subpackages = mutable.Map[String, CgscriptPackage]()
-  private val classesLookup = mutable.Map[Symbol, CgscriptClass]()
-
-  val allClasses = classesLookup.values
+  private val classes = mutable.Map[Symbol, CgscriptClass]()
 
   val path: Seq[String] = parent match {
     case None => Seq.empty
@@ -53,9 +47,13 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   def isRoot: Boolean = parent.isEmpty
 
+  def allKnownClasses = classes.values.toVector
+
   def declareSubpackage(name: String): CgscriptPackage = {
     subpackages.getOrElseUpdate(name, new CgscriptPackage(Some(this), name))
   }
+
+  def lookupSubpackage(id: Symbol): Option[CgscriptPackage] = lookupSubpackage(Seq(id.name))
 
   def lookupSubpackage(path: Seq[String]): Option[CgscriptPackage] = {
     if (path.isEmpty) {
@@ -65,15 +63,15 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
     }
   }
 
-  def lookupClass(id: Symbol): Option[CgscriptClass] = classesLookup.get(id)
+  def lookupClass(id: Symbol): Option[CgscriptClass] = classes.get(id)
 
   def declareClass(id: Symbol, classdef: CgscriptClassDef, scalaClass: Option[Class[_]]): CgscriptClass = {
 
-    classesLookup.get(id) map { _.classdef } match {
+    classes.get(id) map { _.classdef } match {
 
       case Some(UrlClassDef(_, url)) =>
-        val cls = classesLookup(id)
-        if (classdef != cls.classdef && !SystemClassRegistry.allSystemClasses.exists { _._1 == cls.qualifiedName }) {
+        val cls = classes(id)
+        if (classdef != cls.classdef && !CgscriptSystem.allSystemClasses.exists { _._1 == cls.qualifiedName }) {
           sys error s"Class conflict in package $name: ${id.name}"    // TODO Better error message
         }
         cls
@@ -81,10 +79,10 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
       case _ =>
         assert(!classdef.isInstanceOf[NestedClassDef])
         val cls = new CgscriptClass(this, classdef, id, scalaClass)
-        classesLookup.put(id, cls)
-        CgscriptPackage.classDictionary.put(cls.qualifiedId, cls)
+        classes.put(id, cls)
+        CgscriptPackage.classDictionary.put(cls.qualifiedName, cls)
         if (this == CgscriptPackage.lang || this == CgscriptPackage.util || this == CgscriptPackage.game || this == CgscriptPackage.ui) {
-          CgscriptPackage.classDictionary.put(id, cls)
+          CgscriptPackage.classDictionary.put(cls.nameInPackage, cls)
         }
         cls
 
@@ -92,13 +90,12 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   }
 
-  def lookupConstant(id: Symbol): Option[Resolution] = {
-    lookupClass('constants) flatMap { constantsCls =>
-      Option(Resolver forId id findResolutionForClass constantsCls) match {
-        case Some(res) if res.isResolvable => Some(res)
-        case _ => None
-      }
-    }
+  def lookupMember(id: Symbol): Option[MemberResolution] = {
+    lookupConstantMember(id) orElse lookupClass(id)
+  }
+
+  def lookupConstantMember(id: Symbol): Option[MemberResolution] = {
+    lookupClass(id = 'constants) flatMap { _.resolveInstanceMember(id) }
   }
 
 }

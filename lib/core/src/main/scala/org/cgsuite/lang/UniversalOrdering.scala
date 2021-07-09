@@ -16,18 +16,9 @@ object UniversalOrdering extends Ordering[Any] {
       case (_: CanonicalShortGame, _) => -1
       case (_, _: CanonicalShortGame) => 1
       case (g: MisereCanonicalGame, h: MisereCanonicalGame) => MisereCanonicalGame.DeterministicOrdering.compare(g, h)
-      case (a: ClassObject, b: ClassObject) => a.forClass.classOrdinal - b.forClass.classOrdinal
-      case (a: StandardObject, b: StandardObject) =>
-        var cmp = a.cls.classOrdinal - b.cls.classOrdinal
-        var i = 0
-        while (cmp == 0 && i < a.vars.length) {
-          cmp = compare(a.vars(i), b.vars(i))
-          i += 1
-        }
-        cmp
       case (a: Coordinates, b: Coordinates) =>
-        val cmp = a.row - b.row
-        if (cmp == 0) a.col - b.col else cmp
+        val cmp = compare(a.row, b.row)
+        if (cmp == 0) compare(a.col, b.col) else cmp
       case (a: (_,_), b: (_,_)) =>
         val cmp = compare(a._1, b._1)
         if (cmp == 0) compare(a._2, b._2) else cmp
@@ -41,7 +32,9 @@ object UniversalOrdering extends Ordering[Any] {
         if (cmp == 0) a.length - b.length else cmp
       case (a: Set[_], b: Set[_]) => compare(a.toSeq.sorted(this), b.toSeq.sorted(this))
       case (_, _) =>
-        val cmp = CgscriptClass.of(x).classOrdinal - CgscriptClass.of(y).classOrdinal
+        // TODO fix this
+        //val cmp = CgscriptClass.of(x).classOrdinal - CgscriptClass.of(y).classOrdinal
+        val cmp = 0
         if (cmp == 0)
           x.hashCode - y.hashCode  // TODO this can be improved
         else

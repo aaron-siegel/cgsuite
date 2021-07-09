@@ -53,9 +53,6 @@
   <SubComponents>
     <Container class="javax.swing.JSplitPane" name="primarySplitPane">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color type="null"/>
-        </Property>
         <Property name="dividerLocation" type="int" value="480"/>
       </Properties>
       <Constraints>
@@ -116,9 +113,6 @@
                           <Color PropertyName="color" blue="a0" green="a0" red="a0" type="rgb"/>
                         </LineBorder>
                       </Border>
-                    </Property>
-                    <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color type="null"/>
                     </Property>
                   </Properties>
                   <Constraints>

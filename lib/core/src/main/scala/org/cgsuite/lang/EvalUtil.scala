@@ -6,40 +6,11 @@ import java.util
 import ch.qos.logback.classic.{Level, Logger}
 import com.typesafe.scalalogging.LazyLogging
 import org.antlr.runtime.Token
-import org.cgsuite.exception.{CgsuiteException, EvalException, SyntaxException}
-import org.cgsuite.lang.parser.ParserUtil
+import org.cgsuite.exception.{CgsuiteException, EvalException, StackElement, SyntaxException}
 import org.cgsuite.output.{EmptyOutput, Output, StyledTextOutput}
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable
-
 object EvalUtil extends LazyLogging {
-
-  def evaluate(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
-    try {
-      evaluateScript(input, varMap)
-    } catch {
-      case exc: SyntaxException => syntaxExceptionToOutput(input, exc, includeLine = false)
-      case exc: CgsuiteException => cgsuiteExceptionToOutput(input, exc)
-      case exc: Throwable => throwableToOutput(input, exc)
-    }
-  }
-
-  def evaluateScript(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
-    // TODO We need to ignore local-moding of "var" declarations
-    val tree = ParserUtil.parseScript(input)
-    logger debug s"Parse Tree: ${tree.toStringTree}"
-    val node = StatementSequenceNode(tree.getChild(0))
-    val scope = ElaborationDomain(None, Seq.empty, None)
-    node.elaborate(scope)
-    logger debug s"EvalNode: $node"
-    val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
-    val result = node.evaluate(domain)
-    if (node.suppressOutput)
-      Vector.empty
-    else
-      objectToOutput(result)
-  }
 
   def objectToOutput(obj: Any): Vector[Output] = {
     CgscriptClass.instanceToOutput(obj) match {
@@ -48,12 +19,12 @@ object EvalUtil extends LazyLogging {
     }
   }
 
-  private def syntaxExceptionToOutput(input: String, exc: SyntaxException, includeLine: Boolean): Vector[Output] = {
+  def syntaxExceptionToOutput(input: String, exc: SyntaxException, includeLine: Boolean): Vector[Output] = {
 
     val recog = exc.exc
     val line = recog.line
     val col = recog.charPositionInLine
-    val message = (if (includeLine && line > 0) s"Error (Line $line:$col): " else "") + exceptionToMessage(recog)
+    val message = if (includeLine && line > 0) s"Error (Line $line:$col): Syntax error." else ""
     if (line <= 0)
       Vector(new StyledTextOutput(message))
     else
@@ -61,7 +32,7 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
+  def cgsuiteExceptionToOutput(input: String, exc: CgsuiteException): Vector[Output] = {
 
     val exceptionLimit: Int = {
       if (LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].getLevel == Level.DEBUG)
@@ -73,12 +44,12 @@ object EvalUtil extends LazyLogging {
     val message: Output = errorOutput(exc.getMessage)
 
     val stack: Vector[Output] = {
-      if (exc.tokenStack.length <= 30)
-        exc.tokenStack flatMap { toLineColOutput(_, input) }
+      if (exc.stackTrace.length <= 30)
+        exc.stackTrace flatMap { toLineColOutput(_, input) }
       else {
-        (exc.tokenStack take 15 flatMap { toLineColOutput(_, input) }) ++
+        (exc.stackTrace take 15 flatMap { toLineColOutput(_, input) }) ++
           Vector(errorOutput("  ......")) ++
-          (exc.tokenStack takeRight 15 flatMap { toLineColOutput(_, input) })
+          (exc.stackTrace takeRight 15 flatMap { toLineColOutput(_, input) })
       }
     }.toVector
 
@@ -106,7 +77,7 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def throwableToOutput(input: String, exc: Throwable): Vector[Output] = {
+  def defaultThrowableToOutput(exc: Throwable): Vector[Output] = {
 
     val sw = new StringWriter
     exc.printStackTrace(new PrintWriter(sw))
@@ -115,9 +86,8 @@ object EvalUtil extends LazyLogging {
 
   }
 
-  private def toLineColOutput(token: Token, input: String): Vector[Output] = {
-    assert(token.getInputStream != null, s"Input stream is null: $token")
-    toLineColOutput(token.getInputStream.getSourceName, input, token.getLine, token.getCharPositionInLine)
+  private def toLineColOutput(stackElement: StackElement, input: String): Vector[Output] = {
+    toLineColOutput(stackElement.source, input, stackElement.line, stackElement.col)
   }
 
   private def toLineColOutput(source: String, input: String, line: Int, col: Int): Vector[Output] = {
@@ -139,23 +109,16 @@ object EvalUtil extends LazyLogging {
       val pointer = (" " * Math.min(col - 1, 23)) + (if (col == 0) "^^" else "^^^")
       Vector(
         errorOutput("  at worksheet input:"),
-        errorOutput(s"  $snippet"),
-        errorOutput(s"  $pointer")
+        errorOutput(s"    $snippet"),
+        errorOutput(s"    $pointer")
       )
     } else {
-      Vector(errorOutput(s"  at $source line $line:$col"))
+      Vector(errorOutput(s"  at $source line $line:${col + 1}"))
     }
   }
 
   def errorOutput(msg: String): Output = {
     new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MONOSPACED, StyledTextOutput.Style.COLOR_RED), msg)
-  }
-
-  private def exceptionToMessage(exc: Throwable) = {
-    if (exc.isInstanceOf[EvalException])
-      exc.getMessage
-    else
-      "Syntax error."
   }
 
 }

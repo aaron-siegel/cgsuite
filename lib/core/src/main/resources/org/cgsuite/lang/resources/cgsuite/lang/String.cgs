@@ -2,8 +2,10 @@
 
 system class String
 
-  external def Length;
+  external def op+(that as Object) as String;
 
-  override def ToOutput := "\"" + this + "\"";
+  external def Length as Integer;
+
+//  override def ToOutput := "\"" + this + "\"";
 
 end

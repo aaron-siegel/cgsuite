@@ -16,7 +16,7 @@ trait Game extends OutputTarget {
 
   def -(that: Game): Game = this + (-that)
 
-  def optionsFor(player: Player): Iterable[Game]
+  def options(player: Player): Iterable[Game]
 
   def canonicalForm: CanonicalShortGame = {
     canonicalForm(new TranspositionCache())
@@ -63,7 +63,8 @@ trait Game extends OutputTarget {
     nodeMap.get(this) match {
       case Some(nodes) => nodes
       case None =>
-        val decomp = decomposition
+        val subst = substitution
+        val decomp = subst.decomposition
         if (decomp.size == 1 && decomp.head == this) {
           buildNodeMapR(tt, nodeMap)
         } else {
@@ -75,7 +76,7 @@ trait Game extends OutputTarget {
               case g: Game => result += g.loopyGameValue(tt)
             }
           }
-          val nodes = (new LoopyGame.Node(result.onside.loopyGame), new LoopyGame.Node(result.offside.loopyGame))
+          val nodes = (new LoopyGame.Node(result.onsideSimplified.loopyGame), new LoopyGame.Node(result.offsideSimplified.loopyGame))
           nodeMap.put(this, nodes)
           nodes
         }
@@ -89,22 +90,22 @@ trait Game extends OutputTarget {
     val offsideNode = new LoopyGame.Node()
     nodeMap.put(this, (onsideNode, offsideNode))
     val depth = depthHint
-    optionsFor(Left) foreach { g =>
+    options(Left) foreach { g =>
       if (g.depthHint < depth) {
         val value = g.loopyGameValue(tt)
-        onsideNode.addLeftEdge(value.onside.loopyGame)
-        offsideNode.addLeftEdge(value.offside.loopyGame)
+        onsideNode.addLeftEdge(value.onsideSimplified.loopyGame)
+        offsideNode.addLeftEdge(value.offsideSimplified.loopyGame)
       } else {
         val (onsideTarget, offsideTarget) = g.buildNodeMap(tt, nodeMap)
         onsideNode.addLeftEdge(onsideTarget)
         offsideNode.addLeftEdge(offsideTarget)
       }
     }
-    optionsFor(Right) foreach { g =>
+    options(Right) foreach { g =>
       if (g.depthHint < depth) {
         val value = g.loopyGameValue(tt)
-        onsideNode.addRightEdge(value.onside.loopyGame)
-        offsideNode.addRightEdge(value.offside.loopyGame)
+        onsideNode.addRightEdge(value.onsideSimplified.loopyGame)
+        offsideNode.addRightEdge(value.offsideSimplified.loopyGame)
       } else {
         val (onsideTarget, offsideTarget) = g.buildNodeMap(tt, nodeMap)
         onsideNode.addRightEdge(onsideTarget)
@@ -115,9 +116,9 @@ trait Game extends OutputTarget {
 
   }
 
-  def depthHint: Int = {
+  def depthHint: Integer = {
     throw NotImplementedException(
-      "That game is loopy (not a short game). If that is intentional, it must implement the `depthHint` method. See the CGSuite documentation for more details."
+      "That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details."
     )
   }
 
@@ -125,13 +126,13 @@ trait Game extends OutputTarget {
 
   def gameName: String = getClass.getName
 
-  def leftOptions: Iterable[Game] = optionsFor(Left)
+  def leftOptions: Iterable[Game] = options(Left)
   
-  def rightOptions: Iterable[Game] = optionsFor(Right)
+  def rightOptions: Iterable[Game] = options(Right)
 
   def sensibleOptions(player: Player): Iterable[Game] = {
-    val allOptions = this optionsFor player
-    val canonicalOptions = canonicalForm optionsFor player
+    val allOptions = this options player
+    val canonicalOptions = canonicalForm options player
     canonicalOptions flatMap { k =>
       if (player == Left)
         allOptions find { _.canonicalForm >= k }
@@ -141,14 +142,14 @@ trait Game extends OutputTarget {
   }
 
   def sensibleLines(player: Player): Iterable[IndexedSeq[Game]] = {
-    val canonicalOptions = canonicalForm optionsFor player
+    val canonicalOptions = canonicalForm options player
     canonicalOptions map { k =>
       val thisCanonicalForm = canonicalForm
       val line = mutable.ArrayBuffer[Game]()
       var done = false
       var current = this
       while (!done) {
-        val options = current optionsFor player
+        val options = current options player
         val sensibleOption = {
           if (player == Left)
             options find { _.canonicalForm >= k }
@@ -159,7 +160,7 @@ trait Game extends OutputTarget {
         done = line.last.canonicalForm == k
         if (!done) {
           // Find a reverting option
-          val options = line.last optionsFor player.opponent
+          val options = line.last options player.opponent
           val revertingOption = {
             if (player == Left)
               options find { _.canonicalForm <= thisCanonicalForm }
@@ -175,5 +176,7 @@ trait Game extends OutputTarget {
   }
 
   def decomposition: Iterable[_] = Seq(this)
+
+  def substitution: Game = this
 
 }

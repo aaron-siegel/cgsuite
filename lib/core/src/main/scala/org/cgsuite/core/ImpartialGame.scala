@@ -30,9 +30,9 @@ trait ImpartialGame extends Game {
 
   def +(that: ImpartialGame): ImpartialGame = CompoundImpartialGame(DisjunctiveSum, this, that)
 
-  def -(that: ImpartialGame): ImpartialGame = this + this
+  def -(that: ImpartialGame): ImpartialGame = this + that
 
-  override def optionsFor(player: Player): Iterable[ImpartialGame] = options
+  override def options(player: Player): Iterable[ImpartialGame] = options
 
   def options: Iterable[ImpartialGame]
 
@@ -72,5 +72,7 @@ trait ImpartialGame extends Game {
   def misereCanonicalForm(tc: TranspositionCache): MisereCanonicalGame = {
     MisereCanonicalGameReducer.reduce(this, tc.tableFor[MisereCanonicalGame]('MisereCanonicalGame))
   }
+
+  override def substitution: ImpartialGame = this
 
 }

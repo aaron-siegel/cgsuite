@@ -1,12 +1,19 @@
 /*${cgsuite.banner}*/
 
-system class Strip extends Grid
+system class Strip
 
-  override external static def Parse(str as String, charMap as String);
+  external static def Parse(str as String, charMap as String) as Strip;
 
-  external def Length;
-  external def Substrip(first as Integer, last as Integer);
-  override external def ToString(charMap as String);
-  override external def Updated(newValues as Map);
+  external def op[](index as Integer) as Integer;
+
+  external def FindAll(value as Integer) as List of Integer;
+
+  external def Length as Integer;
+
+  external def Substrip(first as Integer, last as Integer) as Strip;
+
+  external def ToString(charMap as String) as String;
+
+  external def Updated(newValues as Map of (Integer, Integer)) as Strip;
 
 end

@@ -4,7 +4,7 @@ import java.lang.{System => JSystem}
 
 import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core.{CanonicalShortGame, Game}
-import org.cgsuite.exception.EvalException
+import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang.CgscriptClass.logger
 import org.cgsuite.util.{Explorer, UiHarness}
 import org.jline.reader.{Expander, History, LineReaderBuilder}
@@ -20,20 +20,28 @@ object Repl {
 
   val welcome = s"Welcome to the CGSuite REPL, Version $version."
 
-  val replVarMap = mutable.AnyRefMap[Symbol, Any]()
+  val debugMode = "Debug logging is enabled."
+
+  val instruction = "Type CGScript expressions for evaluation, or :help for a list of REPL commands."
 
   def main(args: Array[String]) {
 
-    print(
-      s"""$welcome
-         |Type CGScript expressions for evaluation, or :help for a list of REPL commands.
-         |""".stripMargin)
+    println(welcome)
+
+    if (args.nonEmpty && args.head == "debug") {
+      CgscriptSystem.setDebug(true)
+      println(debugMode)
+    }
 
     val terminal = TerminalBuilder.builder().jansi(true).dumb(true).build()
     val lineReader = LineReaderBuilder.builder().expander(NullExpander).terminal(terminal).build()
 
     UiHarness.setUiHarness(ReplUiHarness)
     var done = false
+
+    CgscriptSystem.evaluate("0")
+
+    println(instruction)
 
     while (!done) {
       val str = lineReader.readLine("> ").trim
@@ -50,7 +58,6 @@ object Repl {
     tokens.head match {
       case "clear" =>
         CgscriptClass.clearAll()
-        replVarMap.clear()
         false
       case "debug" =>
         tokens.toList.tail match {
@@ -96,13 +103,14 @@ object Repl {
     if (str == "")
       return
 
-    CgscriptClass.Object.ensureInitialized()
-
     val start = JSystem.nanoTime
     try {
       CgscriptClasspath.reloadModifiedFiles()
-      val output = EvalUtil.evaluate(str, replVarMap)
-      output foreach println
+      val result = CgscriptSystem.evaluateAndProcessExceptions(str)
+      result match {
+        case Left(output) => output foreach println
+        case Right(t) => t.printStackTrace()
+      }
     } catch {
       case exc: Throwable => exc.printStackTrace()
     }
@@ -122,10 +130,6 @@ object Repl {
 }
 
 object ReplUiHarness extends UiHarness {
-
-  override def clearUiVars(): Unit = {
-    Repl.replVarMap.clear()
-  }
 
   override def createExplorer(g: Game): Explorer = {
     throw EvalException("The Explorer is not available in the CGSuite REPL.")

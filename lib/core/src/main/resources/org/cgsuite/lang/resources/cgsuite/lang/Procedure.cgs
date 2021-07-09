@@ -1,7 +1,7 @@
 /*${cgsuite.banner}*/
 
-system class Procedure
+system class Procedure of (`T*, `R)
 
-  override external def ToOutput;
+  external def Eval(arguments as `T*) as `R;
 
 end

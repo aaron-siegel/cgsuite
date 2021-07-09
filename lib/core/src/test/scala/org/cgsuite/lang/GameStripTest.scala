@@ -11,11 +11,4 @@ class GameStripTest extends CgscriptSpec {
     ))
   }
 
-  it should "avoid a weird class load order bug" in {
-    executeTests(Table(
-      header,
-      ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(2).Class""", "\u27eagame.strip.GenToadsAndFrogs\u27eb")
-    ))
-  }
-
 }

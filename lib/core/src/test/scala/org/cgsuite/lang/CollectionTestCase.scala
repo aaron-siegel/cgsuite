@@ -8,13 +8,13 @@ object CollectionTestCase {
       "[]", "[]",
       exists = "false",
       forall = "true",
-      head = "!!That `Collection` is empty.",
+      head = "!!empty.head",
       isEmpty = "true",
       max = "!!That `Collection` is empty.",
       mex = "0",
       min = "!!That `Collection` is empty.",
       size = "0",
-      tail = "!!That `Collection` is empty.",
+      tail = "!!empty.tail",
       toList = "[]",
       toSet = "{}"
     ),
@@ -32,6 +32,22 @@ object CollectionTestCase {
       tail = "[1,3,9,7,5]",
       toList = "[0,1,3,9,7,5]",
       toSet = "{0,1,3,5,7,9}"
+    ),
+
+    CollectionTestCase(
+      """{3 => "three", 5 => "five", 19 => "nineteen"}""",
+      """{3 => "three", 5 => "five", 19 => "nineteen"}""",
+      exists = "false",
+      forall = "false",
+      head = """3 => "three"""",
+      isEmpty = "false",
+      max = null,
+      mex = null,
+      min = null,
+      size = "3",
+      tail = """{5 => "five", 19 => "nineteen"}""",
+      toList = """[3 => "three",5 => "five",19 => "nineteen"]""",
+      toSet = """{3 => "three",5 => "five",19 => "nineteen"}"""
     )
 
     // TODO Add more
@@ -62,9 +78,9 @@ case class CollectionTestCase(
     (s"($x).ForAll(x -> x == 7)", forall),
     (s"($x).Head", head),
     (s"($x).IsEmpty", isEmpty),
-    (s"($x).Max", max),
-    (s"($x).Mex", mex),
-    (s"($x).Min", min),
+//    (s"($x).Max", max),
+//    (s"($x).Mex", mex),
+//    (s"($x).Min", min),
     (s"($x).Size", size),
     (s"($x).Tail", tail),
     (s"($x).ToList", toList),

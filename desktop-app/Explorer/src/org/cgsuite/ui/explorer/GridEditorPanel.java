@@ -873,10 +873,14 @@ public class GridEditorPanel extends EditorPanel
     @Override
     public Object constructObject()
     {
+        return null;
+        // TODO Fix this
+        /*
         return type.enclosingClass().get().evalMethodOpt().get().call(
             ruleset,
             new Object[] { this.grid }
         );
+        */
     }
     
     /**

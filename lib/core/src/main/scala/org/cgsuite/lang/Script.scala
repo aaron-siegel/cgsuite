@@ -1,10 +1,10 @@
 package org.cgsuite.lang
 
-import org.cgsuite.output.StyledTextOutput
+import org.cgsuite.lang.node.StatementSequenceNode
 
-case class Script(cls: CgscriptClass, node: StatementSequenceNode, scope: ElaborationDomain) {
+case class Script(cls: CgscriptClass, node: StatementSequenceNode, domain: ElaborationDomain) {
 
-  def name: String = cls.name
+  def name: String = cls.nameInPackage
 
   def ordinal: Int = cls.classOrdinal
 

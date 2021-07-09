@@ -32,6 +32,7 @@ package org.cgsuite.core;
 import org.cgsuite.output.OutputTarget;
 import org.cgsuite.output.StyledTextOutput;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,7 +52,7 @@ import java.util.List;
  * @author  Aaron Siegel
  * @since   0.6
  */
-public class Trajectory implements OutputTarget
+public class Trajectory implements OutputTarget, Serializable
 {
     private final static RationalNumber[]
         EMPTY_ARRAY = { },

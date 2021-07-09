@@ -2,13 +2,30 @@
 
 system class SurrealNumber extends NormalValue
 
-  external def Abs;
-  external def Birthday;
-  external def Denominator;
-  external def Numerator;
-  external def Reciprocal;
-  external def Sign;
+  external def op+(that as SurrealNumber) as SurrealNumber;
 
-  override external def ToOutput;
+  external def op-(that as SurrealNumber) as SurrealNumber;
+
+  external def op*(that as SurrealNumber) as SurrealNumber;
+
+  external def op/(that as SurrealNumber) as SurrealNumber;
+
+  external def op unary+ as SurrealNumber;
+
+  external def op unary- as SurrealNumber;
+
+  external def op<=(that as SurrealNumber) as Boolean;
+
+  external def Abs as SurrealNumber;
+
+  external def Birthday as GeneralizedOrdinal;
+
+  external def Denominator as GeneralizedOrdinal;
+
+  external def Numerator as GeneralizedOrdinal;
+
+  external def Reciprocal as GeneralizedOrdinal;
+
+  external def Sign as Integer;
 
 end

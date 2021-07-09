@@ -145,8 +145,8 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
     denominator * other.numerator
   )
 
-  def pow(n: Integer): SurrealNumber = {
-    (numerator pow n) / (denominator pow n)
+  def exp(n: Integer): SurrealNumber = {
+    (numerator exp n) / (denominator exp n)
   }
 
   def compare(that: SurrealNumber): Int = {

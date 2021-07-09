@@ -13,14 +13,14 @@ case class ExplicitGame(lo: Iterable[Game], ro: Iterable[Game]) extends Game {
 
   override def unary_- = ExplicitGame(ro map { -_ }, lo map { -_ })
 
-  override def optionsFor(player: Player) = player match {
+  override def options(player: Player) = player match {
     case Left => lo
     case Right => ro
   }
 
-  override def depthHint: Int = {
-    val loMax = (lo map { _.depthHint }).max
-    val roMax = (ro map { _.depthHint }).max
+  override def depthHint: Integer = {
+    val loMax = lo map { _.depthHint } maxBy { _.intValue }
+    val roMax = ro map { _.depthHint } maxBy { _.intValue }
     loMax + roMax
   }
 

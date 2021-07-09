@@ -68,7 +68,7 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
   override def uptimalLength = 0
   override def uptimalCoefficient(n: Int) = 0
 
-  override def optionsFor(player: Player): Iterable[DyadicRationalNumber] = Set(step(-player.sign))
+  override def options(player: Player): Iterable[DyadicRationalNumber] = Set(step(-player.sign))
 
   // We need to do this to resolve ambiguities in inheriting compare
   def <=(other: DyadicRationalNumber) = (this compare other) <= 0
@@ -107,7 +107,7 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
     else Set(DyadicRationalNumber(negativeOne, denominator))
   }
   override def incentives(player: Player): Iterable[DyadicRationalNumber] = {
-    if (isInteger && sign.intValue != player.sign) {
+    if (isInteger && sign != player.sign) {
       Set.empty           // This includes 0
     } else {
       Set(DyadicRationalNumber(negativeOne, denominator))

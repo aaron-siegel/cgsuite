@@ -46,14 +46,14 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
     private int nodeRadius;
 
-    private ExplorerImpl explorer;
+    private ExplorerView explorer;
 
-    private LinkedList<ExplorerNode> selectionPath;
+    private LinkedList<ExplorerViewNode> selectionPath;
     private NodeLayout selectedLayout;
 
     // Layout info
     private Set<NodeLayout> layouts;
-    private Map<ExplorerNode,NodeLayout> primaryLayouts;
+    private Map<ExplorerViewNode,NodeLayout> primaryLayouts;
     private List<NodeLayout> rightmostLayouts;
     private int maxXCoord;
     private int maxDepth;
@@ -70,10 +70,10 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
         listeners = new HashSet<ExplorerTreeListener>();
 
-        selectionPath = new LinkedList<ExplorerNode>();
+        selectionPath = new LinkedList<ExplorerViewNode>();
 
         layouts = new HashSet<NodeLayout>();
-        primaryLayouts = new HashMap<ExplorerNode,NodeLayout>();
+        primaryLayouts = new HashMap<ExplorerViewNode,NodeLayout>();
         rightmostLayouts = new ArrayList<NodeLayout>();
 
         ActionMap am = getActionMap();
@@ -110,7 +110,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
-                List<ExplorerNode> path = pathTo(evt.getX(), evt.getY());
+                List<ExplorerViewNode> path = pathTo(evt.getX(), evt.getY());
                 if (path != null)
                 {
                     setSelectionPath(path);
@@ -119,12 +119,12 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }});
     }
 
-    public void setExplorer(ExplorerImpl explorer)
+    public void setExplorer(ExplorerView explorer)
     {
         this.explorer = explorer;
         this.explorer.addListener(this);
 
-        ExplorerNode firstRoot = explorer.firstRoot();
+        ExplorerViewNode firstRoot = explorer.firstRoot();
         if (firstRoot != null)
         {
             selectionPath.add(firstRoot);
@@ -207,16 +207,16 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             return;
         }
         
-        ExplorerNode selNode = selectionPath.getLast();
+        ExplorerViewNode selNode = selectionPath.getLast();
 
         boolean left = true;
         if (selectionPath.size() > 1)
         {
-            ExplorerNode prevNode = selectionPath.get(selectionPath.size()-2);
+            ExplorerViewNode prevNode = selectionPath.get(selectionPath.size()-2);
             left = !prevNode.getLeftChildren().contains(selNode);
         }
         
-        List<? extends ExplorerNode>
+        List<? extends ExplorerViewNode>
             primary = (left ? selNode.getLeftChildren() : selNode.getRightChildren()),
             secondary = (left ? selNode.getRightChildren() : selNode.getLeftChildren());
 
@@ -240,15 +240,15 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             return;
         }
 
-        ExplorerNode selNode = selectionPath.getLast();
-        ExplorerNode next;
+        ExplorerViewNode selNode = selectionPath.getLast();
+        ExplorerViewNode next;
         
-        List<ExplorerNode> siblings;
+        List<ExplorerViewNode> siblings;
         
         if (selectionPath.size() > 1)
         {
-            ExplorerNode prevNode = selectionPath.get(selectionPath.size()-2);
-            siblings = new ArrayList<ExplorerNode>();
+            ExplorerViewNode prevNode = selectionPath.get(selectionPath.size()-2);
+            siblings = new ArrayList<ExplorerViewNode>();
             siblings.addAll(prevNode.getLeftChildren());
             Collections.reverse(siblings);
             siblings.addAll(prevNode.getRightChildren());
@@ -277,7 +277,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
     }
 
     @Override
-    public void nodeAdded(ExplorerNode node)
+    public void nodeAdded(ExplorerViewNode node)
     {
         refresh();
         if (node.isRoot())
@@ -302,7 +302,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }
     }
 
-    public LinkedList<ExplorerNode> pathTo(int x, int y)
+    public LinkedList<ExplorerViewNode> pathTo(int x, int y)
     {
         NodeLayout layout = layoutAt(x, y);
         return layout == null ? null : layout.pathTo();
@@ -329,12 +329,12 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         revalidate();
     }
 
-    public List<ExplorerNode> getSelectionPath()
+    public List<ExplorerViewNode> getSelectionPath()
     {
         return Collections.unmodifiableList(selectionPath);
     }
 
-    public ExplorerNode getSelectedNode()
+    public ExplorerViewNode getSelectedNode()
     {
         if (selectionPath.isEmpty())
         {
@@ -346,7 +346,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }
     }
 
-    public void setSelectionPath(List<ExplorerNode> path)
+    public void setSelectionPath(List<ExplorerViewNode> path)
     {
         if (!path.equals(selectionPath))
         {
@@ -357,7 +357,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }
     }
 
-    public void setSelectedNode(ExplorerNode node)
+    public void setSelectedNode(ExplorerViewNode node)
     {
         selectionPath.clear();
         findPathToNode(selectionPath, node);
@@ -365,9 +365,9 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         fireTreeSelectionChanged();
     }
 
-    private boolean findPathToNode(LinkedList<ExplorerNode> path, ExplorerNode target)
+    private boolean findPathToNode(LinkedList<ExplorerViewNode> path, ExplorerViewNode target)
     {
-        ExplorerNode prev = (path.isEmpty() ? null : path.getLast());
+        ExplorerViewNode prev = (path.isEmpty() ? null : path.getLast());
         if (prev == target)
         {
             return true;
@@ -375,7 +375,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         
         if (prev == null)
         {
-            for (ExplorerNode node : explorer.roots())
+            for (ExplorerViewNode node : explorer.roots())
             {
                 if (!path.contains(node))
                 {
@@ -390,7 +390,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }
         else
         {
-            for (ExplorerNode node : prev.getLeftChildren())
+            for (ExplorerViewNode node : prev.getLeftChildren())
             {
                 if (!path.contains(node))
                 {
@@ -402,7 +402,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
                     path.removeLast();
                 }
             }
-            for (ExplorerNode node : prev.getRightChildren())
+            for (ExplorerViewNode node : prev.getRightChildren())
             {
                 if (!path.contains(node))
                 {
@@ -474,7 +474,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
         if (explorer != null)
         {
-            layoutNode(new LinkedList<ExplorerNode>(), 0, null, null);
+            layoutNode(new LinkedList<ExplorerViewNode>(), 0, null, null);
         }
 
         for (NodeLayout layout : rightmostLayouts)
@@ -487,7 +487,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         repaint();
     }
 
-    private NodeLayout layoutNode(LinkedList<ExplorerNode> path, int depth, ExplorerNode leftKoNode, ExplorerNode rightKoNode)
+    private NodeLayout layoutNode(LinkedList<ExplorerViewNode> path, int depth, ExplorerViewNode leftKoNode, ExplorerViewNode rightKoNode)
     {
         if (path.isEmpty())
         {
@@ -495,7 +495,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             return null;
         }
 
-        ExplorerNode node = path.getLast();
+        ExplorerViewNode node = path.getLast();
 
         NodeLayout layout = new NodeLayout();
         layouts.add(layout);
@@ -531,9 +531,9 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             // Note we always traverse the left options in reverse order:
             // this is to ensure that the "main" variation(s) appear closest
             // to the center of the tree.
-            for (ListIterator<? extends ExplorerNode> i = node.getLeftChildren().listIterator(node.getLeftChildren().size()); i.hasPrevious();)
+            for (ListIterator<? extends ExplorerViewNode> i = node.getLeftChildren().listIterator(node.getLeftChildren().size()); i.hasPrevious();)
             {
-                ExplorerNode next = i.previous();
+                ExplorerViewNode next = i.previous();
                 if (next.getRightChildren().contains(node))
                 {
                     // Found one!
@@ -545,7 +545,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         }
         if (rightKoNode == null)
         {
-            for (ExplorerNode next : node.getRightChildren())
+            for (ExplorerViewNode next : node.getRightChildren())
             {
                 if (next.getLeftChildren().contains(node))
                 {
@@ -580,16 +580,16 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         return layout;
     }
 
-    private int layoutChildren(LinkedList<ExplorerNode> path, int depth, ExplorerNode leftKoNode, ExplorerNode rightKoNode)
+    private int layoutChildren(LinkedList<ExplorerViewNode> path, int depth, ExplorerViewNode leftKoNode, ExplorerViewNode rightKoNode)
     {
-        ExplorerNode node = (path.isEmpty() ? null : path.getLast());
+        ExplorerViewNode node = (path.isEmpty() ? null : path.getLast());
         NodeLayout layout = primaryLayouts.get(node);
         
-        List<ExplorerNode> leftChildren, rightChildren;
+        List<ExplorerViewNode> leftChildren, rightChildren;
         
         if (path.isEmpty())
         {
-            leftChildren = Collections.<ExplorerNode>emptyList();
+            leftChildren = Collections.<ExplorerViewNode>emptyList();
             rightChildren = explorer.roots();
         }
         else
@@ -601,9 +601,9 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         int rightmostLeftNode = -1;
 
         // As before, the left edges are traversed in reverse order.
-        for (ListIterator<ExplorerNode> i = leftChildren.listIterator(leftChildren.size()); i.hasPrevious();)
+        for (ListIterator<ExplorerViewNode> i = leftChildren.listIterator(leftChildren.size()); i.hasPrevious();)
         {
-            ExplorerNode next = i.previous();
+            ExplorerViewNode next = i.previous();
             if (!next.equals(leftKoNode))
             {
                 path.add(next);
@@ -614,7 +614,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             }
         }
         int leftmostRightNode = -1;
-        for (ExplorerNode next : rightChildren)
+        for (ExplorerViewNode next : rightChildren)
         {
             if (!next.equals(rightKoNode))
             {
@@ -665,7 +665,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
         return xCoord;
     }
 
-    private static boolean compatibleLists(List<ExplorerNode> list1, List<ExplorerNode> list2)
+    private static boolean compatibleLists(List<ExplorerViewNode> list1, List<ExplorerViewNode> list2)
     {
         int match = Math.min(list1.size(), list2.size());
         return list1.subList(0, match).equals(list2.subList(0, match));
@@ -790,7 +790,7 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
     class NodeLayout
     {
-        ExplorerNode node;
+        ExplorerViewNode node;
         int xCoord, yCoord;
         boolean isTransposition;
         boolean isLeftChild;
@@ -802,9 +802,9 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
             children = new ArrayList<NodeLayout>();
         }
 
-        LinkedList<ExplorerNode> pathTo()
+        LinkedList<ExplorerViewNode> pathTo()
         {
-            LinkedList<ExplorerNode> path = new LinkedList<ExplorerNode>();
+            LinkedList<ExplorerViewNode> path = new LinkedList<ExplorerViewNode>();
             for (NodeLayout layout = this; layout != null; layout = layout.parent)
             {
                 path.addFirst(layout.node);

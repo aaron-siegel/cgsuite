@@ -20,6 +20,10 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def makeOptions(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): O
 
+  def substitution(g: G): G
+
+  def shortcut(g: G): Option[T]
+
   def reduce(g: G, tt: TranspositionTable[T]): T = {
     visitorCache.clear()
     reduce(g, tt, visitorCache)
@@ -27,9 +31,12 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def reduce(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
-    val decomp = g.decomposition
-    if (decomp.size == 1 && decomp.head == this) {
-      reduce2(g, tt, visited)
+    val subst = substitution(g) match {
+      case g: G => g
+    }
+    val decomp = subst.decomposition
+    if (decomp.size == 1 && decomp.head == subst) {
+      reduce2(subst, tt, visited)
     } else {
       var result: T = zero
       val it = decomp.iterator
@@ -46,20 +53,24 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   private def reduce2(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
-    tt.get(g) match {
-      case Some(x: T) => x
-      case None if !visited.contains(g) =>
-        visited += g
-        try {
-          val opts = makeOptions(g, tt, visited)
-          val result = construct(opts)
-          tt.put(g, result)
-          result
-        } finally {
-          visited -= g
+    shortcut(g) match {
+      case Some(t) => t
+      case None =>
+        tt.get(g) match {
+          case Some(x: T) => x
+          case None if !visited.contains(g) =>
+            visited += g
+            try {
+              val opts = makeOptions(g, tt, visited)
+              val result = construct(opts)
+              tt.put(g, result)
+              result
+            } finally {
+              visited -= g
+            }
+          case _ =>
+            throw NotShortGameException(loopyExceptionMsg)
         }
-      case _ =>
-        throw NotShortGameException(loopyExceptionMsg)
     }
 
   }
@@ -70,8 +81,8 @@ private[core] trait PartizanLoopfreeReducer[T] extends LoopfreeReducer[Game, (It
 
   override def makeOptions(g: Game, tt: TranspositionTable[T], visited: mutable.Set[Game]): (Iterable[T], Iterable[T]) = {
 
-    val lo = g optionsFor Left map { reduce(_, tt, visited) }
-    val ro = g optionsFor Right map { reduce(_, tt, visited) }
+    val lo = g options Left map { reduce(_, tt, visited) }
+    val ro = g options Right map { reduce(_, tt, visited) }
     (lo, ro)
 
   }
@@ -101,6 +112,15 @@ private[core] case object CanonicalShortGameReducer extends PartizanLoopfreeRedu
 
   override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."
 
+  override def substitution(g: Game) = g.substitution
+
+  override def shortcut(g: Game) = {
+    g match {
+      case a: CanonicalShortGame => Some(a)
+      case _ => None
+    }
+  }
+
 }
 
 private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] {
@@ -113,6 +133,15 @@ private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] 
 
   override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `NimValue`."
 
+  override def substitution(g: ImpartialGame) = g.substitution
+
+  override def shortcut(g: ImpartialGame) = {
+    g match {
+      case m: Nimber => Some(m.nimValue.intValue)
+      case _ => None
+    }
+  }
+
 }
 
 private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeReducer[MisereCanonicalGame] {
@@ -124,5 +153,15 @@ private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeRe
   override def construct(opts: Iterable[MisereCanonicalGame]) = MisereCanonicalGame(opts.toSeq : _*)
 
   override def loopyExceptionMsg = s"That is not a short game."
+
+  override def substitution(g: ImpartialGame) = g
+
+  override def shortcut(g: ImpartialGame) = {
+    g match {
+      case a: MisereCanonicalGame => Some(a)
+      case m: Nimber => Some(m.misereCanonicalForm)
+      case _ => None
+    }
+  }
 
 }

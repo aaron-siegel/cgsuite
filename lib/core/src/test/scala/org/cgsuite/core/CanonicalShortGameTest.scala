@@ -15,24 +15,24 @@ class CanonicalShortGameTest extends FlatSpec with Matchers {
 
   "CanonicalShortGame" should "return the correct options" in {
 
-    switch.optionsFor(Left) shouldBe Set(Integer(3))
-    switch.optionsFor(Right) shouldBe Set(CanonicalShortGame(Integer(2))(Integer(1)))
+    switch.options(Left) shouldBe Set(Integer(3))
+    switch.options(Right) shouldBe Set(CanonicalShortGame(Integer(2))(Integer(1)))
 
   }
 
   it should "compute sums and negatives correctly" in {
 
     val doubleUp = up + up
-    doubleUp.optionsFor(Left) shouldBe Set(zero)
-    doubleUp.optionsFor(Right) shouldBe Set(upStar)
+    doubleUp.options(Left) shouldBe Set(zero)
+    doubleUp.options(Right) shouldBe Set(upStar)
 
     val tripleUp = doubleUp + up
-    tripleUp.optionsFor(Right) shouldBe Set(doubleUp + star)
+    tripleUp.options(Right) shouldBe Set(doubleUp + star)
 
     val doubled = switch + switch
-    doubled.optionsFor(Left) shouldBe Set(Integer(5))
-    doubled.optionsFor(Right).head.optionsFor(Right) shouldBe Set(Integer(3))
-    doubled.optionsFor(Right).head.optionsFor(Left) shouldBe Set(Integer(4), CanonicalShortGame(Integer(5))(Integer(4)))
+    doubled.options(Left) shouldBe Set(Integer(5))
+    doubled.options(Right).head.options(Right) shouldBe Set(Integer(3))
+    doubled.options(Right).head.options(Left) shouldBe Set(Integer(4), CanonicalShortGame(Integer(5))(Integer(4)))
 
     switch shouldBe doubled - switch
     switch shouldBe doubled + (-switch)

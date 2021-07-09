@@ -10,7 +10,7 @@ import java.util
 
 import org.cgsuite.core.Values._
 import org.cgsuite.core.{CanonicalShortGameOps => ops}
-import org.cgsuite.exception.{CalculationCanceledException, InvalidOperationException, NotAtomicException}
+import org.cgsuite.exception.{CalculationCanceledException, InvalidOperationException, NotAtomicException, NotUptimalException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
@@ -113,7 +113,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def >(other: CanonicalShortGame) = !(this <= other) && other <= this
 
-  override def optionsFor(player: Player): Iterable[CanonicalShortGame] = {
+  override def options(player: Player): Iterable[CanonicalShortGame] = {
     player match {
       case Left => (0 until ops.getNumLeftOptions(gameId)) map { n =>
         CanonicalShortGame(ops.getLeftOption(gameId, n))
@@ -125,8 +125,10 @@ trait CanonicalShortGame extends CanonicalStopper {
   }
 
   override def sortedOptions(player: Player): Seq[CanonicalShortGame] = {
-    optionsFor(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
+    options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
+
+  override def canonicalForm = this
 
   override def canonicalForm(tc: TranspositionCache) = this
 
@@ -206,6 +208,8 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def isIdempotent = isZero      // 0 is the only loopfree idempotent
 
+  override def isInfinitesimal = leftStop == Values.zero && rightStop == Values.zero
+
   override def isInteger: Boolean = ops.isInteger(gameId)
 
   override def isLoopfree = true
@@ -217,17 +221,17 @@ trait CanonicalShortGame extends CanonicalStopper {
   override def isNumberish: Boolean = leftStop == rightStop
 
   override def isNumberTiny: Boolean = {
-    val lo = optionsFor(Left)
-    val ro = optionsFor(Right)
+    val lo = options(Left)
+    val ro = options(Right)
     lo.size == 1 && ro.size == 1 && (
       lo.head.isNumber && {
-        val rlo = ro.head.optionsFor(Left)
-        val rro = ro.head.optionsFor(Right)
+        val rlo = ro.head.options(Left)
+        val rro = ro.head.options(Right)
         rlo.size == 1 && rro.size == 1 && lo.head == rlo.head && rro.head.mean < lo.head.mean
       } ||
       ro.head.isNumber && {
-        val llo = lo.head.optionsFor(Left)
-        val lro = lo.head.optionsFor(Right)
+        val llo = lo.head.options(Left)
+        val lro = lo.head.options(Right)
         lro.size == 1 && llo.size == 1 && ro.head == lro.head && llo.head.mean > ro.head.mean
       }
     )
@@ -258,8 +262,8 @@ trait CanonicalShortGame extends CanonicalStopper {
   }
 
   def pow(x: Pseudonumber): CanonicalStopper = {
-    val lo = optionsFor(Left)
-    val ro = optionsFor(Right)
+    val lo = options(Left)
+    val ro = options(Right)
     if (lo.size == 1 && ro.size == 1 && lo.head == zero) {
       x match {
         case r: DyadicRationalNumber => CanonicalShortGame(zero)(-powTo(r - one) + ro.head)
@@ -289,6 +293,8 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def stopCount: Integer = Integer(ops.stopCount(gameId))
 
+  override def switch: CanonicalShortGame = CanonicalShortGame(this)(-this)
+
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
   def thermograph: Thermograph = ops.thermograph(gameId)
@@ -296,6 +302,8 @@ trait CanonicalShortGame extends CanonicalStopper {
   def trajectory(player: Player): Trajectory = if (player == Left) thermograph.getLeftWall else thermograph.getRightWall
 
   override def variety = zero
+
+  override def toString: String = toOutput.toString
 
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
@@ -328,9 +336,9 @@ trait CanonicalShortGame extends CanonicalStopper {
 
       val (str, symbol, translate, subscript) = {
         if (lo.head.isNumber)
-          ("Tiny", TINY, lo.head, -ro.head.optionsFor(Right).head + lo.head)
+          ("Tiny", TINY, lo.head, -ro.head.options(Right).head + lo.head)
         else
-          ("Miny", MINY, ro.head, lo.head.optionsFor(Left).head - ro.head)
+          ("Miny", MINY, ro.head, lo.head.options(Left).head - ro.head)
       }
       if (forceParens)
         output.appendMath("(")

@@ -82,13 +82,12 @@ tokens
     LISTOF      = 'listof';
     MAPOF       = 'mapof';
     MUTABLE     = 'mutable';
-    NEG         = 'neg';
     NOT         = 'not';
+    OF          = 'of';
     OP          = 'op';
     OR          = 'or';
     OVERRIDE    = 'override';
     PASS        = 'pass';
-    POS         = 'pos';
     RETURN      = 'return';
     SETOF       = 'setof';
     SINGLETON   = 'singleton';
@@ -102,6 +101,7 @@ tokens
     TO          = 'to';
     TRUE        = 'true';
     TRY         = 'try';
+    UNARY       = 'unary';
     VAR         = 'var';
     WHERE       = 'where';
     WHILE       = 'while';
@@ -115,6 +115,7 @@ tokens
     DECL_BEGIN;
     DECL_END;
     DECL_ID;
+    DECL_OP;
     DECLARATIONS;
     ENUM_ELEMENT;
     ENUM_ELEMENT_LIST;
@@ -134,6 +135,8 @@ tokens
     PREAMBLE;
     SCRIPT;
     STATEMENT_SEQUENCE;
+    TYPE_PARAMETERS;
+    TYPE_SPECIFIER;
     UNARY_AST;
     UNARY_MINUS;
     UNARY_PLUS;
@@ -260,10 +263,10 @@ importClause
     ;
 
 classDeclaration
-    : (classModifiers CLASS IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END
+    : (classModifiers CLASS IDENTIFIER classTypeParameters? LPAREN methodParameterList RPAREN) =>
+      classModifiers CLASS^ IDENTIFIER classTypeParameters? (LPAREN! methodParameterList RPAREN!) extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
-    | classModifiers CLASS^ IDENTIFIER extendsClause? declarations END
+    | classModifiers CLASS^ IDENTIFIER classTypeParameters? extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
     ;
 
@@ -274,9 +277,27 @@ classModifiers
 classModifier
     : MUTABLE | OVERRIDE | SINGLETON | SYSTEM
     ;
+
+classTypeParameters
+    : OF^ (typeVariable | LPAREN! typeVariable (COMMA! typeVariable)+ RPAREN!)
+    ;
+
+typeVariable
+    : (TYPE_VARIABLE AST) => TYPE_VARIABLE^ AST
+    | TYPE_VARIABLE
+    ;
     
 extendsClause
-    : EXTENDS^ qualifiedId (COMMA! qualifiedId)*
+    : EXTENDS^ typeSpecifier (COMMA! typeSpecifier)*
+    ;
+
+typeSpecifier
+    : typeVariable
+    | qualifiedId (OF^ (multiTypeParameter | typeSpecifier))?
+    ;
+
+multiTypeParameter
+    : LPAREN! typeSpecifier (COMMA! typeSpecifier)+ RPAREN!
     ;
 
 qualifiedId
@@ -310,10 +331,24 @@ classVarInitializer
     ;
 
 defDeclaration
-    : (modifiers DEF IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      modifiers DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! defInitializer
-      { $IDENTIFIER.setType(DECL_ID); }
-    | modifiers DEF^ IDENTIFIER defInitializer { $IDENTIFIER.setType(DECL_ID); }
+    : (modifiers DEF defName LPAREN methodParameterList RPAREN) =>
+      modifiers DEF^ defName (LPAREN! methodParameterList RPAREN!)? asClause? defInitializer
+    ;
+
+defName
+    : IDENTIFIER { $IDENTIFIER.setType(DECL_ID); }
+    | OP^ (definableOpCode | definableUnaryOpCode) { $OP.setType(DECL_OP); }
+    ;
+
+definableOpCode
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND
+    | standardRelationalToken
+    | AND | OR | NOT
+    | LBRACKET RBRACKET -> LBRACKET[$LBRACKET, "[]"]
+    ;
+
+definableUnaryOpCode
+    : UNARY^ (PLUS | MINUS | PLUSMINUS | AST | CARET | VEE)
     ;
 
 defInitializer
@@ -328,7 +363,7 @@ modifiers
 
 opCode
 options { greedy = true; }
-    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND | NEG | POS
+    : PLUS | MINUS | AST | FSLASH | PERCENT | CARET | COLON | AMPERSAND
     | standardRelationalToken
     | (LBRACKET RBRACKET ASSIGN) => LBRACKET RBRACKET ASSIGN -> OP[$LBRACKET, "[]:="]
     | LBRACKET RBRACKET -> OP[$LBRACKET, "[]"]
@@ -339,12 +374,12 @@ methodParameterList
     ;
     
 methodParameter
-    : IDENTIFIER asClause? (questionClause | DOTDOTDOT)?
-      -> ^(METHOD_PARAMETER IDENTIFIER asClause? questionClause? DOTDOTDOT?)
+    : IDENTIFIER asClause (questionClause | DOTDOTDOT)?
+      -> ^(METHOD_PARAMETER IDENTIFIER asClause questionClause? DOTDOTDOT?)
     ;
 
 asClause
-    : AS^ IDENTIFIER
+    : AS^ typeSpecifier
     ;
 
 questionClause
@@ -405,6 +440,18 @@ varInitializer
     : IDENTIFIER (ASSIGN^ functionExpression)?
     ;
 
+/* TOWARDS AN IMPROVEMENT:
+
+localVarDeclaration
+    : VAR^ IDENTIFIER asClause? varAssignmentClause?
+    ;
+
+varAssignmentClause
+    : assignmentToken^ assignmentExpression
+    ;
+
+*/
+
 expression
     : assignmentExpression
     ;
@@ -418,15 +465,28 @@ assignmentToken
     ;
     
 functionExpression
-    : procedureAntecedent RARROW^ functionExpression
-    | orExpression
+    : (functionAntecedent RARROW) => functionAntecedent RARROW^ functionExpression
+    | asExpression
     ;
 
-procedureAntecedent
-    : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
-    | LPAREN! methodParameterList RPAREN!
+functionAntecedent
+    : functionParameter -> ^(METHOD_PARAMETER_LIST functionParameter)
+    | LPAREN! functionParameterList RPAREN!
     ;
-    
+
+functionParameterList
+    : (functionParameter (COMMA functionParameter)*)? -> ^(METHOD_PARAMETER_LIST functionParameter*)
+    ;
+
+functionParameter
+    : IDENTIFIER asClause? -> ^(METHOD_PARAMETER IDENTIFIER asClause?)
+    ;
+
+// TODO Is this the right precedence?
+asExpression
+    : orExpression (AS^ typeSpecifier)?
+    ;
+
 orExpression
     : andExpression (OR^ orExpression)?
     ;
@@ -484,7 +544,7 @@ addExpr
     ;
 
 binaryPlusMinus
-    : PLUSMINUS sidleExpr -> ^(PLUS ^(PLUSMINUS sidleExpr))
+    : PLUSMINUS sidleExpr -> ^(PLUS[$PLUSMINUS] ^(PLUSMINUS sidleExpr))
     ;
 
 sidleExpr
@@ -741,41 +801,43 @@ generalizedId
     | OP opc=opCode -> IDENTIFIER[$OP, $OP.getText() + " " + $opc.tree.getText()]
     ;
 
-INTEGER        : DIGIT+;
+INTEGER       : DIGIT+;
 
-MULTI_CARET : '^' ('^')+;
+MULTI_CARET   : '^' ('^')+;
 
-MULTI_VEE   : 'v' ('v')+;
+MULTI_VEE     : 'v' ('v')+;
 
-IDENTIFIER    : 'v'* NONV (LETTER | DIGIT)*;
+IDENTIFIER    : ('v'+ (NONV | '_') | NONV) (LETTER | DIGIT | '_')*;
+
+TYPE_VARIABLE : '`' LETTER (LETTER | DIGIT)*;
 
 STRING        : DQUOTE (~(DQUOTE|BACKSLASH|'\n'|'\r') | ESCAPE_SEQ)* DQUOTE;
 
-SLASHES        : SLASH+;
+SLASHES       : SLASH+;
 
 // 00A0 = non-breaking space
-WHITESPACE  : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
+WHITESPACE    : (' ' | '\t' | '\u00A0' | NEWLINE)+ { $channel = HIDDEN; };
 
-DOC_COMMENT : '/**' ( ~('*') | '*' ~('/') )* '*/'? { $channel = DOC_COMMENT_CHANNEL; };
+DOC_COMMENT   : '/**' ( ~('*') | '*' ~('/') )* '*/'? { $channel = DOC_COMMENT_CHANNEL; };
 
-SL_COMMENT  : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
+SL_COMMENT    : '//' ~('\r'|'\n')* NEWLINE? { $channel = HIDDEN; };
 
-ML_COMMENT  : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
-
-fragment
-DIGIT        : '0'..'9';
+ML_COMMENT    : '/*' ( ~('*') | '*' ~('/')  )* '*/'? { $channel = HIDDEN; };
 
 fragment
-HEX_DIGIT    : '0'..'9' | 'A'..'F' | 'a'..'f';
+DIGIT         : '0'..'9';
 
 fragment
-LETTER        : 'A'..'Z' | 'a'..'z' | '_';
+HEX_DIGIT     : '0'..'9' | 'A'..'F' | 'a'..'f';
 
 fragment
-NONV        : 'A'..'Z' | 'a'..'u' | 'w'..'z' | '_';
+LETTER        : 'A'..'Z' | 'a'..'z';
 
 fragment
-SLASH        : '|';
+NONV          : 'A'..'Z' | 'a'..'u' | 'w'..'z';
+
+fragment
+SLASH         : '|';
 
 fragment
 ESCAPE_SEQ    : BACKSLASH
@@ -786,7 +848,7 @@ ESCAPE_SEQ    : BACKSLASH
               | DQUOTE
               | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
               )
-            ;
+              ;
 
 fragment
-NEWLINE     : '\r'? '\n';
+NEWLINE       : '\r'? '\n';

@@ -2,7 +2,11 @@ package org.cgsuite
 
 import org.cgsuite.core._
 
+import scala.language.implicitConversions
+
 package object dsl extends ValuesTrait {
+
+  implicit def longToInteger(x: Long): Integer = Integer(x)
 
   implicit object IntegerIsIntegral extends Integral[Integer] {
     def plus(x: Integer, y: Integer): Integer = x + y

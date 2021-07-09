@@ -2,7 +2,7 @@ package org.cgsuite.lang.parser
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-import org.antlr.runtime.tree.{CommonTree, Tree}
+import org.antlr.runtime.tree.Tree
 import org.antlr.runtime.{CharStream, CommonTokenStream}
 import org.cgsuite.exception.SyntaxException
 
@@ -26,7 +26,7 @@ object ParserUtil {
 
   }
 
-  private def parse(in: InputStream, source: String)(fn: CgsuiteParser => { def getTree(): Object }): Tree = {
+  private[cgsuite] def parse(in: InputStream, source: String)(fn: CgsuiteParser => { def getTree(): Object }): Tree = {
 
     val stream = new SourcedAntlrInputStream(in, source)
     val lexer = new CgsuiteLexer(stream)

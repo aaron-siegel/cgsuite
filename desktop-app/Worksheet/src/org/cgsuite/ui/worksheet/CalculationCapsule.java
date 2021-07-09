@@ -9,7 +9,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.cgsuite.kernel.KernelResponse;
+import org.cgsuite.kernel.client.KernelClient;
+import org.cgsuite.kernel.client.KernelDispatch;
 import org.cgsuite.lang.CgscriptClasspath;
+import org.cgsuite.lang.CgscriptSystem;
 import org.cgsuite.lang.EvalUtil;
 import org.cgsuite.output.Output;
 import org.openide.util.RequestProcessor;
@@ -68,11 +72,38 @@ public class CalculationCapsule implements Runnable
         }
         else
         {
-            CgscriptClasspath.reloadModifiedFiles();
             try
             {
                 long startTime = System.nanoTime();
-                output = JavaConverters.seqAsJavaList(EvalUtil.evaluate(text, varMap));
+                /*
+                log.info(System.getProperty("java.class.path"));
+                String javaHome = System.getProperty("java.home");
+                Process process = Runtime.getRuntime().exec(javaHome + "/bin/java");
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()));
+                boolean done = false;
+                while (!done) {
+                    String line = reader.readLine();
+                    if (line == null)
+                        done = true;
+                    else
+                        log.info(line);
+                }
+                Thread.sleep(1000);
+                log.info("isAlive: " + process.isAlive());
+                log.info("Evaluating expression: " + text);
+                scala.tools.nsc.Settings settings = new scala.tools.nsc.Settings();
+                scala.tools.nsc.interpreter.IMain interpreter = new scala.tools.nsc.interpreter.IMain(settings);
+                output = JavaConverters.seqAsJavaList(CgscriptSystem.evaluateToOutput(text));
+                */
+                synchronized(this) {
+                    KernelClient client = KernelClient.client;
+                    log.info("Posting request");
+                    client.postRequest(text, response -> wakeup(response));
+                    try {
+                        wait();
+                    } catch (InterruptedException exc) {
+                    }
+                }
                 long duration = System.nanoTime() - startTime;
                 log.info(String.format("Calculation finished in %d.%03d seconds.", duration / 1000000000L, (duration % 1000000000L) / 1000000L));
             }
@@ -82,6 +113,11 @@ public class CalculationCapsule implements Runnable
                 output = Collections.singletonList(EvalUtil.errorOutput("An unexpected error occurred."));
             }
         }
+    }
+    
+    synchronized void wakeup(KernelDispatch dispatch) {
+        output = dispatch.getOutput();
+        notifyAll();
     }
     
     public List<Output> getOutput()

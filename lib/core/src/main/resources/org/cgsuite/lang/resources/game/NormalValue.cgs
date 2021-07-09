@@ -14,27 +14,27 @@ system class NormalValue
     * A game $G$ is ~all-small~ if every subposition of $G$ is an
     * infinitesimal.
     */
-  external def IsAllSmall;
+  external def IsAllSmall as Boolean;
   
   /** $true$ if this game value is represented by a finite game.
     *
     * A game $G$ is ~finite~ if it has just finitely many distinct
     * subpositions.
     */
-  external def IsFinite;
+  external def IsFinite as Boolean;
   
   /** $true$ if this game value is an (additive) idempotent. i.e.,
     * if $this + this == this$.
     */
-  external def IsIdempotent;
+  external def IsIdempotent as Boolean;
   
   /** $true$ if $-x < this < x$ for every [[DyadicRational][dyadic rational]] number $x$.
     */
-  external def IsInfinitesimal;
+  external def IsInfinitesimal as Boolean;
   
   /** $true$ if this game value is an integer.
     */
-  external def IsInteger;
+  external def IsInteger as Boolean;
   
   /** $true$ if this game value is represented by a loopfree game.
     *
@@ -44,21 +44,21 @@ system class NormalValue
     * For [[#IsFinite][finite]] games, this is equivalent to the game
     * graph of $G$ being cycle-free.
     */
-  external def IsLoopfree;
+  external def IsLoopfree as Boolean;
   
   /** $true$ if this game value is $*m$ for some $m$.
     */
-  external def IsNimber;
+  external def IsNimber as Boolean;
   
   /** $true$ if this game value is a number.
     */
-  external def IsNumber;
+  external def IsNumber as Boolean;
   
   /** $true$ if this game value is infinitesimally close to a number.
     * i.e., if there is some number $x$ such that $this - x$ is an
     * infinitesimal.
     */
-  external def IsNumberish;
+  external def IsNumberish as Boolean;
   
   /** $true$ if this game value is equal to the sum of a number and
     * a tiny value.
@@ -69,11 +69,11 @@ system class NormalValue
     *
     * where $H \leq -x$ for some number $x > 0$.
     */
-  external def IsNumberTiny;
+  external def IsNumberTiny as Boolean;
   
   /** $true$ if this game value is an ordinal number.
     */
-  external def IsOrdinal;
+  external def IsOrdinal as Boolean;
   
   /** $true$ if this game value is represented by a plumtree.
     *
@@ -81,19 +81,19 @@ system class NormalValue
     * of $G$ has length $1$. In particular, every [[#IsLoopfree][loopfree]]
     * game is a plumtree.
     */
-  external def IsPlumtree;
+  external def IsPlumtree as Boolean;
   
   /** $true$ if this game value is a pseudonumber.
     */
-  external def IsPseudonumber;
+  external def IsPseudonumber as Boolean;
   
   /** $true$ if this game value is represented by a [[CanonicalStopper][stopper]].
     */
-  external def IsStopper;
+  external def IsStopper as Boolean;
   
   /** $true$ if the onside and offside of this game value are [[CanonicalStopper][stoppers]].
     */
-  external def IsStopperSided;
+  external def IsStopperSided as Boolean;
   
   /** $true$ if this game value is an uptimal.
     *
@@ -105,14 +105,14 @@ system class NormalValue
     * [[Nimber]][nimber]], and $G$ is a linear combination of games of the
     * form $\^^n^$.
     */
-  external def IsUptimal;
+  external def IsUptimal as Boolean;
   
   /** $true$ if this is $0$.
     */
-  external def IsZero;
+  external def IsZero as Boolean;
   
   /** The (normal-play) [[OutcomeClass][outcome class]] of this game value.
     */
-  external def OutcomeClass;
+  external def OutcomeClass as OutcomeClass;
 
 end

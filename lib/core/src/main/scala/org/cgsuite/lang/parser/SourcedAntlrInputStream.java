@@ -5,9 +5,10 @@
 
 package org.cgsuite.lang.parser;
 
+import org.antlr.runtime.ANTLRInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
-import org.antlr.runtime.ANTLRInputStream;
 
 /**
  *

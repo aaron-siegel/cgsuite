@@ -2,6 +2,8 @@ package org.cgsuite.lang
 
 class DeclTest extends CgscriptSpec {
 
+  CgscriptSystem.evaluate("0")
+
   "CGScript Declarations" should "validate class definitions correctly" in {
 
     val classdefPackage = testPackage declareSubpackage "classdef"
@@ -45,35 +47,97 @@ class DeclTest extends CgscriptSpec {
       ("External method of nonsystem class", "test.classdef.NonsystemClassWithExternalMethod.X",
         "!!Method is declared `external`, but class `test.classdef.NonsystemClassWithExternalMethod` is not declared `system`"),
       ("Duplicate method + method", "test.classdef.DuplicateMethodMethod.X",
-        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodMethod`"),
+        "!!Method `test.classdef.DuplicateMethodMethod.Method` is declared twice with identical signature"),
       ("Duplicate method + nested", "test.classdef.DuplicateMethodNested.X",
-        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodNested`"),
+        "!!Duplicate symbol `Method` in class `test.classdef.DuplicateMethodNested`"),
       ("Duplicate method + var", "test.classdef.DuplicateMethodVar.X",
-        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateMethodVar`"),
+        "!!Duplicate symbol `x` in class `test.classdef.DuplicateMethodVar`"),
       ("Duplicate nested + var", "test.classdef.DuplicateNestedVar.X",
-        "!!Member `x` conflicts with a var declaration in class `test.classdef.DuplicateNestedVar`"),
+        "!!Duplicate symbol `x` in class `test.classdef.DuplicateNestedVar`"),
       ("Duplicate var + var", "test.classdef.DuplicateVarVar.X",
-        "!!Variable `x` is declared twice in class `test.classdef.DuplicateVarVar`"),
+        "!!Duplicate symbol `x` in class `test.classdef.DuplicateVarVar`"),
       ("Singleton with constructor", "test.classdef.SingletonWithConstructor.X",
-        "!!Class `test.classdef.SingletonWithConstructor` must not have a constructor if declared `singleton`"),
+        "!!Class `test.classdef.SingletonWithConstructor` cannot have a constructor if declared `singleton`"),
       ("Subclass of singleton", "test.classdef.SubclassOfSingleton.X",
-        "!!Class `test.classdef.SubclassOfSingleton` may not extend singleton class `test.classdef.SingletonClass`"),
+        "!!Class `test.classdef.SubclassOfSingleton` cannot extend singleton class `test.classdef.SingletonClass`"),
       ("constants is not singleton", "test.classdef.invalidconstants.constants.X",
         "!!Constants class `test.classdef.invalidconstants.constants` must be declared `singleton`"),
+      /*
       ("Immutable subclass of mutable class", "test.classdef.ImmutableSubclassOfMutable.X",
         "!!Subclass `test.classdef.ImmutableSubclassOfMutable` of mutable class `test.classdef.MutableClass` is not declared `mutable`"),
       ("Immutable nested class of mutable class", "test.classdef.ImmutableNestedClassOfMutable.X",
         "!!Nested class `Nested` of mutable class `test.classdef.ImmutableNestedClassOfMutable` is not declared `mutable`"),
       ("Mutable var of immutable class", "test.classdef.MutableVarOfImmutable.X",
         "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`"),
+       */
       ("Immutable var with no initializer", "test.classdef.ImmutableVarWithNoInitializer.X",
-        "!!Immutable variable `x` must be assigned a value (or else declared `mutable`)"),
+        "!!Immutable variable `x` must be assigned a value"),
       ("Unknown class in parameter declaration", "test.classdef.UnknownClassInParameterDeclaration",
-        "!!Unknown class in parameter declaration: `UnknownClass`")
+        "!!Unrecognized type: `UnknownClass`")
     ))
 
   }
 
+  it should "correctly inherit ancestor types" in {
+
+    testPackage declareSubpackage "ancestor"
+    CgscriptClass declareSystemClass ("test.ancestor.Ancestor1", explicitDefinition = Some("class Ancestor1 of `T end"))
+    CgscriptClass declareSystemClass ("test.ancestor.Ancestor2", explicitDefinition = Some("class Ancestor2 of `T end"))
+    decl("test.ancestor.ConcreteSubclass", "class ConcreteSubclass extends Ancestor1 of Integer end")
+    decl("test.ancestor.SubclassWithTypeVariable1", "class SubclassWithTypeVariable1 of `T extends Ancestor1 of `T end")
+    decl("test.ancestor.SubclassWithTypeVariable2", "class SubclassWithTypeVariable2 of `T extends Ancestor1 of Collection of `T end")
+    decl("test.ancestor.SubclassWithTypeVariable3", "class SubclassWithTypeVariable3 of `U extends Ancestor1 of Collection of `U end")
+    decl("test.ancestor.ConcreteSubsubclass", "class ConcreteSubsubclass extends SubclassWithTypeVariable3 of Integer end")
+    decl("test.ancestor.MultipleInheritance1", "class MultipleInheritance1 extends SubclassWithTypeVariable3 of Integer, SubclassWithTypeVariable1 of Collection of Integer end")
+    decl("test.ancestor.IllegalMultipleInheritance", "class IllegalMultipleInheritance extends SubclassWithTypeVariable3 of Integer, SubclassWithTypeVariable1 of Integer end")
+
+    val objectType = CgscriptClass.Object.mostGenericType
+    val ancestor1 = CgscriptPackage.lookupClassByName("test.ancestor.Ancestor1").get
+    val ancestor2 = CgscriptPackage.lookupClassByName("test.ancestor.Ancestor2").get
+    val subclassWithTypeVariable1 = CgscriptPackage.lookupClassByName("test.ancestor.SubclassWithTypeVariable1").get
+    val subclassWithTypeVariable3 = CgscriptPackage.lookupClassByName("test.ancestor.SubclassWithTypeVariable3").get
+
+    def assertAncestors(className: String, expectedProperAncestors: CgscriptType*): Unit = {
+      CgscriptPackage.lookupClassByName(className).get.classInfo.properAncestorTypes shouldBe (objectType +: expectedProperAncestors.toVector)
+    }
+
+    assertAncestors(
+      "test.ancestor.ConcreteSubclass",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)
+    )
+    assertAncestors(
+      "test.ancestor.SubclassWithTypeVariable1",
+      ancestor1.mostGenericType
+    )
+    assertAncestors(
+      "test.ancestor.SubclassWithTypeVariable2",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.mostGenericType)
+    )
+    assertAncestors(
+      "test.ancestor.SubclassWithTypeVariable3",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(TypeVariable(Symbol("`U"))))
+    )
+    assertAncestors(
+      "test.ancestor.ConcreteSubsubclass",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)),
+      subclassWithTypeVariable3.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)
+    )
+    assertAncestors(
+      "test.ancestor.MultipleInheritance1",
+      ancestor1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)),
+      subclassWithTypeVariable1.substituteForTypeParameters(CgscriptClass.Collection.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)),
+      subclassWithTypeVariable3.substituteForTypeParameters(CgscriptClass.Integer.mostGenericType)
+    )
+
+    executeTests(Table(
+      header,
+      ("Illegal multiple inheritance", "test.ancestor.IllegalMultipleInheritance",
+        "!!Class `test.ancestor.IllegalMultipleInheritance` extends multiple conflicting types: `test.ancestor.Ancestor1 of game.Integer`, `test.ancestor.Ancestor1 of cgsuite.lang.Collection of game.Integer`")
+    ))
+
+  }
+
+  /*
   it should "handle methods, constructors, and initializers correctly" in {
 
     testPackage declareSubpackage "init"
@@ -144,7 +208,7 @@ class DeclTest extends CgscriptSpec {
     testPackage declareSubpackage "game"
     decl("test.game.GameWithHackedOptions",
       """class GameWithHackedOptions(args) extends Game
-        |  override def OptionsFor(player as Player) := args;
+        |  override def Options(player as Player) := args;
         |end
       """.stripMargin)
     decl("test.game.ImpartialGameWithHackedOptions",
@@ -176,5 +240,5 @@ class DeclTest extends CgscriptSpec {
     ))
 
   }
-
+*/
 }

@@ -9,16 +9,30 @@ singleton class constants
   var Offside := Side.Offside;
 
   var inf := 1/0;
-  var omega := 1.OmegaPower;
+  var omega := 1.OmegaPower as GeneralizedOrdinal;
 
-  var on := {pass|};
+  var on := {pass|} as Pseudonumber;
   var off := -on;
   var dud := on & off;
-  var over := {0|pass};
+  var over := {0|pass} as Pseudonumber;
   var under := -over;
-  var upon := {pass|*};
+  var upon := {pass|*} as CanonicalStopper;
 
+  def Miny(g as CanonicalShortGame) := {g|0||0};
   def Miny(g as CanonicalStopper) := {g|0||0};
+
+  def Tiny(g as CanonicalShortGame) := {0||0|-g};
   def Tiny(g as CanonicalStopper) := {0||0|-g};
+
+  def Max(collection as Collection of Integer) as Integer begin
+    if collection.IsEmpty then 0
+    else
+      var max := collection.Head;
+      for x in collection do
+        max := max Max x
+      end
+      max
+    end
+  end
 
 end

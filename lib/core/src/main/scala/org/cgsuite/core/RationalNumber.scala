@@ -97,13 +97,12 @@ trait RationalNumber extends SurrealNumber with OutputTarget {
 
   def min(other: RationalNumber) = if (this < other) this else other
   def max(other: RationalNumber) = if (this > other) this else other
-  def mean(other: RationalNumber) = (this + other) / Values.two
 
-  override def pow(other: Integer): RationalNumber = {
-    if (other >= Values.zero) {
-      RationalNumber(numerator.integerPow(other), denominator.integerPow(other))
+  override def exp(exponent: Integer): RationalNumber = {
+    if (exponent >= Values.zero) {
+      RationalNumber(numerator.intExp(exponent), denominator.intExp(exponent))
     } else {
-      RationalNumber(denominator.integerPow(-other), numerator.integerPow(-other))
+      RationalNumber(denominator.intExp(-exponent), numerator.intExp(-exponent))
     }
   }
 
@@ -144,6 +143,8 @@ trait RationalNumber extends SurrealNumber with OutputTarget {
   def toFloat: Float = numerator.bigIntValue.toFloat / denominator.bigIntValue.toFloat
 
   def toDouble: Double = numerator.bigIntValue.toDouble / denominator.bigIntValue.toDouble
+
+  override def toString: String = toOutput.toString
 
   override def toOutput: StyledTextOutput = {
 

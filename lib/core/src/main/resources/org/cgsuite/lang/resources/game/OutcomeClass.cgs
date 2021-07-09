@@ -12,6 +12,6 @@ system enum OutcomeClass
   external NHat,
   external NCheck;
 
-  external override def Literal;
+  external override def Literal as String;
 
 end

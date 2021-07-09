@@ -38,7 +38,13 @@ case class NotShortGameException(msg: String, cause: Throwable = null, token: Op
 case class NotStopperException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
+case class NotUptimalException(msg: String, cause: Throwable = null, token: Option[Token] = None)
+  extends CgsuiteException(msg, cause, token)
+
 case class OutOfBoundsException(msg: String, cause: Throwable = null, token: Option[Token] = None)
+  extends CgsuiteException(msg, cause, token)
+
+case class OverflowException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
 case class SystemException(msg: String, cause: Throwable = null, token: Option[Token] = None)

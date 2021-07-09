@@ -43,12 +43,12 @@ object Table {
 
 case class Table (
   rows: IndexedSeq[IndexedSeq[_]],
-  format: Set[Format.Value] = Set(Format.HorizontalGridLines, Format.VerticalGridLines)
+  format: Set[Table.Format.Value] = Set(Table.Format.HorizontalGridLines, Table.Format.VerticalGridLines)
   )(outputBuilder: Any => Output) extends Iterable[IndexedSeq[_]] with OutputTarget {
 
   def iterator: Iterator[IndexedSeq[_]] = rows.iterator
 
-  def toOutput: TableOutput = {
+  override def toOutput: TableOutput = {
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
   }
 

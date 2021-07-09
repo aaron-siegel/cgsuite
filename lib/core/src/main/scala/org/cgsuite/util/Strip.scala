@@ -1,5 +1,7 @@
 package org.cgsuite.util
 
+import java.util
+
 import org.cgsuite.core.{Integer, SmallInteger}
 import org.cgsuite.exception.GridParseException
 
@@ -21,9 +23,13 @@ object Strip {
 
 }
 
-class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, values) {
+class Strip private[util] (private val values: Array[Byte]) extends Serializable {
 
   def length = values.length
+
+  def toGrid = new Grid(1, length, values)
+
+  def apply(pos: Integer) = get(pos)
 
   def get(pos: Integer): SmallInteger = {
     val n = pos.intValue
@@ -44,7 +50,7 @@ class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, v
     new Strip(newValues)
   }
 
-  override def findAll(value: Integer): Seq[Integer] = {
+  def findAll(value: Integer): IndexedSeq[Integer] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0
@@ -71,7 +77,14 @@ class Strip private[util] (values: Array[Byte]) extends Grid(1, values.length, v
     substrip
   }
 
-  override def toString(charMap: String): String = {
+  override def hashCode(): Int = util.Arrays.hashCode(values)
+
+  override def equals(that: Any): Boolean = that match {
+    case other: Strip => util.Arrays.equals(values, other.values)
+    case _ => false
+  }
+
+  def toString(charMap: String): String = {
     SeqCharSequence(values map { charMap(_) }).toString()
   }
 

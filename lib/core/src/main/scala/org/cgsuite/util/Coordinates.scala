@@ -2,8 +2,9 @@ package org.cgsuite.util
 
 import java.util
 
-import org.cgsuite.core.Integer
-import org.cgsuite.output.{StyledTextOutput, OutputTarget}
+import org.cgsuite.core.{Integer, Values}
+import org.cgsuite.core.Values._
+import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
 object Coordinates {
 
@@ -20,15 +21,24 @@ object Coordinates {
   val Diagonal = Vector(Northeast, Southeast, Southwest, Northwest)
   val Compass = Orthogonal ++ Diagonal
 
+  def apply(row: Long, col: Long): Coordinates = {
+    Coordinates(Integer(row), Integer(col))
+  }
+
 }
 
-case class Coordinates(row: Int, col: Int) extends OutputTarget {
+case class Coordinates(row: Integer, col: Integer) extends OutputTarget {
 
   def +(other: Coordinates) = Coordinates(row + other.row, col + other.col)
+
   def -(other: Coordinates) = Coordinates(row - other.row, col - other.col)
+
   def <=(other: Coordinates) = row <= other.row && col <= other.col
-  def *(other: Integer) = Coordinates(row * other.intValue, col * other.intValue)
-  def isUnit = row >= -1 && row <= 1 && col >= -1 && col <= 1
+
+  def *(other: Integer) = Coordinates(row * other, col * other)
+
+  def isUnit = row >= negativeOne && row <= one && col >= negativeOne && col <= one
+
   def swap = Coordinates(col, row)
 
   override def toOutput = new StyledTextOutput(util.EnumSet.of(StyledTextOutput.Style.FACE_MATH), s"($row,$col)")

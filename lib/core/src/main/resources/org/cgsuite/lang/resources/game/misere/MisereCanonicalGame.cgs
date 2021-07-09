@@ -2,7 +2,11 @@
 
 system class MisereCanonicalGame extends ImpartialGame
 
-  external def Birthday;
+  external def op+(that as MisereCanonicalGame) as MisereCanonicalGame;
+
+  external def op-(that as MisereCanonicalGame) as MisereCanonicalGame;
+
+  external def Birthday as Integer;
   
   /** `true` if this game is even.
     * 
@@ -10,30 +14,30 @@ system class MisereCanonicalGame extends ImpartialGame
     *
     * `G.Birthday < (G + *).Birthday.`
     */
-  external def IsEven;
-  external def IsExtraverted;
-  external def IsGenerallyRestive;
-  external def IsGenerallyTame;
-  external def IsHalfTame;
-  external def IsIntroverted;
-  external def IsNimHeap;
-  external def IsPrime;
-  external def IsRestive;
-  external def IsRestless;
-  external def IsTame;
-  external def IsTameable;
-  external def Mate;
-  external def MisereOutcomeClass;
-  external override def Options;
-  external def Partitions;
-  external def Parts;
-  external override def ToOutput;
+  external def IsEven as Boolean;
+  external def IsExtraverted as Boolean;
+  external def IsGenerallyRestive as Boolean;
+  external def IsGenerallyTame as Boolean;
+  external def IsHalfTame as Boolean;
+  external def IsIntroverted as Boolean;
+  external def IsNimHeap as Boolean;
+  external def IsPrime as Boolean;
+  external def IsRestive as Boolean;
+  external def IsRestless as Boolean;
+  external def IsTame as Boolean;
+  external def IsTameable as Boolean;
+  external def Mate as MisereCanonicalGame;
+  external def MisereOutcomeClass as OutcomeClass;
+  external override def Options as List of MisereCanonicalGame;
+  external def Partitions as List of List of MisereCanonicalGame;
+  external def Parts as List of MisereCanonicalGame;
+  external override def ToOutput as Output;
 
-  external def Distinguisher(h as MisereCanonicalGame);
-  external def IsLinkedTo(h as MisereCanonicalGame);
-  external def Link(h as MisereCanonicalGame);
-  external def MisereMinus(h as MisereCanonicalGame);
+  external def Distinguisher(h as MisereCanonicalGame) as MisereCanonicalGame;
+  external def IsLinkedTo(h as MisereCanonicalGame) as Boolean;
+  external def Link(h as MisereCanonicalGame) as MisereCanonicalGame;
+  external def MisereMinus(h as MisereCanonicalGame) as MisereCanonicalGame;
 
-  external static def DayN(maxBirthday as Integer, maxGames as Integer ? 1000000, maxOptions as Integer ? 1000000);
+  //external static def DayN(maxBirthday as Integer, maxGames as Integer ? 1000000, maxOptions as Integer ? 1000000);
 
 end

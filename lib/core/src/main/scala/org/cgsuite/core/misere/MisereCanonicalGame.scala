@@ -63,6 +63,8 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   def +(that: MisereCanonicalGame) = MisereCanonicalGame(ops.add(misereGameId, that.misereGameId))
 
+  def -(that: MisereCanonicalGame) = this + that
+
   def misereMinus(that: MisereCanonicalGame) = {
     ops.subtract(misereGameId, that.misereGameId) match {
       case -1 => throw InvalidOperationException(s"Those misere games are not subtractable: $this, $that")
@@ -80,6 +82,8 @@ trait MisereCanonicalGame extends ImpartialGame {
 
   override def genus: Genus = ops.genus(misereGameId)
 
+  def isEmpty = ops.numOptions(misereGameId) == 0
+
   def isEven = ops.isEven(misereGameId)
 
   def isExtraverted = ops.isExtraverted(misereGameId)
@@ -93,6 +97,10 @@ trait MisereCanonicalGame extends ImpartialGame {
   def isIntroverted = ops.isIntroverted(misereGameId)
 
   def isNimHeap = ops.isNimHeap(misereGameId)
+
+  def isNPosition = !isPPosition
+
+  def isPPosition = ops.isPPosition(misereGameId)
 
   def isPrime = ops.isPrime(misereGameId)
 
@@ -129,7 +137,7 @@ trait MisereCanonicalGame extends ImpartialGame {
     }
   }
 
-  override def options: Iterable[MisereCanonicalGame] = {
+  override def options: IndexedSeq[MisereCanonicalGame] = {
     ops.getOptions(misereGameId) map { MisereCanonicalGame(_) }
   }
 

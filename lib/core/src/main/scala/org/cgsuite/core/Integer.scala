@@ -8,7 +8,8 @@ package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.ArithmeticException
+import org.cgsuite.exception.{ArithmeticException, EvalException, OverflowException}
+import org.cgsuite.util.Coordinates
 
 object Integer {
   
@@ -80,7 +81,12 @@ object Integer {
 trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   
   def bigIntValue: BigInt
-  override def intValue = bigIntValue.intValue()
+  override def intValue = {
+    if (bigIntValue.bigInteger.bitLength() <= 32)
+      bigIntValue.intValue()
+    else
+      throw OverflowException("Overflow.")
+  }
   def longValue = bigIntValue.longValue()
   def floatValue = bigIntValue.floatValue()
   def doubleValue = bigIntValue.doubleValue()
@@ -93,7 +99,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
       Vector(Term(this, ZeroImpl))
   }
   
-  override def optionsFor(player: Player): Iterable[Integer] = {
+  override def options(player: Player): Iterable[Integer] = {
     (player, bigIntValue.signum) match {
       case (Left, 1) => Set(Integer(bigIntValue-1))
       case (Right, -1) => Set(Integer(bigIntValue+1))
@@ -116,23 +122,34 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
   def ^(other: Integer) = Integer(bigIntValue ^ other.bigIntValue)
 
+  // This override is necessary to resolve ambiguities:
+  override def *(other: DyadicRationalNumber): DyadicRationalNumber = super[DyadicRationalNumber].*(other)
+
   def *(other: CanonicalShortGame): CanonicalShortGame = other.nCopies(this)
   def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
   def *(other: SidedValue): SidedValue = other.nCopies(this)
+  def *(other: Coordinates): Coordinates = other * this
+  def *(g: Game): CompoundGame = CompoundGame(ConwayProduct, this, g)
+
+  override def exp(exponent: Integer) = super[DyadicRationalNumber].exp(exponent)
 
   override def abs: Integer = Integer(bigIntValue.abs)
 
   override def birthday: Integer = abs
 
-  override def pow(n: Integer): RationalNumber = super[DyadicRationalNumber].pow(n)
-
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
 
   def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
 
-  def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
-
   override def followerCount: Integer = abs + Values.one
+
+  private[core] def intExp(other: Integer): Integer = {
+    assert(other >= zero)
+    if (other.isSmallInteger)
+      Integer(bigIntValue.pow(other.intValue))
+    else
+      throw OverflowException("Overflow.")
+  }
 
   override def isEven = !bigIntValue.testBit(0)
 
@@ -235,9 +252,18 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   override def denominator = Values.one
   override def denominatorExponent = 0
 
-  override def toString = bigIntValue.toString()
+  override def toString = bigIntValue.toString
 
   override def toOutput = super[DyadicRationalNumber].toOutput
+
+  // TODO There should be overflow validation here
+  // TODO Expressions like ^(*3) parse, but shouldn't
+
+  def toNimber = Nimber(this)
+
+  def toUp = Uptimal(zero, intValue, 0)
+
+  def toDown = Uptimal(zero, -intValue, 0)
   
 }
 

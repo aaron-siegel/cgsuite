@@ -4,6 +4,6 @@ system class CompoundImpartialGame extends CompoundGame, ImpartialGame
 
   external override def Options;
   
-  override def OptionsFor(player as Player) := Options;
+  override def Options(player as Player) := Options;
 
 end

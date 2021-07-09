@@ -6,6 +6,7 @@
 package org.cgsuite.ui.explorer;
 
 import java.awt.Color;
+import org.cgsuite.output.Output;
 import org.cgsuite.output.OutputBox;
 import org.cgsuite.output.OutputTarget;
 
@@ -15,7 +16,7 @@ import org.cgsuite.output.OutputTarget;
  */
 public class DefaultEditorPanel extends EditorPanel
 {
-    private OutputTarget obj;
+    private Output output;
     private OutputBox outputBox;
 
     public DefaultEditorPanel()
@@ -29,29 +30,21 @@ public class DefaultEditorPanel extends EditorPanel
         add(outputBox);
     }
 
-    public DefaultEditorPanel(OutputTarget obj)
+    public DefaultEditorPanel(Output output)
     {
         this();
-        setDisplayedObject(obj);
+        setDisplayedOutput(output);
     }
 
-    public void setDisplayedObject(OutputTarget obj)
+    public final void setDisplayedOutput(Output output)
     {
-        this.obj = obj;
-        if (obj == null)
-        {
-            outputBox.setOutput(null);
-        }
-        else
-        {
-            outputBox.setOutput(obj.toOutput());
-        }
+        outputBox.setOutput(output);
         outputBox.revalidate();
     }
 
     @Override
     public OutputTarget constructObject()
     {
-        return obj;
+        return null;
     }
 }

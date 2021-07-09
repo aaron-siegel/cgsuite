@@ -12,6 +12,6 @@ import java.util.List;
  */
 public interface ExplorerWindow
 {
-    public ExplorerNode getSelectedNode();
-    public List<ExplorerNode> getSelectionPath();
+    public ExplorerViewNode getSelectedNode();
+    public List<ExplorerViewNode> getSelectionPath();
 }

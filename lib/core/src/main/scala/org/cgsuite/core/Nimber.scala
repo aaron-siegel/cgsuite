@@ -6,6 +6,7 @@
 
 package org.cgsuite.core
 
+import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.exception.InvalidArgumentException
 
 import scala.language.postfixOps
@@ -28,6 +29,7 @@ trait Nimber extends ImpartialGame with Uptimal {
   def intNimValue: Int
 
   override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, intNimValue)
+  def conwayProduct(that: Nimber) = Nimber(nimValue nimProduct that.nimValue)
   override def numberPart = Values.zero
   override def nimberPart = intNimValue
   def ordinalSum(that: Nimber) = Nimber(intNimValue + that.intNimValue)
@@ -38,7 +40,7 @@ trait Nimber extends ImpartialGame with Uptimal {
   def -(other: Nimber) = Nimber(intNimValue ^ other.intNimValue)
   override def unary_- = this
 
-  override def optionsFor(player: Player): Iterable[Nimber] = options
+  override def options(player: Player): Iterable[Nimber] = options
   override def options: Iterable[Nimber] = {
     (0 until intNimValue) map { Nimber(_) } toSet
   }
@@ -46,7 +48,13 @@ trait Nimber extends ImpartialGame with Uptimal {
   override def outcomeClass: ImpartialOutcomeClass = {
     if (nimValue.isZero) OutcomeClass.P else OutcomeClass.N
   }
-  
+
+  override def misereCanonicalForm: MisereCanonicalGame = {
+    MisereCanonicalGame.nimHeap(intNimValue)
+  }
+
+  override def toString = s"*$nimValue"
+
 }
 
 case class NimberImpl(intNimValue: Int) extends Nimber {

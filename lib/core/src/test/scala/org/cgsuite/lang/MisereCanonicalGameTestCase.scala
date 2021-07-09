@@ -419,7 +419,7 @@ case class MisereCanonicalGameTestCase(
 
   def toTests = Seq(
     (x, xOut),
-    (s"($x).Class", s"\u27eagame.misere.$cls\u27eb"),
+//    (s"($x).Class", s"\u27eagame.misere.$cls\u27eb"),
     (s"($x).Birthday", birthday),
     (s"($x).Genus", genus),
     (s"($x).IsEven", isEven),

@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+singleton class constants
+
+  def Explore(g as Game) := Explorer.NewExplorer(g);
+
+end
