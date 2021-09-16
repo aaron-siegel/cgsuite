@@ -2,10 +2,24 @@
 
 system class DyadicRational extends Uptimal, Pseudonumber, Rational
 
-  // These methods are declared both in CanonicalShortGame and Rational,
+  // TODO These aren't really overrides, and they shouldn't require
+  // the `override` modifier (?)
+
+  external override def op<=(that as DyadicRational) as Boolean;
+
+  external override def op+(that as DyadicRational) as DyadicRational;
+
+  external override def op-(that as DyadicRational) as DyadicRational;
+
+  // These methods are declared both in Uptimal and Rational,
   // so they need to be explicitly redeclared to disambiguate
-  external override def Birthday;
-  external override def IsInteger;
-  external override def ToOutput;
+
+  external override def op unary+ as DyadicRational;
+
+  external override def op unary- as DyadicRational;
+
+  external override def Birthday as Integer;
+
+  external override def IsInteger as Boolean;
 
 end

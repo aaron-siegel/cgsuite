@@ -233,8 +233,17 @@ case class ThisNode(tree: Tree) extends EvalNode {
 
 object IdentifierNode {
   def apply(tree: Tree): IdentifierNode = {
-    assert(tree.getType == IDENTIFIER || tree.getType == DECL_ID || tree.getType == INFIX_OP, tree.toStringTree)
-    IdentifierNode(tree, Symbol(tree.getText))
+    val idText = tree.getType match {
+      case IDENTIFIER | DECL_ID | INFIX_OP => tree.getText
+      case OP | DECL_OP =>
+        tree.children.head.getType match {
+          case UNARY => s"op unary${tree.children.head.children.head.getText}"
+          case _ => s"op ${tree.children.head.getText}"
+        }
+      case _ => ""
+    }
+    assert(idText.nonEmpty, tree.getText)
+    IdentifierNode(tree, Symbol(idText))
   }
 }
 

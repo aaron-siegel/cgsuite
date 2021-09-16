@@ -124,7 +124,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   override def birthday: Integer = abs
 
-  override def pow(n: Integer): RationalNumber = super[DyadicRationalNumber].pow(n)
+  override def exp(n: Integer): RationalNumber = super[DyadicRationalNumber].exp(n)
 
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
 

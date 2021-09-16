@@ -132,9 +132,9 @@ object Ops {
   }
 
   val Exp = BinOp("^", OperatorPrecedence.Exp) {
-    case (x: RationalNumber, y: Integer) => x pow y
+    case (x: RationalNumber, y: Integer) => x exp y
     case (x: GeneralizedOrdinal, y: GeneralizedOrdinal) if x.isOmega => y.omegaPower
-    case (x: SurrealNumber, y: Integer) => x pow y
+    case (x: SurrealNumber, y: Integer) => x exp y
   }
 
   val leq: PartialFunction[(Any, Any), Boolean] = {

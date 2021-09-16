@@ -867,13 +867,13 @@ class CgscriptClass(
             logger.debug(s"$logPrefix   It's a special method.")
             ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
           case None =>
-            val externalName = name.updated(0, name(0).toLower)
+            val externalName = externalMethodName(name)
             val externalParameterTypes = parameters map { _.paramType.javaClass }
             logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
             val externalMethod = try {
               javaClass.getMethod(externalName, externalParameterTypes: _*)
             } catch {
-              case exc: NoSuchMethodException =>
+              case _: NoSuchMethodException =>
                 throw EvalException(s"Method is declared `external`, but has no corresponding Java method (in Java class `$javaClass`): `$qualifiedName.$name`", node.tree)
             }
             logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
@@ -888,6 +888,22 @@ class CgscriptClass(
 
     node.idNode.id -> newMethod
 
+  }
+
+  def externalMethodName(name: String): String = {
+    name match {
+      case "op +" => "$plus"
+      case "op -" => "$minus"
+      case "op *" => "$times"
+      case "op /" => "$div"
+      case "op %" => "$percent"
+      case "op ^" => "exp"
+      case "op <=" => "$less$eq"
+      case "op unary+" => "unary_$plus"
+      case "op unary-" => "unary_$minus"
+      case "op unary+-" => "switch"
+      case _ => name.updated(0, name(0).toLower)
+    }
   }
 
   override def toString = s"<<$qualifiedName>>"
