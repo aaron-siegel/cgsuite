@@ -32,8 +32,8 @@
       <groupId>org.cgsuite</groupId>
       <artifactId>cgsuite-core</artifactId>
       <version>${project.version}</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/../core/target/cgsuite-core-${project.version}.jar</systemPath>
+      <!--<scope>system</scope>
+      <systemPath>${project.basedir}/../core/target/cgsuite-core-${project.version}.jar</systemPath>-->
     </dependency>
   </dependencies>
 

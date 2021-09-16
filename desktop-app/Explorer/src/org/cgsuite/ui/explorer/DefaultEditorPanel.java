@@ -16,7 +16,6 @@ import org.cgsuite.output.OutputTarget;
  */
 public class DefaultEditorPanel extends EditorPanel
 {
-    private Output output;
     private OutputBox outputBox;
 
     public DefaultEditorPanel()

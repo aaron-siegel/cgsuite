@@ -52,7 +52,7 @@ case class Table (
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
   }
 
-  def intensityPlot(unitSize: Integer): IntensityPlotOutput = {
+  def intensityPlot(unitSize: Integer = Integer(8)): IntensityPlotOutput = {
     val numbers = rows map {
       _ map {
         case x: RationalNumber => x

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
  2. yum localinstall jdk-8u291-linux-x64.rpm
  3. yum install liberation-sans-fonts
  4. mkdir ~/CGSuite
- 5. java -cp cgsuite-core-${version}-jar-with-dependencies.jar org.cgsuite.bot.discord.DiscordBot <token>
+ 5. java -Xmx1G -cp cgsuite-discord-bot-${version}-jar-with-dependencies.jar org.cgsuite.bot.discord.DiscordBot <token>
  */
 
 object DiscordBot {
