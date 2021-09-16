@@ -22,4 +22,6 @@ system class DyadicRational extends Uptimal, Pseudonumber, Rational
 
   external override def IsInteger as Boolean;
 
+  external override def ToOutput;
+
 end

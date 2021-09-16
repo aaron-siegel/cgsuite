@@ -28,4 +28,6 @@ system class Rational extends SurrealNumber
 
   external def Min(that as Rational) as Rational;
 
+  external override def ToOutput;
+
 end

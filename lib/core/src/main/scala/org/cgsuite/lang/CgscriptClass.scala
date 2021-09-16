@@ -874,7 +874,7 @@ class CgscriptClass(
               javaClass.getMethod(externalName, externalParameterTypes: _*)
             } catch {
               case _: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (in Java class `$javaClass`): `$qualifiedName.$name`", node.tree)
+                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$name`", node.tree)
             }
             logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
             SystemMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
@@ -899,6 +899,7 @@ class CgscriptClass(
       case "op %" => "$percent"
       case "op ^" => "exp"
       case "op <=" => "$less$eq"
+      case "op []" => "get"     // TODO Not so sure.
       case "op unary+" => "unary_$plus"
       case "op unary-" => "unary_$minus"
       case "op unary+-" => "switch"
