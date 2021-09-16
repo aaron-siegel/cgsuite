@@ -1002,6 +1002,84 @@ class CgscriptClass(
 
   }
 
+  case class MethodGroup(id: Symbol, methods: Vector[Method]) {
+
+    def declaringClass = thisClass
+
+    val isPureAutoinvoke = methods.size == 1 && methods.head.autoinvoke
+
+    val autoinvokeMethod = methods find { _.autoinvoke }
+
+    val methodsWithArguments = methods filter { !_.autoinvoke }
+
+    def name = methods.head.methodName
+
+    def qualifiedName = methods.head.qualifiedName
+
+    def isStatic = methods.head.isStatic
+
+    def lookupMethod(
+      argumentTypes: Vector[CgscriptClass],
+      namedArgumentTypes: Map[Symbol, CgscriptClass]
+    ): Option[Method] = {
+
+      // This is fairly slow; successful lookups will be cached at the call site.
+
+      val matchingMethods = methodsWithArguments filter { method =>
+
+        val requiredParametersAreSatisfied = method.requiredParameters.indices forall { index =>
+          if (index < argumentTypes.length) {
+            argumentTypes(index).ancestors contains method.requiredParameters(index).paramType
+          } else {
+            val optNamedArgumentType = namedArgumentTypes get method.parameters(index).id
+            optNamedArgumentType match {
+              case Some(argumentType) => argumentType.ancestors contains method.requiredParameters(index).paramType
+              case None => method.parameters(index).defaultValue.isDefined
+            }
+          }
+        }
+
+        val allArgumentsAreValid = {
+          argumentTypes.length <= method.parameters.length && {
+            namedArgumentTypes.keys forall { id =>
+              method.parameters exists { _.id == id }
+            }
+          }
+        }
+
+        requiredParametersAreSatisfied && allArgumentsAreValid
+
+      }
+
+      // This is used for error handling:
+      def argTypesString = if (argumentTypes.isEmpty) "()" else argumentTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+
+      val reducedMatchingMethods = reduceMethodList(matchingMethods)
+      if (reducedMatchingMethods.size >= 2) {
+        throw EvalException(s"Method `$name` is ambiguous when applied to $argTypesString")
+      }
+
+      reducedMatchingMethods.headOption
+
+    }
+
+    // Pare down the method list by removing all methods that have a strict refinement in the list
+    def reduceMethodList(methods: Vector[Method]) = {
+      methods filterNot { method =>
+        methods exists { other =>
+          method != other && parametersLeq(other.parameters, method.parameters)
+        }
+      }
+    }
+
+    // True if p1 <= p2, i.e., if p1 is a refinement of p2.
+    def parametersLeq(p1: Seq[Parameter], p2: Seq[Parameter]): Boolean = {
+      p1.length == p2.length &&
+        p1.indices.forall { i => p1(i).paramType.ancestors contains p2(i).paramType }
+    }
+
+  }
+
   trait Method extends Member {
 
     def idNode: IdentifierNode
@@ -1018,6 +1096,8 @@ class CgscriptClass(
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
     val ordinal = CallSite.newCallSiteOrdinal
     val locationMessage = s"in call to `$qualifiedName`"
+
+    val (requiredParameters, optionalParameters) = parameters partition { _.defaultValue.isEmpty }
 
     var knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
 
@@ -1250,19 +1330,6 @@ sealed trait CgscriptClassDef
 case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
 case class ExplicitClassDef(text: String) extends CgscriptClassDef
 case class NestedClassDef(enclosingClass: CgscriptClass) extends CgscriptClassDef
-
-trait Member {
-  def declaringClass: CgscriptClass
-  def declNode: Option[MemberDeclarationNode]
-  def idNode: IdentifierNode
-  def id = idNode.id
-}
-
-case class Parameter(idNode: IdentifierNode, paramType: CgscriptClass, defaultValue: Option[EvalNode], isExpandable: Boolean) {
-  val id = idNode.id
-  val signature = paramType.qualifiedName + " " + id.name + (if (defaultValue.isDefined) "?" else "") + (if (isExpandable) "..." else "")
-  var methodScopeIndex = -1
-}
 
 object LifecycleStage extends Enumeration {
   val New, Declaring, Declared, Initializing, Initialized, Unloaded = Value
