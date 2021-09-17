@@ -758,15 +758,11 @@ class CgscriptClass(
     val staticInitializers = declNode.staticInitializers
     val enumElementNodes = declNode.enumElements
 
-    val (supers: Seq[CgscriptClass], nestedClasses: Map[Symbol, CgscriptClass], methods: Map[Symbol, Method], constructor: Option[Constructor]) = {
-
-      if (Object.isLoaded) { // Hack to bootstrap Object
-
         if (declNode.idNode.id.name != nameAsFullyScopedMember)
           throw EvalException(s"Class name does not match filename: `${declNode.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", declNode.idNode.tree)
 
         val supers = {
-          if (declNode.extendsClause.isEmpty) {
+          if (Object.isLoaded && declNode.extendsClause.isEmpty) {
             Seq(if (declNode.isEnum) Enum else Object)
           } else {
             declNode.extendsClause map {
@@ -819,8 +815,6 @@ class CgscriptClass(
         localMembers groupBy { _._1 } find { _._2.size > 1 } foreach { case (memberId, _) =>
           throw EvalException(s"Member `${memberId.name}` is declared twice in class `$qualifiedName`", declNode.tree)
         }
-
-        val x = supers flatMap { _.classInfo.methods }
 
         val superMethods = supers flatMap { _.classInfo.methods } filterNot { _._1.name startsWith "super$" }
         val superNestedClasses = supers flatMap { _.classInfo.nestedClasses } filterNot { _._1.name startsWith "super$" }
@@ -904,12 +898,9 @@ class CgscriptClass(
         val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
         val (allMethods, allNestedClasses) = allMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
 
-        ( supers,
-          allNestedClasses mapValues { _.asInstanceOf[CgscriptClass] },
-          allMethods mapValues { _.asInstanceOf[CgscriptClass#Method] },
-          constructor
-        )
-
+    val nestedClasses: Map[Symbol, CgscriptClass] = allNestedClasses mapValues { _.asInstanceOf[CgscriptClass] }
+    val methods: Map[Symbol, CgscriptClass#Method] = allMethods mapValues { _.asInstanceOf[CgscriptClass#Method] }
+/*
       } else {
 
         // We're loading Object right now!
@@ -919,7 +910,7 @@ class CgscriptClass(
       }
 
     }
-
+*/
     val properAncestors: Seq[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
     val ancestors = properAncestors :+ CgscriptClass.this
 
