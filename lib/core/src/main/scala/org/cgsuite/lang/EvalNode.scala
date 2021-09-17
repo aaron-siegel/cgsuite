@@ -1043,7 +1043,7 @@ case class FunctionCallNode(
       case exc: CgsuiteException =>
         exc addToken token
         throw exc
-      case err: StackOverflowError =>
+      case _: StackOverflowError =>
         throw EvalException("Possible infinite recursion.", token = Some(token))
     }
 

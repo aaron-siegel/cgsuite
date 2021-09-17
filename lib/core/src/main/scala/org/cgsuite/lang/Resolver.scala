@@ -68,11 +68,11 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
     if (static) {
       cls.classInfo.staticVarOrdinals.getOrElse(id, -1)
     } else {
-      cls.classInfo.classVarOrdinals.getOrElse(id, -1)
+      cls.classInfo.instanceVarOrdinals.getOrElse(id, -1)
     }
   }
   // TODO Static mutable?
-  val isMutableVar = !static && (cls.classInfo.classVarLookup get id exists { _.isMutable })
+  val isMutableVar = !static && (cls.classInfo.instanceVarLookup get id exists { _.isMutable })
   val nestedClass = {
     // TODO Static nested classes?
     if (static) {
