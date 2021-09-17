@@ -695,7 +695,7 @@ class CgscriptClass(
 
     val (autoinvoke, parameters) = node.parameters match {
       case Some(n) => (false, n.toParameters)
-      case None => (true, Seq.empty)
+      case None => (true, Vector.empty)
     }
 
     val newMethod = {
@@ -763,7 +763,7 @@ class CgscriptClass(
 
     val supers = {
       if (Object.isLoaded && declNode.extendsClause.isEmpty) {
-        Seq(if (declNode.isEnum) Enum else Object)
+        Vector(if (declNode.isEnum) Enum else Object)
       } else {
         declNode.extendsClause map {
           case IdentifierNode(tree, superId) =>
@@ -880,47 +880,52 @@ class CgscriptClass(
     }
 
     val allMembers = resolvedSuperMembers ++ renamedSuperMembers ++ localMembers
-    val (allMethods, allNestedClasses) = allMembers partition { _._2.isInstanceOf[CgscriptClass#Method] }
 
-    val nestedClasses: Map[Symbol, CgscriptClass] = allNestedClasses mapValues { _.asInstanceOf[CgscriptClass] }
-    val methods: Map[Symbol, CgscriptClass#Method] = allMethods mapValues { _.asInstanceOf[CgscriptClass#Method] }
+    val nestedClasses: Map[Symbol, CgscriptClass] = allMembers collect {
+      case (symbol, member: CgscriptClass) => (symbol, member)
+    }
 
-    val properAncestors: Seq[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
+    val methods: Map[Symbol, CgscriptClass#Method] = allMembers collect {
+      case (symbol, member: CgscriptClass#Method) => (symbol, member)
+    }
+
+    val properAncestors: Vector[CgscriptClass] = supers.reverse.flatMap { _.classInfo.ancestors }.distinct
+
     val ancestors = properAncestors :+ CgscriptClass.this
 
-    val staticVars: Seq[CgscriptClass#Var] = declNode.staticInitializers collect {
+    val staticVars: Vector[CgscriptClass#Var] = declNode.staticInitializers collect {
       case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
         Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
 
     val staticVarLookup: Map[Symbol, CgscriptClass#Var] = staticVars map { v => (v.id, v) } toMap
 
-    val enumElements: Seq[CgscriptClass#Var] = declNode.enumElements map { node =>
+    val enumElements: Vector[CgscriptClass#Var] = declNode.enumElements map { node =>
       Var(node.idNode, Some(node), node.modifiers)
     }
 
     val inheritedClassVars = supers.flatMap { _.classInfo.allClassVars }.distinct
     val constructorParamVars = constructor match {
       case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Some(declNode), Modifiers.none, isConstructorParam = true) }
-      case None => Seq.empty
+      case None => Vector.empty
     }
     val localClassVars = initializers collect {
       case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
         Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
-    val allClassVars: Seq[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
-    val allClassVarSymbols: Seq[Symbol] = allClassVars map { _.id } distinct
+    val allClassVars: Vector[CgscriptClass#Var] = constructorParamVars ++ inheritedClassVars ++ localClassVars
+    val allClassVarSymbols: Vector[Symbol] = allClassVars map { _.id } distinct
     val classVarLookup: Map[Symbol, CgscriptClass#Var] = allClassVars map { v => (v.id, v) } toMap
     val classVarOrdinals: Map[Symbol, Int] = allClassVarSymbols.zipWithIndex.toMap
 
-    val staticVarSymbols: Seq[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
+    val staticVarSymbols: Vector[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
     val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
     val allSymbolsInThisClass: Set[Symbol] = {
       classVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ methods.keySet ++ nestedClasses.keySet
     }
-    lazy val allSymbolsInClassScope: Seq[Set[Symbol]] = {
-      allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Seq.empty)
+    lazy val allSymbolsInClassScope: Vector[Set[Symbol]] = {
+      allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Vector.empty)
     }
     val allMethodsInScope: Map[Symbol, CgscriptClass#Method] = {
       (enclosingClass map { _.classInfo.allMethodsInScope } getOrElse Map.empty) ++ methods
@@ -1037,7 +1042,7 @@ class CgscriptClass(
     }
 
     // True if p1 <= p2, i.e., if p1 is a refinement of p2.
-    def parametersLeq(p1: Seq[Parameter], p2: Seq[Parameter]): Boolean = {
+    def parametersLeq(p1: Vector[Parameter], p2: Vector[Parameter]): Boolean = {
       p1.length == p2.length &&
         p1.indices.forall { i => p1(i).paramType.ancestors contains p2(i).paramType }
     }
@@ -1047,7 +1052,7 @@ class CgscriptClass(
   trait Method extends Member {
 
     def idNode: IdentifierNode
-    def parameters: Seq[Parameter]
+    def parameters: Vector[Parameter]
     def autoinvoke: Boolean
     def isStatic: Boolean
     def isOverride: Boolean
@@ -1086,7 +1091,7 @@ class CgscriptClass(
   case class UserMethod(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    parameters: Seq[Parameter],
+    parameters: Vector[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     isOverride: Boolean,
@@ -1130,7 +1135,7 @@ class CgscriptClass(
   case class SystemMethod(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    parameters: Seq[Parameter],
+    parameters: Vector[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     isOverride: Boolean,
@@ -1173,7 +1178,7 @@ class CgscriptClass(
   case class ExplicitMethod(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    parameters: Seq[Parameter],
+    parameters: Vector[Parameter],
     autoinvoke: Boolean,
     isStatic: Boolean,
     isOverride: Boolean
@@ -1210,7 +1215,7 @@ class CgscriptClass(
 
   case class UserConstructor(
     idNode: IdentifierNode,
-    parameters: Seq[Parameter]
+    parameters: Vector[Parameter]
   ) extends Constructor {
 
     private val invokeUserConstructor = Symbol(s"InvokeUserConstructor [$qualifiedName]")
@@ -1244,7 +1249,7 @@ class CgscriptClass(
 
   case class SystemConstructor(
     idNode: IdentifierNode,
-    parameters: Seq[Parameter],
+    parameters: Vector[Parameter],
     javaConstructor: java.lang.reflect.Constructor[_]
   ) extends Constructor {
 
@@ -1272,7 +1277,7 @@ class CgscriptClass(
 
   case class ExplicitConstructor(
     idNode: IdentifierNode,
-    parameters: Seq[Parameter]
+    parameters: Vector[Parameter]
     )
     (fn: (Any, Any) => Any) extends Constructor {
 

@@ -852,7 +852,7 @@ object ProcedureNode {
   }
 }
 
-case class ProcedureNode(tree: Tree, parameters: Seq[Parameter], body: EvalNode) extends EvalNode {
+case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
   override def elaborate(scope: ElaborationDomain): Unit = {
     val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
@@ -1051,7 +1051,7 @@ case class FunctionCallNode(
 
   case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
 
-    override def parameters: Seq[Parameter] = Seq.empty
+    override def parameters: Vector[Parameter] = Vector.empty
 
     override def call(args: Array[Any]): Any = {
       val scriptDomain = new EvaluationDomain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
