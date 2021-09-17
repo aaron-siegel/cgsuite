@@ -28,4 +28,6 @@ system class SurrealNumber extends NormalValue
 
   external def Sign as Integer;
 
+  external override def ToOutput;
+
 end

@@ -450,26 +450,13 @@ assignmentToken
     ;
     
 functionExpression
-    : (functionAntecedent RARROW) => functionAntecedent RARROW^ functionExpression
-    | asExpression
+    : functionAntecedent RARROW^ functionExpression
+    | orExpression
     ;
 
 functionAntecedent
-    : functionParameter -> ^(METHOD_PARAMETER_LIST functionParameter)
-    | LPAREN! functionParameterList RPAREN!
-    ;
-
-functionParameterList
-    : (functionParameter (COMMA functionParameter)*)? -> ^(METHOD_PARAMETER_LIST functionParameter*)
-    ;
-
-functionParameter
-    : IDENTIFIER asClause? -> ^(METHOD_PARAMETER IDENTIFIER asClause?)
-    ;
-
-// TODO Is this the right precedence?
-asExpression
-    : orExpression (AS^ typeSpecifier)?
+    : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
+    | LPAREN! methodParameterList RPAREN!
     ;
 
 orExpression
