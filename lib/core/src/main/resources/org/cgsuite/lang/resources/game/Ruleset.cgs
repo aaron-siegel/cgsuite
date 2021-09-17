@@ -3,6 +3,7 @@
 class Ruleset
 
   def Eval(args...) := Position(args);
+
   def Position(args...) := error("Subclasses of `Ruleset` must define a nested class `Position`.");
 
 end

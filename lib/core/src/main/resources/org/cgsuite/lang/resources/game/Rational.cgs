@@ -2,13 +2,13 @@
 
 system class Rational extends SurrealNumber
 
-  external override def op+(that as Rational) as Rational;
+  external def op+(that as Rational) as Rational;
 
-  external override def op-(that as Rational) as Rational;
+  external def op-(that as Rational) as Rational;
 
-  external override def op*(that as Rational) as Rational;
+  external def op*(that as Rational) as Rational;
 
-  external override def op/(that as Rational) as Rational;
+  external def op/(that as Rational) as Rational;
 
   external def op^(that as Integer) as Rational;
 

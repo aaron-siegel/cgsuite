@@ -180,7 +180,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       }
 
       val regularMembers = {
-        cls.classInfo.allNonSuperMembersInScope.values.toVector
+        cls.classInfo.localMembers
       }
 
       val members = {
