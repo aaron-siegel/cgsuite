@@ -24,7 +24,7 @@ object CgscriptPackage {
   def lookupClass(id: Symbol): Option[CgscriptClass] = classDictionary.get(id)
 
   // TODO Separate dictionary for URLs?
-  def lookupClass(url: URL): Option[CgscriptClass] = classDictionary.values find { _.url == url }
+  def lookupClass(url: URL): Option[CgscriptClass] = classDictionary.values find { _.url contains url }
 
   def lookupConstant(id: Symbol): Option[Resolution] = {
     lang.lookupConstant(id) orElse util.lookupConstant(id) orElse game.lookupConstant(id)

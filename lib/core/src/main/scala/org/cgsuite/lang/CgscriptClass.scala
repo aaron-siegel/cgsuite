@@ -140,17 +140,12 @@ class CgscriptClass(
 
   import CgscriptClass._
 
+  private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
+
+  ///////////////////////////////////////////////////////////////
+  // Basic properties derivable without parsing
+
   val classOrdinal: Int = newClassOrdinal        // TODO How to handle for nested classes??
-
-  val url = classdef match {
-    case UrlClassDef(_, x) => x
-    case _ => null
-  }
-
-  val javaClass: Class[_] = systemClass match {
-    case Some(cls) => cls
-    case None => classOf[StandardObject]
-  }
 
   val enclosingClass: Option[CgscriptClass] = classdef match {
     case NestedClassDef(cls) => Some(cls)
@@ -160,6 +155,18 @@ class CgscriptClass(
   val topClass: CgscriptClass = enclosingClass match {
     case Some(cls) => cls.topClass
     case None => this
+  }
+
+  val isTopClass: Boolean = this == topClass
+
+  val url: Option[URL] = classdef match {
+    case UrlClassDef(_, x) => Some(x)
+    case _ => None
+  }
+
+  val javaClass: Class[_] = systemClass match {
+    case Some(cls) => cls
+    case None => classOf[StandardObject]
   }
 
   override val declaringClass = enclosingClass.orNull
@@ -182,11 +189,16 @@ class CgscriptClass(
 
   val isPackageObject = id == 'constants
 
-  private val locallyDefinedNestedClasses: mutable.Map[Symbol, CgscriptClass] = mutable.Map()
+  override def toString = s"\u27ea$qualifiedName\u27eb"
 
   private val logPrefix = f"[$classOrdinal%3d: $qualifiedName%s]"
 
-  logger debug s"$logPrefix Formed new class with classdef: $classdef"
+  private[cgsuite] def logDebug(message: => String): Unit = logger debug s"$logPrefix $message"
+
+  ///////////////////////////////////////////////////////////////
+  // ClassInfo properties and lookups (post-declaration)
+
+  logDebug(s"Formed new class with classdef: $classdef")
 
   private var stage: LifecycleStage.Value = LifecycleStage.New
 
@@ -245,19 +257,22 @@ class CgscriptClass(
 
   def initializers = classInfo.initializers
 
+  ///////////////////////////////////////////////////////////////
+  // Lifecycle management
+
   def unload() {
     if (this.stage != LifecycleStage.Unloaded) {
-      logger debug s"$logPrefix Building unload list."
+      logDebug(s"Building unload list.")
       val unloadList = mutable.HashSet[CgscriptClass]()
       topClass.buildUnloadList(unloadList)
-      logger debug s"$logPrefix Unloading ${unloadList.size} classes."
+      logDebug(s"Unloading ${unloadList.size} classes.")
       unloadList foreach { _.doUnload() }
       Resolver.clearAll()
     }
   }
 
   private def doUnload() {
-    logger debug s"$logPrefix Unloading."
+    logDebug(s"Unloading.")
     classInfoRef = null
     scriptObjectRef = null
     singletonInstanceRef = null
@@ -343,7 +358,7 @@ class CgscriptClass(
 
   private[this] def constructSingletonInstance(): Unit = {
     if (isSingleton) {
-      logger debug s"$logPrefix Constructing singleton instance."
+      logDebug(s"Constructing singleton instance.")
       if (enclosingClass.isDefined) {
         sys.error("Nested singleton classes are not yet supported.")
       }
@@ -364,9 +379,37 @@ class CgscriptClass(
     }
   }
 
+  ///////////////////////////////////////////////////////////////
+  // Parsing and declaration
+
+  private def parseTree(): Tree = {
+
+    val (in, source) = classdef match {
+
+      case UrlClassDef(_, url) =>
+        logDebug(s"Parsing from URL: $url")
+        (url.openStream(), new File(url.getFile).getName)
+
+      case ExplicitClassDef(text) =>
+        logDebug(s"Parsing from explicit definition.")
+        (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
+
+      case NestedClassDef(_) =>
+        throw EvalException(s"Class no longer exists: `$qualifiedName`")
+
+    }
+
+    try {
+      ParserUtil.parseCU(in, source)
+    } finally {
+      in.close()
+    }
+
+  }
+
   private def declare() {
 
-    logger debug s"$logPrefix Declaring."
+    logDebug(s"Declaring.")
 
     if (stage == LifecycleStage.Declaring) {
       // TODO Better error message/handling here?
@@ -380,19 +423,19 @@ class CgscriptClass(
 
     val tree = parseTree()
 
-    logger debug s"$logPrefix Parsed class: ${tree.toStringTree}"
+    logDebug(s"Parsed class: ${tree.toStringTree}")
 
     try {
       tree.getType match {
 
         case SCRIPT =>
           val node = StatementSequenceNode(tree.children.head)
-          logger debug s"$logPrefix Script Node: $node"
+          logDebug(s"Script Node: $node")
           declareScript(node)
 
         case EOF =>
           val node = ClassDeclarationNode(tree.children(1), pkg)
-          logger debug s"$logPrefix Class Node: $node"
+          logDebug(s"Class Node: $node")
           declareClass(node)
 
       }
@@ -402,32 +445,7 @@ class CgscriptClass(
 
     stage = LifecycleStage.Declared
 
-    logger debug s"$logPrefix Done declaring."
-
-  }
-
-  private def parseTree(): Tree = {
-
-    val (in, source) = classdef match {
-
-      case UrlClassDef(_, url) =>
-        logger debug s"$logPrefix Parsing from URL: $url"
-        (url.openStream(), new File(url.getFile).getName)
-
-      case ExplicitClassDef(text) =>
-        logger debug s"$logPrefix Parsing from explicit definition"
-        (new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), qualifiedName)
-
-      case NestedClassDef(_) =>
-        throw EvalException(s"Class no longer exists: `$qualifiedName`")
-
-    }
-
-    try {
-      ParserUtil.parseCU(in, source)
-    } finally {
-      in.close()
-    }
+    logDebug(s"Done declaring.")
 
   }
 
@@ -447,7 +465,7 @@ class CgscriptClass(
 
     stage = LifecycleStage.Declaring
 
-    logger debug s"$logPrefix Declaring class."
+    logDebug(s"Declaring class.")
 
     classDeclarationNode = node
 
@@ -624,11 +642,11 @@ class CgscriptClass(
       node.enumElements
     )
 
-    logger debug s"$logPrefix Validating class."
+    logDebug(s"Validating class.")
 
     validateDeclaredClass(node)
 
-    logger debug s"$logPrefix Done declaring class."
+    logDebug(s"Done declaring class.")
 
     stage = LifecycleStage.Declared
 
@@ -735,6 +753,9 @@ class CgscriptClass(
 
   }
 
+  ///////////////////////////////////////////////////////////////
+  // Initialization
+
   private def initialize(): Unit = {
 
     try {
@@ -760,7 +781,7 @@ class CgscriptClass(
 
     stage = LifecycleStage.Initializing
 
-    logger debug s"$logPrefix Initializing class."
+    logDebug(s"Initializing class.")
 
     // Create the class object
     classObjectRef = new ClassObject(CgscriptClass.this)
@@ -834,7 +855,7 @@ class CgscriptClass(
     node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
     initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
 
-    logger debug s"$logPrefix Done initializing class."
+    logDebug(s"Done initializing class.")
 
     stage = LifecycleStage.Initialized
 
@@ -906,8 +927,6 @@ class CgscriptClass(
       case _ => name.updated(0, name(0).toLower)
     }
   }
-
-  override def toString = s"<<$qualifiedName>>"
 
   class ClassInfo(
     val idNode: IdentifierNode,
