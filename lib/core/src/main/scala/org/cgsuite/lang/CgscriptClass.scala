@@ -464,290 +464,10 @@ class CgscriptClass(
 
     classInfoRef = new ClassInfo(declNode)
 
-    logDebug(s"Validating class.")
-
-    validateDeclaredClass(declNode)
-
     logDebug(s"Done declaring class.")
 
     stage = LifecycleStage.Declared
 
-  }
-
-  private def validateDeclaredClass(node: ClassDeclarationNode): Unit = {
-
-    // Check for duplicate vars (we make an exception for the constructor)
-
-    (classInfoRef.inheritedInstanceVars ++ classInfoRef.localInstanceVars) groupBy { _.id } foreach { case (varId, vars) =>
-      if (vars.size > 1 && (vars exists { !_.isConstructorParam })) {
-        val class1 = vars.head.declaringClass
-        val class2 = vars(1).declaringClass
-        if (class1 == thisClass && class2 == thisClass)
-          throw EvalException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", node.tree)
-        else if (class2 == thisClass)
-          throw EvalException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
-        else
-          throw EvalException(s"Variable `${varId.name}` is defined in multiple superclasses: `${class1.qualifiedName}`, `${class2.qualifiedName}`")
-      }
-    }
-
-    // Check for member/var conflicts
-
-    // TODO We may want to allow defs to override vars in the future - then the vars become private to the
-    // superclass. For now, we prohibit it.
-
-    classInfoRef.methods ++ classInfoRef.nestedClasses foreach { case (memberId, member) =>
-      if (classInfoRef.instanceVarLookup contains memberId)
-        throw EvalException(
-          s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`",
-          token = Some(classInfoRef.idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
-        )
-    }
-
-    // Check that singleton => no constructor
-    if (classInfoRef.constructor.isDefined && node.modifiers.hasSingleton) {
-      throw EvalException(
-        s"Class `$qualifiedName` must not have a constructor if declared `singleton`",
-        token = Some(classInfoRef.idNode.token)
-      )
-    }
-
-    // Check that no superclass is a singleton
-    classInfoRef.supers foreach { ancestor =>
-      if (ancestor.isSingleton) {
-        throw EvalException(
-          s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`",
-          token = Some(classInfoRef.idNode.token)
-        )
-      }
-    }
-
-    // Check that constants classes must be singletons
-    if (name == "constants" && !node.modifiers.hasSingleton) {
-      throw EvalException(
-        s"Constants class `$qualifiedName` must be declared `singleton`",
-        token = Some(classInfoRef.idNode.token)
-      )
-    }
-
-    if (node.modifiers.hasMutable) {
-      // If we're mutable, check that no nested class is immutable
-      node.nestedClassDeclarations foreach { nested =>
-        if (!nested.modifiers.hasMutable) {
-          throw EvalException(
-            s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
-            token = Some(nested.idNode.token)
-          )
-        }
-      }
-    } else {
-      // If we're immutable, check that no superclass is mutable
-      classInfoRef.supers foreach { spr =>
-        if (spr.isMutable) {
-          throw EvalException(
-            s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
-            token = Some(classInfoRef.idNode.token)
-          )
-        }
-      }
-      // ... and that there are no mutable vars
-      classInfoRef.ordinaryInitializers foreach {
-        case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
-          throw EvalException(
-            s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
-            token = Some(declNode.idNode.token)
-          )
-        case _ =>
-      }
-    }
-
-    // Check that immutable class vars are assigned at declaration time
-    classInfoRef.ordinaryInitializers collect {
-      // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
-      // a "default" nil value. This could be refactored to be a bit more elegant.
-      case VarDeclarationNode(_, AssignToNode(_, idNode, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), modifiers)
-        if !modifiers.hasMutable =>
-        throw EvalException(
-          s"Immutable variable `${idNode.id.name}` must be assigned a value (or else declared `mutable`)",
-          token = Some(idNode.token)
-        )
-    }
-
-  }
-
-  ///////////////////////////////////////////////////////////////
-  // Initialization
-
-  private def initialize(): Unit = {
-
-    try {
-      if (classInfoRef != null)
-        initializeClass(classInfoRef.declNode)
-    } finally {
-      stage = LifecycleStage.Unloaded
-    }
-
-    stage = LifecycleStage.Initialized
-
-  }
-
-  private def initializeClass(node: ClassDeclarationNode): Unit = {
-
-    if (stage == LifecycleStage.Initializing) {
-      return
-    }
-
-    assert(classInfoRef != null)
-
-    classInfoRef.supers foreach { _.ensureInitialized() }
-
-    stage = LifecycleStage.Initializing
-
-    logDebug(s"Initializing class.")
-
-    // Create the class object
-    classObjectRef = new ClassObject(CgscriptClass.this)
-
-    // Declare nested classes
-    node.nestedClassDeclarations foreach { decl =>
-      val id = decl.idNode.id
-      classInfo.nestedClasses(id).declareClass(decl)
-    }
-
-    // Elaborate methods
-    constructor foreach { _.elaborate() }
-    classInfoRef.methods foreach { case (_, method) =>
-      if (method.declaringClass == this)
-        method.elaborate()
-    }
-
-    // Enum construction
-    node.enumElements foreach { element =>
-      classObjectRef.vars(classInfoRef.staticVarOrdinals(element.idNode.id)) = new EnumObject(this, element.idNode.id.name)
-    }
-
-    // Big temporary hack to populate Left and Right
-    if (qualifiedName == "game.Player") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
-    }
-    if (qualifiedName == "game.Side") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Onside)) = Onside
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
-    }
-    if (qualifiedName == "game.OutcomeClass") {
-      import org.cgsuite.core.OutcomeClass._
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('P)) = P
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('N)) = N
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('L)) = L
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('R)) = R
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('D)) = D
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('PHat)) = PHat
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('PCheck)) = PCheck
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('NHat)) = NHat
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('NCheck)) = NCheck
-    }
-    if (qualifiedName == "cgsuite.util.Symmetry") {
-      import Symmetry._
-      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
-        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
-        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
-        classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
-      }
-    }
-
-    // Static declarations - create a domain whose context is the class object
-    val initializerDomain = new EvaluationDomain(null, Some(classObjectRef))
-    node.staticInitializers foreach { initNode =>
-      if (!initNode.modifiers.hasExternal) {
-        val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-        // We intentionally don't elaborate class var declarations, since those are already
-        // accounted for in the class vars. But we still need to elaborate the RHS of
-        // the assignment.
-        initNode match {
-          case declNode: VarDeclarationNode if declNode.body.declType == AssignmentDeclType.ClassVarDecl =>
-            declNode.body.expr.elaborate(scope)
-          case _ => initNode.body.elaborate(scope)
-        }
-        initNode.body.evaluate(initializerDomain)
-      }
-    }
-
-    val initializerElaborationDomain = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
-    node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
-    initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
-
-    logDebug(s"Done initializing class.")
-
-    stage = LifecycleStage.Initialized
-
-    // Initialize nested classes
-    node.nestedClassDeclarations foreach { decl =>
-      val id = decl.idNode.id
-      classInfo.nestedClasses(id).initializeClass(decl)
-    }
-
-  }
-
-  private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
-
-    val name = node.idNode.id.name
-
-    val (autoinvoke, parameters) = node.parameters match {
-      case Some(n) => (false, n.toParameters)
-      case None => (true, Vector.empty)
-    }
-
-    val newMethod = {
-      if (node.modifiers.hasExternal) {
-        if (!classModifiers.hasSystem)
-          throw EvalException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
-        if (node.body.isDefined)
-          throw EvalException(s"Method is declared `external` but has a method body", node.tree)
-        logger.debug(s"$logPrefix Declaring external method: $name")
-        SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
-          case Some(fn) =>
-            logger.debug(s"$logPrefix   It's a special method.")
-            ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
-          case None =>
-            val externalName = externalMethodName(name)
-            val externalParameterTypes = parameters map { _.paramType.javaClass }
-            logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
-            val externalMethod = try {
-              javaClass.getMethod(externalName, externalParameterTypes: _*)
-            } catch {
-              case _: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$name`", node.tree)
-            }
-            logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
-            SystemMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
-        }
-      } else {
-        logger.debug(s"$logPrefix Declaring user method: $name")
-        val body = node.body getOrElse { sys.error("no body") }
-        UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
-      }
-    }
-
-    newMethod
-
-  }
-
-  def externalMethodName(name: String): String = {
-    name match {
-      case "op +" => "$plus"
-      case "op -" => "$minus"
-      case "op *" => "$times"
-      case "op /" => "$div"
-      case "op %" => "$percent"
-      case "op ^" => "exp"
-      case "op <=" => "$less$eq"
-      case "op []" => "get"     // TODO Not so sure.
-      case "op unary+" => "unary_$plus"
-      case "op unary-" => "unary_$minus"
-      case "op unary+-" => "switch"
-      case _ => name.updated(0, name(0).toLower)
-    }
   }
 
   class ClassInfo(val declNode: ClassDeclarationNode) {
@@ -818,8 +538,8 @@ class CgscriptClass(
       locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(thisClass), id))
     }
 
-    val constructor: Option[Constructor] = declNode.constructorParams map { t =>
-      val parameters = t.toParameters
+    val constructor: Option[Constructor] = declNode.classParameterNodes map { node =>
+      val parameters = node.toParameters
       systemClass match {
         case None => UserConstructor(declNode.idNode, parameters)
         case Some(cls) =>
@@ -970,6 +690,280 @@ class CgscriptClass(
       lookupMethod(id) getOrElse {
         throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
       }
+    }
+
+    logDebug(s"Validating class.")
+
+    // Check for duplicate vars (we make an exception for the constructor)
+
+    (inheritedInstanceVars ++ localInstanceVars) groupBy { _.id } foreach { case (varId, vars) =>
+      if (vars.size > 1 && (vars exists { !_.isConstructorParam })) {
+        val class1 = vars.head.declaringClass
+        val class2 = vars(1).declaringClass
+        if (class1 == thisClass && class2 == thisClass)
+          throw EvalException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", declNode.tree)
+        else if (class2 == thisClass)
+          throw EvalException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
+        else
+          throw EvalException(s"Variable `${varId.name}` is defined in multiple superclasses: `${class1.qualifiedName}`, `${class2.qualifiedName}`")
+      }
+    }
+
+    // Check for member/var conflicts
+
+    // TODO We may want to allow defs to override vars in the future - then the vars become private to the
+    // superclass. For now, we prohibit it.
+
+    methods ++ nestedClasses foreach { case (memberId, member) =>
+      if (instanceVarLookup contains memberId)
+        throw EvalException(
+          s"Member `${memberId.name}` conflicts with a var declaration in class `$qualifiedName`",
+          token = Some(idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
+        )
+    }
+
+    // Check that singleton => no constructor
+    if (constructor.isDefined && declNode.modifiers.hasSingleton) {
+      throw EvalException(
+        s"Class `$qualifiedName` must not have a constructor if declared `singleton`",
+        token = Some(idNode.token)
+      )
+    }
+
+    // Check that no superclass is a singleton
+    supers foreach { ancestor =>
+      if (ancestor.isSingleton) {
+        throw EvalException(
+          s"Class `$qualifiedName` may not extend singleton class `${ancestor.qualifiedName}`",
+          token = Some(idNode.token)
+        )
+      }
+    }
+
+    // Check that constants classes must be singletons
+    if (name == "constants" && !declNode.modifiers.hasSingleton) {
+      throw EvalException(
+        s"Constants class `$qualifiedName` must be declared `singleton`",
+        token = Some(idNode.token)
+      )
+    }
+
+    if (declNode.modifiers.hasMutable) {
+      // If we're mutable, check that no nested class is immutable
+      declNode.nestedClassDeclarations foreach { nested =>
+        if (!nested.modifiers.hasMutable) {
+          throw EvalException(
+            s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
+            token = Some(nested.idNode.token)
+          )
+        }
+      }
+    } else {
+      // If we're immutable, check that no superclass is mutable
+      supers foreach { spr =>
+        if (spr.isMutable) {
+          throw EvalException(
+            s"Subclass `$qualifiedName` of mutable class `${spr.qualifiedName}` is not declared `mutable`",
+            token = Some(idNode.token)
+          )
+        }
+      }
+      // ... and that there are no mutable vars
+      ordinaryInitializers foreach {
+        case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
+          throw EvalException(
+            s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
+            token = Some(declNode.idNode.token)
+          )
+        case _ =>
+      }
+    }
+
+    // Check that immutable class vars are assigned at declaration time
+    ordinaryInitializers collect {
+      // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
+      // a "default" nil value. This could be refactored to be a bit more elegant.
+      case VarDeclarationNode(_, AssignToNode(_, idNode, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), modifiers)
+        if !modifiers.hasMutable =>
+        throw EvalException(
+          s"Immutable variable `${idNode.id.name}` must be assigned a value (or else declared `mutable`)",
+          token = Some(idNode.token)
+        )
+    }
+
+  }
+
+  private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
+
+    val name = node.idNode.id.name
+
+    val (autoinvoke, parameters) = node.parameters match {
+      case Some(n) => (false, n.toParameters)
+      case None => (true, Vector.empty)
+    }
+
+    val newMethod = {
+      if (node.modifiers.hasExternal) {
+        if (!classModifiers.hasSystem)
+          throw EvalException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
+        if (node.body.isDefined)
+          throw EvalException(s"Method is declared `external` but has a method body", node.tree)
+        logger.debug(s"$logPrefix Declaring external method: $name")
+        SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
+          case Some(fn) =>
+            logger.debug(s"$logPrefix   It's a special method.")
+            ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
+          case None =>
+            val externalName = externalMethodName(name)
+            val externalParameterTypes = parameters map { _.paramType.javaClass }
+            logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
+            val externalMethod = try {
+              javaClass.getMethod(externalName, externalParameterTypes: _*)
+            } catch {
+              case _: NoSuchMethodException =>
+                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$name`", node.tree)
+            }
+            logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
+            SystemMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
+        }
+      } else {
+        logger.debug(s"$logPrefix Declaring user method: $name")
+        val body = node.body getOrElse { sys.error("no body") }
+        UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
+      }
+    }
+
+    newMethod
+
+  }
+
+  private def externalMethodName(name: String): String = {
+    name match {
+      case "op +" => "$plus"
+      case "op -" => "$minus"
+      case "op *" => "$times"
+      case "op /" => "$div"
+      case "op %" => "$percent"
+      case "op ^" => "exp"
+      case "op <=" => "$less$eq"
+      case "op []" => "get"     // TODO Not so sure.
+      case "op unary+" => "unary_$plus"
+      case "op unary-" => "unary_$minus"
+      case "op unary+-" => "switch"
+      case _ => name.updated(0, name(0).toLower)
+    }
+  }
+
+  ///////////////////////////////////////////////////////////////
+  // Initialization
+
+  private def initialize(): Unit = {
+
+    try {
+      if (classInfoRef != null)
+        initializeClass(classInfoRef.declNode)
+    } finally {
+      stage = LifecycleStage.Unloaded
+    }
+
+    stage = LifecycleStage.Initialized
+
+  }
+
+  private def initializeClass(node: ClassDeclarationNode): Unit = {
+
+    if (stage == LifecycleStage.Initializing) {
+      return
+    }
+
+    assert(classInfoRef != null)
+
+    classInfoRef.supers foreach { _.ensureInitialized() }
+
+    stage = LifecycleStage.Initializing
+
+    logDebug(s"Initializing class.")
+
+    // Create the class object
+    classObjectRef = new ClassObject(CgscriptClass.this)
+
+    // Declare nested classes
+    node.nestedClassDeclarations foreach { decl =>
+      val id = decl.idNode.id
+      classInfo.nestedClasses(id).declareClass(decl)
+    }
+
+    // Elaborate methods
+    constructor foreach { _.elaborate() }
+    classInfoRef.methods foreach { case (_, method) =>
+      if (method.declaringClass == this)
+        method.elaborate()
+    }
+
+    // Enum construction
+    node.enumElements foreach { element =>
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(element.idNode.id)) = new EnumObject(this, element.idNode.id.name)
+    }
+
+    // Big temporary hack to populate Left and Right
+    if (qualifiedName == "game.Player") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
+    }
+    if (qualifiedName == "game.Side") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Onside)) = Onside
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
+    }
+    if (qualifiedName == "game.OutcomeClass") {
+      import org.cgsuite.core.OutcomeClass._
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('P)) = P
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('N)) = N
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('L)) = L
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('R)) = R
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('D)) = D
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('PHat)) = PHat
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('PCheck)) = PCheck
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('NHat)) = NHat
+      classObjectRef.vars(classInfoRef.staticVarOrdinals('NCheck)) = NCheck
+    }
+    if (qualifiedName == "cgsuite.util.Symmetry") {
+      import Symmetry._
+      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
+        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
+        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
+        classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
+      }
+    }
+
+    // Static declarations - create a domain whose context is the class object
+    val initializerDomain = new EvaluationDomain(null, Some(classObjectRef))
+    node.staticInitializers foreach { initNode =>
+      if (!initNode.modifiers.hasExternal) {
+        val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+        // We intentionally don't elaborate class var declarations, since those are already
+        // accounted for in the class vars. But we still need to elaborate the RHS of
+        // the assignment.
+        initNode match {
+          case declNode: VarDeclarationNode if declNode.body.declType == AssignmentDeclType.ClassVarDecl =>
+            declNode.body.expr.elaborate(scope)
+          case _ => initNode.body.elaborate(scope)
+        }
+        initNode.body.evaluate(initializerDomain)
+      }
+    }
+
+    val initializerElaborationDomain = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+    node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
+    initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
+
+    logDebug(s"Done initializing class.")
+
+    stage = LifecycleStage.Initialized
+
+    // Initialize nested classes
+    node.nestedClassDeclarations foreach { decl =>
+      val id = decl.idNode.id
+      classInfo.nestedClasses(id).initializeClass(decl)
     }
 
   }

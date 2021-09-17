@@ -87,7 +87,7 @@ case class ClassDeclarationNode(
   isEnum: Boolean,
   modifiers: Modifiers,
   extendsClause: Vector[Node],
-  constructorParams: Option[ParametersNode],
+  classParameterNodes: Option[ParametersNode],
   nestedClassDeclarations: Vector[ClassDeclarationNode],
   methodDeclarations: Vector[MethodDeclarationNode],
   staticInitializers: Vector[InitializerNode],
@@ -95,7 +95,7 @@ case class ClassDeclarationNode(
   enumElements: Vector[EnumElementNode]
   ) extends MemberDeclarationNode {
 
-  val children = Seq(idNode) ++ extendsClause ++ constructorParams ++
+  val children = Seq(idNode) ++ extendsClause ++ classParameterNodes ++
     nestedClassDeclarations ++ methodDeclarations ++ staticInitializers ++ ordinaryInitializers
 
 }
