@@ -45,7 +45,7 @@ class DeclTest extends CgscriptSpec {
       ("External method of nonsystem class", "test.classdef.NonsystemClassWithExternalMethod.X",
         "!!Method is declared `external`, but class `test.classdef.NonsystemClassWithExternalMethod` is not declared `system`"),
       ("Duplicate method + method", "test.classdef.DuplicateMethodMethod.X",
-        "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodMethod`"),
+        "!!Method `test.classdef.DuplicateMethodMethod.Method` is declared twice with identical signature"),
       ("Duplicate method + nested", "test.classdef.DuplicateMethodNested.X",
         "!!Member `Method` is declared twice in class `test.classdef.DuplicateMethodNested`"),
       ("Duplicate method + var", "test.classdef.DuplicateMethodVar.X",

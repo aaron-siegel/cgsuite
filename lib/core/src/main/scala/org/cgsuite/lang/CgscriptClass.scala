@@ -634,9 +634,11 @@ class CgscriptClass(
 
       case (id, members) if members.head.isInstanceOf[CgscriptClass#Method] =>
 
+        /*
         if (members exists { !_.isInstanceOf[CgscriptClass#Method] }) {
           throwExceptionForDuplicateSymbol(id, members)
         }
+         */
         val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
         val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
 
@@ -660,8 +662,8 @@ class CgscriptClass(
 
       case (id, classes) if classes.head.isInstanceOf[CgscriptClass] =>
 
-        if (classes.size > 1)
-          throwExceptionForDuplicateSymbol(id, classes)
+        //if (classes.size > 1)
+        //  throwExceptionForDuplicateSymbol(id, classes)
         (id, classes.head.asInstanceOf[CgscriptClass])
 
     }
