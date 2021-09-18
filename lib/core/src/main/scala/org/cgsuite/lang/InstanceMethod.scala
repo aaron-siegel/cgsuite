@@ -21,6 +21,12 @@ case class InstanceMethod(enclosingObject: Any, method: CgscriptClass#Method) ex
 
 }
 
+case class InstanceMethodGroup(enclosingObject: Any, methodGroup: CgscriptClass#MethodGroup) extends CallScheme {
+
+  override def callSites = methodGroup.methodsWithArguments map { InstanceMethod(enclosingObject, _) }
+
+}
+
 case class InstanceClass(enclosingObject: Any, cls: CgscriptClass) extends CallSite {
 
   lazy val ctor = cls.constructor map { _.asInstanceOf[CgscriptClass#UserConstructor] } getOrElse {

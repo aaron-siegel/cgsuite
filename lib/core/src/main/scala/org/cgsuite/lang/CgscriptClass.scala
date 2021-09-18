@@ -49,6 +49,8 @@ object CgscriptClass {
   val List = CgscriptPackage.lookupClassByName("List").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
+  lazy val Integer = CgscriptPackage.lookupClassByName("Integer").get
+  lazy val Player = CgscriptPackage.lookupClassByName("Player").get
 
   Object.ensureInitialized()
 
@@ -306,10 +308,14 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
-  // TODO We still need to handle method groups with multiple methods.
-  def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
+  def lookupMethodGroup(id: Symbol): Option[MethodGroup] = {
     ensureInitialized()
-    classInfo.allMethodGroups.get(id) map { _.methods.head }
+    classInfo.allMethodGroups.get(id)
+  }
+
+  // TODO This is temporary- for compatibility during refactor
+  def lookupMethod(id: Symbol): Option[CgscriptClass#Method] = {
+    lookupMethodGroup(id) map { _.methods.head }
   }
 
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
@@ -322,6 +328,7 @@ class CgscriptClass(
     classInfo.instanceVarLookup.get(id)
   }
 
+  // TODO This is temporary- for compatibility during refactor
   def lookupMember(id: Symbol): Option[Member] = {
     ensureInitialized()
     lookupMethod(id) orElse lookupNestedClass(id) orElse lookupVar(id)
@@ -700,19 +707,42 @@ class CgscriptClass(
     }
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = lookupMethodOrEvalException('Eval)
-    lazy val optionsMethod = lookupMethodOrEvalException('Options)
-    lazy val optionsForMethod = lookupMethodOrEvalException('OptionsFor)
-    lazy val decompositionMethod = lookupMethodOrEvalException('Decomposition)
-    lazy val canonicalFormMethod = lookupMethodOrEvalException('CanonicalForm)
-    lazy val gameValueMethod = lookupMethodOrEvalException('GameValue)
-    lazy val depthHintMethod = lookupMethodOrEvalException('DepthHint)
-    lazy val toOutputMethod = lookupMethodOrEvalException('ToOutput)
-    lazy val heapOptionsMethod = lookupMethodOrEvalException('HeapOptions)
+    lazy val evalMethod = forceLookupMethodGroup('Eval)
+    lazy val optionsMethod = forceLookupAutoinvokeMethod('Options)
+    lazy val optionsForMethod = forceLookupMethod('OptionsFor, Vector(CgscriptClass.Player))
+    lazy val decompositionMethod = forceLookupAutoinvokeMethod('Decomposition)
+    lazy val canonicalFormMethod = forceLookupAutoinvokeMethod('CanonicalForm)
+    lazy val gameValueMethod = forceLookupAutoinvokeMethod('GameValue)
+    lazy val depthHintMethod = forceLookupAutoinvokeMethod('DepthHint)
+    lazy val toOutputMethod = forceLookupAutoinvokeMethod('ToOutput)
+    lazy val heapOptionsMethod = forceLookupMethod('HeapOptions, Vector(CgscriptClass.Integer))
 
-    private def lookupMethodOrEvalException(id: Symbol): CgscriptClass#Method = {
-      lookupMethod(id) getOrElse {
+    private def forceLookupMethodGroup(id: Symbol): MethodGroup = {
+      lookupMethodGroup(id) getOrElse {
         throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
+      }
+    }
+
+    // TODO These won't validate...
+
+    private def forceLookupAutoinvokeMethod(id: Symbol): CgscriptClass#Method = {
+      forceLookupMethodGroup(id).autoinvokeMethod match {
+        case Some(method) => method
+        case None =>
+          throw EvalException(s"No parameterless method `${id.name}` for class: `$qualifiedName`")
+      }
+    }
+
+    private def forceLookupMethod(id: Symbol, parameterTypes: Vector[CgscriptClass]): CgscriptClass#Method = {
+      forceLookupMethodGroup(id).methods find { method =>
+        method.parameters.size == parameterTypes.size &&
+          parameterTypes.indices.forall { i =>
+            parameterTypes(i).ancestors contains method.parameters(i).paramType
+          }
+      } match {
+        case Some(method) => method
+        case None =>
+          throw EvalException(s"No method `${id.name}` found matching expected signature in class: `$qualifiedName`")
       }
     }
 
