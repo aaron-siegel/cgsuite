@@ -1138,6 +1138,10 @@ class CgscriptClass(
 
     def declaringClass = thisClass
 
+    val ordinal = CallSite.newCallSiteOrdinal
+
+    def locationMessage = s"Method `${id.name}` (in object of type `${thisClass.qualifiedName}`)"
+
     val isPureAutoinvoke = methods.size == 1 && methods.head.autoinvoke
 
     val autoinvokeMethod = methods find { _.autoinvoke }
@@ -1226,7 +1230,6 @@ class CgscriptClass(
     val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
     val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
-    val ordinal = CallSite.newCallSiteOrdinal
     val locationMessage = s"in call to `$qualifiedName`"
 
     val (requiredParameters, optionalParameters) = parameters partition { _.defaultValue.isEmpty }
@@ -1244,10 +1247,10 @@ class CgscriptClass(
 
     // This is optimized to be really fast for methods with <= 4 parameters.
     // TODO Optimize for more than 4 parameters?
-    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
-      assert(args.isEmpty || parameters.nonEmpty, qualifiedName)
-      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
-    }
+//    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
+//      assert(args.isEmpty || parameters.nonEmpty, qualifiedName)
+//      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
+//    }
 
   }
 
@@ -1281,7 +1284,7 @@ class CgscriptClass(
         // Construct a new domain with local scope for this method.
         val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
         val domain = new EvaluationDomain(array, Some(target))
-        validateArguments(args)
+//        validateArguments(args)
         var i = 0
         while (i < parameters.length) {
           domain.localScope(parameters(i).methodScopeIndex) = args(i)
@@ -1317,7 +1320,7 @@ class CgscriptClass(
       */
       Profiler.start(reflect)
       try {
-        validateArguments(args)
+//        validateArguments(args)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
@@ -1349,7 +1352,7 @@ class CgscriptClass(
     (fn: (Any, Any) => Any) extends Method {
 
     def call(obj: Any, args: Array[Any]): Any = {
-      validateArguments(args)
+//      validateArguments(args)
       val argsTuple = parameters.size match {
         case 0 => ()
         case 1 => args(0)
@@ -1366,13 +1369,15 @@ class CgscriptClass(
     val isStatic = false
     val isOverride = false
 
+    override val ordinal = CallSite.newCallSiteOrdinal
+
+    override val locationMessage = s"Class `${thisClass.qualifiedName}`"
+
     override def declNode = None
 
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
     override def referenceToken = Some(idNode.token)
-
-    override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
   }
 
@@ -1401,7 +1406,7 @@ class CgscriptClass(
       // TODO Superconstructor
       Profiler.start(invokeUserConstructor)
       try {
-        validateArguments(args, ensureImmutable = !isMutable)
+//        validateArguments(args, ensureImmutable = !isMutable)
         instantiator(args, enclosingObject)
       } finally {
         Profiler.stop(invokeUserConstructor)
@@ -1421,7 +1426,7 @@ class CgscriptClass(
     def call(args: Array[Any]): Any = {
       try {
         Profiler.start(reflect)
-        validateArguments(args, ensureImmutable = !isMutable)
+//        validateArguments(args, ensureImmutable = !isMutable)
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
@@ -1445,7 +1450,7 @@ class CgscriptClass(
     (fn: (Any, Any) => Any) extends Constructor {
 
     override def call(args: Array[Any]) = {
-      validateArguments(args, ensureImmutable = !isMutable)
+//      validateArguments(args, ensureImmutable = !isMutable)
       val argsTuple = parameters.size match {
         case 0 => ()
         case 1 => args(0)

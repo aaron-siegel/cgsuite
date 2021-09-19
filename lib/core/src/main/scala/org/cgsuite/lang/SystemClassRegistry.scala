@@ -40,7 +40,6 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.Table" -> classOf[Table],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
-    "cgsuite.lang.InstanceMethod" -> classOf[InstanceMethod],
 
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Genus" -> classOf[Genus],

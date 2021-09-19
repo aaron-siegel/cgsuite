@@ -90,7 +90,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
       sto
     }
   }
-
+/*
   def lookupInstanceMethod(id: Symbol): Option[Any] = {
     cls.lookupMethod(id).map { method =>
       if (method.isStatic) sys.error("foo") // TODO Better error message. Also, corresponding issue for system classes doesn't short-circuit at all
@@ -100,7 +100,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
         InstanceMethod(this, method)
     }
   }
-
+*/
 }
 
 class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty)

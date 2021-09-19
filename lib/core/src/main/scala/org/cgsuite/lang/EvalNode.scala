@@ -977,7 +977,8 @@ case class FunctionCallNode(
   argNames: IndexedSeq[Option[IdentifierNode]]
   ) extends EvalNode {
 
-  val schemeResolutions = mutable.LongMap[SchemeResolution]()
+  val methodGroupResolutions = mutable.LongMap[MethodGroupResolution]()
+  val callSiteResolutions = mutable.LongMap[CallSiteResolution]()
 
   // Some profiler keys
   val prepareCallSite = Symbol(s"PrepareCallSite [${tree.location}]")
@@ -1015,7 +1016,7 @@ case class FunctionCallNode(
 
   }
 
-  override def evaluate(domain: EvaluationDomain) = {
+  override def evaluate(domain: EvaluationDomain): Any = {
 
     if (Thread.interrupted())
       throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
@@ -1025,20 +1026,22 @@ case class FunctionCallNode(
       case dotNode: DotNode => dotNode.evaluate(domain, asFunctionCallAntecedent = true)
       case node => node.evaluate(domain)
     }
-    val callScheme: CallScheme = obj match {
-      case cs: CallScheme => cs
-      case cs: CallSite => ExplicitCallScheme(Vector(cs))
+
+    obj match {
+      case cs: CallSite => resolveAndEvaluateCallSite(domain, cs)
+      case img: InstanceMethodGroup => resolveAndEvaluateMethod(domain, img.enclosingObject, img.methodGroup)
+      case script: Script => ScriptCaller(domain, script)
       case co: ClassObject => co.forClass.constructor match {
-        case Some(ctor) => ExplicitCallScheme(Vector(ctor))
+        case Some(ctor) => resolveAndEvaluateCallSite(domain, ctor)
         case None => throw EvalException(
           s"The class `${co.forClass.qualifiedName}` has no constructor and cannot be directly instantiated.",
           token = Some(token)
         )
       }
-      case scr: Script => ExplicitCallScheme(Vector(ScriptCaller(domain, scr)))
-      case x =>
+      case any =>
         try {
-          InstanceMethodGroup(x, CgscriptClass.of(x).classInfo.evalMethod)
+          val evalMethod = CgscriptClass.of(any).classInfo.evalMethod
+          resolveAndEvaluateMethod(domain, any, evalMethod)
         } catch {
           case exc: CgsuiteException =>
             exc addToken token
@@ -1046,7 +1049,40 @@ case class FunctionCallNode(
         }
     }
 
-    val schemeResolution = schemeResolutions.getOrElseUpdate(callScheme.ordinal, SchemeResolution(callScheme))
+  }
+
+  def resolveAndEvaluateCallSite(domain: EvaluationDomain, callSite: CallSite): Any = {
+
+    val res = callSiteResolutions.getOrElseUpdate(callSite.ordinal, CallSiteResolution(callSite))
+
+    val args = new Array[Any](callSite.parameters.length)
+    var i = 0
+    while (i < args.length) {
+      if (res.expandedLastParameter && i == args.length - 1) {
+        args(i) = argNodes.slice(i, argNodes.length) map { _.evaluate(domain) }
+      } else {
+        if (res.parameterToArgsMapping(i) >= 0)
+          args(i) = argNodes(res.parameterToArgsMapping(i)).evaluate(domain)
+        else
+          args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
+      }
+      i += 1
+    }
+    try {
+      callSite call args
+    } catch {
+      case exc: CgsuiteException =>
+        exc addToken token
+        throw exc
+      case _: StackOverflowError =>
+        throw EvalException("Possible infinite recursion.", token = Some(token))
+    }
+
+  }
+
+  def resolveAndEvaluateMethod(domain: EvaluationDomain, baseObject: Any, methodGroup: CgscriptClass#MethodGroup): Any = {
+
+    val methodGroupResolution = methodGroupResolutions.getOrElseUpdate(methodGroup.ordinal, MethodGroupResolution(methodGroup))
 
     val args = new Array[Any](argNodes.length)
     var i = 0
@@ -1055,26 +1091,26 @@ case class FunctionCallNode(
       i += 1
     }
 
-    val siteResolution = schemeResolution.resolveToSite(args)
+    val methodResolution = methodGroupResolution.resolveToMethod(args)
 
-    val mappedArgs = new Array[Any](siteResolution.callSite.parameters.length)
+    val mappedArgs = new Array[Any](methodResolution.method.parameters.length)
 
     i = 0
     while (i < mappedArgs.length) {
-      if (siteResolution.expandedLastParameter && i == mappedArgs.length - 1) {
+      if (methodResolution.expandedLastParameter && i == mappedArgs.length - 1) {
         mappedArgs(i) = args.slice(i, args.length).toVector
       } else {
-        if (siteResolution.parameterToArgsMapping(i) >= 0)
-          mappedArgs(i) = args(siteResolution.parameterToArgsMapping(i))
+        if (methodResolution.parameterToArgsMapping(i) >= 0)
+          mappedArgs(i) = args(methodResolution.parameterToArgsMapping(i))
         else
           // TODO Validate default
-          mappedArgs(i) = siteResolution.callSite.parameters(i).defaultValue.get.evaluate(domain)
+          mappedArgs(i) = methodResolution.method.parameters(i).defaultValue.get.evaluate(domain)
       }
       i += 1
     }
 
     try {
-      siteResolution.callSite call mappedArgs
+      methodResolution.method.call(baseObject, mappedArgs)
     } catch {
       case exc: CgsuiteException =>
         exc addToken token
@@ -1088,6 +1124,8 @@ case class FunctionCallNode(
   case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
 
     override def parameters: Vector[Parameter] = Vector.empty
+
+    override def ordinal = script.ordinal
 
     override def call(args: Array[Any]): Any = {
       val scriptDomain = new EvaluationDomain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
@@ -1104,12 +1142,12 @@ case class FunctionCallNode(
 
   }
 
-  case class SchemeResolution(callScheme: CallScheme) {
+  case class MethodGroupResolution(methodGroup: CgscriptClass#MethodGroup) {
 
-    val shortSiteResolutions = mutable.LongMap[SiteResolution]()
-    val longSiteResolutions = mutable.Map[Vector[Short], SiteResolution]()
+    val shortMethodResolutions = mutable.LongMap[MethodResolution]()
+    val longMethodResolutions = mutable.Map[Vector[Short], MethodResolution]()
 
-    def resolveToSite(args: Array[Any]): SiteResolution = {
+    def resolveToMethod(args: Array[Any]): MethodResolution = {
 
       // TODO Check that each named parameter matches at least one site (to give
       // a more helpful error message)
@@ -1124,18 +1162,20 @@ case class FunctionCallNode(
           classcode <<= 16
           i += 1
         }
-        if (shortSiteResolutions.contains(classcode))
-          return shortSiteResolutions(classcode)
+        if (shortMethodResolutions.contains(classcode))
+          return shortMethodResolutions(classcode)
       } else {
         classVec = args.toVector map { arg => (CgscriptClass of arg).classOrdinal.toShort }
-        if (longSiteResolutions.contains(classVec))
-          return longSiteResolutions(classVec)
+        if (longMethodResolutions.contains(classVec))
+          return longMethodResolutions(classVec)
       }
 
-      val matchingSites = callScheme.callSites filter { callSite =>
+      val argNameIds = argNames.flatten map { _.id }
+      val argTypes = args map CgscriptClass.of
 
-        val parameters = callSite.parameters
-        val argNameIds = argNames.flatten map { _.id }
+      val matchingMethods = methodGroup.methods filter { method =>
+
+        val parameters = method.parameters
 
         // Last parameter is expandable only if there are no named args
         val expandedLastParameter = parameters.nonEmpty && parameters.last.isExpandable && argNames.forall { _.isEmpty }
@@ -1168,37 +1208,36 @@ case class FunctionCallNode(
               }
             }
             assert(parameters(i).defaultValue.nonEmpty || mappedIndex >= 0)    // This was checked above
-            mappedIndex == -1 || {
-              val argType = CgscriptClass of args(mappedIndex)
-              argType.ancestors contains expectedType
-            }
+            mappedIndex == -1 || argTypes(mappedIndex).ancestors.contains(expectedType)
           }
 
         }
 
       }
 
-      // TODO Reduce matching sites
+      // TODO Reduce matching methods
 
-      assert(matchingSites.size <= 1)
+      assert(matchingMethods.size <= 1)
 
-      val site = {
-        if (matchingSites.isEmpty) {
+      def argTypesString = if (argTypes.isEmpty) "()" else argTypes map { "`" + _.qualifiedName + "`" } mkString ", "
+
+      val method = {
+        if (matchingMethods.isEmpty) {
           throw EvalException(
-            "No match",
+            s"${methodGroup.locationMessage} cannot be applied to argument types: $argTypesString",
             token = Some(token)
           )
         } else {
-          matchingSites.head
+          matchingMethods.head
         }
       }
 
-      val resolution = SiteResolution(site)
+      val resolution = MethodResolution(method)
 
       if (args.length <= 4) {
-        shortSiteResolutions.put(classcode, resolution)
+        shortMethodResolutions.put(classcode, resolution)
       } else {
-        longSiteResolutions.put(classVec, resolution)
+        longMethodResolutions.put(classVec, resolution)
       }
 
       resolution
@@ -1207,9 +1246,9 @@ case class FunctionCallNode(
 
   }
 
-  case class SiteResolution(callSite: CallSite) {
+  case class MethodResolution(method: CgscriptClass#Method) {
 
-    val parameters = callSite.parameters
+    val parameters = method.parameters
 
     val expandedLastParameter = parameters.nonEmpty && parameters.last.isExpandable && argNames.forall { _.isEmpty }
 
@@ -1227,19 +1266,7 @@ case class FunctionCallNode(
 
   }
 
-  def toNodeStringPrec(enclosingPrecedence: Int) = {
-    val argStr = argNodes map { _.toNodeString } mkString ", "
-    if (OperatorPrecedence.Postfix <= enclosingPrecedence)
-      s"${callSiteNode.toNodeStringPrec(OperatorPrecedence.Postfix)}($argStr)"
-    else
-      s"(${callSiteNode.toNodeStringPrec(OperatorPrecedence.Postfix)}($argStr))"
-  }
-
-}
-
-object FunctionCallResolution {
-
-  def apply(callSite: CallSite, argNames: IndexedSeq[Option[IdentifierNode]], referenceToken: Token): FunctionCallResolution = {
+  case class CallSiteResolution(callSite: CallSite) {
 
     val params = callSite.parameters
 
@@ -1250,7 +1277,7 @@ object FunctionCallResolution {
     if (!expandedLastParameter && argNames.length > params.length) {
       throw EvalException(
         s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})",
-        token = Some(referenceToken)
+        token = Some(token)
       )
     }
 
@@ -1261,7 +1288,7 @@ object FunctionCallResolution {
       case Some(idNode) => throw EvalException(
         s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
           "appears in earlier position than an ordinary argument",
-        token = Some(referenceToken)
+        token = Some(token)
       )
     }
 
@@ -1276,12 +1303,12 @@ object FunctionCallResolution {
         if (namedIndex == -1)
           throw EvalException(
             s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`",
-            token = Some(referenceToken)
+            token = Some(token)
           )
         if (parameterToArgsMapping(namedIndex) != -1)
           throw EvalException(
             s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`",
-            token = Some(referenceToken)
+            token = Some(token)
           )
         parameterToArgsMapping(namedIndex) = index
     }
@@ -1291,16 +1318,21 @@ object FunctionCallResolution {
       if (param.defaultValue.isEmpty && index == -1)
         throw EvalException(
           s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`",
-          token = Some(referenceToken)
+          token = Some(token)
         )
     }
 
-    FunctionCallResolution(parameterToArgsMapping, expandedLastParameter)
-
   }
-}
 
-case class FunctionCallResolution(parameterToArgsMapping: Array[Int], expandedLastParameter: Boolean)
+  def toNodeStringPrec(enclosingPrecedence: Int) = {
+    val argStr = argNodes map { _.toNodeString } mkString ", "
+    if (OperatorPrecedence.Postfix <= enclosingPrecedence)
+      s"${callSiteNode.toNodeStringPrec(OperatorPrecedence.Postfix)}($argStr)"
+    else
+      s"(${callSiteNode.toNodeStringPrec(OperatorPrecedence.Postfix)}($argStr))"
+  }
+
+}
 
 object VarNode {
   def apply(tree: Tree): AssignToNode = {

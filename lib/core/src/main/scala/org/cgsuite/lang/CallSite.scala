@@ -64,21 +64,13 @@ object CallSite {
 
 }
 
-trait CallScheme {
-
-  def callSites: Vector[CallSite]
-
-  val ordinal = CallSite.newCallSiteOrdinal
-
-}
-
-case class ExplicitCallScheme(callSites: Vector[CallSite]) extends CallScheme
-
 trait CallSite {
 
   def parameters: Vector[Parameter]
 
   def call(args: Array[Any]): Any
+
+  def ordinal: Int
 
   def referenceToken: Option[Token]
 
