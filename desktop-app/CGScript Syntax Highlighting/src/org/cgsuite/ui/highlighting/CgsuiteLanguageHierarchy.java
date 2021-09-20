@@ -31,8 +31,8 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         {
             AND, AS, BEGIN, BREAK, BY, CLASS_VAR, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ERROR,
             FALSE, FINALLY, FOR, FOREACH, FROM, IF, IN, IS, LISTOF, MAPOF,
-            NEG, NOT, OP, OR, PASS, POS, RETURN, SETOF, SQUOTE, SUMOF, SUPER,
-            TABLEOF, THEN, THIS, TO, TRUE, TRY, VAR, WHERE, WHILE, YIELD
+            NOT, OP, OR, PASS, RETURN, SETOF, SQUOTE, SUMOF, SUPER,
+            TABLEOF, THEN, THIS, TO, TRUE, TRY, UNARY, VAR, WHERE, WHILE, YIELD
         });
         tokenTypes.put("DeclKeyword", new int[]
         {
@@ -109,7 +109,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
     }
     
     /**
-     * Returns the mime type of this programming language ("text/x-cgsuite"). This
+     * Returns the mime type of this programming language ("text/x-cgscript"). This
      * allows NetBeans to load the appropriate editors and file loaders when
      * a file with the cm file extension is loaded.
      *
