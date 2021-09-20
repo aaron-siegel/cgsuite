@@ -1299,22 +1299,23 @@ case class FunctionCallNode(
         }
       }
 
-      assert(reducedMatchingMethods.size <= 1)
-
       def argTypesString = if (argTypes.isEmpty) "()" else argTypes map { "`" + _.qualifiedName + "`" } mkString ", "
 
-      val method = {
-        if (reducedMatchingMethods.isEmpty) {
-          throw EvalException(
-            s"Method `${methodGroup.id.name}` (in object of type `${methodGroup.declaringClass.qualifiedName}`) cannot be applied to argument types: $argTypesString",
-            token = Some(token)
-          )
-        } else {
-          reducedMatchingMethods.head
-        }
+      if (reducedMatchingMethods.isEmpty) {
+        throw EvalException(
+          s"Method `${methodGroup.id.name}` (in object of type `${methodGroup.declaringClass.qualifiedName}`) cannot be applied to argument types: $argTypesString",
+          token = Some(token)
+        )
       }
 
-      val resolution = MethodResolution(method)
+      if (reducedMatchingMethods.size > 1) {
+        throw EvalException(
+          s"Method `${methodGroup.id.name}` (in object of type `${methodGroup.declaringClass.qualifiedName}`) is ambiguous when applied to argument types: $argTypesString",
+          token = Some(token)
+        )
+      }
+
+      val resolution = MethodResolution(reducedMatchingMethods.head)
 
       if (args.length <= 4) {
         shortMethodResolutions.put(classcode, resolution)
