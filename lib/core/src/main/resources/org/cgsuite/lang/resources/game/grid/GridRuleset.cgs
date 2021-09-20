@@ -2,15 +2,9 @@
 
 class GridRuleset extends Ruleset
 
-  def Eval(arg) begin
-    if arg is Grid then
-      Position(arg)
-    elseif arg is String then
-      Position(Grid.Parse(arg, CharMap))
-    else
-      error("Expecting a `Grid` or a `String`.")
-    end
-  end
+  def Eval(grid as Grid) := Position(grid);
+
+  def Eval(str as String) := Position(Grid.Parse(str, CharMap));
 
   def CharMap := error("Subclasses of `GridRuleset` must override `CharMap`.");
 

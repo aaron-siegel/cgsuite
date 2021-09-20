@@ -2,15 +2,9 @@
 
 class StripRuleset extends Ruleset
 
-  def Eval(arg) begin
-    if arg is Strip then
-      Position(arg)
-    elseif arg is String then
-      Position(Strip.Parse(arg, CharMap))
-    else
-      error("Expecting a `Strip` or a `String`.")
-    end
-  end
+  def Eval(strip as Strip) := Position(strip);
+
+  def Eval(str as String) := Position(Strip.Parse(str, CharMap));
 
   def CharMap := error("Subclasses of `StripRuleset` must override `CharMap`.");
 
