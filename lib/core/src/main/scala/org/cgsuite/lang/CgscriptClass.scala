@@ -252,9 +252,9 @@ class CgscriptClass(
 
   def initializers = classInfo.ordinaryInitializerNodes
 
-  def declNode: Option[ClassDeclarationNode] = classdef match {
+  override def declNode: Option[ClassDeclarationNode] = classdef match {
     case NestedClassDef(_, node) => Some(node)
-    case _ => Some(classInfo.declNode)
+    case _ => Some(classInfo.classDeclNode)
   }
 
   def idNode = classInfo.idNode
@@ -482,20 +482,20 @@ class CgscriptClass(
 
   }
 
-  class ClassInfo(val declNode: ClassDeclarationNode) {
+  class ClassInfo(val classDeclNode: ClassDeclarationNode) {
 
-    if (declNode.idNode.id.name != nameAsFullyScopedMember)
-      throw EvalException(s"Class name does not match filename: `${declNode.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", declNode.idNode.tree)
+    if (classDeclNode.idNode.id.name != nameAsFullyScopedMember)
+      throw EvalException(s"Class name does not match filename: `${classDeclNode.idNode.id.name}` (was expecting `$nameAsFullyScopedMember`)", classDeclNode.idNode.tree)
 
-    val idNode: IdentifierNode = declNode.idNode
+    val idNode: IdentifierNode = classDeclNode.idNode
 
-    val modifiers: Modifiers = declNode.modifiers
+    val modifiers: Modifiers = classDeclNode.modifiers
 
-    val ordinaryInitializerNodes: Vector[InitializerNode] = declNode.ordinaryInitializers
+    val ordinaryInitializerNodes: Vector[InitializerNode] = classDeclNode.ordinaryInitializers
 
-    val staticInitializerNodes: Vector[InitializerNode] = declNode.staticInitializers
+    val staticInitializerNodes: Vector[InitializerNode] = classDeclNode.staticInitializers
 
-    val enumElementNodes: Vector[EnumElementNode] = declNode.enumElements
+    val enumElementNodes: Vector[EnumElementNode] = classDeclNode.enumElements
 
     val supers: Vector[CgscriptClass] = {
 
@@ -503,13 +503,13 @@ class CgscriptClass(
 
         Vector.empty    // Object has no supers
 
-      } else if (declNode.extendsClause.isEmpty) {
+      } else if (classDeclNode.extendsClause.isEmpty) {
 
-        Vector(if (declNode.isEnum) Enum else Object)
+        Vector(if (classDeclNode.isEnum) Enum else Object)
 
       } else {
 
-        declNode.extendsClause map {
+        classDeclNode.extendsClause map {
           case IdentifierNode(tree, superId) =>
             // Try looking this id up two ways:
             // First, if this is a nested class, then look it up as some other nested class
@@ -548,35 +548,35 @@ class CgscriptClass(
         Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = true)
     }
 
-    val localEnumElements: Vector[Var] = enumElementNodes map { node =>
-      Var(node.idNode, Some(node), isMutable = node.modifiers.hasMutable, isStatic = node.modifiers.hasStatic)
+    val localEnumElements: Vector[Var] = enumElementNodes map { declNode =>
+      Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = declNode.modifiers.hasStatic)
     }
 
-    val localMethods: Vector[Method] = declNode.methodDeclarations map { parseMethod(_, declNode.modifiers) }
+    val localMethods: Vector[Method] = classDeclNode.methodDeclarations map { parseMethod(_, classDeclNode.modifiers) }
 
-    val localNestedClasses: Vector[CgscriptClass] = declNode.nestedClassDeclarations map { decl =>
+    val localNestedClasses: Vector[CgscriptClass] = classDeclNode.nestedClassDeclarations map { decl =>
       val id = decl.idNode.id
       locallyDefinedNestedClasses getOrElseUpdate (id, new CgscriptClass(pkg, NestedClassDef(thisClass, decl), id))
     }
 
-    val constructor: Option[Constructor] = declNode.classParameterNodes map { node =>
+    val constructor: Option[Constructor] = classDeclNode.classParameterNodes map { node =>
       val parameters = node.toParameters
       systemClass match {
-        case None => UserConstructor(declNode.idNode, parameters)
+        case None => UserConstructor(classDeclNode.idNode, parameters)
         case Some(cls) =>
           val externalParameterTypes = parameters map { _.paramType.javaClass }
           SpecialMethods.specialMethods get qualifiedName match {
             case Some(fn) =>
-              ExplicitConstructor(declNode.idNode, parameters)(fn)
+              ExplicitConstructor(classDeclNode.idNode, parameters)(fn)
             case None =>
-              SystemConstructor(declNode.idNode, parameters, cls.getConstructor(externalParameterTypes : _*))
+              SystemConstructor(classDeclNode.idNode, parameters, cls.getConstructor(externalParameterTypes : _*))
           }
       }
     }
 
     val constructorParamVars: Vector[Var] = constructor match {
       case Some(ctor) => ctor.parameters map { param =>
-        Var(param.idNode, Some(declNode), isMutable = false, isStatic = false, isConstructorParam = true)
+        Var(param.idNode, Some(classDeclNode), isMutable = false, isStatic = false, isConstructorParam = true)
       }
       case None => Vector.empty
     }
@@ -743,7 +743,7 @@ class CgscriptClass(
         val class1 = vars.head.declaringClass
         val class2 = vars(1).declaringClass
         if (class1 == thisClass && class2 == thisClass)
-          throw EvalException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", declNode.tree)
+          throw EvalException(s"Variable `${varId.name}` is declared twice in class `$qualifiedName`", classDeclNode.tree)
         else if (class2 == thisClass)
           throw EvalException(s"Variable `${varId.name}` in class `$qualifiedName` shadows definition in class `${class1.qualifiedName}`")
         else
@@ -752,7 +752,7 @@ class CgscriptClass(
     }
 
     // Check that singleton => no constructor
-    if (constructor.isDefined && declNode.modifiers.hasSingleton) {
+    if (constructor.isDefined && classDeclNode.modifiers.hasSingleton) {
       throw EvalException(
         s"Class `$qualifiedName` must not have a constructor if declared `singleton`",
         token = Some(idNode.token)
@@ -770,16 +770,16 @@ class CgscriptClass(
     }
 
     // Check that constants classes must be singletons
-    if (name == "constants" && !declNode.modifiers.hasSingleton) {
+    if (name == "constants" && !classDeclNode.modifiers.hasSingleton) {
       throw EvalException(
         s"Constants class `$qualifiedName` must be declared `singleton`",
         token = Some(idNode.token)
       )
     }
 
-    if (declNode.modifiers.hasMutable) {
+    if (classDeclNode.modifiers.hasMutable) {
       // If we're mutable, check that no nested class is immutable
-      declNode.nestedClassDeclarations foreach { nested =>
+      classDeclNode.nestedClassDeclarations foreach { nested =>
         if (!nested.modifiers.hasMutable) {
           throw EvalException(
             s"Nested class `${nested.idNode.id.name}` of mutable class `$qualifiedName` is not declared `mutable`",
@@ -872,7 +872,7 @@ class CgscriptClass(
           throw EvalException(
             s"Method `${mostSpecificMethods.head.methodName}` must be declared explicitly in class `$qualifiedName`, " +
               s"because it is defined in multiple superclasses (`${mostSpecificMethods.head.declaringClass.qualifiedName}`, `${mostSpecificMethods(1).declaringClass.qualifiedName}`)",
-            token = Some(declNode.idNode.token)
+            token = Some(classDeclNode.idNode.token)
           )
         }
 
@@ -903,7 +903,7 @@ class CgscriptClass(
           assert(superclassesDefining.size >= 2)
           throw EvalException(
             s"Symbol `${symbol.name}` is defined in multiple superclasses: `${superclassesDefining.head.qualifiedName}`, `${superclassesDefining(1).qualifiedName}`",
-            token = Some(declNode.idNode.token)
+            token = Some(classDeclNode.idNode.token)
           )
 
         case 1 =>
@@ -1032,7 +1032,7 @@ class CgscriptClass(
 
     try {
       if (classInfoRef != null)
-        initializeClass(classInfoRef.declNode)
+        initializeClass(classInfoRef.classDeclNode)
     } finally {
       stage = LifecycleStage.Unloaded
     }
