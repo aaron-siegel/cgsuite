@@ -723,8 +723,6 @@ class CgscriptClass(
       }
     }
 
-    // TODO These won't validate...
-
     private def forceLookupAutoinvokeMethod(id: Symbol): CgscriptClass#Method = {
       forceLookupMethodGroup(id).autoinvokeMethod match {
         case Some(method) => method
@@ -734,6 +732,7 @@ class CgscriptClass(
     }
 
     private def forceLookupMethod(id: Symbol, parameterTypes: Vector[CgscriptClass]): CgscriptClass#Method = {
+      // TODO Resolve ambiguous overloaded methods in the usual manner.
       forceLookupMethodGroup(id).methods find { method =>
         method.parameters.size == parameterTypes.size &&
           parameterTypes.indices.forall { i =>
@@ -1245,13 +1244,6 @@ class CgscriptClass(
       logger.debug(s"$logPrefix Done elaborating method: $qualifiedName")
     }
 
-    // This is optimized to be really fast for methods with <= 4 parameters.
-    // TODO Optimize for more than 4 parameters?
-//    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
-//      assert(args.isEmpty || parameters.nonEmpty, qualifiedName)
-//      CallSite.validateArguments(parameters, args, knownValidArgs, locationMessage, ensureImmutable)
-//    }
-
   }
 
   case class UserMethod(
@@ -1284,7 +1276,6 @@ class CgscriptClass(
         // Construct a new domain with local scope for this method.
         val array = if (localVariableCount == 0) null else new Array[Any](localVariableCount)
         val domain = new EvaluationDomain(array, Some(target))
-//        validateArguments(args)
         var i = 0
         while (i < parameters.length) {
           domain.localScope(parameters(i).methodScopeIndex) = args(i)
@@ -1320,7 +1311,6 @@ class CgscriptClass(
       */
       Profiler.start(reflect)
       try {
-//        validateArguments(args)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
@@ -1352,7 +1342,6 @@ class CgscriptClass(
     (fn: (Any, Any) => Any) extends Method {
 
     def call(obj: Any, args: Array[Any]): Any = {
-//      validateArguments(args)
       val argsTuple = parameters.size match {
         case 0 => ()
         case 1 => args(0)
@@ -1378,6 +1367,8 @@ class CgscriptClass(
     def call(obj: Any, args: Array[Any]): Any = call(args)
 
     override def referenceToken = Some(idNode.token)
+
+    override def allowMutableArguments = thisClass.isMutable
 
   }
 
@@ -1406,7 +1397,6 @@ class CgscriptClass(
       // TODO Superconstructor
       Profiler.start(invokeUserConstructor)
       try {
-//        validateArguments(args, ensureImmutable = !isMutable)
         instantiator(args, enclosingObject)
       } finally {
         Profiler.stop(invokeUserConstructor)
@@ -1426,7 +1416,6 @@ class CgscriptClass(
     def call(args: Array[Any]): Any = {
       try {
         Profiler.start(reflect)
-//        validateArguments(args, ensureImmutable = !isMutable)
         javaConstructor.newInstance(args.asInstanceOf[Array[AnyRef]] : _*)
       } catch {
         case exc: IllegalArgumentException =>
@@ -1450,7 +1439,6 @@ class CgscriptClass(
     (fn: (Any, Any) => Any) extends Constructor {
 
     override def call(args: Array[Any]) = {
-//      validateArguments(args, ensureImmutable = !isMutable)
       val argsTuple = parameters.size match {
         case 0 => ()
         case 1 => args(0)

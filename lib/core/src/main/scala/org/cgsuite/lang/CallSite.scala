@@ -29,4 +29,6 @@ trait CallSite {
 
   def locationMessage: String
 
+  def allowMutableArguments: Boolean
+
 }

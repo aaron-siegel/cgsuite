@@ -1053,7 +1053,13 @@ case class FunctionCallNode(
 
   def resolveAndEvaluateCallSite(domain: EvaluationDomain, callSite: CallSite): Any = {
 
-    val args = evaluateArgsForCallSite(domain, callSite.ordinal, callSite.parameters, callSite.locationMessage)
+    val args = evaluateArgsForCallSite(
+      domain,
+      callSite.ordinal,
+      callSite.parameters,
+      callSite.locationMessage,
+      callSite.allowMutableArguments
+    )
 
     try {
       callSite call args
@@ -1067,7 +1073,13 @@ case class FunctionCallNode(
 
   }
 
-  def evaluateArgsForCallSite(domain: EvaluationDomain, ordinal: Int, parameters: Vector[Parameter], locationMessage: String): Array[Any] = {
+  def evaluateArgsForCallSite(
+    domain: EvaluationDomain,
+    ordinal: Int,
+    parameters: Vector[Parameter],
+    locationMessage: String,
+    allowMutableArguments: Boolean = true
+  ): Array[Any] = {
 
     val res = callSiteResolutions.getOrElseUpdate(ordinal, CallSiteResolution(parameters, locationMessage))
 
@@ -1085,7 +1097,7 @@ case class FunctionCallNode(
       i += 1
     }
 
-    res.validateArguments(args)
+    res.validateArguments(args, allowMutableArguments)
     args
 
   }
@@ -1174,6 +1186,8 @@ case class FunctionCallNode(
     }
 
     override def referenceToken = None
+
+    override def allowMutableArguments = true
 
     override def locationMessage: String = ???
 
@@ -1351,7 +1365,8 @@ case class FunctionCallNode(
         )
     }
 
-    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
+    // TODO We need unit tests for allowMutableArguments
+    def validateArguments(args: Array[Any], allowMutableArguments: Boolean = true): Unit = {
 
       var classcode: Long = 0
       var classVec: Vector[Short] = Vector.empty
@@ -1385,7 +1400,7 @@ case class FunctionCallNode(
           throw EvalException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
             s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
         }
-        if (ensureImmutable && cls.isMutable) {
+        if (!allowMutableArguments && cls.isMutable) {
           throw EvalException(s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class")
         }
         i += 1
