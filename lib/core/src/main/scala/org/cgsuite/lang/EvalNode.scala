@@ -1427,11 +1427,17 @@ case class FunctionCallNode(
           }
         }
         if (!(cls.ancestors contains expectedType)) {
-          throw EvalException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
-            s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
+          throw EvalException(
+            s"Argument `${parameters(i).id.name}` ($locationMessage) " +
+            s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`",
+            token = Some(token)
+          )
         }
         if (!allowMutableArguments && cls.isMutable) {
-          throw EvalException(s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class")
+          throw EvalException(
+            s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class",
+            token = Some(token)
+          )
         }
         i += 1
       }

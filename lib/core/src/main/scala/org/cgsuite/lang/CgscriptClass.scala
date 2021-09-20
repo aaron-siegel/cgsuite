@@ -1373,7 +1373,7 @@ class CgscriptClass(
 
     override val ordinal = CallSite.newCallSiteOrdinal
 
-    override val locationMessage = s"Class `${thisClass.qualifiedName}`"
+    override val locationMessage = s"in call to `${thisClass.qualifiedName}` constructor"
 
     override def declNode = None
 

@@ -25,7 +25,10 @@ case class InstanceMethodGroup(enclosingObject: Any, methodGroup: CgscriptClass#
 case class InstanceClass(enclosingObject: Any, cls: CgscriptClass) extends CallSite {
 
   lazy val ctor = cls.constructor map { _.asInstanceOf[CgscriptClass#UserConstructor] } getOrElse {
-    throw EvalException(s"The class `${cls.qualifiedName}` has no constructor and cannot be directly instantiated.")
+    throw EvalException(
+      s"The class `${cls.qualifiedName}` has no constructor and cannot be directly instantiated.",
+      token = cls.declNode map { _.token }
+    )
   }
   override def ordinal = ctor.ordinal
   override def parameters = ctor.parameters
