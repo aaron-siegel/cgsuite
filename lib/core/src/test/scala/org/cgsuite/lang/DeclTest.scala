@@ -15,7 +15,9 @@ class DeclTest extends CgscriptSpec {
     decl("test.classdef.ExtraneousOverride", "class ExtraneousOverride extends BaseClass override def NewMethod := 4; end")
     decl("test.classdef.ExternalMethodWithBody", "system class ExternalMethodWithBody external def ExternalMethod := 3; end")
     decl("test.classdef.NonsystemClassWithExternalMethod", "class NonsystemClassWithExternalMethod external def ExternalMethod := 3; end")
-    decl("test.classdef.DuplicateMethodMethod", "class DuplicateMethodMethod def Method := 3; def Method := 4; end")
+    decl("test.classdef.DuplicateMethodMethod1", "class DuplicateMethodMethod1 def Method := 3; def Method := 4; end")
+    decl("test.classdef.DuplicateMethodMethod2",
+      "class DuplicateMethodMethod2 def Method(x as Integer, y as Integer) := x + y; def Method(x as Integer, y as Integer) := x - y; end")
     decl("test.classdef.DuplicateMethodNested", "class DuplicateMethodNested def Method := 3; class Method() end end")
     decl("test.classdef.DuplicateMethodVar", "class DuplicateMethodVar def x := 3; var x := 4; end")
     decl("test.classdef.DuplicateNestedVar", "class DuplicateNestedVar class x end var x := 3; end")
@@ -29,6 +31,9 @@ class DeclTest extends CgscriptSpec {
     decl("test.classdef.ImmutableVarWithNoInitializer", "class ImmutableVarWithNoInitializer var x; end")
     decl("test.classdef.UnknownClassInParameterDeclaration",
       "class UnknownClassInParameterDeclaration def Method(parameter as UnknownClass) := 3; end")
+    decl("test.classdef.IdenticalAutoinvokeMethods", "class IdenticalAutoinvokeMethods def Method := 3; def Method := 4; end")
+    decl("test.classdef.IdenticalParameterizedMethods",
+      "class IdenticalParameterizedMethods def Method(x as Integer, y as Integer) := x + y; def Method(x as Integer, y as Integer) := x - y; end")
 
     executeTests(Table(
       header,
@@ -44,8 +49,10 @@ class DeclTest extends CgscriptSpec {
         "!!Method is declared `external` but has a method body"),
       ("External method of nonsystem class", "test.classdef.NonsystemClassWithExternalMethod.X",
         "!!Method is declared `external`, but class `test.classdef.NonsystemClassWithExternalMethod` is not declared `system`"),
-      ("Duplicate method + method", "test.classdef.DuplicateMethodMethod.X",
-        "!!Method `test.classdef.DuplicateMethodMethod.Method` is declared twice with identical signature"),
+      ("Duplicate method + method (autoinvoke)", "test.classdef.DuplicateMethodMethod1.X",
+        "!!Method `test.classdef.DuplicateMethodMethod1.Method` is declared twice"),
+      ("Duplicate method + method (parameters)", "test.classdef.DuplicateMethodMethod2.X",
+        "!!Method `test.classdef.DuplicateMethodMethod2.Method(game.Integer, game.Integer)` is declared twice"),
       ("Duplicate method + nested", "test.classdef.DuplicateMethodNested.X",
         "!!Duplicate symbol `Method` in class `test.classdef.DuplicateMethodNested`"),
       ("Duplicate method + var", "test.classdef.DuplicateMethodVar.X",

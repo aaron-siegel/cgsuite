@@ -114,39 +114,39 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
 
       InstanceClass(baseObject, nestedClass.get)
 
-    } else {
+    } else if (methodGroup.isDefined) {
 
-      if (methodGroup.isDefined) {
+      val group = methodGroup.get
 
-        val group = methodGroup.get
+      if (group.isPureAutoinvoke || group.autoinvokeMethod.isDefined && !asFunctionCallAntecedent) {
 
-        if (group.isPureAutoinvoke || group.autoinvokeMethod.isDefined && !asFunctionCallAntecedent) {
-
-          try {
-            group.autoinvokeMethod.get.call(baseObject, Array.empty)
-          } catch {
-            case exc: CgsuiteException =>
-              exc addToken referenceToken
-              throw exc
-            case _: StackOverflowError =>
-              throw EvalException("Possible infinite recursion.")
-          }
-
-        } else if (asFunctionCallAntecedent) {
-
-          InstanceMethodGroup(baseObject, group)
-
-        } else {
-
-          sys error "not resolvable"      // TODO Err message like "expecting arguments", I think
-
+        try {
+          group.autoinvokeMethod.get.call(baseObject, Array.empty)
+        } catch {
+          case exc: CgsuiteException =>
+            exc addToken referenceToken
+            throw exc
+          case _: StackOverflowError =>
+            throw EvalException("Possible infinite recursion.")
         }
+
+      } else if (asFunctionCallAntecedent) {
+
+        InstanceMethodGroup(baseObject, group)
 
       } else {
 
-        sys error "not resolvable"
+        throw EvalException(
+          s"Expected arguments for method: `${group.qualifiedName}`",
+          token = Some(referenceToken)
+        )
 
       }
+
+    } else {
+
+        sys error "not resolvable"
+
     }
 
   }

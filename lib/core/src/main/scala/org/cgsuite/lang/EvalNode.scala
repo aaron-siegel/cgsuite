@@ -1224,7 +1224,7 @@ case class FunctionCallNode(
       // Check that each named parameter matches at least one method
       // (if not, fail-fast and generate a helpful error message)
       // TODO: Unit test for this
-      val allParameterNames = methodGroup.methods flatMap { _.parameters } map { _.id }
+      val allParameterNames = methodGroup.methodsWithArguments flatMap { _.parameters } map { _.id }
       argNames foreach {
         case Some(node) =>
           if (!allParameterNames.contains(node.id)) {
@@ -1236,7 +1236,7 @@ case class FunctionCallNode(
         case None =>
       }
 
-      val matchingMethods = methodGroup.methods filter { method =>
+      val matchingMethods = methodGroup.methodsWithArguments filter { method =>
 
         val parameters = method.parameters
 
@@ -1291,10 +1291,16 @@ case class FunctionCallNode(
 
       }
 
+      // Filter out a method f in matchingMethods if it is "dominated" by another matching method g,
+      // in the sense that:
+      // (i) f and g have exactly the same number of parameters
+      // (ii) every parameter type of g is a subclass of the corresponding parameter type of f.
       val reducedMatchingMethods = {
         matchingMethods filterNot { method =>
           matchingMethods exists { otherMethod =>
-            otherMethod.declaringClass.properAncestors contains method.declaringClass
+            otherMethod != method &&
+              otherMethod.parameters.length == method.parameters.length &&
+              method.parameters.indices.forall { i => otherMethod.parameters(i).paramType.ancestors contains method.parameters(i).paramType }
           }
         }
       }
@@ -1303,14 +1309,14 @@ case class FunctionCallNode(
 
       if (reducedMatchingMethods.isEmpty) {
         throw EvalException(
-          s"Method `${methodGroup.id.name}` (in object of type `${methodGroup.declaringClass.qualifiedName}`) cannot be applied to argument types: $argTypesString",
+          s"Method `${methodGroup.qualifiedName}` cannot be applied to argument types: $argTypesString",
           token = Some(token)
         )
       }
 
       if (reducedMatchingMethods.size > 1) {
         throw EvalException(
-          s"Method `${methodGroup.id.name}` (in object of type `${methodGroup.declaringClass.qualifiedName}`) is ambiguous when applied to argument types: $argTypesString",
+          s"Method `${methodGroup.qualifiedName}` is ambiguous when applied to argument types: $argTypesString",
           token = Some(token)
         )
       }

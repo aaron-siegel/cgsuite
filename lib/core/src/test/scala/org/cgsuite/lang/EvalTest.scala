@@ -345,14 +345,9 @@ class EvalTest extends CgscriptSpec{
         |""".stripMargin)
     decl("test.validation.Inner",
       """singleton class Inner
-        |
         |  def Method3(a as Integer, b as Integer, c as String ? "bell") := a + b;
-        |
         |  def Method5(a as Integer, b as Integer, c as Nimber ? *, d ? [], e as Game ? ^*) := a + b;
-        |
-        |  class Nested(a as Integer, b as Integer, c as String ? "bell")
-        |  end
-        |
+        |  class Nested(a as Integer, b as Integer, c as String ? "bell") end
         |end
         |""".stripMargin)
 
@@ -385,6 +380,48 @@ class EvalTest extends CgscriptSpec{
         "!!Argument `that` (in call to `game.Integer.NimSum`) has type `game.DyadicRational`, which does not match expected type `game.Integer`"),
       ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
         "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
+    ))
+
+  }
+
+  it should "properly evaluate and validate overloaded methods" in {
+
+    testPackage declareSubpackage "overloaded"
+    decl("test.overloaded.OverloadedMethods",
+      """singleton class OverloadedMethods
+        |   def Method := 1;
+        |   def Method() := 2;
+        |   def Method(x as Integer) := 3;
+        |   def Method(x as Rational) := 4;
+        |   def Method(x as CanonicalShortGame) := 5;
+        |   def Method2(x as Integer) := 6;
+        |   def Method2(x as Integer, y as Integer) := 7;
+        |   def Method2(a as String, b as String) := 8;
+        |end""".stripMargin
+    )
+
+    executeTests(Table(
+      header,
+      ("Overloaded - call autoinvoke", "test.overloaded.OverloadedMethods.Method", "1"),
+      ("Overloaded - call nullary", "test.overloaded.OverloadedMethods.Method()", "2"),
+      ("Overloaded - call unary Integer", "test.overloaded.OverloadedMethods.Method(168)", "3"),
+      ("Overloaded - call unary Rational", "test.overloaded.OverloadedMethods.Method(1/7)", "4"),
+      ("Overloaded - call unary CanonicalShortGame", "test.overloaded.OverloadedMethods.Method(*2)", "5"),
+      ("Overloaded - call binary with named parameter", "test.overloaded.OverloadedMethods.Method2(9, y => 11)", "7"),
+      ("Overloaded - invalid unary", "test.overloaded.OverloadedMethods.Method(true)",
+        "!!Method `test.overloaded.OverloadedMethods.Method` cannot be applied to argument types: `cgsuite.lang.Boolean`"),
+      ("Overloaded - invalid binary", "test.overloaded.OverloadedMethods.Method(3, true)",
+        "!!Method `test.overloaded.OverloadedMethods.Method` cannot be applied to argument types: `game.Integer`, `cgsuite.lang.Boolean`"),
+      ("Overloaded - ambiguous unary", "test.overloaded.OverloadedMethods.Method(1/2)",
+        "!!Method `test.overloaded.OverloadedMethods.Method` is ambiguous when applied to argument types: `game.DyadicRational`"),
+      ("Overloaded - invalid nullary", "test.overloaded.OverloadedMethods.Method2()",
+        "!!Method `test.overloaded.OverloadedMethods.Method2` cannot be applied to argument types: ()"),
+      ("Overloaded - invalid autoinvoke", "test.overloaded.OverloadedMethods.Method2",
+        "!!Expected arguments for method: `test.overloaded.OverloadedMethods.Method2`"),
+      ("Overloaded - invalid parameter name", "test.overloaded.OverloadedMethods.Method2(z => 0)",
+        "!!Invalid parameter name (in call to `test.overloaded.OverloadedMethods.Method2`): `z`"),
+      ("Overloaded - named parameter shadows argument", "test.overloaded.OverloadedMethods.Method2(5, x => 6)",
+        "!!Named parameter shadows an earlier ordinary argument (in call to `test.overloaded.OverloadedMethods.Method2`): `x`")
     ))
 
   }

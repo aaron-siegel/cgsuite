@@ -680,7 +680,6 @@ class CgscriptClass(
             )
         }
 
-        // TODO Duplicate method signatures
         val checkedMethods = validateMethods(methods)
 
         id -> MethodGroup(id, checkedMethods)
@@ -822,9 +821,11 @@ class CgscriptClass(
 
     private def validateMethods(methods: Vector[CgscriptClass#Method]): Vector[CgscriptClass#Method] = {
 
-      // A "signature" is just a list of types.
-      val groupedBySignature: Map[Vector[CgscriptClass], Vector[CgscriptClass#Method]] = methods groupBy { method =>
-        method.parameters map { _.paramType }
+      // The "signature" of a method consists of:
+      // - A Boolean indicating whether the method is an autoinvoke method, and
+      // - A list of types.
+      val groupedBySignature: Map[(Boolean, Vector[CgscriptClass]), Vector[CgscriptClass#Method]] = methods groupBy { method =>
+        (method.autoinvoke, method.parameters map { _.paramType })
       }
 
       val resolved = groupedBySignature map { case (_, matchingMethods) =>
@@ -833,7 +834,7 @@ class CgscriptClass(
 
         if (localDeclarations.size > 1) {
           throw EvalException(
-            s"Method `${localDeclarations(1).qualifiedName}` is declared twice with identical signature",
+            s"Method `${localDeclarations(1).qualifiedName}${localDeclarations(1).parametersSignature}` is declared twice",
             token = Some(localDeclarations(1).idNode.token)
           )
         }
@@ -1241,7 +1242,7 @@ class CgscriptClass(
     val declaringClass = thisClass
     val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
-    val signature = s"$qualifiedName(${parameters.map { _.signature }.mkString(", ")})"
+    val parametersSignature = if (autoinvoke) "" else s"(${parameters.map { _.paramType.qualifiedName }.mkString(", ")})"
     val locationMessage = s"in call to `$qualifiedName`"
 
     val (requiredParameters, optionalParameters) = parameters partition { _.defaultValue.isEmpty }
