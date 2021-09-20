@@ -32,7 +32,7 @@ trait ImpartialGame extends Game {
 
   def -(that: ImpartialGame): ImpartialGame = this + this
 
-  override def optionsFor(player: Player): Iterable[ImpartialGame] = options
+  override def options(player: Player): Iterable[ImpartialGame] = options
 
   def options: Iterable[ImpartialGame]
 

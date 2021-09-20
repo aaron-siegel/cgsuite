@@ -8,7 +8,7 @@
   */
 system class CanonicalShortGame extends CanonicalStopper
 
-  external override def OptionsFor(player as Player) as Collection;
+  external override def Options(player as Player) as Collection;
 
   /** The atomic weight of this game.
     *

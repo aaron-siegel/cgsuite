@@ -27,7 +27,7 @@ object Pseudonumber {
 
 trait Pseudonumber extends CanonicalStopper {
 
-  override def optionsFor(player: Player): Iterable[Pseudonumber] = sys.error("should get overriden by implementations")
+  override def options(player: Player): Iterable[Pseudonumber] = sys.error("should get overriden by implementations")
 
   override def unary_- : Pseudonumber = sys.error("should get overriden by implementations")
 
@@ -65,7 +65,7 @@ case object OnImpl extends Pseudonumber {
 
   override def unary_- : Pseudonumber = off
 
-  override def optionsFor(player: Player): Iterable[Pseudonumber] = {
+  override def options(player: Player): Iterable[Pseudonumber] = {
     player match {
       case Left => Set(this)
       case Right => Set.empty
@@ -86,7 +86,7 @@ case object OffImpl extends Pseudonumber {
 
   override def unary_- : Pseudonumber = on
 
-  override def optionsFor(player: Player): Iterable[Pseudonumber] = {
+  override def options(player: Player): Iterable[Pseudonumber] = {
     player match {
       case Left => Set.empty
       case Right => Set(this)
@@ -117,7 +117,7 @@ case class OverNumberImpl private[core] (x: DyadicRationalNumber, overSign: Int)
     new LoopyGame(thisNode)
   }
 
-  override def optionsFor(player: Player): Iterable[Pseudonumber] = {
+  override def options(player: Player): Iterable[Pseudonumber] = {
     player match {
       case Left => if (overSign > 0) Set(x) else Set(this)
       case Right => if (overSign < 0) Set(x) else Set(this)

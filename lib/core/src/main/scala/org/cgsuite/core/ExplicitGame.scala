@@ -13,7 +13,7 @@ case class ExplicitGame(lo: Iterable[Game], ro: Iterable[Game]) extends Game {
 
   override def unary_- = ExplicitGame(ro map { -_ }, lo map { -_ })
 
-  override def optionsFor(player: Player) = player match {
+  override def options(player: Player) = player match {
     case Left => lo
     case Right => ro
   }

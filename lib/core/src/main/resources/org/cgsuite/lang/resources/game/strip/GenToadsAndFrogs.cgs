@@ -7,7 +7,7 @@ class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) exten
 
   class Position(strip as Strip) extends StripGame
 
-    override def OptionsFor(player as Player) begin
+    override def Options(player as Player) begin
 
       var us := player.Ordinal;
       var them := player.Opponent.Ordinal;

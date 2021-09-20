@@ -6,7 +6,7 @@ class GenCutcake(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset, twiste
   
   class Position(coord as Coordinates) extends Game
   
-    override def OptionsFor(player as Player) begin
+    override def Options(player as Player) begin
     
       var twist := if twisted then coord.Swap else coord end;
     

@@ -4,7 +4,7 @@ singleton class Fission extends GridRuleset
 
   class Position(grid as Grid) extends GridGame
 
-    override def OptionsFor(player as Player) begin
+    override def Options(player as Player) begin
 
       var direction := if player == Left then (1,0) else (0,1) end;
 
