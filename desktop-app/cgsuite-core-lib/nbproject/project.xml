@@ -7,6 +7,7 @@
             <suite-component/>
             <module-dependencies/>
             <public-packages>
+                <package>better.files</package>
                 <package>cc.redberry.combinatorics</package>
                 <package>cc.redberry.libdivide4j</package>
                 <package>cc.redberry.rings</package>
@@ -101,6 +102,13 @@
                 <package>gnu.trove.stack</package>
                 <package>gnu.trove.stack.array</package>
                 <package>gnu.trove.strategy</package>
+                <package>io.methvin.better.files</package>
+                <package>io.methvin.watcher</package>
+                <package>io.methvin.watchservice</package>
+                <package>io.methvin.watchservice.jna</package>
+                <package>javax.annotation</package>
+                <package>javax.annotation.concurrent</package>
+                <package>javax.annotation.meta</package>
                 <package>org.antlr</package>
                 <package>org.antlr.analysis</package>
                 <package>org.antlr.codegen</package>
@@ -174,6 +182,7 @@
                 <package>org.apache.commons.math3.util</package>
                 <package>org.cgsuite.core</package>
                 <package>org.cgsuite.core.impartial</package>
+                <package>org.cgsuite.core.misere</package>
                 <package>org.cgsuite.dsl</package>
                 <package>org.cgsuite.exception</package>
                 <package>org.cgsuite.explorer</package>
@@ -182,6 +191,35 @@
                 <package>org.cgsuite.lang.parser</package>
                 <package>org.cgsuite.output</package>
                 <package>org.cgsuite.util</package>
+                <package>org.codehaus.mojo.animal_sniffer</package>
+                <package>org.fusesource.hawtjni.runtime</package>
+                <package>org.fusesource.jansi</package>
+                <package>org.fusesource.jansi.internal</package>
+                <package>org.jline.builtins</package>
+                <package>org.jline.builtins.ssh</package>
+                <package>org.jline.builtins.telnet</package>
+                <package>org.jline.keymap</package>
+                <package>org.jline.reader</package>
+                <package>org.jline.reader.impl</package>
+                <package>org.jline.reader.impl.completer</package>
+                <package>org.jline.reader.impl.history</package>
+                <package>org.jline.style</package>
+                <package>org.jline.terminal</package>
+                <package>org.jline.terminal.impl</package>
+                <package>org.jline.terminal.impl.jansi</package>
+                <package>org.jline.terminal.impl.jansi.freebsd</package>
+                <package>org.jline.terminal.impl.jansi.linux</package>
+                <package>org.jline.terminal.impl.jansi.osx</package>
+                <package>org.jline.terminal.impl.jansi.solaris</package>
+                <package>org.jline.terminal.impl.jansi.win</package>
+                <package>org.jline.terminal.impl.jna</package>
+                <package>org.jline.terminal.impl.jna.freebsd</package>
+                <package>org.jline.terminal.impl.jna.linux</package>
+                <package>org.jline.terminal.impl.jna.osx</package>
+                <package>org.jline.terminal.impl.jna.solaris</package>
+                <package>org.jline.terminal.impl.jna.win</package>
+                <package>org.jline.terminal.spi</package>
+                <package>org.jline.utils</package>
                 <package>org.slf4j</package>
                 <package>org.slf4j.event</package>
                 <package>org.slf4j.helpers</package>
