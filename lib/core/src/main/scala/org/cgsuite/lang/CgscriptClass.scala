@@ -540,16 +540,16 @@ class CgscriptClass(
 
     val localInstanceVars: Vector[Var] = ordinaryInitializerNodes collect {
       case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), isMutable = modifiers.hasMutable, isStatic = false)
+        Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = false)
     }
 
     val localStaticVars: Vector[Var] = staticInitializerNodes collect {
       case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), isMutable = modifiers.hasMutable, isStatic = true)
+        Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = true)
     }
 
     val localEnumElements: Vector[Var] = enumElementNodes map { node =>
-      Var(node.idNode, Some(node), isMutable = modifiers.hasMutable, isStatic = modifiers.hasStatic)
+      Var(node.idNode, Some(node), isMutable = node.modifiers.hasMutable, isStatic = node.modifiers.hasStatic)
     }
 
     val localMethods: Vector[Method] = declNode.methodDeclarations map { parseMethod(_, declNode.modifiers) }
