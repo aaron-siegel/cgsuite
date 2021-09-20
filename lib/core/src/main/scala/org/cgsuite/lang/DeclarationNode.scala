@@ -46,7 +46,7 @@ object ClassDeclarationNode {
     val id = IdentifierNode(tree.children(1))
     val extendsClause = tree.children find { _.getType == EXTENDS } match {
       case Some(t) => t.children map { EvalNode(_) }
-      case None => Seq.empty
+      case None => Vector.empty
     }
     val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) }
     val declarations = tree.children filter { _.getType == DECLARATIONS } flatMap { _.children flatMap { DeclarationNode(_, pkg) } }
@@ -86,16 +86,16 @@ case class ClassDeclarationNode(
   idNode: IdentifierNode,
   isEnum: Boolean,
   modifiers: Modifiers,
-  extendsClause: Seq[Node],
-  constructorParams: Option[ParametersNode],
-  nestedClassDeclarations: Seq[ClassDeclarationNode],
-  methodDeclarations: Seq[MethodDeclarationNode],
-  staticInitializers: Seq[InitializerNode],
-  ordinaryInitializers: Seq[InitializerNode],
-  enumElements: Seq[EnumElementNode]
+  extendsClause: Vector[Node],
+  classParameterNodes: Option[ParametersNode],
+  nestedClassDeclarations: Vector[ClassDeclarationNode],
+  methodDeclarations: Vector[MethodDeclarationNode],
+  staticInitializers: Vector[InitializerNode],
+  ordinaryInitializers: Vector[InitializerNode],
+  enumElements: Vector[EnumElementNode]
   ) extends MemberDeclarationNode {
 
-  val children = Seq(idNode) ++ extendsClause ++ constructorParams ++
+  val children = Seq(idNode) ++ extendsClause ++ classParameterNodes ++
     nestedClassDeclarations ++ methodDeclarations ++ staticInitializers ++ ordinaryInitializers
 
 }
@@ -128,11 +128,11 @@ object ParametersNode {
   }
 }
 
-case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNodes: Seq[ParameterNode]) extends Node {
+case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNodes: Vector[ParameterNode]) extends Node {
 
   override val children = parameterNodes
 
-  def toParameters: Seq[Parameter] = {
+  def toParameters: Vector[Parameter] = {
 
     parameterNodes.map { n =>
       val ttype = n.classId match {

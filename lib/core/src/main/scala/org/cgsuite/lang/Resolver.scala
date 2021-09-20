@@ -33,7 +33,7 @@ case class Resolver(id: Symbol) {
   }
 
   // TODO This should go away when statics do
-  def findStaticResolution(co: ClassObject) = {
+  def findStaticResolution(co: ClassObject): Resolution = {
     if (staticResolutions.length <= co.forClass.classOrdinal) {
       staticResolutions = staticResolutions ++ new Array[Resolution](co.forClass.classOrdinal + 1 - staticResolutions.length)
     }
@@ -45,7 +45,7 @@ case class Resolver(id: Symbol) {
     res
   }
 
-  def findResolutionForClass(cls: CgscriptClass) = {
+  def findResolutionForClass(cls: CgscriptClass): Resolution = {
     if (resolutions.length <= cls.classOrdinal) {
       // Grow the array. This can happen at most O(#classes) times.
       resolutions = resolutions ++ new Array[Resolution](cls.classOrdinal + 1 - resolutions.length)
@@ -58,7 +58,9 @@ case class Resolver(id: Symbol) {
     res
   }
 
-  def resolve(x: Any, referenceToken: Token): Any = findResolution(x).evaluateFor(x, referenceToken)
+  def resolve(x: Any, asFunctionCallAntecedent: Boolean, referenceToken: Token): Any = {
+    findResolution(x).evaluateFor(x, asFunctionCallAntecedent, referenceToken)
+  }
 
 }
 
@@ -68,11 +70,11 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
     if (static) {
       cls.classInfo.staticVarOrdinals.getOrElse(id, -1)
     } else {
-      cls.classInfo.classVarOrdinals.getOrElse(id, -1)
+      cls.classInfo.instanceVarOrdinals.getOrElse(id, -1)
     }
   }
   // TODO Static mutable?
-  val isMutableVar = !static && (cls.classInfo.classVarLookup get id exists { _.isMutable })
+  val isMutableVar = !static && (cls.classInfo.instanceVarLookup get id exists { _.isMutable })
   val nestedClass = {
     // TODO Static nested classes?
     if (static) {
@@ -81,56 +83,69 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       cls.lookupNestedClass(id)
     }
   }
-  val method = {
+  val methodGroup = {
     if (static) {
       // This is a little more complicated since we also need to look up common
       // static methods, i.e., methods of class Class.
-      CgscriptClass.Class.lookupMethod(id) match {
+      CgscriptClass.Class.lookupMethodGroup(id) match {
         case Some(x) => Some(x)
-        case None => cls.lookupMethod(id)
+        case None => cls.lookupMethodGroup(id)
       }
     } else {
       // In the instance case we can just do a straight lookup.
-      cls.lookupMethod(id)
+      cls.lookupMethodGroup(id)
     }
   }
 
-  assert(classScopeIndex == -1 || method.isEmpty)
+  assert(classScopeIndex == -1 || methodGroup.isEmpty)
 
-  val isResolvable = classScopeIndex >= 0 || method.isDefined || nestedClass.isDefined
+  val isResolvable = classScopeIndex >= 0 || methodGroup.isDefined || nestedClass.isDefined
 
-  def evaluateFor(x: Any, referenceToken: Token): Any = {
+  def evaluateFor(baseObject: Any, asFunctionCallAntecedent: Boolean, referenceToken: Token): Any = {
 
     if (classScopeIndex >= 0) {
 
-      x match {
+      baseObject match {
         case obj: StandardObject => obj.vars(classScopeIndex)
         case _ => sys error s"This shouldn't happen: ${cls.qualifiedName}.${id.name}"
       }
 
-    } else if (method.isDefined) {
+    } else if (nestedClass.isDefined) {
 
-      if (method.get.autoinvoke) {
+      InstanceClass(baseObject, nestedClass.get)
+
+    } else if (methodGroup.isDefined) {
+
+      val group = methodGroup.get
+
+      if (group.isPureAutoinvoke || group.autoinvokeMethod.isDefined && !asFunctionCallAntecedent) {
+
         try {
-          method.get.call(x, Array.empty)
+          group.autoinvokeMethod.get.call(baseObject, Array.empty)
         } catch {
           case exc: CgsuiteException =>
             exc addToken referenceToken
             throw exc
-          case err: StackOverflowError =>
+          case _: StackOverflowError =>
             throw EvalException("Possible infinite recursion.")
         }
+
+      } else if (asFunctionCallAntecedent) {
+
+        InstanceMethodGroup(baseObject, group)
+
       } else {
-        InstanceMethod(x, method.get)
+
+        throw EvalException(
+          s"Expected arguments for method: `${group.qualifiedName}`",
+          token = Some(referenceToken)
+        )
+
       }
-
-    } else if (nestedClass.isDefined) {
-
-      InstanceClass(x, nestedClass.get)
 
     } else {
 
-      sys error "not resolvable"
+        sys error "not resolvable"
 
     }
 

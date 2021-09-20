@@ -1,4 +1,5 @@
 /*${cgsuite.banner}*/
 
 singleton system class Zero extends Integer, Nimber
+
 end

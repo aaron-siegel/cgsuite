@@ -97,13 +97,13 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
     GeneralizedOrdinal(prodTerms : _*)
   }
 
-  override def pow(n: Integer): SurrealNumber = {
+  override def exp(n: Integer): SurrealNumber = {
     if (n.isZero)
       one
     else if (n < zero)
-      pow(-n).reciprocal
+      exp(-n).reciprocal
     else
-      this * pow(n - one)
+      this * exp(n - one)
   }
 
   override def abs: GeneralizedOrdinal = if (this < zero) -this else this

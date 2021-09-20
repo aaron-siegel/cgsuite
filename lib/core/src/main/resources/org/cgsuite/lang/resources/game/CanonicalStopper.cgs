@@ -2,7 +2,7 @@
 
 system class CanonicalStopper extends Game, StopperSidedValue
 
-  override external def OptionsFor(player as Player);
+  override external def Options(player as Player);
 
   external def Degree;
   external def Downsum(that as CanonicalStopper);

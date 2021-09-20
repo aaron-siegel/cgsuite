@@ -2,6 +2,18 @@
 
 system class SidedValue extends NormalValue
 
+  external def op+(that as SidedValue) as SidedValue;
+
+  external def op-(that as SidedValue) as SidedValue;
+
+  external def op unary+ as SidedValue;
+
+  external def op unary- as SidedValue;
+
+  external def op unary+- as SidedValue;
+
+  external def op <=(that as SidedValue) as Boolean;
+
   external override def ToOutput;
 
 end

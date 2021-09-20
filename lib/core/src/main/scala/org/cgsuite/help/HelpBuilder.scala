@@ -180,7 +180,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       }
 
       val regularMembers = {
-        cls.classInfo.allNonSuperMembersInScope.values.toVector
+        cls.classInfo.localMembers
       }
 
       val members = {
@@ -191,17 +191,17 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       } sortBy { _.id.name }
 
       val enumElementSummary = {
-        if (cls.classInfo.enumElements.isEmpty)
+        if (cls.classInfo.localEnumElements.isEmpty)
           ""
         else
-          makeMemberSummary(cls, cls.classInfo.enumElements sortBy { _.id.name }, "<h2>Enum Elements</h2>")
+          makeMemberSummary(cls, cls.classInfo.localEnumElements sortBy { _.id.name }, "<h2>Enum Elements</h2>")
       }
 
       val staticMemberSummary = {
-        if (cls.classInfo.staticVars.isEmpty)
+        if (cls.classInfo.localStaticVars.isEmpty)
           ""
         else
-          makeMemberSummary(cls, cls.classInfo.staticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
+          makeMemberSummary(cls, cls.classInfo.localStaticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
       }
 
       val memberSummary = makeMemberSummary(cls, members filter {
@@ -223,9 +223,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         )
       }
 
-      val enumElementDetails = cls.classInfo.enumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+      val enumElementDetails = cls.classInfo.localEnumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val staticMemberDetails = cls.classInfo.staticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+      val staticMemberDetails = cls.classInfo.localStaticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
       val memberDetails = members filterNot { _.declaringClass == null } map makeMemberDetail mkString "\n<p>\n"
 

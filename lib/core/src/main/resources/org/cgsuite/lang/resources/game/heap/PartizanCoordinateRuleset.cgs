@@ -10,7 +10,7 @@ class PartizanCoordinateRuleset(leftRuleset as CoordinateRuleset, rightRuleset a
   
   class Position(coord as Coordinates) extends Game
 
-    override def OptionsFor(player as Player) begin
+    override def Options(player as Player) begin
       var ruleset := if player == Left then leftRuleset else rightRuleset end;
       ruleset CoordinateOptions coord Apply (c -> Position(c))
     end

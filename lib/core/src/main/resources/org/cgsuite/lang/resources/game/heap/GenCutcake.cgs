@@ -2,11 +2,11 @@
 
 class GenCutcake(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset, twisted as Boolean ? false) extends Ruleset
 
-  override def Eval(coord as Coordinates) := Position(coord);
+  def Eval(coord as Coordinates) := Position(coord);
   
   class Position(coord as Coordinates) extends Game
   
-    override def OptionsFor(player as Player) begin
+    override def Options(player as Player) begin
     
       var twist := if twisted then coord.Swap else coord end;
     

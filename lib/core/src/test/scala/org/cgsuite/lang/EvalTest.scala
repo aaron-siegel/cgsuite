@@ -313,9 +313,9 @@ class EvalTest extends CgscriptSpec{
       ("Procedure eval - too few args", "f(3)", "!!Missing required parameter (in procedure call): `y`"),
       ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments (in procedure call): 3 (expecting at most 2)"),
       ("Procedure eval - named args", "f(y => 3, x => 4)", "1/2"),
-      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` (in procedure call) appears in earlier position than an ordinary argument"),
-      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate named parameter (in procedure call): `x`"),
-      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter (in procedure call): `y`"),
+      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` appears in earlier position than an ordinary argument"),
+      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Named parameter shadows an earlier ordinary argument (in procedure call): `x`"),
+      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter: `y`"),
       ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name (in procedure call): `foo`"),
       ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> x + y"),
       ("Curried procedure evaluation - 1", "g := f(3)", "y -> x + y"),
@@ -345,14 +345,9 @@ class EvalTest extends CgscriptSpec{
         |""".stripMargin)
     decl("test.validation.Inner",
       """singleton class Inner
-        |
         |  def Method3(a as Integer, b as Integer, c as String ? "bell") := a + b;
-        |
         |  def Method5(a as Integer, b as Integer, c as Nimber ? *, d ? [], e as Game ? ^*) := a + b;
-        |
-        |  class Nested(a as Integer, b as Integer, c as String ? "bell")
-        |  end
-        |
+        |  class Nested(a as Integer, b as Integer, c as String ? "bell") end
         |end
         |""".stripMargin)
 
@@ -370,9 +365,9 @@ class EvalTest extends CgscriptSpec{
         (s"Too many arguments ($name)", s"$fn(1,2,3,4,5,6,7)", s"!!Too many arguments ($locationMessage): 7 (expecting at most $paramCount)"),
         (s"Missing required parameter ($name)", s"$fn(1, c => true)", s"!!Missing required parameter ($locationMessage): `b`"),
         (s"Invalid parameter name ($name)", s"$fn(1,2,foo => true)", s"!!Invalid parameter name ($locationMessage): `foo`"),
-        (s"Duplicate named parameter ($name)", s"$fn(1, b => 7, b => 6)", s"!!Duplicate named parameter ($locationMessage): `b`"),
-        (s"Duplicate named parameter after ordinary ($name)", s"$fn(1, 2, a => 3)", s"!!Duplicate named parameter ($locationMessage): `a`"),
-        (s"Named parameter in early position ($name)", s"$fn(a => 1, 2)", s"!!Named parameter `a` ($locationMessage) appears in earlier position than an ordinary argument"),
+        (s"Duplicate named parameter ($name)", s"$fn(1, b => 7, b => 6)", s"!!Duplicate named parameter: `b`"),
+        (s"Duplicate named parameter after ordinary ($name)", s"$fn(1, 2, a => 3)", s"!!Named parameter shadows an earlier ordinary argument ($locationMessage): `a`"),
+        (s"Named parameter in early position ($name)", s"$fn(a => 1, 2)", s"!!Named parameter `a` appears in earlier position than an ordinary argument"),
         (s"Invalid argument type ($name)", s"$fn(1, 1/2)", s"!!Argument `b` ($locationMessage) has type `game.DyadicRational`, which does not match expected type `game.Integer`")
       )
     }
@@ -385,6 +380,48 @@ class EvalTest extends CgscriptSpec{
         "!!Argument `that` (in call to `game.Integer.NimSum`) has type `game.DyadicRational`, which does not match expected type `game.Integer`"),
       ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
         "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
+    ))
+
+  }
+
+  it should "properly evaluate and validate overloaded methods" in {
+
+    testPackage declareSubpackage "overloaded"
+    decl("test.overloaded.OverloadedMethods",
+      """singleton class OverloadedMethods
+        |   def Method := 1;
+        |   def Method() := 2;
+        |   def Method(x as Integer) := 3;
+        |   def Method(x as Rational) := 4;
+        |   def Method(x as CanonicalShortGame) := 5;
+        |   def Method2(x as Integer) := 6;
+        |   def Method2(x as Integer, y as Integer) := 7;
+        |   def Method2(a as String, b as String) := 8;
+        |end""".stripMargin
+    )
+
+    executeTests(Table(
+      header,
+      ("Overloaded - call autoinvoke", "test.overloaded.OverloadedMethods.Method", "1"),
+      ("Overloaded - call nullary", "test.overloaded.OverloadedMethods.Method()", "2"),
+      ("Overloaded - call unary Integer", "test.overloaded.OverloadedMethods.Method(168)", "3"),
+      ("Overloaded - call unary Rational", "test.overloaded.OverloadedMethods.Method(1/7)", "4"),
+      ("Overloaded - call unary CanonicalShortGame", "test.overloaded.OverloadedMethods.Method(*2)", "5"),
+      ("Overloaded - call binary with named parameter", "test.overloaded.OverloadedMethods.Method2(9, y => 11)", "7"),
+      ("Overloaded - invalid unary", "test.overloaded.OverloadedMethods.Method(true)",
+        "!!Method `test.overloaded.OverloadedMethods.Method` cannot be applied to argument types: `cgsuite.lang.Boolean`"),
+      ("Overloaded - invalid binary", "test.overloaded.OverloadedMethods.Method(3, true)",
+        "!!Method `test.overloaded.OverloadedMethods.Method` cannot be applied to argument types: `game.Integer`, `cgsuite.lang.Boolean`"),
+      ("Overloaded - ambiguous unary", "test.overloaded.OverloadedMethods.Method(1/2)",
+        "!!Method `test.overloaded.OverloadedMethods.Method` is ambiguous when applied to argument types: `game.DyadicRational`"),
+      ("Overloaded - invalid nullary", "test.overloaded.OverloadedMethods.Method2()",
+        "!!Method `test.overloaded.OverloadedMethods.Method2` cannot be applied to argument types: ()"),
+      ("Overloaded - invalid autoinvoke", "test.overloaded.OverloadedMethods.Method2",
+        "!!Expected arguments for method: `test.overloaded.OverloadedMethods.Method2`"),
+      ("Overloaded - invalid parameter name", "test.overloaded.OverloadedMethods.Method2(z => 0)",
+        "!!Invalid parameter name (in call to `test.overloaded.OverloadedMethods.Method2`): `z`"),
+      ("Overloaded - named parameter shadows argument", "test.overloaded.OverloadedMethods.Method2(5, x => 6)",
+        "!!Named parameter shadows an earlier ordinary argument (in call to `test.overloaded.OverloadedMethods.Method2`): `x`")
     ))
 
   }

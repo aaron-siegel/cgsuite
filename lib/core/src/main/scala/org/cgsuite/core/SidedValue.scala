@@ -58,6 +58,8 @@ trait SidedValue extends NormalValue with OutputTarget {
 
   def unary_- : SidedValue = SidedValueImpl(-offside, -onside)
 
+  def switch: SidedValue = ???
+
   def +(that: SidedValue): SidedValue = {
     SidedValue(onside.loopyGame.add(that.onside.loopyGame), offside.loopyGame.add(that.offside.loopyGame))
   }

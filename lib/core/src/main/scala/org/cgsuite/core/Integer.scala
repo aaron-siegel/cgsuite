@@ -93,7 +93,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
       Vector(Term(this, ZeroImpl))
   }
   
-  override def optionsFor(player: Player): Iterable[Integer] = {
+  override def options(player: Player): Iterable[Integer] = {
     (player, bigIntValue.signum) match {
       case (Left, 1) => Set(Integer(bigIntValue-1))
       case (Right, -1) => Set(Integer(bigIntValue+1))
@@ -124,7 +124,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   override def birthday: Integer = abs
 
-  override def pow(n: Integer): RationalNumber = super[DyadicRationalNumber].pow(n)
+  override def exp(n: Integer): RationalNumber = super[DyadicRationalNumber].exp(n)
 
   def div(other: Integer) = Integer(bigIntValue / other.bigIntValue)
 

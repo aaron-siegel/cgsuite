@@ -102,7 +102,11 @@ object EvalUtil extends LazyLogging {
       }
     }
 
-    message +: (stack ++ cause)
+    val basicMessage = message +: (stack ++ cause)
+    LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].getLevel match {
+      case Level.DEBUG => basicMessage ++ throwableToOutput(input, exc)
+      case _ => basicMessage
+    }
 
   }
 

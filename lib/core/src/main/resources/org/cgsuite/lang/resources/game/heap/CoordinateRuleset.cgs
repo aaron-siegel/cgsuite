@@ -2,7 +2,7 @@
 
 class CoordinateRuleset extends Ruleset
 
-  override def Eval(coord as Coordinates) := Position(coord);
+  def Eval(coord as Coordinates) := Position(coord);
 
   def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must override `CoordinateOptions`.");
   

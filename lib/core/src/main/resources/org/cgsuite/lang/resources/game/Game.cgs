@@ -7,7 +7,7 @@
   * every instance of `Game` is actually an instance of some subclass,
   * such as [[CanonicalShortGame]]. The only requirement for
   * subclasses of `Game` is that they ~must~ implement the
-  * [[#OptionsFor]] method, specifying how to compute the Left and Right
+  * [[#Options]] method, specifying how to compute the Left and Right
   * options for that class of game. `Game` provides generic implementations
   * of various other methods and nested classes that are meaningful at this
   * level of generality. In particular, the [[#CanonicalForm]] property
@@ -47,23 +47,23 @@ system class Game
 
   def DepthHint := error("That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.");
 
-  def OptionsFor(player as Player) := error("Subclasses of `Game` must override the `OptionsFor` method.");
+  def Options(player as Player) := error("Subclasses of `Game` must override the `Options` method.");
 
-  def Options := OptionsFor(Left).ToSet Union OptionsFor(Right);
+  def Options := Options(Left).ToSet Union Options(Right);
 
   def Decomposition := [this];
-  def LeftOptions := OptionsFor(Left);
-  def RightOptions := OptionsFor(Right);
+  def LeftOptions := Options(Left);
+  def RightOptions := Options(Right);
 
   // TODO DicotVariant and ImpartialVariant should override Decomposition
   class DicotVariant() extends Game
   
-    override def OptionsFor(player as Player) begin
-      var otherOptions := EnclosingObject OptionsFor player.Opponent;
+    override def Options(player as Player) begin
+      var otherOptions := EnclosingObject Options player.Opponent;
       if otherOptions.IsEmpty then
         []
       else
-        setof(g.DicotVariant() for g in EnclosingObject OptionsFor player)
+        setof(g.DicotVariant() for g in EnclosingObject Options player)
       end
     end
     
