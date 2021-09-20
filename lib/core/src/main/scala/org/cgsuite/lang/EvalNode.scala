@@ -1053,21 +1053,8 @@ case class FunctionCallNode(
 
   def resolveAndEvaluateCallSite(domain: EvaluationDomain, callSite: CallSite): Any = {
 
-    val res = callSiteResolutions.getOrElseUpdate(callSite.ordinal, CallSiteResolution(callSite))
+    val args = evaluateArgsForCallSite(domain, callSite.ordinal, callSite.parameters, callSite.locationMessage)
 
-    val args = new Array[Any](callSite.parameters.length)
-    var i = 0
-    while (i < args.length) {
-      if (res.expandedLastParameter && i == args.length - 1) {
-        args(i) = argNodes.slice(i, argNodes.length) map { _.evaluate(domain) }
-      } else {
-        if (res.parameterToArgsMapping(i) >= 0)
-          args(i) = argNodes(res.parameterToArgsMapping(i)).evaluate(domain)
-        else
-          args(i) = callSite.parameters(i).defaultValue.get.evaluate(domain)
-      }
-      i += 1
-    }
     try {
       callSite call args
     } catch {
@@ -1080,7 +1067,55 @@ case class FunctionCallNode(
 
   }
 
+  def evaluateArgsForCallSite(domain: EvaluationDomain, ordinal: Int, parameters: Vector[Parameter], locationMessage: String): Array[Any] = {
+
+    val res = callSiteResolutions.getOrElseUpdate(ordinal, CallSiteResolution(parameters, locationMessage))
+
+    val args = new Array[Any](parameters.length)
+    var i = 0
+    while (i < args.length) {
+      if (res.expandedLastParameter && i == args.length - 1) {
+        args(i) = argNodes.slice(i, argNodes.length) map { _.evaluate(domain) }
+      } else {
+        if (res.parameterToArgsMapping(i) >= 0)
+          args(i) = argNodes(res.parameterToArgsMapping(i)).evaluate(domain)
+        else
+          args(i) = parameters(i).defaultValue.get.evaluate(domain)
+      }
+      i += 1
+    }
+    args
+
+  }
+
   def resolveAndEvaluateMethod(domain: EvaluationDomain, baseObject: Any, methodGroup: CgscriptClass#MethodGroup): Any = {
+
+    if (methodGroup.methodsWithArguments.size == 1) {
+      resolveAndEvaluateSingletonMethod(domain, baseObject, methodGroup)
+    } else {
+      resolveAndEvaluateOverloadedMethod(domain, baseObject, methodGroup)
+    }
+
+  }
+
+  def resolveAndEvaluateSingletonMethod(domain: EvaluationDomain, baseObject: Any, methodGroup: CgscriptClass#MethodGroup): Any = {
+
+    val method = methodGroup.methodsWithArguments.head
+    val args = evaluateArgsForCallSite(domain, methodGroup.ordinal, method.parameters, method.locationMessage)
+
+    try {
+      method.call(baseObject, args)
+    } catch {
+      case exc: CgsuiteException =>
+        exc addToken token
+        throw exc
+      case _: StackOverflowError =>
+        throw EvalException("Possible infinite recursion.", token = Some(token))
+    }
+
+  }
+
+  def resolveAndEvaluateOverloadedMethod(domain: EvaluationDomain, baseObject: Any, methodGroup: CgscriptClass#MethodGroup): Any = {
 
     val methodGroupResolution = methodGroupResolutions.getOrElseUpdate(methodGroup.ordinal, MethodGroupResolution(methodGroup))
 
@@ -1215,6 +1250,8 @@ case class FunctionCallNode(
 
       }
 
+      // TODO Check for named parameter shadows an earlier optional argument
+
       // TODO Reduce matching methods
 
       assert(matchingMethods.size <= 1)
@@ -1266,9 +1303,7 @@ case class FunctionCallNode(
 
   }
 
-  case class CallSiteResolution(callSite: CallSite) {
-
-    val params = callSite.parameters
+  case class CallSiteResolution(params: Vector[Parameter], locationMessage: String) {
 
     // Last parameter is expandable only if there are no named args
     val expandedLastParameter = params.nonEmpty && params.last.isExpandable && argNames.forall { _.isEmpty }
@@ -1276,18 +1311,7 @@ case class FunctionCallNode(
     // Check for too many arguments
     if (!expandedLastParameter && argNames.length > params.length) {
       throw EvalException(
-        s"Too many arguments (${callSite.locationMessage}): ${argNames.length} (expecting at most ${params.length})",
-        token = Some(token)
-      )
-    }
-
-    // Check for named args in earlier position than ordinary args
-    val lastOrdinaryArgIndex = argNames lastIndexWhere { _.isEmpty }
-    argNames take (lastOrdinaryArgIndex+1) foreach {
-      case None =>
-      case Some(idNode) => throw EvalException(
-        s"Named parameter `${idNode.id.name}` (${callSite.locationMessage}) " +
-          "appears in earlier position than an ordinary argument",
+        s"Too many arguments ($locationMessage): ${argNames.length} (expecting at most ${params.length})",
         token = Some(token)
       )
     }
@@ -1302,12 +1326,12 @@ case class FunctionCallNode(
         val namedIndex = params indexWhere { _.id == idNode.id }
         if (namedIndex == -1)
           throw EvalException(
-            s"Invalid parameter name (${callSite.locationMessage}): `${idNode.id.name}`",
+            s"Invalid parameter name ($locationMessage): `${idNode.id.name}`",
             token = Some(token)
           )
         if (parameterToArgsMapping(namedIndex) != -1)
           throw EvalException(
-            s"Duplicate named parameter (${callSite.locationMessage}): `${idNode.id.name}`",
+            s"Named parameter shadows an earlier ordinary argument ($locationMessage): `${idNode.id.name}`",
             token = Some(token)
           )
         parameterToArgsMapping(namedIndex) = index
@@ -1317,7 +1341,7 @@ case class FunctionCallNode(
     params zip parameterToArgsMapping foreach { case (param, index) =>
       if (param.defaultValue.isEmpty && index == -1)
         throw EvalException(
-          s"Missing required parameter (${callSite.locationMessage}): `${param.id.name}`",
+          s"Missing required parameter ($locationMessage): `${param.id.name}`",
           token = Some(token)
         )
     }

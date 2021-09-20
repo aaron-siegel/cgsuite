@@ -313,9 +313,9 @@ class EvalTest extends CgscriptSpec{
       ("Procedure eval - too few args", "f(3)", "!!Missing required parameter (in procedure call): `y`"),
       ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments (in procedure call): 3 (expecting at most 2)"),
       ("Procedure eval - named args", "f(y => 3, x => 4)", "1/2"),
-      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` (in procedure call) appears in earlier position than an ordinary argument"),
+      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` appears in earlier position than an ordinary argument"),
       ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Duplicate named parameter (in procedure call): `x`"),
-      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter (in procedure call): `y`"),
+      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter: `y`"),
       ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name (in procedure call): `foo`"),
       ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> x + y"),
       ("Curried procedure evaluation - 1", "g := f(3)", "y -> x + y"),
@@ -370,9 +370,9 @@ class EvalTest extends CgscriptSpec{
         (s"Too many arguments ($name)", s"$fn(1,2,3,4,5,6,7)", s"!!Too many arguments ($locationMessage): 7 (expecting at most $paramCount)"),
         (s"Missing required parameter ($name)", s"$fn(1, c => true)", s"!!Missing required parameter ($locationMessage): `b`"),
         (s"Invalid parameter name ($name)", s"$fn(1,2,foo => true)", s"!!Invalid parameter name ($locationMessage): `foo`"),
-        (s"Duplicate named parameter ($name)", s"$fn(1, b => 7, b => 6)", s"!!Duplicate named parameter ($locationMessage): `b`"),
+        (s"Duplicate named parameter ($name)", s"$fn(1, b => 7, b => 6)", s"!!Duplicate named parameter: `b`"),
         (s"Duplicate named parameter after ordinary ($name)", s"$fn(1, 2, a => 3)", s"!!Duplicate named parameter ($locationMessage): `a`"),
-        (s"Named parameter in early position ($name)", s"$fn(a => 1, 2)", s"!!Named parameter `a` ($locationMessage) appears in earlier position than an ordinary argument"),
+        (s"Named parameter in early position ($name)", s"$fn(a => 1, 2)", s"!!Named parameter `a` appears in earlier position than an ordinary argument"),
         (s"Invalid argument type ($name)", s"$fn(1, 1/2)", s"!!Argument `b` ($locationMessage) has type `game.DyadicRational`, which does not match expected type `game.Integer`")
       )
     }

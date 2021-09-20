@@ -21,7 +21,7 @@ case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends Call
   }
 
   def referenceToken = Some(node.token)
-  def locationMessage = "Function"
+  def locationMessage = "in procedure call"
 
   def toOutput: StyledTextOutput = new StyledTextOutput(util.EnumSet.of(Style.FACE_MONOSPACED), node.toNodeString)
 
