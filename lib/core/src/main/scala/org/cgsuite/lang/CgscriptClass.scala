@@ -1139,8 +1139,6 @@ class CgscriptClass(
 
     val ordinal = CallSite.newCallSiteOrdinal
 
-    def locationMessage = s"Method `${id.name}` (in object of type `${thisClass.qualifiedName}`)"
-
     val isPureAutoinvoke = methods.size == 1 && methods.head.autoinvoke
 
     val autoinvokeMethod = methods find { _.autoinvoke }

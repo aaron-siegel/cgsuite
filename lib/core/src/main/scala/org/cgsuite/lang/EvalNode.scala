@@ -952,7 +952,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
 object InfixOpNode {
   def apply(tree: Tree): FunctionCallNode = {
     val callSiteNode = DotNode(tree, EvalNode(tree.children.head), IdentifierNode(tree))
-    FunctionCallNode(tree, callSiteNode, IndexedSeq(EvalNode(tree.children(1))), IndexedSeq(None))
+    FunctionCallNode(tree, callSiteNode, Vector(EvalNode(tree.children(1))), Vector(None))
   }
 }
 
@@ -966,15 +966,15 @@ object FunctionCallNode {
       }
     }
     val (args, argNames) = argsWithNames.unzip
-    FunctionCallNode(tree, callSite, args.toIndexedSeq, argNames.toIndexedSeq)
+    FunctionCallNode(tree, callSite, args, argNames)
   }
 }
 
 case class FunctionCallNode(
   tree: Tree,
   callSiteNode: EvalNode,
-  argNodes: IndexedSeq[EvalNode],
-  argNames: IndexedSeq[Option[IdentifierNode]]
+  argNodes: Vector[EvalNode],
+  argNames: Vector[Option[IdentifierNode]]
   ) extends EvalNode {
 
   val methodGroupResolutions = mutable.LongMap[MethodGroupResolution]()
@@ -1200,9 +1200,6 @@ case class FunctionCallNode(
 
     def resolveToMethod(args: Array[Any]): MethodResolution = {
 
-      // TODO Check that each named parameter matches at least one site (to give
-      // a more helpful error message)
-
       var classcode: Long = 0
       var classVec: Vector[Short] = Vector.empty
 
@@ -1224,6 +1221,21 @@ case class FunctionCallNode(
       val argNameIds = argNames.flatten map { _.id }
       val argTypes = args map CgscriptClass.of
 
+      // Check that each named parameter matches at least one method
+      // (if not, fail-fast and generate a helpful error message)
+      // TODO: Unit test for this
+      val allParameterNames = methodGroup.methods flatMap { _.parameters } map { _.id }
+      argNames foreach {
+        case Some(node) =>
+          if (!allParameterNames.contains(node.id)) {
+            throw EvalException(
+              s"Invalid parameter name (${methodGroup.methods.head.locationMessage}): `${node.id.name}`",
+              token = Some(token)
+            )
+          }
+        case None =>
+      }
+
       val matchingMethods = methodGroup.methods filter { method =>
 
         val parameters = method.parameters
@@ -1231,12 +1243,25 @@ case class FunctionCallNode(
         // Last parameter is expandable only if there are no named args
         val expandedLastParameter = parameters.nonEmpty && parameters.last.isExpandable && argNames.forall { _.isEmpty }
 
+        // Validate that no named parameter shadows an ordinary argument
+        // (if this fails for any method, it will cause the entire method group to fail)
+        parameters take ordinaryArgCount foreach { param =>
+          argNames find { _ exists { _.id == param.id } } match {
+            case Some(Some(node)) =>
+              throw EvalException(
+                s"Named parameter shadows an earlier ordinary argument (${method.locationMessage}): `${param.id.name}`",
+                token = Some(node.token)
+              )
+            case _ =>
+          }
+        }
+
         // There are not too many arguments
         args.length <= parameters.length && {
 
           // Every required parameter is either specified by an unnamed argument
           // or is explicitly named
-          parameters.drop(ordinaryArgCount).forall { param =>
+          parameters drop ordinaryArgCount forall { param =>
             param.defaultValue.nonEmpty || argNameIds.contains(param.id)
           }
 
@@ -1266,22 +1291,26 @@ case class FunctionCallNode(
 
       }
 
-      // TODO Check for named parameter shadows an earlier ordinary argument
+      val reducedMatchingMethods = {
+        matchingMethods filterNot { method =>
+          matchingMethods exists { otherMethod =>
+            otherMethod.declaringClass.properAncestors contains method.declaringClass
+          }
+        }
+      }
 
-      // TODO Reduce matching methods
-
-      assert(matchingMethods.size <= 1)
+      assert(reducedMatchingMethods.size <= 1)
 
       def argTypesString = if (argTypes.isEmpty) "()" else argTypes map { "`" + _.qualifiedName + "`" } mkString ", "
 
       val method = {
-        if (matchingMethods.isEmpty) {
+        if (reducedMatchingMethods.isEmpty) {
           throw EvalException(
-            s"${methodGroup.locationMessage} cannot be applied to argument types: $argTypesString",
+            s"Method `${methodGroup.id.name}` (in object of type `${methodGroup.declaringClass.qualifiedName}`) cannot be applied to argument types: $argTypesString",
             token = Some(token)
           )
         } else {
-          matchingMethods.head
+          reducedMatchingMethods.head
         }
       }
 
