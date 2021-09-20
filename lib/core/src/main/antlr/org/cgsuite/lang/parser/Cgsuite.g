@@ -261,7 +261,7 @@ importClause
 
 classDeclaration
     : (classModifiers CLASS IDENTIFIER LPAREN methodParameterList RPAREN) =>
-      classModifiers CLASS^ IDENTIFIER (LPAREN! methodParameterList RPAREN!) extendsClause? declarations END
+      classModifiers CLASS^ IDENTIFIER LPAREN! methodParameterList RPAREN! extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }
     | classModifiers CLASS^ IDENTIFIER extendsClause? declarations END
       { $IDENTIFIER.setType(DECL_ID); $END.setType(DECL_END); }

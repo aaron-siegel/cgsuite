@@ -12,16 +12,7 @@ class ClassObject(val forClass: CgscriptClass)
   override def init(): Unit = {
     vars = new Array[Any](forClass.classInfo.staticVarSymbols.size)
   }
-/*
-  override def lookupInstanceMethod(id: Symbol): Option[Any] = {
-    forClass.lookupMethod(id).map { method =>
-      if (method.autoinvoke)
-        method.call(this, Array.empty)
-      else
-        InstanceMethod(this, method)
-    }.orElse(super.lookupInstanceMethod(id))
-  }
-*/
+
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput
     sto appendMath s"\u27ea$qualifiedName\u27eb"
