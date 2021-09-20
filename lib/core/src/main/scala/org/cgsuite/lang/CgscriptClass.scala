@@ -709,7 +709,7 @@ class CgscriptClass(
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
     lazy val evalMethod = forceLookupMethodGroup('Eval)
     lazy val optionsMethod = forceLookupAutoinvokeMethod('Options)
-    lazy val optionsForMethod = forceLookupMethod('Options, Vector(CgscriptClass.Player))
+    lazy val optionsMethodWithParameter = forceLookupMethod('Options, Vector(CgscriptClass.Player))
     lazy val decompositionMethod = forceLookupAutoinvokeMethod('Decomposition)
     lazy val canonicalFormMethod = forceLookupAutoinvokeMethod('CanonicalForm)
     lazy val gameValueMethod = forceLookupAutoinvokeMethod('GameValue)

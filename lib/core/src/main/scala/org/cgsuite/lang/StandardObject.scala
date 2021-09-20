@@ -110,7 +110,7 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
 
   def options(player: Player): Iterable[Game] = {
 
-    val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsForMethod.call(this, Array(player)))
+    val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsMethodWithParameter.call(this, Array(player)))
 
     collection map {
       case g: Game => g
