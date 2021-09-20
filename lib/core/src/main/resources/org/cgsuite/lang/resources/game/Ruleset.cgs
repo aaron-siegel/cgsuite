@@ -1,7 +1,4 @@
 /*${cgsuite.banner}*/
 
 class Ruleset
-
-  def Position(args...) := error("Subclasses of `Ruleset` must define a nested class `Position`.");
-
 end

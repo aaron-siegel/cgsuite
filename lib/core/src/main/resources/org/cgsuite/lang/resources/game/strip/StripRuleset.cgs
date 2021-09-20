@@ -6,9 +6,11 @@ class StripRuleset extends Ruleset
 
   def Eval(str as String) := Position(Strip.Parse(str, CharMap));
 
-  def CharMap := error("Subclasses of `StripRuleset` must override `CharMap`.");
+  def Position(grid as Grid) := error("Subclasses of `StripRuleset` must define `Position`.");
 
-  def Icons := error("Subclasses of `StripRuleset` must override `Icons`.");
+  def CharMap := error("Subclasses of `StripRuleset` must define `CharMap`.");
+
+  def Icons := error("Subclasses of `StripRuleset` must define `Icons`.");
 
   class StripGame(strip as Strip) extends Game
 

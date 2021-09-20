@@ -18,7 +18,6 @@ import org.cgsuite.util._
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.language.{existentials, postfixOps}
 
 object CgscriptClass {
 
@@ -251,7 +250,7 @@ class CgscriptClass(
 
   def properAncestors = classInfo.properAncestors
 
-  def initializers = classInfo.ordinaryInitializers
+  def initializers = classInfo.ordinaryInitializerNodes
 
   def declNode: Option[ClassDeclarationNode] = classdef match {
     case NestedClassDef(_, node) => Some(node)
@@ -492,9 +491,9 @@ class CgscriptClass(
 
     val modifiers: Modifiers = declNode.modifiers
 
-    val ordinaryInitializers: Vector[InitializerNode] = declNode.ordinaryInitializers
+    val ordinaryInitializerNodes: Vector[InitializerNode] = declNode.ordinaryInitializers
 
-    val staticInitializers: Vector[InitializerNode] = declNode.staticInitializers
+    val staticInitializerNodes: Vector[InitializerNode] = declNode.staticInitializers
 
     val enumElementNodes: Vector[EnumElementNode] = declNode.enumElements
 
@@ -539,9 +538,18 @@ class CgscriptClass(
 
     val ancestors = properAncestors :+ CgscriptClass.this
 
-    val localInstanceVars: Vector[Var] = ordinaryInitializers collect {
+    val localInstanceVars: Vector[Var] = ordinaryInitializerNodes collect {
       case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers)
+        Var(declNode.idNode, Some(declNode), isMutable = modifiers.hasMutable, isStatic = false)
+    }
+
+    val localStaticVars: Vector[Var] = staticInitializerNodes collect {
+      case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
+        Var(declNode.idNode, Some(declNode), isMutable = modifiers.hasMutable, isStatic = true)
+    }
+
+    val localEnumElements: Vector[Var] = enumElementNodes map { node =>
+      Var(node.idNode, Some(node), isMutable = modifiers.hasMutable, isStatic = modifiers.hasStatic)
     }
 
     val localMethods: Vector[Method] = declNode.methodDeclarations map { parseMethod(_, declNode.modifiers) }
@@ -566,7 +574,14 @@ class CgscriptClass(
       }
     }
 
-    val localMembers: Vector[Member] = localMethods ++ localNestedClasses
+    val constructorParamVars: Vector[Var] = constructor match {
+      case Some(ctor) => ctor.parameters map { param =>
+        Var(param.idNode, Some(declNode), isMutable = false, isStatic = false, isConstructorParam = true)
+      }
+      case None => Vector.empty
+    }
+
+    val localMembers: Vector[Member] = localInstanceVars ++ constructorParamVars ++ localEnumElements ++ localMethods ++ localNestedClasses
 
     // Check for duplicate members.
     /*
@@ -631,21 +646,27 @@ class CgscriptClass(
     }
     */
 
-    val inheritedMembers: Vector[Member] = (supers flatMap { _.classInfo.allMembers }).distinct
+    val inheritedMembers: Vector[Member] = supers.flatMap { _.classInfo.allMembers }.distinct
 
     val allMembers: Vector[Member] = localMembers ++ inheritedMembers
 
-    // TODO It'd be nice if nested class constructors could join a method group
+    val allMethodGroups: Map[Symbol, MethodGroup] = allMembers groupBy { _.id } filterNot { case (_, members) =>
 
-    lazy val allMethodGroups: Map[Symbol, MethodGroup] = allMembers groupBy { _.id } collect {
+      // This filter block allows a locally defined nested class to shadow inherited methods.
+      // TODO: It'd be more elegant for the nested class constructor to simply join the method group.
+      // So, this should be viewed as a temporary solution to enable an important pattern.
+      members.exists { localNestedClasses contains _ } &&
+        members.forall { member =>
+          localNestedClasses.contains(member) || (member.isInstanceOf[CgscriptClass#Method] && member.declaringClass != thisClass)
+        }
+
+    } collect {
 
       case (id, members) if members.head.isInstanceOf[CgscriptClass#Method] =>
 
-        /*
         if (members exists { !_.isInstanceOf[CgscriptClass#Method] }) {
           throwExceptionForDuplicateSymbol(id, members)
         }
-         */
         val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
         val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
 
@@ -661,88 +682,56 @@ class CgscriptClass(
 
         // TODO Duplicate method signatures
         val checkedMethods = validateMethods(methods)
-        (id, MethodGroup(id, checkedMethods))
+
+        id -> MethodGroup(id, checkedMethods)
 
     }
 
-    lazy val allNestedClasses: Map[Symbol, CgscriptClass] = allMembers groupBy { _.id } collect {
+    val allNestedClasses: Map[Symbol, CgscriptClass] = allMembers groupBy { _.id } collect {
 
-      case (id, classes) if classes.head.isInstanceOf[CgscriptClass] =>
+      case (id, classes) if classes.exists { _.isInstanceOf [CgscriptClass] } =>
 
-        //if (classes.size > 1)
-        //  throwExceptionForDuplicateSymbol(id, classes)
-        (id, classes.head.asInstanceOf[CgscriptClass])
+        // Filter out inherited methods with the same name
+        // (see comment above - this is a temporary solution)
+        // TODO Nested classes with same name as a nested class in superclass
+        val filtered = classes filterNot { member =>
+          member.isInstanceOf[CgscriptClass#Method] && member.declaringClass != thisClass
+        }
+        if (filtered.size > 1)
+          throwExceptionForDuplicateSymbol(id, classes)
+        id -> filtered.head.asInstanceOf[CgscriptClass]
 
     }
 
-    lazy val staticVars: Vector[Var] = declNode.staticInitializers collect {
-      case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), declNode.modifiers)
+    // Check for member/var conflicts
+
+    // TODO We may want to allow defs to override vars in the future - then the vars become private to the
+    // superclass. For now, we prohibit it.
+
+    allMembers groupBy { _.id } collect {
+
+      case (id, vars) if vars.head.isInstanceOf[CgscriptClass#Var] =>
+        if (vars.exists { !_.isInstanceOf[CgscriptClass#Var] })
+          throwExceptionForDuplicateSymbol(id, vars)
+
     }
 
-    lazy val staticVarLookup: Map[Symbol, Var] = staticVars map { v => (v.id, v) } toMap
+    val staticVarLookup: Map[Symbol, Var] = localStaticVars.map { v => (v.id, v) }.toMap
 
-    lazy val enumElements: Vector[Var] = declNode.enumElements map { node =>
-      Var(node.idNode, Some(node), node.modifiers)
-    }
+    val inheritedInstanceVars: Vector[CgscriptClass#Var] = supers.flatMap { _.classInfo.allInstanceVars }.distinct
+    val allInstanceVars: Vector[CgscriptClass#Var] = constructorParamVars ++ inheritedInstanceVars ++ localInstanceVars
+    val allInstanceVarSymbols: Vector[Symbol] = allInstanceVars.map { _.id }.distinct
+    val instanceVarLookup: Map[Symbol, CgscriptClass#Var] = allInstanceVars.map { v => (v.id, v) }.toMap
+    val instanceVarOrdinals: Map[Symbol, Int] = allInstanceVarSymbols.zipWithIndex.toMap
 
-    lazy val inheritedInstanceVars: Vector[CgscriptClass#Var] = supers.flatMap { _.classInfo.allInstanceVars }.distinct
-    lazy val constructorParamVars: Vector[Var] = constructor match {
-      case Some(ctor) => ctor.parameters map { param => Var(param.idNode, Some(declNode), Modifiers.none, isConstructorParam = true) }
-      case None => Vector.empty
-    }
-    lazy val allInstanceVars: Vector[CgscriptClass#Var] = constructorParamVars ++ inheritedInstanceVars ++ localInstanceVars
-    lazy val allInstanceVarSymbols: Vector[Symbol] = allInstanceVars map { _.id } distinct
-    lazy val instanceVarLookup: Map[Symbol, CgscriptClass#Var] = allInstanceVars map { v => (v.id, v) } toMap
-    lazy val instanceVarOrdinals: Map[Symbol, Int] = allInstanceVarSymbols.zipWithIndex.toMap
+    val staticVarSymbols: Vector[Symbol] = enumElementNodes.map { _.idNode.id } ++ localStaticVars.map { _.idNode.id }
+    val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
-    lazy val staticVarSymbols: Vector[Symbol] = enumElementNodes.map { _.idNode.id } ++ staticVars.map { _.idNode.id }
-    lazy val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
-
-    lazy val allSymbolsInThisClass: Set[Symbol] = {
+    val allSymbolsInThisClass: Set[Symbol] = {
       instanceVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ allMethodGroups.keySet ++ allNestedClasses.keySet
     }
-    lazy val allSymbolsInClassScope: Vector[Set[Symbol]] = {
+    val allSymbolsInClassScope: Vector[Set[Symbol]] = {
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Vector.empty)
-    }
-
-    // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = forceLookupMethodGroup('Eval)
-    lazy val optionsMethod = forceLookupAutoinvokeMethod('Options)
-    lazy val optionsMethodWithParameter = forceLookupMethod('Options, Vector(CgscriptClass.Player))
-    lazy val decompositionMethod = forceLookupAutoinvokeMethod('Decomposition)
-    lazy val canonicalFormMethod = forceLookupAutoinvokeMethod('CanonicalForm)
-    lazy val gameValueMethod = forceLookupAutoinvokeMethod('GameValue)
-    lazy val depthHintMethod = forceLookupAutoinvokeMethod('DepthHint)
-    lazy val toOutputMethod = forceLookupAutoinvokeMethod('ToOutput)
-    lazy val heapOptionsMethod = forceLookupMethod('HeapOptions, Vector(CgscriptClass.Integer))
-
-    private def forceLookupMethodGroup(id: Symbol): MethodGroup = {
-      lookupMethodGroup(id) getOrElse {
-        throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
-      }
-    }
-
-    private def forceLookupAutoinvokeMethod(id: Symbol): CgscriptClass#Method = {
-      forceLookupMethodGroup(id).autoinvokeMethod match {
-        case Some(method) => method
-        case None =>
-          throw EvalException(s"No parameterless method `${id.name}` for class: `$qualifiedName`")
-      }
-    }
-
-    private def forceLookupMethod(id: Symbol, parameterTypes: Vector[CgscriptClass]): CgscriptClass#Method = {
-      // TODO Resolve ambiguous overloaded methods in the usual manner.
-      forceLookupMethodGroup(id).methods find { method =>
-        method.parameters.size == parameterTypes.size &&
-          parameterTypes.indices.forall { i =>
-            parameterTypes(i).ancestors contains method.parameters(i).paramType
-          }
-      } match {
-        case Some(method) => method
-        case None =>
-          throw EvalException(s"No method `${id.name}` found matching expected signature in class: `$qualifiedName`")
-      }
     }
 
     logDebug(s"Validating class.")
@@ -762,19 +751,6 @@ class CgscriptClass(
       }
     }
 
-    // Check for member/var conflicts
-
-    // TODO We may want to allow defs to override vars in the future - then the vars become private to the
-    // superclass. For now, we prohibit it.
-/*
-    allMethodGroups ++ allNestedClasses foreach { case (id, _) =>
-      if (instanceVarLookup contains id)
-        throw EvalException(
-          s"Member `${id.name}` conflicts with a var declaration in class `$qualifiedName`",
-          token = Some(idNode.token)    // TODO Would rather use member.idNode.token but don't have it working yet
-        )
-    }
-*/
     // Check that singleton => no constructor
     if (constructor.isDefined && declNode.modifiers.hasSingleton) {
       throw EvalException(
@@ -822,7 +798,7 @@ class CgscriptClass(
         }
       }
       // ... and that there are no mutable vars
-      ordinaryInitializers foreach {
+      ordinaryInitializerNodes foreach {
         case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic && declNode.modifiers.hasMutable =>
           throw EvalException(
             s"Class `$qualifiedName` is immutable, but variable `${declNode.idNode.id.name}` is declared `mutable`",
@@ -833,7 +809,7 @@ class CgscriptClass(
     }
 
     // Check that immutable class vars are assigned at declaration time
-    ordinaryInitializers collect {
+    ordinaryInitializerNodes collect {
       // This is a little bit of a hack, we look for "phantom" constant nodes since those are indicative of
       // a "default" nil value. This could be refactored to be a bit more elegant.
       case VarDeclarationNode(_, AssignToNode(_, idNode, ConstantNode(null, _), AssignmentDeclType.ClassVarDecl), modifiers)
@@ -945,6 +921,45 @@ class CgscriptClass(
 
       }
 
+    }
+
+    // For efficiency, we cache lookups for some methods that get called in hardcoded locations
+    lazy val evalMethod = forceLookupMethodGroup('Eval)
+    lazy val optionsMethod = forceLookupAutoinvokeMethod('Options)
+    lazy val optionsMethodWithParameter = forceLookupMethod('Options, Vector(CgscriptClass.Player))
+    lazy val decompositionMethod = forceLookupAutoinvokeMethod('Decomposition)
+    lazy val canonicalFormMethod = forceLookupAutoinvokeMethod('CanonicalForm)
+    lazy val gameValueMethod = forceLookupAutoinvokeMethod('GameValue)
+    lazy val depthHintMethod = forceLookupAutoinvokeMethod('DepthHint)
+    lazy val toOutputMethod = forceLookupAutoinvokeMethod('ToOutput)
+    lazy val heapOptionsMethod = forceLookupMethod('HeapOptions, Vector(CgscriptClass.Integer))
+
+    private def forceLookupMethodGroup(id: Symbol): MethodGroup = {
+      lookupMethodGroup(id) getOrElse {
+        throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
+      }
+    }
+
+    private def forceLookupAutoinvokeMethod(id: Symbol): CgscriptClass#Method = {
+      forceLookupMethodGroup(id).autoinvokeMethod match {
+        case Some(method) => method
+        case None =>
+          throw EvalException(s"No parameterless method `${id.name}` for class: `$qualifiedName`")
+      }
+    }
+
+    private def forceLookupMethod(id: Symbol, parameterTypes: Vector[CgscriptClass]): CgscriptClass#Method = {
+      // TODO Resolve ambiguous overloaded methods in the usual manner.
+      forceLookupMethodGroup(id).methods find { method =>
+        method.parameters.size == parameterTypes.size &&
+          parameterTypes.indices.forall { i =>
+            parameterTypes(i).ancestors contains method.parameters(i).paramType
+          }
+      } match {
+        case Some(method) => method
+        case None =>
+          throw EvalException(s"No method `${id.name}` found matching expected signature in class: `$qualifiedName`")
+      }
     }
 
   }
@@ -1124,12 +1139,12 @@ class CgscriptClass(
   case class Var(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    modifiers: Modifiers,
+    isMutable: Boolean,
+    isStatic: Boolean,
     isConstructorParam: Boolean = false
   ) extends Member {
 
     def declaringClass = thisClass
-    def isMutable = modifiers.hasMutable
 
   }
 

@@ -6,9 +6,11 @@ class GridRuleset extends Ruleset
 
   def Eval(str as String) := Position(Grid.Parse(str, CharMap));
 
-  def CharMap := error("Subclasses of `GridRuleset` must override `CharMap`.");
+  def Position(grid as Grid) := error("Subclasses of `GridRuleset` must define `Position`.");
 
-  def Icons := error("Subclasses of `GridRuleset` must override `Icons`.");
+  def CharMap := error("Subclasses of `GridRuleset` must define `CharMap`.");
+
+  def Icons := error("Subclasses of `GridRuleset` must define `Icons`.");
 
   class GridGame(grid as Grid) extends Game
 
