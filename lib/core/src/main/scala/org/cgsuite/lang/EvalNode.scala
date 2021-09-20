@@ -1084,6 +1084,8 @@ case class FunctionCallNode(
       }
       i += 1
     }
+
+    res.validateArguments(args)
     args
 
   }
@@ -1250,7 +1252,7 @@ case class FunctionCallNode(
 
       }
 
-      // TODO Check for named parameter shadows an earlier optional argument
+      // TODO Check for named parameter shadows an earlier ordinary argument
 
       // TODO Reduce matching methods
 
@@ -1303,27 +1305,30 @@ case class FunctionCallNode(
 
   }
 
-  case class CallSiteResolution(params: Vector[Parameter], locationMessage: String) {
+  case class CallSiteResolution(parameters: Vector[Parameter], locationMessage: String) {
+
+    val shortValidations = mutable.LongMap[Unit]()
+    val longValidations = mutable.Map[Vector[Short], Unit]()
 
     // Last parameter is expandable only if there are no named args
-    val expandedLastParameter = params.nonEmpty && params.last.isExpandable && argNames.forall { _.isEmpty }
+    val expandedLastParameter = parameters.nonEmpty && parameters.last.isExpandable && argNames.forall { _.isEmpty }
 
     // Check for too many arguments
-    if (!expandedLastParameter && argNames.length > params.length) {
+    if (!expandedLastParameter && argNames.length > parameters.length) {
       throw EvalException(
-        s"Too many arguments ($locationMessage): ${argNames.length} (expecting at most ${params.length})",
+        s"Too many arguments ($locationMessage): ${argNames.length} (expecting at most ${parameters.length})",
         token = Some(token)
       )
     }
 
-    val parameterToArgsMapping = new Array[Int](if (expandedLastParameter) params.length - 1 else params.length)
+    val parameterToArgsMapping = new Array[Int](if (expandedLastParameter) parameters.length - 1 else parameters.length)
     java.util.Arrays.fill(parameterToArgsMapping, -1)
     argNames.zipWithIndex foreach {
       case (None, index) =>
         if (index < parameterToArgsMapping.length)
           parameterToArgsMapping(index) = index
       case (Some(idNode), index) =>
-        val namedIndex = params indexWhere { _.id == idNode.id }
+        val namedIndex = parameters indexWhere { _.id == idNode.id }
         if (namedIndex == -1)
           throw EvalException(
             s"Invalid parameter name ($locationMessage): `${idNode.id.name}`",
@@ -1338,12 +1343,58 @@ case class FunctionCallNode(
     }
 
     // Check that all required args are present
-    params zip parameterToArgsMapping foreach { case (param, index) =>
+    parameters zip parameterToArgsMapping foreach { case (param, index) =>
       if (param.defaultValue.isEmpty && index == -1)
         throw EvalException(
           s"Missing required parameter ($locationMessage): `${param.id.name}`",
           token = Some(token)
         )
+    }
+
+    def validateArguments(args: Array[Any], ensureImmutable: Boolean = false): Unit = {
+
+      var classcode: Long = 0
+      var classVec: Vector[Short] = Vector.empty
+      if (parameters.size <= 4) {
+        var i = 0
+        while (i < args.length) {
+          classcode |= (CgscriptClass of args(i)).classOrdinal
+          classcode <<= 16
+          i += 1
+        }
+        if (shortValidations.contains(classcode))
+          return
+      } else {
+        classVec = args.toVector map { arg => (CgscriptClass of arg).classOrdinal.toShort }
+        if (longValidations.contains(classVec))
+          return
+      }
+
+      var i = 0
+      assert(args.length == 0 || parameters.nonEmpty)
+      while (i < args.length) {
+        val cls = CgscriptClass of args(i)
+        val expectedType = {
+          if (i == args.length - 1 && parameters.last.isExpandable) {
+            CgscriptClass.List   // TODO Validate elements of the list as well? Ideally we should do this only if explicitly specified
+          } else {
+            parameters(i).paramType
+          }
+        }
+        if (!(cls.ancestors contains expectedType)) {
+          throw EvalException(s"Argument `${parameters(i).id.name}` ($locationMessage) " +
+            s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`")
+        }
+        if (ensureImmutable && cls.isMutable) {
+          throw EvalException(s"Cannot assign mutable object to var `${parameters(i).id.name}` of immutable class")
+        }
+        i += 1
+      }
+      if (parameters.size <= 4) {
+        shortValidations put (classcode, ())
+      } else {
+        longValidations put (classVec, ())
+      }
     }
 
   }

@@ -11,7 +11,7 @@ case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends Call
   def ordinal = node.ordinal
   def call(args: Array[Any]) = {
     val newDomain = new EvaluationDomain(new Array[Any](node.localVariableCount), domain.contextObject, domain.dynamicVarMap, Some(domain))
-    CallSite.validateArguments(parameters, args, node.knownValidArgs, locationMessage)
+//    CallSite.validateArguments(parameters, args, node.knownValidArgs, locationMessage)
     var i = 0
     while (i < node.parameters.length) {
       newDomain.localScope(node.parameters(i).methodScopeIndex) = args(i)
