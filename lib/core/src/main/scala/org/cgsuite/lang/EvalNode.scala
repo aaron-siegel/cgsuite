@@ -1030,7 +1030,7 @@ case class FunctionCallNode(
     obj match {
       case cs: CallSite => resolveAndEvaluateCallSite(domain, cs)
       case img: InstanceMethodGroup => resolveAndEvaluateMethod(domain, img.enclosingObject, img.methodGroup)
-      case script: Script => ScriptCaller(domain, script)
+      case script: Script => resolveAndEvaluateScript(domain, script)
       case co: ClassObject => co.forClass.constructor match {
         case Some(ctor) => resolveAndEvaluateCallSite(domain, ctor)
         case None => throw EvalException(
@@ -1102,6 +1102,17 @@ case class FunctionCallNode(
 
   }
 
+  def resolveAndEvaluateScript(domain: EvaluationDomain, script: Script): Any = {
+
+    val scriptDomain = new EvaluationDomain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
+    val result = script.node evaluate scriptDomain
+    if (script.node.suppressOutput)
+      EmptyOutput
+    else
+      result
+
+  }
+
   def resolveAndEvaluateMethod(domain: EvaluationDomain, baseObject: Any, methodGroup: CgscriptClass#MethodGroup): Any = {
 
     if (methodGroup.methodsWithArguments.size == 1) {
@@ -1167,29 +1178,6 @@ case class FunctionCallNode(
       case _: StackOverflowError =>
         throw EvalException("Possible infinite recursion.", token = Some(token))
     }
-
-  }
-
-  case class ScriptCaller(domain: EvaluationDomain, script: Script) extends CallSite {
-
-    override def parameters: Vector[Parameter] = Vector.empty
-
-    override def ordinal = script.ordinal
-
-    override def call(args: Array[Any]): Any = {
-      val scriptDomain = new EvaluationDomain(new Array[Any](script.scope.localVariableCount), dynamicVarMap = domain.dynamicVarMap)
-      val result = script.node evaluate scriptDomain
-      if (script.node.suppressOutput)
-        EmptyOutput
-      else
-        result
-    }
-
-    override def referenceToken = None
-
-    override def allowMutableArguments = true
-
-    override def locationMessage: String = ???
 
   }
 
