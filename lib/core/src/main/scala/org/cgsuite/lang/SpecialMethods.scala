@@ -62,6 +62,8 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.foreach { x => proc.call(Array(x)) }; null
     },
+    "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
+    "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
     },
