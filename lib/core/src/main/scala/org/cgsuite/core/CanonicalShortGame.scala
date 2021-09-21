@@ -128,6 +128,8 @@ trait CanonicalShortGame extends CanonicalStopper {
     options(player).toSeq.sorted(CanonicalShortGame.DeterministicOrdering)
   }
 
+  override def canonicalForm = this
+
   override def canonicalForm(tc: TranspositionCache) = this
 
   def atomicWeight = {
@@ -205,6 +207,8 @@ trait CanonicalShortGame extends CanonicalStopper {
   def isEvenTempered: Boolean = ops.isEvenTempered(gameId)
 
   override def isIdempotent = isZero      // 0 is the only loopfree idempotent
+
+  override def isInfinitesimal = leftStop == Values.zero && rightStop == Values.zero
 
   override def isInteger: Boolean = ops.isInteger(gameId)
 
@@ -289,6 +293,8 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def stopCount: Integer = Integer(ops.stopCount(gameId))
 
+  override def switch: CanonicalShortGame = CanonicalShortGame(this)(-this)
+
   def temperature: DyadicRationalNumber = ops.temperature(gameId)
 
   def thermograph: Thermograph = ops.thermograph(gameId)
@@ -302,6 +308,8 @@ trait CanonicalShortGame extends CanonicalStopper {
     appendTo(sto, true, false)
     sto
   }
+
+  override def toString: String = toOutput.toString
 
   override private[core] def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
 
