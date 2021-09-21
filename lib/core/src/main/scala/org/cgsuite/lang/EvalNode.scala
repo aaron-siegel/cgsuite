@@ -741,7 +741,7 @@ case class LoopNode(
     val result = loopType match {
       case LoopNode.Do => null
       case LoopNode.YieldList => buffer.toVector
-      case LoopNode.YieldMap => buffer.asInstanceOf[mutable.HashMap[Any,Any]].toMap
+      case LoopNode.YieldMap => buffer.asInstanceOf[mutable.ArrayBuffer[(Any,Any)]].toMap
       case LoopNode.YieldSet => buffer.toSet
       case LoopNode.YieldTable => Table { buffer.toIndexedSeq map {
         case list: IndexedSeq[_] => list

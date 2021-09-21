@@ -695,7 +695,9 @@ slashExpression
     ;
 
 explicitMap
-    : LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
+    : (LBRACE mapEntry forLoopAntecedent) =>
+      LBRACE mapEntry forLoopAntecedent+ RBRACE -> ^(MAPOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE mapEntry))
+    | LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
     ;
 
 mapEntry
@@ -703,11 +705,15 @@ mapEntry
     ;
 
 explicitSet
-    : LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
+    : (LBRACE expression forLoopAntecedent) =>
+      LBRACE expression forLoopAntecedent+ RBRACE -> ^(SETOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
+    | LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
     ;
 
 explicitList
-    : LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
+    : (LBRACKET expression forLoopAntecedent) =>
+      LBRACKET expression forLoopAntecedent+ RBRACKET -> ^(LISTOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
+    | LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
     ;
 
 of
