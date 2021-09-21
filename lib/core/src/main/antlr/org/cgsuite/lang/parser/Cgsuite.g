@@ -387,7 +387,30 @@ enumElement
     ;
 
 script
-    : statementSequence EOF -> ^(SCRIPT statementSequence)
+    : topStatementSequence EOF -> ^(SCRIPT topStatementSequence)
+    ;
+
+topStatementSequence
+    : topStatementChain? -> ^(STATEMENT_SEQUENCE topStatementChain?)
+    ;
+
+topStatementChain
+    : (IF | loopAntecedent | BEGIN) => controlExpression topStatementChain?
+    | (TRY) => tryStatement topStatementChain?
+      // outerDefBlockStatement is parsed separately so that statements with def-block syntax can omit
+      // the trailing semicolon (example: "def f(x) begin x + 1 end f(5)" instead of "def f(x) begin x + 1 end; f(5)")
+    | (DEF IDENTIFIER LPAREN methodParameterList RPAREN BEGIN) => outerDefBlockStatement topStatementChain?
+    | (outerDefStatement | statement) (SEMI topStatementChain?)?
+    | SEMI topStatementChain?
+    ;
+
+outerDefStatement
+    : DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! ASSIGN! expression
+    ;
+
+outerDefBlockStatement
+    : DEF^ IDENTIFIER LPAREN! methodParameterList RPAREN! BEGIN! statementSequence END!
+      { $BEGIN.setType(DECL_BEGIN); $END.setType(DECL_END); }
     ;
 
 statementSequence

@@ -14,14 +14,7 @@ object DeclarationNode {
 
       case CLASS => Iterable(ClassDeclarationNode(tree, pkg))
 
-      case DEF =>
-        Iterable(MethodDeclarationNode(
-          tree,
-          IdentifierNode(tree.children(1)),
-          Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC),
-          tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) },
-          tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
-        ))
+      case DEF => Iterable(MethodDeclarationNode(tree, Some(pkg)))
 
       case STATIC => Iterable(InitializerBlockNode(tree, EvalNode(tree.head), Modifiers(static = Some(tree.token))))
 
@@ -183,6 +176,20 @@ object EnumElementNode {
 case class EnumElementNode(tree: Tree, idNode: IdentifierNode, modifiers: Modifiers)
   extends MemberDeclarationNode {
   val children = Seq(idNode)
+}
+
+object MethodDeclarationNode {
+
+  def apply(tree: Tree, pkg: Option[CgscriptPackage]): MethodDeclarationNode = {
+    MethodDeclarationNode(
+      tree,
+      IdentifierNode(tree.children(1)),
+      Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC),
+      tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, pkg) },
+      tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
+    )
+  }
+
 }
 
 case class MethodDeclarationNode(
