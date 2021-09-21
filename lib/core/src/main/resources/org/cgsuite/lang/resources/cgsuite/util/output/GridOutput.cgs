@@ -1,4 +1,4 @@
 /*${cgsuite.banner}*/
 
-system class GridOutput(grid as Grid, icons as List, alt as String) extends Output
+system class GridOutput(grid as Grid, iconNames as List, alt as String) extends Output
 end

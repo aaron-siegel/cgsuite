@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import org.cgsuite.core.impartial.{HeapRuleset, Periodicity, Spawning, TakeAndBreak}
 import org.cgsuite.core.misere.{Genus, MisereCanonicalGame}
 import org.cgsuite.core._
-import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StyledTextOutput}
+import org.cgsuite.output.{EmptyOutput, GridOutput, Output, StripOutput, StyledTextOutput}
 import org.cgsuite.util._
 
 import scala.collection.immutable.NumericRange
@@ -55,6 +55,7 @@ private[lang] object SystemClassRegistry {
 
     "cgsuite.util.output.EmptyOutput" -> classOf[EmptyOutput],
     "cgsuite.util.output.GridOutput" -> classOf[GridOutput],
+    "cgsuite.util.output.StripOutput" -> classOf[StripOutput],
     "cgsuite.util.output.TextOutput" -> classOf[StyledTextOutput],
     "cgsuite.lang.Output" -> classOf[Output],
 
