@@ -210,8 +210,19 @@ object Ops {
   }
 
   val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) {
-    case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
-    case (map: Map[Any @unchecked, _], key: Any) => map(key)
+    case (seq: Seq[_], index: Integer) => {
+      val i = index.intValue
+      if (i >= 1 && i <= seq.length)
+        seq(i - 1)
+      else
+        throw EvalException(s"List index out of bounds: $i")
+    }
+    case (map: Map[Any @unchecked, _], key: Any) => {
+      map get key match {
+        case Some(value) => value
+        case None => throw EvalException(s"Key not found: $key")
+      }
+    }
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
   }
@@ -257,7 +268,7 @@ class SimpleUnOp(val name: String, val precedence: Int,
     try {
       resolver(x)
     } catch {
-      case err: MatchError => throwEvalException(tree, x)
+      case _: MatchError => throwEvalException(tree, x)
     }
   }
 
@@ -274,7 +285,7 @@ class CachingUnOp(val name: String, val precedence: Int,
       val fn = classLookupCache.getOrElseUpdate(x.getClass, resolver(x).asInstanceOf[Any => Any])
       fn(x)
     } catch {
-      case err: MatchError => throwEvalException(tree, x)
+      case _: MatchError => throwEvalException(tree, x)
     }
   }
 
@@ -320,7 +331,7 @@ class SimpleBinOp(val name: String, val precedence: Int,
     try {
       resolver(x, y)
     } catch {
-      case err: MatchError => throwEvalException(tree, x, y)
+      case _: MatchError => throwEvalException(tree, x, y)
     }
   }
 

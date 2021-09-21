@@ -42,6 +42,7 @@ import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.awt.geom.AffineTransform;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedCharacterIterator.Attribute;
 import java.util.ArrayList;
@@ -1232,7 +1233,7 @@ public class StyledTextOutput extends AbstractOutput
         }
     }
     
-    private static class Block
+    private static class Block implements Serializable
     {
         EnumSet<Style> styles;
         EnumSet<Mode> modes;

@@ -1,0 +1,4 @@
+/*${cgsuite.banner}*/
+
+system class StripOutput(strip as Strip, iconNames as List, alt as String) extends Output
+end

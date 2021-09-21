@@ -62,6 +62,8 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], proc: Procedure) =>
       collection.foreach { x => proc.call(Array(x)) }; null
     },
+    "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
+    "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toIterable
     },
@@ -106,7 +108,13 @@ object SpecialMethods {
 
   private val specialMethods2: Map[String, (_, _) => Any] = Map(
 
-    "cgsuite.lang.List.Updated" -> { (list: Seq[_], kv: (Integer, Any)) => list.updated(kv._1.intValue-1, kv._2) },
+    "cgsuite.lang.List.Updated" -> { (list: Seq[_], kv: (Integer, Any)) =>
+      val i = kv._1.intValue
+      if (i >= 1 && i <= list.length)
+        list.updated(i - 1, kv._2)
+      else
+        throw EvalException(s"List index out of bounds: $i")
+    },
     "cgsuite.util.MutableMap.Put" -> { (map: mutable.Map[Any,Any], kv: (Any, Any)) => map(kv._1) = kv._2; null }
 
   )

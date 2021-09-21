@@ -41,6 +41,7 @@ import java.awt.font.LineMetrics;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -49,8 +50,8 @@ import java.util.List;
 import org.cgsuite.core.*;
 
 /**
- * An {@link org.cgsuite.plugin.Output} type for graphical display of
- * {@link org.cgsuite.Thermograph}s.
+ * An {@link org.cgsuite.output.Output} type for graphical display of
+ * {@link org.cgsuite.core.Thermograph}s.
  *
  * @author  Aaron Siegel
  * @version $Revision: 1.12 $ $Date: 2007/02/20 20:17:50 $
@@ -842,7 +843,7 @@ public class PlotOutput extends AbstractOutput
         { System.out.println(scale); System.out.println(viewTop); System.out.println(temp); System.out.println(trajectories); throw exc; }
     }
 
-    public static class PlotInfo
+    public static class PlotInfo implements Serializable
     {
         public Dimension imageSize;
         public RationalNumber viewLeft, viewRight, viewTop, viewBottom;
@@ -866,7 +867,7 @@ public class PlotOutput extends AbstractOutput
         }
     }
     
-    private static class TrajectoryInfo
+    private static class TrajectoryInfo implements Serializable
     {
         Trajectory trajectory;
         Color color;
@@ -885,7 +886,7 @@ public class PlotOutput extends AbstractOutput
         }
     }
     
-    private static class TickInfo
+    private static class TickInfo implements Serializable
     {
         RationalNumber location;
         int extent;

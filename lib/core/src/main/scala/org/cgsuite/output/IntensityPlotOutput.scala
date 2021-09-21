@@ -18,7 +18,7 @@ case class IntensityPlotOutput(array: Seq[Seq[RationalNumber]], unitSize: Int = 
   val span = (maxValue - minValue).toFloat
 
   def write(out: PrintWriter, mode: Mode) {
-    throw new UnsupportedOperationException("Not supported yet.")
+    out println s"<$rowCount x $colCount IntensityPlot>"
   }
 
   def getSize(preferredWidth: Int): Dimension = new Dimension(colCount * unitSize, rowCount * unitSize)

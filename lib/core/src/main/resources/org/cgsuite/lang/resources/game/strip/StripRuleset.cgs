@@ -15,7 +15,7 @@ class StripRuleset extends Ruleset
   class StripGame(strip as Strip) extends Game
 
     override def ToOutput :=
-      cgsuite.util.output.GridOutput(strip, Icons, this.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
+      cgsuite.util.output.StripOutput(strip, listof(icon.Literal for icon in Icons), this.Class.Name + "(\"" + strip.ToString(CharMap) + "\")");
 
   end
 

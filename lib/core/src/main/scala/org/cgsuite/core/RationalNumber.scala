@@ -101,9 +101,9 @@ trait RationalNumber extends SurrealNumber with OutputTarget {
 
   override def exp(other: Integer): RationalNumber = {
     if (other >= Values.zero) {
-      RationalNumber(numerator.integerPow(other), denominator.integerPow(other))
+      RationalNumber(numerator.intExp(other), denominator.intExp(other))
     } else {
-      RationalNumber(denominator.integerPow(-other), numerator.integerPow(-other))
+      RationalNumber(denominator.intExp(-other), numerator.intExp(-other))
     }
   }
 

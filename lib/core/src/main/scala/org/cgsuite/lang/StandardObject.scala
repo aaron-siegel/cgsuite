@@ -169,7 +169,7 @@ class HeapRulesetObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: A
   extends StandardObject(cls, objArgs, enclosingObj) with HeapRuleset {
 
   override def heapOptions(heapSize: Integer) = {
-    cls.classInfo.heapOptionsMethod.call(this, Array(heapSize)).asInstanceOf[Iterable[Iterable[Integer]]]   // TODO Better error handling
+    cls.classInfo.heapOptionsMethod.call(this, Array(heapSize)).asInstanceOf[Iterable[IndexedSeq[Integer]]]   // TODO Better error handling
   }
 
 }

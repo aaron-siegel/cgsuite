@@ -4,8 +4,6 @@ import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.lang.Node._
 
-import scala.collection.mutable
-
 object EvalException {
 
   def apply(msg: String, tree: Tree): EvalException = {

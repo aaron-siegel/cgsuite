@@ -12,7 +12,7 @@ trait HeapRuleset {
     sequence nimValues toHeapSize.intValue map { SmallInteger(_) }
   }
 
-  def heapOptions(heapSize: Integer): Iterable[Iterable[Integer]]
+  def heapOptions(heapSize: Integer): Iterable[IndexedSeq[Integer]]
 
   def traversal(heapSize: Int): Traversal = new Traversal {
 

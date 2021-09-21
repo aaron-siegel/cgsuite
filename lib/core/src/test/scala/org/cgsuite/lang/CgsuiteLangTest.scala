@@ -35,10 +35,25 @@ class CgsuiteLangTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.lang.List" should "implement methods correctly" in {
+    executeTests(Table(
+      header,
+      ("List: Lookup", "[5,12,13][2]", "12"),
+      ("List: Lookup out of bounds", "[5,12,13][4]", "!!List index out of bounds: 4"),
+      ("List: Lookup way out of bounds", "[5,12,13][2^100]", "!!Overflow."),
+      ("List: Updated", "[5,12,13].Updated(2, 99)", "[5,99,13]"),
+      ("List: Updated out of bounds", "[5,12,13].Updated(0, 99)", "!!List index out of bounds: 0"),
+      ("List: Append", "[5,12,13] Append 99", "[5,12,13,99]"),
+      ("List: AppendAll", "[5,12,13] AppendAll [99,101]", "[5,12,13,99,101]")
+    ))
+  }
+
   "cgsuite.lang.Map" should "implement methods correctly" in {
 
     executeTests(Table(
       header,
+      ("Map: Lookup", "{7 => true, 1/2 => ^^*}[1/2]", "^^*"),
+      ("Map: Lookup not found", "{7 => true, 1/2 => ^^*}[1/4]", "!!Key not found: 1/4"),
       ("Map: ContainsKey", "{7 => true, 1/2 => ^^*} ContainsKey 7", "true"),
       ("Map: Entries", "{7 => true, 1/2 => ^^*}.Entries", "{1/2 => ^^*,7 => true}"),
       ("Map: Keys", "{7 => true, 1/2 => ^^*}.Keys", "{1/2,7}"),

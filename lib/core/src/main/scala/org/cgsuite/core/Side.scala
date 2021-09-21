@@ -1,6 +1,5 @@
 package org.cgsuite.core
 
-
 sealed trait Side {
   def sign: Int
   def unary_- : Side
