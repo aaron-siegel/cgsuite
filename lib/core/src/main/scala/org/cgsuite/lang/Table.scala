@@ -56,7 +56,7 @@ case class Table (
     val numbers = rows map {
       _ map {
         case x: RationalNumber => x
-        case obj => throw NotNumberException(s"Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
+        case _ => throw NotNumberException(s"Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
       }
     }
     IntensityPlotOutput(numbers, unitSize.intValue)
