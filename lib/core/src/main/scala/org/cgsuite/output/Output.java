@@ -32,6 +32,7 @@ package org.cgsuite.output;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.io.PrintWriter;
+import java.io.Serializable;
 
 /**
  * An abstract output scheme that can be converted to any of several forms of
@@ -50,7 +51,7 @@ import java.io.PrintWriter;
  * @author  Aaron Siegel
  * @version $Revision: 1.8 $ $Date: 2007/02/16 20:10:13 $
  */
-public interface Output extends OutputTarget
+public interface Output extends OutputTarget, Serializable
 {
     /**
      * Writes this output in text format.

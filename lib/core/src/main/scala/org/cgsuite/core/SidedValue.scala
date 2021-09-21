@@ -37,42 +37,52 @@ object SidedValue {
     }
   }
 
+  def apply(lo: SidedValue*)(ro: SidedValue*): SidedValue = {
+    // TODO Optimize if all arguments are stoppers?
+    val lOnside = lo map { _.onsideSimplified }
+    val rOnside = ro map { _.onsideSimplified }
+    val lOffside = lo map { _.offsideSimplified }
+    val rOffside = ro map { _.offsideSimplified }
+    SidedValue(SimplifiedLoopyGame.constructLoopyGame(lOnside, rOnside), SimplifiedLoopyGame.constructLoopyGame(lOffside, rOffside))
+  }
+
   private lazy val zeroAsLoopyGame = new LoopyGame(zero)
 
 }
 
 trait SidedValue extends NormalValue with OutputTarget {
 
-  def onside: SimplifiedLoopyGame
+  def onsideSimplified: SimplifiedLoopyGame
 
-  def offside: SimplifiedLoopyGame
+  def offsideSimplified: SimplifiedLoopyGame
 
-  def side(side: Side): SimplifiedLoopyGame = {
+  def sideSimplified(side: Side): SimplifiedLoopyGame = {
     side match {
-      case Onside => onside
-      case Offside => offside
+      case Onside => onsideSimplified
+      case Offside => offsideSimplified
     }
   }
 
   def unary_+ : SidedValue = this
 
-  def unary_- : SidedValue = SidedValueImpl(-offside, -onside)
+  def unary_- : SidedValue = SidedValueImpl(-offsideSimplified, -onsideSimplified)
 
-  def switch: SidedValue = ???
+  def switch: SidedValue = SidedValue(this)(-this)
 
   def +(that: SidedValue): SidedValue = {
-    SidedValue(onside.loopyGame.add(that.onside.loopyGame), offside.loopyGame.add(that.offside.loopyGame))
+    SidedValue(onsideSimplified.loopyGame.add(that.onsideSimplified.loopyGame), offsideSimplified.loopyGame.add(that.offsideSimplified.loopyGame))
   }
 
   def -(that: SidedValue): SidedValue = this + (-that)
 
   def <=(that: SidedValue): Boolean = {
-    onside.loopyGame.leq(that.onside.loopyGame, true) && offside.loopyGame.leq(that.offside.loopyGame, false)
+    onsideSimplified.loopyGame.leq(that.onsideSimplified.loopyGame, true) &&
+      offsideSimplified.loopyGame.leq(that.offsideSimplified.loopyGame, false)
   }
 
   def sidedOutcomeClass(side: Side): OutcomeClass = {
-    val geqZero = SidedValue.zeroAsLoopyGame.leq(this.side(side).loopyGame, side == Onside)
-    val leqZero = this.side(side).loopyGame.leq(SidedValue.zeroAsLoopyGame, side == Onside)
+    val geqZero = SidedValue.zeroAsLoopyGame.leq(this.sideSimplified(side).loopyGame, side == Onside)
+    val leqZero = this.sideSimplified(side).loopyGame.leq(SidedValue.zeroAsLoopyGame, side == Onside)
     (geqZero, leqZero) match {
       case (true, false) => OutcomeClass.L
       case (false, false) => OutcomeClass.N
@@ -105,17 +115,17 @@ trait SidedValue extends NormalValue with OutputTarget {
 
   override def isIdempotent = this + this == this
 
-  override def isStopperSided = onside.loopyGame.isStopper && offside.loopyGame.isStopper
+  override def isStopperSided = onsideSimplified.loopyGame.isStopper && offsideSimplified.loopyGame.isStopper
 
   def toOutput: StyledTextOutput = {
 
     val sto = new StyledTextOutput
-    if (onside == on && offside == off) {
+    if (onsideSimplified == on && offsideSimplified == off) {
       sto appendMath "dud"
     } else {
-      sto append onside.toOutput
+      sto append onsideSimplified.toOutput
       sto appendMath " & "
-      sto append offside.toOutput
+      sto append offsideSimplified.toOutput
     }
     sto
 
@@ -123,7 +133,7 @@ trait SidedValue extends NormalValue with OutputTarget {
 
 }
 
-case class SidedValueImpl private[core] (onside: SimplifiedLoopyGame, offside: SimplifiedLoopyGame) extends SidedValue {
+case class SidedValueImpl private[core] (onsideSimplified: SimplifiedLoopyGame, offsideSimplified: SimplifiedLoopyGame) extends SidedValue {
 
   assert(!isStopperSided)
 

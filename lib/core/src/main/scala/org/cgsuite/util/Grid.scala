@@ -41,7 +41,7 @@ object Grid {
 
 }
 
-class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] {
+class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] with Serializable {
 
   def get(row: Int, col: Int): Byte = values((row-1)*colCount+(col-1))
 
@@ -99,7 +99,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     rowInt >= 1 && rowInt <= rowCount && colInt >= 1 && colInt <= colCount
   }
 
-  def findAll(value: Integer): Seq[Any] = {
+  def findAll(value: Integer): IndexedSeq[Any] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0
@@ -132,7 +132,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     subgrid
   }
 
-  def decomposition(boundaryValue: Integer, directions: IndexedSeq[Coordinates] = Coordinates.Orthogonal): Seq[Grid] = {
+  def decomposition(boundaryValue: Integer, directions: IndexedSeq[Coordinates] = Coordinates.Orthogonal): IndexedSeq[Grid] = {
     val bv = boundaryValue.intValue.toByte
     if (Grid.regionMarkers.length < values.length)
       Grid.regionMarkers = new Array[Int](values.length)
@@ -154,9 +154,9 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
       i += 1
     }
     if (nextRegion == 0) {
-      Seq.empty
+      Vector.empty
     } else if (nextRegion == 1) {
-      Seq(this)
+      Vector(this)
     } else {
       (0 until nextRegion) map { n =>
         val info = Grid.regionInfo(n)
@@ -172,7 +172,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     }
   }
 
-  private def markRegion(bv: Byte, i: Int, info: RegionInfo, directions: Seq[Coordinates]): Unit = {
+  private def markRegion(bv: Byte, i: Int, info: RegionInfo, directions: IndexedSeq[Coordinates]): Unit = {
     if (Grid.regionMarkers(i) == -1 && values(i) != bv) {
       Grid.regionMarkers(i) = info.region
       info.minRow = info.minRow.min(i / colCount + 1)
