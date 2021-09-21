@@ -336,6 +336,19 @@ class EvalTest extends CgscriptSpec {
 
   }
 
+  it should "accept outer def notation for procedures" in {
+
+    executeTests(Table(
+      header,
+      ("Procedure definition with def", "def t(x) := x + 1", "x -> x + 1"),
+      ("Statement chaining with def'ed procedure 1", "def t(x) := x + 2;", null),
+      ("Evaluation of def'ed procedure", "t(5)", "7"),
+      ("Statement chaining with def'ed procedure 2", "def t(x) := x + 3; t(5)", "8"),
+      ("Procedure definition with def block", "def u(x) begin y := x + 4; y; end", "x -> begin y := x + 4; y end"),
+      ("Procedure chaining with def block", "def u(x) begin y := x + 5; y; end; u(5)", "10")
+    ))
+  }
+
   it should "validate function calls correctly" in {
 
     testPackage declareSubpackage "validation"

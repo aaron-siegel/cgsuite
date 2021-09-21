@@ -1,6 +1,5 @@
 package org.cgsuite.lang
 
-import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
@@ -128,6 +127,10 @@ object EvalNode {
           throw EvalException("Syntax error.", tree)
         AssignToNode(tree, IdentifierNode(tree.head), EvalNode(tree.children(1)), AssignmentDeclType.Ordinary)
       case VAR => VarNode(tree)
+
+      // Function def
+
+      case DEF => DefNode(tree)
 
       // Statement sequence
 
@@ -1463,6 +1466,21 @@ object VarNode {
       case ASSIGN => AssignToNode(t, IdentifierNode(t.head), EvalNode(t.children(1)), AssignmentDeclType.VarDecl)
     }
   }
+}
+
+object DefNode {
+
+  def apply(tree: Tree): AssignToNode = {
+
+    AssignToNode(
+      tree,
+      IdentifierNode(tree.head),
+      ProcedureNode(tree, ParametersNode(tree.children(1), None).toParameters, EvalNode(tree.children(2))),
+      AssignmentDeclType.Ordinary
+    )
+
+  }
+
 }
 
 case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, declType: AssignmentDeclType.Value) extends EvalNode {
