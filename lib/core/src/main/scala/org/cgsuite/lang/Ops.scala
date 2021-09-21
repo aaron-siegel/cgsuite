@@ -210,7 +210,13 @@ object Ops {
   }
 
   val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) {
-    case (seq: Seq[_], index: Integer) => seq(index.intValue-1)
+    case (seq: Seq[_], index: Integer) => {
+      val i = index.intValue
+      if (i >= 1 && i <= seq.length)
+        seq(i - 1)
+      else
+        throw EvalException(s"List index out of bounds: $i")
+    }
     case (map: Map[Any @unchecked, _], key: Any) => map(key)
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
@@ -320,7 +326,7 @@ class SimpleBinOp(val name: String, val precedence: Int,
     try {
       resolver(x, y)
     } catch {
-      case err: MatchError => throwEvalException(tree, x, y)
+      case _: MatchError => throwEvalException(tree, x, y)
     }
   }
 

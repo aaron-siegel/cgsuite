@@ -8,7 +8,8 @@ package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.ArithmeticException
+import org.cgsuite.exception.{ArithmeticException, OverflowException}
+import org.cgsuite.util.Coordinates
 
 object Integer {
   
@@ -80,7 +81,12 @@ object Integer {
 trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   
   def bigIntValue: BigInt
-  override def intValue = bigIntValue.intValue()
+  override def intValue = {
+    if (bigIntValue.bigInteger.bitLength() <= 32)
+      bigIntValue.intValue()
+    else
+      throw OverflowException("Overflow.")
+  }
   def longValue = bigIntValue.longValue()
   def floatValue = bigIntValue.floatValue()
   def doubleValue = bigIntValue.doubleValue()
@@ -119,6 +125,8 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def *(other: CanonicalShortGame): CanonicalShortGame = other.nCopies(this)
   def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
   def *(other: SidedValue): SidedValue = other.nCopies(this)
+  def *(other: Coordinates): Coordinates = other * this
+  def *(g: Game): CompoundGame = CompoundGame(ConwayProduct, this, g)
 
   override def abs: Integer = Integer(bigIntValue.abs)
 
@@ -130,7 +138,13 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def gcd(other: Integer) = Integer(bigIntValue.gcd(other.bigIntValue))
 
-  def integerPow(other: Integer): Integer = Integer(bigIntValue.pow(other.intValue))
+  private[core] def intExp(other: Integer): Integer = {
+    assert(other >= zero)
+    if (other.isSmallInteger)
+      Integer(bigIntValue.pow(other.intValue))
+    else
+      throw OverflowException("Overflow.")
+  }
 
   override def followerCount: Integer = abs + Values.one
 
@@ -208,7 +222,6 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
     val a = this.bigIntValue
     val b = that.bigIntValue
-    val thatIsOdious = that.isOdious
 
     if (a < 0 || b < 0)
       throw ArithmeticException("UglyProduct applies only to nonnegative integers.")
@@ -235,7 +248,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   override def denominator = Values.one
   override def denominatorExponent = 0
 
-  override def toString = bigIntValue.toString()
+  override def toString = bigIntValue.toString
 
   override def toOutput = super[DyadicRationalNumber].toOutput
   

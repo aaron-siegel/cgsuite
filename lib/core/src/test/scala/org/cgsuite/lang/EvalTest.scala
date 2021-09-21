@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-class EvalTest extends CgscriptSpec{
+class EvalTest extends CgscriptSpec {
 
   "CGScript" should "process basic expressions" in {
 
@@ -32,6 +32,7 @@ class EvalTest extends CgscriptSpec{
       ("Integer addition", "3+5", "8"),
       ("Integer multiplication", "3*5", "15"),
       ("Integer exponentiation", "3^5", "243"),
+      ("Overflow", "2^(2^100)", "!!Overflow."),
       ("Rational number", "4/6", "2/3"),
       ("Division by zero", "0/0", "!!/ by zero"),
       ("Rational exponentiation", "(1/2)^4", "1/16"),
