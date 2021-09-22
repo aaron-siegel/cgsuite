@@ -30,9 +30,9 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         tokenTypes.put("Keyword", new int[]
         {
             AND, AS, BEGIN, BREAK, BY, CLASS_VAR, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ERROR,
-            FALSE, FINALLY, FOR, FOREACH, FROM, IF, IN, IS, LISTOF, MAPOF,
-            NOT, OP, OR, PASS, RETURN, SETOF, SQUOTE, SUMOF, SUPER,
-            TABLEOF, THEN, THIS, TO, TRUE, TRY, UNARY, VAR, WHERE, WHILE, YIELD
+            FALSE, FINALLY, FOR, FOREACH, FROM, IF, IN, IS,
+            NOT, OP, OR, PASS, RETURN, SQUOTE, SUPER,
+            THEN, THIS, TO, TRUE, TRY, UNARY, VAR, WHERE, WHILE, YIELD
         });
         tokenTypes.put("DeclKeyword", new int[]
         {

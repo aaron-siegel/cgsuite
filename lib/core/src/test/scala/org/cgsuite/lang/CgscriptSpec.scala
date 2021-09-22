@@ -1,6 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.exception.{CgsuiteException, SyntaxException}
+import org.cgsuite.lang.node.EvalNode
 import org.cgsuite.lang.parser.ParserUtil
 import org.cgsuite.output.Output
 import org.scalatest.prop.{PropertyChecks, TableFor3}

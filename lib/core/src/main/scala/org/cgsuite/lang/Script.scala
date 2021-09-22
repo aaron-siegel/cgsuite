@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import org.cgsuite.lang.node.StatementSequenceNode
 import org.cgsuite.output.StyledTextOutput
 
 case class Script(cls: CgscriptClass, node: StatementSequenceNode, scope: ElaborationDomain) {
