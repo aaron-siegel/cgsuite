@@ -279,14 +279,14 @@ class EvalTest extends CgscriptSpec {
       (s"Yield: $name", s"$init$snippet yield $fn end", s"[$result]")
     }
 
-    //val sumofLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
-    //  (s"sumof: $name", s"${init}sumof($fn $snippet)", sum)
-    //}
+    val sumofLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
+      (s"Sum: $name", s"${init}Sum($fn $snippet)", sum)
+    }
 
     executeTests(Table(header, listComprehensionLoops : _*))
     executeTests(Table(header, setComprehensionLoops : _*))
     executeTests(Table(header, yieldLoops : _*))
-    //executeTests(Table(header, sumofLoops : _*))
+    executeTests(Table(header, sumofLoops : _*))
 
   }
 
