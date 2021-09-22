@@ -236,7 +236,6 @@ class GameTest extends CgscriptSpec {
 
     executeTests(Table(header, tests : _*))
 
-    /*
     val unaryInstances = Seq(
       ("^.Pow(on) + {0|upon}", "{0||0|^<on>*} & {0|^[on]}", "StopperSidedValue", "{0||0|^<on>*}", "{0|^[on]}", "L")
     )
@@ -252,7 +251,6 @@ class GameTest extends CgscriptSpec {
     } map { case (expr, result) => (expr, expr, result) }
 
     executeTests(Table(header, unaryTests : _*))
-    */
 
   }
 
@@ -264,7 +262,7 @@ class GameTest extends CgscriptSpec {
 
   }
 
-  it should "implement >= 2-ary methods correctly" in {
+  it should "implement binary methods correctly" in {
 
     val instances = Seq(
       ("*[[2]] Distinguisher *[2]+*[2]", "*[(2#1)21]"),
@@ -276,11 +274,15 @@ class GameTest extends CgscriptSpec {
       ("*[[[2]]] MisereMinus *[[4]]", "!!Those misere games are not subtractable: *[2##], *[4#]")
     )
 
+    val binaryTests = instances map { case (in, out) => (in, in, out) }
+
+    executeTests(Table(header, binaryTests : _*))
+
   }
 
   "game.Game" should "behave correctly" in {
 
-    val classdefPackage = testPackage declareSubpackage "game"
+    testPackage declareSubpackage "game"
     decl("test.game.NoDepthHint", "singleton class NoDepthHint extends Game override def Options(player as Player) := [this]; end")
 
     executeTests(Table(
