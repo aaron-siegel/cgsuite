@@ -93,7 +93,7 @@
     <dependency>
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
-      <version>0.7.0</version>
+      <version>0.15.0</version>
     </dependency>
     <dependency>
       <groupId>org.hyperic</groupId>
