@@ -1,10 +1,11 @@
 package org.cgsuite.tools
 
 import java.io._
+import java.lang.{System => JSystem}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import org.cgsuite.lang.EvalUtil
+import org.cgsuite.lang.System
 import org.hyperic.sigar.Sigar
 import org.slf4j.LoggerFactory
 
@@ -98,7 +99,7 @@ case class Benchmark(instances: Vector[Benchmark.Instance]) {
          |Git SHA        : $sha
          |Java Version   : ${util.Properties.javaVersion}
          |Scala Version  : ${util.Properties.versionNumberString}
-         |OS             : ${System.getProperty("os.name")} ${System.getProperty("os.version")}
+         |OS             : ${JSystem.getProperty("os.name")} ${JSystem.getProperty("os.version")}
          |CPU vCores     : $cpuInfo
          |Heap Memory    : ${java.lang.Runtime.getRuntime.maxMemory >> 20} MB
          |""".stripMargin
@@ -109,10 +110,10 @@ case class Benchmark(instances: Vector[Benchmark.Instance]) {
     instances foreach { instance =>
 
       emit(f"${instance.name}%-15s: ")
-      val startTime = System.currentTimeMillis()
+      val startTime = JSystem.currentTimeMillis()
       try {
-        EvalUtil.evaluate(instance.command, mutable.AnyRefMap())
-        val duration = (System.currentTimeMillis() - startTime) / 1000.0
+        System.evaluate(instance.command, mutable.AnyRefMap())
+        val duration = (JSystem.currentTimeMillis() - startTime) / 1000.0
         emitln(f"$duration%7.2f s")
       } catch {
         case _: Throwable =>

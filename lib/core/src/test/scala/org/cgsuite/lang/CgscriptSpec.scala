@@ -32,12 +32,12 @@ trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
 
     forAll(tests) { (_, input: String, expectedOutput: String) =>
       if (expectedOutput != null && (expectedOutput startsWith "!!")) {
-        val thrown = the [CgsuiteException] thrownBy EvalUtil.evaluateScript(input, varMap)
+        val thrown = the [CgsuiteException] thrownBy System.evaluateOrException(input, varMap)
         thrown.getMessage shouldBe (expectedOutput stripPrefix "!!")
         if (!thrown.isInstanceOf[SyntaxException])
           thrown.tokenStack should not be empty
       } else {
-        val output = EvalUtil.evaluateScript(input, varMap)
+        val output = System.evaluateOrException(input, varMap)
         if (expectedOutput == null) {
           output shouldBe empty
         } else {
