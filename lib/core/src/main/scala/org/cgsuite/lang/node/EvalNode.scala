@@ -113,7 +113,7 @@ object EvalNode {
 
       // Map entry
 
-      case BIGRARROW => MapPairNode(tree)
+      case BIGRARROW => MapEntryNode(tree)
 
       // Resolvers
 
@@ -141,9 +141,9 @@ object EvalNode {
 
   }
 
-  private def gameOptions(tree: Tree): Seq[EvalNode] = {
+  private def gameOptions(tree: Tree): Vector[EvalNode] = {
     tree.getType match {
-      case SLASHES => Seq(EvalNode(tree))
+      case SLASHES => Vector(EvalNode(tree))
       case EXPRESSION_LIST => tree.children map { EvalNode(_) }
     }
   }
@@ -179,7 +179,7 @@ object EvalNode {
 
 trait EvalNode extends Node {
 
-  def children: Iterable[EvalNode]
+  def children: Vector[EvalNode]
   def evaluate(domain: EvaluationDomain): Any
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
   def toNodeStringPrec(enclosingPrecedence: Int): String
@@ -222,7 +222,7 @@ trait EvalNode extends Node {
 }
 
 case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
-  override val children = Seq.empty
+  override val children = Vector.empty
   override def evaluate(domain: EvaluationDomain) = constantValue
   def toNodeStringPrec(enclosingPrecedence: Int) = {
     CgscriptClass.instanceToOutput(constantValue).toString
@@ -230,7 +230,7 @@ case class ConstantNode(tree: Tree, constantValue: Any) extends EvalNode {
 }
 
 case class ThisNode(tree: Tree) extends EvalNode {
-  override val children = Seq.empty
+  override val children = Vector.empty
   override def evaluate(domain: EvaluationDomain) = domain.contextObject.getOrElse { sys.error("invalid `this`") }
   def toNodeStringPrec(enclosingPrecedence: Int) = "this"
 }
@@ -262,7 +262,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   var localVariableReference: LocalVariableReference = _
   var classVariableReference: ClassVariableReference = _
 
-  override val children = Seq.empty
+  override val children = Vector.empty
 
   override def elaborate(scope: ElaborationDomain) {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
@@ -340,7 +340,7 @@ object UnOpNode {
 }
 
 case class UnOpNode(tree: Tree, op: UnOp, operand: EvalNode) extends EvalNode {
-  override val children = Seq(operand)
+  override val children = Vector(operand)
   override def evaluate(domain: EvaluationDomain) = {
     try {
       op(tree, operand.evaluate(domain))
@@ -366,7 +366,7 @@ object BinOpNode {
 }
 
 case class BinOpNode(tree: Tree, op: BinOp, operand1: EvalNode, operand2: EvalNode) extends EvalNode {
-  override val children = Seq(operand1, operand2)
+  override val children = Vector(operand1, operand2)
   override def evaluate(domain: EvaluationDomain) = {
     try {
       if (op.precedence == OperatorPrecedence.And) {
@@ -402,9 +402,9 @@ object ListNode {
   }
 }
 
-case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+case class ListNode(tree: Tree, elements: Vector[EvalNode]) extends EvalNode {
   override val children = elements
-  override def evaluate(domain: EvaluationDomain): IndexedSeq[_] = {
+  override def evaluate(domain: EvaluationDomain): Vector[_] = {
     elements.size match {
       // This is to avoid closures and get optimal performance on small collections.
       case 0 => Vector.empty
@@ -423,11 +423,11 @@ case class ListNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode
 object SetNode {
   def apply(tree: Tree): SetNode = {
     assert(tree.getType == EXPLICIT_SET)
-    SetNode(tree, tree.children.map { EvalNode(_) }.toIndexedSeq)
+    SetNode(tree, tree.children map { EvalNode(_) })
   }
 }
 
-case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode {
+case class SetNode(tree: Tree, elements: Vector[EvalNode]) extends EvalNode {
   override val children = elements
   override def evaluate(domain: EvaluationDomain): Set[_] = {
     elements.size match {
@@ -448,12 +448,12 @@ case class SetNode(tree: Tree, elements: IndexedSeq[EvalNode]) extends EvalNode 
 object MapNode {
   def apply(tree: Tree): MapNode = {
     assert(tree.getType == EXPLICIT_MAP)
-    val mapPairNodes = tree.children map { MapPairNode(_) }
-    MapNode(tree, mapPairNodes.toIndexedSeq)
+    val mapEntryNodes = tree.children map { MapEntryNode(_) }
+    MapNode(tree, mapEntryNodes)
   }
 }
 
-case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNode {
+case class MapNode(tree: Tree, elements: Vector[MapEntryNode]) extends EvalNode {
   override val children = elements
   override def evaluate(domain: EvaluationDomain): Map[_, _] = {
     elements.size match {
@@ -474,19 +474,19 @@ case class MapNode(tree: Tree, elements: IndexedSeq[MapPairNode]) extends EvalNo
   }
 }
 
-object MapPairNode {
-  def apply(tree: Tree): MapPairNode = {
-    MapPairNode(tree, EvalNode(tree.head), EvalNode(tree.children(1)))
+object MapEntryNode {
+  def apply(tree: Tree): MapEntryNode = {
+    MapEntryNode(tree, EvalNode(tree.head), EvalNode(tree.children(1)))
   }
 }
 
-case class MapPairNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
-  override val children = Seq(from, to)
+case class MapEntryNode(tree: Tree, from: EvalNode, to: EvalNode) extends EvalNode {
+  override val children = Vector(from, to)
   override def evaluate(domain: EvaluationDomain): (Any, Any) = from.evaluate(domain) -> to.evaluate(domain)
   def toNodeStringPrec(enclosingPrecedence: Int) = s"${from.toNodeString} => ${to.toNodeString}"
 }
 
-case class GameSpecNode(tree: Tree, lo: Seq[EvalNode], ro: Seq[EvalNode], forceExplicit: Boolean) extends EvalNode {
+case class GameSpecNode(tree: Tree, lo: Vector[EvalNode], ro: Vector[EvalNode], forceExplicit: Boolean) extends EvalNode {
 
   override val children = lo ++ ro
 
@@ -571,13 +571,13 @@ object LoopyGameSpecNode {
     LoopyGameSpecNode(tree, nodeLabel, lo, ro, loPass, roPass)
   }
 
-  private def loopyGameOptions(tree: Tree): (Boolean, Seq[EvalNode]) = {
+  private def loopyGameOptions(tree: Tree): (Boolean, Vector[EvalNode]) = {
     tree.getType match {
-      case SLASHES => (false, Seq(LoopyGameSpecNode(tree)))
+      case SLASHES => (false, Vector(LoopyGameSpecNode(tree)))
       case EXPRESSION_LIST =>
         val (pass, opts) = tree.children partition { _.getType == PASS }
         (pass.nonEmpty, opts map { LoopyGameSpecNode(_) })
-      case _ => (false, Seq(EvalNode(tree)))
+      case _ => (false, Vector(EvalNode(tree)))
     }
   }
 }
@@ -585,13 +585,13 @@ object LoopyGameSpecNode {
 case class LoopyGameSpecNode(
   tree: Tree,
   nodeLabel: Option[IdentifierNode],
-  lo: Seq[EvalNode],
-  ro: Seq[EvalNode],
+  lo: Vector[EvalNode],
+  ro: Vector[EvalNode],
   loPass: Boolean,
   roPass: Boolean
   ) extends EvalNode {
 
-  override val children = nodeLabel ++ lo ++ ro
+  override val children = nodeLabel.toVector ++ lo ++ ro
 
   override def elaborate(scope: ElaborationDomain): Unit = {
     nodeLabel foreach { idNode =>
@@ -632,7 +632,7 @@ case class LoopyGameSpecNode(
 }
 
 case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode, elseNode: Option[EvalNode]) extends EvalNode {
-  override val children = Seq(condition, ifNode) ++ elseNode
+  override val children = Vector(condition, ifNode) ++ elseNode
   override def evaluate(domain: EvaluationDomain) = {
     if (condition.evaluateAsBoolean(domain))
       ifNode.evaluate(domain)
@@ -697,7 +697,7 @@ case class LoopNode(
   body    : EvalNode
 ) extends EvalNode {
 
-  override val children = forId.toSeq ++ in ++ from ++ to ++ by ++ `while` ++ where :+ body
+  override val children = forId.toVector ++ in ++ from ++ to ++ by ++ `while` ++ where :+ body
 
   private val prepareLoop = Symbol(s"PrepareLoop [${tree.location}]")
   private val loop = Symbol(s"Loop [${tree.location}]")
@@ -870,7 +870,7 @@ case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNo
 }
 
 case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
-  override val children = Seq(msg)
+  override val children = Vector(msg)
   override def evaluate(domain: EvaluationDomain) = {
     throw EvalException(msg.evaluate(domain).toString)
   }
@@ -878,9 +878,9 @@ case class ErrorNode(tree: Tree, msg: EvalNode) extends EvalNode {
 }
 
 case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
-  override val children = Seq(obj, idNode)
-  val antecedentAsPackagePath: Option[Seq[String]] = obj match {
-    case IdentifierNode(_, antecedentId) => Some(Seq(antecedentId.name))
+  override val children = Vector(obj, idNode)
+  val antecedentAsPackagePath: Option[Vector[String]] = obj match {
+    case IdentifierNode(_, antecedentId) => Some(Vector(antecedentId.name))
     case node: DotNode => node.antecedentAsPackagePath.map { _ :+ node.idNode.id.name }
     case _ => None
   }
@@ -1470,7 +1470,7 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
   // TODO Catch illegal assignment to temporary loop variable (during elaboration)
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   // TODO Catch illegal assignment to constant
-  override val children = Seq(idNode, expr)
+  override val children = Vector(idNode, expr)
   override def elaborate(scope: ElaborationDomain) {
     // If we're package-external (Worksheet/REPL scope) and scopeStack has size one (we're not
     // in any nested subscope), then we treat idNode as a dynamic var.
@@ -1529,7 +1529,7 @@ object StatementSequenceNode {
   }
 }
 
-case class StatementSequenceNode(tree: Tree, statements: Seq[EvalNode], suppressOutput: Boolean) extends EvalNode {
+case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppressOutput: Boolean) extends EvalNode {
   assert(tree.getType == STATEMENT_SEQUENCE, tree.getType)
   override val children = statements
   override def elaborate(scope: ElaborationDomain): Unit = {
