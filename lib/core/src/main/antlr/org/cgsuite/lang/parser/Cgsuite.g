@@ -91,10 +91,8 @@ tokens
     SETOF       = 'setof';
     SINGLETON   = 'singleton';
     STATIC      = 'static';
-    SUMOF       = 'sumof';
     SUPER       = 'super';
     SYSTEM      = 'system';
-    TABLEOF     = 'tableof';
     THEN        = 'then';
     THIS        = 'this';
     TO          = 'to';
@@ -732,7 +730,7 @@ of
     ;
 
 ofToken
-    : SETOF | LISTOF | TABLEOF | SUMOF
+    : SETOF | LISTOF
     ;
 
 expressionList

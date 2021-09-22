@@ -64,7 +64,7 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
 
     end
 
-    override def DepthHint := sumof(goose.Row for goose in geese);
+    override def DepthHint := Sum(goose.Row for goose in geese);
 
   end
 

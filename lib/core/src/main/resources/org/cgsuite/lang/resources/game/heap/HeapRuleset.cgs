@@ -17,7 +17,7 @@ system class HeapRuleset extends Ruleset
   class Position(heapSize as Integer) extends ImpartialGame
 
     override def Options := HeapOptions(heapSize) Apply
-      (heaps -> if heaps.IsEmpty then 0 else sumof(Position(n) for n in heaps) end);
+      (heaps -> if heaps.IsEmpty then 0 else Sum(Position(n) for n in heaps) end);
 
     override def NimValue := HeapNimValue(heapSize);
 
