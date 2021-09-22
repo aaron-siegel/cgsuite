@@ -304,7 +304,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
-    appendTo(sto, true, false)
+    appendTo(sto, forceBrackets = true, forceParens = false)
     sto
   }
 
@@ -316,7 +316,6 @@ trait CanonicalShortGame extends CanonicalStopper {
       throw CalculationCanceledException("Calculation canceled by user.")
     }
 
-    val negative = -this
     val lo = sortedOptions(Left)
     val ro = sortedOptions(Right)
 
@@ -325,8 +324,8 @@ trait CanonicalShortGame extends CanonicalStopper {
       output.appendSymbol(PLUS_MINUS)
       if (lo.size > 1)
         output.appendMath("{")
-      lo.head.appendTo(output, true, lo.size == 1)
-      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, true, false) }
+      lo.head.appendTo(output, forceBrackets = true, forceParens = lo.size == 1)
+      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, forceBrackets = true, forceParens = false) }
       if (lo.size > 1)
         output.appendMath("}")
       0
@@ -342,9 +341,9 @@ trait CanonicalShortGame extends CanonicalStopper {
       if (forceParens)
         output.appendMath("(")
       if (translate != zero)
-        translate.appendTo(output, false, false)
+        translate.appendTo(output, forceBrackets = false, forceParens = false)
       val sub = new StyledTextOutput()
-      subscript.appendTo(sub, true, false)
+      subscript.appendTo(sub, forceBrackets = true, forceParens = false)
       val styles = sub.allStyles()
       styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS)
       if (styles.isEmpty) {
@@ -381,16 +380,16 @@ trait CanonicalShortGame extends CanonicalStopper {
       // First we build the left & right OS's and calculate the number of slashes.
       // There are several cases.
 
-      val numSlashesL1 = lo.head.appendTo(leftOutput, lo.size > 1, false) + 1
+      val numSlashesL1 = lo.head.appendTo(leftOutput, forceBrackets = lo.size > 1, forceParens = false) + 1
       val numSlashesL = lo.tail.foldLeft(numSlashesL1) { (numSlashes, gl) =>
         leftOutput.appendMath(",")
-        numSlashes.max(gl.appendTo(leftOutput, lo.size > 1, false) + 1)
+        numSlashes.max(gl.appendTo(leftOutput, forceBrackets = lo.size > 1, forceParens = false) + 1)
       }
 
-      val numSlashesR1 = ro.head.appendTo(rightOutput, ro.size > 1, false) + 1
+      val numSlashesR1 = ro.head.appendTo(rightOutput, forceBrackets = ro.size > 1, forceParens = false) + 1
       val numSlashesR = ro.tail.foldLeft(numSlashesR1) { (numSlashes, gr) =>
         rightOutput.appendMath(",")
-        numSlashes.max(gr.appendTo(rightOutput, ro.size > 1, false) + 1)
+        numSlashes.max(gr.appendTo(rightOutput, forceBrackets = ro.size > 1, forceParens = false) + 1)
       }
 
       val numSlashes = numSlashesL.max(numSlashesR)

@@ -13,7 +13,7 @@ object TableOutput {
 
 }
 
-case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCellWidth: Int) extends AbstractOutput {
+case class TableOutput(table: IndexedSeq[IndexedSeq[Output]], format: Set[Format.Value], maxCellWidth: Int) extends AbstractOutput {
 
   val rowCount = table.size
   val colCount = table.map { _.size }.max
