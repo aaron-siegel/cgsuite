@@ -1,9 +1,0 @@
-/*
- * TestBadClassName.cgs
- *
- * Created by asiegel on Aug 4, 2011
- */
-
-class ThisNameIsDifferentAndThatsBad
-
-end
