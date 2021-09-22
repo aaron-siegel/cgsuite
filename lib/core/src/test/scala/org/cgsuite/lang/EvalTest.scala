@@ -246,15 +246,6 @@ class EvalTest extends CgscriptSpec {
       ("Map comprehension", "{x^2 => x for x in [1,3,5,3]}", "{1 => 1, 9 => 3, 25 => 5}"),
       ("Map multi-comprehension", "{x^2+y^2 => x for x from 1 to 5 for y from 1 to 5}",
         "{2 => 1, 5 => 2, 8 => 2, 10 => 3, 13 => 3, 17 => 4, 18 => 3, 20 => 4, 25 => 4, 26 => 5, 29 => 5, 32 => 4, 34 => 5, 41 => 5, 50 => 5}")
-      //("Sumof", "sumof(n for n from 1 to 10)", "55"),
-      //("Sumof 2", """sumof("foo" for x from 1 to 4)""", """"foofoofoofoo""""),
-      //("Multi-sumof", "sumof(m+n for m from 1 to 10 for n from 1 to 10)", "1100"),
-      //("Tableof", "tableof([n,n^2] for n from 1 to 3)",
-      //  """|1 | 1
-      //     |--+--
-      //     |2 | 4
-      //     |--+--
-      //     |3 | 9""".stripMargin)
     ))
   }
 

@@ -85,6 +85,19 @@ class CgsuiteLangTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.util.Table" should "implement methods properly" in {
+    executeTests(Table(
+      header,
+      ("Table construction", "table := Table([n,n^2] for n from 1 to 3)",
+        """|1 | 1
+           |--+--
+           |2 | 4
+           |--+--
+           |3 | 9""".stripMargin),
+      ("Intensity plot", "table.IntensityPlot()", "<3 x 2 IntensityPlot>")
+    ))
+  }
+
   "cgsuite.util.Thermograph" should "implement methods properly" in {
     executeTests(Table(
       header,

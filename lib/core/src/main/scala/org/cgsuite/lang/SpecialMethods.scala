@@ -90,12 +90,6 @@ object SpecialMethods {
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>
       set ++ that
     },
-    "cgsuite.lang.Table" -> { (_: ClassObject, rows: IndexedSeq[_]) =>
-      Table { rows map {
-        case list: IndexedSeq[_] => list
-        case _ => throw EvalException("The rows of a `Table` must all have type `cgsuite.lang.List`.")
-      } } (OutputBuilder.toOutput)
-    },
     "cgsuite.ui.Explorer" -> { (_: Any, g: Game) => UiHarness.uiHarness.createExplorer(g) },
     "cgsuite.util.MutableList.Add" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list += x; null },
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
@@ -108,6 +102,12 @@ object SpecialMethods {
     "cgsuite.util.MutableMap.PutAll" -> { (map: mutable.Map[Any,Any], x: scala.collection.Map[_,_]) => map ++= x; null },
     "cgsuite.util.MutableMap.Remove" -> { (map: mutable.Map[Any,Any], x: Any) => map -= x; null },
     "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null },
+    "cgsuite.util.Table" -> { (_: ClassObject, rows: IndexedSeq[_]) =>
+      Table { rows map {
+        case list: IndexedSeq[_] => list
+        case _ => throw EvalException("The rows of a `Table` must all have type `cgsuite.lang.List`.")
+      } } (OutputBuilder.toOutput)
+    },
     "game.heap.Spawning" -> { (_: Any, str: String) => Spawning(str) }
 
   )

@@ -425,8 +425,10 @@ class CgscriptClass(
     }
 
     // Force constants to declare first
-    pkg lookupClass 'constants foreach { constantsCls =>
-      if (constantsCls != this) constantsCls.ensureDeclared()
+    if (this != Object) {
+      pkg lookupClass 'constants foreach { constantsCls =>
+        if (constantsCls != this) constantsCls.ensureDeclared()
+      }
     }
 
     val tree = parseTree()

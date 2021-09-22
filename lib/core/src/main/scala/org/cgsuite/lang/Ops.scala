@@ -144,6 +144,7 @@ object Ops {
     case (x: CanonicalStopper, y: CanonicalStopper) => x <= y
     case (x: StopperSidedValue, y: StopperSidedValue) => x <= y
     case (x: SidedValue, y: SidedValue) => x <= y
+    case (x: String, y: String) => x <= y
     case (x: Coordinates, y: Coordinates) => x <= y
   }
 

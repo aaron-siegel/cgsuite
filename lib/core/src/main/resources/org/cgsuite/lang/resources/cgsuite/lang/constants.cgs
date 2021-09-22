@@ -1,0 +1,13 @@
+/*${cgsuite.banner}*/
+
+singleton class constants
+
+  def Max(elements as Collection) := elements.Max;
+
+  def Mex(elements as Collection) := elements.Mex;
+
+  def Min(elements as Collection) := elements.Min;
+
+  def Sum(elements as Collection) := elements.Sum;
+
+end
