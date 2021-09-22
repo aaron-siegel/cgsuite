@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class GameHeapTest extends CgscriptSpec {
 
   "game.heap" should "define TakeAndBreak properly" in {

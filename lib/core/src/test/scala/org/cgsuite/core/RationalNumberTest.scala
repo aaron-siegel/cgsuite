@@ -7,9 +7,10 @@
 package org.cgsuite.core
 
 import org.cgsuite.exception.ArithmeticException
-import org.scalatest.{FlatSpec, Matchers}
-  
-class RationalNumberTest extends FlatSpec with Matchers {
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class RationalNumberTest extends AnyFlatSpec with Matchers {
   
   "RationalNumber" should "construct objects of the correct class" in {
       

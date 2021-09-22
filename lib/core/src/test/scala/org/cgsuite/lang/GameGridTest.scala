@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class GameGridTest extends CgscriptSpec {
 
   "game.grid" should "define Amazons properly" in {

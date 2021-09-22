@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class CgsuiteLangTest extends CgscriptSpec {
 
   "cgsuite.lang.Collection" should "return correct answers" in {

@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class GameTest extends CgscriptSpec {
 
   "game.Integer" should "implement methods correctly" in {

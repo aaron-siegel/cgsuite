@@ -7,9 +7,10 @@
 package org.cgsuite.core
 
 import org.cgsuite.dsl._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CanonicalShortGameTest extends FlatSpec with Matchers {
+class CanonicalShortGameTest extends AnyFlatSpec with Matchers {
 
   lazy val switch = CanonicalShortGame(Integer(3))(CanonicalShortGame(Integer(2))(Integer(1)))
 

@@ -3,15 +3,16 @@ package org.cgsuite.lang
 import org.cgsuite.exception.{CgsuiteException, SyntaxException}
 import org.cgsuite.lang.node.EvalNode
 import org.cgsuite.lang.parser.ParserUtil
-import org.cgsuite.output.Output
-import org.scalatest.prop.{PropertyChecks, TableFor3}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.TableDrivenPropertyChecks.forAll
+import org.scalatest.prop.TableFor3
 
 import scala.collection.mutable
 
 // CGScript Functional Tests.
 
-trait CgscriptSpec extends FlatSpec with Matchers with PropertyChecks {
+trait CgscriptSpec extends AnyFlatSpec with Matchers {
 
   val header = ("Test Name", "input", "expected output")
 

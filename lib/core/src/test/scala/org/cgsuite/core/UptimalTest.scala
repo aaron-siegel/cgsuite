@@ -1,9 +1,10 @@
 package org.cgsuite.core
 
 import org.cgsuite.dsl._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class UptimalTest extends FlatSpec with Matchers {
+class UptimalTest extends AnyFlatSpec with Matchers {
 
   "Uptimal" should "return correct options" in {
 

@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class EvalTest extends CgscriptSpec {
 
   "CGScript" should "process basic expressions" in {

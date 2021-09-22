@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class GameStripTest extends CgscriptSpec {
 
   "game.strip" should "define Toads and Frogs properly" in {
