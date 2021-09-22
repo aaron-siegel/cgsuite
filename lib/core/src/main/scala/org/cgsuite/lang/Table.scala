@@ -44,9 +44,7 @@ object Table {
 case class Table (
   rows: IndexedSeq[IndexedSeq[_]],
   format: Set[Format.Value] = Set(Format.HorizontalGridLines, Format.VerticalGridLines)
-  )(outputBuilder: Any => Output) extends Iterable[IndexedSeq[_]] with OutputTarget {
-
-  def iterator: Iterator[IndexedSeq[_]] = rows.iterator
+  )(outputBuilder: Any => Output) extends OutputTarget {
 
   def toOutput: TableOutput = {
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
@@ -56,7 +54,7 @@ case class Table (
     val numbers = rows map {
       _ map {
         case x: RationalNumber => x
-        case obj => throw NotNumberException(s"Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
+        case _ => throw NotNumberException(s"Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
       }
     }
     IntensityPlotOutput(numbers, unitSize.intValue)

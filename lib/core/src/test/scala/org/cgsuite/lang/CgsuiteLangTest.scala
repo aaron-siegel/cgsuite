@@ -44,7 +44,16 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("List: Updated", "[5,12,13].Updated(2, 99)", "[5,99,13]"),
       ("List: Updated out of bounds", "[5,12,13].Updated(0, 99)", "!!List index out of bounds: 0"),
       ("List: Append", "[5,12,13] Append 99", "[5,12,13,99]"),
-      ("List: AppendAll", "[5,12,13] AppendAll [99,101]", "[5,12,13,99,101]")
+      ("List: AppendAll", "[5,12,13] AppendAll [99,101]", "[5,12,13,99,101]"),
+      ("List: Grouped", "[0,1,2,3,4,5,6,7,8,9] Grouped 3", "[[0,1,2],[3,4,5],[6,7,8],[9]]"),
+      ("List: PeriodicTable", "[0,1,2,3,4,5,6,7,8,9] PeriodicTable 3",
+        """0 | 1 | 2
+          |--+---+--
+          |3 | 4 | 5
+          |--+---+--
+          |6 | 7 | 8
+          |--+---+--
+          |9""".stripMargin)
     ))
   }
 
@@ -74,6 +83,19 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("Range: ToSet", "(1..10).ToSet", "{1,2,3,4,5,6,7,8,9,10}")
     ))
 
+  }
+
+  "cgsuite.util.Table" should "implement methods properly" in {
+    executeTests(Table(
+      header,
+      ("Table construction", "table := Table([n,n^2] for n from 1 to 3)",
+        """|1 | 1
+           |--+--
+           |2 | 4
+           |--+--
+           |3 | 9""".stripMargin),
+      ("Intensity plot", "table.IntensityPlot()", "<3 x 2 IntensityPlot>")
+    ))
   }
 
   "cgsuite.util.Thermograph" should "implement methods properly" in {

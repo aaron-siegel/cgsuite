@@ -6,9 +6,9 @@ class GenWythoff(r as Integer) extends CoordinateRuleset
     var m := coord.Row;
     var n := coord.Col;
     var diag := (m Min n) + r - 1;
-    var mOpts := setof(coord - (a, 0) for a from 1 to m);
-    var nOpts := setof(coord - (0, b) for b from 1 to n);
-    var dOpts := setof(coord - (d, e) for d from 1 to diag Min m for e from d-r+1 to d+r-1 Min n);
+    var mOpts := {coord - (a, 0) for a from 1 to m};
+    var nOpts := {coord - (0, b) for b from 1 to n};
+    var dOpts := {coord - (d, e) for d from 1 to diag Min m for e from d-r+1 to d+r-1 Min n};
     mOpts Union nOpts Union dOpts
   end
 

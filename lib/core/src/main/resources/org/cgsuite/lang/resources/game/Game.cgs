@@ -63,7 +63,7 @@ system class Game
       if otherOptions.IsEmpty then
         []
       else
-        setof(g.DicotVariant() for g in EnclosingObject Options player)
+        [g.DicotVariant() for g in EnclosingObject Options player]
       end
     end
     
@@ -72,7 +72,7 @@ system class Game
   class ImpartialVariant() extends ImpartialGame
   
     override def Options begin
-      setof(g.ImpartialVariant() for g in EnclosingObject.Options)
+      [g.ImpartialVariant() for g in EnclosingObject.Options]
     end
   end
 

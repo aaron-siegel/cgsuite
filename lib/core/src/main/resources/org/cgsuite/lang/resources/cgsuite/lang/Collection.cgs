@@ -78,6 +78,16 @@ system class Collection
     */
   external def Size;
 
+  /** The sum of all the elements in this collection.
+    */
+  def Sum begin
+    var sum := Head;
+    for x in Tail do
+      sum := sum + x;
+    end
+    sum
+  end
+
   /** A `Collection` containing all the elements of this collection
     * except for [[#Head]].
     */

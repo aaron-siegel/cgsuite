@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Table
+system class Table(rows as List)
 
   external def IntensityPlot(unitSize as Integer ? 8);
 

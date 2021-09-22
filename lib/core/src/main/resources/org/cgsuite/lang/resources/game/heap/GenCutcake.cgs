@@ -13,12 +13,12 @@ class GenCutcake(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset, twiste
       if player == Left then
         var a := twist.Row;
         for summands in leftRuleset.HeapOptions(twist.Col) yield
-          sumof(Position((a,b)) for b in summands)
+          if summands.IsEmpty then 0 else Sum(Position((a,b)) for b in summands) end
         end
       else
         var b := twist.Col;
         for summands in rightRuleset.HeapOptions(twist.Row) yield
-          sumof(Position((a,b)) for a in summands)
+          if summands.IsEmpty then 0 else Sum(Position((a,b)) for a in summands) end
         end
       end
     

@@ -6,7 +6,7 @@ system class List extends Collection
 
   external def AppendAll(that as Collection);
 
-  def Apply(fn as Procedure) := listof(fn(x) for x in this);
+  def Apply(fn as Procedure) := [fn(x) for x in this];
 
   external def Contains(x);
 
@@ -14,7 +14,7 @@ system class List extends Collection
 
   external def Length;
 
-  def PeriodicTable(period as Integer) := tableof(row for row in Grouped(period));
+  def PeriodicTable(period as Integer) := Table(Grouped(period));
 
   external def Sorted;
 

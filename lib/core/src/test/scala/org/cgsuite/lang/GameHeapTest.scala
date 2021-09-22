@@ -36,12 +36,12 @@ class GameHeapTest extends CgscriptSpec {
 
     val tests = instances flatMap { case (rs, optionCount, nimSequence, periodicity, misereNimValue, genus) =>
       Seq(
-        (s"$rs.NimValue", s"listof($rs(n).NimValue for n from 0 to 20)", nimSequence),
+        (s"$rs.NimValue", s"[$rs(n).NimValue for n from 0 to 20]", nimSequence),
         (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
         (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence),
         (s"$rs.CheckPeriodicity(2000)", s"$rs.CheckPeriodicity(2000)", periodicity),
-        (s"$rs.MisereNimValue", s"listof($rs(n).MisereNimValue for n from 0 to 20)", misereNimValue),
-        (s"$rs.Genus", s"listof($rs(n).Genus for n from 0 to 20)", genus)
+        (s"$rs.MisereNimValue", s"[$rs(n).MisereNimValue for n from 0 to 20]", misereNimValue),
+        (s"$rs.Genus", s"[$rs(n).Genus for n from 0 to 20]", genus)
       )
     }
 
@@ -82,7 +82,7 @@ class GameHeapTest extends CgscriptSpec {
 
     val tests = instances flatMap { case (rs, optionCount, nimSequence) =>
       Seq(
-        (s"$rs.NimValue", s"listof($rs(n).NimValue for n from 0 to 20)", nimSequence),
+        (s"$rs.NimValue", s"[$rs(n).NimValue for n from 0 to 20]", nimSequence),
         (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
         (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence)
       )
@@ -109,8 +109,8 @@ class GameHeapTest extends CgscriptSpec {
     val tests = instances flatMap { case (rs, optionCount, nimRow10, genusRow10) =>
       Seq(
         (s"$rs((10,10)).Options.Size", s"$rs((10,10)).Options.Size", optionCount),
-        (s"$rs.NimValueSequence", s"listof($rs((10,n)).NimValue for n from 0 to 20)", nimRow10),
-        (s"$rs.Genus", s"listof($rs((10,n)).Genus for n from 0 to 20)", genusRow10)
+        (s"$rs.NimValueSequence", s"[$rs((10,n)).NimValue for n from 0 to 20]", nimRow10),
+        (s"$rs.Genus", s"[$rs((10,n)).Genus for n from 0 to 20]", genusRow10)
       )
     }
 
@@ -189,7 +189,7 @@ class GameHeapTest extends CgscriptSpec {
     val tests = instances flatMap { case (rs, optionCount, values) =>
       Seq(
         (s"$rs((8,8)).LeftOptions.Size", s"$rs((8,8)).LeftOptions.Size", optionCount),
-        (s"$rs canonical forms", s"listof($rs((8,n)).CanonicalForm for n from 0 to 8)", values)
+        (s"$rs canonical forms", s"[$rs((8,n)).CanonicalForm for n from 0 to 8]", values)
       )
     }
 

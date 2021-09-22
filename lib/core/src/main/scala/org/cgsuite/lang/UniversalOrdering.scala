@@ -16,6 +16,7 @@ object UniversalOrdering extends Ordering[Any] {
       case (_: CanonicalShortGame, _) => -1
       case (_, _: CanonicalShortGame) => 1
       case (g: MisereCanonicalGame, h: MisereCanonicalGame) => MisereCanonicalGame.DeterministicOrdering.compare(g, h)
+      case (a: String, b: String) => a.compare(b)
       case (a: ClassObject, b: ClassObject) => a.forClass.classOrdinal - b.forClass.classOrdinal
       case (a: StandardObject, b: StandardObject) =>
         var cmp = a.cls.classOrdinal - b.cls.classOrdinal

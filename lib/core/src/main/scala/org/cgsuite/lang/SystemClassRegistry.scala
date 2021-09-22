@@ -37,7 +37,6 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
     "cgsuite.lang.Procedure" -> classOf[Procedure],
     "cgsuite.lang.System" -> classOf[System],
-    "cgsuite.lang.Table" -> classOf[Table],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
 
@@ -45,6 +44,7 @@ private[lang] object SystemClassRegistry {
     "cgsuite.util.Genus" -> classOf[Genus],
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
+    "cgsuite.util.Table" -> classOf[Table],
     "cgsuite.util.Thermograph" -> classOf[Thermograph],
     "cgsuite.util.Trajectory" -> classOf[Trajectory],
     "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],

@@ -64,15 +64,15 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
 
     end
 
-    override def DepthHint := sumof(goose.Row for goose in geese);
+    override def DepthHint := Sum(goose.Row for goose in geese);
 
   end
 
-  def Table(geese as Set) begin
+  def ValuesTable(geese as Set) begin
 
     ValidateGeese(geese);
     var maxGooseRow := geese.Apply(x -> x.Row).Max;
-    tableof(listof(
+    Table([
       if geese Contains (row,col) then
         "X"
       elseif (row + col) % 2 == 0 then
@@ -81,7 +81,7 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
         Nothing
       end
       for col from 1 to boardWidth
-    ) for row from maxGooseRow to 1 by -1)
+    ] for row from maxGooseRow to 1 by -1)
 
   end
 

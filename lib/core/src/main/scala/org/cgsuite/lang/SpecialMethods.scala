@@ -65,7 +65,7 @@ object SpecialMethods {
     "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
     "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
-      list.grouped(n.intValue).toIterable
+      list.grouped(n.intValue).toVector
     },
     "cgsuite.lang.List.MkOutput" -> { (list: IndexedSeq[_], sep: String) =>
       val output = new StyledTextOutput
@@ -102,6 +102,12 @@ object SpecialMethods {
     "cgsuite.util.MutableMap.PutAll" -> { (map: mutable.Map[Any,Any], x: scala.collection.Map[_,_]) => map ++= x; null },
     "cgsuite.util.MutableMap.Remove" -> { (map: mutable.Map[Any,Any], x: Any) => map -= x; null },
     "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null },
+    "cgsuite.util.Table" -> { (_: ClassObject, rows: IndexedSeq[_]) =>
+      Table { rows map {
+        case list: IndexedSeq[_] => list
+        case _ => throw EvalException("The rows of a `Table` must all have type `cgsuite.lang.List`.")
+      } } (OutputBuilder.toOutput)
+    },
     "game.heap.Spawning" -> { (_: Any, str: String) => Spawning(str) }
 
   )

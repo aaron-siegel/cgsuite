@@ -9,9 +9,9 @@ class GameTest extends CgscriptSpec {
       ("MinValue", "-2147483648", "-2147483648"),
       ("MinValue-1", "-2147483649", "-2147483649"),
       ("Max", "3.Max(-2147483648)", "3"),
-      ("NimSum", "listof(11 NimSum n for n from 1 to 16)", "[10,9,8,15,14,13,12,3,2,1,0,7,6,5,4,27]"),
-      ("NimProduct", "listof(8 NimProduct n for n from 1 to 16)", "[8,12,4,11,3,7,15,13,5,1,9,6,14,10,2,128]"),
-      ("UglyProduct", "listof(14 UglyProduct n for n from 1 to 16)", "[14,13,3,13,3,0,14,7,9,10,4,10,4,7,9,23]"),
+      ("NimSum", "[11 NimSum n for n from 1 to 16]", "[10,9,8,15,14,13,12,3,2,1,0,7,6,5,4,27]"),
+      ("NimProduct", "[8 NimProduct n for n from 1 to 16]", "[8,12,4,11,3,7,15,13,5,1,9,6,14,10,2,128]"),
+      ("UglyProduct", "[14 UglyProduct n for n from 1 to 16]", "[14,13,3,13,3,0,14,7,9,10,4,10,4,7,9,23]"),
       ("Div", "17.Div(4)", "4"),
       ("Div by 0", "17.Div(0)", "!!/ by zero"),
       ("IsEvil", "[11.IsEvil, 23.IsEvil]", "[false,true]"),
@@ -22,7 +22,7 @@ class GameTest extends CgscriptSpec {
       ("Lb(0)", "0.Lb", "!!Argument to Lb is not strictly positive: 0"),
       ("Lb(-32)", "(-32).Lb", "!!Argument to Lb is not strictly positive: -32"),
       ("Lb(-2^40)", "(-2^40).Lb", "!!Argument to Lb is not strictly positive: -1099511627776"),
-      //("Random", "Integer.SetSeed(0); listof(Integer.Random(100) from 1 to 5)", "[61,49,30,48,16]"),
+      //("Random", "Integer.SetSeed(0); [Integer.Random(100) from 1 to 5]", "[61,49,30,48,16]"),
       ("Isqrt",
         """
           |for n from 0 to 3000 do

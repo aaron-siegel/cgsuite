@@ -79,8 +79,6 @@ tokens
     IMPORT      = 'import';
     IN          = 'in';
     IS          = 'is';
-    LISTOF      = 'listof';
-    MAPOF       = 'mapof';
     MUTABLE     = 'mutable';
     NOT         = 'not';
     OP          = 'op';
@@ -88,13 +86,10 @@ tokens
     OVERRIDE    = 'override';
     PASS        = 'pass';
     RETURN      = 'return';
-    SETOF       = 'setof';
     SINGLETON   = 'singleton';
     STATIC      = 'static';
-    SUMOF       = 'sumof';
     SUPER       = 'super';
     SYSTEM      = 'system';
-    TABLEOF     = 'tableof';
     THEN        = 'then';
     THIS        = 'this';
     TO          = 'to';
@@ -137,6 +132,8 @@ tokens
     UNARY_AST;
     UNARY_MINUS;
     UNARY_PLUS;
+    YIELD_MAP;
+    YIELD_SET;
 }
 
 @lexer::header
@@ -576,7 +573,9 @@ arrayReference
     ;
 
 functionCall
-    : LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
+    : (LPAREN! expression FOR) => LPAREN iteratorComprehension RPAREN
+      -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] iteratorComprehension)
+    | LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
       -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] functionArgument*)
     ;
         
@@ -631,13 +630,13 @@ primaryExpr
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! expression RPAREN!
     | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES[$COMMA] expression*)
+    | (LPAREN expression FOR) => LPAREN! iteratorComprehension RPAREN!
     | LPAREN! expression RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
     | (LBRACE expression? BIGRARROW) => explicitMap
     | generalizedId
     | explicitSet
     | explicitList
-    | of
     | controlExpression
     ;
 
@@ -695,7 +694,9 @@ slashExpression
     ;
 
 explicitMap
-    : LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
+    : (LBRACE mapEntry FOR) =>
+      LBRACE mapEntry forLoopAntecedent+ RBRACE -> ^(YIELD_MAP forLoopAntecedent+ ^(STATEMENT_SEQUENCE mapEntry))
+    | LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
     ;
 
 mapEntry
@@ -703,22 +704,19 @@ mapEntry
     ;
 
 explicitSet
-    : LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
+    : (LBRACE expression FOR) =>
+      LBRACE expression forLoopAntecedent+ RBRACE -> ^(YIELD_SET forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
+    | LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
     ;
 
 explicitList
-    : LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
+    : (LBRACKET expression FOR) =>
+      LBRACKET expression forLoopAntecedent+ RBRACKET -> ^(YIELD forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
+    | LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
     ;
 
-of
-    : ofToken LPAREN expression forLoopAntecedent+ RPAREN
-      -> ^(ofToken forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
-    | MAPOF LPAREN expression BIGRARROW expression forLoopAntecedent+ RPAREN
-      -> ^(MAPOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE ^(BIGRARROW expression expression)))
-    ;
-
-ofToken
-    : SETOF | LISTOF | TABLEOF | SUMOF
+iteratorComprehension
+    : expression forLoopAntecedent+ -> ^(YIELD forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
     ;
 
 expressionList
