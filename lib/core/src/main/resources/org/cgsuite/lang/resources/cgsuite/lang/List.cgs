@@ -14,7 +14,7 @@ system class List extends Collection
 
   external def Length;
 
-  def PeriodicTable(period as Integer) := tableof(row for row in Grouped(period));
+  def PeriodicTable(period as Integer) := Table(Grouped(period));
 
   external def Sorted;
 

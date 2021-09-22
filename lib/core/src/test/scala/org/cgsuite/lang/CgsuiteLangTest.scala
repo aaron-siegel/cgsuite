@@ -44,7 +44,16 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("List: Updated", "[5,12,13].Updated(2, 99)", "[5,99,13]"),
       ("List: Updated out of bounds", "[5,12,13].Updated(0, 99)", "!!List index out of bounds: 0"),
       ("List: Append", "[5,12,13] Append 99", "[5,12,13,99]"),
-      ("List: AppendAll", "[5,12,13] AppendAll [99,101]", "[5,12,13,99,101]")
+      ("List: AppendAll", "[5,12,13] AppendAll [99,101]", "[5,12,13,99,101]"),
+      ("List: Grouped", "[0,1,2,3,4,5,6,7,8,9] Grouped 3", "[[0,1,2],[3,4,5],[6,7,8],[9]]"),
+      ("List: PeriodicTable", "[0,1,2,3,4,5,6,7,8,9] PeriodicTable 3",
+        """0 | 1 | 2
+          |--+---+--
+          |3 | 4 | 5
+          |--+---+--
+          |6 | 7 | 8
+          |--+---+--
+          |9""".stripMargin)
     ))
   }
 

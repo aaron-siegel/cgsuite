@@ -65,7 +65,7 @@ object SpecialMethods {
     "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
     "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
-      list.grouped(n.intValue).toIterable
+      list.grouped(n.intValue).toVector
     },
     "cgsuite.lang.List.MkOutput" -> { (list: IndexedSeq[_], sep: String) =>
       val output = new StyledTextOutput
