@@ -263,7 +263,7 @@ class EvalTest extends CgscriptSpec {
       ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", Some("1,4,9"), "18"),
       ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", None, "4"),
       ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", None, "1"),
-      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "0")
+      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "!!That `Collection` is empty.")
     )
 
     val listComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
@@ -279,14 +279,14 @@ class EvalTest extends CgscriptSpec {
       (s"Yield: $name", s"$init$snippet yield $fn end", s"[$result]")
     }
 
-    val sumofLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
+    val sumLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
       (s"Sum: $name", s"${init}Sum($fn $snippet)", sum)
     }
 
     executeTests(Table(header, listComprehensionLoops : _*))
     executeTests(Table(header, setComprehensionLoops : _*))
     executeTests(Table(header, yieldLoops : _*))
-    executeTests(Table(header, sumofLoops : _*))
+    executeTests(Table(header, sumLoops : _*))
 
   }
 
