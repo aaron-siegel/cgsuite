@@ -66,7 +66,7 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
         result += SmallInteger(i+1)
       i += 1
     }
-    result
+    result.toIndexedSeq
   }
 
   def substrip(first: Integer, last: Integer): Strip = {

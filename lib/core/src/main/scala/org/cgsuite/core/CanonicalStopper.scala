@@ -9,9 +9,7 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.language.postfixOps
+import scala.collection.{JavaConverters, mutable}
 
 object CanonicalStopper {
 
@@ -56,8 +54,8 @@ object CanonicalStopper {
       cache(loopyGame.startVertex)
     else {
       val g = CanonicalShortGame(
-        loopyGame.getLeftOptions  map { toCanonicalShortGame(_, cache) },
-        loopyGame.getRightOptions map { toCanonicalShortGame(_, cache) }
+        JavaConverters.asScalaSet(loopyGame.getLeftOptions) map { toCanonicalShortGame(_, cache) },
+        JavaConverters.asScalaSet(loopyGame.getRightOptions) map { toCanonicalShortGame(_, cache) }
       )
       cache(loopyGame.startVertex) = g
       g
@@ -83,7 +81,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
     }
-    lgOpts map { CanonicalStopper(_) } toSet
+    JavaConverters.asScalaSet(lgOpts).map { CanonicalStopper(_) }
   }
 
   override def sortedOptions(player: Player): Seq[CanonicalStopper] = {
@@ -156,9 +154,9 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
   def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
 
   def followers: Iterable[CanonicalStopper] = {
-    (0 until loopyGame.getGraph.getNumVertices) map { n =>
+    (0 until loopyGame.getGraph.getNumVertices).map { n =>
       CanonicalStopper(loopyGame.deriveGame(n))
-    } toSet
+    }
   }
 
   override def isIdempotent = this + this == this

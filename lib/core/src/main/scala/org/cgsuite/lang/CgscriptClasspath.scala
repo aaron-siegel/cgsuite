@@ -7,8 +7,7 @@ import better.files._
 import io.methvin.better.files.RecursiveFileMonitor
 import org.cgsuite.lang.CgscriptClass.logger
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable
+import scala.collection.{JavaConverters, mutable}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object CgscriptClasspath {
@@ -24,7 +23,7 @@ object CgscriptClasspath {
         // Search in the production jar.
         val uri = getClass.getResource("resources").toURI
         if (uri.getScheme == "jar") {
-          FileSystemProvider.installedProviders find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+          JavaConverters.asScalaBuffer(FileSystemProvider.installedProviders) find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
             provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
           }
         }

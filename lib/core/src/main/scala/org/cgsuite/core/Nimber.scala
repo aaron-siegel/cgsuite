@@ -8,8 +8,6 @@ package org.cgsuite.core
 
 import org.cgsuite.exception.InvalidArgumentException
 
-import scala.language.postfixOps
-
 object Nimber {
 
   def apply(nimValue: Integer): Nimber = Nimber(nimValue.intValue)
@@ -41,7 +39,7 @@ trait Nimber extends ImpartialGame with Uptimal {
 
   override def options(player: Player): Iterable[Nimber] = options
   override def options: Iterable[Nimber] = {
-    (0 until intNimValue) map { Nimber(_) } toSet
+    (0 until intNimValue).map { Nimber(_) }.toSet
   }
 
   override def outcomeClass: ImpartialOutcomeClass = {

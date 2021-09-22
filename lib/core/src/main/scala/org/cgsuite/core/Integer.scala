@@ -83,14 +83,14 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def bigIntValue: BigInt
   override def intValue = {
     if (bigIntValue.bigInteger.bitLength() <= 32)
-      bigIntValue.intValue()
+      bigIntValue.intValue
     else
       throw OverflowException("Overflow.")
   }
-  def longValue = bigIntValue.longValue()
-  def floatValue = bigIntValue.floatValue()
-  def doubleValue = bigIntValue.doubleValue()
-  def byteValue = bigIntValue.byteValue()
+  def longValue = bigIntValue.longValue
+  def floatValue = bigIntValue.floatValue
+  def doubleValue = bigIntValue.doubleValue
+  def byteValue = bigIntValue.byteValue
 
   override def terms: IndexedSeq[Term] = {
     if (isZero)

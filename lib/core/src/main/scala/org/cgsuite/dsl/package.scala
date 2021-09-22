@@ -18,6 +18,7 @@ package object dsl extends ValuesTrait {
     def toDouble(x: Integer): Double = x.doubleValue
     def compare(x: Integer, y: Integer) = x compare y
     def fromInt(x: Int) = SmallInteger(x)
+    def parseString(str: String): Option[Integer] = Some(Integer.parseInteger(str))
   }
 
 }

@@ -15,9 +15,8 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters.asScalaSet
 import scala.collection.mutable
-import scala.language.postfixOps
 
 object CanonicalShortGame {
   
@@ -59,8 +58,8 @@ object CanonicalShortGame {
         case (_: Nimber, _) => -1
         case (_, _: Nimber) => 1
         case (a: Uptimal, b: Uptimal) => a.uptimalExpansion compareTo b.uptimalExpansion
-        case (a: Uptimal, _) => -1
-        case (_, b: Uptimal) => 1
+        case (_: Uptimal, _) => -1
+        case (_, _: Uptimal) => 1
         case (_, _) =>
           val cmp = compareLists(g.sortedOptions(Left), h.sortedOptions(Left))
           if (cmp != 0)
@@ -115,12 +114,12 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def options(player: Player): Iterable[CanonicalShortGame] = {
     player match {
-      case Left => (0 until ops.getNumLeftOptions(gameId)) map { n =>
+      case Left => (0 until ops.getNumLeftOptions(gameId)).map { n =>
         CanonicalShortGame(ops.getLeftOption(gameId, n))
-      } toSet
-      case Right => (0 until ops.getNumRightOptions(gameId)) map { n =>
+      }.toSet
+      case Right => (0 until ops.getNumRightOptions(gameId)).map { n =>
         CanonicalShortGame(ops.getRightOption(gameId, n))
-      } toSet
+      }.toSet
     }
   }
 
@@ -184,18 +183,18 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def followerCount: Integer = SmallInteger(ops.followerCount(gameId))
 
-  override def followers = ops.followerIds(gameId) map { CanonicalShortGame(_) } toSet
+  override def followers = asScalaSet(ops.followerIds(gameId)) map { CanonicalShortGame(_) }
 
   def freeze = cool(temperature)
 
   def heat(t: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.heat(gameId, t.gameId))
 
   def incentives: Iterable[CanonicalShortGame] = {
-    ops.incentives(gameId, true, true) map { CanonicalShortGame(_) } toSet
+    ops.incentives(gameId, true, true).map { CanonicalShortGame(_) }.toSet
   }
 
   def incentives(player: Player): Iterable[CanonicalShortGame] = {
-    ops.incentives(gameId, player == Left, player == Right) map { CanonicalShortGame(_) } toSet
+    ops.incentives(gameId, player == Left, player == Right).map { CanonicalShortGame(_) }.toSet
   }
 
   override def isAllSmall: Boolean = ops.isAllSmall(gameId)
