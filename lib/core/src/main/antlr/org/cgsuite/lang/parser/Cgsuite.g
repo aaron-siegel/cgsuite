@@ -126,6 +126,7 @@ tokens
     FUNCTION_CALL;
     FUNCTION_CALL_ARGUMENT_LIST;
     INFIX_OP;
+    ITERATOR;
     LOOP_SPEC;
     METHOD_PARAMETER;
     METHOD_PARAMETER_LIST;
@@ -576,7 +577,9 @@ arrayReference
     ;
 
 functionCall
-    : LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
+    : (LPAREN! expression FOR) => LPAREN iteratorComprehension RPAREN
+      -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] iteratorComprehension)
+    | LPAREN (functionArgument (COMMA functionArgument)*)? RPAREN
       -> ^(FUNCTION_CALL_ARGUMENT_LIST[$LPAREN] functionArgument*)
     ;
         
@@ -631,6 +634,7 @@ primaryExpr
     | SUPER DOT id=generalizedId { $id.tree.getToken().setText("super$" + $id.tree.getText()); } -> ^(DOT THIS[$SUPER] $id)
     | ERROR^ LPAREN! expression RPAREN!
     | (LPAREN expression COMMA) => LPAREN expression COMMA expression RPAREN -> ^(COORDINATES[$COMMA] expression*)
+    | (LPAREN expression FOR) => LPAREN! iteratorComprehension RPAREN!
     | LPAREN! expression RPAREN!
     | (IDENTIFIER? SQUOTE? LBRACE expressionList SLASHES) => explicitGame
     | (LBRACE expression? BIGRARROW) => explicitMap
@@ -695,7 +699,7 @@ slashExpression
     ;
 
 explicitMap
-    : (LBRACE mapEntry forLoopAntecedent) =>
+    : (LBRACE mapEntry FOR) =>
       LBRACE mapEntry forLoopAntecedent+ RBRACE -> ^(MAPOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE mapEntry))
     | LBRACE (mapEntry (COMMA mapEntry)* | BIGRARROW) RBRACE -> ^(EXPLICIT_MAP mapEntry*)
     ;
@@ -705,15 +709,19 @@ mapEntry
     ;
 
 explicitSet
-    : (LBRACE expression forLoopAntecedent) =>
+    : (LBRACE expression FOR) =>
       LBRACE expression forLoopAntecedent+ RBRACE -> ^(SETOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
     | LBRACE (expression (COMMA expression)*)? RBRACE -> ^(EXPLICIT_SET expression*)
     ;
 
 explicitList
-    : (LBRACKET expression forLoopAntecedent) =>
+    : (LBRACKET expression FOR) =>
       LBRACKET expression forLoopAntecedent+ RBRACKET -> ^(LISTOF forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
     | LBRACKET (expression (COMMA expression)*)? RBRACKET -> ^(EXPLICIT_LIST expression*)
+    ;
+
+iteratorComprehension
+    : expression forLoopAntecedent+ -> ^(ITERATOR forLoopAntecedent+ ^(STATEMENT_SEQUENCE expression))
     ;
 
 of

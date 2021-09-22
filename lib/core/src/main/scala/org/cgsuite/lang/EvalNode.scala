@@ -104,7 +104,7 @@ object EvalNode {
         if (tree.children.size > 2) Some(EvalNode(tree.children(2))) else None
       )
       case ERROR => ErrorNode(tree, EvalNode(tree.head))
-      case DO | YIELD | LISTOF | MAPOF | SETOF | TABLEOF | SUMOF => LoopNode(tree)
+      case DO | YIELD | ITERATOR | LISTOF | MAPOF | SETOF | TABLEOF | SUMOF => LoopNode(tree)
 
       // Procedures
 
@@ -648,7 +648,7 @@ object LoopNode {
 
     val loopType = tree.getType match {
       case DO => Do
-      case YIELD | LISTOF => YieldList
+      case YIELD | LISTOF | ITERATOR => YieldList
       case MAPOF => YieldMap
       case SETOF => YieldSet
       case TABLEOF => YieldTable
