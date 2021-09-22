@@ -1,10 +1,11 @@
-package org.cgsuite.lang
+package org.cgsuite.lang.node
 
 import org.antlr.runtime.Token
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
-import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.lang.parser.RichTree.treeToRichTree
+import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, Parameter}
 
 object DeclarationNode {
 

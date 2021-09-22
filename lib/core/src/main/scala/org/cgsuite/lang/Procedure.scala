@@ -2,6 +2,7 @@ package org.cgsuite.lang
 
 import java.util
 
+import org.cgsuite.lang.node.ProcedureNode
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 

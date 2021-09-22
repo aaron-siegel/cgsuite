@@ -1,6 +1,7 @@
 package org.cgsuite.lang
 
 import org.cgsuite.exception.EvalException
+import org.cgsuite.lang.node.IdentifierNode
 
 import scala.collection.mutable
 

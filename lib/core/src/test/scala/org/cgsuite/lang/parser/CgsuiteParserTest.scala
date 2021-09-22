@@ -3,6 +3,7 @@ package org.cgsuite.lang.parser
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.lang._
+import org.cgsuite.lang.node.EvalNode
 import org.scalatest.{FlatSpec, Matchers}
 
 

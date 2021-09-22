@@ -1,12 +1,13 @@
-package org.cgsuite.lang
+package org.cgsuite.lang.node
 
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, EvalException}
-import org.cgsuite.lang.Node.treeToRichTree
 import org.cgsuite.lang.Ops._
-import org.cgsuite.lang.parser.CgsuiteLexer._
+import org.cgsuite.lang._
+import org.cgsuite.lang.parser.CgsuiteLexer.{UNARY_AST, _}
+import org.cgsuite.lang.parser.RichTree.treeToRichTree
 import org.cgsuite.output.EmptyOutput
 
 import scala.collection.mutable
@@ -35,39 +36,39 @@ object EvalNode {
 
       // Ops
 
-      case UNARY_PLUS => UnOpNode(tree, Pos)
-      case UNARY_MINUS => UnOpNode(tree, Neg)
-      case PLUSMINUS => UnOpNode(tree, PlusMinus)
+      case UNARY_PLUS => node.UnOpNode(tree, Pos)
+      case UNARY_MINUS => node.UnOpNode(tree, Neg)
+      case PLUSMINUS => node.UnOpNode(tree, PlusMinus)
 
-      case PLUS => BinOpNode(tree, Plus)
-      case MINUS => BinOpNode(tree, Minus)
-      case COLON => BinOpNode(tree, OrdinalPlus)
-      case AST => BinOpNode(tree, Times)
-      case FSLASH => BinOpNode(tree, Div)
-      case PERCENT => BinOpNode(tree, Mod)
-      case EXP => BinOpNode(tree, Exp)
+      case PLUS => node.BinOpNode(tree, Plus)
+      case MINUS => node.BinOpNode(tree, Minus)
+      case COLON => node.BinOpNode(tree, OrdinalPlus)
+      case AST => node.BinOpNode(tree, Times)
+      case FSLASH => node.BinOpNode(tree, Div)
+      case PERCENT => node.BinOpNode(tree, Mod)
+      case EXP => node.BinOpNode(tree, Exp)
 
-      case NOT => UnOpNode(tree, Not)
-      case AND => BinOpNode(tree, And)
-      case OR => BinOpNode(tree, Or)
+      case NOT => node.UnOpNode(tree, Not)
+      case AND => node.BinOpNode(tree, And)
+      case OR => node.BinOpNode(tree, Or)
 
-      case IS => BinOpNode(tree, Is)
+      case IS => node.BinOpNode(tree, Is)
 
       case INFIX_OP => InfixOpNode(tree)
 
       // Relations
 
-      case EQUALS => BinOpNode(tree, Equals)
-      case NEQ => BinOpNode(tree, Neq)
-      case LEQ => BinOpNode(tree, Leq)
-      case GEQ => BinOpNode(tree, Geq)
-      case LT => BinOpNode(tree, Lt)
-      case GT => BinOpNode(tree, Gt)
-      case CONFUSED => BinOpNode(tree, Confused)
-      case LCONFUSED => BinOpNode(tree, LConfused)
-      case GCONFUSED => BinOpNode(tree, GConfused)
-      case REFEQUALS => BinOpNode(tree, RefEquals)
-      case REFNEQ => BinOpNode(tree, RefNeq)
+      case EQUALS => node.BinOpNode(tree, Equals)
+      case NEQ => node.BinOpNode(tree, Neq)
+      case LEQ => node.BinOpNode(tree, Leq)
+      case GEQ => node.BinOpNode(tree, Geq)
+      case LT => node.BinOpNode(tree, Lt)
+      case GT => node.BinOpNode(tree, Gt)
+      case CONFUSED => node.BinOpNode(tree, Confused)
+      case LCONFUSED => node.BinOpNode(tree, LConfused)
+      case GCONFUSED => node.BinOpNode(tree, GConfused)
+      case REFEQUALS => node.BinOpNode(tree, RefEquals)
+      case REFNEQ => node.BinOpNode(tree, RefNeq)
 
       // * and ^
 
@@ -76,11 +77,11 @@ object EvalNode {
 
       // Collection constructors
 
-      case COORDINATES => BinOpNode(tree, MakeCoordinates)
+      case COORDINATES => node.BinOpNode(tree, MakeCoordinates)
       case EXPLICIT_LIST => ListNode(tree)
       case EXPLICIT_SET => SetNode(tree)
       case EXPLICIT_MAP => MapNode(tree)
-      case DOTDOT => BinOpNode(tree, Range)
+      case DOTDOT => node.BinOpNode(tree, Range)
 
       // Game construction
 
@@ -92,7 +93,7 @@ object EvalNode {
           GameSpecNode(tree, gameOptions(tree.head), gameOptions(tree.children(1)), forceExplicit = false)
       case SQUOTE => GameSpecNode(tree, gameOptions(tree.head.head), gameOptions(tree.head.children(1)), forceExplicit = true)
       case NODE_LABEL => LoopyGameSpecNode(tree)
-      case AMPERSAND => BinOpNode(tree, MakeSides)
+      case AMPERSAND => node.BinOpNode(tree, MakeSides)
       case PASS => throw EvalException("Unexpected `pass`.", tree)
 
       // Control flow
@@ -118,7 +119,7 @@ object EvalNode {
 
       case DOT => DotNode(tree, EvalNode(tree.head), IdentifierNode(tree.children(1)))
       case FUNCTION_CALL => FunctionCallNode(tree)
-      case ARRAY_REFERENCE => BinOpNode(tree, ArrayReference, EvalNode(tree.head), EvalNode(tree.children(1).head))
+      case ARRAY_REFERENCE => node.BinOpNode(tree, ArrayReference, EvalNode(tree.head), EvalNode(tree.children(1).head))
 
       // Assignment
 
@@ -151,7 +152,7 @@ object EvalNode {
     if (tree.children.isEmpty) {
       ConstantNode(tree, star)
     } else {
-      UnOpNode(tree, MakeNimber)
+      node.UnOpNode(tree, MakeNimber)
     }
   }
 
@@ -169,8 +170,8 @@ object EvalNode {
       if (t.children.isEmpty) ConstantNode(t, one) else EvalNode(t.head)
     } getOrElse { ConstantNode(null, zero) }
     tree.getType match {
-      case CARET | MULTI_CARET => BinOpNode(tree, MakeUpMultiple, upMultipleNode, nimberNode)
-      case VEE | MULTI_VEE => BinOpNode(tree, MakeDownMultiple, upMultipleNode, nimberNode)
+      case CARET | MULTI_CARET => node.BinOpNode(tree, MakeUpMultiple, upMultipleNode, nimberNode)
+      case VEE | MULTI_VEE => node.BinOpNode(tree, MakeDownMultiple, upMultipleNode, nimberNode)
     }
   }
 

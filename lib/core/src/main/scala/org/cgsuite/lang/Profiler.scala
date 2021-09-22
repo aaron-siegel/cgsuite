@@ -2,6 +2,7 @@ package org.cgsuite.lang
 
 import java.lang.{System => JSystem}
 
+import org.cgsuite.lang.node.EvalNode
 import org.cgsuite.lang.parser.ParserUtil
 
 import scala.collection.mutable
