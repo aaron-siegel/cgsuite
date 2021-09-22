@@ -763,7 +763,7 @@ case class LoopNode(
       case LoopNode.YieldTable => "tableof"
       case LoopNode.YieldSum => "sumof"
     }
-    val antecedent = Seq(
+    val antecedent = Vector(
       forId map { "for " + _.id.name },
       in map { "in " + _.toNodeString },
       from map { "from " + _.toNodeString },

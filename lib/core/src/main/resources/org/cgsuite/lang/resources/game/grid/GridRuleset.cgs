@@ -15,7 +15,7 @@ class GridRuleset extends Ruleset
   class GridGame(grid as Grid) extends Game
 
     override def ToOutput :=
-      cgsuite.util.output.GridOutput(grid, listof(icon.Literal for icon in Icons), this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
+      cgsuite.util.output.GridOutput(grid, [icon.Literal for icon in Icons], this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
 
   end
 

@@ -147,8 +147,8 @@ class EvalTest extends CgscriptSpec {
       ("Hanging pass 2", "{1|0+pass}", "!!Unexpected `pass`."),
       ("loopy plus number", "over+5", "5over"),
       ("loopy plus number (under)", "under+5", "5under"),
-      ("loopy plus number (upon)", "listof(5+x for x in [{pass|*},{pass,0|0},{*|pass},{0|0,pass}])", "[5^[on],5^[on]*,5v[on],5v[on]*]"),
-      ("loopy plus number (uponth)", "listof(5+x for x in [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}])", "[5^<on>,5^<on>*,5v<on>,5v<on>*]"),
+      ("loopy plus number (upon)", "[5+x for x in [{pass|*},{pass,0|0},{*|pass},{0|0,pass}]]", "[5^[on],5^[on]*,5v[on],5v[on]*]"),
+      ("loopy plus number (uponth)", "[5+x for x in [{0||0|0,pass},{0,*||*|pass},{0,pass|0||0},{pass|*||0,*}]]", "[5^<on>,5^<on>*,5v<on>,5v<on>*]"),
       ("loopy plus canonical", "over+^", "over"),
       ("number plus loopy", "5+over", "5over"),
       ("loopy minus number", "over-5", "-5over"),
@@ -239,19 +239,22 @@ class EvalTest extends CgscriptSpec {
       ("Range -> Explicit 2", "(3..12..3).ToSet", "{3,6,9,12}"),
       ("Range Equals List", "1..4 === [1,2,3,4]", "true"),
       ("Empty Range Equals List", "1..0 === []", "true"),
-      ("Listof", "listof(x^2 for x from 1 to 5)", "[1,4,9,16,25]"),
-      ("Multi-listof", "listof(x^2+y^2 for x from 1 to 5 for y from 1 to 5)", "[2,5,10,17,26,5,8,13,20,29,10,13,18,25,34,17,20,25,32,41,26,29,34,41,50]"),
-      ("Setof", "setof(x^2 for x in [1,3,5,3])", "{1,9,25}"),
-      ("Multi-setof", "setof(x^2+y^2 for x from 1 to 5 for y from 1 to 5)", "{2,5,8,10,13,17,18,20,25,26,29,32,34,41,50}"),
-      ("Sumof", "sumof(n for n from 1 to 10)", "55"),
-      ("Sumof 2", """sumof("foo" for x from 1 to 4)""", """"foofoofoofoo""""),
-      ("Multi-sumof", "sumof(m+n for m from 1 to 10 for n from 1 to 10)", "1100"),
-      ("Tableof", "tableof([n,n^2] for n from 1 to 3)",
-        """|1 | 1
-           |--+--
-           |2 | 4
-           |--+--
-           |3 | 9""".stripMargin)
+      ("List comprehension", "[x^2 for x from 1 to 5]", "[1,4,9,16,25]"),
+      ("List multi-comprehension", "[x^2+y^2 for x from 1 to 5 for y from 1 to 5]", "[2,5,10,17,26,5,8,13,20,29,10,13,18,25,34,17,20,25,32,41,26,29,34,41,50]"),
+      ("Set comprehension", "{x^2 for x in [1,3,5,3]}", "{1,9,25}"),
+      ("Set multi-comprehension", "{x^2+y^2 for x from 1 to 5 for y from 1 to 5}", "{2,5,8,10,13,17,18,20,25,26,29,32,34,41,50}"),
+      ("Map comprehension", "{x^2 => x for x in [1,3,5,3]}", "{1 => 1, 9 => 3, 25 => 5}"),
+      ("Map multi-comprehension", "{x^2+y^2 => x for x from 1 to 5 for y from 1 to 5}",
+        "{2 => 1, 5 => 2, 8 => 2, 10 => 3, 13 => 3, 17 => 4, 18 => 3, 20 => 4, 25 => 4, 26 => 5, 29 => 5, 32 => 4, 34 => 5, 41 => 5, 50 => 5}")
+      //("Sumof", "sumof(n for n from 1 to 10)", "55"),
+      //("Sumof 2", """sumof("foo" for x from 1 to 4)""", """"foofoofoofoo""""),
+      //("Multi-sumof", "sumof(m+n for m from 1 to 10 for n from 1 to 10)", "1100"),
+      //("Tableof", "tableof([n,n^2] for n from 1 to 3)",
+      //  """|1 | 1
+      //     |--+--
+      //     |2 | 4
+      //     |--+--
+      //     |3 | 9""".stripMargin)
     ))
   }
 
@@ -272,27 +275,27 @@ class EvalTest extends CgscriptSpec {
       ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "0")
     )
 
-    val listofLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
-      (s"listof: $name", s"${init}listof($fn $snippet)", s"[$result]")
+    val listComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
+      (s"List comprehension: $name", s"$init[$fn $snippet]", s"[$result]")
     }
 
-    val setofLoops = loopScenarios map { case (name, init, fn, snippet, result, sortedResult, _) =>
+    val setComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, sortedResult, _) =>
       val setResult = sortedResult getOrElse result
-      (s"setof: $name", s"${init}setof($fn $snippet)", s"{$setResult}")
+      (s"Set comprehension: $name", s"$init{$fn $snippet}", s"{$setResult}")
     }
 
     val yieldLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
-      (s"yield: $name", s"$init$snippet yield $fn end", s"[$result]")
+      (s"Yield: $name", s"$init$snippet yield $fn end", s"[$result]")
     }
 
-    val sumofLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
-      (s"sumof: $name", s"${init}sumof($fn $snippet)", sum)
-    }
+    //val sumofLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
+    //  (s"sumof: $name", s"${init}sumof($fn $snippet)", sum)
+    //}
 
-    executeTests(Table(header, listofLoops : _*))
-    executeTests(Table(header, setofLoops : _*))
+    executeTests(Table(header, listComprehensionLoops : _*))
+    executeTests(Table(header, setComprehensionLoops : _*))
     executeTests(Table(header, yieldLoops : _*))
-    executeTests(Table(header, sumofLoops : _*))
+    //executeTests(Table(header, sumofLoops : _*))
 
   }
 

@@ -18,7 +18,7 @@ class Turning(arg) extends StripRuleset
       for n from 1 to strip.Length where strip[n] == 1
       for heaps in heapRules HeapOptions n
       yield
-        var updates := mapof(j => 1-strip[j] for j in heaps);
+        var updates := {j => 1 - strip[j] for j in heaps};
         Position(strip Updated updates Updated { n => 0 })
       end
     

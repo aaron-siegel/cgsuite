@@ -30,7 +30,7 @@ class GenClobber(
 
     override def Decomposition begin
       if maxDistance == 1 then
-        listof(Position(component) for component in grid.Decomposition(0, directions))
+        [Position(component) for component in grid.Decomposition(0, directions)]
       else
         [this]
       end

@@ -4,7 +4,7 @@ class PartizanHeapRuleset(leftRuleset as HeapRuleset, rightRuleset as HeapRulese
 
   def Eval(heapSize as Integer) := Position(heapSize);
 
-  def GameValueSequence(toHeapSize as Integer) := listof(Position(n).GameValue for n from 1 to toHeapSize);
+  def GameValueSequence(toHeapSize as Integer) := [Position(n).GameValue for n from 1 to toHeapSize];
 
   class Position(heapSize as Integer) extends Game
 

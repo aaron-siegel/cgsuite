@@ -5,7 +5,7 @@ class GenMem(predicate as Procedure) extends CoordinateRuleset
   override def CoordinateOptions(coord as Coordinates) begin
     var n := coord.Row;
     var memory := coord.Col;
-    listof((n - j, j) for j from 1 to n where predicate(memory, j))
+    [(n - j, j) for j from 1 to n where predicate(memory, j)]
   end
 
 end
