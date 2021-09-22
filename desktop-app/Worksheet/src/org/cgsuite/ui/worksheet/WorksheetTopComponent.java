@@ -8,7 +8,6 @@ import java.awt.Color;
 import java.util.List;
 import java.util.logging.Logger;
 import org.cgsuite.core.Game;
-import org.cgsuite.lang.EvalUtil;
 import org.cgsuite.output.Output;
 import org.cgsuite.util.Explorer;
 import org.cgsuite.util.UiHarness;
@@ -219,7 +218,7 @@ public final class WorksheetTopComponent extends TopComponent
         @Override
         public void print(Object obj)
         {
-            List<Output> output = JavaConverters.seqAsJavaList(EvalUtil.objectToOutput(obj));
+            List<Output> output = JavaConverters.seqAsJavaList(org.cgsuite.lang.System.objectToOutput(obj));
             postOutput(output);
         }
 
