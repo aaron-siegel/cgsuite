@@ -25,12 +25,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
 
 **************************************************************************** */
-package org.cgsuite.lang
+
+package org.cgsuite.util
 
 import org.cgsuite.core.{Integer, RationalNumber}
 import org.cgsuite.exception.NotNumberException
-import org.cgsuite.lang.Table.Format
 import org.cgsuite.output.{IntensityPlotOutput, Output, OutputTarget, TableOutput}
+import org.cgsuite.util.Table.Format
 
 object Table {
 

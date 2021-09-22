@@ -4,7 +4,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Symmetry, UiHarness}
+import org.cgsuite.util.{Symmetry, Table, UiHarness}
 
 import scala.collection.mutable
 
