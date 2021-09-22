@@ -22,8 +22,8 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.tools.version>2.12</scala.tools.version>
-    <scala.version>2.12.13</scala.version>
+    <scala.tools.version>2.13</scala.tools.version>
+    <scala.version>2.13.6</scala.version>
   </properties>
 
   <repositories>
@@ -38,16 +38,6 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-compiler</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-reflect</artifactId>
       <version>${scala.version}</version>
     </dependency>
     <dependency>
@@ -77,7 +67,7 @@
     </dependency>
     <dependency>
       <groupId>cc.redberry</groupId>
-      <artifactId>rings.scaladsl_${scala.tools.version}</artifactId>
+      <artifactId>rings.scaladsl_2.12</artifactId>
       <version>2.5.7</version>
     </dependency>
     <dependency>
@@ -93,7 +83,7 @@
     <dependency>
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
-      <version>0.7.0</version>
+      <version>0.15.0</version>
     </dependency>
     <dependency>
       <groupId>org.hyperic</groupId>
@@ -111,13 +101,13 @@
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.tools.version}</artifactId>
-      <version>3.0.5</version>
+      <version>3.2.10</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.scalacheck</groupId>
       <artifactId>scalacheck_${scala.tools.version}</artifactId>
-      <version>1.14.0</version>
+      <version>1.14.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
