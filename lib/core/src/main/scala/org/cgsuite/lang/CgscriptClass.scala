@@ -1468,11 +1468,6 @@ class CgscriptClass(
 
 }
 
-sealed trait CgscriptClassDef
-case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
-case class ExplicitClassDef(text: String) extends CgscriptClassDef
-case class NestedClassDef(enclosingClass: CgscriptClass, declNode: ClassDeclarationNode) extends CgscriptClassDef
-
 object LifecycleStage extends Enumeration {
   val New, Declaring, Declared, Initializing, Initialized, Unloaded = Value
 }
