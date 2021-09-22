@@ -6,7 +6,7 @@ system class Collection
 
   /** Returns `true` if there exists an element in this collection
     * that satisfies the specified predicate.
-    * `predicate` must be a [[Boolean]]-valued procedure.
+    * `predicate` must be a [[Boolean]]-valued function.
     *
     * For example:
     *
@@ -14,26 +14,26 @@ system class Collection
     *
     * returns `true` just if the collection `c` contains an even element.
     */
-  external def Exists(predicate as Procedure);
+  external def Exists(predicate as Function);
 
   /** Returns the first element in this collection that
     * satisfies the specified predicate.
-    * `predicate` must be a [[Boolean]]-valued procedure.
+    * `predicate` must be a [[Boolean]]-valued function.
     *
     * If no element of this collection satisfies the predicate, then
     * [[Nothing]] will be returned.
     */
-  external def Find(predicate as Procedure);
+  external def Find(predicate as Function);
 
   /** Returns `true` if every element in this collection
     * satisfies the specified predicate.
-    * `predicate` must be a [[Boolean]]-valued procedure.
+    * `predicate` must be a [[Boolean]]-valued function.
     */
-  external def ForAll(predicate as Procedure);
+  external def ForAll(predicate as Function);
 
-  /** Applies the specified procedure to element in this collection. 
+  /** Applies the specified function to each element in this collection.
     */
-  external def ForEach(proc as Procedure);
+  external def ForEach(fn as Function);
 
   /** The first element in this collection (in iteration order).
     * An exception will be thrown if this collection is empty.

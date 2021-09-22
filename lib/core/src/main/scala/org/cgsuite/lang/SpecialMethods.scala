@@ -50,17 +50,17 @@ object SpecialMethods {
 
   private val specialMethods1: Map[String, (_, _) => Any] = Map(
 
-    "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], proc: Procedure) =>
-      collection.exists { x => proc.call(Array(x)).asInstanceOf[Boolean] }
+    "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
+      collection.exists { x => fn.call(Array(x)).asInstanceOf[Boolean] }
     },
-    "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], proc: Procedure) =>
-      collection.asInstanceOf[Iterable[Any]].find { x => proc.call(Array(x)).asInstanceOf[Boolean] }.orNull
+    "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], fn: Function) =>
+      collection.asInstanceOf[Iterable[Any]].find { x => fn.call(Array(x)).asInstanceOf[Boolean] }.orNull
     },
-    "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], proc: Procedure) =>
-      collection.forall { x => proc.call(Array(x)).asInstanceOf[Boolean] }
+    "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], fn: Function) =>
+      collection.forall { x => fn.call(Array(x)).asInstanceOf[Boolean] }
     },
-    "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], proc: Procedure) =>
-      collection.foreach { x => proc.call(Array(x)) }; null
+    "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
+      collection.foreach { x => fn.call(Array(x)) }; null
     },
     "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
     "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },

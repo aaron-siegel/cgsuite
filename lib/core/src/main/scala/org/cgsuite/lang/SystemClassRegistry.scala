@@ -35,7 +35,7 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
     "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
-    "cgsuite.lang.Procedure" -> classOf[Procedure],
+    "cgsuite.lang.Function" -> classOf[Function],
     "cgsuite.lang.System" -> classOf[System],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],

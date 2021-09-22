@@ -4,7 +4,7 @@ system class Set extends Collection
 
   external def Contains(x);
 
-  def Apply(fn as Procedure) := {fn(x) for x in this};
+  def Apply(fn as Function) := {fn(x) for x in this};
   
   external def Intersection(that as Set);
 

@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Procedure
+system class Function
 
   override external def ToOutput;
 

@@ -290,56 +290,56 @@ class EvalTest extends CgscriptSpec {
 
   }
 
-  it should "properly construct and evaluate procedures" in {
+  it should "properly construct and evaluate functions" in {
 
     executeTests(Table(
       header,
-      ("Procedure definition", "f := x -> x+1", "x -> x + 1"),
-      ("Procedure definition - duplicate var", "(x, x) -> x", "!!Duplicate var: `x`"),
-      ("Procedure evaluation", "f(8)", "9"),
-      ("Procedure scope 1", "y := 3; f := x -> x+y; f(5)", "8"),
-      ("Procedure scope 2", "y := 6; f(5)", "11"),
-      ("Procedure scope 3", "x := 9; f(5); x", "9"),
-      ("Procedure scope 4", "f := temp -> temp+1; f(5); temp", "!!That variable is not defined: `temp`"),
-      ("No-parameter procedure", "f := () -> 3", "() -> 3"),
-      ("No-parameter procedure evaluation", "f()", "3"),
-      ("Multiparameter procedure", "f := (x,y) -> (x-y)/2", "(x, y) -> (x - y) / 2"),
-      ("Multiparameter procedure evaluation", "f(3,4)", "-1/2"),
-      ("Procedure eval - too few args", "f(3)", "!!Missing required parameter (in procedure call): `y`"),
-      ("Procedure eval - too many args", "f(3,4,5)", "!!Too many arguments (in procedure call): 3 (expecting at most 2)"),
-      ("Procedure eval - named args", "f(y => 3, x => 4)", "1/2"),
-      ("Procedure eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` appears in earlier position than an ordinary argument"),
-      ("Procedure eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Named parameter shadows an earlier ordinary argument (in procedure call): `x`"),
-      ("Procedure eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter: `y`"),
-      ("Procedure eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name (in procedure call): `foo`"),
-      ("Curried procedure definition", "f := x -> y -> x + y", "x -> y -> x + y"),
-      ("Curried procedure evaluation - 1", "g := f(3)", "y -> x + y"),
-      ("Curried procedure evaluation - 2", "h := f(5)", "y -> x + y"),
-      ("Curried procedure evaluation - 3", "[g(7),h(7)]", "[10,12]"),
-      ("Curried procedure definition - duplicate var", "x -> x -> (x + 3)", "!!Duplicate var: `x`"),
-      ("Recursive procedure", "fact := n -> if n == 0 then 1 else n * fact(n-1) end; fact(6)", "720"),
+      ("Function definition", "f := x -> x+1", "x -> x + 1"),
+      ("Function definition - duplicate var", "(x, x) -> x", "!!Duplicate var: `x`"),
+      ("Function evaluation", "f(8)", "9"),
+      ("Function scope 1", "y := 3; f := x -> x+y; f(5)", "8"),
+      ("Function scope 2", "y := 6; f(5)", "11"),
+      ("Function scope 3", "x := 9; f(5); x", "9"),
+      ("Function scope 4", "f := temp -> temp+1; f(5); temp", "!!That variable is not defined: `temp`"),
+      ("No-parameter function", "f := () -> 3", "() -> 3"),
+      ("No-parameter function evaluation", "f()", "3"),
+      ("Multiparameter function", "f := (x,y) -> (x-y)/2", "(x, y) -> (x - y) / 2"),
+      ("Multiparameter function evaluation", "f(3,4)", "-1/2"),
+      ("Function eval - too few args", "f(3)", "!!Missing required parameter (in function call): `y`"),
+      ("Function eval - too many args", "f(3,4,5)", "!!Too many arguments (in function call): 3 (expecting at most 2)"),
+      ("Function eval - named args", "f(y => 3, x => 4)", "1/2"),
+      ("Function eval - named before ordinary", "f(y => 4, 5)", "!!Named parameter `y` appears in earlier position than an ordinary argument"),
+      ("Function eval - duplicate parameter (ordinary + named)", "f(3, x => 4)", "!!Named parameter shadows an earlier ordinary argument (in function call): `x`"),
+      ("Function eval - duplicate parameter (named + named)", "f(y => 4, y => 5)", "!!Duplicate named parameter: `y`"),
+      ("Function eval - invalid named arg", "f(3, foo => 4)", "!!Invalid parameter name (in function call): `foo`"),
+      ("Curried function definition", "f := x -> y -> x + y", "x -> y -> x + y"),
+      ("Curried function evaluation - 1", "g := f(3)", "y -> x + y"),
+      ("Curried function evaluation - 2", "h := f(5)", "y -> x + y"),
+      ("Curried function evaluation - 3", "[g(7),h(7)]", "[10,12]"),
+      ("Curried function definition - duplicate var", "x -> x -> (x + 3)", "!!Duplicate var: `x`"),
+      ("Recursive function", "fact := n -> if n == 0 then 1 else n * fact(n-1) end; fact(6)", "720"),
       ("Closure",
         """f := () -> begin var x := []; [y -> (x := y), () -> x] end;
           |pair1 := f(); set1 := pair1[1]; get1 := pair1[2]; pair2 := f(); set2 := pair2[1]; get2 := pair2[2];
           |set1("foo"); set2("bar"); [get1(), get2()]
         """.stripMargin, """["foo","bar"]"""),
-      ("Procedure involving assignment - syntax error", "x -> y := x", "!!Syntax error."),
+      ("Function involving assignment - syntax error", "x -> y := x", "!!Syntax error."),
       ("False eval", "5(3)", "!!No method `Eval` for class: `game.Integer`"),
-      ("Procedure eval - infinite recursion", "j := n -> j(n); j(5)", "!!Possible infinite recursion.")
+      ("Function eval - infinite recursion", "j := n -> j(n); j(5)", "!!Possible infinite recursion.")
     ))
 
   }
 
-  it should "accept outer def notation for procedures" in {
+  it should "accept outer def notation for functions" in {
 
     executeTests(Table(
       header,
-      ("Procedure definition with def", "def t(x) := x + 1", "x -> x + 1"),
-      ("Statement chaining with def'ed procedure 1", "def t(x) := x + 2;", null),
-      ("Evaluation of def'ed procedure", "t(5)", "7"),
-      ("Statement chaining with def'ed procedure 2", "def t(x) := x + 3; t(5)", "8"),
-      ("Procedure definition with def block", "def u(x) begin y := x + 4; y; end", "x -> begin y := x + 4; y end"),
-      ("Procedure chaining with def block", "def u(x) begin y := x + 5; y; end; u(5)", "10")
+      ("Function definition with def", "def t(x) := x + 1", "x -> x + 1"),
+      ("Statement chaining with def'ed function 1", "def t(x) := x + 2;", null),
+      ("Evaluation of def'ed function", "t(5)", "7"),
+      ("Statement chaining with def'ed function 2", "def t(x) := x + 3; t(5)", "8"),
+      ("Function definition with def block", "def u(x) begin y := x + 4; y; end", "x -> begin y := x + 4; y end"),
+      ("Function chaining with def block", "def u(x) begin y := x + 5; y; end; u(5)", "10")
     ))
   }
 
@@ -364,7 +364,7 @@ class EvalTest extends CgscriptSpec {
       ("5-param method", "test.validation.Inner.Method5", "3", 5, "in call to `test.validation.Inner.Method5`"),
       ("Outer constructor", "test.validation.Outer", "Outer(1, 2, c => \"bell\")", 3, "in call to `test.validation.Outer` constructor"),
       ("Nested constructor", "test.validation.Inner.Nested", "Inner.Nested(1, 2, c => \"bell\")", 3, "in call to `test.validation.Inner.Nested` constructor"),
-      ("Procedure", "f", "3", 3, "in procedure call")
+      ("Function", "f", "3", 3, "in function call")
     )
 
     val tests = instances flatMap { case (name, fn, successOutput, paramCount, locationMessage) =>
