@@ -408,7 +408,7 @@ object FunctionDefNode {
 case class FunctionDefNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
   override def elaborate(scope: ElaborationDomain): Unit = {
-    val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
+    val newScope = new ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
     parameters foreach { param =>
       param.methodScopeIndex = newScope.insertId(param.idNode)
       param.defaultValue foreach { _.elaborate(newScope) }
