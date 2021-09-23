@@ -77,7 +77,7 @@ class TBCodeTest extends AnyFlatSpec with Matchers {
     traversals foreach { case ((code, heapSize), expectedResultString) =>
 
       val traversal = TBCode(code).traversal(heapSize)
-      val result = mutable.MutableList[IndexedSeq[Int]]()
+      val result = mutable.ArrayBuffer[IndexedSeq[Int]]()
       while (traversal.advance()) {
         result += (0 until traversal.currentLength) map traversal.currentPart
       }

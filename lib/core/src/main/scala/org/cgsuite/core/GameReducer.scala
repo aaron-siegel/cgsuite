@@ -35,7 +35,8 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
       val it = decomp.iterator
       while (it.hasNext) {
         val component = it.next() match {
-          case g: G => reduce2(g, tt, visited)
+          // TODO Is this unchecked match really the right thing to do?
+          case g: G @unchecked => reduce2(g, tt, visited)
         }
         result = plus(result, component)
       }
@@ -47,7 +48,7 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
   private def reduce2(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
     tt.get(g) match {
-      case Some(x: T) => x
+      case Some(x) => x
       case None if !visited.contains(g) =>
         visited += g
         try {

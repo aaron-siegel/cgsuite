@@ -1111,7 +1111,7 @@ class CgscriptClass(
     val initializerDomain = new EvaluationDomain(null, Some(classObjectRef))
     node.staticInitializers foreach { initNode =>
       if (!initNode.modifiers.hasExternal) {
-        val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+        val scope = new ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
         // We intentionally don't elaborate class var declarations, since those are already
         // accounted for in the class vars. But we still need to elaborate the RHS of
         // the assignment.
@@ -1124,7 +1124,7 @@ class CgscriptClass(
       }
     }
 
-    val initializerElaborationDomain = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+    val initializerElaborationDomain = new ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
     node.ordinaryInitializers.foreach { _.body elaborate initializerElaborationDomain }
     initializerLocalVariableCount = initializerElaborationDomain.localVariableCount
 
@@ -1254,7 +1254,7 @@ class CgscriptClass(
 
     def elaborate(): Unit = {
       logger.debug(s"$logPrefix Elaborating method: $qualifiedName")
-      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+      val scope = new ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
         param.defaultValue foreach { _.elaborate(scope) }
       }
@@ -1277,7 +1277,7 @@ class CgscriptClass(
     private var localVariableCount: Int = 0
 
     override def elaborate(): Unit = {
-      val scope = ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
+      val scope = new ElaborationDomain(Some(pkg), classInfo.allSymbolsInClassScope, None)
       parameters foreach { param =>
         param.methodScopeIndex = scope.insertId(param.idNode)
         param.defaultValue foreach { _.elaborate(scope) }

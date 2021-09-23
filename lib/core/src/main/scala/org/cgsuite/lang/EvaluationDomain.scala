@@ -46,29 +46,26 @@ class EvaluationDomain(
 
 object ElaborationDomain {
 
-  def apply(pkg: Option[CgscriptPackage], classVars: Seq[Set[Symbol]], enclosingDomain: Option[ElaborationDomain]) = {
-    new ElaborationDomain(pkg, classVars, enclosingDomain, mutable.AnyRefMap(), mutable.Stack(mutable.HashSet()))
-  }
-
-  def empty(pkg: Option[CgscriptPackage] = None) = ElaborationDomain(pkg, Seq(), None)
+  def empty(pkg: Option[CgscriptPackage] = None) = new ElaborationDomain(pkg, Seq.empty, None)
 
 }
 
-class ElaborationDomain private (
+class ElaborationDomain (
   val pkg: Option[CgscriptPackage],    // None = "external" (Worksheet/REPL) scope
   val classVars: Seq[Set[Symbol]],
-  val enclosingDomain: Option[ElaborationDomain],
-  varMap: mutable.AnyRefMap[Symbol, Int],
-  scopeStack: mutable.Stack[mutable.HashSet[Symbol]]
+  val enclosingDomain: Option[ElaborationDomain]
   )
 {
 
+  val varMap = mutable.AnyRefMap[Symbol, Int]()
+  var scopeStack = List(mutable.HashSet[Symbol]())
+
   def pushScope(): Unit = {
-    scopeStack.push(mutable.HashSet())
+    scopeStack = mutable.HashSet[Symbol]() +: scopeStack
   }
 
   def popScope(): Unit = {
-    scopeStack.pop()
+    scopeStack = scopeStack.tail
   }
 
   def scopeDepth: Int = scopeStack.size
@@ -90,7 +87,7 @@ class ElaborationDomain private (
     if (contains(id)) {
       throw EvalException(s"Duplicate var: `${id.name}`", token = Some(idNode.token))
     } else {
-      scopeStack.top += id
+      scopeStack.head += id
       varMap getOrElseUpdate (id, varMap.size)
     }
   }
