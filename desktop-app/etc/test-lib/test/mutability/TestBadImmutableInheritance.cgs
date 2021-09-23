@@ -1,9 +1,0 @@
-/*
- * TestBadImmutableInheritance.cgs
- *
- * Created by asiegel on Aug 5, 2011
- */
-
-class TestBadImmutableInheritance extends TestMutable
-
-end

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.cgsuite.lang.CgscriptClasspath;
-import org.cgsuite.lang.EvalUtil;
 import org.cgsuite.output.Output;
 import org.openide.util.RequestProcessor;
 import org.slf4j.LoggerFactory;
@@ -72,14 +71,14 @@ public class CalculationCapsule implements Runnable
             try
             {
                 long startTime = System.nanoTime();
-                output = JavaConverters.seqAsJavaList(EvalUtil.evaluate(text, varMap));
+                output = JavaConverters.seqAsJavaList(org.cgsuite.lang.System.evaluate(text, varMap));
                 long duration = System.nanoTime() - startTime;
                 log.info(String.format("Calculation finished in %d.%03d seconds.", duration / 1000000000L, (duration % 1000000000L) / 1000000L));
             }
             catch (Throwable exc)
             {
                 log.log(Level.WARNING, "Exception thrown extracting error output!", exc);
-                output = Collections.singletonList(EvalUtil.errorOutput("An unexpected error occurred."));
+                output = Collections.singletonList(org.cgsuite.lang.System.errorOutput("An unexpected error occurred."));
             }
         }
     }

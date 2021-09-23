@@ -1,10 +1,11 @@
 package org.cgsuite.core.impartial
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.collection.mutable
 
-class TBCodeTest extends FlatSpec with Matchers {
+class TBCodeTest extends AnyFlatSpec with Matchers {
 
   val normalizations = Map(
     "04.30" -> "4.3",

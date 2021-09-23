@@ -35,15 +35,8 @@ singleton class constants
 
   def TakeAway(limit as DyadicRational) := GenMem((memory, j) -> j <= memory * limit);
 
-  def TakeAway(limit as Procedure) := GenMem((memory, j) -> j <= limit(memory));
+  def TakeAway(limit as Function) := GenMem((memory, j) -> j <= limit(memory));
 
-  def TakeAway(arg) begin
-    if arg is DyadicRational then GenMem((memory, j) -> j <= memory * arg)
-    elseif arg is Procedure then GenMem((memory, j) -> j <= arg(memory))
-    else System.Error("Argument to `TakeAway` must be a `DyadicRational` or a `Procedure`.")
-    end
-  end
-  
   var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
   var Wythoff := GenWythoff(1);

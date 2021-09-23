@@ -52,7 +52,7 @@ case class TakeAndBreak(code: String) extends HeapRuleset {
     while (tr.advance()) {
       result += (0 until tr.currentLength) map { n => Integer(tr.currentPart(n)) }
     }
-    result
+    result.toIndexedSeq
   }
 
   override def periodicityChecker: Option[PeriodicityChecker] = Some(tbCode.periodicityChecker)

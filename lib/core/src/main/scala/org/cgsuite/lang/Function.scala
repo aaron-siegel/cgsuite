@@ -2,11 +2,11 @@ package org.cgsuite.lang
 
 import java.util
 
-import org.cgsuite.lang.node.ProcedureNode
+import org.cgsuite.lang.node.FunctionDefNode
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
-case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends CallSite with OutputTarget {
+case class Function(node: FunctionDefNode, domain: EvaluationDomain) extends CallSite with OutputTarget {
 
   override def parameters = node.parameters
 
@@ -26,7 +26,7 @@ case class Procedure(node: ProcedureNode, domain: EvaluationDomain) extends Call
 
   override def referenceToken = Some(node.token)
 
-  override def locationMessage = "in procedure call"
+  override def locationMessage = "in function call"
 
   override def toOutput: StyledTextOutput = new StyledTextOutput(util.EnumSet.of(Style.FACE_MONOSPACED), node.toNodeString)
 

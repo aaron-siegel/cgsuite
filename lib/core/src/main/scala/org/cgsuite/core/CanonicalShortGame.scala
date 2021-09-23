@@ -15,9 +15,8 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters.asScalaSet
 import scala.collection.mutable
-import scala.language.postfixOps
 
 object CanonicalShortGame {
   
@@ -59,8 +58,8 @@ object CanonicalShortGame {
         case (_: Nimber, _) => -1
         case (_, _: Nimber) => 1
         case (a: Uptimal, b: Uptimal) => a.uptimalExpansion compareTo b.uptimalExpansion
-        case (a: Uptimal, _) => -1
-        case (_, b: Uptimal) => 1
+        case (_: Uptimal, _) => -1
+        case (_, _: Uptimal) => 1
         case (_, _) =>
           val cmp = compareLists(g.sortedOptions(Left), h.sortedOptions(Left))
           if (cmp != 0)
@@ -115,12 +114,12 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def options(player: Player): Iterable[CanonicalShortGame] = {
     player match {
-      case Left => (0 until ops.getNumLeftOptions(gameId)) map { n =>
+      case Left => (0 until ops.getNumLeftOptions(gameId)).map { n =>
         CanonicalShortGame(ops.getLeftOption(gameId, n))
-      } toSet
-      case Right => (0 until ops.getNumRightOptions(gameId)) map { n =>
+      }.toSet
+      case Right => (0 until ops.getNumRightOptions(gameId)).map { n =>
         CanonicalShortGame(ops.getRightOption(gameId, n))
-      } toSet
+      }.toSet
     }
   }
 
@@ -184,18 +183,18 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def followerCount: Integer = SmallInteger(ops.followerCount(gameId))
 
-  override def followers = ops.followerIds(gameId) map { CanonicalShortGame(_) } toSet
+  override def followers = asScalaSet(ops.followerIds(gameId)) map { CanonicalShortGame(_) }
 
   def freeze = cool(temperature)
 
   def heat(t: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.heat(gameId, t.gameId))
 
   def incentives: Iterable[CanonicalShortGame] = {
-    ops.incentives(gameId, true, true) map { CanonicalShortGame(_) } toSet
+    ops.incentives(gameId, true, true).map { CanonicalShortGame(_) }.toSet
   }
 
   def incentives(player: Player): Iterable[CanonicalShortGame] = {
-    ops.incentives(gameId, player == Left, player == Right) map { CanonicalShortGame(_) } toSet
+    ops.incentives(gameId, player == Left, player == Right).map { CanonicalShortGame(_) }.toSet
   }
 
   override def isAllSmall: Boolean = ops.isAllSmall(gameId)
@@ -305,7 +304,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def toOutput: StyledTextOutput = {
     val sto = new StyledTextOutput()
-    appendTo(sto, true, false)
+    appendTo(sto, forceBrackets = true, forceParens = false)
     sto
   }
 
@@ -317,7 +316,6 @@ trait CanonicalShortGame extends CanonicalStopper {
       throw CalculationCanceledException("Calculation canceled by user.")
     }
 
-    val negative = -this
     val lo = sortedOptions(Left)
     val ro = sortedOptions(Right)
 
@@ -326,8 +324,8 @@ trait CanonicalShortGame extends CanonicalStopper {
       output.appendSymbol(PLUS_MINUS)
       if (lo.size > 1)
         output.appendMath("{")
-      lo.head.appendTo(output, true, lo.size == 1)
-      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, true, false) }
+      lo.head.appendTo(output, forceBrackets = true, forceParens = lo.size == 1)
+      lo.tail.foreach { gl => output.appendMath(","); gl.appendTo(output, forceBrackets = true, forceParens = false) }
       if (lo.size > 1)
         output.appendMath("}")
       0
@@ -343,9 +341,9 @@ trait CanonicalShortGame extends CanonicalStopper {
       if (forceParens)
         output.appendMath("(")
       if (translate != zero)
-        translate.appendTo(output, false, false)
+        translate.appendTo(output, forceBrackets = false, forceParens = false)
       val sub = new StyledTextOutput()
-      subscript.appendTo(sub, true, false)
+      subscript.appendTo(sub, forceBrackets = true, forceParens = false)
       val styles = sub.allStyles()
       styles.retainAll(StyledTextOutput.Style.TRUE_LOCATIONS)
       if (styles.isEmpty) {
@@ -382,16 +380,16 @@ trait CanonicalShortGame extends CanonicalStopper {
       // First we build the left & right OS's and calculate the number of slashes.
       // There are several cases.
 
-      val numSlashesL1 = lo.head.appendTo(leftOutput, lo.size > 1, false) + 1
+      val numSlashesL1 = lo.head.appendTo(leftOutput, forceBrackets = lo.size > 1, forceParens = false) + 1
       val numSlashesL = lo.tail.foldLeft(numSlashesL1) { (numSlashes, gl) =>
         leftOutput.appendMath(",")
-        numSlashes.max(gl.appendTo(leftOutput, lo.size > 1, false) + 1)
+        numSlashes.max(gl.appendTo(leftOutput, forceBrackets = lo.size > 1, forceParens = false) + 1)
       }
 
-      val numSlashesR1 = ro.head.appendTo(rightOutput, ro.size > 1, false) + 1
+      val numSlashesR1 = ro.head.appendTo(rightOutput, forceBrackets = ro.size > 1, forceParens = false) + 1
       val numSlashesR = ro.tail.foldLeft(numSlashesR1) { (numSlashes, gr) =>
         rightOutput.appendMath(",")
-        numSlashes.max(gr.appendTo(rightOutput, ro.size > 1, false) + 1)
+        numSlashes.max(gr.appendTo(rightOutput, forceBrackets = ro.size > 1, forceParens = false) + 1)
       }
 
       val numSlashes = numSlashesL.max(numSlashesR)

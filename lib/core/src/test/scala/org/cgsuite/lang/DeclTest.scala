@@ -1,5 +1,7 @@
 package org.cgsuite.lang
 
+import org.scalatest.prop.TableDrivenPropertyChecks.Table
+
 class DeclTest extends CgscriptSpec {
 
   "CGScript Declarations" should "validate class definitions correctly" in {

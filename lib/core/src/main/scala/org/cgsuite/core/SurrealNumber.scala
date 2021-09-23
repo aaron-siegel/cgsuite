@@ -10,8 +10,7 @@ import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable
+import scala.collection.{JavaConverters, mutable}
 
 object SurrealNumber {
 
@@ -79,7 +78,7 @@ object SurrealNumber {
   }
 //(omega^(omega+1)-omega^omega-omega+1)/(omega-1)
   private def toGeneralizedOrdinal(poly: MultivariatePolynomial[BigInteger], allTerms: Vector[GeneralizedOrdinal]): GeneralizedOrdinal = {
-    val terms = poly.collection map { monomial =>
+    val terms = JavaConverters.collectionAsScalaIterable(poly.collection) map { monomial =>
       val coefficient = Integer(BigInt(monomial.coefficient.toByteArray))
       val exponents = monomial.exponents.zipWithIndex collect {
         case (exponent, index) if exponent != 0 => Term(Integer(exponent), allTerms(index))

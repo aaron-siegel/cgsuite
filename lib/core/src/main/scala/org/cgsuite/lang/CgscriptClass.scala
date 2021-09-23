@@ -72,7 +72,7 @@ object CgscriptClass {
     }
   }
 
-  def clearAll() {
+  def clearAll(): Unit = {
     CanonicalShortGameOps.reinit()
     MisereCanonicalGameOps.reinit()
     Resolver.clearAll()
@@ -103,7 +103,7 @@ object CgscriptClass {
     sto
   }
 
-  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None) {
+  private[lang] def declareSystemClass(name: String, scalaClass: Option[Class[_]] = None, explicitDefinition: Option[String] = None): Unit = {
 
     val path = name.replace('.', '/')
     val classdef: CgscriptClassDef = {
@@ -263,7 +263,7 @@ class CgscriptClass(
   ///////////////////////////////////////////////////////////////
   // Lifecycle management
 
-  def unload() {
+  def unload(): Unit = {
     if (this.stage != LifecycleStage.Unloaded) {
       logDebug(s"Building unload list.")
       val unloadList = mutable.HashSet[CgscriptClass]()
@@ -274,7 +274,7 @@ class CgscriptClass(
     }
   }
 
-  private def doUnload() {
+  private def doUnload(): Unit = {
     logDebug(s"Unloading.")
     classInfoRef = null
     scriptObjectRef = null
@@ -416,7 +416,7 @@ class CgscriptClass(
 
   }
 
-  private def declare() {
+  private def declare(): Unit = {
 
     logDebug(s"Declaring.")
 
@@ -1467,11 +1467,6 @@ class CgscriptClass(
   }
 
 }
-
-sealed trait CgscriptClassDef
-case class UrlClassDef(classpathRoot: better.files.File, url: URL) extends CgscriptClassDef
-case class ExplicitClassDef(text: String) extends CgscriptClassDef
-case class NestedClassDef(enclosingClass: CgscriptClass, declNode: ClassDeclarationNode) extends CgscriptClassDef
 
 object LifecycleStage extends Enumeration {
   val New, Declaring, Declared, Initializing, Initialized, Unloaded = Value
