@@ -38,7 +38,7 @@ class CgsuiteParserTest extends AnyFlatSpec with Matchers {
 
     val tree = ParserUtil.parseExpression(str)
     val node = EvalNode(tree)
-    val scope = ElaborationDomain(None, Seq.empty, None)
+    val scope = ElaborationDomain.empty()
     node.elaborate(scope)
     val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount))
     val result = node.evaluate(domain)

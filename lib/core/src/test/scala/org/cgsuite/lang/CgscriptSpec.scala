@@ -53,7 +53,7 @@ trait CgscriptSpec extends AnyFlatSpec with Matchers {
   def parseResult(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Any = {
     val tree = ParserUtil.parseScript(input)
     val node = EvalNode(tree.getChild(0))
-    val scope = ElaborationDomain(None, Seq.empty, None)
+    val scope = ElaborationDomain.empty()
     node.elaborate(scope)
     val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
     node.evaluate(domain)

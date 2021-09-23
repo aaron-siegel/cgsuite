@@ -41,7 +41,7 @@ object System extends LazyLogging {
     val tree = ParserUtil.parseScript(input)
     logger debug s"Parse Tree: ${tree.toStringTree}"
     val node = StatementSequenceNode(tree.getChild(0))
-    val scope = ElaborationDomain(None, Seq.empty, None)
+    val scope = ElaborationDomain.empty()
     node.elaborate(scope)
     logger debug s"EvalNode: $node"
     val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
