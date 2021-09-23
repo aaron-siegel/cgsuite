@@ -3,7 +3,7 @@ package org.cgsuite.output
 import java.awt.{Color, Dimension, Graphics2D}
 import java.io.PrintWriter
 
-import org.cgsuite.lang.Table.Format
+import org.cgsuite.util.Table.Format
 
 object TableOutput {
 
@@ -13,7 +13,7 @@ object TableOutput {
 
 }
 
-case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCellWidth: Int) extends AbstractOutput {
+case class TableOutput(table: IndexedSeq[IndexedSeq[Output]], format: Set[Format.Value], maxCellWidth: Int) extends AbstractOutput {
 
   val rowCount = table.size
   val colCount = table.map { _.size }.max
@@ -26,7 +26,7 @@ case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCe
 
   def getSize(preferredWidth: Int) = new Dimension(width, height)
 
-  def paint(g: Graphics2D, preferredWidth: Int) {
+  def paint(g: Graphics2D, preferredWidth: Int): Unit = {
 
     g.setBackground(Color.white)
     g.setColor(Color.black)
@@ -60,7 +60,7 @@ case class TableOutput(table: Seq[Seq[Output]], format: Set[Format.Value], maxCe
 
   }
 
-  def write(out: PrintWriter, mode: Output.Mode) {
+  def write(out: PrintWriter, mode: Output.Mode): Unit = {
 
     assert(mode == Output.Mode.PLAIN_TEXT)
     val outputStrings = table map { _ map { _.toString } }

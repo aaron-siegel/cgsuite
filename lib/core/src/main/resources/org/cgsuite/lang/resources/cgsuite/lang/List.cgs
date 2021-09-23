@@ -6,7 +6,7 @@ system class List extends Collection
 
   external def AppendAll(that as Collection);
 
-  def Apply(fn as Procedure) := [fn(x) for x in this];
+  def Apply(fn as Function) := [fn(x) for x in this];
 
   external def Contains(x);
 

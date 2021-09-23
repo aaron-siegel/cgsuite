@@ -6,9 +6,10 @@
 
 package org.cgsuite.core
 
-import org.scalatest.{FlatSpec, FunSpec, Matchers}
-  
-class IntegerTest extends FlatSpec with Matchers {
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+class IntegerTest extends AnyFlatSpec with Matchers {
   
   "Integer" should "construct objects of the correct class" in {
     

@@ -107,9 +107,9 @@ object EvalNode {
       case ERROR => ErrorNode(tree, EvalNode(tree.head))
       case DO | YIELD | YIELD_SET | YIELD_MAP => LoopNode(tree)
 
-      // Procedures
+      // Functions
 
-      case RARROW => ProcedureNode(tree, None)
+      case RARROW => FunctionDefNode(tree, None)
 
       // Map entry
 
@@ -398,14 +398,14 @@ case class IfNode(tree: Tree, condition: EvalNode, ifNode: StatementSequenceNode
     (elseNode map { " else " + _.toNodeString } getOrElse "") + " end"
 }
 
-object ProcedureNode {
-  def apply(tree: Tree, pkg: Option[CgscriptPackage]): ProcedureNode = {
+object FunctionDefNode {
+  def apply(tree: Tree, pkg: Option[CgscriptPackage]): FunctionDefNode = {
     val parameters = ParametersNode(tree.head, pkg).toParameters
-    ProcedureNode(tree, parameters, EvalNode(tree.children(1)))
+    FunctionDefNode(tree, parameters, EvalNode(tree.children(1)))
   }
 }
 
-case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
+case class FunctionDefNode(tree: Tree, parameters: Vector[Parameter], body: EvalNode) extends EvalNode {
   override val children = (parameters flatMap { _.defaultValue }) :+ body
   override def elaborate(scope: ElaborationDomain): Unit = {
     val newScope = ElaborationDomain(scope.pkg, scope.classVars, Some(scope))
@@ -417,7 +417,7 @@ case class ProcedureNode(tree: Tree, parameters: Vector[Parameter], body: EvalNo
     localVariableCount = newScope.localVariableCount
   }
   private[lang] val knownValidArgs: mutable.LongMap[Unit] = mutable.LongMap()
-  override def evaluate(domain: EvaluationDomain) = Procedure(this, domain)
+  override def evaluate(domain: EvaluationDomain) = Function(this, domain)
   val ordinal = CallSite.newCallSiteOrdinal
   var localVariableCount: Int = 0
   def toNodeStringPrec(enclosingPrecedence: Int) = {
@@ -456,7 +456,7 @@ object DefNode {
     AssignToNode(
       tree,
       IdentifierNode(tree.head),
-      ProcedureNode(tree, ParametersNode(tree.children(1), None).toParameters, EvalNode(tree.children(2))),
+      FunctionDefNode(tree, ParametersNode(tree.children(1), None).toParameters, EvalNode(tree.children(2))),
       AssignmentDeclType.Ordinary
     )
 

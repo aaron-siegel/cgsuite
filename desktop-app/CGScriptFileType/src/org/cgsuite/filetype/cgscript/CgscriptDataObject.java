@@ -6,6 +6,10 @@
 package org.cgsuite.filetype.cgscript;
 
 import java.io.IOException;
+import java.util.prefs.Preferences;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
+import org.netbeans.api.editor.mimelookup.MimePath;
+import org.netbeans.api.editor.settings.SimpleValueNames;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -16,6 +20,7 @@ import org.openide.loaders.DataObjectExistsException;
 import org.openide.loaders.MultiDataObject;
 import org.openide.loaders.MultiFileLoader;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.NbPreferences;
 
 @Messages({
     "LBL_Cgscript_LOADER=Files of Cgscript"
@@ -86,13 +91,29 @@ import org.openide.util.NbBundle.Messages;
             path = "Loaders/folder/any/Actions",
             id = @ActionID(category = "System", id = "org.openide.actions.NewTemplateAction"),
             position = 200
-    )    
+    )
 })
 public class CgscriptDataObject extends MultiDataObject {
 
     public CgscriptDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException {
+
         super(pf, loader);
         registerEditor("text/x-cgscript", false);
+
+        // This is as fine a place as any to apply some first-time preferences changes.
+        Preferences cgsuitePreferences = NbPreferences.forModule(CgscriptDataObject.class);
+        Boolean hasRunV2 = cgsuitePreferences.getBoolean("initialized-v2-settings", false);
+        if (!hasRunV2) {
+            Preferences editorPreferences = MimeLookup.getLookup(MimePath.EMPTY).lookup(Preferences.class);
+            editorPreferences.putInt(SimpleValueNames.INDENT_SHIFT_WIDTH, 2);
+            editorPreferences.putInt(SimpleValueNames.TAB_SIZE, 2);
+            Preferences cgscriptEditorPreferences = MimeLookup.getLookup("text/x-cgscript").lookup(Preferences.class);
+            cgscriptEditorPreferences.putBoolean(SimpleValueNames.ON_SAVE_USE_GLOBAL_SETTINGS, false);
+            cgscriptEditorPreferences.put(SimpleValueNames.ON_SAVE_REMOVE_TRAILING_WHITESPACE, "always");
+            cgscriptEditorPreferences.put(SimpleValueNames.ON_SAVE_REFORMAT, "never");
+            cgsuitePreferences.putBoolean("initialized-v2-settings", true);
+        }
+
     }
 
     @Override

@@ -15,8 +15,8 @@ object TBCode {
     var index = 0
     var inAdditivePart = true
     var inPeriodPart = false
-    val digits = mutable.MutableList[Digit]()
-    val additiveDigits = mutable.MutableList[Digit]()
+    val digits = mutable.ArrayBuffer[Digit]()
+    val additiveDigits = mutable.ArrayBuffer[Digit]()
     var preperiod = -1
 
     while (index < str.length) {

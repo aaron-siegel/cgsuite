@@ -4,10 +4,10 @@ import org.cgsuite.core.Values._
 import org.cgsuite.core._
 import org.cgsuite.lang._
 import org.cgsuite.lang.node.EvalNode
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-
-class CgsuiteParserTest extends FlatSpec with Matchers {
+class CgsuiteParserTest extends AnyFlatSpec with Matchers {
 
   "CgsuiteParser" should "parse simple expressions" in {
 

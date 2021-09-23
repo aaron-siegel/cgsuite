@@ -71,7 +71,7 @@ case class Spawning(
     while (tr.advance()) {
       result += (0 until tr.currentLength) map { n => Integer(tr.currentPart(n)) }
     }
-    result
+    result.toIndexedSeq
   }
 
   override def traversal(heapSize: Int): Traversal = new SpawningTraversal(heapSize)

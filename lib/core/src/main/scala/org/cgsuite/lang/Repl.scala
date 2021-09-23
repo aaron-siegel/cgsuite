@@ -22,7 +22,7 @@ object Repl {
 
   val replVarMap = mutable.AnyRefMap[Symbol, Any]()
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     print(
       s"""$welcome
@@ -101,7 +101,7 @@ object Repl {
     val start = JSystem.nanoTime
     try {
       CgscriptClasspath.reloadModifiedFiles()
-      val output = EvalUtil.evaluate(str, replVarMap)
+      val output = System.evaluate(str, replVarMap)
       output foreach println
     } catch {
       case exc: Throwable => exc.printStackTrace()
@@ -132,7 +132,7 @@ object ReplUiHarness extends UiHarness {
   }
 
   override def print(obj: AnyRef): Unit = {
-    val output = EvalUtil.objectToOutput(obj)
+    val output = System.objectToOutput(obj)
     output foreach { out => println(out.toString) }
   }
 

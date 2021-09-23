@@ -115,7 +115,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
         result += Coordinates(i / colCount + 1, i % colCount + 1)
       i += 1
     }
-    result
+    result.toIndexedSeq
   }
 
   def subgrid(northwest: Coordinates, southeast: Coordinates): Grid = {

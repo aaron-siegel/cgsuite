@@ -8,7 +8,7 @@ class CgsuiteException(msg: String, cause: Throwable = null, token: Option[Token
   extends RuntimeException(msg, cause) {
 
   var invocationTarget: Option[String] = None
-  val tokenStack = mutable.MutableList[Token]()
+  val tokenStack = mutable.ArrayBuffer[Token]()
 
   tokenStack ++= token
 
@@ -22,6 +22,5 @@ class CgsuiteException(msg: String, cause: Throwable = null, token: Option[Token
       case Some(t) => s"[${t.getInputStream.getSourceName} line ${t.getLine}:${t.getCharPositionInLine}] $msg"
     }
   }
-
 
 }
