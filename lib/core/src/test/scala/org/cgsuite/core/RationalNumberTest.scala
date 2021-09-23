@@ -28,7 +28,7 @@ class RationalNumberTest extends AnyFlatSpec with Matchers {
 
     val numden = { (x: Int, y: Int) =>
       val r = RationalNumber(Integer(x), Integer(y))
-      (r.numerator.bigIntValue.intValue(), r.denominator.bigIntValue.intValue())
+      (r.numerator.bigIntValue.intValue, r.denominator.bigIntValue.intValue)
     }
 
     numden(0, 135813) shouldBe (0, 1)
