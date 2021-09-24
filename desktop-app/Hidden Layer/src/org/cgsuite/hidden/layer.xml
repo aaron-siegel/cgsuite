@@ -14,10 +14,12 @@
             <file name="word-match-prev.instance_hidden"/>
         </folder>
     </folder>
+    <file name="Favorites_hidden"/>
     <folder name="Loaders">
         <folder name="folder">
             <folder name="any">
                 <folder name="Actions">
+                    <file name="FindAction.shadow_hidden"/>
                     <file name="NewProjectFile.instance_hidden"/>
                 </folder>
             </folder>
