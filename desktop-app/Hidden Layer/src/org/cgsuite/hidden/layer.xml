@@ -6,6 +6,7 @@
             <file name="master-help.xml_hidden"/>
         </folder>
         <file name="Refactoring_hidden"/>
+        <file name="Tools_hidden"/>
     </folder>
     <folder name="Editors">
         <folder name="Actions">
