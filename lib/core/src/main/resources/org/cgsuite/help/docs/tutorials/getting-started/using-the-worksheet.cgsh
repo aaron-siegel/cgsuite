@@ -159,6 +159,17 @@ such as
 takes a rather long time to complete. If you find it's taking longer than expected and want to abort, just click
 "Kill Calculation" in the System menu, or press Ctrl-K (Command-K on MacOS). This instructs cgsuite to stop the current
 calculation immediately.
+
+\li CGSuite runs a user-defined ~startup script~ every time it starts. You can edit the startup script to include any
+functions or variables that you use especially frequently, to avoid having to redefine them every time you start
+CGSuite. To edit the startup script, double-click `startup.cgs` in the `Browser` window of CGSuite.
+
+To re-run the startup script at any time (for example, if you've just added to it and want to test it, but don't want
+to restart CGSuite), just enter
+
+`startup()`
+
+into the Worksheet.
 \endul
 
 \## Footer ##

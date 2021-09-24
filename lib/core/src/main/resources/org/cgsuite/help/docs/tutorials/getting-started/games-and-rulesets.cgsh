@@ -46,7 +46,7 @@ $game.grid.Clobber$
 is an instance of the class `Ruleset`, which defines the structure of Clobber in general, which can be ~evaluated~ to
 obtain a specific position.
 
-There are numerous rulesets built into CGSuite, collectively the "Standard Games Library". Examples include:
+There are numerous rulesets built into CGSuite, collectively forming the "Standard Games Library". Examples include:
 
 `game.heap.Nim`\\
 `game.heap.Wythoff`\\
@@ -81,6 +81,22 @@ variants of Shogi.
 ruleset schemas can be used to construct a wide range of rulesets. Perhaps you'll discover something new!)
 
 +++ Ruleset Composition +++
+
+It's also possible to use rulesets as "building blocks" to form more complex ones. For example,
+`game.heap.HeapRuleset` is the base class for general impartial games played on heaps of tokens (such as `Nim`).
+Another class, `game.heap.PartizanHeapRuleset`, takes as input two instances of `HeapRuleset` - a "Left ruleset" and
+"Right ruleset" - and implements a partizan ruleset where Left moves according to the Left ruleset, and likewise
+for Right. For example,
+
+`game.heap.PartizanHeapRuleset(game.heap.Nim, game.heap.Kayles)`
+
+is the ruleset where Left moves according to `Nim` and Right moves according to `Kayles`. Other composition operators
+are available as well; for example, Cutcake (described in \ww) is defined in CGSuite in terms of a "cake product":
+
+`Cutcake := TakeAndBreak("4.0") CakeProduct TakeAndBreak("4.0")`
+
+We'll have much more to say about Heap and Take-and-Break games in the upcoming [[impartial-games]] section of the
+tutorial.
 
 \## Footer ##
 
