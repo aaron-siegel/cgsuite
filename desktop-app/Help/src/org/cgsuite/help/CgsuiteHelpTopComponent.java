@@ -5,12 +5,18 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
 import java.net.URL;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
+import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
+import javax.swing.text.DefaultEditorKit;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -57,6 +63,18 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
             webView.contextMenuEnabledProperty().setValue(false);
             navigateTo(CONTENTS_PAGE);
             fxPanel.setScene(new Scene(webView));
+        });
+        fxPanel.getActionMap().put(DefaultEditorKit.copyAction, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Platform.runLater(() -> {
+                    String selection = (String) webView.getEngine().executeScript("window.getSelection().toString()");
+                    if (selection != null && !selection.isEmpty()) {
+                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        clipboard.setContents(new StringSelection(selection), null);
+                    }
+                });
+            }
         });
 
     }
