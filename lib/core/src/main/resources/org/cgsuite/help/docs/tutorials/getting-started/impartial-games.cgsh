@@ -4,10 +4,12 @@ This section describes CGSuite's specialized support for impartial games.
 
 +++ Heap Games and Grundy Sequences +++
 
-Positions in heap games can be constructed in much the same way as other
-types of games; for example,
+Rulesets and positions in heap games can be constructed in much the same way as other
+types of games. For example:
 
-`h := game.heap.Heap("0.07", 24);`
+`h := game.heap.TakeAndBreak("0.07");`
+
+constructs the ruleset for the octal game \<b\>0.07\</b\> (Dawson's Kayles).
 
 creates a heap of size 24 in <b>0.07</b> (Dawson's Kayles).  You can use
 these objects to calculate canonical forms just as for partizan games, e.g.,
