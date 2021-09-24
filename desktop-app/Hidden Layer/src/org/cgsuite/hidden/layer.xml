@@ -60,38 +60,14 @@
                 <attr intvalue="2575" name="position"/>
             </file>
         </folder>
-        <folder name="GoTo">
-            <file name="goto-declaration.shadow_hidden"/>
-            <file name="org-netbeans-core-windows-actions-RecentViewListAction.shadow_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$GoToSourceAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$GoToSuperAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$JumpBackAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$JumpForwardAction.instance_hidden"/>
-            <file name="org-netbeans-modules-favorites-SelectInFavorites.shadow_hidden"/>
-            <file name="org-netbeans-modules-project-ui-SelectInFiles.shadow_hidden"/>
-            <file name="org-netbeans-modules-project-ui-SelectInProjects-separatorBefore.instance_hidden"/>
-            <file name="org-netbeans-modules-project-ui-SelectInProjects.shadow_hidden"/>
-        </folder>
+        <file name="GoTo_hidden"/>
         <folder name="Help">
             <file name="master-help.xml_hidden"/>
             <file name="org-netbeans-modules-usersguide-master.xml_hidden"/>
         </folder>
         <file name="Refactoring_hidden"/>
         <file name="RunProject_hidden"/>
-        <folder name="Source">
-            <file name="FixCode.shadow_hidden"/>
-            <file name="SeparatorAfterLineTools.instance_hidden"/>
-            <file name="SeparatorBeforeScanForExternalChanges.instance_hidden"/>
-            <file name="SeparatorBeforeWordMatchInsert.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$FormatAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$WordMatchNextAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-MainMenuAction$WordMatchPrevAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-codegen-NbGenerateCodeAction$GlobalAction.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-completion-CompletionActionsMainMenu$CompletionShow.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-completion-CompletionActionsMainMenu$DocumentationShow.instance_hidden"/>
-            <file name="org-netbeans-modules-editor-completion-CompletionActionsMainMenu$ToolTipShow.instance_hidden"/>
-            <file name="org-netbeans-modules-parsing-impl-indexing-ScanForExternalChanges.shadow_hidden"/>
-        </folder>
+        <file name="Source_hidden"/>
         <file name="Tools_hidden"/>
         <folder name="View">
             <file name="org-netbeans-core-actions-HTMLViewAction.shadow_hidden"/>
