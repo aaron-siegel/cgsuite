@@ -289,11 +289,8 @@ public class WorksheetPanel extends JPanel
 
         if (finished)
         {
-            /*
             if (capsule.isErrorOutput())
                 getToolkit().beep();
-            */
-            assert capsule.getOutput() != null;
 
             postOutput(capsule.getOutput());
         }
@@ -387,24 +384,19 @@ public class WorksheetPanel extends JPanel
         if (currentCapsule == null)
             return;
 
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                List<Output> output = currentCapsule.getOutput();
-                assert output != null;
-                /*
-                if (currentCapsule.isErrorOutput())
-                    getToolkit().beep();
-                */
-                currentCapsule = null;
-                currentTask = null;
+        SwingUtilities.invokeLater(() -> {
+            List<Output> output = currentCapsule.getOutput();
+            assert output != null;
 
-                postOutput(output);
-                drainOutput();
-                advanceToNext();
-            }
+            if (currentCapsule.isErrorOutput())
+                getToolkit().beep();
+
+            currentCapsule = null;
+            currentTask = null;
+
+            postOutput(output);
+            drainOutput();
+            advanceToNext();
         });
     }
 
