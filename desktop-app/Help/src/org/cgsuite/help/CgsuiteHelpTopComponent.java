@@ -15,6 +15,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultEditorKit;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -46,6 +47,19 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     private JFXPanel fxPanel;
     private WebView webView;
 
+    private final Action COPY_ACTION = new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Platform.runLater(() -> {
+                String selection = (String) webView.getEngine().executeScript("window.getSelection().toString()");
+                if (selection != null && !selection.isEmpty()) {
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(new StringSelection(selection), null);
+                }
+            });
+        }
+    };
+
     public CgsuiteHelpTopComponent() {
 
         initComponents();
@@ -64,18 +78,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
             navigateTo(CONTENTS_PAGE);
             fxPanel.setScene(new Scene(webView));
         });
-        fxPanel.getActionMap().put(DefaultEditorKit.copyAction, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Platform.runLater(() -> {
-                    String selection = (String) webView.getEngine().executeScript("window.getSelection().toString()");
-                    if (selection != null && !selection.isEmpty()) {
-                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                        clipboard.setContents(new StringSelection(selection), null);
-                    }
-                });
-            }
-        });
+        fxPanel.getActionMap().put(DefaultEditorKit.copyAction, COPY_ACTION);
 
     }
 
@@ -109,6 +112,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPopupMenu1 = new javax.swing.JPopupMenu();
         buttonBar = new javax.swing.JToolBar();
         backButton = new javax.swing.JButton();
         forwardButton = new javax.swing.JButton();
@@ -215,6 +219,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     private javax.swing.JButton contentsButton;
     private javax.swing.JButton forwardButton;
     private javax.swing.JButton indexButton;
+    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
