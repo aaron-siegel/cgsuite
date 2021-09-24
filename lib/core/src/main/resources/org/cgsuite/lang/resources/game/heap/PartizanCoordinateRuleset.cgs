@@ -2,7 +2,7 @@
 
 class PartizanCoordinateRuleset(leftRuleset as CoordinateRuleset, rightRuleset as CoordinateRuleset) extends Ruleset
 
-  override def Eval(coord as Coordinates) := Position(coord);
+  def Eval(coord as Coordinates) := Position(coord);
   
   def GameValueTable(maxRow as Integer, maxCol as Integer) begin
     Table([Position((m, n)).GameValue for n from 1 to maxCol] for m from 1 to maxRow)
