@@ -17,6 +17,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.List;
@@ -55,29 +56,29 @@ public class WorksheetPanel extends JPanel
     implements Scrollable, KeyListener, TaskListener, DocumentListener, CommandListener
 {
     final static AnyRefMap<Symbol,Object> WORKSPACE_VAR_MAP = new AnyRefMap<Symbol,Object>();
-    
+
     private boolean deferredAdvance;
-    
+
     private InputPanel activeInputPanel;
-    
+
     private CalculationCapsule currentCapsule;
     private RequestProcessor.Task currentTask;
-    private Box.Filler strut;
+    private final Box.Filler strut;
 
     private String commandHistoryPrefix;
     private int commandHistoryIndex;
     private boolean seekingCommand;
-    
+
     private CommandHistoryBuffer buffer;
-    
-    private Queue<List<Output>> outputQueue;
+
+    private final Queue<List<Output>> outputQueue;
     private OutputBox calculatingOutputBox;
 
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
     {
         initComponents();
-        outputQueue = new LinkedBlockingQueue<List<Output>>();
+        outputQueue = new LinkedBlockingQueue<>();
         strut = (Box.Filler) Box.createHorizontalStrut(0);
         strut.setAlignmentX(LEFT_ALIGNMENT);
         add(strut);
@@ -103,7 +104,7 @@ public class WorksheetPanel extends JPanel
         new CalculationCapsule(WORKSPACE_VAR_MAP, "{1|1/2}").runAndWait();
         processCommand("startup();");
         getBuffer();
-        
+
         getViewport().addComponentListener(new ComponentAdapter()
         {
             @Override
@@ -117,7 +118,7 @@ public class WorksheetPanel extends JPanel
                 updateComponentSizes();
             }
         });
-        
+
         // This is a total hack to fight back against the help component stealing focus at startup.
         Thread focusThread = new Thread("CGSuite Focus Thread")
         {
@@ -131,20 +132,13 @@ public class WorksheetPanel extends JPanel
                 catch (InterruptedException exc)
                 {
                 }
-                SwingUtilities.invokeLater(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        updateFocus();
-                    }
-                });
+                SwingUtilities.invokeLater(() -> updateFocus());
             }
         };
-        
+
         focusThread.start();
     }
-    
+
     private CommandHistoryBuffer getBuffer()
     {
         if (buffer == null)
@@ -159,7 +153,7 @@ public class WorksheetPanel extends JPanel
         }
         return buffer;
     }
-    
+
     public void updateFocus()
     {
         if (activeInputPanel != null)
@@ -184,6 +178,7 @@ public class WorksheetPanel extends JPanel
         activeInputPanel.activate();
         activeInputPanel.getInputPane().addKeyListener(this);
         activeInputPanel.getInputPane().getDocument().addDocumentListener(this);
+        activeInputPanel.addComponentListener(activeInputPanelComponentListener);
         add(activeInputPanel);
     }
 
@@ -192,7 +187,7 @@ public class WorksheetPanel extends JPanel
     {
         if (activeInputPanel == null)
             return;
-        
+
         InputPane source = activeInputPanel.getInputPane();
 
         switch (evt.getKeyCode())
@@ -260,10 +255,11 @@ public class WorksheetPanel extends JPanel
         commandHistoryIndex = getBuffer().getSize();
         return commandHistoryPrefix;
     }
-    
+
     private synchronized void processCommand(InputPane source)
     {
         getBuffer().addCommand(source.getText());
+        activeInputPanel.removeComponentListener(activeInputPanelComponentListener);
         activeInputPanel.getInputPane().removeKeyListener(this);
         activeInputPanel.getInputPane().getDocument().removeDocumentListener(this);
         activeInputPanel.deactivate();
@@ -271,11 +267,11 @@ public class WorksheetPanel extends JPanel
         commandHistoryPrefix = null;
         processCommand(source.getText());
     }
-    
+
     private synchronized void processCommand(String command)
     {
         assert SwingUtilities.isEventDispatchThread();
-        
+
         CalculationCapsule capsule = new CalculationCapsule(WORKSPACE_VAR_MAP, command);
         RequestProcessor.Task task = capsule.createTask();
         task.addTaskListener(this);
@@ -290,15 +286,12 @@ public class WorksheetPanel extends JPanel
         catch (InterruptedException exc)
         {
         }
-        
+
         if (finished)
         {
-            /*
             if (capsule.isErrorOutput())
                 getToolkit().beep();
-            */
-            assert capsule.getOutput() != null;
-            
+
             postOutput(capsule.getOutput());
         }
         else
@@ -306,7 +299,7 @@ public class WorksheetPanel extends JPanel
             this.currentCapsule = capsule;
             this.currentTask = task;
         }
-        
+
         drainOutput();
 
         if (finished)
@@ -322,7 +315,7 @@ public class WorksheetPanel extends JPanel
     public synchronized void postOutput(List<Output> output)
     {
         outputQueue.add(output);
-        
+
         SwingUtilities.invokeLater(new Runnable()
         {
             @Override
@@ -332,13 +325,13 @@ public class WorksheetPanel extends JPanel
             }
         });
     }
-    
+
     private synchronized void drainOutput()
     {
         assert SwingUtilities.isEventDispatchThread();
-        
+
         boolean update = false;
-        
+
         while (!outputQueue.isEmpty())
         {
             List<Output> outputs = outputQueue.remove();
@@ -348,7 +341,7 @@ public class WorksheetPanel extends JPanel
                 update = true;
             }
         }
-        
+
         if (currentCapsule == null && calculatingOutputBox != null)
         {
             remove(calculatingOutputBox);
@@ -361,7 +354,7 @@ public class WorksheetPanel extends JPanel
             add(calculatingOutputBox);
             update = true;
         }
-        
+
         if (update)
         {
             updateComponentSizes();
@@ -370,7 +363,7 @@ public class WorksheetPanel extends JPanel
             getScrollPane().validate();
         }
     }
-    
+
     private OutputBox makeOutputBox(Output output)
     {
         OutputBox outputBox = new OutputBox();
@@ -390,43 +383,38 @@ public class WorksheetPanel extends JPanel
     {
         if (currentCapsule == null)
             return;
-        
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                List<Output> output = currentCapsule.getOutput();
-                assert output != null;
-                /*
-                if (currentCapsule.isErrorOutput())
-                    getToolkit().beep();
-                */
-                currentCapsule = null;
-                currentTask = null;
 
-                postOutput(output);
-                drainOutput();
-                advanceToNext();
-            }
+        SwingUtilities.invokeLater(() -> {
+            List<Output> output = currentCapsule.getOutput();
+            assert output != null;
+
+            if (currentCapsule.isErrorOutput())
+                getToolkit().beep();
+
+            currentCapsule = null;
+            currentTask = null;
+
+            postOutput(output);
+            drainOutput();
+            advanceToNext();
         });
     }
 
     private void advanceToNext()
     {
         assert SwingUtilities.isEventDispatchThread();
-        
+
         if (getViewport().getWidth() <= 0)
         {
             deferredAdvance = true;
             return;
         }
-        
+
         if (getComponentCount() > 2)
         {
             add(Box.createVerticalStrut(10));
         }
-        
+
         addNewCell();
         updateComponentSizes();
         scrollToBottomLeft();
@@ -437,7 +425,7 @@ public class WorksheetPanel extends JPanel
     private void scrollToBottomLeft()
     {
         assert SwingUtilities.isEventDispatchThread();
-        
+
         Component component = getComponent(getComponentCount()-1);
         Point topLeft = component.getLocation();
         Point bottomLeft = new Point(topLeft.x, topLeft.y + component.getHeight());
@@ -451,18 +439,18 @@ public class WorksheetPanel extends JPanel
     public void updateComponentSizes()
     {
         assert SwingUtilities.isEventDispatchThread();
-        
+
         if (getComponentCount() == 0)
             return;
 
         int width = getViewport().getWidth();
-        
+
         if (width <= 0)
             return;
-        
+
         Dimension dim = new Dimension(width, 0);
         strut.changeShape(dim, dim, dim);
-        
+
         Component components[] = getComponents();
         for (int index = 0; index < components.length; index++)
         {
@@ -487,7 +475,7 @@ public class WorksheetPanel extends JPanel
         }
         getScrollPane().validate();
     }
-    
+
     public void killCalculation()
     {
         if (currentTask != null)
@@ -495,7 +483,7 @@ public class WorksheetPanel extends JPanel
             currentTask.cancel();
         }
     }
-    
+
     @Override
     public Dimension getPreferredScrollableViewportSize()
     {
@@ -560,17 +548,17 @@ public class WorksheetPanel extends JPanel
     public void commandActivated(String command)
     {
         assert SwingUtilities.isEventDispatchThread();
-        
+
         if (this.getComponentCount() == 0)
             return;
-        
+
         Component lastComponent = this.getComponent(this.getComponentCount()-1);
         if (!(lastComponent instanceof InputPanel))
         {
             getToolkit().beep();
             return;
         }
-        
+
         InputPanel inputPanel = (InputPanel) lastComponent;
         inputPanel.getInputPane().setText(command);
         inputPanel.getInputPane().requestFocus();
@@ -585,5 +573,11 @@ public class WorksheetPanel extends JPanel
     public void keyReleased(KeyEvent ke)
     {
     }
+
+    private final ComponentListener activeInputPanelComponentListener = new ComponentAdapter() {
+        @Override public void componentResized(ComponentEvent evt) {
+            scrollToBottomLeft();
+        }
+    };
 
 }

@@ -28,8 +28,8 @@ public class CalculationCapsule implements Runnable
     public final static RequestProcessor REQUEST_PROCESSOR = new RequestProcessor
         (WorksheetPanel.class.getName(), 1, true);
 
-    private AnyRefMap<Symbol,Object> varMap;
-    private String text;
+    private final String text;
+    private final AnyRefMap<Symbol,Object> varMap;
     private List<Output> output;
 
     public CalculationCapsule(AnyRefMap<Symbol,Object> varMap, String text)
@@ -37,12 +37,12 @@ public class CalculationCapsule implements Runnable
         this.varMap = varMap;
         this.text = text;
     }
-    
+
     public RequestProcessor.Task createTask()
     {
         return REQUEST_PROCESSOR.create(this);
     }
-    
+
     public void runAndWait()
     {
         RequestProcessor.Task task = createTask();
@@ -82,10 +82,16 @@ public class CalculationCapsule implements Runnable
             }
         }
     }
-    
+
     public List<Output> getOutput()
     {
         return output;
+    }
+
+    // TODO This is a bit of a hack - can we find a better solution?
+    public boolean isErrorOutput()
+    {
+        return output.size() > 1;
     }
 
 }
