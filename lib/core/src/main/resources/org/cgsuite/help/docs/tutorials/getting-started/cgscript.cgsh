@@ -268,3 +268,7 @@ did in the `tableof` section above, and note that they rapidly become a mess.  N
 forms.  (You can do this by using the `ReducedCanonicalForm` property in place of `CanonicalForm`.)  Make a conjecture about the RCFs of
 arbitrary positions.
 \endol
+
+\## Footer ##
+
+~~Continue on to the next part of the tutorial: [[impartial-games]]~~

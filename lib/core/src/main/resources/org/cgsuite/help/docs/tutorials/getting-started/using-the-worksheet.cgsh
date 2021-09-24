@@ -124,18 +124,18 @@ at the top of the Help window will take you quickly to those pages.
 
 Here are a few tips and tricks to help you use the Worksheet more effectively:
 
-\<ul\>
-\<li\>You can put several commands on the same line by separating them with semicolons, as the following example
+\ul
+\li You can put several commands on the same line by separating them with semicolons, as the following example
 illustrates. Output will only be generated for the last command on the line.
 
 `G := {2|*}; H := G + {1|0}; H.Thermograph.Plot();`
 
-\<li\>If a Worksheet command ~ends~ with a semicolon, then output will be suppressed entirely. This is useful when (for example)
+\li If a Worksheet command ~ends~ with a semicolon, then output will be suppressed entirely. This is useful when (for example)
 you want to set a variable equal to some complicated expression for which you specifically don't want all the output.
 
-\<li\>It can also be useful to enter multi-line commands into the worksheet. You can do this by pressing Shift-Enter.
+\li It can also be useful to enter multi-line commands into the worksheet. You can do this by pressing Shift-Enter.
 
-\<li\>You can press the up arrow key on a blank worksheet line to repeat the previous command. Repeatedly pressing the
+\li You can press the up arrow key on a blank worksheet line to repeat the previous command. Repeatedly pressing the
 up arrow will cycle through all previous commands.
 
 You can also type a ~fragment~ of a command, and then press the up arrow, to jump to the most recent command that
@@ -147,11 +147,11 @@ and then press up, CGSuite will jump to the most recent command that started wit
 when you need to enter a slight modification of an earlier command. You can press up repeatedly to cycle through all
 previous commands that started with that fragment.
 
-\<li\> You might have noticed that every time you enter a command, it appears in the Command History window. This
+\li  You might have noticed that every time you enter a command, it appears in the Command History window. This
 provides a record of all previous commands (and it's saved even after you restart cgsuite). You can double-click on a
 command in the Command History window to copy its contents directly to the worksheet.
 
-\<li\>Sometimes you might start a calculation and find that it runs for a very long time. For example, a calculation
+\li Sometimes you might start a calculation and find that it runs for a very long time. For example, a calculation
 such as
 
 `*14.Heat`
@@ -159,7 +159,7 @@ such as
 takes a rather long time to complete. If you find it's taking longer than expected and want to abort, just click
 "Kill Calculation" in the System menu, or press Ctrl-K (Command-K on MacOS). This instructs cgsuite to stop the current
 calculation immediately.
-\</ul\>
+\endul
 
 \## Footer ##
 
