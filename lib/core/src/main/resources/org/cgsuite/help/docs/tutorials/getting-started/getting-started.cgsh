@@ -7,8 +7,7 @@ It's divided into several sections:
 \ol
 \li [[welcome-to-cgsuite]] - An overview of the basic features of CGSuite.
 \li [[using-the-worksheet]] - Getting the most out of the Worksheet.
-\li [[games-and-rulesets]]
-\li [[objects-and-classes]]
+\li [[games-and-rulesets]] - A tour of various games and rulesets.
 \li [[using-the-explorer]] - Using the explorer to browse and edit game positions.
 \li [[cgscript]] - Introduction to CGSuite's powerful scripting language.
 \li [[impartial-games]] - Description of CGSuite's specialized impartial games support.

@@ -2,7 +2,7 @@ Welcome to CGSuite!
 
 CGSuite is a computer algebra system for research in combinatorial game theory. It implements the Conway
 algebra of partizan combinatorial games, along with several related systems. CGSuite has a built-in library of
-well-known rulesets such as Clobber, Toads and Frogs, Kayles, and Wythoff Nim, and it includes a full-featured
+well-known rulesets such as Clobber, Toads and Frogs, Kayles, and Wythoff Nim, and it includes a custom-designed
 scripting language, CGScript, that can be used to create and explore new ones.
 
 In this tutorial, we'll walk through the basics on how to use CGSuite and how to navigate its help system. Other
@@ -113,9 +113,9 @@ Here are some examples:
 \<big\>\^^2^\</big\>
 
 `> {1,1+*|-1,-1+*}`\\
-\<big\>\plusmn(1,1`*`)\</big\>
+\<big\>\plusmn{1,1`*`}\</big\>
 
-These examples are the games "tiny-two", "up-second", and "plus or minus (1,1`*`)" respectively. If you're ever
+These examples are the games "tiny-two", "up-second", and "plus or minus {1,1`*`}" respectively. If you're ever
 confused about the notation CGSuite uses to display games, the Help system's [[/notation]] page is a handy reference.
 
 \## Footer ##

@@ -30,5 +30,14 @@ of [[whatsnew]] in recent releases.
 \<li\>[[materials]]
 \</ul\>
 
+++++ External Resources +++
+
+(These will open outside CGSuite.)
+
+\<ul class=\"nobullets\"\>
+\<li\>[[http://www.cgsuite.org/][CGSuite Home Page]]
+\<li\>[[https://github.com/aaron-siegel/cgsuite][CGSuite Github Project]]
+\</ul\>
+
 Combinatorial Game Suite is (c) 2003-\{System.Year\} Aaron Siegel (asiegel@users.sourceforge.net). It's open source
 and is licensed for use under the [[license][GNU General Public License]], version 3.

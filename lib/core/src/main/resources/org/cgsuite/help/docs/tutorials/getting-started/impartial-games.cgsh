@@ -2,42 +2,47 @@ Impartial Games
 
 This section describes CGSuite's specialized support for impartial games.
 
-+++ Heap Games and Grundy Sequences +++
++++ Take-and-Break Games +++
 
-Positions in heap games can be constructed in much the same way as other
-types of games; for example,
+Rulesets and positions in heap games can be constructed in much the same way as other
+types of games. For example:
 
-`h := game.heap.Heap("0.07", 24);`
+`R := game.heap.TakeAndBreak("0.07");`
 
-creates a heap of size 24 in <b>0.07</b> (Dawson's Kayles).  You can use
-these objects to calculate canonical forms just as for partizan games, e.g.,
+constructs the ruleset for the octal game \<b\>0.07\</b\> (aka Dawson's Kayles). Then
 
-`h.CanonicalForm`
+`R(24)`
 
-However, CGSuite provides an alternative treatment of heap games that is far more
-efficient.  Type the following:
+(say) creates a Dawson's Kayles heap of size 24. Canonical forms can be calculated just as for partizan games:
 
-`hr := game.heap.HeapRules.MakeRules("0.07");`
+`> R(24).CanonicalForm`\\
+\<big\>`*`3\</big\>
 
-Now `hr` is a special object of type `HeapRules`, which can be used to calculate
-large numbers of nim values all at once.  For example:
+Or, alternatively, you can use `NimValue` to get the integer nim value (Grundy value):
 
-`hr.NimValues(300)`
+`R(24).NimValue`\\
+\<big\>3\</big\>
 
-gives the first `300` nim values of Dawson's Kayles.  You can also evaluate
-individual values by typing simply `hr[24]` (say).
++++ Sequences of Nim Values +++
 
-Periodicity can be tested as follows:
+When analyzing a heap game, we typically want to compute a whole sequence of values. One could use a collection
+iterator to do this, but it's more efficient to use CGSuite's built-in `NimValueSequence` method, which is called
+directly on the ruleset:
 
-`hr.CheckPeriod(300)`
+`R.NimValueSequence(300)`
 
-This tells CGSuite to attempt to determine if <b>0.07</b> is periodic, computing
-at most 300 values.  It succeeds, and gives the correct answer, period 34.  Now
-we can pretty-print the period by typing
+This gives the first `300` nim values of Dawson's Kayles. Periodicity can be checked as follows:
 
-`hr.NimValues(300).PeriodicTable(34)`
+`R.CheckPeriod(300)`
 
-(If `CheckPeriod` fails to determine periodicity, it returns `nil`.)
+This tells CGSuite to attempt to determine if \<b\>0.07\</b\> is periodic, computing
+at most 300 values. It succeeds, and gives the correct answer, period 34. Now
+we can pretty-print the period by typing:
+
+`R.NimValueSequence(300).PeriodicTable(34)`
+
+Try it! (If `CheckPeriod` fails to determine periodicity, it will return the special value `Nothing`: try this by
+entering `R.NimValueSequence(100)`; no periodicity is apparent after computing just `100` values.)
 
 +++ Take-and-Break Codes +++
 
@@ -46,13 +51,13 @@ the digits 0-9 and A-F in the usual fashion for octal and hexadecimal games.
 In addition, you can use G-Z for "digits" 16-35, and there is a special notation 
 for larger "digits"; for example
 
-`&amp;64;`
+`&64;`
 
 for a digit of size 64.  You could also enter this as a hex code by
 
-`&amp;x40;`
+`&x40;`
 
-(A value of 64 corresponds to splitting a heap into exactly six piles.)
+(A value of 64 corresponds to splitting a heap into exactly six nonempty heaps.)
 
 In addition, it's possible to place restrictions on moves in a take-and-break 
 game.  For example, appending ! to a digit means that all the resulting 
@@ -76,38 +81,55 @@ would be the variant "remove one token and split the remainder into two
 non-empty heaps of different sizes."  And so on.
 
 Finally, certain ~infinite~ repeating codes are possible by bracketing 
-the final digits of a code.  Here is a list of examples.
-      <ul><li>`0.[3]` - Nim (remove any number of tokens from
+the final digit(s) of a code.  Here is a list of examples.
+\ul
+
+\li `0.[3]` - Nim (remove any number of tokens from
               a heap)
-          <li>`0.77` - Kayles (remove one or two tokens from
+
+\li `0.77` - Kayles (remove one or two tokens from
               a heap, optionally splitting the remainder into two heaps)
-          <li>`4!.0` - Grundy's Game (split any heap into
+
+\li `4!.0` - Grundy's Game (split any heap into
               two unequal heaps)
-          <li>`20.017` - Either add a token to a non-empty heap;
+
+\li `20.017` - Either add a token to a non-empty heap;
               or remove a heap of size 2 completely; or remove three tokens
               from a heap, optionally splitting the remainder into two heaps
-          <li>`0.[37]` - Remove any (positive) number of tokens
+
+\li `0.[37]` - Remove any (positive) number of tokens
               from a heap.  If the number of tokens removed is even, then
               the heap may optionally be split into two heaps
-          <li>`8!.` - Split any heap into exactly three pairwise
+
+\li `8!.0` - Split any heap into exactly three pairwise
               unequal heaps
-          <li>`8?.` - Split any heap into exactly three heaps,
+
+\li `8?.0` - Split any heap into exactly three heaps,
               which cannot all be equal
-          <li>`0.(r?8!g)` - Remove one token from a heap.
+
+\li `0.(r?8!g)` - Remove one token from a heap.
               The remainder may either be left as a single heap; or split
               into exactly three heaps, not all the same; or split into
               exactly four pairwise unequal heaps.  (Note that
               `'r' = 27 = (1 | 2 | 8 | 16)` and
               `'g' = 16`)
-          <li>`0.&amp;127;!&amp;64;` - Either: remove one
+
+\li `0.&127;&64;` - Either: remove one
               token from a heap, splitting the remainder into ~at most six~
               pairwise unequal heaps; or remove two tokens from
               a heap, splitting the remainder into ~exactly six~
-              heaps (with no restrictions on heap size)
-      </ul>
+              nonempty heaps
+\endul
 
-+++ Rules by Procedures +++
++++ Other Heap Games +++
 
+`game.heap.TakeAndBreak` is a special case of a more general class, `game.heap.HeapRuleset`. CGSuite includes
+a variety of other heap ruleset implementations. For a complete list, see the package documentation for
+[[game.heap]].
+
+
+
+\<!--
 If you want to construct a heap game that can't be specified using any
 combination of take-and-break codes, you can use a procedure: just type
 
@@ -126,7 +148,7 @@ You can use this to specify
 rules for heap games with arbitrarily complicated logic.  (But be aware that the
 calculations will be slower than using the built-in codes.)
 
-\<!--
+
 + + Misère Canonical Forms + +
 
 CGSuite also supports misère
@@ -226,3 +248,7 @@ directory (where `misere.jar` is located) and type
 
 for help.
 --\>
+
+\## Footer ##
+
+~~Continue on to the next part of the tutorial: [[cgsuite-in-action]]~~

@@ -45,7 +45,8 @@ object Markdown {
     "geq" -> "&ge;",
     "sim" -> "~",
     "sp" -> "&nbsp;&nbsp;",
-    "cdot" -> "&middot;"
+    "cdot" -> "&middot;",
+    "doubleup" -> "&uArr;"
   )
 
   val specialLinks: Map[String, (String, String)] = Map(
