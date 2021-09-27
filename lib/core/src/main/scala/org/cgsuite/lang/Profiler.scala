@@ -39,9 +39,9 @@ object Profiler {
     Profiler.clear()
     Profiler.setEnabled(enabled = profile)
     val start = JSystem.nanoTime()
-    Profiler.start('Main)
+    Profiler.start(Symbol("Main"))
     val result = node.evaluate(domain).toString
-    Profiler.stop('Main)
+    Profiler.stop(Symbol("Main"))
     val totalDuration = JSystem.nanoTime() - start
     Profiler.setEnabled(enabled = false)
     assert(
@@ -54,10 +54,10 @@ object Profiler {
   private def _profilerAvgNanos = {
     (0 to 500).map { _ =>
       (0 to 5000).foreach { _ =>
-        Profiler.start('ProfileProfiler)
-        Profiler.stop('ProfileProfiler)
+        Profiler.start(Symbol("ProfileProfiler"))
+        Profiler.stop(Symbol("ProfileProfiler"))
       }
-      val result = Profiler.totals('ProfileProfiler).timing / 5000
+      val result = Profiler.totals(Symbol("ProfileProfiler")).timing / 5000
       totals.clear()
       result
     }.sorted.apply(250)
@@ -78,7 +78,7 @@ object Profiler {
   def setEnabled(enabled: Boolean) {
     this.enabled = enabled
     if (enabled && profilerAvgNanos == -1L) {
-      whitelist = Set('ProfileProfiler)
+      whitelist = Set(Symbol("ProfileProfiler"))
       profilerAvgNanos = _profilerAvgNanos
       println("Average profiler latency: " + profilerAvgNanos + " ns")
       whitelist = Set.empty
