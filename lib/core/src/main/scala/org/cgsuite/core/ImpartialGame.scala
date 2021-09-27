@@ -58,7 +58,7 @@ trait ImpartialGame extends Game {
   }
 
   def nimValue(tc: TranspositionCache): Integer = {
-    SmallInteger(NimValueReducer.reduce(this, tc.tableFor[Int]('NimValue)))
+    SmallInteger(NimValueReducer.reduce(this, tc.tableFor[Int](Symbol("NimValue"))))
   }
 
   def genus: Genus = misereCanonicalForm.genus
@@ -70,7 +70,7 @@ trait ImpartialGame extends Game {
   }
 
   def misereCanonicalForm(tc: TranspositionCache): MisereCanonicalGame = {
-    MisereCanonicalGameReducer.reduce(this, tc.tableFor[MisereCanonicalGame]('MisereCanonicalGame))
+    MisereCanonicalGameReducer.reduce(this, tc.tableFor[MisereCanonicalGame](Symbol("MisereCanonicalGame")))
   }
 
 }

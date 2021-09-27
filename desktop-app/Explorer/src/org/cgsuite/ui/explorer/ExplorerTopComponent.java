@@ -32,8 +32,8 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import scala.Symbol;
 import scala.Symbol$;
-import scala.collection.IndexedSeq;
 import scala.collection.JavaConverters;
+import scala.collection.immutable.IndexedSeq;
 import scala.collection.mutable.AnyRefMap;
 
 /**
@@ -302,7 +302,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             boolean left = true;
             for (Game follower : JavaConverters.asJavaCollection(line))
             {
-                curNode = curNode.addChild((Game) follower, left);
+                curNode = curNode.addChild(follower, left);
                 left = !left;
             }
         }
@@ -312,7 +312,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
             boolean left = false;
             for (Game follower : JavaConverters.asJavaCollection(line))
             {
-                curNode = curNode.addChild((Game) follower, left);
+                curNode = curNode.addChild(follower, left);
                 left = !left;
             }
         }

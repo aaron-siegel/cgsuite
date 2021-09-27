@@ -12,11 +12,11 @@ object Pseudonumber {
     if (overSign == 0)
       x
     else
-      OverNumberImpl(x, overSign.signum)
+      OverNumberImpl(x, overSign.sign)
   }
 
   def apply(onSign: Int): Pseudonumber = {
-    onSign.signum match {
+    onSign.sign match {
       case  1 => OnImpl
       case -1 => OffImpl
       case  0 => throw new IllegalArgumentException("onSign == 0")

@@ -1,9 +1,11 @@
 package org.cgsuite.core.misere
 
-import org.cgsuite.core.{ImpartialGame, Integer, OutcomeClass, SmallInteger}
 import org.cgsuite.core.misere.{MisereCanonicalGameOps => ops}
+import org.cgsuite.core.{ImpartialGame, Integer, OutcomeClass, SmallInteger}
 import org.cgsuite.exception.{InvalidArgumentException, InvalidOperationException}
 import org.cgsuite.output.StyledTextOutput
+
+import scala.collection.immutable.ArraySeq
 
 object MisereCanonicalGame {
 
@@ -138,7 +140,7 @@ trait MisereCanonicalGame extends ImpartialGame {
   }
 
   override def options: IndexedSeq[MisereCanonicalGame] = {
-    ops.getOptions(misereGameId) map { MisereCanonicalGame(_) }
+    ArraySeq.unsafeWrapArray(ops getOptions misereGameId) map { MisereCanonicalGame(_) }
   }
 
   override def toOutput = {

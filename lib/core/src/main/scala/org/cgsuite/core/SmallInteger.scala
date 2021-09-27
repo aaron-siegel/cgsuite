@@ -33,7 +33,7 @@ trait SmallInteger extends Integer {
   override def doubleValue: Double = intValue.toDouble
   lazy val bigIntValue = BigInt(intValue)
   
-  override def options(player: Player): Iterable[SmallInteger] = (player, intValue.signum) match {
+  override def options(player: Player): Iterable[SmallInteger] = (player, intValue.sign) match {
     case (Left, 1) => Set(SmallInteger(intValue-1))
     case (Right, -1) => Set(SmallInteger(intValue+1))
     case _ => Set.empty
@@ -108,7 +108,7 @@ trait SmallInteger extends Integer {
 
   override def isSmallInteger = true
   
-  override def sign = SmallInteger(intValue.signum)
+  override def sign = SmallInteger(intValue.sign)
   
   override def isTwoPower = intValue >= 1 && java.lang.Integer.bitCount(intValue) == 1
 
