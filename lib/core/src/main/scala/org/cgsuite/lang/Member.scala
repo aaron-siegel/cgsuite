@@ -12,6 +12,8 @@ trait Member extends MemberResolution {
 
   def id = idNode.id
 
+  def name = id.name
+
 }
 
 trait MemberResolution {

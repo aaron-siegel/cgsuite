@@ -175,7 +175,7 @@ class CgscriptClass(
 
   val nameAsFullyScopedMember: String = id.name
 
-  val name: String = enclosingClass match {
+  override val name: String = enclosingClass match {
     case Some(encl) => encl.name + "." + nameAsFullyScopedMember
     case None => nameAsFullyScopedMember
   }

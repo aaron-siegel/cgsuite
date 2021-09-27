@@ -39,6 +39,8 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 preferredID = "CgsuiteHelpTopComponent")
 public final class CgsuiteHelpTopComponent extends TopComponent {
 
+    public final static String ROOT_URL = HelpIndex.class.getResource("docs").toExternalForm() + "/";
+
     public final static String CONTENTS_PAGE = "contents.html";
     public final static String PACKAGES_PAGE = "reference/overview.html";
     public final static String INDEX_PAGE = "reference/cgscript-index.html";
@@ -86,10 +88,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
 
         SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
         Platform.runLater(() -> {
-            URL resource = HelpBuilder.class.getResource("docs/" + path);
-            if (resource == null)
-                throw new RuntimeException("Resource not found: " + path);
-            webView.getEngine().load(resource.toExternalForm());
+            webView.getEngine().load(ROOT_URL + path);
         });
 
     }
