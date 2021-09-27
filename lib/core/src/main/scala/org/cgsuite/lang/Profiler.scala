@@ -9,13 +9,13 @@ import scala.collection.mutable
 
 object Profiler {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     CgscriptClass.Object.ensureInitialized()
     profileStatement("""game.grid.Clobber("xoxo|oxox|xoxo").CanonicalForm""", "0")
     profileStatement("""game.grid.Clobber("xoxo|oxox|xoxo|ox..").CanonicalForm.StopCount""", "20101")
   }
 
-  def profileStatement(statement: String, expectedResult: String) {
+  def profileStatement(statement: String, expectedResult: String): Unit = {
     // Warm-up
     CgscriptClass.clearAll()
     //evalForProfiler(statement, expectedResult, profile = false)
@@ -75,7 +75,7 @@ object Profiler {
   private val stack = mutable.Stack[(Symbol, Totals)]()
   private val totals = mutable.AnyRefMap[Symbol, Totals]()
 
-  def setEnabled(enabled: Boolean) {
+  def setEnabled(enabled: Boolean): Unit = {
     this.enabled = enabled
     if (enabled && profilerAvgNanos == -1L) {
       whitelist = Set(Symbol("ProfileProfiler"))
@@ -87,11 +87,11 @@ object Profiler {
     }
   }
 
-  def setWhitelist(symbols: Symbol*) {
+  def setWhitelist(symbols: Symbol*): Unit = {
     whitelist = Set(symbols : _*)
   }
 
-  def start(key: Symbol) {
+  def start(key: Symbol): Unit = {
     if (enabled && (whitelist.isEmpty || whitelist.contains(key))) {
       val now = JSystem.nanoTime
       if (stack.nonEmpty) {
@@ -102,7 +102,7 @@ object Profiler {
     }
   }
 
-  def stop(key: Symbol) {
+  def stop(key: Symbol): Unit = {
     if (enabled && (whitelist.isEmpty || whitelist.contains(key))) {
       val now = JSystem.nanoTime
       val (key2, totals) = stack.pop()
@@ -128,7 +128,7 @@ object Profiler {
     }
   }
 
-  def clear() {
+  def clear(): Unit = {
     totals.clear()
     stack.clear()
   }

@@ -82,7 +82,7 @@ case class LoopNode(
     case _ => None
   }
 
-  override def elaborate(scope: ElaborationDomain) {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     forId match {
       case Some(idNode) =>
         scope.pushScope()

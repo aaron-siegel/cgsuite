@@ -9,7 +9,7 @@ case class AssignToNode(tree: Tree, idNode: IdentifierNode, expr: EvalNode, decl
   // TODO Catch illegal assignment to immutable object member (during elaboration)
   // TODO Catch illegal assignment to constant
   override val children = Vector(idNode, expr)
-  override def elaborate(scope: ElaborationDomain) {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     // If we're package-external (Worksheet/REPL scope) and scopeStack has size one (we're not
     // in any nested subscope), then we treat idNode as a dynamic var.
     if (declType == AssignmentDeclType.VarDecl && !scope.isToplevelWorksheet) {

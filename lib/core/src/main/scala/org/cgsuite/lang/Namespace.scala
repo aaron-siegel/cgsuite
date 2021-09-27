@@ -18,7 +18,7 @@ object Namespace {
     namespace
   }
 
-  def checkin(namespace: Namespace) {
+  def checkin(namespace: Namespace): Unit = {
     namespace.clear()
     pool.enqueue(namespace)
   }
@@ -31,12 +31,12 @@ class Namespace {
   var args: Map[Symbol, Any] = _
   var additions: mutable.AnyRefMap[Symbol, Any] = _
 
-  def initialize(parent: Option[Namespace], args: Map[Symbol, Any]) {
+  def initialize(parent: Option[Namespace], args: Map[Symbol, Any]): Unit = {
     this.parent = parent
     this.args = args
   }
 
-  def clear() {
+  def clear(): Unit = {
     this.parent = null
     this.args = null
     if (additions != null)
@@ -51,7 +51,7 @@ class Namespace {
     lookupInScope(symbol).orElse { parent flatMap { _.lookup(symbol) } }
   }
 
-  def put(symbol: Symbol, x: Any, declare: Boolean) {
+  def put(symbol: Symbol, x: Any, declare: Boolean): Unit = {
     if (declare || true || contains(symbol)) {
       putInScope(symbol, x)
     } else {
@@ -73,7 +73,7 @@ class Namespace {
       additions get symbol orElse (args get symbol)
   }
 
-  def putInScope(symbol: Symbol, x: Any) {
+  def putInScope(symbol: Symbol, x: Any): Unit = {
     if (additions == null)
       additions = mutable.AnyRefMap()
     additions.put(symbol, x)
