@@ -189,6 +189,7 @@
               <recompileMode>incremental</recompileMode>
               <args>
                 <arg>-feature</arg>
+                <arg>-deprecation</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>
@@ -203,6 +204,7 @@
             <configuration>
               <recompileMode>incremental</recompileMode>
               <args>
+                <arg>-deprecation</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>
