@@ -6,7 +6,7 @@ class TranspositionTable[T] {
 
   private val map = mutable.AnyRefMap[AnyRef, T]()
 
-  def put(k: AnyRef, v: T) {
+  def put(k: AnyRef, v: T): Unit = {
     map.put(k, v)
   }
 

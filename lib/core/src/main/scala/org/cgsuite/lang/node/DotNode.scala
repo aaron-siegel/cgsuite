@@ -15,7 +15,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
   var isElaborated = false
   var classResolution: CgscriptClass = _
   var constantResolution: Resolution = _
-  override def elaborate(scope: ElaborationDomain) {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     antecedentAsPackage flatMap { _.lookupClass(idNode.id) } match {
       case Some(cls) => classResolution = cls
       case None =>

@@ -190,7 +190,7 @@ class CgscriptClass(
 
   val qualifiedId: Symbol = Symbol(qualifiedName)
 
-  val isPackageObject = id == 'constants
+  val isPackageObject = id == Symbol("constants")
 
   override def toString = s"\u27ea$qualifiedName\u27eb"
 
@@ -426,7 +426,7 @@ class CgscriptClass(
 
     // Force constants to declare first
     if (this != Object) {
-      pkg lookupClass 'constants foreach { constantsCls =>
+      pkg lookupClass Symbol("constants") foreach { constantsCls =>
         if (constantsCls != this) constantsCls.ensureDeclared()
       }
     }
@@ -927,15 +927,15 @@ class CgscriptClass(
     }
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
-    lazy val evalMethod = forceLookupMethodGroup('Eval)
-    lazy val optionsMethod = forceLookupAutoinvokeMethod('Options)
-    lazy val optionsMethodWithParameter = forceLookupMethod('Options, Vector(CgscriptClass.Player))
-    lazy val decompositionMethod = forceLookupAutoinvokeMethod('Decomposition)
-    lazy val canonicalFormMethod = forceLookupAutoinvokeMethod('CanonicalForm)
-    lazy val gameValueMethod = forceLookupAutoinvokeMethod('GameValue)
-    lazy val depthHintMethod = forceLookupAutoinvokeMethod('DepthHint)
-    lazy val toOutputMethod = forceLookupAutoinvokeMethod('ToOutput)
-    lazy val heapOptionsMethod = forceLookupMethod('HeapOptions, Vector(CgscriptClass.Integer))
+    lazy val evalMethod = forceLookupMethodGroup(Symbol("Eval"))
+    lazy val optionsMethod = forceLookupAutoinvokeMethod(Symbol("Options"))
+    lazy val optionsMethodWithParameter = forceLookupMethod(Symbol("Options"), Vector(CgscriptClass.Player))
+    lazy val decompositionMethod = forceLookupAutoinvokeMethod(Symbol("Decomposition"))
+    lazy val canonicalFormMethod = forceLookupAutoinvokeMethod(Symbol("CanonicalForm"))
+    lazy val gameValueMethod = forceLookupAutoinvokeMethod(Symbol("GameValue"))
+    lazy val depthHintMethod = forceLookupAutoinvokeMethod(Symbol("DepthHint"))
+    lazy val toOutputMethod = forceLookupAutoinvokeMethod(Symbol("ToOutput"))
+    lazy val heapOptionsMethod = forceLookupMethod(Symbol("HeapOptions"), Vector(CgscriptClass.Integer))
 
     private def forceLookupMethodGroup(id: Symbol): MethodGroup = {
       lookupMethodGroup(id) getOrElse {
@@ -1078,30 +1078,30 @@ class CgscriptClass(
 
     // Big temporary hack to populate Left and Right
     if (qualifiedName == "game.Player") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Left)) = Left
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Right)) = Right
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("Left"))) = Left
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("Right"))) = Right
     }
     if (qualifiedName == "game.Side") {
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Onside)) = Onside
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('Offside)) = Offside
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("Onside"))) = Onside
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("Offside"))) = Offside
     }
     if (qualifiedName == "game.OutcomeClass") {
       import org.cgsuite.core.OutcomeClass._
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('P)) = P
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('N)) = N
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('L)) = L
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('R)) = R
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('D)) = D
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('PHat)) = PHat
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('PCheck)) = PCheck
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('NHat)) = NHat
-      classObjectRef.vars(classInfoRef.staticVarOrdinals('NCheck)) = NCheck
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("P"))) = P
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("N"))) = N
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("L"))) = L
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("R"))) = R
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("D"))) = D
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("PHat"))) = PHat
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("PCheck"))) = PCheck
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("NHat"))) = NHat
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("NCheck"))) = NCheck
     }
     if (qualifiedName == "cgsuite.util.Symmetry") {
       import Symmetry._
-      Map('Identity -> Identity, 'Inversion -> Inversion, 'HorizontalFlip -> HorizontalFlip, 'VerticalFlip -> VerticalFlip,
-        'Transpose -> Transpose, 'AntiTranspose -> AntiTranspose, 'ClockwiseRotation -> ClockwiseRotation,
-        'AnticlockwiseRotation -> AnticlockwiseRotation) foreach { case (symId, value) =>
+      Map(Symbol("Identity") -> Identity, Symbol("Inversion") -> Inversion, Symbol("HorizontalFlip") -> HorizontalFlip, Symbol("VerticalFlip") -> VerticalFlip,
+        Symbol("Transpose") -> Transpose, Symbol("AntiTranspose") -> AntiTranspose, Symbol("ClockwiseRotation") -> ClockwiseRotation,
+        Symbol("AnticlockwiseRotation") -> AnticlockwiseRotation) foreach { case (symId, value) =>
         classObjectRef.vars(classInfoRef.staticVarOrdinals(symId)) = value
       }
     }
