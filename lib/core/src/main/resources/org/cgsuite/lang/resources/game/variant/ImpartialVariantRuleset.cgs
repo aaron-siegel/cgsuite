@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+class ImpartialVariantRuleset(base as Ruleset) extends Ruleset
+
+  def Eval(args) := base(args).ImpartialVariant;
+
+end

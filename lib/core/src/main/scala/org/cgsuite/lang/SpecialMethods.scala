@@ -50,6 +50,8 @@ object SpecialMethods {
 
   private val specialMethods1: Map[String, (_, _) => Any] = Map(
 
+    "cgsuite.lang.Collection.Adjoin" -> { (collection: Iterable[_], obj: Any) => collection ++ Iterable(obj) },
+    "cgsuite.lang.Collection.Concat" -> { (collection: Iterable[_], that: Iterable[_]) => collection ++ that },
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
       collection.exists { x => fn.call(Array(x)).asInstanceOf[Boolean] }
     },
@@ -62,8 +64,6 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
       collection.foreach { x => fn.call(Array(x)) }; null
     },
-    "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
-    "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toVector
     },

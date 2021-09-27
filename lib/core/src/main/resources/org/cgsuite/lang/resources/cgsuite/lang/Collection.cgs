@@ -4,6 +4,10 @@
   */
 system class Collection
 
+  external def Adjoin(that as Object);
+
+  external def Concat(that as Collection);
+
   /** Returns `true` if there exists an element in this collection
     * that satisfies the specified predicate.
     * `predicate` must be a [[Boolean]]-valued function.

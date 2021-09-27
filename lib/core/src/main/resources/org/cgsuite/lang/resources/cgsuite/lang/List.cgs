@@ -2,10 +2,6 @@
 
 system class List extends Collection
 
-  external def Append(that as Object);
-
-  external def AppendAll(that as Collection);
-
   def Apply(fn as Function) := [fn(x) for x in this];
 
   external def Contains(x);

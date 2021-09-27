@@ -1,0 +1,15 @@
+/*${cgsuite.banner}*/
+
+class ImpartialVariantGame(base as Game) extends ImpartialGame
+
+  override def Decomposition begin
+    [ImpartialVariantGame(g) for g in base.Decomposition]
+  end
+
+  override def DepthHint := base.DepthHint;
+
+  override def Options begin
+    [ImpartialVariantGame(g) for g in base.LeftOptions Concat base.RightOptions]
+  end
+
+end
