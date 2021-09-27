@@ -102,7 +102,7 @@ system class NormalValue
     * $x + *m + G$,
     *
     * where $x$ is a [[DyadicRational][dyadic rationa]] number, $*m$ is a
-    * [[Nimber]][nimber]], and $G$ is a linear combination of games of the
+    * [[Nimber][nimber]], and $G$ is a linear combination of games of the
     * form $\^^n^$.
     */
   external def IsUptimal as Boolean;
