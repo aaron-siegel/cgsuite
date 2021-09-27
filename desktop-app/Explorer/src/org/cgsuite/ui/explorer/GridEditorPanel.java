@@ -45,14 +45,12 @@ import java.util.EnumSet;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-
 import org.cgsuite.lang.CgscriptClass;
 import org.cgsuite.output.GridOutput;
 import org.cgsuite.util.Grid;
 import org.cgsuite.util.Grid$;
-import org.cgsuite.util.Strip;
 import scala.collection.JavaConverters;
-import scala.collection.Seq;
+import scala.collection.immutable.Seq;
 
 /**
  * A generalized, reusable grid-based <code>EditorPanel</code>.  A
@@ -113,8 +111,8 @@ public class GridEditorPanel extends EditorPanel
         INVALID_DRAG_CURSOR = invalidDragCursor;
     }
 
-    private CgscriptClass type;
-    private Object ruleset;
+    private final CgscriptClass type;
+    private final Object ruleset;
     private Seq<Icon> icons;
     private Dimension cellSize;
     private EnumSet<Permission> permissions;
@@ -122,6 +120,8 @@ public class GridEditorPanel extends EditorPanel
     private Insets gridInsets;
     
     private int draggingRow = -1, draggingCol = -1, draggingXDisplacement, draggingYDisplacement, prevDragX, prevDragY;
+
+    private CgscriptClass.Method evalMethod;
     
     protected Grid grid;
     
@@ -152,6 +152,12 @@ public class GridEditorPanel extends EditorPanel
         setGrid(initialGrid);
         setBackground(Color.white);
         gridInsets = new Insets(20, 20, 20, 20);
+
+        // TODO This is pretty ugly
+        evalMethod = type.enclosingClass().get().classInfo().evalMethod().lookupMethod(
+            JavaConverters.asScala(Collections.singletonList(CgscriptClass.Grid())).toVector(),
+            scala.collection.immutable.Map$.MODULE$.empty()
+        ).get();
         
         addListeners();
     }
@@ -873,7 +879,7 @@ public class GridEditorPanel extends EditorPanel
     @Override
     public Object constructObject()
     {
-        return type.enclosingClass().get().evalMethodOpt().get().call(
+        return evalMethod.call(
             ruleset,
             new Object[] { this.grid }
         );

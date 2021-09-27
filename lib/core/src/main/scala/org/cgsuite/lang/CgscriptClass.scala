@@ -51,6 +51,7 @@ object CgscriptClass {
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
   lazy val Integer = CgscriptPackage.lookupClassByName("Integer").get
   lazy val Player = CgscriptPackage.lookupClassByName("Player").get
+  lazy val Grid = CgscriptPackage.lookupClassByName("Grid").get
 
   Object.ensureInitialized()
 
@@ -244,8 +245,6 @@ class CgscriptClass(
   def isSystem = classInfo.modifiers.hasSystem
 
   def constructor = classInfo.constructor
-
-  def evalMethodOpt = lookupMethod('Eval)
 
   def ancestors = classInfo.ancestors
 
