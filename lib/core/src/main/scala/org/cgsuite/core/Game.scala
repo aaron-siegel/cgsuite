@@ -23,7 +23,7 @@ trait Game extends OutputTarget {
   }
 
   def canonicalForm(tc: TranspositionCache): CanonicalShortGame = {
-    CanonicalShortGameReducer.reduce(this, tc.tableFor[CanonicalShortGame]('CanonicalShortGame))
+    CanonicalShortGameReducer.reduce(this, tc.tableFor[CanonicalShortGame](Symbol("CanonicalShortGame")))
   }
 
   def conwayProduct(that: Game): Game = CompoundGame(ConwayProduct, this, that)
@@ -38,7 +38,7 @@ trait Game extends OutputTarget {
     try {
       canonicalForm(tc)
     } catch {
-      case _: NotShortGameException => loopyGameValue(tc.tableFor[SidedValue]('SidedValue))
+      case _: NotShortGameException => loopyGameValue(tc.tableFor[SidedValue](Symbol("SidedValue")))
     }
   }
 
