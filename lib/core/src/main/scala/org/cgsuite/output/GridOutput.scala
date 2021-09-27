@@ -60,7 +60,7 @@ trait GenGridOutput extends AbstractOutput {
   lazy val cellSize = GridOutput.iconDimensions(icons, forceSquares = false)
   lazy val size = GridOutput.imageDimensions(grid, cellSize, 1, 1)
 
-  def write(out: PrintWriter, mode: Output.Mode) {
+  def write(out: PrintWriter, mode: Output.Mode): Unit = {
     mode match {
       case Output.Mode.PLAIN_TEXT => out.print(alt)
       case _ => throw new UnsupportedOperationException
@@ -69,7 +69,7 @@ trait GenGridOutput extends AbstractOutput {
 
   override def getSize(preferredWidth: Int): Dimension = size
 
-  def paint(g: Graphics2D, preferredWidth: Int) {
+  def paint(g: Graphics2D, preferredWidth: Int): Unit = {
 
     val totalSize: Dimension = GridOutput.imageDimensions(grid, cellSize, 1, 1)
     g.setBackground(Color.white)

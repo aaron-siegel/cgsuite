@@ -17,13 +17,13 @@ case class IntensityPlotOutput(array: Seq[Seq[RationalNumber]], unitSize: Int = 
   val maxValue = array.map { _.max(ord) }.max(ord)
   val span = (maxValue - minValue).toFloat
 
-  def write(out: PrintWriter, mode: Mode) {
+  def write(out: PrintWriter, mode: Mode): Unit = {
     out print s"<$rowCount x $colCount IntensityPlot>"
   }
 
   def getSize(preferredWidth: Int): Dimension = new Dimension(colCount * unitSize, rowCount * unitSize)
 
-  def paint(graphics: Graphics2D, preferredWidth: Int) {
+  def paint(graphics: Graphics2D, preferredWidth: Int): Unit = {
 
     for (i <- array.indices; j <- array(i).indices) {
       val color: Float = (array(i)(j) - minValue).toFloat / span

@@ -14,7 +14,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
   private[lang] var vars: Array[Any] = _
   init()
 
-  def init() {
+  def init(): Unit = {
     vars = new Array[Any](cls.classInfo.instanceVarLookup.size)
     JSystem.arraycopy(objArgs, 0, vars, 0, objArgs.length)
     cls.ancestors foreach { ancestor =>
