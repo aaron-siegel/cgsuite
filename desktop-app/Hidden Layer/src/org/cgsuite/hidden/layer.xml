@@ -105,6 +105,15 @@
         <file name="General.instance_hidden"/>
         <file name="Keymaps.instance_hidden"/>
     </folder>
+    <folder name="QuickSearch">
+        <file name="Actions_hidden"/>
+        <file name="GoToOption_hidden"/>
+        <file name="GoToSymbol_hidden"/>
+        <file name="GoToType_hidden"/>
+        <file name="Hudson_hidden"/>
+        <file name="Projects_hidden"/>
+        <file name="Recent_hidden"/>
+    </folder>
     <folder name="Services">
         <folder name="JavaHelp">
             <file name="mercurial-helpset.xml_hidden"/>

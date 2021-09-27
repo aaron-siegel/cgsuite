@@ -41,6 +41,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
   private[help] val referenceDir = targetRootDir/"reference"
 
+  private[help] val searchIndex = targetRootDir/"search-index.csv"
+
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
 
   CgscriptClass.Object.ensureDeclared()
@@ -65,6 +67,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
   def run(): Unit = {
 
+    searchIndex overwrite ""
     renderCgshFiles()
     renderIndex()
     renderClasses()
@@ -164,6 +167,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       val file = packageDir/s"${cls.name}.html"
 
+      val relpath = targetRootDir relativize file
+
       logger info s"Generating class `${cls.qualifiedName}` to $file"
 
       val header = makeHeader()
@@ -247,6 +252,15 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       file append "\n<h2>Member Details</h2>\n\n"
       file append memberDetails
       file append htmlFooter
+
+      searchIndex appendLine s"${cls.name},${cls.qualifiedName},$relpath,0"
+      searchIndex appendLine s"${cls.qualifiedName},${cls.qualifiedName},$relpath,1"
+      members foreach { member =>
+        if (member.declaringClass == cls) {
+//          searchIndex appendLine s"${member.name},${cls.name}.${member.name},$relpath#${member.name}"
+          searchIndex appendLine s"${cls.name}.${member.name},${cls.qualifiedName}.${member.name},$relpath#${member.name},0"
+        }
+      }
 
     }
 
@@ -556,14 +570,30 @@ case class HelpLinkBuilder(
 
     resolution match {
 
-      case (None, _) => hyperlinkToPath(ref, textOpt)
+      case (None, _) => hyperlinkForPath(ref, textOpt)
       case (Some(targetClass), targetMemberOpt) => hyperlinkToClass(targetClass, targetMemberOpt, textOpt)
 
     }
 
   }
 
-  def hyperlinkToPath(ref: String, textOpt: Option[String]): String = {
+  def hyperlinkForPath(ref: String, textOpt: Option[String]): String = {
+
+    if (ref contains "://") {
+      hyperlinkForExternalPath(ref, textOpt)
+    } else {
+      hyperlinkForInternalPath(ref, textOpt)
+    }
+
+  }
+
+  def hyperlinkForExternalPath(ref: String, textOpt: Option[String]): String = {
+
+    s"""<a class="valid" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a>"""
+
+  }
+
+  def hyperlinkForInternalPath(ref: String, textOpt: Option[String]): String = {
 
     val refFile = {
       if (ref startsWith "/")

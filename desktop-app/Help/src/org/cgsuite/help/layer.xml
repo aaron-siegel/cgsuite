@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
+    <folder name="QuickSearch">
+        <folder name="CGSuite">
+            <attr name="command" stringvalue="cgsuite"/>
+            <attr name="position" intvalue="0"/>
+            <file name="org-cgsuite-help-search-CgsuiteSearchProvider.instance">
+                <attr name="displayName" bundlevalue="org.cgsuite.help.Bundle#QuickSearch/CGSuite/org-cgsuite-help-search-CgsuiteSearchProvider.instance"/>
+            </file>
+        </folder>
+    </folder>
     <folder name="Windows2">
         <folder name="Modes">
             <file name="help.wsmode" url="help.wsmode"/>
