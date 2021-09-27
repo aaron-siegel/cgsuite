@@ -5,21 +5,24 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
 import java.net.URL;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.SwingUtilities;
-import org.cgsuite.help.actions.HelpBackAction;
-import org.openide.util.NbBundle;
-import org.openide.windows.TopComponent;
+import javax.swing.text.DefaultEditorKit;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.util.NbBundle;
+import org.openide.windows.TopComponent;
 
 /**
  * Top component which displays something.
@@ -27,7 +30,7 @@ import org.openide.awt.ActionReference;
 @ConvertAsProperties(dtd = "-//org.cgsuite.help//CgsuiteHelp//EN",
 autostore = false)
 @TopComponent.Description(preferredID = "CgsuiteHelpTopComponent",
-//iconBase="SET/PATH/TO/ICON/HERE", 
+//iconBase="SET/PATH/TO/ICON/HERE",
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "help", openAtStartup = false)
 @ActionID(category = "Window", id = "org.cgsuite.help.CgsuiteHelpTopComponent")
@@ -35,37 +38,52 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.OpenActionRegistration(displayName = "#CTL_CgsuiteHelpAction",
 preferredID = "CgsuiteHelpTopComponent")
 public final class CgsuiteHelpTopComponent extends TopComponent {
-    
+
     public final static String CONTENTS_PAGE = "contents.html";
     public final static String PACKAGES_PAGE = "reference/overview.html";
     public final static String INDEX_PAGE = "reference/cgscript-index.html";
     public final static String GETTING_STARTED_PAGE = "tutorials/getting-started/getting-started.html";
-    
+
     private JFXPanel fxPanel;
     private WebView webView;
 
+    private final Action COPY_ACTION = new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Platform.runLater(() -> {
+                String selection = (String) webView.getEngine().executeScript("window.getSelection().toString()");
+                if (selection != null && !selection.isEmpty()) {
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(new StringSelection(selection), null);
+                }
+            });
+        }
+    };
+
     public CgsuiteHelpTopComponent() {
-        
+
         initComponents();
         // We need to set this explicitly, since it's the default & otherwise
         // NetBeans won't set it at all:
         buttonBar.setBackground(new java.awt.Color(238, 238, 238));
         setName(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "CTL_CgsuiteHelpTopComponent"));
         setToolTipText(NbBundle.getMessage(CgsuiteHelpTopComponent.class, "HINT_CgsuiteHelpTopComponent"));
-        
+
         fxPanel = new JFXPanel();
         add(fxPanel, BorderLayout.CENTER);
         Platform.setImplicitExit(false);
         Platform.runLater(() -> {
             webView = new WebView();
+            webView.contextMenuEnabledProperty().setValue(false);
             navigateTo(CONTENTS_PAGE);
             fxPanel.setScene(new Scene(webView));
         });
-        
+        fxPanel.getActionMap().put(DefaultEditorKit.copyAction, COPY_ACTION);
+
     }
-    
+
     public void navigateTo(String path) {
-        
+
         SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
         Platform.runLater(() -> {
             URL resource = HelpBuilder.class.getResource("docs/" + path);
@@ -73,19 +91,19 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
                 throw new RuntimeException("Resource not found: " + path);
             webView.getEngine().load(resource.toExternalForm());
         });
-        
+
     }
-    
+
     public void navigateBack() {
         SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
         Platform.runLater(() -> webView.getEngine().executeScript("history.back()"));
     }
-    
+
     public void navigateForward() {
         SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
         Platform.runLater(() -> webView.getEngine().executeScript("history.forward()"));
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -94,6 +112,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPopupMenu1 = new javax.swing.JPopupMenu();
         buttonBar = new javax.swing.JToolBar();
         backButton = new javax.swing.JButton();
         forwardButton = new javax.swing.JButton();
@@ -200,6 +219,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     private javax.swing.JButton contentsButton;
     private javax.swing.JButton forwardButton;
     private javax.swing.JButton indexButton;
+    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
@@ -212,7 +232,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     @Override
     public void componentClosed() {
     }
-    
+
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
