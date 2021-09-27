@@ -27,6 +27,8 @@
   */
 system class Game
 
+  def AtomicWeight := CanonicalForm.AtomicWeight;
+
   /** The normal-play canonical form of this `Game`, given as a [[CanonicalShortGame]].
     *
     * This property can be used to find the canonical form of a game

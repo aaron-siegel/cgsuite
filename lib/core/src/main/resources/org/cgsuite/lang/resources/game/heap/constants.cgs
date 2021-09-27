@@ -20,6 +20,11 @@ singleton class constants
 
   var Nim := TakeAndBreak("0.[3]");
 
+  var PartizanEuclid := PartizanCoordinateRuleset(
+    FunctionalCoordinateRuleset(coord -> if coord.Row % coord.Col == 0 then [] else [(coord.Col, coord.Row % coord.Col)] end),
+    FunctionalCoordinateRuleset(coord -> if coord.Row % coord.Col == 0 then [] else [(coord.Col, coord.Col - coord.Row % coord.Col)] end)
+  );
+
   def PartizanSplittles(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Splittles(leftSet, allbut), Splittles(rightSet, allbut));
 

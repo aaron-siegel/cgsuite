@@ -53,6 +53,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
       collection.exists { x => fn.call(Array(x)).asInstanceOf[Boolean] }
     },
+    "cgsuite.lang.Collection.Filter" -> { (collection: Iterable[_], fn: Function) =>
+      collection.filter { x => fn.call(Array(x)).asInstanceOf[Boolean] }
+    },
     "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], fn: Function) =>
       collection.asInstanceOf[Iterable[Any]].find { x => fn.call(Array(x)).asInstanceOf[Boolean] }.orNull
     },
@@ -61,6 +64,9 @@ object SpecialMethods {
     },
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
       collection.foreach { x => fn.call(Array(x)) }; null
+    },
+    "cgsuite.lang.Collection.Take" -> { (collection: Iterable[_], n: Integer) =>
+      collection.take(n.intValue)
     },
     "cgsuite.lang.List.Append" -> { (list: IndexedSeq[_], obj: Any) => list :+ obj },
     "cgsuite.lang.List.AppendAll" -> { (list: IndexedSeq[_], that: Iterable[_]) => list ++ that },
