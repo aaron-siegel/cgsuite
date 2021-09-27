@@ -5,12 +5,16 @@
 package org.cgsuite.help;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import javafx.application.Platform;
+import javafx.concurrent.Worker.State;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
@@ -18,6 +22,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultEditorKit;
+import netscape.javascript.JSObject;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -48,6 +53,7 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
 
     private JFXPanel fxPanel;
     private WebView webView;
+    private final WebEngineCtl webEngineCtl = new WebEngineCtl();
 
     private final Action COPY_ACTION = new AbstractAction() {
         @Override
@@ -77,6 +83,12 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
         Platform.runLater(() -> {
             webView = new WebView();
             webView.contextMenuEnabledProperty().setValue(false);
+            webView.getEngine().getLoadWorker().stateProperty().addListener((observableValue, oldValue, newValue) -> {
+                if (newValue == State.SUCCEEDED) {
+                    JSObject window = (JSObject) webView.getEngine().executeScript("window");
+                    window.setMember("cgsuite", webEngineCtl);
+                }
+            });
             navigateTo(CONTENTS_PAGE);
             fxPanel.setScene(new Scene(webView));
         });
@@ -101,6 +113,18 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
     public void navigateForward() {
         SwingUtilities.invokeLater(() -> fxPanel.requestFocus());
         Platform.runLater(() -> webView.getEngine().executeScript("history.forward()"));
+    }
+
+    public class WebEngineCtl {
+
+        public void openExternal(String path) {
+            try {
+                Desktop.getDesktop().browse(new URL(path).toURI());
+            } catch (URISyntaxException | IOException exc) {
+            }
+
+        }
+
     }
 
     /** This method is called from within the constructor to

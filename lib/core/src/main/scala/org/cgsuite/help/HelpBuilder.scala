@@ -570,14 +570,30 @@ case class HelpLinkBuilder(
 
     resolution match {
 
-      case (None, _) => hyperlinkToPath(ref, textOpt)
+      case (None, _) => hyperlinkForPath(ref, textOpt)
       case (Some(targetClass), targetMemberOpt) => hyperlinkToClass(targetClass, targetMemberOpt, textOpt)
 
     }
 
   }
 
-  def hyperlinkToPath(ref: String, textOpt: Option[String]): String = {
+  def hyperlinkForPath(ref: String, textOpt: Option[String]): String = {
+
+    if (ref contains "://") {
+      hyperlinkForExternalPath(ref, textOpt)
+    } else {
+      hyperlinkForInternalPath(ref, textOpt)
+    }
+
+  }
+
+  def hyperlinkForExternalPath(ref: String, textOpt: Option[String]): String = {
+
+    s"""<a class="valid" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a>"""
+
+  }
+
+  def hyperlinkForInternalPath(ref: String, textOpt: Option[String]): String = {
 
     val refFile = {
       if (ref startsWith "/")
