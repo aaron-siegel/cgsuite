@@ -28,6 +28,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component which displays something.
@@ -102,6 +103,14 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
         Platform.runLater(() -> {
             webView.getEngine().load(ROOT_URL + path);
         });
+
+    }
+
+    public static void openAndNavigateTo(String path) {
+
+        CgsuiteHelpTopComponent helpComponent = (CgsuiteHelpTopComponent) WindowManager.getDefault().findTopComponent("CgsuiteHelpTopComponent");
+        helpComponent.open();
+        helpComponent.navigateTo(path);
 
     }
 
