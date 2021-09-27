@@ -10,7 +10,7 @@ import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 object GeneralizedOrdinal {
 
   def apply(terms: Term*): GeneralizedOrdinal = {
-    val grouped = terms groupBy { _.exponent } mapValues { _ map { _.coefficient} }
+    val grouped = terms.groupBy { _.exponent }.view.mapValues { _ map { _.coefficient} }
     val reduced = grouped mapValues { _ reduce { _ + _ } }
     val filtered = reduced collect {
       case (exponent, coefficient) if coefficient != zero => Term(coefficient, exponent)

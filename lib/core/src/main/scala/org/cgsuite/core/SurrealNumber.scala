@@ -10,6 +10,7 @@ import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
@@ -84,7 +85,7 @@ object SurrealNumber {
       val exponents = monomial.exponents.zipWithIndex collect {
         case (exponent, index) if exponent != 0 => Term(Integer(exponent), allTerms(index))
       }
-      Term(coefficient, GeneralizedOrdinal(exponents : _*))
+      Term(coefficient, GeneralizedOrdinal(ArraySeq.unsafeWrapArray(exponents) : _*))
     }
     GeneralizedOrdinal(terms.toSeq : _*)
   }

@@ -84,7 +84,7 @@ object SpecialMethods {
     "cgsuite.lang.Set.Intersection" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
       set intersect that
     },
-    "cgsuite.lang.Set.Replaced" -> { (set: scala.collection.Set[Any], replacements: scala.collection.Map[_,_]) =>
+    "cgsuite.lang.Set.Replaced" -> { (set: scala.collection.immutable.Set[Any], replacements: scala.collection.Map[_,_]) =>
       set -- replacements.keys ++ replacements.values
     },
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>
