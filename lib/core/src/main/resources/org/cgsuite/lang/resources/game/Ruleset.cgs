@@ -1,4 +1,9 @@
 /*${cgsuite.banner}*/
 
 class Ruleset
+
+  def DicoticVariant := game.variant.DicoticVariantRuleset(this);
+
+  def ImpartialVariant := game.variant.ImpartialVariantRuleset(this);
+
 end

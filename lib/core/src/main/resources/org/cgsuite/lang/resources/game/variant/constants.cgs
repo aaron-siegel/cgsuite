@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+/**
+ * Tools for deriving variants of existing games and rulesets.
+ */
+singleton class constants
+end

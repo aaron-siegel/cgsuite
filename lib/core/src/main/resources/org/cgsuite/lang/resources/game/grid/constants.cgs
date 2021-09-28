@@ -11,6 +11,8 @@ singleton class constants
   var Kings := game.grid.GenClobber(directions => Coordinates.Compass);
   var Rooks := game.grid.GenClobber(maxDistance => inf);
   var Queens := game.grid.GenClobber(directions => Coordinates.Compass, maxDistance => inf);
+
+  var Cram := game.grid.Domineering.ImpartialVariant;
   
   var FoxAndGeese := game.grid.GenFoxAndGeese();
   var CeyloneseFoxAndGeese := game.grid.GenFoxAndGeese(foxRange => 2);

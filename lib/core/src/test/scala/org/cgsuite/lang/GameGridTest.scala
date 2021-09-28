@@ -16,14 +16,19 @@ class GameGridTest extends CgscriptSpec {
       header,
       ("Clobber", """game.grid.Clobber("xox|ox.").CanonicalForm""", "{^^*|*,v}"),
       ("Clobber (Diagonal)", """game.grid.GenClobber(directions => Coordinates.Diagonal)("xoxo|oox.|xxx.").CanonicalForm""", "{0,v*|vv}"),
-      ("Clobber (Anti)", """game.grid.AntiClobber("xoxo|oo..").CanonicalForm""", "{*|-1}")
+      ("Kings", """game.grid.Kings("xox|ox.").CanonicalForm""", "{^^*|*,v[2]}"),
+      ("Rooks", """game.grid.Rooks("xox|ox.").CanonicalForm""", "{^^*|0,*}"),
+      ("Queens", """game.grid.Queens("xox|ox.").CanonicalForm""", "^"),
+      ("AntiClobber", """game.grid.AntiClobber("xoxo|oo..").CanonicalForm""", "{*|-1}")
     ))
   }
 
   it should "define Domineering properly" in {
     executeTests(Table(
       header,
-      ("Domineering", """game.grid.Domineering(Grid.Empty(4,4)).CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}")
+      ("Domineering", """game.grid.Domineering(Grid.Empty(4,4)).CanonicalForm""", "+-{0,{{2|0},2Tiny(2)|{2|0},Miny(2)}}"),
+      ("Cram", """game.grid.Cram(".........|##.######").CanonicalForm""", "*4"),
+      ("Misere Cram", """game.grid.Cram(".........|##.######").MisereCanonicalForm""", "*[2[2]321]")
     ))
   }
 

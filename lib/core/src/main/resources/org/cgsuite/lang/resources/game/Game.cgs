@@ -57,25 +57,7 @@ system class Game
   def LeftOptions := Options(Left);
   def RightOptions := Options(Right);
 
-  // TODO DicotVariant and ImpartialVariant should override Decomposition
-  class DicotVariant() extends Game
-  
-    override def Options(player as Player) begin
-      var otherOptions := EnclosingObject Options player.Opponent;
-      if otherOptions.IsEmpty then
-        []
-      else
-        [g.DicotVariant() for g in EnclosingObject Options player]
-      end
-    end
-    
-  end
-
-  class ImpartialVariant() extends ImpartialGame
-  
-    override def Options begin
-      [g.ImpartialVariant() for g in EnclosingObject.Options]
-    end
-  end
+  def DicoticVariant := game.variant.DicoticVariantGame(this);
+  def ImpartialVariant := game.variant.ImpartialVariantGame(this);
 
 end

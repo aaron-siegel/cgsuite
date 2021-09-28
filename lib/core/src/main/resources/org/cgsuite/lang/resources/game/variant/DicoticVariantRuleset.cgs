@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+class DicoticVariantRuleset(base as Ruleset) extends Ruleset
+
+  def Eval(args) := base(args).DicoticVariant;
+
+end
