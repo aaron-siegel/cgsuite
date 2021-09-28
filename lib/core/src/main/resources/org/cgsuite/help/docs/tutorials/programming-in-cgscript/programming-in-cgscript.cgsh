@@ -2,6 +2,9 @@ Programming in CGScript
 
 This tutorial explores the language features of CGScript.  It assumes you've already read through the
 [[/tutorials/getting-started/cgscript]] section from the ~Getting Started~ tutorial.
+
+(Work in Progress)
+\<!--
 \ol
 \li [[three-examples]] - Nim; the Partizan Subtraction Game; and Clobber.
 \li [[classes-and-packages]] - The structure of CGScript classes.
@@ -9,3 +12,4 @@ This tutorial explores the language features of CGScript.  It assumes you've alr
 \li [[grids-and-strips]] - Utilities for streamlining game implementation.
 \li [[advanced-language-features]].
 \endol
+--\>

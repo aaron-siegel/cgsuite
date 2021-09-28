@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+/**
+ * Core classes for misère-play game values.
+ */
+singleton class constants
+end
