@@ -1,99 +1,128 @@
 Loopy Games
 
-CGSuite contains powerful tools for working with loopy games. This section assumes
-familiarity with the theory of loopy games; \ww
-includes an excellent introduction.
+This section describes CGSuite's capabilities for working with ~loopy games~, in which repetition is allowed.
+Familiarity with the theory of loopy games is assumed; for a good introduction, see \ww, Chapter 11 or \cgt, Chapter VI.
 
-##TOC##
-
-++Plumtrees++
++++ Plumtrees +++
 
 Stoppers with simple pass moves ("plumtrees") can be entered into the Worksheet using the convenient keyword $pass$.
 Here are some familiar examples:
 
-$on := {pass|}
-off := {|pass}
-over := {0|pass}
-upon := {pass|*}
-uponth := {0|-upon+*}
-upover := {0|*,pass}
-tiny := on.Tiny
-ace := {0|on.Tiny}$
+`on := {pass|}`\\
+`off := {|pass}`\\
+`over := {0|pass}`\\
+`upon := {pass|*}`\\
+`uponth := {0|-upon+*}`\\
+`upover := {0|*,pass}`\\
+`tiny := on.Tiny`\\
+`ace := {0|on.Tiny}`
+
+Note that the constants `on`, `off`, `over`, `under`, and `upon` are predefined in CGSuite (as is `dud`; see below).
 
 Try entering each of these games, and note that CGSuite is pretty good at expressing them in convenient shorthand
 notation.
 
-++Fundamental Operations++
+Standard operations on loopy games are available:
 
-Basic operations on loopy games are all there, just as you'd expect:
+`upon + upon`\\
+`1:off`\\
+`G := upon Upsum uponth`\\
+`U := +-G`\\
+`U.Degree`\\
+`U.Variety`
 
-$g := upon.Upsum(uponth)
-u := +-g
-u.Degree
-u.Variety$
++++ Sidling +++
 
-Ordinal sum works too:
+Games that are not stoppers will be automatically decomposed into an onside and offside.
 
-$1:off$
-
-++Sidling++
-
-For games that are not stoppers, CGSuite will sidle automatically.
-
-$over - over
-upon - upon
-on + off$
+`over - over`\\
+`upon - upon`\\
+`on + off`
 
 (Note the shorthand recognition of $dud = on & off$.)
 
 Stopper-sided games can also be entered directly:
 
-$g := over & v$
+$G := over & v$
 
 And manipulated in all the usual ways, just as you'd expect:
 
-$g + 1 + *
-g.Offside$
+`G + 1 + *`\\
+`G.Offside`
 
-++Long Cycles++
+But take note! Every stopper has a canonical form, which is captured by an instance of [[CanonicalStopper]], just as
+canonical forms of short games are instances of [[CanonicalShortGame]]. But if $G$ is not a stopper and merely has an
+onside and offside that are stoppers, then it is an instance of the more general type [[StopperSidedValue]], which is
+~not~ a subclass of [[Game]]. The [[StopperSidedValue]] for $G$ is indeed canonical, in the sense that it is the unique
+way to represent $G$ with sides that are canonical stoppers. But it is an abstract value, not an explicit game form, so
+it doesn't have Left and Right options. So if you type, say,
 
-Games with long cycles (that are not plumtrees) can be entered using the following special notation.
+`dud.LeftOptions`
+
+then you'll get an error.
+
++++ Rulesets with Loopy Positions +++
+
+CGSuite doesn't make a distinction between "loopy" and "loopfree" rulesets - a ruleset is just a ruleset, and whether
+it's loopy or loopfree is determined by its behavior. If an instance of [[Game]] is its own follower (or has any cycle
+in its game graph), then it's loopy.
+
+CGSuite has various built-in rulesets with loopy positions. An example is Backsliding Toads and Frogs, which is
+described in \ww.
+
+`G := game.strip.BackslidingToadsAndFrogs("ttt..fff")`
+
+If you try typing `G.CanonicalGame` on a loopy game, CGSuite will detect the cycle and raise an error -
+`CanonicalGame` ~only~ works for short games. For loopy games, use the more general
+
+`G.GameValue`
+
+instead. (Try it on the above example!)
+
++++ Long Cycles +++
+
+Games with long cycles (i.e., those that are not plumtrees) can be entered using the following special notation.
 In any braces-and-slashes expression for a game, the opening brace may be preceded by an identifier. That identifier
 can then be used anywhere inside the expression as a "pointer" back to the initial game. For example,
 
 $a{0|a}$ is equivalent to ${0|pass}$ (it's another name for $over$).
 
-Here's the example from Figure VI.3.2 on page 308 of ~Combinatorial Game Theory~:
+Here's the example from Figure VI.3.2 on page 308 of \cgt:
 
-$g := a{0||||0|||a|*||*}$
+$G := a{0||||0|||a|*||*}$
 
-$g$ is a stopper, so all the usual operations apply:
+$G$ has an irreducible 4-cycle in canonical form. It's nonetheless a stopper, though, so all the usual operations
+apply:
 
-$g.Degree$
+$G.Degree$
 
 and so forth.
 
-++Non-Stopper-Sided Games++
++++ Non-Stopper-Sided Games +++
 
-There exist games (such as the famous ~Bach's Carousel~, described in ~Winning Ways~) whose sides are not stoppers.
-The theory of such games is still incomplete, and the CGSuite worksheet will reject them. Try entering Bach's Carousel,
-and you'll get an error:
+There exist games (such as the famous ~Bach's Carousel~, described in \ww) whose sides are not stoppers.
 
 $bach := a{0,{1|1,{*,{1+*|1+*,a}|*}}|0}$
 
-++Exercises++
+At the time of this writing (mid-2021), no general theory of such games exists. CGSuite will nonetheless do its best
+to calculate ~simplified~ onsides and offsides, but in the absence of a complete theory, they can't be called
+"canonical". The result will be an instance of [[SidedValue]], which is the most general class of loopy games in
+CGSuite.
 
-<ol>
-<li>Investigate all sums of the four varieties
++++ Exercises +++
+
+\ol
+
+\li Investigate all sums of the four varieties
 
 ${1+G | uponth || -uponth | -1+H }$
 
 as $G$ and $H$ range over $uponth$ and $-uponth$. ($uponth$ was defined above.) This is Exercise VI.5.1(a) on page 331
-of ~Combinatorial Game Theory~.
+of \cgt.
 
-<li>Let $G = {0 | uponth || -uponth}$. Determine its variety $V$. Compute the varieties of
+\li Let $G = {0 | uponth || -uponth}$. Determine its variety $V$. Compute the varieties of
 
-$G, G.Upsum(G), G.Upsum(G.Upsum(G)), ...$
+$G, G Upsum G, G Upsum G Upsum G, ...$
 
-and observe that they are strictly increasing. This is Exercise VI.5.1(b) of ~Combinatorial Game Theory~.
-</ol>
+and observe that they are strictly increasing. This is Exercise VI.5.1(b) of \cgt.
+\endol
