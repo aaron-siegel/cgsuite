@@ -69,6 +69,11 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
         }
     };
 
+    static {
+        // Force HelpIndex to load, in order to reduce UI sluggishness later
+        HelpIndex.lookup("C");
+    }
+
     public CgsuiteHelpTopComponent() {
 
         initComponents();
