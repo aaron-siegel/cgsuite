@@ -124,10 +124,18 @@ the final digit(s) of a code.  Here is a list of examples.
 +++ Other Heap Games +++
 
 `game.heap.TakeAndBreak` is a special case of a more general class, `game.heap.HeapRuleset`. CGSuite includes
-a variety of other heap ruleset implementations. For a complete list, see the package documentation for
+a variety of other heap ruleset implementations; for a complete list, see the package documentation for
 [[game.heap]].
 
+You can also quickly experiment with new rulesets with the [[game.heap.FunctionalHeapRuleset]] class.
+`FunctionalHeapRuleset` takes as input a function `f` that maps each `Integer` to a `Collection` of `Collection`s of
+`Integer`s. Then `f(n)` is the collection of options of heap `n`, expressed as a collection of summand heaps. For
+example, let
 
+`R := game.heap.FunctionalHeapRuleset(n -> [[a,b] for a from 0 to n - 1 for b from 0 to a - 1])`
+
+Then a legal move is to replace a heap of size `n` with any two heaps `a` and `b`, provided that
+`a < b < n`.
 
 \<!--
 If you want to construct a heap game that can't be specified using any

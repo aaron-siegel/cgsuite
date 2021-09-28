@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+class FunctionalHeapRuleset(fn as Function) extends HeapRuleset
+
+  override def HeapOptions(heapSize as Integer) := fn(heapSize);
+
+end

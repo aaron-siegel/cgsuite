@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+class FunctionalCoordinateRuleset(fn as Function) extends CoordinateRuleset
+
+  override def CoordinateOptions(coord as Coordinates) := fn(coord.Row, coord.Col);
+
+end

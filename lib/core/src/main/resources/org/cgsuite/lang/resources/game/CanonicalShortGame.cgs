@@ -26,7 +26,7 @@ system class CanonicalShortGame extends CanonicalStopper
     *
     * The theory of atomic weights is discussed in detail in \ww and \cgt.
     */
-  external def AtomicWeight as CanonicalShortGame;
+  external override def AtomicWeight as CanonicalShortGame;
   
   /** The birthday of this game.
     *
