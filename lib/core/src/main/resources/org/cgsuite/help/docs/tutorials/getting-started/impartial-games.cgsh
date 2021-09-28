@@ -132,7 +132,7 @@ You can also quickly experiment with new rulesets with the [[game.heap.Functiona
 `Integer`s. Then `f(n)` is the collection of options of heap `n`, expressed as a collection of summand heaps. For
 example, let
 
-`R := game.heap.FunctionalHeapRuleset(n -> [[a,b] for a from 0 to n - 1 for b from 0 to a - 1])`
+`R := game.heap.FunctionalHeapRuleset(n -> [\[a,b] for a from 0 to n - 1 for b from 0 to a - 1])`
 
 Then a legal move is to replace a heap of size `n` with any two heaps `a` and `b`, provided that
 `a < b < n`.
