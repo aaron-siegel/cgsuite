@@ -35,6 +35,8 @@ class EvalTest extends CgscriptSpec {
       ("Integer multiplication", "3*5", "15"),
       ("Integer exponentiation", "3^5", "243"),
       ("Overflow", "2^(2^100)", "!!Overflow."),
+      ("Overflow", "10^(10^9)", "!!Overflow."),   // This is actually a subtly different case - 10^9 is a SmallInteger,
+                                                  // and it's java.math.BigInteger, not CGSuite, that complains of an overflow
       ("Zero minus one", "0 - 1", "-1"),
       ("Rational number", "4/6", "2/3"),
       ("Division by zero", "0/0", "!!/ by zero"),

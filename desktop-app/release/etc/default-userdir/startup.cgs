@@ -4,9 +4,14 @@
  * Any commands that you include in this file will be executed whenever
  * you start CGSuite.
  *
+ * You can re-run this script at any time without restarting CGSuite by
+ * entering the following command on the Worksheet:
+ *
+ * startup();
+ *
  */
 
-// Uncomment the following line to implement the "C(g)" syntax for
-// calculating canonical forms (as used by CGSuite 0.X).
+// Uncomment the following line to implement the shortcut "C(g)" for
+// the canonical form "g.CanonicalForm".
 
-// C := g -> g.CanonicalForm;
+// def C(g) := g.CanonicalForm;

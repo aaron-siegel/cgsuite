@@ -140,10 +140,16 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   private[core] def intExp(other: Integer): Integer = {
     assert(other >= zero)
-    if (other.isSmallInteger)
-      Integer(bigIntValue.pow(other.intValue))
-    else
+    if (other.isSmallInteger) {
+      try {
+        Integer(bigIntValue.pow(other.intValue))
+      } catch {
+        case exc: java.lang.ArithmeticException if exc.getMessage contains "overflow" =>
+          throw OverflowException("Overflow.", exc)
+      }
+    } else {
       throw OverflowException("Overflow.")
+    }
   }
 
   override def followerCount: Integer = abs + Values.one
