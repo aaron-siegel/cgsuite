@@ -60,20 +60,6 @@
         
         <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" todir="${cluster}/modules/ext"/>
         
-        <!-- Generate svn info -->
-        <exec executable="svn" output="${cluster}/svninfo.txt" failifexecutionfails="false">
-            <arg value="info"/>
-        </exec>
-        
-        <!-- Convert svn info to properties file -->
-        <copy file="${cluster}/svninfo.txt" tofile="${cluster}/svn.properties" failonerror="false">
-            <filterchain>
-                <replaceregex byline="true" pattern="^(.*): (.*)$" replace="svn.\1=\2"/>
-                <!-- This curious regex escapes all whitespaces that appear in the key of an SVN property. -->
-                <replaceregex byline="true" flags="g" pattern=" (?=.*=)" replace="\\\\ "/>
-            </filterchain>
-        </copy>
-        
     </target>
     
     <!-- Distribution sequence
