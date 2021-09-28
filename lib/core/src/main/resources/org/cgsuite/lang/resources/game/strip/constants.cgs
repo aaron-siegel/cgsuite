@@ -1,5 +1,8 @@
 /*${cgsuite.banner}*/
 
+/**
+ * Ruleset library for games played on one-dimensional strips.
+ */
 singleton class constants
 
   var ToadsAndFrogs := game.strip.GenToadsAndFrogs(1);

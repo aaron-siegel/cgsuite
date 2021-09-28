@@ -54,6 +54,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
     }
   }
 
+  private[help] val allPackages = allClasses.map { _.pkg }.distinct
+
   // First pass to build targets mapping
 
   private[help] val fixedTargets = {
@@ -69,6 +71,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
     searchIndex overwrite ""
     renderCgshFiles()
+    renderOverview()
     renderIndex()
     renderClasses()
 
@@ -339,7 +342,12 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       val footer = "</table></div>\n"
 
-      val rows = members map { member =>
+      val rows = members filterNot { member =>
+
+        // For package object, filter out constants (it'd just be a link to itself)
+        declaringClass.isPackageObject && member.name == "constants"
+
+      } map { member =>
 
         val etype = entityType(member)
         val name = member.idNode.id.name
@@ -491,6 +499,69 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       |</div></body>
       |</html>
       |""".stripMargin
+
+  def renderOverview(): Unit = {
+
+    val file = referenceDir/"overview.html"
+
+    val header =
+      s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+         |<html>
+         |<head>
+         |  <link rel="stylesheet" href="../cgsuite.css" type="text/css">
+         |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+         |  <title>Overview of CGScript Packages</title>
+         |</head>
+         |
+         |<body><div class="spacer">
+         |<!--${standardHeaderBar("")}
+         |<div class="blanksection">&nbsp;</div><p>-->
+         |<h1>Overview of CGScript Packages</h1>
+         |<div class="section">
+         |
+         |<table class="members">
+         |""".stripMargin
+
+    val packages = allPackages map { pkg =>
+
+      val memberLink = s"""<a class="valid" href="${pkg.path mkString "/"}/constants.html">${pkg.qualifiedName}</a>"""
+
+      val description = {
+        try {
+          pkg.lookupClass(Symbol("constants")) match {
+            case Some(constants) =>
+              constants.declNode flatMap { _.docComment } match {
+                case Some(comment) => ClassRenderer(constants).processDocComment(comment, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            case None => "&nbsp;"
+          }
+        } catch {
+          case exc: CgsuiteException =>
+            logger warn s"Error rendering package `${pkg.qualifiedName}`: `${exc.getMessage}`"
+        }
+      }
+
+      s"""  <tr>
+         |    <td class="entitytype">
+         |      $memberLink
+         |    </td>
+         |    <td class="member">
+         |      $description
+         |    </td>
+         |  </tr>
+       """.stripMargin
+
+    }
+
+    val footer = "</table></div><p></body></html>"
+
+    referenceDir.createDirectories()
+    file overwrite header
+    packages foreach file.append
+    file append footer
+
+  }
 
   def renderIndex(): Unit = {
 

@@ -18,7 +18,7 @@ language.
 encountered in the literature. You can use the [[/reference/overview]] overview as a starting point for browsing
 through the library.
 
-Along with the Standard Games Library is a comprehensive Help system, with documentation for all classes in CGScript.
+Along with the Standard Games Library is a comprehensive Help system, with searchable documentation for all classes in CGScript.
 
 \li \<b\>Loopy Games.\</b\> Loopy games are now "first-class citizens" of CGSuite. It is no longer a requirement that implementations of
 `Game` be loopfree. To create a loopy game, just implement `Game` as you normally would, allowing instances of `Game`
