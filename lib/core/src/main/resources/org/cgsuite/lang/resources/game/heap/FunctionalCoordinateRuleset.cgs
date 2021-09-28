@@ -2,6 +2,6 @@
 
 class FunctionalCoordinateRuleset(fn as Function) extends CoordinateRuleset
 
-  override def CoordinateOptions(coord as Coordinates) := fn(coord);
+  override def CoordinateOptions(coord as Coordinates) := fn(coord.Row, coord.Col);
 
 end

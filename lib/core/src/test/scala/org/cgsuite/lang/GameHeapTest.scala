@@ -55,7 +55,7 @@ class GameHeapTest extends CgscriptSpec {
 
   }
 
-  it should "define Spawning properly" in {
+  it should "define other heap games properly" in {
 
     val instances = Seq(
 
@@ -78,7 +78,10 @@ class GameHeapTest extends CgscriptSpec {
       // Grunt
       ("game.heap.Spawning(\"4(FS)\")", "9", "[0,0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3]"),
       // Sym
-      ("game.heap.Spawning(\"1+(S)\")", "2046", "[0,1,2,4,3,6,7,8,16,18,25,32,11,64,31,128,10,256,5,512,28]")
+      ("game.heap.Spawning(\"1+(S)\")", "2046", "[0,1,2,4,3,6,7,8,16,18,25,32,11,64,31,128,10,256,5,512,28]"),
+
+      ("game.heap.FunctionalHeapRuleset(k -> [[a,b] for a from 0 to k - 1 for b from 0 to a - 1])",
+        "190", "[0,0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37]")
 
     )
 
@@ -91,6 +94,16 @@ class GameHeapTest extends CgscriptSpec {
     }
 
     executeTests(Table(header, tests : _*))
+
+  }
+
+  it should "define partizan heap games properly" in {
+
+    executeTests(Table(
+      header,
+      ("PartizanSubtraction(1,3|2,3)", "game.heap.PartizanSubtraction([1,3],[2,3])(6).CanonicalForm",
+        "{1|1,{1|0}||0,{1|0}|0|||0,{1|0}|0}")
+    ))
 
   }
 
@@ -164,17 +177,7 @@ class GameHeapTest extends CgscriptSpec {
 
   }
 
-  it should "define partizan heap games properly" in {
-
-    executeTests(Table(
-      header,
-      ("PartizanSubtraction(1,3|2,3)", "game.heap.PartizanSubtraction([1,3],[2,3])(6).CanonicalForm",
-        "{1|1,{1|0}||0,{1|0}|0|||0,{1|0}|0}")
-    ))
-
-  }
-
-  // TODO Partizan splittles, partizan takeaway
+  // TODO Partizan splittles, partizan takeaway, FunctionalCoordinateRuleset, PartizanCoordinateRuleset
 
   it should "define partizan coordinate games properly" in {
 
@@ -185,7 +188,8 @@ class GameHeapTest extends CgscriptSpec {
       ("game.heap.TurnAndEatcake", "4", "[0,v,0,v,0,v<3>,0,v,0]"),
       // Twisted Maundy cake! This is a fun one:
       ("game.heap.GenCutcake(game.heap.TakeAndBreak(\"{2+}=.0\"), game.heap.TakeAndBreak(\"{2+}=.0\"), twisted => true)", "3",
-        "[1,1,{8|-2},{8|-3},{8|-6},{8|-5},{8|-6,{-4|-14}},{10|-7},+-12]")
+        "[1,1,{8|-2},{8|-3},{8|-6},{8|-5},{8|-6,{-4|-14}},{10|-7},+-12]"),
+      ("game.heap.PartizanEuclid", "0", "[0,0,0,v,0,0,^,^5,0]")
     )
 
     val tests = instances flatMap { case (rs, optionCount, values) =>
