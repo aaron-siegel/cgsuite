@@ -1,73 +1,67 @@
 Misère Theory
 
-+++ Misère Canonical Forms +++
+This section describes CGSuite's capabilities for impartial games in misère play. CGSuite currently implements the
+canonical theory of impartial misère games, but does not provide support for misère quotients or partizan misère games.
 
-CGSuite also supports misère
-canonical forms of games, as described in Winning Ways and ONaG,
-though the notation used is slightly different.  Every
-misère canonical form starts with
-a star, followed by an expression in brackets.  The expression
-may be a single number, representing a nim-heap, or a sequence of
+Familiary with the misère theory is assumed; see \ww, Chapter 13 or \cgt, Chapter V.
+
++++ Misère Evaluation +++
+
+You can get the misère nim value, genus, and misère canonical form of any impartial game in CGSuite as follows:
+
+`G := game.heap.GrundysGame(22)`\\
+`G.MisereNimValue`\\
+`G.Genus`\\
+`G.MisereCanonicalForm`
+
+Misère canonical forms always begin with a $*$, followed by an expression in brackets. The expression may be a
+single number, representing a nim-heap, or a sequence of
 numbers, representing a game with those nim-heaps as options.
 
 Thus `*[2]` is a nim-heap
 of size two, and `*[42]` is the
 misère canonical form whose
-options are `*[4]` and `*[2]`.  A game with only one option is represented
-by subscripting the option with a `#` (pronounced "sharp"), so `*[2#]` refers to
+options are `*[4]` and `*[2]`.  A game with only one option is subscripted with a `#` (pronounced "sharp"), so
+`*[2\<sub\>#\</sub\>]` refers to
 the misère canonical form whose
-only option is the nim-heap *[2].  Subscripts are also used to
-represent ~sums~ of games.  For example, `*[2<sub>2</sub>]` is
-the sum `*[2] + *[2]`.
+only option is the nim-heap `*[2]`.  Subscripts are also used to
+represent sums of ; for example, `*[2\<sub\>2\</sub\>]` is
+the sum `*[2] + *[2]`. Multiple subscripts should be read left-to-right, so
+`*[2\<sub\>#2#\</sub\>]` is shorthand for the game whose only option is to
+`(*[2\<sub\>#\</sub\>] + *[2])`.
 
-You can enter subscripts on the worksheet by enclosing them in
-nested brackets, so `*[2<sub>2</sub>]` can be entered as
++++ Directly Entering Games +++
 
-`*[2[2]]`
+You can enter games directly by using `*` followed by a list.
 
-which means the same as the sum
+`*[4,2]`\\
+\<big\>*[42]\</big\>
 
-`*[2] + *[2]`
+Lists may contain other lists, in order to obtain nested options.
 
-A convenient shorthand is available for the subscripted slash denoting games
-with one option: you can omit the subscript brackets and type
+`*[\[4,2],4,3,1]`\\
+\<big\>*[(42)431]\</big\>
 
-`*[2#]`
+There is no shorthand for entering `#`'s or subscripts; for `#` you can use an extra pair of brackets:
 
-for the game `*[2#]`, which is defined to be { *[2] }.
+`*[\[2],2,1,0]`\\
+\<big\>*[2\<sub\>#\</sub\>210]\</big\>
 
-Subscripted options may also be concatenated, so
+And for `+`, just include compound expressions as list elements:
 
-`*[2[2]2#20]`
+`*[\[*[4] + *[2]]]`\\
+\<big\>*[4\<sub\>2#\</sub\>]\</big\>
 
-is the game with the four options *[2<sub>2</sub>], *[2<sub>#</sub>],
-*[2], and *[0].  Parens can be used for grouping:
++++ Misère Operations +++
 
-`*[(2#320)#(32)]`
+Many standard misère operations are implemented. Here's a demonstration of Simon Norton's observation that the monoid
+of canonical misère games does not have unique partitions.
 
-denotes the game
+`*[\[*[4] + *[2]]].Partitions`
 
-`{ { *[2<sub>#</sub>320] }, *[32] }`
+See the class documentation for [[game.misere.MisereCanonicalGame]] for the full list.
 
-Subscripts can be "chained", so
-
-`*[2[/22//2]]`
-
-denotes the misère canonical
-form `*[2<sub>#22##2</sub>]`, which is equal to
-
-`{ { {*[2]} + *[2] + *[2] } } + *[2]`
-
-If `g` is any impartial game, then
-
-`g.MisereCanonicalForm`
-
-returns its canonical form.  For example,
-
-`Heap("0.77", 15).MisereCanonicalForm`
-
-gives the canonical form of a Kayles heap of size 15.
-
+\<!--
 +++ Misère Quotients +++
 
 The ~MisereSolver~ plug-in, bundled with CGSuite, can be used to compute
@@ -98,3 +92,4 @@ directory (where `misere.jar` is located) and type
 `java -jar misere.jar`
 
 for help.
+--\>
