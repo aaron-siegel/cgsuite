@@ -7,7 +7,7 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
-                    <code-name-base>org.jdesktop.swingx</code-name-base>
+                    <code-name-base>org.cgsuite</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
