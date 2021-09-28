@@ -27,6 +27,8 @@ object System extends LazyLogging {
 
   def print(obj: AnyRef): Unit = UiHarness.uiHarness.print(obj)
 
+  def isDevBuild: Boolean = CgscriptClasspath.devBuildHome.isDefined
+
   def evaluate(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
     try {
       evaluateOrException(input, varMap)
@@ -94,9 +96,9 @@ object System extends LazyLogging {
     }.toVector
 
     val cause: Vector[Output] = {
-      if (exc.getCause == null)
-        Vector.empty
-      else {
+      if (exc.getCause != null && isDevBuild) {
+        // If the exception is chained, *and* this is a dev build of CGSuite, then
+        // we output the stack of the chained exception.
         val causeClass = errorOutput(s"  caused by ${exc.getCause.getClass.getName}")
         val causeStack = {
           exc.getCause.getStackTrace.toVector.take(exceptionLimit).map { element =>
@@ -110,6 +112,8 @@ object System extends LazyLogging {
             Vector.empty
         }
         causeClass +: (causeStack ++ causeDotDotDot)
+      } else {
+        Vector.empty
       }
     }
 
