@@ -86,6 +86,13 @@
       <version>0.15.0</version>
     </dependency>
     <dependency>
+      <!-- The UI needs this to be bundled in the cgsuite fatjar.
+           Perhaps it could be factored out of the parent pom in the future. -->
+      <groupId>org.swinglabs.swingx</groupId>
+      <artifactId>swingx-all</artifactId>
+      <version>1.6.4</version>
+    </dependency>
+    <dependency>
       <groupId>org.hyperic</groupId>
       <artifactId>sigar</artifactId>
       <version>1.6.4</version>
