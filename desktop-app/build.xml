@@ -74,10 +74,11 @@
         <mkdir dir="${dist.dir}"/>
         <delete file="${dist.dir}/cgsuite-${app.version}-src.tar.bz2"/>
         <tar destfile="${dist.dir}/cgsuite-${app.version}-src.tar.bz2"
-             basedir="${basedir}"
+             basedir="${basedir}/.."
              compression="bzip2"
              longfile="gnu"
-             excludes="${dist.dir}/**,${build.dir}/**"/>
+             excludes="**/.idea/,**/*.iml,**/target/"
+             excludesfile="../.gitignore"/>
     </target>
     
     <target name="cgsuite-mac-bundle" depends="build-mac">
