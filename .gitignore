@@ -11,7 +11,7 @@ desktop-app/**/build/
 desktop-app/**/nbproject/build-impl.xml
 desktop-app/**/nbproject/genfiles.properties
 desktop-app/**/nbproject/private/
-desktop-app/cgsuite-core-lib/release/modules/ext/
+desktop-app/CGSuiteCoreLib/release/modules/ext/
 desktop-app/dist/
 
 # CGSuite-related
