@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+/**
+ * Classes for generating output for CGScript objects.
+ */
+singleton class constants
+end

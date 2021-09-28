@@ -1,5 +1,8 @@
 /*${cgsuite.banner}*/
 
+/**
+ * Core classes for the CGScript language.
+ */
 singleton class constants
 
   def Max(elements as Collection) := elements.Max;

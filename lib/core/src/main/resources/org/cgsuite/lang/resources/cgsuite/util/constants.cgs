@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+/**
+ * Utility classes that extend the capabilities of the CGScript language.
+ */
+singleton class constants
+end

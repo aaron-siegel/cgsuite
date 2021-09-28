@@ -1,5 +1,8 @@
 /*${cgsuite.banner}*/
 
+/**
+ * Core classes for abstract games and normal-play game values.
+ */
 singleton class constants
 
   var Left := Player.Left;

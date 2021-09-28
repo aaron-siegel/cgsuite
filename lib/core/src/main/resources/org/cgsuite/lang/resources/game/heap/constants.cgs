@@ -1,5 +1,8 @@
 /*${cgsuite.banner}*/
 
+/**
+ * Ruleset library for games played on heaps of tokens.
+ */
 singleton class constants
 
   var Cutcake := GenCutcake(TakeAndBreak("4.0"), TakeAndBreak("4.0"));
