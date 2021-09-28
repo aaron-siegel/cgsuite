@@ -43,13 +43,13 @@ class CanonicalShortGameTest extends AnyFlatSpec with Matchers {
   it should "give the correct properties for {3||2|1}" in {
 
     switch should have (
-      'birthday (Integer(4)),
-      'leftStop (Integer(3)),
-      'mean (DyadicRationalNumber(9, 4)),
-      'outcomeClass (OutcomeClass.L),
-      'rightStop (Integer(2)),
-      'stopCount (Integer(3)),
-      'temperature (DyadicRationalNumber(3, 4))
+      Symbol("birthday") (Integer(4)),
+      Symbol("leftStop") (Integer(3)),
+      Symbol("mean") (DyadicRationalNumber(9, 4)),
+      Symbol("outcomeClass") (OutcomeClass.L),
+      Symbol("rightStop") (Integer(2)),
+      Symbol("stopCount") (Integer(3)),
+      Symbol("temperature") (DyadicRationalNumber(3, 4))
     )
 
   }

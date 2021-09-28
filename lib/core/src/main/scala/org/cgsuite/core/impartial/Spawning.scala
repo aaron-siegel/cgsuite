@@ -4,6 +4,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning.Constraint
 import org.cgsuite.exception.MalformedCodeException
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 
 object Spawning {
@@ -25,7 +26,7 @@ object Spawning {
     val permitted = try {
       permittedStr split "," map { _.toInt }
     } catch {
-      case exc: NumberFormatException => throw MalformedCodeException(code)
+      case _: NumberFormatException => throw MalformedCodeException(code)
     }
     var maxSeparation = Int.MaxValue
     var requireFirst = false
@@ -43,7 +44,7 @@ object Spawning {
         case _ => throw MalformedCodeException(code)
       }
     }
-    Spawning(permitted, allowMore, maxSeparation, requireFirst, spacingConstraint)
+    Spawning(permitted.toIndexedSeq, allowMore, maxSeparation, requireFirst, spacingConstraint)
 
   }
 

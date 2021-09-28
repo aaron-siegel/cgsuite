@@ -20,6 +20,8 @@ system class Collection
     */
   external def Exists(predicate as Function);
 
+  external def Filter(predicate as Function);
+
   /** Returns the first element in this collection that
     * satisfies the specified predicate.
     * `predicate` must be a [[Boolean]]-valued function.
@@ -91,6 +93,8 @@ system class Collection
     end
     sum
   end
+
+  external def Take(n as Integer);
 
   /** A `Collection` containing all the elements of this collection
     * except for [[#Head]].

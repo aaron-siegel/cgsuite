@@ -3,8 +3,8 @@ package org.cgsuite.lang.parser
 import org.antlr.runtime.CommonToken
 import org.antlr.runtime.tree.{CommonTree, Tree}
 
-import scala.collection.JavaConverters
 import scala.language.implicitConversions
+import scala.jdk.CollectionConverters._
 
 object RichTree {
 
@@ -21,7 +21,7 @@ class RichTree(tree: Tree) {
     if (jChildren == null)  // Really dumb ANTLR semantics
       Vector.empty
     else
-      JavaConverters.collectionAsScalaIterable(jChildren).toVector map { _.asInstanceOf[Tree] }
+      jChildren.asScala.toVector map { _.asInstanceOf[Tree] }
   }
 
   lazy val head = children.head

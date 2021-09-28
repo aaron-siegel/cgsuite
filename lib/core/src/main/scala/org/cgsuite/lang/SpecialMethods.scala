@@ -55,6 +55,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
       collection.exists { x => fn.call(Array(x)).asInstanceOf[Boolean] }
     },
+    "cgsuite.lang.Collection.Filter" -> { (collection: Iterable[_], fn: Function) =>
+      collection.filter { x => fn.call(Array(x)).asInstanceOf[Boolean] }
+    },
     "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], fn: Function) =>
       collection.asInstanceOf[Iterable[Any]].find { x => fn.call(Array(x)).asInstanceOf[Boolean] }.orNull
     },
@@ -63,6 +66,9 @@ object SpecialMethods {
     },
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
       collection.foreach { x => fn.call(Array(x)) }; null
+    },
+    "cgsuite.lang.Collection.Take" -> { (collection: Iterable[_], n: Integer) =>
+      collection.take(n.intValue)
     },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toVector
@@ -84,7 +90,7 @@ object SpecialMethods {
     "cgsuite.lang.Set.Intersection" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
       set intersect that
     },
-    "cgsuite.lang.Set.Replaced" -> { (set: scala.collection.Set[Any], replacements: scala.collection.Map[_,_]) =>
+    "cgsuite.lang.Set.Replaced" -> { (set: scala.collection.immutable.Set[Any], replacements: scala.collection.Map[_,_]) =>
       set -- replacements.keys ++ replacements.values
     },
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>

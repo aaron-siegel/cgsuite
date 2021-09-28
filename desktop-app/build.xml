@@ -7,7 +7,7 @@
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-init" depends="suite.-init">
-        <copy file="../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" tofile="cgsuite-core-lib/release/modules/ext/cgsuite-core.jar"/>
+        <copy file="../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" tofile="CGSuiteCoreLib/release/modules/ext/cgsuite-core.jar"/>
     </target>
     
     <target name="branding" depends="-init,-pre-branding" if="run.branding">

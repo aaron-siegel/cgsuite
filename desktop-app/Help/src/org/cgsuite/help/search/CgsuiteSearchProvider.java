@@ -19,15 +19,15 @@ public class CgsuiteSearchProvider implements SearchProvider {
     public void evaluate(SearchRequest request, SearchResponse response) {
 
         for (HelpIndex.Result result : JavaConverters.asJavaCollection(HelpIndex.lookup(request.getText()))) {
-            if (!response.addResult(() -> { selectPath(result.path()); }, result.displayName(), result.displayHint(), Collections.emptyList())) {
+            boolean success = response.addResult(
+                () -> { CgsuiteHelpTopComponent.openAndNavigateTo(result.path()); },
+                result.displayName(),
+                result.displayHint(),
+                Collections.emptyList()
+            );
+            if (!success)
                 break;
-            }
         }
-    }
-
-    private void selectPath(String path) {
-        CgsuiteHelpTopComponent component = (CgsuiteHelpTopComponent) CgsuiteHelpTopComponent.getRegistry().getActivated();
-        component.navigateTo(path);
     }
     
 }

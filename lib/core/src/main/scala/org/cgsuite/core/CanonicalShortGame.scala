@@ -15,8 +15,8 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
 
-import scala.collection.JavaConverters.asScalaSet
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 object CanonicalShortGame {
   
@@ -183,7 +183,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def followerCount: Integer = SmallInteger(ops.followerCount(gameId))
 
-  override def followers = asScalaSet(ops.followerIds(gameId)) map { CanonicalShortGame(_) }
+  override def followers = ops.followerIds(gameId).asScala map { CanonicalShortGame(_) }
 
   def freeze = cool(temperature)
 

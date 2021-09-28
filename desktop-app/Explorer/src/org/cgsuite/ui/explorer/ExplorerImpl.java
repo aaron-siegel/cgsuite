@@ -145,7 +145,7 @@ public class ExplorerImpl implements Explorer
         {
             list.add(node.getG());
         }
-        return JavaConverters.asScalaBuffer(list);
+        return JavaConverters.asScala(list);
     }
 
     synchronized ExplorerNode create(Game g)

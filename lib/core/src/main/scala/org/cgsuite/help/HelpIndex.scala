@@ -10,7 +10,7 @@ object HelpIndex {
 
   {
     val inputStream = HelpIndex.getClass.getResourceAsStream("docs/search-index.csv")
-    Source.fromInputStream(inputStream).getLines foreach { line =>
+    Source.fromInputStream(inputStream).getLines() foreach { line =>
       val toks = line.split(',')
       val result = Result(toks(0), toks(1), toks(2))
       val tailComponentsToIgnore = toks(3).toInt

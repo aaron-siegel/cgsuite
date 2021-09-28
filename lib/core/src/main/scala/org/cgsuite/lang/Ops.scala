@@ -85,7 +85,7 @@ object Ops {
 
   val Minus = CachingBinOp("-", OperatorPrecedence.Plus) {
     case (_: Game, _:Zero) => (x: Game, _: Zero) => x
-    case (_: Zero, _:Game) => (_: Zero, y: Game) => y
+    case (_: Zero, _:Game) => (_: Zero, y: Game) => -y
     case (_: Integer, _:Integer) => (x: Integer, y: Integer) => x - y
     case (_: GeneralizedOrdinal, _: GeneralizedOrdinal) => (x: GeneralizedOrdinal, y: GeneralizedOrdinal) => x - y
     case (_: RationalNumber, _:RationalNumber) => (x: RationalNumber, y: RationalNumber) => x - y

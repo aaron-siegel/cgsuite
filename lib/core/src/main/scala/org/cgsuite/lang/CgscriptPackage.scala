@@ -93,7 +93,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
   }
 
   def lookupConstant(id: Symbol): Option[Resolution] = {
-    lookupClass('constants) flatMap { constantsCls =>
+    lookupClass(Symbol("constants")) flatMap { constantsCls =>
       Option(Resolver forId id findResolutionForClass constantsCls) match {
         case Some(res) if res.isResolvable => Some(res)
         case _ => None

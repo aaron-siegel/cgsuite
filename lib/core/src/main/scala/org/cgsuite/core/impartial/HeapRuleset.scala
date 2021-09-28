@@ -1,6 +1,8 @@
 package org.cgsuite.core.impartial
 
-import org.cgsuite.core.{SmallInteger, Integer}
+import org.cgsuite.core.{Integer, SmallInteger}
+
+import scala.collection.immutable.ArraySeq
 
 trait HeapRuleset {
 
@@ -9,7 +11,7 @@ trait HeapRuleset {
   def heapNimValue(heapSize: Integer): Integer = SmallInteger(sequence nimValue heapSize.intValue)
 
   def nimValueSequence(toHeapSize: Integer): IndexedSeq[Integer] = {
-    sequence nimValues toHeapSize.intValue map { SmallInteger(_) }
+    ArraySeq.unsafeWrapArray(sequence nimValues toHeapSize.intValue) map { SmallInteger(_) }
   }
 
   def heapOptions(heapSize: Integer): Iterable[IndexedSeq[Integer]]

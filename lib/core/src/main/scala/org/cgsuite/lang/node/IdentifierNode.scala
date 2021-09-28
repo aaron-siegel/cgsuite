@@ -35,7 +35,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   override val children = Vector.empty
 
-  override def elaborate(scope: ElaborationDomain) {
+  override def elaborate(scope: ElaborationDomain): Unit = {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
     scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
       case Some(cls) => classResolution = {

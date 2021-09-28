@@ -4,7 +4,8 @@ import org.cgsuite.exception.NotShortGameException
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.util.TranspositionCache
 
-import scala.collection.{JavaConverters, mutable}
+import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 object SimplifiedLoopyGame {
 
@@ -76,7 +77,7 @@ trait SimplifiedLoopyGame extends Game {
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
     }
-    JavaConverters.asScalaSet(lgOpts) map { SimplifiedLoopyGame(_, simplifiedSide) }
+    lgOpts.asScala map { SimplifiedLoopyGame(_, simplifiedSide) }
   }
 
   def sortedOptions(player: Player): Seq[SimplifiedLoopyGame] = {

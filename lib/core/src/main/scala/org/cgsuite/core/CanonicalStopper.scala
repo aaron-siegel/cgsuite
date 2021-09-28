@@ -9,7 +9,8 @@ import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
 
-import scala.collection.{JavaConverters, mutable}
+import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 object CanonicalStopper {
 
@@ -54,8 +55,8 @@ object CanonicalStopper {
       cache(loopyGame.startVertex)
     else {
       val g = CanonicalShortGame(
-        JavaConverters.asScalaSet(loopyGame.getLeftOptions) map { toCanonicalShortGame(_, cache) },
-        JavaConverters.asScalaSet(loopyGame.getRightOptions) map { toCanonicalShortGame(_, cache) }
+        loopyGame.getLeftOptions.asScala map { toCanonicalShortGame(_, cache) },
+        loopyGame.getRightOptions.asScala map { toCanonicalShortGame(_, cache) }
       )
       cache(loopyGame.startVertex) = g
       g
@@ -81,7 +82,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
     }
-    JavaConverters.asScalaSet(lgOpts).map { CanonicalStopper(_) }
+    lgOpts.asScala.map { CanonicalStopper(_) }
   }
 
   override def sortedOptions(player: Player): Seq[CanonicalStopper] = {
