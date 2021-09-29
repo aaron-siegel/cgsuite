@@ -90,11 +90,13 @@ public class StyledTextOutput extends AbstractOutput
     private enum FontRef
     {
         SANS_SERIF { @Override Font createFont() {
-            try {
-                return new Font("Arial", Font.PLAIN, 20);
-            } catch (Exception exc) {
-                return new Font("SansSerif", Font.PLAIN, 20);
-            }
+            Font arial = new Font("Arial", Font.PLAIN, 20);
+            if (arial.getFamily().equals("Arial"))
+                return arial;
+            Font liberation = new Font("Liberation Sans", Font.PLAIN, 20);
+            if (liberation.getFamily().equals("Liberation Sans"))
+                return liberation;
+            return new Font("SansSerif", Font.PLAIN, 20);
         }},
         MONOSPACED { @Override Font createFont() { return new Font("Monospaced", Font.PLAIN, 12); }},
         SYMBOL { @Override Font createFont() {
@@ -698,7 +700,7 @@ public class StyledTextOutput extends AbstractOutput
     {
         appendSymbol(EnumSet.of(Style.FACE_MATH), EnumSet.allOf(Mode.class), symbol);
     }
-    
+
     /**
      * Gets a set containing all style attributes that appear anywhere in
      * this <code>StyledTextOutput</code>.
@@ -731,13 +733,13 @@ public class StyledTextOutput extends AbstractOutput
      *          in the iteration.
      * @return  An iterator over this text output.
      */
-    public AttributedCharacterIterator characterIterator(int maxLength)
+    public AttributedCharacterIterator characterIterator(int maxLength, boolean discordStyle)
     {
         if (maxLength == -1 || maxLength > MAX_STO_LENGTH)
         {
             maxLength = MAX_STO_LENGTH + 6;
         }
-        return new STOCharacterIterator(topBlock, maxLength);
+        return new STOCharacterIterator(topBlock, maxLength, discordStyle);
     }
     
     /**
@@ -798,28 +800,47 @@ public class StyledTextOutput extends AbstractOutput
     {
         return getSize(preferredWidth, -1);
     }
-    
+
     public Dimension getSize(int preferredWidth, int maxLength)
     {
-        updateLayouts(getScreenFrc(), preferredWidth == 0 ? 1 << 20 : preferredWidth, maxLength);
+        return getSize(preferredWidth, maxLength, false);
+    }
+
+    public Dimension getSize(int preferredWidth, int maxLength, boolean discordStyle)
+    {
+        updateLayouts(getScreenFrc(), preferredWidth == 0 ? 1 << 20 : preferredWidth, maxLength, discordStyle);
         return size;
     }
     
     @Override
-    public void paint(Graphics2D g, int preferredWidth)
-    {
+    public void paint(Graphics2D g, int preferredWidth) {
         paint(g, preferredWidth, -1);
     }
-    
-    public void paint(Graphics2D g, int preferredWidth, int maxLength)
+
+    public void paint(Graphics2D g, int preferredWidth, int maxLength) {
+        paint(g, preferredWidth, maxLength, false);
+    }
+
+    public void paint(Graphics2D g, int preferredWidth, int maxLength, boolean discordStyle)
     {
-        updateLayouts(g.getFontRenderContext(), preferredWidth == 0 ? Integer.MAX_VALUE : preferredWidth, maxLength);
-        g = (Graphics2D) g.create(0, 0, size.width, size.height);
-        Rectangle clipRect = g.getClipBounds();
-        g.setBackground(Color.white);
-        g.setColor(Color.white);
-        g.fill(clipRect);
-        g.setColor(Color.black);
+        updateLayouts(g.getFontRenderContext(), preferredWidth == 0 ? Integer.MAX_VALUE : preferredWidth, maxLength, discordStyle);
+        if (!discordStyle) {
+            g = (Graphics2D) g.create(0, 0, size.width, size.height);
+        }
+        Rectangle clipRect;
+        if (discordStyle) {
+            clipRect = new Rectangle(0, 0, size.width, size.height);
+            g.setBackground(new Color(0, 0, 0, 0));
+            g.setColor(new Color(0, 0, 0, 0));
+            g.fill(clipRect);
+            g.setColor(Color.white);
+        } else {
+            clipRect = g.getClipBounds();
+            g.setBackground(Color.white);
+            g.setColor(Color.white);
+            g.fill(clipRect);
+            g.setColor(Color.black);
+        }
         for (LayoutInfo info : layouts)
         {
             if (info.bottom > clipRect.y &&
@@ -830,7 +851,7 @@ public class StyledTextOutput extends AbstractOutput
         }
     }
     
-    private void updateLayouts(FontRenderContext frc, int pixelWidth, int maxLength)
+    private void updateLayouts(FontRenderContext frc, int pixelWidth, int maxLength, boolean discordStyle)
     {
         if (characterCount() == 0)
         {
@@ -838,7 +859,7 @@ public class StyledTextOutput extends AbstractOutput
         }
         else if (measurer == null || activeMeasurerLength < characterCount())
         {
-            AttributedCharacterIterator activeIterator = characterIterator(maxLength);
+            AttributedCharacterIterator activeIterator = characterIterator(maxLength, discordStyle);
             activeMeasurerLength = activeIterator.getEndIndex();
             measurer = new LineBreakMeasurer(activeIterator, new CgBreakIterator(), frc);
             layouts.clear();
@@ -899,21 +920,23 @@ public class StyledTextOutput extends AbstractOutput
     private static class STOCharacterIterator implements AttributedCharacterIterator
     {
         final int maxLength;
+        final boolean discordStyle;
         
         Stack<Block> blockStack;
         Stack<Integer> curPosStack;
         int index;
         
-        private STOCharacterIterator(int maxLength)
+        private STOCharacterIterator(int maxLength, boolean discordStyle)
         {
             this.maxLength = maxLength;
+            this.discordStyle = discordStyle;
             blockStack = new Stack<Block>();
             curPosStack = new Stack<Integer>();
         }
         
-        STOCharacterIterator(Block topBlock, int maxLength)
+        STOCharacterIterator(Block topBlock, int maxLength, boolean discordStyle)
         {
-            this(maxLength);
+            this(maxLength, discordStyle);
             blockStack.add(topBlock);
             curPosStack.add(-1);
             index = -1;
@@ -923,7 +946,7 @@ public class StyledTextOutput extends AbstractOutput
         @Override
         public STOCharacterIterator clone()
         {
-            STOCharacterIterator clone = new STOCharacterIterator(maxLength);
+            STOCharacterIterator clone = new STOCharacterIterator(maxLength, discordStyle);
             clone.blockStack = new Stack<Block>();
             clone.blockStack.addAll(blockStack);
             clone.curPosStack = new Stack<Integer>();
@@ -1106,16 +1129,16 @@ public class StyledTextOutput extends AbstractOutput
         {
             if (attribute.equals(TextAttribute.FONT))
             {
-                Font font = getFont(currentStyles(), blockStack.peek().symbol);
+                Font font = getFont(currentStyles(), blockStack.peek().symbol, discordStyle);
                 // This is a RIDICULOUS HACK to make it work with Java version 6.  Hopefully
                 // I'll figure out a better solution at some point.
                 if (IS_VERSION_6 && index > 0)
                 {
                     retreat();
-                    AffineTransform prev = getTransform(currentStyles(), blockStack.peek().symbol);
+                    AffineTransform prev = getTransform(currentStyles(), blockStack.peek().symbol, discordStyle);
                     advance();
                     AffineTransform adjusted = AffineTransform.getTranslateInstance(-prev.getTranslateX(), -prev.getTranslateY());
-                    adjusted.concatenate(getTransform(currentStyles(), blockStack.peek().symbol));
+                    adjusted.concatenate(getTransform(currentStyles(), blockStack.peek().symbol, discordStyle));
                     font = font.deriveFont(adjusted);
                 }
                 return font;
@@ -1129,7 +1152,7 @@ public class StyledTextOutput extends AbstractOutput
                         return style.color();
                     }
                 }
-                return Color.black;
+                return discordStyle ? Color.white : Color.black;
             }
             else if (attribute.equals(TextAttribute.CHAR_REPLACEMENT))
             {
@@ -1356,7 +1379,7 @@ public class StyledTextOutput extends AbstractOutput
      * @param   symbol The symbol to use, or <code>null</code> for plain text.
      * @return  The corresponding <code>Font</code>.
      */
-    public static Font getFont(EnumSet<Style> styles, Symbol symbol)
+    public static Font getFont(EnumSet<Style> styles, Symbol symbol, boolean discordStyle)
     {
         FontKey key = new FontKey(styles, symbol);
         if (fontCache.containsKey(key))
@@ -1375,13 +1398,13 @@ public class StyledTextOutput extends AbstractOutput
             font = symbol.getFont();
         }
         
-        font = font.deriveFont(getTransform(styles, symbol));
+        font = font.deriveFont(getTransform(styles, symbol, discordStyle));
         
         fontCache.put(key, font);
         return font;
     }
     
-    private static AffineTransform getTransform(EnumSet<Style> styles, Symbol symbol)
+    private static AffineTransform getTransform(EnumSet<Style> styles, Symbol symbol, boolean discordStyle)
     {
         FontKey key = new FontKey(styles, symbol);
         if (transformCache.containsKey(key))
@@ -1390,7 +1413,11 @@ public class StyledTextOutput extends AbstractOutput
         }
         
         AffineTransform affineTransform = new AffineTransform();
-        
+
+        if (discordStyle) {
+            affineTransform.scale(2.0, 2.0);
+        }
+
         if (styles.contains(Style.LOCATION_UPPER_LIMIT))
         {
             affineTransform.translate(0.5, -12.0);
@@ -1440,7 +1467,7 @@ public class StyledTextOutput extends AbstractOutput
         {
             affineTransform.translate(0.0, -1.0);
         }
-        
+
         transformCache.put(key, affineTransform);
         return affineTransform;
     }
