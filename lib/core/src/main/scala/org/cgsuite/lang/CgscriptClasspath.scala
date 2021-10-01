@@ -5,6 +5,7 @@ import java.util.Collections
 
 import better.files._
 import io.methvin.better.files.RecursiveFileMonitor
+import javax.swing.filechooser.FileSystemView
 import org.cgsuite.lang.CgscriptClass.logger
 
 import scala.collection.mutable
@@ -15,7 +16,15 @@ object CgscriptClasspath {
 
   private[cgsuite] val devBuildHome = Option(java.lang.System.getProperty("org.cgsuite.devbuild")) map { File(_) }
 
-  private[cgsuite] val cgsuiteDir = java.lang.System.getProperty("user.home")/"CGSuite"
+  private[cgsuite] val userDir = {
+    // TODO Create default startup.cgs?
+    val homeFolder = FileSystemView.getFileSystemView.getDefaultDirectory.toScala
+    homeFolder/"CGSuite"
+  }
+
+  if (!userDir.exists) {
+    userDir.createDirectory()
+  }
 
   private[cgsuite] val systemDir = {
     devBuildHome match {
@@ -32,7 +41,7 @@ object CgscriptClasspath {
     }
   }
 
-  private[cgsuite] val classpath: Vector[File] = Vector(systemDir, cgsuiteDir)
+  private[cgsuite] val classpath: Vector[File] = Vector(systemDir, userDir)
 
   private[cgsuite] val modifiedFiles = mutable.Set[ModifiedFile]()
 
@@ -41,7 +50,7 @@ object CgscriptClasspath {
     if (devBuildHome.isDefined)
       logger debug "This is a CGSuite developer build."
     logger debug s"System dir: $systemDir"
-    logger debug s"User dir: $cgsuiteDir"
+    logger debug s"User dir: $userDir"
     classpath foreach declareFolder
   }
 
