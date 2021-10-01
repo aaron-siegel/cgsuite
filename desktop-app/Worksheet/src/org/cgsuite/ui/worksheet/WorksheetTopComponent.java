@@ -52,7 +52,7 @@ public final class WorksheetTopComponent extends TopComponent
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
 
-        UiHarness$.MODULE$.setUiHarness(new WorksheetUiHarness());
+        UiHarness.setUiHarness(new WorksheetUiHarness());
         worksheetPanel1.processCommand("startup();");
     }
 

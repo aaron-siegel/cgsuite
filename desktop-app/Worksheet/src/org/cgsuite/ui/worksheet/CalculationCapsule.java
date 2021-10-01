@@ -71,7 +71,7 @@ public class CalculationCapsule implements Runnable
             try
             {
                 long startTime = System.nanoTime();
-                output = JavaConverters.seqAsJavaList(org.cgsuite.lang.System.evaluate(text, varMap));
+                output = JavaConverters.asJava(org.cgsuite.lang.System.evaluate(text, varMap));
                 long duration = System.nanoTime() - startTime;
                 log.info(String.format("Calculation finished in %d.%03d seconds.", duration / 1000000000L, (duration % 1000000000L) / 1000000L));
             }
