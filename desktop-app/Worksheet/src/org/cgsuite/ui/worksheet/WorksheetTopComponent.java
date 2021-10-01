@@ -34,6 +34,12 @@ public final class WorksheetTopComponent extends TopComponent
     
     private boolean started = false;
 
+    // WorksheetTopComponent loads no matter what, so we trigger initialization here.
+
+    static {
+        WorksheetEnvironment.initialize();
+    }
+
     public WorksheetTopComponent()
     {
         initComponents();
@@ -45,8 +51,9 @@ public final class WorksheetTopComponent extends TopComponent
         setToolTipText(NbBundle.getMessage(WorksheetTopComponent.class, "HINT_WorksheetTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
-        
+
         UiHarness$.MODULE$.setUiHarness(new WorksheetUiHarness());
+        worksheetPanel1.processCommand("startup();");
     }
 
     /** This method is called from within the constructor to
@@ -201,12 +208,12 @@ public final class WorksheetTopComponent extends TopComponent
     
     class WorksheetUiHarness implements UiHarness {
         
-        private ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
+        private final ExplorerService explorerService = Lookup.getDefault().lookup(ExplorerService.class);
         
         @Override
         public void clearUiVars()
         {
-            WorksheetPanel.WORKSPACE_VAR_MAP.clear();
+            WorksheetEnvironment.WORKSPACE_VAR_MAP.clear();
         }
 
         @Override
@@ -218,7 +225,7 @@ public final class WorksheetTopComponent extends TopComponent
         @Override
         public void print(Object obj)
         {
-            List<Output> output = JavaConverters.seqAsJavaList(org.cgsuite.lang.System.objectToOutput(obj));
+            List<Output> output = JavaConverters.asJava(org.cgsuite.lang.System.objectToOutput(obj));
             postOutput(output);
         }
 
