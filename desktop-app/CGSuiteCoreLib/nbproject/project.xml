@@ -195,19 +195,6 @@
                 <package>org.fusesource.hawtjni.runtime</package>
                 <package>org.fusesource.jansi</package>
                 <package>org.fusesource.jansi.internal</package>
-                <!--
-                <package>javafx.application</package>
-                <package>javafx.beans</package>
-                <package>javafx.beans.binding</package>
-                <package>javafx.beans.property</package>
-                <package>javafx.beans.value</package>
-                <package>javafx.concurrent</package>
-                <package>javafx.css</package>
-                <package>javafx.embed.swing</package>
-                <package>javafx.event</package>
-                <package>javafx.scene</package>
-                <package>javafx.scene.web</package>
-                -->
                 <package>org.jdesktop.beans</package>
                 <package>org.jdesktop.swingx</package>
                 <package>org.jdesktop.swingx.action</package>

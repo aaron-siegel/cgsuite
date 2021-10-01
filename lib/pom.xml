@@ -97,18 +97,6 @@
       <artifactId>sigar</artifactId>
       <version>1.6.4</version>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-web</artifactId>
-      <version>17.0.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-swing</artifactId>
-      <version>17.0.0.1</version>
-    </dependency>
-    -->
 
     <!-- Test -->
     <dependency>
