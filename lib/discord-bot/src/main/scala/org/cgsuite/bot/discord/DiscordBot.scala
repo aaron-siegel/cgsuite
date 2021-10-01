@@ -7,7 +7,7 @@ import java.lang.{System => JSystem}
 
 import com.typesafe.scalalogging.Logger
 import javax.imageio.ImageIO
-import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.{JDABuilder, OnlineStatus}
 import net.dv8tion.jda.api.entities.{Activity, Message, User}
 import net.dv8tion.jda.api.events.message.{GenericMessageEvent, MessageReceivedEvent, MessageUpdateEvent}
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -111,9 +111,11 @@ class DiscordBot(token: String) extends ListenerAdapter {
           s"""Welcome to the EXPERIMENTAL CGSuite Discord bot, version 2.0-beta1.
              |I should be able to resolve most CGSuite commands. However, I
              |am brand new and have not really been tested; you have been
-             |warned. Please report any issues to asiegel.
-             |```:help             Print this message
-             |:version          Print CGSuite and system version info```
+             |warned. Please report any issues to @asiegel.
+             |```>>:help             Print this message
+             |>>:version          Print CGSuite and system version info
+             |>>command           Any valid CGSuite command; for example:
+             |>>*5 + *6           Compute the sum of *5 and *6```
              |""".stripMargin
       case "version" =>
           s"""```CGSuite 2.0-beta1
