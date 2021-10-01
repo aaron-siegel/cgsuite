@@ -5,7 +5,6 @@ import java.util.Collections
 
 import better.files._
 import io.methvin.better.files.RecursiveFileMonitor
-import javax.swing.filechooser.FileSystemView
 import org.cgsuite.lang.CgscriptClass.logger
 
 import scala.collection.mutable
@@ -14,17 +13,29 @@ import scala.jdk.CollectionConverters._
 
 object CgscriptClasspath {
 
+  val defaultStartupScript =
+    """/*
+      | * This is your CGSuite startup file.
+      | *
+      | * Any commands that you include in this file will be executed whenever
+      | * you start CGSuite.
+      | *
+      | * You can re-run this script at any time without restarting CGSuite by
+      | * entering the following command on the Worksheet:
+      | *
+      | * startup();
+      | *
+      | */
+      |
+      |// Uncomment the following line to implement the shortcut "C(g)" for
+      |// the canonical form "g.CanonicalForm".
+      |
+      |// def C(g) := g.CanonicalForm;
+      |""".stripMargin
+
   private[cgsuite] val devBuildHome = Option(java.lang.System.getProperty("org.cgsuite.devbuild")) map { File(_) }
 
-  private[cgsuite] val userDir = {
-    // TODO Create default startup.cgs?
-    val homeFolder = FileSystemView.getFileSystemView.getDefaultDirectory.toScala
-    homeFolder/"CGSuite"
-  }
-
-  if (!userDir.exists) {
-    userDir.createDirectory()
-  }
+  private[cgsuite] val classpathRoots = mutable.ArrayBuffer[File]()
 
   private[cgsuite] val systemDir = {
     devBuildHome match {
@@ -41,22 +52,35 @@ object CgscriptClasspath {
     }
   }
 
-  private[cgsuite] val classpath: Vector[File] = Vector(systemDir, userDir)
-
   private[cgsuite] val modifiedFiles = mutable.Set[ModifiedFile]()
 
-  private[cgsuite] def declareFolders(): Unit = {
-    logger debug "Declaring folders."
-    if (devBuildHome.isDefined)
-      logger debug "This is a CGSuite developer build."
-    logger debug s"System dir: $systemDir"
-    logger debug s"User dir: $userDir"
-    classpath foreach declareFolder
+  def declareSystemClasspathRoot(): Unit = {
+    declareClasspathRoot(systemDir, ensureStartupScriptExists = false)
+  }
+
+  def declareClasspathRoot(folder: java.io.File, ensureStartupScriptExists: Boolean): Unit = {
+    declareClasspathRoot(folder.toScala, ensureStartupScriptExists)
+  }
+
+  def declareClasspathRoot(folder: File, ensureStartupScriptExists: Boolean): Unit = {
+    logger debug s"Declaring classpath root: $folder"
+    classpathRoots += folder
+    if (folder.fileSystem.provider.getScheme != "jar")
+      new Monitor(folder).start()
+    if (ensureStartupScriptExists) {
+      val startupScriptFile = folder / "startup.cgs"
+      try {
+        if (!startupScriptFile.exists) {
+          startupScriptFile overwrite defaultStartupScript
+        }
+      } catch {
+        case exc: Exception => logger.warn(s"Could not create startup script $startupScriptFile: ${exc.getMessage}", exc)
+      }
+    }
+    declareFolder(folder)
   }
 
   private[cgsuite] def declareFolder(folder: File): Unit = {
-    if (folder.fileSystem.provider.getScheme != "jar")
-      new Monitor(folder).start()
     declareFolderR(CgscriptPackage.root, folder, folder)
   }
 

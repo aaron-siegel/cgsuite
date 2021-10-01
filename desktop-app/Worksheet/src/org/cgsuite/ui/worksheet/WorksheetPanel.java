@@ -20,6 +20,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,6 +32,8 @@ import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileSystemView;
+import org.cgsuite.lang.CgscriptClasspath;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.OutputBox;
 import org.cgsuite.output.StyledTextOutput;
@@ -102,6 +105,15 @@ public class WorksheetPanel extends JPanel
         // Forcibly instantiate a CanonicalShortGame so that the interface will seem snappier
         // once the user starts using it
         new CalculationCapsule(WORKSPACE_VAR_MAP, "{1|1/2}").runAndWait();
+
+        File homeFolder = FileSystemView.getFileSystemView().getDefaultDirectory();
+        File userFolder = new File(homeFolder, "CGSuite");
+
+        if (!userFolder.exists()) {
+            userFolder.mkdir();
+        }
+        CgscriptClasspath.declareClasspathRoot(userFolder, true);
+
         processCommand("startup();");
         getBuffer();
 

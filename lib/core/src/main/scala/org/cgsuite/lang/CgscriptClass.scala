@@ -31,15 +31,18 @@ object CgscriptClass {
     ord
   }
 
-  logger debug "Declaring system classes."
+  logger debug "Declaring explicitly defined system classes."
 
   SystemClassRegistry.allSystemClasses foreach { case (name, scalaClass) =>
     declareSystemClass(name, Some(scalaClass))
   }
 
-  logger debug "Declaring folders."
+  if (CgscriptClasspath.devBuildHome.isDefined)
+    logger debug "This is a CGSuite developer build."
 
-  CgscriptClasspath.declareFolders()
+  logger debug "Declaring system folder."
+
+  CgscriptClasspath.declareSystemClasspathRoot()
 
   val Object = CgscriptPackage.lookupClassByName("Object").get
   val Class = CgscriptPackage.lookupClassByName("Class").get
