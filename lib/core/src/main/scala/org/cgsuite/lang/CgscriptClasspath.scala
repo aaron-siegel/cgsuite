@@ -66,7 +66,11 @@ object CgscriptClasspath {
       if (file.isDirectory) {
         declareFolderR(pkg.declareSubpackage(file.name stripSuffix "/"), root, file)
       } else if (file.extension exists { _.toLowerCase == ".cgs" }) {
-        pkg.declareClass(Symbol(file.nameWithoutExtension), UrlClassDef(root, file.url), None)
+        val url = folder.fileSystem.provider.getScheme match {
+          case "jar" => getClass.getResource(file.toString)
+          case _ => file.url
+        }
+        pkg.declareClass(Symbol(file.nameWithoutExtension), UrlClassDef(root, url), None)
       }
     }
   }
