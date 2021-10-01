@@ -17,3 +17,4 @@ desktop-app/dist/
 # CGSuite-related
 cgsuite-kernel.log
 lib/core/local/
+desktop-app/local/

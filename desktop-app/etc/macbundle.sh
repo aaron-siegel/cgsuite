@@ -8,6 +8,9 @@ else
     ./make-alias.sh /Applications $2
 fi
 
+echo Copying JRE.
+cp -r ../local/jre-bundles/macos/jre ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite
+
 ./create-dmg.sh \
   --volname CGSuite \
   --background dmg-background.png \
