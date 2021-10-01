@@ -63,10 +63,15 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         try
         {
             // TODO Ensure this works.
+            /*
             if (!USER_FOLDER.exists())
             {
                 File defaultUserFolder = InstalledFileLocator.getDefault().locate("etc/default-userdir", "org.cgsuite", false);
                 copyFolder(defaultUserFolder, USER_FOLDER);
+            }
+            */
+            if (!USER_FOLDER.exists()) {
+                USER_FOLDER.mkdir();
             }
             LocalFileSystem fs = new LocalFileSystem();
             fs.setRootDirectory(USER_FOLDER);
@@ -101,10 +106,10 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         if (System.getProperty("org.cgsuite.devbuild") != null)
         {
             // Add some convenience folders for developers
-            File defaultUserdir = new File(System.getProperty("org.cgsuite.devbuild"), "release/etc/default-userdir");
+            //File defaultUserdir = new File(System.getProperty("org.cgsuite.devbuild"), "release/etc/default-userdir");
             jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(DEV_LIB_FOLDER), "[dev] Core Library Source Folder"));
             jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(DEV_TEST_FOLDER), "[dev] Core Library Test Folder"));
-            jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(defaultUserdir), "[dev] Default User Folder"));
+            //jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(defaultUserdir), "[dev] Default User Folder"));
             jComboBox1.addItem(new RootFolder(FileUtil.getConfigRoot(), "[dev] System Filesystem"));
         }
     }
