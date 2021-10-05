@@ -1,0 +1,16 @@
+/*${cgsuite.banner}*/
+
+class GraphRuleset extends Ruleset
+
+  def Eval(graph as Graph) := Position(graph);
+
+  def Eval(str as String) := Position(Graph.Parse(str, Tags));
+
+  def Position(graph as Graph) := error("Subclasses of `GridRuleset` must define `Position`.");
+
+  def Tags := { => };
+
+  class GraphGame(graph as Graph) extends Game
+  end
+
+end

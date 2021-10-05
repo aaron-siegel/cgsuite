@@ -4,7 +4,7 @@ system class Graph
 
   external static def FromList(list as List, vertexTags as List ? Nothing) as Graph;
 
-  external static def Parse(vertexCount as Integer, str as String, vertexTags as List ? Nothing) as Graph;
+  external static def Parse(str as String, tagMap as Map ? { => }) as Graph;
 
   def AdjacencyList := [Outedges(vertex) for vertex from 1 to VertexCount];
 

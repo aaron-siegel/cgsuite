@@ -61,38 +61,65 @@ object Graph {
     Graph(edges, vertexTags)
   }
 
-  def parse[T](vertexCount: Integer, str: String, vertexTags: IndexedSeq[T]): Graph[T] = {
+  def parse(str: String, tagMap: Map[String, AnyRef] = Map.empty): Graph[AnyRef] = {
     val paths = str split ';'
-    val edges = Array.fill(vertexCount.intValue)(new ArrayBuffer[Int]())
-    paths foreach { parsePath(edges, _) }
-    Graph(edges map { _.distinct.sorted.toArray }, Option(vertexTags))
+    val edges = ArrayBuffer[ArrayBuffer[Int]]()
+    val tags = ArrayBuffer[AnyRef]()
+    paths foreach { parsePath(tagMap, edges, tags, _) }
+    Graph(edges.toArray map { _.distinct.sorted.toArray }, Option(tags.toVector))
   }
 
-  private def parsePath(edges: Array[ArrayBuffer[Int]], pathStr: String): Unit = {
-    val firstSep = pathStr indexWhere { !_.isDigit }
-    var currentVertex = pathStr.substring(0, firstSep).toInt
-    var index = firstSep
+  private def parsePath(tagMap: Map[String, AnyRef], edges: ArrayBuffer[ArrayBuffer[Int]], tags: ArrayBuffer[AnyRef], pathStr: String): Unit = {
+    var currentVertex = -1
+    var direction = 0
+    var index = 0
     while (index < pathStr.length) {
-      val direction = pathStr(index) match {
-        case '-' => 0
-        case '>' => 1
-        case '<' => -1
-        case _ => throw InvalidArgumentException(s"Invalid graph path specification: $pathStr")
+      var tagIndex = index
+      while (tagIndex < pathStr.length && pathStr(tagIndex).isDigit) {
+        tagIndex += 1
       }
-      index += 1
-      var nextSep = index + 1
-      while (nextSep < pathStr.length && pathStr(nextSep).isDigit) {
-        nextSep += 1
+      val nextVertex = pathStr.substring(index, tagIndex).toInt
+      var sepIndex = tagIndex
+      while (sepIndex < pathStr.length && pathStr(sepIndex).isLetter) {
+        sepIndex += 1
       }
-      val nextVertex = pathStr.substring(index, nextSep).toInt
-      if (direction != -1) {
-        edges(currentVertex - 1) += nextVertex - 1
+      val tag = pathStr.substring(tagIndex, sepIndex)
+      while (edges.length < nextVertex) {
+        edges += ArrayBuffer[Int]()
+        if (tagMap.nonEmpty) {
+          tags += null
+        }
       }
-      if (direction != 1) {
-        edges(nextVertex - 1) += currentVertex - 1
+      if (tag.nonEmpty) {
+        if (tagMap.isEmpty) {
+          throw InvalidArgumentException(s"Tag is specified without tagMap: $tag")
+        }
+        val tagValue = tagMap getOrElse
+          (tag, throw InvalidArgumentException(s"Unknown tag in graph specification: $tag"))
+        if (tags(nextVertex - 1) != null && tags(nextVertex - 1) != tagValue) {
+          throw InvalidArgumentException(s"Conflicting tag for vertex $nextVertex: $tag")
+        }
+        tags(nextVertex - 1) = tagValue
+      }
+      if (currentVertex >= 0) {
+        if (direction != -1) {
+          edges(currentVertex - 1) += nextVertex - 1
+        }
+        if (direction != 1) {
+          edges(nextVertex - 1) += currentVertex - 1
+        }
+      }
+      index = sepIndex
+      if (sepIndex < pathStr.length) {
+        direction = pathStr(sepIndex) match {
+          case '-' => 0
+          case '>' => 1
+          case '<' => -1
+          case _ => throw InvalidArgumentException(s"Invalid graph path specification: $pathStr")
+        }
+        index += 1
       }
       currentVertex = nextVertex
-      index = nextSep
     }
   }
 
