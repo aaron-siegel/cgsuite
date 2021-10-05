@@ -76,15 +76,13 @@ Then we can retrieve the value corresponding to the key `"key"` with
 
 `x["key"]`
 
-Note that square brackets are used to retrieve (or assign) ~list elements~ by index, and also to retrieve (or assign)
+Note that square brackets are used to retrieve ~list elements~ by index, and also to retrieve
 ~map elements~ by key.
 
 The keys of a map don't need to be strings; they can be any object at all, and the same map can use objects of
-different types as keys.  For example
+different types as keys.  For example:
 
-`x[\^\^*4] := 2`
-
-assigns the value `2` to the key `\^\^*4`.
+`x := { "key" => 14, \^\^*4 => 2 }`
 
 The special syntax
 
@@ -161,7 +159,7 @@ or
 
 are objects of class `String`, and the special values `true` and `false` are objects of class `Boolean`.
 
-<!--Finally, there is the class `Nothing`, which is a `singleton`: it has only one instance.-->
+\<!--Finally, there is the class `Nothing`, which is a `singleton`: it has only one instance.--\>
 
 You can test whether any object `x` matches a given type (say `String`) with the syntax
 
@@ -177,7 +175,7 @@ Try the following, for example:
 `*2.Class`\\
 `game.heap.Nim is game.heap.HeapRuleset`
 
-<!--
+\<!--
 +++ Exercises +++
 \ol
 \li Consider the partizan subtraction game we studied above, `{1,3}` vs. `{2,3}`.  Print the first 10 canonical forms just as we
@@ -185,7 +183,7 @@ did in the `tableof` section above, and note that they rapidly become a mess.  N
 forms.  (You can do this by using the `ReducedCanonicalForm` property in place of `CanonicalForm`.)  Make a conjecture about the RCFs of
 arbitrary positions.
 \endol
--->
+--\>
 
 \## Footer ##
 

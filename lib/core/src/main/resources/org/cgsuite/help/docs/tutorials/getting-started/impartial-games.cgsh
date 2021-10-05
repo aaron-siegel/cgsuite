@@ -33,7 +33,7 @@ directly on the ruleset:
 
 This gives the first `300` nim values of Dawson's Kayles. Periodicity can be checked as follows:
 
-`R.CheckPeriod(300)`
+`R.CheckPeriodicity(300)`
 
 This tells CGSuite to attempt to determine if \<b\>0.07\</b\> is periodic, computing
 at most 300 values. It succeeds, and gives the correct answer, period 34. Now
