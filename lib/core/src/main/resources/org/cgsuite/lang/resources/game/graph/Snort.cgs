@@ -1,0 +1,29 @@
+/*${cgsuite.banner}*/
+
+singleton class Snort extends Ruleset
+
+  def Eval(vertexCount as Integer, spec as String, vertexColors as List ? Nothing) begin
+    var vertexColorsOrDefault := if vertexColors == Nothing then [0 for x from 1 to vertexCount] else vertexColors end;
+    Position(Graph.Parse(vertexCount, spec, vertexColorsOrDefault));
+  end
+
+  def Eval(graph as Graph) := Position(graph);
+
+  class Position(graph as Graph) extends Game
+
+    override def Options(player as Player) begin
+      for vertex from 1 to graph.VertexCount
+      where graph.VertexTag(vertex) != player.Opponent
+      yield
+        var tagUpdates :=
+          { target => player for target in graph.Outedges(vertex) where graph.VertexTag(target) == 0 };
+        var blockedVertices :=
+          graph.Outedges(vertex) Filter (target -> graph.VertexTag(target) == player.Opponent);
+        var deletedVertices := blockedVertices Adjoin vertex;
+        Position(graph UpdateTags tagUpdates DeleteVertices deletedVertices)
+      end
+    end
+
+  end
+
+end

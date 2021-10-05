@@ -4,7 +4,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Symmetry, Table, UiHarness}
+import org.cgsuite.util.{Graph, Symmetry, Table, UiHarness}
 
 import scala.collection.mutable
 
@@ -126,6 +126,9 @@ object SpecialMethods {
         list.updated(i - 1, kv._2)
       else
         throw EvalException(s"List index out of bounds: $i")
+    },
+    "cgsuite.util.Graph.FromList" -> { (_: ClassObject, args: (IndexedSeq[Any], IndexedSeq[Any])) =>
+      Graph(args._1.map { _.asInstanceOf[IndexedSeq[Integer]] }, Option(args._2))
     },
     "cgsuite.util.MutableMap.Put" -> { (map: mutable.Map[Any,Any], kv: (Any, Any)) => map(kv._1) = kv._2; null }
 
