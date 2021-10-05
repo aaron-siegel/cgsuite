@@ -120,6 +120,7 @@ public class GridEditorPanel extends EditorPanel
     private Insets gridInsets;
     
     private int draggingRow = -1, draggingCol = -1, draggingXDisplacement, draggingYDisplacement, prevDragX, prevDragY;
+    private DragHack dragHack = new DragHack();
 
     private CgscriptClass.Method evalMethod;
     
@@ -687,9 +688,6 @@ public class GridEditorPanel extends EditorPanel
         return x >= left && y >= top && x <= left+8 && y <= top+8;
     }
 
-    private long mousePressedTime;
-    private final static long MIN_DRAG_DURATION = 150 * 1000000L;
-    
     private void addListeners()
     {
         addMouseListener(new MouseAdapter()
@@ -723,7 +721,7 @@ public class GridEditorPanel extends EditorPanel
                         prevDragX = evt.getX();
                         prevDragY = evt.getY();
                     }
-                    mousePressedTime = System.nanoTime();
+                    dragHack.registerMousePressed(evt.getX(), evt.getY());
                 }
             }
             
@@ -736,7 +734,7 @@ public class GridEditorPanel extends EditorPanel
                 }
                 else if (evt.getButton() == MouseEvent.BUTTON1)
                 {
-                    if (System.nanoTime() - mousePressedTime < MIN_DRAG_DURATION)
+                    if (!dragHack.isDragging())
                     {
                         handleClick(evt);
                     }
@@ -772,7 +770,8 @@ public class GridEditorPanel extends EditorPanel
             @Override
             public void mouseDragged(MouseEvent evt)
             {
-                if (isContainedInGrid(draggingRow, draggingCol) && System.nanoTime() - mousePressedTime >= MIN_DRAG_DURATION)
+                dragHack.registerMouseDragged(evt.getX(), evt.getY());
+                if (dragHack.isDragging())
                 {
                     repaint(
                         gridInsets.left + prevDragX - draggingXDisplacement,
