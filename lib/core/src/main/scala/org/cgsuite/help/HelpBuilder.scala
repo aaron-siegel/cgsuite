@@ -1,12 +1,18 @@
 package org.cgsuite.help
 
+import java.awt.Graphics2D
+import java.awt.image.BufferedImage
+
 import better.files._
 import com.typesafe.scalalogging.Logger
+import javax.imageio.ImageIO
 import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang._
 import org.cgsuite.util.{LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
+
+import scala.collection.mutable
 
 object HelpBuilder {
 
@@ -99,7 +105,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       }
 
       val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref, fixedTargets, CgscriptPackage.root)
-      val markdown = Markdown(lines.tail mkString "\n", linkBuilder)
+      val markdown = generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder)
 
       val header =
         s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
@@ -166,9 +172,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
     val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
 
-    def renderClass(): Unit = {
+    val file = packageDir/s"${cls.name}.html"
 
-      val file = packageDir/s"${cls.name}.html"
+    def renderClass(): Unit = {
 
       val relpath = targetRootDir relativize file
 
@@ -488,7 +494,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
       // TODO Links don't work quite right for copied doc comments
       // (Link GENERATION works fine, but link RESOLUTION does not)
 
-      Markdown(comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly).text
+      generateMarkdown(file, comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly).text
 
     }
 
@@ -622,6 +628,38 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
     classes foreach file.append
     file append footer
 
+  }
+
+  var reportedImageException: Boolean = false
+
+  def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
+    val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+    markdown.execStatements.zipWithIndex.foreach { case (statement, ordinal) =>
+      try {
+        generateImage(targetFile, statement, ordinal)
+      } catch {
+        case exc: Throwable =>
+          if (!reportedImageException) {
+            logger.error(s"Could not generate image for statement: $statement", exc)
+            reportedImageException = true
+          } else {
+            logger.error(s"Could not generate image for statement: $statement")
+          }
+      }
+    }
+    markdown
+  }
+
+  def generateImage(targetFile: File, statement: String, ordinal: Int): Unit = {
+    val output = org.cgsuite.lang.System.evaluateOrException(statement, mutable.AnyRefMap())
+    val size = output.last.getSize(300)
+    val image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB)
+    output.last.paint(image.getGraphics.asInstanceOf[Graphics2D], 300)
+    ImageIO.write(
+      image,
+      "png",
+      new java.io.File(s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal.png")
+    )
   }
 
 }

@@ -5,18 +5,25 @@ import org.cgsuite.util.Markdown.{Location, State, logger}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 object Markdown {
 
   private[util] val logger = Logger(LoggerFactory.getLogger(classOf[Markdown]))
 
-  def apply(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
-    val builder = new MarkdownBuilder(rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+  def apply(
+    imageTargetPrefix: String,
+    rawInput: String,
+    linkBuilder: LinkBuilder,
+    stripAsterisks: Boolean = false,
+    firstSentenceOnly: Boolean = false
+  ): Markdown = {
+    val builder = new MarkdownBuilder(imageTargetPrefix, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
     builder.toMarkdown
   }
 
   object State extends Enumeration {
-    val Normal, Code, Emph, Bold, Math, Section1, Section2, Section3 = Value
+    val Normal, Code, Emph, Bold, Math, Section1, Section2, Section3, ExecCode = Value
   }
 
   object Location extends Enumeration {
@@ -57,7 +64,7 @@ object Markdown {
 
 }
 
-case class Markdown(text: String, hasFooter: Boolean)
+case class Markdown(text: String, hasFooter: Boolean, execStatements: Vector[String])
 
 trait LinkBuilder {
 
@@ -65,12 +72,20 @@ trait LinkBuilder {
 
 }
 
-class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false) {
+class MarkdownBuilder(
+  imageTargetPrefix: String,
+  rawInput: String,
+  linkBuilder: LinkBuilder,
+  stripAsterisks: Boolean = false,
+  firstSentenceOnly: Boolean = false
+) {
 
   private val stream = new MarkdownStream(rawInput, stripAsterisks)
   private var state = State.Normal
   private var location = Location.Normal
   private val result = new StringBuffer()
+  private val statementBuf = new StringBuffer()
+  private val execStatements = ArrayBuffer[String]()
   private var hasFooter = false
 
   emit("  ")
@@ -85,6 +100,7 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
 
     (state, location, stream.consume) match {
 
+      case (State.Normal, _, '`') if stream.next == '`' => stream.consume; state = State.ExecCode; statementBuf.delete(0, statementBuf.length); "<code>&gt; "
       case (State.Normal, _, '`') => state = State.Code; "<code>"
       case (State.Normal, _, '~') if stream.next == '~' => stream.consume; state = State.Bold; "<b>"
       case (State.Normal, _, '~') => state = State.Emph; "<em>"
@@ -93,6 +109,9 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
       case (State.Normal, _, '+') if stream.peek(2) == "++" => state = State.Section2; stream consumeWhile { _ == '+' }; "</div><h2>"
       case (State.Normal, _, '+') if stream.next == '+' => state = State.Section1; stream.consume; "</div><h1>"
 
+      case (State.ExecCode, _, '`') if stream.next == '`' =>
+        stream.consume; state = State.Normal; execStatements += statementBuf.toString
+        s"""</code><p style="margin-top:6pt;"><img src="$imageTargetPrefix-${execStatements.length - 1}.png"></p>"""
       case (State.Code, _, '`') => state = State.Normal; "</code>"
       case (State.Bold, _, '~') if stream.next == '~' => stream.consume; state = State.Normal; "</b>"
       case (State.Emph, _, '~') => state = State.Normal; "</em>"
@@ -100,6 +119,8 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
       case (State.Section3, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h3>"
       case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h2><div class="section">"""
       case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h1><div class="section">"""
+
+      case (State.ExecCode, _, ch) => statementBuf append ch; ch.toString
 
       case (_, Location.Normal, '^') if state != State.Code => location = Location.Super; "<sup>"
       case (_, Location.Normal, '_') if state != State.Code => location = Location.Sub; "<sub>"
@@ -209,7 +230,7 @@ class MarkdownBuilder(rawInput: String, linkBuilder: LinkBuilder, stripAsterisks
     }
   }
 
-  def toMarkdown: Markdown = Markdown(result.toString, hasFooter)
+  def toMarkdown: Markdown = Markdown(result.toString, hasFooter, execStatements.toVector)
 
 }
 
