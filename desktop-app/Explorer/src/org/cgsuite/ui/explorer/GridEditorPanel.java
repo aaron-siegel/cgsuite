@@ -686,11 +686,15 @@ public class GridEditorPanel extends EditorPanel
     {
         return x >= left && y >= top && x <= left+8 && y <= top+8;
     }
+
+    private long mousePressedTime;
+    private final static long MIN_DRAG_DURATION = 150 * 1000000L;
     
     private void addListeners()
     {
         addMouseListener(new MouseAdapter()
         {
+            /*
             @Override
             public void mouseClicked(MouseEvent evt)
             {
@@ -699,7 +703,7 @@ public class GridEditorPanel extends EditorPanel
                     handleClick(evt);
                 }
             }
-            
+            */
             @Override
             public void mousePressed(MouseEvent evt)
             {
@@ -719,6 +723,7 @@ public class GridEditorPanel extends EditorPanel
                         prevDragX = evt.getX();
                         prevDragY = evt.getY();
                     }
+                    mousePressedTime = System.nanoTime();
                 }
             }
             
@@ -731,7 +736,11 @@ public class GridEditorPanel extends EditorPanel
                 }
                 else if (evt.getButton() == MouseEvent.BUTTON1)
                 {
-                    if (isContainedInGrid(draggingRow, draggingCol))
+                    if (System.nanoTime() - mousePressedTime < MIN_DRAG_DURATION)
+                    {
+                        handleClick(evt);
+                    }
+                    else if (isContainedInGrid(draggingRow, draggingCol))
                     {
                         repaint(
                             gridInsets.left + prevDragX - draggingXDisplacement,
@@ -751,8 +760,8 @@ public class GridEditorPanel extends EditorPanel
                             grid = grid.updated(row+1, col+1, value);
                             repaint(row, col);
                         }
-                        setCursor(DEFAULT_CURSOR);
                     }
+                    setCursor(DEFAULT_CURSOR);
                     draggingRow = draggingCol = -1;
                 }
             }
@@ -763,7 +772,7 @@ public class GridEditorPanel extends EditorPanel
             @Override
             public void mouseDragged(MouseEvent evt)
             {
-                if (isContainedInGrid(draggingRow, draggingCol))
+                if (isContainedInGrid(draggingRow, draggingCol) && System.nanoTime() - mousePressedTime >= MIN_DRAG_DURATION)
                 {
                     repaint(
                         gridInsets.left + prevDragX - draggingXDisplacement,
