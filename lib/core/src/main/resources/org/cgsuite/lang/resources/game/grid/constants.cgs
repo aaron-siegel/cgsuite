@@ -18,7 +18,7 @@ singleton class constants
    * white stone and captures an orthogonally adjacent black stone. No movement is allowed unless a capture takes
    * place; isolated stones (or groups of stones) of a single color are therefore terminal.
    *
-   * A typical move for Leftfrom the above starting position is to the following:
+   * A typical move for Left from the above starting position is to the following:
    *
    * ``game.grid.Clobber("xo.o|oxxx|xoxo")``
    *

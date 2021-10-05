@@ -9,7 +9,8 @@ import javax.imageio.ImageIO
 import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang._
-import org.cgsuite.util.{LinkBuilder, Markdown}
+import org.cgsuite.output.Output
+import org.cgsuite.util.{ImageUtil, LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -634,9 +635,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
   def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
     val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+    val varMap = mutable.AnyRefMap[Symbol, Any]()
     markdown.execStatements.zipWithIndex.foreach { case (statement, ordinal) =>
       try {
-        generateImage(targetFile, statement, ordinal)
+        generateImages(targetFile, statement, ordinal, varMap)
       } catch {
         case exc: Throwable =>
           if (!reportedImageException) {
@@ -650,16 +652,23 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
     markdown
   }
 
-  def generateImage(targetFile: File, statement: String, ordinal: Int): Unit = {
-    val output = org.cgsuite.lang.System.evaluateOrException(statement, mutable.AnyRefMap())
-    val size = output.last.getSize(300)
-    val image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB)
-    output.last.paint(image.getGraphics.asInstanceOf[Graphics2D], 300)
-    ImageIO.write(
-      image,
-      "png",
-      new java.io.File(s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal.png")
-    )
+  def generateImages(targetFile: File, statement: String, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
+    val output = org.cgsuite.lang.System.evaluateOrException(statement, varMap)
+    val outputFilePrefix = s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal"
+    for (scale <- Vector(1.0, 2.0)) {
+      generateImage(output.last, outputFilePrefix, scale)
+    }
+  }
+
+  def generateImage(output: Output, outputFilePrefix: String, scale: Double): Unit = {
+    val size = output.getSize(300)
+    val image = new BufferedImage((size.width * scale).toInt, (size.height * scale).toInt, BufferedImage.TYPE_INT_ARGB)
+    val g2d = image.getGraphics.asInstanceOf[Graphics2D]
+    g2d.scale(scale, scale)
+    output.paint(g2d, 300)
+    val outputFile = new java.io.File(f"$outputFilePrefix-$scale%1.1fx.png")
+    //ImageUtil.writeHiResImage(image, outputFile, "png", 144)
+    ImageIO.write(image, "png", outputFile)
   }
 
 }

@@ -67,9 +67,8 @@ h4 { font-size: medium;
      margin-bottom: 5}
 
 code {
-    font-size: large;
     font-family: Courier, monospace;
-    line-height: 80% }
+}
 
 ul.nobullets {
     list-style-type: none;

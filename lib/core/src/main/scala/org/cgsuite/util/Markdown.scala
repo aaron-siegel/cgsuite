@@ -111,7 +111,10 @@ class MarkdownBuilder(
 
       case (State.ExecCode, _, '`') if stream.next == '`' =>
         stream.consume; state = State.Normal; execStatements += statementBuf.toString
-        s"""</code><p style="margin-top:6pt;"><img src="$imageTargetPrefix-${execStatements.length - 1}.png"></p>"""
+        val imageFilePrefix = s"$imageTargetPrefix-${execStatements.length - 1}"
+        s"""</code><p style="margin-top:3pt;">
+           |  <img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x" />
+           |</p>""".stripMargin
       case (State.Code, _, '`') => state = State.Normal; "</code>"
       case (State.Bold, _, '~') if stream.next == '~' => stream.consume; state = State.Normal; "</b>"
       case (State.Emph, _, '~') => state = State.Normal; "</em>"
