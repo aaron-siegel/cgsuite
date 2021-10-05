@@ -120,6 +120,7 @@ public class GridEditorPanel extends EditorPanel
     private Insets gridInsets;
     
     private int draggingRow = -1, draggingCol = -1, draggingXDisplacement, draggingYDisplacement, prevDragX, prevDragY;
+    private DragHack dragHack = new DragHack();
 
     private CgscriptClass.Method evalMethod;
     
@@ -686,11 +687,12 @@ public class GridEditorPanel extends EditorPanel
     {
         return x >= left && y >= top && x <= left+8 && y <= top+8;
     }
-    
+
     private void addListeners()
     {
         addMouseListener(new MouseAdapter()
         {
+            /*
             @Override
             public void mouseClicked(MouseEvent evt)
             {
@@ -699,7 +701,7 @@ public class GridEditorPanel extends EditorPanel
                     handleClick(evt);
                 }
             }
-            
+            */
             @Override
             public void mousePressed(MouseEvent evt)
             {
@@ -719,6 +721,7 @@ public class GridEditorPanel extends EditorPanel
                         prevDragX = evt.getX();
                         prevDragY = evt.getY();
                     }
+                    dragHack.registerMousePressed(evt.getX(), evt.getY());
                 }
             }
             
@@ -731,7 +734,11 @@ public class GridEditorPanel extends EditorPanel
                 }
                 else if (evt.getButton() == MouseEvent.BUTTON1)
                 {
-                    if (isContainedInGrid(draggingRow, draggingCol))
+                    if (!dragHack.isDragging())
+                    {
+                        handleClick(evt);
+                    }
+                    else if (isContainedInGrid(draggingRow, draggingCol))
                     {
                         repaint(
                             gridInsets.left + prevDragX - draggingXDisplacement,
@@ -751,8 +758,8 @@ public class GridEditorPanel extends EditorPanel
                             grid = grid.updated(row+1, col+1, value);
                             repaint(row, col);
                         }
-                        setCursor(DEFAULT_CURSOR);
                     }
+                    setCursor(DEFAULT_CURSOR);
                     draggingRow = draggingCol = -1;
                 }
             }
@@ -763,7 +770,8 @@ public class GridEditorPanel extends EditorPanel
             @Override
             public void mouseDragged(MouseEvent evt)
             {
-                if (isContainedInGrid(draggingRow, draggingCol))
+                dragHack.registerMouseDragged(evt.getX(), evt.getY());
+                if (dragHack.isDragging())
                 {
                     repaint(
                         gridInsets.left + prevDragX - draggingXDisplacement,
