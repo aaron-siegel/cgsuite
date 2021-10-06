@@ -140,6 +140,10 @@ trait Game extends OutputTarget {
     }
   }
 
+  def sensibleLeftOptions = sensibleOptions(Left)
+
+  def sensibleRightOptions = sensibleOptions(Right)
+
   def sensibleLines(player: Player): Iterable[IndexedSeq[Game]] = {
     val canonicalOptions = canonicalForm options player
     canonicalOptions map { k =>

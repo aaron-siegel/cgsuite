@@ -21,6 +21,8 @@ object HelpBuilder {
 
   private[help] val packagePath = "org/cgsuite/help/docs"
 
+  val preferredImageWidth = 500
+
   def main(args: Array[String]): Unit = {
     val resourcesDir = if (args.isEmpty) "src/main/resources" else ""
     val buildDir = if (args.isEmpty) "target/classes" else args.head
@@ -153,8 +155,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       try {
 
-        if (cls.classInfo != null)
+        if (cls.classInfo != null) {
           ClassRenderer(cls).renderClass()
+        }
 
       } catch {
 
@@ -200,7 +203,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
 
       val members = {
         if (cls.isPackageObject)
-          regularMembers.filter { _.declaringClass == cls } ++ cls.pkg.allClasses
+          regularMembers.filter { _.declaringClass == cls } ++ cls.pkg.allClasses.filter { !_.isPackageObject }
         else
           regularMembers
       } sortBy { _.id.name }
@@ -437,7 +440,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
         case None if member.declaringClass != null =>
           // Traverse the ancestor tree of the member's declaring class in standard order
           // and pick the first occurrence of a doc comment.
-          val docOccurrence = member.declaringClass.ancestors.reverse find { ancestorClass =>
+          val docOccurrence = member.declaringClass.ancestors.findLast { ancestorClass =>
             val ancestorMemberOpt = ancestorClass.lookupMember(member.id)
             ancestorMemberOpt exists { ancestorMember =>
               ancestorMember.declaringClass == ancestorClass &&
@@ -655,17 +658,19 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) {
   def generateImages(targetFile: File, statement: String, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
     val output = org.cgsuite.lang.System.evaluateOrException(statement, varMap)
     val outputFilePrefix = s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal"
-    for (scale <- Vector(1.0, 2.0)) {
-      generateImage(output.last, outputFilePrefix, scale)
+    if (output.nonEmpty) {
+      for (scale <- Vector(1.0, 2.0)) {
+        generateImage(output.last, outputFilePrefix, scale)
+      }
     }
   }
 
   def generateImage(output: Output, outputFilePrefix: String, scale: Double): Unit = {
-    val size = output.getSize(300)
+    val size = output.getSize(HelpBuilder.preferredImageWidth)
     val image = new BufferedImage((size.width * scale).toInt, (size.height * scale).toInt, BufferedImage.TYPE_INT_ARGB)
     val g2d = image.getGraphics.asInstanceOf[Graphics2D]
     g2d.scale(scale, scale)
-    output.paint(g2d, 300)
+    output.paint(g2d, HelpBuilder.preferredImageWidth)
     val outputFile = new java.io.File(f"$outputFilePrefix-$scale%1.1fx.png")
     //ImageUtil.writeHiResImage(image, outputFile, "png", 144)
     ImageIO.write(image, "png", outputFile)
