@@ -32,11 +32,11 @@ object HelpBuilder {
 
   def standardHeaderBar(backref: String) =
     s"""<div class="titlebar"><p><div class="section">
-       |  <a href="${backref}contents.html">Contents</a>
+       |  <a href="${backref}contents.html#top">Contents</a>
        |  &nbsp;&nbsp;
-       |  <a href="${backref}reference/overview.html">Packages</a>
+       |  <a href="${backref}reference/overview.html#top">Packages</a>
        |  &nbsp;&nbsp;
-       |  <a href="${backref}reference/cgscript-index.html">Index</a>
+       |  <a href="${backref}reference/cgscript-index.html#top">Index</a>
        |</div></div>
      """.stripMargin
 
@@ -185,7 +185,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
       val backref = "../" * (cls.pkg.path.length + 1)
 
-      val packageStr = s"""<p><code class="big">package <a href="constants.html">${cls.pkg.qualifiedName}</a></code>"""
+      val packageStr = s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       val memberTypeStr = member match {
         case _: CgscriptClass#Method => "def"
         case _: CgscriptClass#Var => "var"
@@ -349,7 +349,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         if (cls.isPackageObject)
           ""
         else
-          s"""<p><code class="big">package <a href="constants.html">${cls.pkg.qualifiedName}</a></code>"""
+          s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       }
 
       val classtypeStr = {
@@ -491,7 +491,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val packages = allPackages map { pkg =>
 
-      val memberLink = s"""<a class="valid" href="${pkg.path mkString "/"}/constants.html">${pkg.qualifiedName}</a>"""
+      val memberLink = s"""<a class="valid" href="${pkg.path mkString "/"}/constants.html#top">${pkg.qualifiedName}</a>"""
 
       val description = {
         try {
@@ -670,7 +670,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val classes = allClasses map { cls =>
 
-      val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html">${cls.qualifiedName}</a>"""
+      val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>"""
 
       val description = {
         try {
@@ -809,7 +809,7 @@ case class HelpLinkBuilder(
 
     val relativePath = targetDir relativize refFile
 
-    s"""<a class="$htmlClass" href="$relativePath.html">${textOpt getOrElse defaultText}</a>"""
+    s"""<a class="$htmlClass" href="$relativePath.html#top">${textOpt getOrElse defaultText}</a>"""
 
   }
 
@@ -817,9 +817,9 @@ case class HelpLinkBuilder(
 
     val classRef = relativeRef(targetClass)
     val classRefSuffix = targetMemberOpt match {
-      case Some(member) if targetClass.isPackageObject => s".${member.name}.html"
+      case Some(member) if targetClass.isPackageObject => s".${member.name}.html#top"
       case Some(member) => s".html#${member.name}"
-      case None => ".html"
+      case None => ".html#top"
     }
     val refText = targetMemberOpt match {
       case Some(member) => member.idNode.id.name
