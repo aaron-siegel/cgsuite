@@ -255,7 +255,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       }
 
       val regularMembers = {
-        cls.classInfo.localMembers
+        cls.classInfo.allMembers
       }
 
       val members = {
@@ -283,26 +283,24 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         member => member.declaringClass == cls || member.declaringClass == null
       }, "<h2>All Members</h2>")
 
-      // TODO Breadth-first order for ancestor tree?
-
-      val allDeclaringClasses = members.filterNot { member =>
-        member.declaringClass == null || member.declaringClass == cls
-      }.map { _.declaringClass }.distinct sortBy { _.qualifiedName }
-
-      val prevMemberSummary = allDeclaringClasses map { declaringClass =>
+      val prevMemberSummary = cls.properAncestors.reverse map { declaringClass =>
         val declaredMembers = members filter { _.declaringClass == declaringClass }
-        makeMemberSummary(
-          declaringClass,
-          declaredMembers,
-          s"<h3>Members inherited from ${linkBuilder hyperlinkToClass declaringClass}</h3>"
-        )
+        if (declaredMembers.isEmpty) {
+          ""
+        } else {
+          makeMemberSummary(
+            declaringClass,
+            declaredMembers,
+            s"<h3>Members inherited from ${linkBuilder hyperlinkToClass declaringClass}</h3>"
+          )
+        }
       }
 
       val enumElementDetails = cls.classInfo.localEnumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
       val staticMemberDetails = cls.classInfo.localStaticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val memberDetails = members filterNot { _.declaringClass == null } map makeMemberDetail mkString "\n<p>\n"
+      val memberDetails = members filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
 
       packageDir.createDirectories()
       file overwrite header
@@ -424,7 +422,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           if (member.declaringClass == null)
             linkBuilder.hyperlinkToClass(member.asInstanceOf[CgscriptClass], textOpt = Some(name))
           else
-            linkBuilder.hyperlinkToClass(cls, Some(member), Some(name))
+            linkBuilder.hyperlinkToClass(declaringClass, Some(member), Some(name))
         }
 
         val description = docCommentForMember(member) match {
