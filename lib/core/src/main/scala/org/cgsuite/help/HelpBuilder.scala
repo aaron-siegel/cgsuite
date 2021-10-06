@@ -626,7 +626,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       // TODO: Find some other way to express default parameters
       val defaultString = parameter.defaultValue match {
         case None => ""
-        case Some(default) => "?" // " ? " + default.toNodeString
+        case Some(_) => "?" // " ? " + default.toNodeString
       }
 
       s"${parameter.id.name}$asString$expandString$defaultString"
@@ -823,6 +823,11 @@ case class HelpLinkBuilder(
       case Some(member) => s".html#${member.name}"
       case None => ".html"
     }
+    val refText = targetMemberOpt match {
+      case Some(member) => member.idNode.id.name
+      case None => targetClass.name
+    }
+    /*
     val refText = {
       if (referringClass contains targetClass) {
         targetMemberOpt match {
@@ -836,6 +841,7 @@ case class HelpLinkBuilder(
         }
       }
     }
+    */
     val codePrefix = if (textOpt.isDefined) "" else """<code class="big">"""
     val linkText = textOpt getOrElse s"$refText"
     val codeSuffix = if (textOpt.isDefined) "" else "</code>"
