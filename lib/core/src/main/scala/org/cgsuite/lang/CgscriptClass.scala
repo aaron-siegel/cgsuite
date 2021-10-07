@@ -278,6 +278,10 @@ class CgscriptClass(
 
   private def doUnload(): Unit = {
     logDebug(s"Unloading.")
+    if (classInfoRef != null) {
+      classInfo.localMembers foreach { _.invalidate() }
+      classInfo.allMethodGroups.values foreach { _.invalidate() }
+    }
     classInfoRef = null
     scriptObjectRef = null
     singletonInstanceRef = null
