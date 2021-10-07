@@ -258,39 +258,44 @@ class EvalTest extends CgscriptSpec {
 
     // (name, initializer, fn, for-snippet, result, optional-sorted-result, sum)
     val loopScenarios = Seq(
-      ("for-from-to", "", "x*x", "for x from 1 to 5", "1,4,9,16,25", None, "55"),
-      ("for-from-to-by", "", "x*x", "for x from 1 to 10 by 3", "1,16,49,100", None, "166"),
-      ("for-from-to-by (neg)", "", "x*x", "for x from 6 to 1 by -2", "36,16,4", Some("4,16,36"), "56"),
-      ("for-from-to-by (game)", "", "x", "for x from 0 to ^5 by ^*", "0,^*,^^,^3*,^4", Some("0,^*,^^,^3*,^4"), "^10"),
-      ("for-from-while", "", "x", "for x from 1 while x < 5", "1,2,3,4", None, "10"),
-      ("for-from-to-where", "", "x", "for x from 1 to 10 where x % 3 == 1", "1,4,7,10", None, "22"),
-      ("for-from-while-where", "", "x", "for x from 1 while x < 10 where x % 3 == 1", "1,4,7", None, "12"),
-      ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", Some("1,4,9"), "18"),
-      ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", None, "4"),
-      ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", None, "1"),
-      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", Some(""), "!!That `Collection` is empty.")
+      ("for-from-to", "", "x*x", "for x from 1 to 5", "1,4,9,16,25", "1,2,4,5,9,10,16,17,25,26", None, "55"),
+      ("for-from-to-by", "", "x*x", "for x from 1 to 10 by 3", "1,16,49,100", "1,2,16,17,49,50,100,101", None, "166"),
+      ("for-from-to-by (neg)", "", "x*x", "for x from 6 to 1 by -2", "36,16,4", "36,37,16,17,4,5", Some("4,16,36"), "56"),
+      ("for-from-to-by (game)", "", "x", "for x from 0 to ^5 by ^*", "0,^*,^^,^3*,^4", "0,1,^*,1^*,^^,1^^,^3*,1^3*,^4,1^4", Some("0,^*,^^,^3*,^4"), "^10"),
+      ("for-from-while", "", "x", "for x from 1 while x < 5", "1,2,3,4", "1,2,2,3,3,4,4,5", None, "10"),
+      ("for-from-to-where", "", "x", "for x from 1 to 10 where x % 3 == 1", "1,4,7,10", "1,2,4,5,7,8,10,11", None, "22"),
+      ("for-from-while-where", "", "x", "for x from 1 while x < 10 where x % 3 == 1", "1,4,7", "1,2,4,5,7,8", None, "12"),
+      ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", "1,2,4,5,9,10,4,5", Some("1,4,9"), "18"),
+      ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", "1,2,3,4", None, "4"),
+      ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", "1,2", None, "1"),
+      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", "", Some(""), "!!That `Collection` is empty.")
     )
 
-    val listComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
+    val listComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _, _) =>
       (s"List comprehension: $name", s"$init[$fn $snippet]", s"[$result]")
     }
 
-    val setComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, sortedResult, _) =>
+    val setComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, _, sortedResult, _) =>
       val setResult = sortedResult getOrElse result
       (s"Set comprehension: $name", s"$init{$fn $snippet}", s"{$setResult}")
     }
 
-    val yieldLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _) =>
+    val yieldLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _, _) =>
       (s"Yield: $name", s"$init$snippet yield $fn end", s"[$result]")
     }
 
-    val sumLoops = loopScenarios map { case (name, init, fn, snippet, _, _, sum) =>
+    val multiYieldLoops = loopScenarios map { case (name, init, fn, snippet, _, multiResult, _, _) =>
+      (s"Multi-Yield: $name", s"$init$snippet yield $fn yield $fn + 1 end", s"[$multiResult]")
+    }
+
+    val sumLoops = loopScenarios map { case (name, init, fn, snippet, _, _, _, sum) =>
       (s"Sum: $name", s"${init}Sum($fn $snippet)", sum)
     }
 
     executeTests(Table(header, listComprehensionLoops : _*))
     executeTests(Table(header, setComprehensionLoops : _*))
     executeTests(Table(header, yieldLoops : _*))
+    executeTests(Table(header, multiYieldLoops : _*))
     executeTests(Table(header, sumLoops : _*))
 
   }
