@@ -108,7 +108,7 @@ class DiscordBot(token: String) extends ListenerAdapter {
 
     val response = str match {
       case "help" =>
-          s"""Welcome to the EXPERIMENTAL CGSuite Discord bot, version 2.0-beta2.
+          s"""Welcome to the EXPERIMENTAL CGSuite Discord bot, version ${System.version}.
              |I should be able to resolve most CGSuite commands. However, I
              |am brand new and have not really been tested; you have been
              |warned. Please report any issues to asiegel.
@@ -116,7 +116,7 @@ class DiscordBot(token: String) extends ListenerAdapter {
              |:version          Print CGSuite and system version info```
              |""".stripMargin
       case "version" =>
-          s"""```CGSuite 2.0-beta2
+          s"""```CGSuite ${System.version}
              |Java ${java.lang.System.getProperty("java.version")}
              |${java.lang.System.getProperty("os.name")} ${java.lang.System.getProperty("os.version")}
              |Heap memory: ${java.lang.Runtime.getRuntime.maxMemory >> 20} MB
