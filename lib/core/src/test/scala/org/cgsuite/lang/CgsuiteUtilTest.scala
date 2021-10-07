@@ -14,6 +14,7 @@ class CgsuiteUtilTest extends CgscriptSpec {
       ("FindAll", "strip.FindAll(2)", "[3,4]"),
       ("Length", "strip.Length", "6"),
       ("Updated", """strip.Updated({ 3 => 4, 4 => 1 }).ToString(".abcd")""", "\".adad.\""),
+      ("UpdatedRange", """strip.UpdatedRange(1, 4, 0).ToString(".abcd")""", "\"....d.\""),
       ("Substrip", """strip.Substrip(2, 5).ToString(".abcd")""", "\"abbd\""),
       ("Singleton Substrip", """strip.Substrip(2, 2).ToString(".abcd")""", "\"a\""),
       ("Empty Substrip 1", """strip.Substrip(3, 2).ToString(".abcd")""", "\"\""),

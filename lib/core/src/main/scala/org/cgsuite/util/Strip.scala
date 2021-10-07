@@ -52,6 +52,13 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
     new Strip(newValues)
   }
 
+  def updatedRange(first: Integer, last: Integer, value: Integer): Strip = {
+    val newValues = new Array[Byte](values.length)
+    System.arraycopy(values, 0, newValues, 0, values.length)
+    util.Arrays.fill(newValues, first.intValue - 1, last.intValue, value.intValue.toByte)
+    new Strip(newValues)
+  }
+
   def findAll(value: Integer): IndexedSeq[Integer] = {
     val byte = value.intValue.toByte
     var cnt = 0
