@@ -725,8 +725,12 @@ expressionList
 
 controlExpression
     : IF^ expression THEN! statementSequence elseifClause? END!
-    | loopAntecedent (forLoopAntecedent)* (DO^ | YIELD^) statementSequence END!
+    | loopAntecedent (forLoopAntecedent)* (DO^ statementSequence | YIELD^ multiYield) END!
     | BEGIN! statementSequence END!
+    ;
+
+multiYield
+    : statementSequence (YIELD! statementSequence)*
     ;
 
 loopAntecedent

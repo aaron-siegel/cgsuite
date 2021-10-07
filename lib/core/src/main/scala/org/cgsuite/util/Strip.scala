@@ -21,6 +21,8 @@ object Strip {
     new Strip(bytes.toArray)
   }
 
+  val empty = Strip(0)
+
 }
 
 class Strip private[util] (private val values: Array[Byte]) extends Serializable {
@@ -70,11 +72,15 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
   }
 
   def substrip(first: Integer, last: Integer): Strip = {
-    val iFirst = first.intValue
-    val iLast = last.intValue
-    val substrip = Strip(iLast-iFirst+1)
-    System.arraycopy(values, iFirst-1, substrip, 0, iLast-iFirst+1)
-    substrip
+    if (first > last) {
+      Strip.empty
+    } else {
+      val iFirst = first.intValue
+      val iLast = last.intValue
+      val substrip = Strip(iLast - iFirst + 1)
+      System.arraycopy(values, iFirst - 1, substrip.values, 0, iLast - iFirst + 1)
+      substrip
+    }
   }
 
   override def hashCode(): Int = util.Arrays.hashCode(values)
