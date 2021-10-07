@@ -5,14 +5,63 @@ import org.scalatest.prop.TableDrivenPropertyChecks.Table
 
 class ClassReloadTest extends CgscriptSpec {
 
+  val waitDurationMillis = 1000
   val testClasspathDir = "target" / "cgs-test"
 
-  "CGSuite classes" should "properly invalidate overridable method resolvers" in {
+  if (!testClasspathDir.exists) {
+    testClasspathDir.createDirectory()
+  }
+  CgscriptClasspath.declareClasspathRoot(testClasspathDir, ensureStartupScriptExists = false)
 
-    if (!testClasspathDir.exists) {
-      testClasspathDir.createDirectory()
+  "CGSuite classes" should "work properly when created or deleted" in {
+
+    testClasspathDir/"DeletionTest.cgs" overwrite
+      """singleton class DeletionTest
+        |  def Method := 168;
+        |end
+        |""".stripMargin
+
+    synchronized {
+      wait(waitDurationMillis)
     }
-    CgscriptClasspath.declareClasspathRoot(testClasspathDir, ensureStartupScriptExists = false)
+    CgscriptClasspath.reloadModifiedFiles()
+
+    executeTestsNoClear(Table(
+      header,
+      ("Initial Class behavior", "DeletionTest.Method", "168")
+    ))
+
+    (testClasspathDir/"DeletionTest.cgs").delete()
+
+    synchronized {
+      wait(waitDurationMillis)
+    }
+    CgscriptClasspath.reloadModifiedFiles()
+
+    executeTestsNoClear(Table(
+      header,
+      ("Deleted Class behavior", "DeletionTest.Method", "!!Class no longer exists: `DeletionTest`")
+    ))
+
+    testClasspathDir/"DeletionTest.cgs" overwrite
+      """singleton class DeletionTest
+        |  def Method := 22;
+        |end
+        |""".stripMargin
+
+    synchronized {
+      wait(waitDurationMillis)
+    }
+    CgscriptClasspath.reloadModifiedFiles()
+
+    executeTestsNoClear(Table(
+      header,
+      ("Recreated Class behavior", "DeletionTest.Method", "22")
+    ))
+
+  }
+
+  "CGSuite classes" should "properly invalidate overridable method resolvers" in {
 
     // For reasons I still don't fully understand, only the TopplingDominoes example (and not the simpler
     // ReloadTest) fails when MemberResolution invalidation is disabled.
@@ -35,7 +84,7 @@ class ClassReloadTest extends CgscriptSpec {
         |""".stripMargin
 
     synchronized {
-      wait(1000)
+      wait(waitDurationMillis)
     }
     CgscriptClasspath.reloadModifiedFiles()
 
@@ -54,7 +103,7 @@ class ClassReloadTest extends CgscriptSpec {
         |""".stripMargin
 
     synchronized {
-      wait(1000)
+      wait(waitDurationMillis)
     }
     CgscriptClasspath.reloadModifiedFiles()
 
@@ -92,7 +141,7 @@ class ClassReloadTest extends CgscriptSpec {
         |""".stripMargin
 
     synchronized {
-      wait(1000)
+      wait(waitDurationMillis)
     }
     CgscriptClasspath.reloadModifiedFiles()
 
@@ -129,7 +178,7 @@ class ClassReloadTest extends CgscriptSpec {
         |""".stripMargin
 
     synchronized {
-      wait(1000)
+      wait(waitDurationMillis)
     }
     CgscriptClasspath.reloadModifiedFiles()
 
