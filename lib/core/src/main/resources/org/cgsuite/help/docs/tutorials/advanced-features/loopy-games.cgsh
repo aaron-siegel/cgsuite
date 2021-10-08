@@ -43,7 +43,7 @@ Games that are not stoppers will be automatically decomposed into an onside and 
 
 Stopper-sided games can also be entered directly:
 
-$G := over & v$
+`G := over & v`
 
 And manipulated in all the usual ways, just as you'd expect:
 

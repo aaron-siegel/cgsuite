@@ -18,8 +18,7 @@ You'll see that they return the boolean values `true` and `false`.
 
 The operator `:` is used for ordinal sum:
 
-`> *4:*5`\\
-\<big\>*9\</big\>
+``*4:*5``
 
 +++ Variable Assignments +++
 
@@ -58,15 +57,13 @@ You can find a list of all the built-in operators on the reference page for [[Ca
 
 Sometimes it's handy to define functions for operations that you plan to use repeatedly. You can do this as follows:
 
-`> def f(x) := x + 1`
+``def f(x) := x + 1``
 
 This defines a function `f`, which you can then invoke using standard function notation.
 
-`> f(6)`\\
-\<big\>7\</big\>
+``f(6)``
 
-`> f(*2)`\\
-\<big\>1*2\</big\>
+``f(*2)``
 
 You can implement quite sophisticated functions using the CGScript language, which we'll learn about shortly. The
 following function computes the Collatz stopping time of `n` (i.e., the number of steps required to go from `n` to `1`,
