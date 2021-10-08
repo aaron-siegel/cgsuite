@@ -290,9 +290,9 @@ class GameTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("CanonicalForm on loopy game", "game.grid.FoxAndGeese({(3,1),(3,3),(3,5),(3,7)}, (1,1)).CanonicalForm",
-        "!!That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."),
-      ("DepthHint not implemented", "test.game.NoDepthHint.GameValue",
-        "!!That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.")
+        "!!That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`.")
+      //("DepthHint not implemented", "test.game.NoDepthHint.GameValue",
+      //  "!!That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.")
     ))
 
   }

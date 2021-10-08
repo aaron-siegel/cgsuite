@@ -21,12 +21,13 @@ object LoopNode {
       case YIELD_MAP => YieldMap
       case YIELD_SET => YieldSet
     }
-    val body = EvalNode(tree.children.last)
-    val loopSpecs = tree.children dropRight 1
-    assert(loopSpecs.forall { _.getType == LOOP_SPEC })
+    val loopSpecs = tree.children takeWhile { _.getType == LOOP_SPEC }
+    val bodyTrees = tree.children.dropWhile { _.getType == LOOP_SPEC }
+    assert(bodyTrees.forall { _.getType == STATEMENT_SEQUENCE })
+    val body = bodyTrees map { EvalNode(_) }
 
-    def makeLoopNode(loopSpecTree: Tree, nextNode: EvalNode): LoopNode = {
-      LoopNode(
+    def makeLoopNode(loopSpecTree: Tree, nextNodes: Vector[EvalNode]): Vector[LoopNode] = {
+      Vector(LoopNode(
         loopSpecTree,
         loopType,
         loopSpecTree.children find { _.getType == FOR   } map { t => IdentifierNode(t.head) },
@@ -36,11 +37,11 @@ object LoopNode {
         loopSpecTree.children find { _.getType == BY    } map { t => EvalNode(t.head) },
         loopSpecTree.children find { _.getType == WHILE } map { t => EvalNode(t.head) },
         loopSpecTree.children find { _.getType == WHERE } map { t => EvalNode(t.head) },
-        nextNode
-      )
+        nextNodes
+      ))
     }
 
-    loopSpecs.foldRight(body)(makeLoopNode).asInstanceOf[LoopNode]
+    loopSpecs.foldRight(body)(makeLoopNode).head.asInstanceOf[LoopNode]
 
   }
 
@@ -62,10 +63,10 @@ case class LoopNode(
   by      : Option[EvalNode],
   `while` : Option[EvalNode],
   where   : Option[EvalNode],
-  body    : EvalNode
+  body    : Vector[EvalNode]
 ) extends EvalNode {
 
-  override val children = forId.toVector ++ in ++ from ++ to ++ by ++ `while` ++ where :+ body
+  override val children = forId.toVector ++ in ++ from ++ to ++ by ++ `while` ++ where ++ body
 
   private val prepareLoop = Symbol(s"PrepareLoop [${tree.location}]")
   private val loop = Symbol(s"Loop [${tree.location}]")
@@ -75,9 +76,10 @@ case class LoopNode(
     case LoopNode.Do => false
     case LoopNode.YieldList | LoopNode.YieldMap | LoopNode.YieldSet => true
   }
-  private val pushDownYield: Option[LoopNode] = (isYield, body) match {
+  private val pushDownYield: Option[LoopNode] = (isYield, body.head) match {
     case (true, loopBody: LoopNode) =>
       assert(loopBody.isYield)
+      assert(body.length == 1)
       Some(loopBody)
     case _ => None
   }
@@ -127,10 +129,10 @@ case class LoopNode(
       to map { "to " + _.toNodeString },
       by map { "by " + _.toNodeString },
       `while` map { "while " + _.toNodeString },
-      where map { "where " + _.toNodeString },
-      Some(loopTypeStr)
+      where map { "where " + _.toNodeString }
     ).flatten.mkString(" ")
-    antecedent + " " + body.toNodeString + " end"
+    val bodyStr = body map { loopTypeStr + " " + _.toNodeString } mkString " "
+    antecedent + " " + bodyStr + " end"
   }
 
   private def evaluate(domain: EvaluationDomain, yieldResult: ArrayBuffer[Any]): Null = {
@@ -180,9 +182,11 @@ case class LoopNode(
           pushDownYield match {
             case Some(pushDown) => pushDown.evaluate(domain, yieldResult)
             case None =>
-              val r = body.evaluate(domain)
-              if (yieldResult != null) {
-                yieldResult += r
+              body foreach { bodyElement =>
+                val r = bodyElement.evaluate(domain)
+                if (yieldResult != null) {
+                  yieldResult += r
+                }
               }
           }
           Profiler.stop(loopBody)

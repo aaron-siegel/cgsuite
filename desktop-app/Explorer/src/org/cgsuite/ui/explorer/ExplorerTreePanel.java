@@ -62,6 +62,8 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
     private Set<ExplorerTreeListener> listeners;
 
+    private DragHack dragHack = new DragHack();
+
     /** Creates new form ExplorerTreePanel */
     public ExplorerTreePanel()
     {
@@ -109,12 +111,19 @@ public class ExplorerTreePanel extends JPanel implements Scrollable, ExplorerLis
 
         addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent evt) {
-                List<ExplorerNode> path = pathTo(evt.getX(), evt.getY());
-                if (path != null)
-                {
-                    setSelectionPath(path);
-                    requestFocusInWindow();
+            public void mousePressed(MouseEvent evt) {
+                dragHack.registerMousePressed(evt.getX(), evt.getY());
+            }
+            @Override
+            public void mouseReleased(MouseEvent evt) {
+                dragHack.registerMouseDragged(evt.getX(), evt.getY());
+                if (!dragHack.isDragging()) {
+                    List<ExplorerNode> path = pathTo(evt.getX(), evt.getY());
+                    if (path != null)
+                    {
+                        setSelectionPath(path);
+                        requestFocusInWindow();
+                    }
                 }
         }});
     }

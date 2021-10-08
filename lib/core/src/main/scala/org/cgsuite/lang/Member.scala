@@ -18,9 +18,15 @@ trait Member extends MemberResolution {
 
 trait MemberResolution {
 
+  private var valid = true
+
   def declaringClass: CgscriptClass
 
   def id: Symbol
+
+  def isValid: Boolean = valid
+
+  def invalidate(): Unit = valid = false
 
 }
 

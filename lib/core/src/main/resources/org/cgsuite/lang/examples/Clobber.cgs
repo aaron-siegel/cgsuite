@@ -1,0 +1,49 @@
+/*
+ * Clobber.cgs
+ *
+ * Clobber is played on a grid with black and white stones. Left
+ * can move any black stone onto an orthogonally adjacent white
+ * stone; the white stone is then captured and removed from the game.
+ * Likewise, Right may move any white stone onto an orthogonally
+ * adjacent black stone. No moves are permitted without capture.
+ *
+ * Examples:
+ * g := examples.Clobber("xoxo|ox..")
+ * g.CanonicalForm
+ */
+
+// Define Clobber as a subclass of GridRuleset
+singleton class Clobber extends game.grid.GridRuleset
+
+  // Define a nested class to represent specific positions
+  class Position(grid as Grid) extends GridGame
+
+    // Define the options of this position
+    override def Options(player as Player) begin
+
+      var us := player.Ordinal;
+      var them := player.Opponent.Ordinal;
+
+      for coord in grid FindAll us                // For each coordinate that matches the player's color ...
+      for direction in Coordinates.Orthogonal     // ... and for each orthogonal direction ...
+      where grid[coord + direction] == them       // ... such that an opposing stone is adjacent in that direction ...
+      yield
+        // Generate an option by updating the grid, replacing the stone at
+        // `coord` with an empty space and the stone at `coord + direction`
+        // with a stone of the player's color.
+        Position(grid Updated { coord => 0, coord + direction => us })
+      end
+
+    end
+
+  end
+
+  // Define the characters used to represent blank spaces, black stones,
+  // and white stones when Clobber positions are created
+  override def CharMap := ".xo";
+
+  // Define the icons used to display blank spaces, black stones, and
+  // white stones when Clobber positions are displayed
+  override def Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone];
+
+end
