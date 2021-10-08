@@ -1,0 +1,42 @@
+/*
+ * TopplingDominoes.cgs
+ *
+ * Toppling Dominoes is a strip game (played on a 1xN grid) populated
+ * by black and white dominoes. On her move, Left may select any
+ * black domino, and either: (i) remove the selected domino and all
+ * dominoes to its left; or (ii) remove the selected domino and all
+ * dominoes to its right. Similarly, Right may select any white domino
+ * and do the same.
+ *
+ * This implementation also supports gray dominoes, which may be
+ * selected and toppled by either player.
+ *
+ * Examples:
+ * g := examples.TopplingDominoes("lrlrreelr")
+ * g.CanonicalForm
+ */
+
+singleton class TopplingDominoes extends game.strip.StripRuleset
+
+  class Position(strip as Strip) extends StripGame
+
+    override def Options(player as Player) begin
+
+      var us := player.Ordinal;
+      var them := player.Opponent.Ordinal;
+
+      for n from 1 to strip.Length              // For each location on the strip
+      where strip[n] == us or strip[n] == 3     // ... if the space is occupied by a domino of our color or a grey domino ...
+      yield Position(strip.UpdatedRange(1, n, 0))             // ... generate an option with dominoes to the left removed ...
+      yield Position(strip.UpdatedRange(n, strip.Length, 0))  // ... and another option with dominoes to the right removed
+      end
+
+    end
+
+  end
+
+  override def CharMap := ".lre";
+
+  override def Icons := [Icon.Blank, Icon.BlackDomino, Icon.WhiteDomino, Icon.GrayDomino];
+
+end

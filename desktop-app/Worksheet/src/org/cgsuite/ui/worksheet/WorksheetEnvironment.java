@@ -50,6 +50,11 @@ public class WorksheetEnvironment {
 
         if (!USER_FOLDER.exists()) {
             USER_FOLDER.mkdirs();
+            File examplesFolder = new File(USER_FOLDER, "examples");
+            if (!examplesFolder.exists()) {
+                examplesFolder.mkdir();
+            }
+            CgscriptClasspath.copyExamples(examplesFolder);
         }
         CgscriptClasspath.declareClasspathRoot(USER_FOLDER, true);
 
