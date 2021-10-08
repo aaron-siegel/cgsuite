@@ -14,8 +14,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 import javax.swing.ActionMap;
-import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.DefaultEditorKit;
+import org.cgsuite.ui.worksheet.WorksheetEnvironment;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.explorer.ExplorerManager;
 import org.openide.explorer.ExplorerUtils;
@@ -43,7 +43,6 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
 //    static final String ICON_PATH = "SET/PATH/TO/ICON/HERE";
     private static final String PREFERRED_ID = "BrowserTopComponent";
     
-    private File USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
     private File CORE_JAR = InstalledFileLocator.getDefault().locate("modules/ext/cgsuite-core.jar", "org.cgsuite", false);
     private File DEV_LIB_FOLDER = FileUtil.normalizeFile(new File("../lib/core/src/main/resources/org/cgsuite/lang/resources"));
     private File DEV_TEST_FOLDER = FileUtil.normalizeFile(new File("../lib/core/src/test/resources/org/cgsuite"));
@@ -70,11 +69,9 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
                 copyFolder(defaultUserFolder, USER_FOLDER);
             }
             */
-            if (!USER_FOLDER.exists()) {
-                USER_FOLDER.mkdir();
-            }
+            WorksheetEnvironment.ensureInitialized();
             LocalFileSystem fs = new LocalFileSystem();
-            fs.setRootDirectory(USER_FOLDER);
+            fs.setRootDirectory(WorksheetEnvironment.USER_FOLDER);
             fs.setReadOnly(false);
             this.root = fs.getRoot();
             this.rootDataObject = DataObject.find(root);
@@ -98,9 +95,9 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
         
         this.em.setRootContext(rootDataObject.getNodeDelegate());
         
-        setRootFolder(new RootFolder(FileUtil.toFileObject(USER_FOLDER), "User Folder"));
+        setRootFolder(new RootFolder(FileUtil.toFileObject(WorksheetEnvironment.USER_FOLDER), "User Folder"));
         
-        jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(USER_FOLDER), "User Folder"));
+        jComboBox1.addItem(new RootFolder(FileUtil.toFileObject(WorksheetEnvironment.USER_FOLDER), "User Folder"));
         jComboBox1.addItem(new RootFolder(libFileObject, "System Folder"));
         
         if (System.getProperty("org.cgsuite.devbuild") != null)

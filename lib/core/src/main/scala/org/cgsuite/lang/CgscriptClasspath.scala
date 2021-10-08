@@ -80,6 +80,26 @@ object CgscriptClasspath {
     declareFolder(folder)
   }
 
+  def copyExamples(dest: java.io.File): Unit = copyExamples(dest.toScala)
+
+  def copyExamples(dest: File): Unit = {
+    val uri = getClass.getResource("examples").toURI
+    if (uri.getScheme == "jar") {
+      FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+        provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+      }
+    }
+    val examplesDir = File(getClass.getResource("examples").toURI)
+    examplesDir.children foreach { exampleFile =>
+      val copyToFile = dest / exampleFile.name
+      val in = exampleFile.newInputStream
+      val text = scala.io.Source.fromInputStream(in).getLines() mkString "\n"
+      in.close()
+      copyToFile overwrite text
+      copyToFile append "\n"
+    }
+  }
+
   private[cgsuite] def declareFolder(folder: File): Unit = {
     declareFolderR(CgscriptPackage.root, folder, folder)
   }
@@ -123,6 +143,7 @@ object CgscriptClasspath {
       foldersToRedeclare foreach declareFolder
       modifiedFiles.clear()
     }
+
   }
 
   class Monitor(folder: File) extends RecursiveFileMonitor(folder) {

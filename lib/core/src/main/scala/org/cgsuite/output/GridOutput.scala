@@ -48,6 +48,8 @@ object GridOutput {
     })
   }
 
+  val blankIcon = lookupSystemIcon("Blank")
+
 }
 
 trait GenGridOutput extends AbstractOutput {
@@ -82,7 +84,8 @@ trait GenGridOutput extends AbstractOutput {
       g.drawLine(col * (3 + cellSize.width), 0, col * (3 + cellSize.width), grid.rowCount * (3 + cellSize.height))
     }
     for (row <- 0 until grid.rowCount; col <- 0 until grid.colCount) {
-      val icon = icons(grid.get(row + 1, col + 1))
+      val value = grid.get(row + 1, col + 1)
+      val icon = if (value >= 0 && value < icons.length) icons(value) else GridOutput.blankIcon
       if (icon != null) {
         icon.paintIcon(null, g, col * (3 + cellSize.width) + 2 + (cellSize.width - icon.getIconWidth) / 2, row * (3 + cellSize.height) + 2 + (cellSize.height - icon.getIconHeight) / 2)
       }
