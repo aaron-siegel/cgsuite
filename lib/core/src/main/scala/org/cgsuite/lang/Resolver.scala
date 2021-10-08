@@ -32,7 +32,6 @@ case class Resolver(id: Symbol) {
 
   }
 
-  // TODO This should go away when statics do
   def findStaticResolution(co: ClassObject): Resolution = {
     if (staticResolutions.length <= co.forClass.classOrdinal) {
       staticResolutions = staticResolutions ++ new Array[Resolution](co.forClass.classOrdinal + 1 - staticResolutions.length)
@@ -51,7 +50,10 @@ case class Resolver(id: Symbol) {
       resolutions = resolutions ++ new Array[Resolution](cls.classOrdinal + 1 - resolutions.length)
     }
     var res = resolutions(cls.classOrdinal)
-    if (res == null) {
+    // We need to create a new resolution if either:
+    // - none exists; or
+    // - the existing resolution is an invalid method group.
+    if (res == null || res.methodGroup.exists { !_.isValid }) {
       res = Resolution(cls, id)
       resolutions(cls.classOrdinal) = res
     }

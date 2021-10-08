@@ -16,4 +16,6 @@ system class Strip
 
   external def Updated(newValues as Map) as Strip;
 
+  external def UpdatedRange(first as Integer, last as Integer, newValue as Integer) as Strip;
+
 end
