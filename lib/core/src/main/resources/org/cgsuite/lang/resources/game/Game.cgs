@@ -44,10 +44,12 @@ system class Game
   external def GameValue;
   external def OrdinalProduct(h as Game);
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
+  external def SensibleLeftOptions;
   external def SensibleLines(player as Player);
   external def SensibleOptions(player as Player);
+  external def SensibleRightOptions;
 
-  def DepthHint := error("That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.");
+  def DepthHint := 0;
 
   def Options(player as Player) := error("Subclasses of `Game` must override the `Options` method.");
 

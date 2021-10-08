@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import java.nio.file.FileSystemAlreadyExistsException
 import java.nio.file.spi.FileSystemProvider
 import java.util.Collections
 
@@ -44,8 +45,12 @@ object CgscriptClasspath {
         // Search in the production jar.
         val uri = getClass.getResource("resources").toURI
         if (uri.getScheme == "jar") {
-          FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
-            provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+          try {
+            FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+              provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+            }
+          } catch {
+            case _: FileSystemAlreadyExistsException =>
           }
         }
         File(getClass.getResource("resources").toURI)
@@ -78,6 +83,30 @@ object CgscriptClasspath {
       }
     }
     declareFolder(folder)
+  }
+
+  def copyExamples(dest: java.io.File): Unit = copyExamples(dest.toScala)
+
+  def copyExamples(dest: File): Unit = {
+    val uri = getClass.getResource("examples").toURI
+    if (uri.getScheme == "jar") {
+      try {
+        FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+          provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+        }
+      } catch {
+        case _: FileSystemAlreadyExistsException =>
+      }
+    }
+    val examplesDir = File(getClass.getResource("examples").toURI)
+    examplesDir.children foreach { exampleFile =>
+      val copyToFile = dest / exampleFile.name
+      val in = exampleFile.newInputStream
+      val text = scala.io.Source.fromInputStream(in).getLines() mkString "\n"
+      in.close()
+      copyToFile overwrite text
+      copyToFile append "\n"
+    }
   }
 
   private[cgsuite] def declareFolder(folder: File): Unit = {
@@ -123,6 +152,7 @@ object CgscriptClasspath {
       foldersToRedeclare foreach declareFolder
       modifiedFiles.clear()
     }
+
   }
 
   class Monitor(folder: File) extends RecursiveFileMonitor(folder) {

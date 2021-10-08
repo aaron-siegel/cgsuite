@@ -8,8 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileSystemView;
 import org.cgsuite.ui.script.CgsFileFilter;
+import org.cgsuite.ui.worksheet.WorksheetEnvironment;
 import org.openide.cookies.EditorCookie;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.filesystems.FileObject;
@@ -21,15 +21,13 @@ import org.openide.loaders.DataObjectNotFoundException;
 
 public final class OpenAction implements ActionListener
 {
-    private File USER_FOLDER = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "CGSuite");
-
     @Override
     public void actionPerformed(ActionEvent e)
     {
         FileChooserBuilder fcb = new FileChooserBuilder(OpenAction.class);
         fcb.setApproveText("Open");
         fcb.setFileFilter(CgsFileFilter.INSTANCE);
-        fcb.setDefaultWorkingDirectory(USER_FOLDER);
+        fcb.setDefaultWorkingDirectory(WorksheetEnvironment.USER_FOLDER);
 
         JFileChooser jfc = fcb.createFileChooser();
 

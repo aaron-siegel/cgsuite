@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.{ByteArrayInputStream, File, FileNotFoundException}
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -278,6 +278,10 @@ class CgscriptClass(
 
   private def doUnload(): Unit = {
     logDebug(s"Unloading.")
+    if (classInfoRef != null) {
+      classInfo.localMembers foreach { _.invalidate() }
+      classInfo.allMethodGroups.values foreach { _.invalidate() }
+    }
     classInfoRef = null
     scriptObjectRef = null
     singletonInstanceRef = null
@@ -399,7 +403,11 @@ class CgscriptClass(
 
       case UrlClassDef(_, url) =>
         logDebug(s"Parsing from URL: $url")
-        (url.openStream(), new File(url.getFile).getName)
+        try {
+          (url.openStream(), new File(url.getFile).getName)
+        } catch {
+          case _: FileNotFoundException => throw EvalException(s"Class no longer exists: `$qualifiedName`")
+        }
 
       case ExplicitClassDef(text) =>
         logDebug(s"Parsing from explicit definition.")

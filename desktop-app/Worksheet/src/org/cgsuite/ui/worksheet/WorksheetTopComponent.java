@@ -34,10 +34,8 @@ public final class WorksheetTopComponent extends TopComponent
     
     private boolean started = false;
 
-    // WorksheetTopComponent loads no matter what, so we trigger initialization here.
-
     static {
-        WorksheetEnvironment.initialize();
+        WorksheetEnvironment.ensureInitialized();
     }
 
     public WorksheetTopComponent()

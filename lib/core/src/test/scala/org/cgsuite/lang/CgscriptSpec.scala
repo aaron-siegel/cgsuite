@@ -27,6 +27,12 @@ trait CgscriptSpec extends AnyFlatSpec with Matchers {
     CgscriptClass.clearAll()
     CgscriptClass.Object.ensureInitialized()
 
+    executeTestsNoClear(tests, preamble)
+
+  }
+
+  def executeTestsNoClear(tests: TableFor3[String, String, String], preamble: String = ""): Unit = {
+
     val varMap = mutable.AnyRefMap[Symbol, Any]()
 
     if (preamble != "") parseResult(preamble, varMap)

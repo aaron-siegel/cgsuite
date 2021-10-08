@@ -1,0 +1,31 @@
+/*
+ * Nim.cgs
+ *
+ * A basic implementation of Nim.
+ *
+ * This class is intended as a CGScript example. Nim is also available in the
+ * Standard Games Library as game.heap.Nim.
+ *
+ * Example:
+ * g := examples.Nim(10)
+ * g.CanonicalForm
+ */
+
+// Define Nim as a subclass of Ruleset
+singleton class Nim extends Ruleset
+
+  // Define a nested class to represent specific positions
+  class Position(heapSize as Integer) extends ImpartialGame
+
+    // Define the options of this position (move to a heap of
+    // size k for any k < heapSize)
+    override def Options := [Position(k) for k from 0 to heapSize - 1];
+
+  end
+
+  // Define an `Eval` method so that we can use `examples.Nim(10)`
+  // as shorthand for `examples.Nim.Position(10)`. (This isn't
+  // strictly necessary, but it's convenient.)
+  def Eval(heapSize as Integer) := Position(heapSize);
+
+end

@@ -13,12 +13,9 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
-
 object Repl {
 
-  val version = "2.0"
-
-  val welcome = s"Welcome to the CGSuite REPL, Version $version."
+  val welcome = s"Welcome to the CGSuite REPL, Version ${System.version}."
 
   val replVarMap = mutable.AnyRefMap[Symbol, Any]()
 
@@ -78,7 +75,7 @@ object Repl {
         true
       case "version" =>
         print(
-          s"""CGSuite $version
+          s"""CGSuite ${System.version}
              |Java ${java.lang.System.getProperty("java.version")}
              |${java.lang.System.getProperty("os.name")} ${java.lang.System.getProperty("os.version")}
              |Heap memory: ${java.lang.Runtime.getRuntime.maxMemory >> 20} MB

@@ -37,11 +37,16 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
 
   override def elaborate(scope: ElaborationDomain): Unit = {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
-    scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
-      case Some(cls) => classResolution = {
-        Some(if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject)
+    try {
+      scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
+        case Some(cls) => classResolution = {
+          Some(if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject)
+        }
+        case None =>
       }
-      case None =>
+    } catch {
+      // For example, if the .cgs file containing the Class has been deleted
+      case exc: EvalException => exc.addToken(token); throw exc
     }
     // Can this be resolved as a scoped variable?
     scope lookup id match {
