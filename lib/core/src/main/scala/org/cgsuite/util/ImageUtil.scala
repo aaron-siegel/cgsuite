@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 
 object ImageUtil {
 
-  def writeHiResImage(image: BufferedImage, output: File, format: String, dpi: Int): Unit = {
+  def writeHighDpiImage(image: BufferedImage, output: File, format: String, dpi: Int): Unit = {
 
     val writer = ImageIO.getImageWritersByFormatName(format).asScala find { w =>
       val writeParam = w.getDefaultWriteParam
@@ -21,7 +21,7 @@ object ImageUtil {
     }
     val writeParam = writer.getDefaultWriteParam
     val metadata = writer.getDefaultImageMetadata(typeSpecifier, writeParam)
-    setDPI(metadata, dpi)
+    setDpi(metadata, dpi)
 
     val stream = ImageIO.createImageOutputStream(output)
     try {
@@ -35,7 +35,7 @@ object ImageUtil {
 
   val typeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(BufferedImage.TYPE_INT_ARGB)
 
-  private def setDPI(metadata: IIOMetadata, dpi: Int): Unit = { // for PNG, it's dots per millimeter
+  private def setDpi(metadata: IIOMetadata, dpi: Int): Unit = { // for PNG, it's dots per millimeter
     val dotsPerMm = dpi / 25.4
     val horiz = new IIOMetadataNode("HorizontalPixelSize")
     horiz.setAttribute("value", dotsPerMm.toString)
