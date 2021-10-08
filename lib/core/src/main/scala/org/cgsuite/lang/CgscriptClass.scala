@@ -86,7 +86,7 @@ object CgscriptClass {
 
   def instanceToOutput(x: Any): Output = {
     CgscriptClass.of(x).classInfo.toOutputMethod.call(x, Array.empty) match {
-      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_TEXT, str)
+      case str: String => new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, str)
       case output: Output => output
       case y =>
         throw EvalException(
