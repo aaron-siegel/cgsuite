@@ -745,6 +745,13 @@ class CgscriptClass(
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Vector.empty)
     }
 
+    val allUnshadowedMembers: Vector[Member] = {
+      Vector.empty ++ instanceVarLookup.values ++ staticVarLookup.values ++ localEnumElements ++
+        allNestedClasses.values ++ allMethodGroups.values.flatMap { _.methods }
+    }
+
+    assert(allUnshadowedMembers.map { _.id }.toSet == allSymbolsInThisClass)
+
     logDebug(s"Validating class.")
 
     // Check for duplicate vars (we make an exception for the constructor)

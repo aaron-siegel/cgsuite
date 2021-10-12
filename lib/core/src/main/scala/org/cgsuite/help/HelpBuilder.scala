@@ -254,7 +254,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         }
       }
 
-      val (classParameters, regularMembers) = cls.classInfo.allMembers partition {
+      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers partition {
         case v: CgscriptClass#Var if v.isConstructorParam => true
         case _ => false
       }
