@@ -112,7 +112,7 @@ class GameHeapTest extends CgscriptSpec {
     val instances = Seq(
       ("game.heap.Wythoff", "30", "[10,11,9,8,13,12,0,15,16,17,14,18,7,6,2,3,1,4,5,23,28]",
         "[10,11,9,8^8,13^(13),12^(12),0^0,15^(15),16^(16),17^(17),14^(14),18^(18),7^7,6^6,2^2,3^3,1^1,4^4,5^5,23^(23),28^(28)]"),
-      ("game.heap.GenWythoff(r => 2)", "48", "[10,11,12,13,0,14,9,17,18,19,20,21,22,23,24,25,26,15,28,29,30]",
+      ("game.heap.GenWythoff(x -> x + 2)", "48", "[10,11,12,13,0,14,9,17,18,19,20,21,22,23,24,25,26,15,28,29,30]",
         "[10,11,12,13,0,14,9,17,18,19,20,21,22,23,24,25,26,15,28,29,30]"),
       ("game.heap.FibonacciNim", "10", "[0,2,2,2,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]", "[0,2,2,2,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5]"),
       ("game.heap.TakeAway(3)", "10", "[0,2,2,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]", "[0,2,2,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]"),
@@ -167,7 +167,7 @@ class GameHeapTest extends CgscriptSpec {
       val ppos = wytP(r, 15)
       println(s"r = $r: ${ppos mkString " "}")
       (s"game.heap.GenWythoff($r) P-positions",
-        s"""rs := game.heap.GenWythoff($r);
+        s"""rs := game.heap.GenWythoff(x -> x + $r);
            |[${ppos mkString ","}].Apply(coord -> rs(coord).NimValue)
            |""".stripMargin,
         "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]")

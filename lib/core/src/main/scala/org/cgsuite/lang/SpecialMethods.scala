@@ -21,6 +21,12 @@ object SpecialMethods {
     },
     "cgsuite.lang.Object.JavaClass" -> { (obj: Any, _: Unit) => obj.getClass.getName },
     "cgsuite.lang.Object.ToOutput" -> { (obj: Any, _: Unit) => CgscriptClass instanceToDefaultOutput obj },
+    "cgsuite.lang.Collection.Flattened" -> { (collection: Iterable[_], _: Unit) =>
+      collection flatMap {
+        case it: Iterable[_] => it
+        case obj => Some(obj)
+      }
+    },
     "cgsuite.lang.Collection.Head" -> { (collection: Iterable[_], _: Unit) =>
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.head
     },

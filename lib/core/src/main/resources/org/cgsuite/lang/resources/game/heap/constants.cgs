@@ -59,6 +59,6 @@ singleton class constants
     * `game.heap.Wythoff((10, 11))` \\
     * `game.heap.Wythoff.NimValueTable(30, 30)`
     */
-  var Wythoff := GenWythoff(1);
+  var Wythoff := GenWythoff(k -> k + 1);
 
 end
