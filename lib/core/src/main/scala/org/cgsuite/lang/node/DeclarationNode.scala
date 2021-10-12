@@ -105,6 +105,7 @@ object ParametersNode {
       assert(t.getType == METHOD_PARAMETER)
       ParameterNode(
         t,
+        pkg,
         IdentifierNode(t.head),
         t.children find { _.getType == AS } map { u => IdentifierNode(u.head) },
         t.children find { _.getType == QUESTION } map { u => EvalNode(u.head) },
@@ -114,7 +115,7 @@ object ParametersNode {
     val invalidExpandedParameter = parameters.dropRight(1).find { _.isExpandable }
     invalidExpandedParameter foreach { paramNode =>
       throw EvalException(
-        s"Invalid expansion for parameter `${paramNode.id.id.name}`: must be in last position",
+        s"Invalid expansion for parameter `${paramNode.idNode.id.name}`: must be in last position",
         paramNode.tree
       )
     }
@@ -126,30 +127,31 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
 
   override val children = parameterNodes
 
-  def toParameters: Vector[Parameter] = {
-
-    parameterNodes.map { n =>
-      val ttype = n.classId match {
-        case None => CgscriptClass.Object
-        case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
-          throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
-        }
-      }
-      Parameter(n.id, ttype, n.defaultValue, n.isExpandable)
-    }
-
-  }
+  def toParameters: Vector[Parameter] = parameterNodes map { _.toParameter }
 
 }
 
 case class ParameterNode(
   tree: Tree,
-  id: IdentifierNode,
+  pkg: Option[CgscriptPackage],
+  idNode: IdentifierNode,
   classId: Option[IdentifierNode],
   defaultValue: Option[EvalNode],
   isExpandable: Boolean
-  ) extends Node {
-  override val children = Seq(id) ++ classId ++ defaultValue
+  ) extends MemberDeclarationNode {
+
+  override val children = Seq(idNode) ++ classId ++ defaultValue
+
+  def toParameter: Parameter = {
+    val ttype = classId match {
+      case None => CgscriptClass.Object
+      case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
+        throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
+      }
+    }
+    Parameter(idNode, ttype, defaultValue, isExpandable)
+  }
+
 }
 
 object ClassVarNode {

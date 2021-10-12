@@ -47,6 +47,18 @@ singleton class constants
 
   var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
+  /** Ruleset for Wythoff Nim.
+    *
+    * Wythoff Nim is an impartial game played on two heaps of tokens. From a position $(a,b)$, a player may
+    * remove any number of tokens from any one heap (as in ordinary [[Nim]]), or else remove the same number
+    * of tokens from both heaps.
+    *
+    * Wythoff Nim is an instance of the ruleset schema [[GenWythoff]] and is implemented as a
+    * [[CoordinateRuleset]], so that positions are represented by coordinate pairs:
+    *
+    * `game.heap.Wythoff((10, 11))` \\
+    * `game.heap.Wythoff.NimValueTable(30, 30)`
+    */
   var Wythoff := GenWythoff(1);
 
 end

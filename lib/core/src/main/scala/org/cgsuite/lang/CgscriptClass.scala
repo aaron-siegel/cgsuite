@@ -587,11 +587,10 @@ class CgscriptClass(
       }
     }
 
-    val constructorParamVars: Vector[Var] = constructor match {
-      case Some(ctor) => ctor.parameters map { param =>
-        Var(param.idNode, Some(classDeclNode), isMutable = false, isStatic = false, isConstructorParam = true)
+    val constructorParamVars = classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
+      paramsNode.parameterNodes map { paramNode =>
+        Var(paramNode.idNode, Some(paramNode), isMutable = false, isStatic = false, asConstructorParam = Some(paramNode.toParameter))
       }
-      case None => Vector.empty
     }
 
     val localMembers: Vector[Member] = localInstanceVars ++ constructorParamVars ++ localEnumElements ++ localMethods ++ localNestedClasses
@@ -1155,10 +1154,12 @@ class CgscriptClass(
     declNode: Option[MemberDeclarationNode],
     isMutable: Boolean,
     isStatic: Boolean,
-    isConstructorParam: Boolean = false
+    asConstructorParam: Option[Parameter] = None
   ) extends Member {
 
     def declaringClass = thisClass
+
+    def isConstructorParam = asConstructorParam.isDefined
 
   }
 

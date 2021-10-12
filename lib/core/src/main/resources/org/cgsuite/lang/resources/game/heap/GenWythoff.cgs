@@ -1,15 +1,29 @@
 /*${cgsuite.banner}*/
 
-class GenWythoff(r as Integer) extends CoordinateRuleset
+/** Ruleset schema for generalizations of [[Wythoff]].
+  *
+  * `GenWythoff(r)` is an impartial game played on two heaps of tokens. From a position $(a,b)$,
+  * a player may either:
+  * \ul
+  * \li Remove any number of tokens from any one heap; or
+  * \li Remove $i$ tokens from heap $a$ and $j$ tokens from heap $b$, provided that $|i - j| < r$.
+  * \endul
+  * Note that if $r = 1$, then the second condition reduces to $i = j$, so that `GenWythoff(1)` is
+  * the same as ordinary [[Wythoff]].
+  */
+class GenWythoff(
+  /** The Fraenkel `r`-parameter for this ruleset (see definition above). */
+  r as Integer
+  ) extends CoordinateRuleset
 
   override def CoordinateOptions(coord as Coordinates) begin
     var m := coord.Row;
     var n := coord.Col;
     var diag := (m Min n) + r - 1;
-    var mOpts := {coord - (a, 0) for a from 1 to m};
-    var nOpts := {coord - (0, b) for b from 1 to n};
-    var dOpts := {coord - (d, e) for d from 1 to diag Min m for e from d-r+1 to d+r-1 Min n};
-    mOpts Union nOpts Union dOpts
+    var mOpts := [coord - (a, 0) for a from 1 to m];
+    var nOpts := [coord - (0, b) for b from 1 to n];
+    var dOpts := [coord - (d, e) for d from 1 to diag Min m for e from d-r+1 Max 1 to d+r-1 Min n];
+    mOpts Concat nOpts Concat dOpts
   end
 
 end

@@ -254,8 +254,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         }
       }
 
-      val regularMembers = {
-        cls.classInfo.allMembers
+      val (classParameters, regularMembers) = cls.classInfo.allMembers partition {
+        case v: CgscriptClass#Var if v.isConstructorParam => true
+        case _ => false
       }
 
       val members = {
@@ -279,6 +280,13 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           makeMemberSummary(cls, cls.classInfo.localStaticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
       }
 
+      val parameterSummary = {
+        if (classParameters.isEmpty)
+          ""
+        else
+          makeMemberSummary(cls, classParameters, "<h2>Class Parameters</h2>")
+      }
+
       val memberSummary = makeMemberSummary(cls, members filter {
         member => member.declaringClass == cls || member.declaringClass == null
       }, "<h2>All Members</h2>")
@@ -300,11 +308,12 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val staticMemberDetails = cls.classInfo.localStaticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val memberDetails = members filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
+      val memberDetails = (members ++ classParameters) filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
 
       packageDir.createDirectories()
       file overwrite header
       classComment foreach file.append
+      file append parameterSummary
       file append enumElementSummary
       file append staticMemberSummary
       file append memberSummary
@@ -418,11 +427,23 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
         val etype = entityType(member)
         val name = member.idNode.id.name
-        val memberLink = {
-          if (member.declaringClass == null)
+
+        val memberLink = member match {
+
+          case _ if member.declaringClass == null =>
             linkBuilder.hyperlinkToClass(member.asInstanceOf[CgscriptClass], textOpt = Some(name))
-          else
+
+          case _ =>
             linkBuilder.hyperlinkToClass(declaringClass, Some(member), Some(name))
+        }
+
+        val memberSuffix = member match {
+          case v: CgscriptClass#Var if v.isConstructorParam =>
+            // Class param suffix such as " as Integer?"
+            makeParameterSuffix(linkBuilder, v.asConstructorParam.get, showDefault = true)
+          case _ =>
+            // Method parameters suffix such as "(x as Integer, y as Integer)"
+            makeParameters(linkBuilder, member)
         }
 
         val description = docCommentForMember(member) match {
@@ -435,7 +456,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
            |      <code class="big">$etype${"&nbsp;" * (5 - etype.length)}</code>
            |    </td>
            |    <td class="member">
-           |      <code class="big">$memberLink${makeParameters(linkBuilder, member)}</code>
+           |      <code class="big">$memberLink$memberSuffix</code>
            |      <br>$description
            |    </td>
            |  </tr>
@@ -534,7 +555,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val name = member.idNode.id.name
 
-    val parametersStr = makeParameters(linkBuilder, member)
+    val memberSuffix = member match {
+      case v: CgscriptClass#Var if v.isConstructorParam => makeParameterSuffix(linkBuilder, v.asConstructorParam.get)
+      case _ => makeParameters(linkBuilder, member)
+    }
 
     val commentOpt = docCommentForMember(member)
 
@@ -552,7 +576,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         s"$disclaimer<p>$processedComment"
     }
 
-    val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$parametersStr</code>\n  """ else ""
+    val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$memberSuffix</code>\n  """ else ""
 
     s"""<a name="$name"></a>
        |<p><div class="section">
@@ -565,6 +589,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     member match {
       case _: CgscriptClass => "class"
       case _: CgscriptClass#Method => "def"
+      case v: CgscriptClass#Var if v.isConstructorParam => "param"
       case _: CgscriptClass#Var => "var"
       case _ => sys.error("can't happen")
     }
@@ -610,28 +635,31 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def makeParameters(linkBuilder: HelpLinkBuilder, parameters: Seq[Parameter]): String = {
 
-    val strings = parameters map { parameter =>
+    val withoutParens = parameters map { param =>
+      param.id.name + makeParameterSuffix(linkBuilder, param)
+    } mkString ", "
 
-      val asString = {
-        if (parameter.paramType == CgscriptClass.Object)
-          ""
-        else
-          " as " + linkBuilder.hyperlinkToClass(parameter.paramType)
-      }
+    s"($withoutParens)"
 
-      val expandString = if (parameter.isExpandable) " ..." else ""
+  }
 
-      // TODO: Find some other way to express default parameters
-      val defaultString = parameter.defaultValue match {
-        case None => ""
-        case Some(_) => "?" // " ? " + default.toNodeString
-      }
+  def makeParameterSuffix(linkBuilder: HelpLinkBuilder, parameter: Parameter, showDefault: Boolean = false): String = {
 
-      s"${parameter.id.name}$asString$expandString$defaultString"
-
+    val asString = {
+      if (parameter.paramType == CgscriptClass.Object)
+        ""
+      else
+        " as " + linkBuilder.hyperlinkToClass(parameter.paramType)
     }
 
-    s"(${strings mkString ", "})"
+    val expandString = if (parameter.isExpandable) " ..." else ""
+
+    val defaultString = parameter.defaultValue match {
+      case None => ""
+      case Some(default) => if (showDefault) " ? " + default.toNodeString else "?"
+    }
+
+    s"$asString$expandString$defaultString"
 
   }
 
