@@ -18,8 +18,12 @@ system class Rational extends SurrealNumber
 
   external override def op unary- as Rational;
 
+  /* The least `Integer` greater than or equal to this `Rational`.
+   */
   external def Ceiling as Integer;
 
+  /* The greatest `Integer` less than or equal to this `Rational`.
+   */
   external def Floor as Integer;
 
   external def IsDyadic as Boolean;
@@ -27,7 +31,5 @@ system class Rational extends SurrealNumber
   external def Max(that as Rational) as Rational;
 
   external def Min(that as Rational) as Rational;
-
-  external override def ToOutput;
 
 end

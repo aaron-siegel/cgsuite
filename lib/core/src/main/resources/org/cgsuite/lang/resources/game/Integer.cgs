@@ -98,6 +98,15 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
   override external def ToOutput;
 
   /** The ugly product of this [[Integer]] and `that`.
+    *
+    * If $n$ is a power of $2$ and $k < n$, the ugly product $n \&cupdot; k$ is defined by
+    *
+    * $n \&cupdot; k = Floor(k/2)$ if $k$ is [[#IsEvil][evil]]; \\
+    * $n \&cupdot; k = n + Floor(k/2)$ if $k$ is [[#IsOdious][odious]]; \\
+    * $n \&cupdot; n = Ceiling(n/2)$.
+    *
+    * The definition is extended to all integers by the distributive law over [[#NimSum][nim sum]].
+    * See \ww, Chapter 14.
     */
   external def UglyProduct(that as Integer);
 

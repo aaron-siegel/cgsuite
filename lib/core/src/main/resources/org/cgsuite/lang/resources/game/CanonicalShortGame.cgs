@@ -27,10 +27,11 @@ system class CanonicalShortGame extends CanonicalStopper
     * The theory of atomic weights is discussed in detail in \ww and \cgt.
     */
   external override def AtomicWeight as CanonicalShortGame;
-  
+
   /** The birthday of this game.
     *
-    * The ~birthday~ of `G` is the [[Integer]] $b(G)$ defined recursively by
+    * When `G` is in canonical form,
+    * the ~birthday~ of `G` is the [[Integer]] $b(G)$ defined recursively by
     *
     * $b(0) = 0,\\
     * b(G) = max{b(G^L^), b(G^R^)}$.
@@ -38,7 +39,7 @@ system class CanonicalShortGame extends CanonicalStopper
     * It is equal to the height of the complete game tree for `G`.
     */
   external def Birthday as Integer;
-  
+
   /** The lattice companion of this game.
     *
     * The mapping `G -> G.Companion` defines the unique lattice automorphism
@@ -46,49 +47,78 @@ system class CanonicalShortGame extends CanonicalStopper
     * Chapter III.2.
     */
   external def Companion as CanonicalShortGame;
-  
+
   /** The value of this game cooled by temperature `t`.
+    *
+    * `G.Cool(t)` is usually denoted by $G_t_$, and is defined by
+    *
+    * $G_t_ = {G^L^_t_ - t | G^R^_t_ + t}$
+    *
+    * unless there is some $t' < t$ for which $G_t'_$ is equal to a number,
+    * in which case $G_t = G_t'_$ for the smallest such $t'$.
+    * See \ww, \lip, or \cgt.
     */
   external def Cool(t as DyadicRational) as CanonicalShortGame;
-  
-  /** The `CanonicalShortGame` equal to this game cooled by its temperature.
+
+  /** The value of this game cooled by its temperature.
+    *
+    * `G.Freeze` is equal to `G.Cool(G.Temperature)` and is always
+    * infinitesimally close to a number.
     */
   external def Freeze as CanonicalShortGame;
+
+  /** The value of this game heated by temperature `t`.
+    */
   external def Heat(t as CanonicalShortGame) as CanonicalShortGame;
+
+  /** The Incentives of `G`.
+    *
+    * `G.Incentives` is a `List` of `CanonicalShortGame`s, representing all Left and
+    * Right incentives together in one `List` (with each distinct value appearing
+    * exactly once).
+    */
   external def Incentives as List;
-  
-  external override def IsAllSmall as Boolean;
-  
+
   /** `true` if the atomic weight of this `CanonicalShortGame` exists.
     *
     * See the discussion of the [[#AtomicWeight]] property
     * for more details.
     */
   external def IsAtomic as Boolean;
-  
+
   /** `true` if this `CanonicalShortGame` is even.
     *
-    * `G` is ~even~ if either: `G` is identically zero; or every option of `G` is odd.
+    * `G` is ~even~ if either: `G` the empty game; or every option of `G` is odd.
     *
-    * Likewise, `G` is ~odd~ if both: `G` is not identically zero; and every option of
+    * Likewise, `G` is ~odd~ if both: `G` is not the empty game; and every option of
     * `G` is even.
     *
     * See also [[#IsOdd]].
     */
   external def IsEven as Boolean;
+
+  /** `true` if this `CanonicalShortGame` is even-tempered.
+    *
+    * `G` is ~even-tempered~ if either: `G` is equal to a number;
+    * or every option of `G` is odd-tempered.
+    *
+    * Likewise, `G` is ~odd-tempered~ if both: `G` is not equal to a number;
+    * and every option of `G` is even-tempered.
+    *
+    * See also [[#IsOddTempered]].
+    */
   external def IsEvenTempered as Boolean;
-  external override def IsInfinitesimal as Boolean;
-  external override def IsInteger as Boolean;
-  external override def IsNimber as Boolean;
-  external override def IsNumber as Boolean;
-  external override def IsNumberish as Boolean;
-  external override def IsNumberTiny as Boolean;
+
+  /** `true` if this `CanonicalShortGame` is odd. See [[#IsEven]] for the definition.
+    */
   external def IsOdd as Boolean;
+
+  /** `true` if this `CanonicalShortGame` is odd-tempered. See [[#IsEvenTempered]] for the definition.
+    */
   external def IsOddTempered as Boolean;
-  external override def IsUptimal as Boolean;
+
   external def LeftIncentives as List;
-  external override def LeftStop as DyadicRational;
-  
+
   /** The mean value of this `CanonicalShortGame`, as a [[DyadicRational]].
     *
     * The mean value $m(G)$ is defined as the limit:
@@ -99,14 +129,21 @@ system class CanonicalShortGame extends CanonicalStopper
     * of $G$ (the constant value of $G_t_$ for all sufficiently large $t$).
     */
   external def Mean as DyadicRational;
+
   external def NortonMultiply(h as CanonicalShortGame) as CanonicalShortGame;
+
   external def Overheat(s as CanonicalShortGame, t as CanonicalShortGame) as CanonicalShortGame;
+
   external def Pow(x as Pseudonumber) as CanonicalShortGame;
+
   external def PowTo(x as Pseudonumber) as CanonicalShortGame;
+
   external override def ReducedCanonicalForm as CanonicalShortGame;
+
   external def RightIncentives as List;
+
   external override def RightStop as DyadicRational;
-  
+
   /** The total number of stopping positions in this game's complete game tree.
     *
     * It is defined by
@@ -117,7 +154,7 @@ system class CanonicalShortGame extends CanonicalStopper
     * where the sums are understood to range over all Left and Right options of $G$.
     */
   external def StopCount as Integer;
-  
+
   /**
    * The temperature of this `CanonicalShortGame`, as a [[DyadicRational]].
    *
@@ -129,6 +166,7 @@ system class CanonicalShortGame extends CanonicalStopper
    * $t(m/2^n^) = -1/2^n^$.
    */
   external def Temperature as DyadicRational;
+
   external def Thermograph as Thermograph;
 
   external override def ToOutput as String;

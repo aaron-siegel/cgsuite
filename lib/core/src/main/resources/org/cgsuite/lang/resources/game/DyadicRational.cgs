@@ -2,9 +2,6 @@
 
 system class DyadicRational extends Uptimal, Pseudonumber, Rational
 
-  // TODO These aren't really overrides, and they shouldn't require
-  // the `override` modifier (?)
-
   external def op<=(that as DyadicRational) as Boolean;
 
   external def op+(that as DyadicRational) as DyadicRational;
