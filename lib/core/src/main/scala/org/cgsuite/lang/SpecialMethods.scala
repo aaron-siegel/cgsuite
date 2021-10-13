@@ -102,7 +102,6 @@ object SpecialMethods {
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>
       set ++ that
     },
-    "cgsuite.ui.Explorer" -> { (_: Any, g: Game) => UiHarness.uiHarness.createExplorer(g) },
     "cgsuite.util.MutableList.Add" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list += x; null },
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },

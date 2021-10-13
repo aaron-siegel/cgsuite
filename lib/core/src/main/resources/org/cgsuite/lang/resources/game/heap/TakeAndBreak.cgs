@@ -89,14 +89,36 @@
   *               nonempty heaps
   * \endul
   */
-system class TakeAndBreak(code as String) extends HeapRuleset
+system class TakeAndBreak(
+  /** The take-and-break code for this ruleset. */
+  code as String
+  ) extends HeapRuleset
 
-  external static def FromSubtractionSet(subtset as Collection, codeDigit as String, allbut as Boolean ? false);
-
-  external def Code as String;
+  /** A take-and-break ruleset constructed from a subtraction set.
+    *
+    * This method provides a convenient way to create take-and-break rulesets whose codes
+    * consist entirely of the digits `0` and `X`, for some fixed value of `X`.
+    * `subtset` must be a [[Collection]] of [[Integer]]s; then the resulting code will have
+    * an `X` at its $j$^th^ position if and only if $j$ is an element of `subtset`. In the
+    * special case `X = 3`, we have the familiar ~subtraction games~: remove $j$ tokens from
+    * a heap if and only if $j$ is an element of `subtset`. For example:
+    *
+    * `game.heap.TakeAndBreak.FromSubtractionSet([2,3,5,9], "3")`
+    *
+    * yields the ruleset with code `0.033030003`: remove exactly $2$, $3$, $5$, or $9$ tokens
+    * from a heap. If `allbut` is `true`, then the occurrences
+    * of `0` and `X` are inverted (e.g., for `X = 3`, remove $j$ tokens just if $j$ is ~not~ an element of `subtset`); thus
+    *
+    * `game.heap.TakeAndBreak.FromSubtractionSet([2,3,5,9], "3", allbut => true)`
+    *
+    * yields the ruleset with code `0.300303330[3]`.
+    *
+    * `codeDigit` may be a generalized digit, such as `"4!"`.
+    */
+  external static def FromSubtractionSet(subtset as Collection, codeDigit as String ? "3", allbut as Boolean ? false);
 
   external override def HeapOptions(heapSize as Integer);
 
-  override def ToOutput := "TakeAndBreak(\"" + Code + "\")";
+  override def ToOutput := "TakeAndBreak(\"" + code + "\")";
 
 end

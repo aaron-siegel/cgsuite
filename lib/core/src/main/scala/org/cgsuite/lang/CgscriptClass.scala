@@ -245,6 +245,8 @@ class CgscriptClass(
 
   def isSingleton = classInfo.modifiers.hasSingleton
 
+  def isStatic = classInfo.modifiers.hasStatic
+
   def isSystem = classInfo.modifiers.hasSystem
 
   def constructor = classInfo.constructor
@@ -565,7 +567,22 @@ class CgscriptClass(
       Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = declNode.modifiers.hasStatic)
     }
 
-    val localMethods: Vector[Method] = classDeclNode.methodDeclarations map { parseMethod(_, classDeclNode.modifiers) }
+    val systemConstructorMethods: Vector[Method] = {
+      if (modifiers.hasSystem) {
+        // For system classes, we treat constructor params as *methods* of the class, not vars
+        classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
+          paramsNode.parameterNodes map { paramNode =>
+            buildExternalMethod(paramNode, Modifiers.none, Vector.empty, autoinvoke = true)
+          }
+        }
+      } else {
+        Vector.empty
+      }
+    }
+
+    val ordinaryLocalMethods: Vector[Method] = classDeclNode.methodDeclarations map { parseMethod(_, classDeclNode.modifiers) }
+
+    val localMethods: Vector[Method] = systemConstructorMethods ++ ordinaryLocalMethods
 
     val localNestedClasses: Vector[CgscriptClass] = classDeclNode.nestedClassDeclarations map { decl =>
       val id = decl.idNode.id
@@ -587,9 +604,16 @@ class CgscriptClass(
       }
     }
 
-    val constructorParamVars = classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
-      paramsNode.parameterNodes map { paramNode =>
-        Var(paramNode.idNode, Some(paramNode), isMutable = false, isStatic = false, asConstructorParam = Some(paramNode.toParameter))
+    val constructorParamVars = {
+      if (modifiers.hasSystem)
+        // For system classes, we treat constructor params as *methods* of the class, not vars
+        Vector.empty
+      else {
+        classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
+          paramsNode.parameterNodes map { paramNode =>
+            Var(paramNode.idNode, Some(paramNode), isMutable = false, isStatic = false, asConstructorParam = Some(paramNode.toParameter))
+          }
+        }
       }
     }
 
@@ -986,7 +1010,7 @@ class CgscriptClass(
 
   private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
 
-    val name = node.idNode.id.name
+    val methodName = node.idNode.id.name
 
     val (autoinvoke, parameters) = node.parameters match {
       case Some(n) => (false, n.toParameters)
@@ -999,32 +1023,40 @@ class CgscriptClass(
           throw EvalException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
         if (node.body.isDefined)
           throw EvalException(s"Method is declared `external` but has a method body", node.tree)
-        logger.debug(s"$logPrefix Declaring external method: $name")
-        SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
-          case Some(fn) =>
-            logger.debug(s"$logPrefix   It's a special method.")
-            ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
-          case None =>
-            val externalName = externalMethodName(name)
-            val externalParameterTypes = parameters map { _.paramType.javaClass }
-            logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
-            val externalMethod = try {
-              javaClass.getMethod(externalName, externalParameterTypes: _*)
-            } catch {
-              case _: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$name`", node.tree)
-            }
-            logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
-            SystemMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
-        }
+        buildExternalMethod(node, node.modifiers, parameters, autoinvoke)
       } else {
-        logger.debug(s"$logPrefix Declaring user method: $name")
+        logger.debug(s"$logPrefix Declaring user method: $methodName")
         val body = node.body getOrElse { sys.error("no body") }
         UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
       }
     }
 
     newMethod
+
+  }
+
+  private def buildExternalMethod(node: MemberDeclarationNode, modifiers: Modifiers, parameters: Vector[Parameter], autoinvoke: Boolean): Method = {
+
+    val methodName = node.idNode.id.name
+
+    logger.debug(s"$logPrefix Declaring external method: $methodName")
+    SpecialMethods.specialMethods.get(qualifiedName + "." + methodName) match {
+      case Some(fn) =>
+        logger.debug(s"$logPrefix   It's a special method.")
+        ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers.hasStatic, modifiers.hasOverride)(fn)
+      case None =>
+        val externalName = externalMethodName(methodName)
+        val externalParameterTypes = parameters map { _.paramType.javaClass }
+        logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
+        val externalMethod = try {
+          javaClass.getMethod(externalName, externalParameterTypes: _*)
+        } catch {
+          case _: NoSuchMethodException =>
+            throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$methodName`", node.tree)
+        }
+        logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
+        SystemMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers.hasStatic, modifiers.hasOverride, externalMethod)
+    }
 
   }
 

@@ -266,6 +266,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           regularMembers
       } sortBy { _.id.name }
 
+      val (staticMembers, instanceMembers) = members partition { _.isStatic }
+
       val enumElementSummary = {
         if (cls.classInfo.localEnumElements.isEmpty)
           ""
@@ -274,10 +276,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       }
 
       val staticMemberSummary = {
-        if (cls.classInfo.localStaticVars.isEmpty)
+        if (staticMembers.isEmpty)
           ""
         else
-          makeMemberSummary(cls, cls.classInfo.localStaticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
+          makeMemberSummary(cls, staticMembers, "<h2>Static Members</h2>")
       }
 
       val parameterSummary = {
@@ -287,12 +289,12 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           makeMemberSummary(cls, classParameters, "<h2>Class Parameters</h2>")
       }
 
-      val memberSummary = makeMemberSummary(cls, members filter {
+      val memberSummary = makeMemberSummary(cls, instanceMembers filter {
         member => member.declaringClass == cls || member.declaringClass == null
-      }, "<h2>All Members</h2>")
+      }, "<h2>Members</h2>")
 
       val prevMemberSummary = cls.properAncestors.reverse map { declaringClass =>
-        val declaredMembers = members filter { _.declaringClass == declaringClass }
+        val declaredMembers = instanceMembers filter { _.declaringClass == declaringClass }
         if (declaredMembers.isEmpty) {
           ""
         } else {
@@ -306,9 +308,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val enumElementDetails = cls.classInfo.localEnumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val staticMemberDetails = cls.classInfo.localStaticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+      val staticMemberDetails = staticMembers sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val memberDetails = (members ++ classParameters) filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
+      val memberDetails = (instanceMembers ++ classParameters) filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
 
       packageDir.createDirectories()
       file overwrite header

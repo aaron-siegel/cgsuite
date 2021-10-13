@@ -44,18 +44,20 @@ object Spawning {
         case _ => throw MalformedCodeException(code)
       }
     }
-    Spawning(permitted.toIndexedSeq, allowMore, maxSeparation, requireFirst, spacingConstraint)
+    Spawning(code, permitted.toIndexedSeq, allowMore, maxSeparation, requireFirst, spacingConstraint)
 
   }
 
 }
 
 case class Spawning(
+  code: String,
   permitted: IndexedSeq[Int],
   allowMore: Boolean = false,
   maxSeparation: Int = Int.MaxValue,
   requireFirst: Boolean = false,
-  spacingConstraint: Constraint.Value = Constraint.None) extends HeapRuleset {
+  spacingConstraint: Constraint.Value = Constraint.None
+) extends HeapRuleset {
 
   val maxHeapCount = {
     maxSeparation min {
