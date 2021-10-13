@@ -29,11 +29,11 @@ class GenWythoff(
     var m := coord.Row;
     var n := coord.Col;
     var diag := m Min n;
-    var mOpts := [coord - (a, 0) for a from 1 to m];
-    var nOpts := [coord - (0, b) for b from 1 to n];
-    var dOpts := [coord - (d, e) for d from 1 to diag for e from d to bound(d) - 1 Min n];
-    var eOpts := [coord - (e, d) for d from 1 to diag for e from d + 1 to bound(d) - 1 Min m];
-    [mOpts, nOpts, dOpts, eOpts].Flattened
+    var mOpts  := [coord - (a, 0) for a from 1 to m];
+    var nOpts  := [coord - (0, b) for b from 1 to n];
+    var dOpts1 := [coord - (k, l) for k from 1 to diag for l from k to bound(k) - 1 Min n];
+    var dOpts2 := [coord - (k, l) for l from 1 to diag for k from l + 1 to bound(l) - 1 Min m];
+    [mOpts, nOpts, dOpts1, dOpts2].Flattened
   end
 
 end
