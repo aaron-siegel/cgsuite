@@ -1,19 +1,72 @@
 /*${cgsuite.banner}*/
 
+/** Base class for rulesets played on heaps of tokens.
+  *
+  * A position in a heap ruleset is represented by a single integer $n$, the ~heap size~.
+  * From a position $H(n)$, a typical legal move is to a disjunctive sum of heaps
+  *
+  * $H(a_1_) + H(a_2_) + \&ctdot; + H(a_k_)$.
+  *
+  * Some rulesets (such as ordinary [[TakeAndBreak][take-and-break]] rulesets) require that
+  * $a_1_ + a_2_ + \&ctdot; + a_k_ \&le; n$, but in the general case, there are no such
+  * restrictions.
+  *
+  * Subclasses of `HeapRuleset` must implement [[#HeapOptions]], which takes as input a nonnegative
+  * [[Integer]] (the heap size) and returns a [[Collection]] of `Collection`s of nonnegative `Integer`s.
+  * Each element `L` of the outer `Collection` represents one option from `heapSize`, and each
+  * element of `L` is the heap size of one summand of that option. For example,
+  * Grundy's Game (split a heap into two unequal heaps) might be implemented by:
+  *
+  * `override def HeapOptions(n as Integer) :=` \\
+  * `\sp[\[k, n-k] for k from 1 to n-1 where k != n-k];`
+  *
+  * In practice, it is usually easiest to use a built-in class, such as [[TakeAndBreak]] or
+  * [[FunctionalHeapRuleset]], rather than creating a new subclass of `HeapRuleset`. For example,
+  * Grundy's Game can also be specified simply as:
+  *
+  * `game.heap.TakeAndBreak("4!.0")`
+  */
 system class HeapRuleset extends Ruleset
 
+  /** The cake product of this ruleset and `that`.
+    *
+    * `R.CakeProduct(S)` is equivalent to `game.heap.GenCutcake(R, S)`. See the documentation for
+    * [[GenCutcake]] for details.
+    */
   def CakeProduct(that as HeapRuleset, twisted as Boolean ? false) := GenCutcake(this, that, twisted);
 
+  /** Constructs a position of this ruleset with the specified heap size.
+    */
   def Eval(heapSize as Integer) := Position(heapSize);
 
-  def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must override `HeapOptions`.");
+  /** The options from the specified heap size.
+    *
+    * `HeapOptions` must always return a [[Collection]] of `Collection`s of nonnegative `Integer`s.
+    */
+  def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must implement `HeapOptions`.");
 
+  /** The nim value of the specified heap size.
+    */
   external def HeapNimValue(heapSize as Integer);
 
+  /** A [[List]] of nim values for all heaps up to the specified heap size.
+    */
   external def NimValueSequence(toHeapSize as Integer);
 
+  /** Checks for periodicity of this ruleset up to the specified heap size.
+    *
+    * If periodicity is detected, the result will be an instance of [[Periodicity]]. Otherwise,
+    * the result will be [[Nothing]].
+    */
   external def CheckPeriodicity(toHeapSize as Integer);
 
+  /** A position of this ruleset.
+    *
+    * Subclasses do not need to implement a `Position` class directly and should instead implement
+    * [[#HeapOptions]]. For efficiency reasons, calculating values of this heap game (such as by using
+    * [[#NimValueSequence]]) will not result in `Position` objects being created. `Position` objects
+    * will only be created when they are needed directly (for example, in the Explorer).
+    */
   class Position(heapSize as Integer) extends ImpartialGame
 
     override def Options := HeapOptions(heapSize) Apply

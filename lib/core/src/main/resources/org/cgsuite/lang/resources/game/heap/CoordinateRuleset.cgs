@@ -4,7 +4,7 @@ class CoordinateRuleset extends Ruleset
 
   def Eval(coord as Coordinates) := Position(coord);
 
-  def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must override `CoordinateOptions`.");
+  def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must implement `CoordinateOptions`.");
 
   def NimValueTable(maxRow as Integer, maxCol as Integer) begin
     Table([Position((m, n)).NimValue for n from 0 to maxCol] for m from 0 to maxRow)

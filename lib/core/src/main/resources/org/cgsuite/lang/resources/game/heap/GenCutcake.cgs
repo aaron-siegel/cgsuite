@@ -1,11 +1,32 @@
 /*${cgsuite.banner}*/
 
-class GenCutcake(leftRuleset as HeapRuleset, rightRuleset as HeapRuleset, twisted as Boolean ? false) extends Ruleset
+/** Ruleset schema for generalizations of [[Cutcake]].
+  *
+  * An instance of `GenCutcake` is specified by a pair of [[HeapRuleset]]s, the ~Left~ and ~Right~ rulesets.
+  * A position is represented by [[Coordinates]] `(m,n)`. Left may move from $(m,n)$ to \\
+  *
+  * $(a_1_,n) + (a_2_,n) + ... + (a_k_,n)$
+  *
+  * whenever the Left ruleset specifies a legal move from heap $m$ to heaps $a_1_ + a_2_ + ... + a_k_$. Similarly,
+  * Right moves according to the Right ruleset on the second coordinate. In the twisted form (with `twisted => true`),
+  * the coordinates are swapped after each move.
+  *
+  * In classical [[Cutcake]], the Left and Right rulesets are both `TakeAndBreak("4.0")`
+  * (break a heap into two nonempty heaps).
+  */
+class GenCutcake(
+  /** The Left ruleset of this `GenCutcake` instance. */
+  leftRuleset as HeapRuleset,
+  /** The Right ruleset of this `GenCutcake` instance. */
+  rightRuleset as HeapRuleset,
+  /** `true` if this is the twisted form of `GenCutcake` (see definition above). */
+  twisted as Boolean ? false
+  ) extends Ruleset
 
   def Eval(coord as Coordinates) := Position(coord);
-  
+
   class Position(coord as Coordinates) extends Game
-  
+
     override def Options(player as Player) begin
     
       var twist := if twisted then coord.Swap else coord end;
