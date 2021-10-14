@@ -5,46 +5,98 @@
  */
 singleton class constants
 
+  /** Ruleset for Cutcake.
+    *
+    * A position in Cutcake is an $m \&times; n$ rectangle (the "cake"), represented by a coordinate pair
+    * $(m, n)$. Left may "cut" the cake along any row,
+    * replacing $(m, n)$ by the sum of $(a, n)$ and $(m - a, n)$,
+    * with $1 \&le; a < m$. Likewise, Right may cut along any column, moving to the sum of
+    * $(m, b)$ and $(m, n - b)$, with $1 \&le; b < n$.
+    *
+    * Cutcake is defined as an instance of [[GenCutcake]] by
+    *
+    * `Cutcake := GenCutcake(TakeAndBreak("4.0"), TakeAndBreak("4.0"))`
+    */
   var Cutcake := GenCutcake(TakeAndBreak("4.0"), TakeAndBreak("4.0"));
 
+  /** Ruleset for Dawson's Kayles.
+    *
+    * Dawson's Kayles is the [[TakeAndBreak][octal game]] \<b\>0.07\</b\>: Remove exactly two
+    * tokens from a heap, optionally splitting the remainder of the heap into two separate heaps.
+    * It is defined as an instance of [[TakeAndBreak]] by
+    *
+    * `DawsonsKayles := TakeAndBreak("0.07")`
+    */
   var DawsonsKayles := TakeAndBreak("0.07");
 
+  /** Ruleset for Eatcake.
+    */
   var Eatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"));
 
+  /** Ruleset for Fibonacci Nim.
+    */
   var FibonacciNim := TakeAway(2);
 
+  /** Ruleset for Grundy's Game.
+    */
   var GrundysGame := TakeAndBreak("4!.0");
 
+  /** Ruleset for Kayles.
+    */
   var Kayles := TakeAndBreak("0.77");
 
+  /** Ruleset for Maundy Cake.
+    */
   var MaundyCake := GenCutcake(TakeAndBreak("{2+}=.0"), TakeAndBreak("{2+}=.0"));
 
+  /** Ruleset for Mem.
+    */
   var Mem := GenMem((memory, j) -> j >= memory);
 
+  /** Ruleset for Nim.
+    */
   var Nim := TakeAndBreak("0.[3]");
 
+  /** Ruleset for Partizan Euclid.
+    */
   var PartizanEuclid := PartizanCoordinateRuleset(
     FunctionalCoordinateRuleset((p, q) -> if q == 0 or p % q == 0 then [] else [(q, p % q)] end),
     FunctionalCoordinateRuleset((p, q) -> if q == 0 or p % q == 0 then [] else [(q, q - p % q)] end)
   );
 
+  /** Ruleset schema for Partizan Splittles.
+    */
   def PartizanSplittles(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Splittles(leftSet, allbut), Splittles(rightSet, allbut));
 
+  /** Ruleset schema for Partizan Subtraction games.
+    */
   def PartizanSubtraction(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Subtraction(leftSet, allbut), Subtraction(rightSet, allbut));
 
+  /** Ruleset schema for Partizan Take-and-Break games.
+    */
   def PartizanTakeAndBreak(leftCode as String, rightCode as String) :=
     PartizanHeapRuleset(TakeAndBreak(leftCode), TakeAndBreak(rightCode));
 
+  /** Ruleset schema for Splittles.
+    */
   def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
 
+  /** Ruleset schema for Subtraction games.
+    */
   def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
 
+  /** Ruleset schema for Take-Away.
+    */
   def TakeAway(limit as DyadicRational) := GenMem((memory, j) -> j <= memory * limit);
 
+  /** Ruleset schema for Generalized Take-Away.
+    */
   def TakeAway(limit as Function) := GenMem((memory, j) -> j <= limit(memory));
 
+  /** Ruleset for Turn-and-Eatcake.
+    */
   var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
   /** Ruleset for Wythoff Nim.

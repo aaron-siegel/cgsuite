@@ -1,15 +1,6 @@
 /*${cgsuite.banner}*/
 
-class Turning(arg) extends StripRuleset
-
-  var heapRules :=
-    if arg is game.heap.HeapRuleset then
-      arg
-    elseif arg is String then
-      game.heap.Spawning(arg)
-    else
-      error("Expecting a `HeapRuleset` or a `String`.")
-    end;
+class Turning(heapRules as game.heap.HeapRuleset) extends StripRuleset
 
   class Position(strip as Strip) extends StripGame, ImpartialGame
   

@@ -1,50 +1,81 @@
 package org.cgsuite.core.impartial
 
 import org.cgsuite.core._
-import org.cgsuite.core.impartial.Spawning.Constraint
+import org.cgsuite.core.impartial.Spawning.SpacingConstraint
 import org.cgsuite.exception.MalformedCodeException
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 
 object Spawning {
 
-  object Constraint extends Enumeration {
+  object SpacingConstraint extends Enumeration {
     val Consecutive, EquallySpaced, Symmetrical, None = Value
   }
 
+  case class Element(
+    minHeapsAffected: Int,
+    maxHeapsAffected: Int,
+    maxSeparation: Int,
+    spacingConstraint: SpacingConstraint.Value,
+    requireFirst: Boolean
+  )
+
   def apply(code: String): Spawning = {
 
-    val paren = code.indexOf('(')
-    val preparen = if (paren == -1) code else code.substring(0, paren)
-    val (allowMore, permittedStr) = {
-      if (preparen.nonEmpty && preparen.last == '+')
-        (true, preparen dropRight 1)
-      else
-        (false, preparen)
-    }
-    val permitted = try {
-      permittedStr split "," map { _.toInt }
-    } catch {
-      case _: NumberFormatException => throw MalformedCodeException(code)
-    }
-    var maxSeparation = Int.MaxValue
-    var requireFirst = false
-    var spacingConstraint = Constraint.None
-    if (paren >= 0) {
-      if (!(code endsWith ")"))
-        throw MalformedCodeException(code)
-      val modifiers = code.substring(paren + 1, code.length - 1)
-      modifiers.toUpperCase foreach {
-        case 'C' => spacingConstraint = Constraint.Consecutive
-        case 'S' => spacingConstraint = Constraint.Symmetrical
-        case 'E' => spacingConstraint = Constraint.EquallySpaced
-        case 'F' => requireFirst = true
-        case n if n.isDigit => maxSeparation = n.toString.toInt
-        case _ => throw MalformedCodeException(code)
+    val elements = try {
+
+      code.toUpperCase split ',' flatMap { elementStr =>
+
+        val modifiersStart = elementStr indexWhere { ch =>
+          !(ch.isDigit || ch == '+' || ch == '-')
+        } match {
+          case -1 => elementStr.length
+          case i => i
+        }
+        val rangeStr = elementStr.substring(0, modifiersStart)
+        val (minHeapsAffected, maxHeapsAffected) = {
+          if (rangeStr.last == '+') {
+            (rangeStr.dropRight(1).toInt, Int.MaxValue)
+          } else if (rangeStr contains '-') {
+            val range = rangeStr split '-'
+            (range(0).toInt, range(1).toInt)
+          } else {
+            (rangeStr.toInt, rangeStr.toInt)
+          }
+        }
+
+        var maxSeparation = Int.MaxValue
+        var requireFirst = false
+        var spacingConstraint = SpacingConstraint.None
+        var i = modifiersStart
+
+        while (i < elementStr.length) {
+          elementStr(i) match {
+            case 'C' => spacingConstraint = SpacingConstraint.Consecutive; i += 1
+            case 'S' => spacingConstraint = SpacingConstraint.Symmetrical; i += 1
+            case 'E' => spacingConstraint = SpacingConstraint.EquallySpaced; i += 1
+            case 'F' => requireFirst = true; i += 1
+            case '(' =>
+              val closeParen = elementStr.indexOf(')', i)
+              if (closeParen == -1)
+                throw MalformedCodeException(code)
+              maxSeparation = elementStr.substring(i + 1, closeParen).toInt
+              i = closeParen + 1
+          }
+        }
+
+        if (maxSeparation < minHeapsAffected)
+          None
+        else
+          Some(Element(minHeapsAffected, maxHeapsAffected min maxSeparation, maxSeparation, spacingConstraint, requireFirst))
+
       }
+
+    } catch {
+      case exc: Exception => throw MalformedCodeException(code, exc)
     }
-    Spawning(code, permitted.toIndexedSeq, allowMore, maxSeparation, requireFirst, spacingConstraint)
+
+    Spawning(code, elements.toVector)
 
   }
 
@@ -52,21 +83,10 @@ object Spawning {
 
 case class Spawning(
   code: String,
-  permitted: IndexedSeq[Int],
-  allowMore: Boolean = false,
-  maxSeparation: Int = Int.MaxValue,
-  requireFirst: Boolean = false,
-  spacingConstraint: Constraint.Value = Constraint.None
+  elements: Vector[Spawning.Element]
 ) extends HeapRuleset {
 
-  val maxHeapCount = {
-    maxSeparation min {
-      if (allowMore)
-        Int.MaxValue
-      else
-        permitted.max - 1
-    }
-  }
+  val maxHeapCount: Int = elements.map { _.maxHeapsAffected }.max
 
   override def heapOptions(heapSize: Integer): IndexedSeq[IndexedSeq[Integer]] = {
     val tr = traversal(heapSize.intValue)
@@ -79,18 +99,17 @@ case class Spawning(
 
   override def traversal(heapSize: Int): Traversal = new SpawningTraversal(heapSize)
 
-  private class SpawningTraversal(heapSize: Int) extends Traversal {
+  class SpawningTraversal(heapSize: Int) extends Traversal {
 
-    val maxHeapCountInTraversal = maxHeapCount min heapSize
-
-    var curHeapCountIndex = -1
+    var curRulesetElementIndex = -1
+    var curRulesetElement: Spawning.Element = null
     var curHeapCount = -1
     var initialized = false
-    val heapBuffer = new Array[Int](maxHeapCountInTraversal)
+    val heapBuffer = new Array[Int](maxHeapCount min heapSize)
 
     override def advance(): Boolean = {
 
-      if (curHeapCount > maxHeapCountInTraversal)
+      if (curRulesetElementIndex >= elements.length)
         return false
 
       var done = false
@@ -98,12 +117,12 @@ case class Spawning(
       if (initialized) {
 
         // Increment the rightmost incrementable heap, and redistribute the rest.
-        val minimumIncrementableHeapIndex = if (requireFirst) 1 else 0
-        val maximumIncrementableHeapIndex = spacingConstraint match {
-          case Constraint.None => curHeapCount - 1
-          case Constraint.EquallySpaced => 0
-          case Constraint.Consecutive => -1
-          case Constraint.Symmetrical => (curHeapCount + 1) / 2 - 1
+        val minimumIncrementableHeapIndex = if (curRulesetElement.requireFirst) 1 else 0
+        val maximumIncrementableHeapIndex = curRulesetElement.spacingConstraint match {
+          case SpacingConstraint.None => curHeapCount - 1
+          case SpacingConstraint.EquallySpaced => 0
+          case SpacingConstraint.Consecutive => -1
+          case SpacingConstraint.Symmetrical => (curHeapCount + 1) / 2 - 1
         }
 
         var heapIndex = maximumIncrementableHeapIndex
@@ -112,26 +131,27 @@ case class Spawning(
           heapIndex -= 1
         }
 
+        while (!done && curHeapCount < curRulesetElement.maxHeapsAffected.min(heapSize)) {
+          curHeapCount += 1
+          if (curHeapCount < curRulesetElement.maxHeapsAffected) {
+            done = setupHeapCount()
+          }
+        }
+
       }
 
-      while (!done && curHeapCount <= maxHeapCountInTraversal) {
-
-        if (curHeapCountIndex < permitted.length - 1) {
-          curHeapCountIndex += 1
-          curHeapCount = permitted(curHeapCountIndex) - 1
-        } else {
-          curHeapCount += 1
-        }
-
-        if (curHeapCount <= maxHeapCountInTraversal) {
+      while (!done && curRulesetElementIndex < elements.length) {
+        curRulesetElementIndex += 1
+        if (curRulesetElementIndex < elements.length) {
+          curRulesetElement = elements(curRulesetElementIndex)
+          curHeapCount = curRulesetElement.minHeapsAffected - 1
           done = setupHeapCount()
         }
-
       }
 
       initialized = true
 
-      curHeapCount <= maxHeapCountInTraversal
+      curRulesetElementIndex < elements.length
 
     }
 
@@ -140,13 +160,13 @@ case class Spawning(
       if (curHeapCount >= heapSize)
         return false
 
-      assert(curHeapCount < maxSeparation)
+      assert(curHeapCount < curRulesetElement.maxSeparation)
 
       var success = false
 
-      if (spacingConstraint == Constraint.Symmetrical) {
+      if (curRulesetElement.spacingConstraint == SpacingConstraint.Symmetrical) {
 
-        val earliest = 1 max (heapSize - maxSeparation + 1)
+        val earliest = 1 max (heapSize - curRulesetElement.maxSeparation + 1)
         // If heapCount is even, then initial = earliest.
         // If heapCount is odd, then we need odd separation between first and last.
         val initial = {
@@ -156,7 +176,7 @@ case class Spawning(
             earliest
         }
 
-        if (initial == 1 || !requireFirst) {
+        if (initial == 1 || !curRulesetElement.requireFirst) {
           var i = 0
           while (i < (curHeapCount + 1) / 2) {
             heapBuffer(i) = initial + i
@@ -173,22 +193,22 @@ case class Spawning(
 
       } else {
 
-        val (initial: Int, increment: Int) = spacingConstraint match {
+        val (initial: Int, increment: Int) = curRulesetElement.spacingConstraint match {
 
-          case Constraint.None =>
-            (1 max (heapSize - maxSeparation + 1), 1)
+          case SpacingConstraint.None =>
+            (1 max (heapSize - curRulesetElement.maxSeparation + 1), 1)
 
-          case Constraint.EquallySpaced =>
-            val earliest = 1 max (heapSize - maxSeparation + 1)
+          case SpacingConstraint.EquallySpaced =>
+            val earliest = 1 max (heapSize - curRulesetElement.maxSeparation + 1)
             val spacing = (heapSize - earliest) / curHeapCount
             (heapSize - spacing * curHeapCount, spacing)
 
-          case Constraint.Consecutive =>
+          case SpacingConstraint.Consecutive =>
             (heapSize - curHeapCount, 1)
 
         }
 
-        if (initial == 1 || !requireFirst) {
+        if (initial == 1 || !curRulesetElement.requireFirst) {
           var i = 0
           while (i < curHeapCount) {
             heapBuffer(i) = initial + increment * i
@@ -207,9 +227,9 @@ case class Spawning(
 
       var success = false
 
-      spacingConstraint match {
+      curRulesetElement.spacingConstraint match {
 
-        case Constraint.None =>
+        case SpacingConstraint.None =>
           if (heapBuffer(heapIndex) < heapSize - (curHeapCount - heapIndex)) {
             val value = heapBuffer(heapIndex) + 1
             var i = heapIndex
@@ -220,7 +240,7 @@ case class Spawning(
             success = true
           }
 
-        case Constraint.EquallySpaced =>
+        case SpacingConstraint.EquallySpaced =>
           assert(heapIndex == 0)
           val spacing = (heapSize - heapBuffer(0)) / curHeapCount
           if (spacing > 1) {
@@ -234,10 +254,10 @@ case class Spawning(
             success = true
           }
 
-        case Constraint.Consecutive =>
+        case SpacingConstraint.Consecutive =>
           // Never possible
 
-        case Constraint.Symmetrical =>
+        case SpacingConstraint.Symmetrical =>
           assert(heapIndex < (curHeapCount + 1) / 2)
           if (heapIndex == 0) {
             if (heapBuffer(0) < heapSize - curHeapCount) {

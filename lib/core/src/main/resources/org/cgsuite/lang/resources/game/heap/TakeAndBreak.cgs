@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-/** A generalized take-and-break ruleset.
+/** A generalized Take-and-Break ruleset.
   *
   * A ~take-and-break~ ruleset `R` is a special case of [[HeapRuleset]] whose structure is
   * specified by a [[String]], the ~take-and-break code~ of `R`. The most familiar examples
