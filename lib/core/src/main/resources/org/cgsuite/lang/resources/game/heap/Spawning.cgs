@@ -2,54 +2,10 @@
 
 /** A generalized Spawning ruleset.
   *
-  * A ~spawning~ ruleset `R` is a special case of [[HeapRuleset]] whose structure is
-  * specified by a [[String]], the ~spawning code~ of `R`. In a typical instance of
-  * `Spawning`, a move from a heap `H(n)` of size `n` consists of replacing `H(n)`
-  * by a sum of distinct heaps
-  *
-  * $H(a_1_) + H(a_2_) + \&ctdot; + H(a_k_)$
-  *
-  * with $a_1_,a_2_,\&ltdot;,a_k_ < n$. The permitted distributions of the heaps $H(a_i_)$
-  * are determined by the spawning code.
-  * `Spawning` is closely related to the strip game [[game.strip.Turning]],
-  * in which a position is a row of coins and a legal move is to flip some number of coins (from
-  * heads to tails or vice versa), provided that the rightmost coin selected is flipped from heads
-  * to tails. In normal play, `Spawning` and `Turning` are equivalent, with the $n$^th^ coin in the
-  * row indicating the presence or absence of a heap of size $n$.
-  *
-  * A spawning code is given by a range of integers indicating the number of heaps affected
-  * by each legal move. It is usually easiest to think in terms of the associated `Turning` ruleset.
-  * The spawning code `"1-3"` signifies that it is legal to flip exactly $1$, $2$, or $3$ coins,
-  * provided that the rightmost coin is flipped from heads to tails. Equivalently, a heap of size $n$
-  * may be replaced by exactly $0$, $1$, or $2$ smaller heaps (so that $1$, $2$, or $3$ total heaps are affected,
-  * respectively, including the original heap of size $n$). This is the ruleset Mock Turtles described
-  * in \ww.
-  *
-  * Spawning code ranges may be suffixed with various modifiers that constrain the associated moves.
-  * For example, the code `"1-3C"` signifies
-  * that it is legal to flip exactly $1$, $2$, or $3$ ~consecutive~ coins. The available modifiers are:
-  * \ul
-  * \li `C`\sp Coins must be consecutive
-  * \li `E`\sp Coins must be equally spaced
-  * \li `S`\sp Coins must be symmetrically spaced
-  * \li `F`\sp ??
-  * \li `(n)`\sp Coins must all be within a contiguous span of `n` spaces
-  * \endul
-  *
-  * Instead of a range, it is permissible to specify a single integer with or without a modifier (such as `"3C"`),
-  * or an unbounded range such as `"3+C"` (flip at least three consecutive coins).
-  * Multiple constraints may be conjoined in a comma-separated list; then ~any~ element of the list can be used as
-  * a legal move (example: `"3,5C"` = flip any three coins or any five consecutive coins).
-  *
-  * The following turning games are described in \ww.
-  *
-  * \ul
-  * \li `Turning Turtles (2)`
-  * \li `Mock Turtles (1-3)`
-  * \li `Moebius (1-5)`
-  * \li `Mogul (1-7)`
-  * \li `Moidores (1-9)`
-  * \endul
+  * A ~spawning~ ruleset is a special case of [[HeapRuleset]] whose structure is specified by a ~turning code~.
+  * It is the heap representation of the associated Turning ruleset, and it is best understood as such.
+  * The documentation for [[Turning]] describes the syntax and usage of turning codes and the relationship between
+  * `Turning(S)` and `Spawning(S)`.
   */
 system class Spawning(code as String) extends HeapRuleset
 
