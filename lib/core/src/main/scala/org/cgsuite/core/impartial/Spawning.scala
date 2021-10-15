@@ -51,16 +51,21 @@ object Spawning {
 
         while (i < elementStr.length) {
           elementStr(i) match {
-            case 'C' => spacingConstraint = SpacingConstraint.Consecutive; i += 1
+            case 'C' =>
+              if (i + 1 < elementStr.length && elementStr(i + 1) == '(') {
+                val closeParen = elementStr.indexOf(')', i + 1)
+                if (closeParen == -1)
+                  throw MalformedCodeException(code)
+                maxSeparation = elementStr.substring(i + 2, closeParen).toInt
+                i = closeParen + 1
+              } else {
+                spacingConstraint = SpacingConstraint.Consecutive;
+                i += 1
+              }
             case 'S' => spacingConstraint = SpacingConstraint.Symmetrical; i += 1
             case 'E' => spacingConstraint = SpacingConstraint.EquallySpaced; i += 1
             case 'F' => requireFirst = true; i += 1
-            case '(' =>
-              val closeParen = elementStr.indexOf(')', i)
-              if (closeParen == -1)
-                throw MalformedCodeException(code)
-              maxSeparation = elementStr.substring(i + 1, closeParen).toInt
-              i = closeParen + 1
+            case _ => throw MalformedCodeException(code)
           }
         }
 

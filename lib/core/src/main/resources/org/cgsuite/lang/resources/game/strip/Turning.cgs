@@ -26,10 +26,10 @@
   * For example, the code `"1-3C"` signifies
   * that it is legal to flip exactly $1$, $2$, or $3$ ~consecutive~ coins. The available modifiers are:
   * \ul
-  * \li `C   `\sp Coins turned must be consecutive (adjacent)
-  * \li `E   `\sp Coins turned must be equally spaced
-  * \li `S   `\sp Coins turned must be symmetrically arranged
-  * \li `F   `\sp The leftmost coin must be among those turned
+  * \li `C\sp\&nbsp;`\sp Coins turned must be consecutive (adjacent)
+  * \li `E\sp\&nbsp;`\sp Coins turned must be equally spaced
+  * \li `S\sp\&nbsp;`\sp Coins turned must be symmetrically arranged
+  * \li `F\sp\&nbsp;`\sp The leftmost coin must be among those turned
   * \li `C(n)`\sp Coins turned must all be within a contiguous span of `n` adjacent coins
   * \endul
   *
@@ -77,7 +77,7 @@
   * \<tr\>\<td\>Triplets\</td\>\<td\>`3`\</td\>\<td\>Exactly three coins\</td\>\</tr\>
   * \<tr\>\<td\>Ruler\</td\>\<td\>`1+C`\</td\>\<td\>Any number of consecutive coins\</td\>\</tr\>
   * \<tr\>\<td\>Mock Turtle Fives\sp\</td\>\<td\>`1-3C(5)`\sp\</td\>\<td\>Up to three out of five consecutive coins\</td\>\</tr\>
-  * \<tr\>\<td\>Triplet Fives\</td\>\<td\>`3(5)`\</td\>\<td\>Exactly three out of five consecutive coins\</td\>\</tr\>
+  * \<tr\>\<td\>Triplet Fives\</td\>\<td\>`3C(5)`\</td\>\<td\>Exactly three out of five consecutive coins\</td\>\</tr\>
   * \<tr\>\<td\>Ruler Fives\</td\>\<td\>`1-5C`\</td\>\<td\>Up to five coins, all consecutive\</td\>\</tr\>
   * \<tr\>\<td\>Turnips\</td\>\<td\>`3E`\</td\>\<td\>Exactly three equally spaced coins\</td\>\</tr\>
   * \<tr\>\<td\>Grunt\</td\>\<td\>`4FS`\</td\>\<td\>Exactly four symmetrically arranged coins, one of which must be the leftmost coin\</td\>\</tr\>
