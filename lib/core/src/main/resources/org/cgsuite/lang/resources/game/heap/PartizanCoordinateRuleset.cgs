@@ -12,7 +12,8 @@ class PartizanCoordinateRuleset(leftRuleset as CoordinateRuleset, rightRuleset a
 
     override def Options(player as Player) begin
       var ruleset := if player == Left then leftRuleset else rightRuleset end;
-      ruleset CoordinateOptions coord Apply (c -> Position(c))
+      ruleset CoordinateOptions coord Apply
+        (opt -> if opt is Coordinates then Position(opt) elseif opt.IsEmpty then 0 else Sum(Position(c) for c in opt) end);
     end
 
   end

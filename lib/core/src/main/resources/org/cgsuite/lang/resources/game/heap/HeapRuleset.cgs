@@ -28,12 +28,59 @@
   */
 system class HeapRuleset extends Ruleset
 
+  /** The acrostic product of this ruleset and `that`.
+    *
+    * `R.AcrosticProduct(S)` is a [[CoordinateRuleset]] whose structure is defined as follows.
+    * From a position `(m,n)`, it is legal to move on `m` as if it were an element of `R`, ~or~ on `n`
+    * as if it were an element of `S`. That is, for each $[a_1_,a_2_,\&hellip;a_k_]$ in `R.HeapOptions(m)`,
+    * there is a move from `(m,n)` to $(a_1_,n) + (a_2_,n) + \&ctdot; + (a_k_,n)$; and for each
+    * $[b_1_,b_2_,\&hellip;b_l_]$ in `S.HeapOptions(n)`, there is a move from `(m,n)` to
+    * $(m,b_1_) + (m,b_2_) + \&ctdot; + (m,b_k_)$.
+    *
+    * The theory of acrostic products is discussed in \ww, Chapter 14; no general solution is known.
+    */
+  def AcrosticProduct(that as HeapRuleset) begin
+    FunctionalCoordinateRuleset((m, n) -> begin
+      var mOpts := [[(a, n) for a in mOpt] for mOpt in HeapOptions(m)];
+      var nOpts := [[(m, b) for b in nOpt] for nOpt in HeapOptions(n)];
+      mOpts Concat nOpts
+      end
+    )
+  end
+
+  /** The `HeapRuleset` obtained by adjoining moves from `that` to this ruleset.
+    */
+  def Adjoin(that as HeapRuleset) := FunctionalHeapRuleset(n -> HeapOptions(n) Concat that.HeapOptions(n));
+
   /** The cake product of this ruleset and `that`.
     *
     * `R.CakeProduct(S)` is equivalent to `game.heap.GenCutcake(R, S)`. See the documentation for
     * [[GenCutcake]] for details.
     */
   def CakeProduct(that as HeapRuleset, twisted as Boolean ? false) := GenCutcake(this, that, twisted);
+
+  /** The direct product of this ruleset and `that`.
+    *
+    * `R.DirectProduct(S)` is a [[CoordinateRuleset]] whose structure is defined as follows.
+    * The position `(m,n)` has one option for each ~pair~ of options `(m',n')`. For each such pair,
+    * writing $m' = [a_1_,a_2_,\&hellip;a_k_]$ and $n' = [b_1_,b_2_,\&hellip;b_l_]$, there is an
+    * option of `(m,n)` given by
+    *
+    * $\&Sigma;_i_(a_i_,n) + \&Sigma;_j_(m,b_j_) + \&Sigma;_i,j_(a_i_,b_j_)$.
+    *
+    * The direct product is related to the [[Integer#NimProduct][Nim product]] of integers: if an `R`-heap
+    * of size `m` has Nim value `G(m)`, and an `S`-heap of size `n` has Nim value `G(n)`, then the position
+    * `(m,n)` of `R.DirectProduct(S)` has Nim value $G(m) \otimes G(n)$.
+    */
+  def DirectProduct(that as HeapRuleset) begin
+    FunctionalCoordinateRuleset((m, n) ->
+      for mOpt in HeapOptions(m)
+      for nOpt in that.HeapOptions(n)
+      yield
+        [(a, n) for a in mOpt] Concat [(m, b) for b in nOpt] Concat [(a, b) for a in mOpt for b in nOpt]
+      end
+    )
+  end
 
   /** Constructs a position of this ruleset with the specified heap size.
     */
