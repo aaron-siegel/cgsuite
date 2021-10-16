@@ -1,0 +1,19 @@
+The Normal Values Hierarchy
+
+``\hierarchy
+                          NormalValue
+         ┌─────────────────────┴─────────────────┐
+    SidedValue                                   │
+         │                                 SurrealNumber
+ StopperSidedValue                               │
+         │                                       │
+ CanonicalStopper                            Rational
+         ├─────────────────────┐                 │
+CanonicalShortGame       Pseudonumber            │
+         │     └───────────────┼─────────────────┘
+      Uptimal           DyadicRational
+         │                     │
+      Nimber                Integer
+         └─────────────────────┤
+                             Zero
+``

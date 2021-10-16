@@ -76,6 +76,11 @@ code.big {
     line-height: 80%
 }
 
+pre.bold {
+    font-weight: bold;
+    font-family: Courier, monospace;
+}
+
 ul.nobullets {
     list-style-type: none;
     padding-left: 24px

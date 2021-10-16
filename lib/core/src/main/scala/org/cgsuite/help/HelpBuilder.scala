@@ -34,9 +34,9 @@ object HelpBuilder {
     s"""<div class="titlebar"><p><div class="section">
        |  <a href="${backref}contents.html#top">Contents</a>
        |  &nbsp;&nbsp;
-       |  <a href="${backref}reference/overview.html#top">Packages</a>
+       |  <a href="${backref}overview.html#top">Packages</a>
        |  &nbsp;&nbsp;
-       |  <a href="${backref}reference/cgscript-index.html#top">Index</a>
+       |  <a href="${backref}cgscript-index.html#top">Index</a>
        |</div></div>
      """.stripMargin
 
@@ -108,7 +108,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           backPath.toString
       }
 
-      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref, fixedTargets, CgscriptPackage.root)
+      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref + "/", fixedTargets, CgscriptPackage.root)
       val markdown = generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder)
 
       val header =
@@ -182,8 +182,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
       val file = packageDir/s"${cls.name}.${member.name}.html"
-      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
       val backref = "../" * (cls.pkg.path.length + 1)
+      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, backref, fixedTargets, cls.pkg, Some(cls))
 
       val packageStr = s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       val memberTypeStr = member match {
@@ -231,7 +231,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
 
-    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
+    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * (cls.pkg.path.length + 1), fixedTargets, cls.pkg, Some(cls))
 
     val file = packageDir/s"${cls.name}.html"
 
@@ -870,7 +870,7 @@ case class HelpLinkBuilder(
       }
     }
     */
-    val codePrefix = if (textOpt.isDefined) "" else """<code class="big">"""
+    val codePrefix = if (textOpt.isDefined) "" else """<code>"""
     val linkText = textOpt getOrElse s"$refText"
     val codeSuffix = if (textOpt.isDefined) "" else "</code>"
     s"""$codePrefix<a class="valid" href="$classRef$classRefSuffix">$linkText</a>$codeSuffix"""
@@ -928,7 +928,7 @@ case class HelpLinkBuilder(
     if (referringPackage == targetClass.pkg)
       targetClass.name
     else
-      backPath + pathTo(targetClass)
+      backPath + "reference/" + pathTo(targetClass)
 
   }
 

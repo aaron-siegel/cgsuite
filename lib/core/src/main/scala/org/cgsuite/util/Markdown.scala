@@ -23,7 +23,7 @@ object Markdown {
   }
 
   object State extends Enumeration {
-    val Normal, Code, Emph, Bold, Math, Section1, Section2, Section3, ExecCode = Value
+    val Normal, Code, Emph, Bold, Math, Section1, Section2, Section3, ExecCode, Hierarchy = Value
   }
 
   object Location extends Enumeration {
@@ -100,7 +100,13 @@ class MarkdownBuilder(
 
     (state, location, stream.consume) match {
 
-      case (State.Normal, _, '`') if stream.next == '`' => stream.consume; state = State.ExecCode; statementBuf.delete(0, statementBuf.length); "<code>&gt; "
+      case (State.Normal, _, '`') if stream.next == '`' => stream.consume;
+        if (stream.peek(10) == "\\hierarchy") {
+          for (_ <- 1 to 10) { stream.consume }
+          state = State.Hierarchy; "<pre class=\"bold\">\n"
+        } else {
+          state = State.ExecCode; statementBuf.delete(0, statementBuf.length); "<code>&gt; "
+        }
       case (State.Normal, _, '`') => state = State.Code; "<code>"
       case (State.Normal, _, '~') if stream.next == '~' => stream.consume; state = State.Bold; "<b>"
       case (State.Normal, _, '~') => state = State.Emph; "<em>"
@@ -109,6 +115,10 @@ class MarkdownBuilder(
       case (State.Normal, _, '+') if stream.peek(2) == "++" => state = State.Section2; stream consumeWhile { _ == '+' }; "</div><h2>"
       case (State.Normal, _, '+') if stream.next == '+' => state = State.Section1; stream.consume; "</div><h1>"
 
+      case (State.Hierarchy, _, ch) if ch.isLetter =>
+        val className = ch.toString + stream.consumeWhile { _.isLetter }
+        linkBuilder.hyperlink(className, None)
+      case (State.Hierarchy, _, '`') if stream.next == '`' => stream.consume; state = State.Normal; "</pre>"
       case (State.ExecCode, _, '`') if stream.next == '`' =>
         stream.consume; state = State.Normal; execStatements += statementBuf.toString
         val imageFilePrefix = s"$imageTargetPrefix-${execStatements.length - 1}"
@@ -124,6 +134,7 @@ class MarkdownBuilder(
       case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h1><div class="section">"""
 
       case (State.ExecCode, _, ch) => statementBuf append ch; ch.toString
+      case (State.Hierarchy, _, ch) => ch.toString
 
       case (_, Location.Normal, '^') if state != State.Code => location = Location.Super; "<sup>"
       case (_, Location.Normal, '_') if state != State.Code => location = Location.Sub; "<sub>"
@@ -245,7 +256,7 @@ class MarkdownStream(rawInput: String, stripAsterisks: Boolean = false) {
       if (stripAsterisks)
         line.trim stripPrefix "*"
       else
-        line.trim
+        line
     }
     trimmed mkString "\n"
   }
