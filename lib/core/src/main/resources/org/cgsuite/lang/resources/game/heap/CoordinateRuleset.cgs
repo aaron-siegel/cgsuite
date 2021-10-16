@@ -4,6 +4,8 @@ class CoordinateRuleset extends Ruleset
 
   def Eval(coord as Coordinates) := Position(coord);
 
+  def Eval(row as Integer, col as Integer) := Position((row, col));
+
   /** The `CoordinateRuleset` obtained by adjoining moves from `that` to this ruleset.
     */
   def Adjoin(that as CoordinateRuleset) := FunctionalCoordinateRuleset

@@ -2,12 +2,12 @@
 
 /** Base class for rulesets played on heaps of tokens.
   *
-  * A position in a heap ruleset is represented by a single integer $n$, the ~heap size~.
-  * From a position $H(n)$, a typical legal move is to a disjunctive sum of heaps
+  * A position in a heap ruleset `R` is represented by a single integer $n$, the ~heap size~.
+  * From a position $R(n)$, a typical legal move is to a disjunctive sum of heaps
   *
-  * $H(a_1_) + H(a_2_) + \&ctdot; + H(a_k_)$.
+  * $R(a_1_) + R(a_2_) + \&ctdot; + R(a_k_)$.
   *
-  * Some rulesets (such as ordinary [[TakeAndBreak][take-and-break]] rulesets) require that
+  * Some rulesets (such as many [[TakeAndBreak][take-and-break]] rulesets) require that
   * $a_1_ + a_2_ + \&ctdot; + a_k_ \&le; n$, but in the general case, there are no such
   * restrictions.
   *
@@ -30,12 +30,24 @@ system class HeapRuleset extends Ruleset
 
   /** The acrostic product of this ruleset and `that`.
     *
-    * `R.AcrosticProduct(S)` is a [[CoordinateRuleset]] whose structure is defined as follows.
-    * From a position `(m,n)`, it is legal to move on `m` as if it were an element of `R`, ~or~ on `n`
-    * as if it were an element of `S`. That is, for each $[a_1_,a_2_,\&hellip;a_k_]$ in `R.HeapOptions(m)`,
-    * there is a move from `(m,n)` to $(a_1_,n) + (a_2_,n) + \&ctdot; + (a_k_,n)$; and for each
-    * $[b_1_,b_2_,\&hellip;b_l_]$ in `S.HeapOptions(n)`, there is a move from `(m,n)` to
-    * $(m,b_1_) + (m,b_2_) + \&ctdot; + (m,b_k_)$.
+    * The acrostic product `A := R.AcrosticProduct(S)` of the `HeapRuleset`s `R` and `S` is an impartial
+    * [[CoordinateRuleset]] defined as follows.
+    * From a position `A(m,n)`, it is legal to move on `m` as if it were an element of `R`, ~or~ on `n`
+    * as if it were an element of `S`. That is, for each option
+    *
+    * $R(a_1_) + R(a_2_) + \&ctdot; R(a_k_)$
+    *
+    * of `R(m)`, there is a move from `A(m,n)` to
+    *
+    * $A(a_1_,n) + A(a_2_,n) + \&ctdot; + A(a_k_,n)$.
+    *
+    * Likewise, for each option
+    *
+    * $S(b_1_) + S(b_2_) + \&ctdot; S(b_l_)$
+    *
+    * of `S(n)`, there is a move from `A(m,n)` to
+    *
+    * $A(m,b_1_) + A(m,b_2_) + \&ctdot; + A(m,b_l_)$.
     *
     * The theory of acrostic products is discussed in \ww, Chapter 14; no general solution is known.
     */
@@ -48,29 +60,64 @@ system class HeapRuleset extends Ruleset
     )
   end
 
-  /** The `HeapRuleset` obtained by adjoining moves from `that` to this ruleset.
-    */
-  def Adjoin(that as HeapRuleset) := FunctionalHeapRuleset(n -> HeapOptions(n) Concat that.HeapOptions(n));
-
   /** The cake product of this ruleset and `that`.
     *
-    * `R.CakeProduct(S)` is equivalent to `game.heap.GenCutcake(R, S)`. See the documentation for
-    * [[GenCutcake]] for details.
+    * The cake product `C := R.CakeProduct(S)` of the `HeapRuleset`s `R` and `S` is a partizan [[CoordinateRuleset]]
+    * defined as follows.
+    * From a position `C(m,n)`, Left may move on `m` as if it were an element of `R`, and Right may move on
+    * `n` as if it were an element of `S`. That is, for each option
+    *
+    * $R(a_1_) + R(a_2_) + \&ctdot; R(a_k_)$
+    *
+    * of `R(m)`, Left has a move from `C(m,n)` to
+    *
+    * $C(a_1_,n) + C(a_2_,n) + \&ctdot; + C(a_k_,n)$.
+    *
+    * Likewise, for each option
+    *
+    * $S(b_1_) + S(b_2_) + \&ctdot; S(b_l_)$
+    *
+    * of `S(n)`, Right has a move from `C(m,n)` to
+    *
+    * $C(m,b_1_) + C(m,b_2_) + \&ctdot; + C(m,b_l_)$.
+    *
+    * For the twisted form `T := R.CakeProduct(S, twisted => true)`, the coordinates are swapped after each move, so
+    * (for example) that Left's moves are to
+    *
+    * $T(n,a_1_) + T(n,a_2_) + \&ctdot; + T(n,a_k_)$
+    *
+    * instead.
+    *
+    * The cake product is the partizan analog of the [[#AcrosticProduct][acrostic product]]. It is named by association with
+    * [[game.heap.Cutcake]] and is implemented by the [[game.heap.GenCutcake]] class.
     */
   def CakeProduct(that as HeapRuleset, twisted as Boolean ? false) := GenCutcake(this, that, twisted);
 
+  /** Checks for periodicity of this ruleset up to the specified heap size.
+    *
+    * If periodicity is detected, the result will be an instance of [[Periodicity]]. Otherwise,
+    * the result will be [[Nothing]].
+    */
+  external def CheckPeriodicity(toHeapSize as Integer);
+
   /** The direct product of this ruleset and `that`.
     *
-    * `R.DirectProduct(S)` is a [[CoordinateRuleset]] whose structure is defined as follows.
-    * The position `(m,n)` has one option for each ~pair~ of options `(m',n')`. For each such pair,
-    * writing $m' = [a_1_,a_2_,\&hellip;a_k_]$ and $n' = [b_1_,b_2_,\&hellip;b_l_]$, there is an
-    * option of `(m,n)` given by
+    * The direct product `D := R.DirectProduct(S)` of the `HeapRuleset`s `R` and `S` is an impartial
+    * [[CoordinateRuleset]] defined as follows. Let
     *
-    * $\&Sigma;_i_(a_i_,n) + \&Sigma;_j_(m,b_j_) + \&Sigma;_i,j_(a_i_,b_j_)$.
+    * $R(a_1_) + R(a_2_) + \&ctdot; R(a_k_)$
     *
-    * The direct product is related to the [[Integer#NimProduct][Nim product]] of integers: if an `R`-heap
-    * of size `m` has Nim value `G(m)`, and an `S`-heap of size `n` has Nim value `G(n)`, then the position
-    * `(m,n)` of `R.DirectProduct(S)` has Nim value $G(m) \otimes G(n)$.
+    * be an option of `R(m)` and let
+    *
+    * $S(b_1_) + S(b_2_) + \&ctdot; S(b_l_)$
+    *
+    * be an option of `S(n)`. For every ~pair~ of such options, `D(m,n)` has an option given by
+    *
+    * $\&Sigma;_i_D(a_i_,n) + \&Sigma;_j_D(m,b_j_) + \&Sigma;_i,j_D(a_i_,b_j_)$.
+    *
+    * Direct product is related to the [[Integer#NimProduct][Nim product]] of integers: if `R(m)` has nim value
+    * `a` and `S(n)` has nim value `b`, then `D(m,n)` necessarily has nim value `a \otimes b`
+    * (the Tartan Theorem, \ww, Chapter 13).
     */
   def DirectProduct(that as HeapRuleset) begin
     FunctionalCoordinateRuleset((m, n) ->
@@ -86,26 +133,34 @@ system class HeapRuleset extends Ruleset
     */
   def Eval(heapSize as Integer) := Position(heapSize);
 
+  /** The nim value of the specified heap size.
+    */
+  external def HeapNimValue(heapSize as Integer);
+
   /** The options from the specified heap size.
     *
     * `HeapOptions` must always return a [[Collection]] of `Collection`s of nonnegative `Integer`s.
     */
   def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must implement `HeapOptions`.");
 
-  /** The nim value of the specified heap size.
+  /** The `HeapRuleset` obtained by adjoining moves from `that` to this ruleset.
+    * The options from a heap `R.Join(S)(n)` are the union of `R(n)` and `S(n)`.
     */
-  external def HeapNimValue(heapSize as Integer);
+  def Join(that as HeapRuleset) := FunctionalHeapRuleset(n -> HeapOptions(n) Concat that.HeapOptions(n));
 
   /** A [[List]] of nim values for all heaps up to the specified heap size.
     */
   external def NimValueSequence(toHeapSize as Integer);
 
-  /** Checks for periodicity of this ruleset up to the specified heap size.
+  /** The partizan join of this ruleset and `that`.
     *
-    * If periodicity is detected, the result will be an instance of [[Periodicity]]. Otherwise,
-    * the result will be [[Nothing]].
+    * `R.PartizanJoin(S)` is the [[PartizanHeapRuleset]] whose Left options are given by `R` and whose
+    * Right options are given by `S`. From a heap of size `n`, Left's options are equal to the options of
+    * `R(n)`, and Right's options are equal to the options of `S(n)`.
+    *
+    * `R.PartizanJoin(S)` is a synonym for `game.heap.PartizanHeapRuleset(R, S)`.
     */
-  external def CheckPeriodicity(toHeapSize as Integer);
+  def PartizanJoin(that as HeapRuleset) := PartizanHeapRuleset(this, that);
 
   /** A position of this ruleset.
     *

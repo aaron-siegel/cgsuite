@@ -4,8 +4,8 @@
   *
   * A ~spawning~ ruleset is a special case of [[HeapRuleset]] whose structure is specified by a ~turning code~.
   * It is the heap representation of the associated Turning ruleset, and it is best understood as such.
-  * The documentation for [[Turning]] describes the syntax and usage of turning codes and the relationship between
-  * `Turning(S)` and `Spawning(S)`.
+  * The documentation for [[game.strip.Turning]] describes the syntax and usage of turning codes and the
+  * relationship between `Turning(S)` and `Spawning(S)`.
   */
 system class Spawning(code as String) extends HeapRuleset
 

@@ -148,6 +148,9 @@ class GameHeapTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("PartizanSubtraction(1,3|2,3)", "game.heap.PartizanSubtraction([1,3],[2,3])(6).CanonicalForm",
+        "{1|1,{1|0}||0,{1|0}|0|||0,{1|0}|0}"),
+      // (Same thing, expressed as a PartizanJoin)
+      ("PartizanJoin", "game.heap.Subtraction([1,3]).PartizanJoin(game.heap.Subtraction([2,3]))(6).CanonicalForm",
         "{1|1,{1|0}||0,{1|0}|0|||0,{1|0}|0}")
     ))
 

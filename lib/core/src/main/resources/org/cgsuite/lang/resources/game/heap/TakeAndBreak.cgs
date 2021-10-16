@@ -30,16 +30,12 @@
   * into ~exactly~ $i$ nonempty heaps, if and only if $e_i_ = 1$.
   *
   * The `TakeAndBreak` class supports highly general take-and-break codes.
-  * The digits 0-9 and A-F represent octal and hexadecimal games and in the usual fashion, and these
-  * are extended by G-Z for "digits" 16-35. Larger "digits" are represented by a special notation:
-  *
-  * `&64;`
-  *
-  * for the "digit" 64, which can also be entered as a hex code by:
-  *
-  * `&x40;`
-  *
-  * (A value of $64 = 2^6^$ corresponds to splitting a heap into exactly six nonempty heaps.)
+  * The digits 0-9 and A-F represent octal and hexadecimal games in the usual fashion, and these
+  * are extended by G-Z for digits 16-35. More complex behaviors are represented by a "generalized digit"
+  * notation: instead of 0-9 or A-Z, a "digit" can be a comma-separated list of explicit ~heap counts~
+  * enclosed in braces. For example, `0.{2,3}` means "remove one token and split the remainder into exactly
+  * two or three nonempty heaps"; it's equivalent to the hexadecimal representation `0.C`. Unbounded ranges are
+  * supported: `0.{2+}` means "remove one token and split the remainder into two or more nonempty heaps".
   *
   * Moreover, digits can be suffixed with modifier symbols to create generalized rulesets. Appending ! to a digit
   * requires that all the resulting heaps must be unequal. For example, whereas `"4.0"` is "split a heap into two
@@ -76,17 +72,25 @@
   *
   * \li `8?.0` - Split any heap into exactly three heaps, which cannot all be equal
   *
-  * \li `0.(R?8!G)` - Remove one token from a heap.
+  * \<!--\li `0.(R?8!G)` - Remove one token from a heap.
   *               The remainder may either be left as a single heap; or split
   *               into exactly three heaps, not all the same; or split into
   *               exactly four pairwise unequal heaps.  (Note that
-  *               `R = 27 = (1 | 2 | 8 | 16)` and `G = 16`)
+  *               `R = 27 = (1 | 2 | 8 | 16)` and `G = 16`)--\>
   *
-  * \li `0.&127;&64;` - Either: remove one
+  * \li `0.{1,2,3,4,5,6}{6}` - Either: remove one
   *               token from a heap, splitting the remainder into ~at most six~
   *               pairwise unequal heaps; or remove two tokens from
   *               a heap, splitting the remainder into ~exactly six~
   *               nonempty heaps
+  *
+  * \li `{2+}.0` - Split any heap into two or more heaps
+  *
+  * \li `{2+}!.0` - Split any heap into two or more heaps, all of which must be pairwise
+  *               unequal in size
+  *
+  * \li `0.[{0+}=]` - Remove any number of tokens (but at least one), splitting
+  *               the remainder into any number of heaps (zero or more) of equal size
   * \endul
   */
 system class TakeAndBreak(
