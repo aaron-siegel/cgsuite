@@ -42,7 +42,7 @@ system class HeapRuleset extends Ruleset
   def AcrosticProduct(that as HeapRuleset) begin
     FunctionalCoordinateRuleset((m, n) -> begin
       var mOpts := [[(a, n) for a in mOpt] for mOpt in HeapOptions(m)];
-      var nOpts := [[(m, b) for b in nOpt] for nOpt in HeapOptions(n)];
+      var nOpts := [[(m, b) for b in nOpt] for nOpt in that.HeapOptions(n)];
       mOpts Concat nOpts
       end
     )
