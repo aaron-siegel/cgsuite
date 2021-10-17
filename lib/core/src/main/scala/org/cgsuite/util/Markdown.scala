@@ -177,6 +177,7 @@ class MarkdownBuilder(
       case (_, _, '>') => "&gt;"
       case (_, _, '"') => "&quot;"
       case (_, _, '&') => "&amp;"
+      case (State.Code, _, '-') | (State.Math, _, '-') => "&#8209;"   // Non-breaking hyphen
 
       case (_, _, '[') if stream.next == '[' => consumeLink()
 
