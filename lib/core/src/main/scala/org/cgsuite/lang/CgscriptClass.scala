@@ -538,24 +538,10 @@ class CgscriptClass(
 
       } else {
 
-        classDeclNode.extendsClause map {
-          case IdentifierNode(tree, superId) =>
-            // Try looking this id up two ways:
-            // First, if this is a nested class, then look it up as some other nested class
-            // of this class's enclosing class;
-            // Then try looking it up as a global class.
-            enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
-              pkg lookupClassInScope superId getOrElse {
-                CgscriptPackage lookupClass superId getOrElse {
-                  throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
-                }
-              }
-            }
-          case node: DotNode =>
-            node.elaborate(ElaborationDomain.empty(Some(pkg)))
-            Option(node.classResolution) getOrElse {
-              sys.error("not found")
-            }
+        classDeclNode.extendsClause map { typeSpecifierNode =>
+          typeSpecifierNode.resolveToType(Some(enclosingClassResolutionScope)) getOrElse {
+            throw EvalException(s"Unknown class in extends clause: `${typeSpecifierNode.toNodeString}`", typeSpecifierNode.tree)
+          }
         }
       }
 

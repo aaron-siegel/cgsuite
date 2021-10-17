@@ -39,7 +39,7 @@ object ClassDeclarationNode {
     val modifiers = Modifiers(tree.head, MUTABLE, SINGLETON, SYSTEM)
     val id = IdentifierNode(tree.children(1))
     val extendsClause = tree.children find { _.getType == EXTENDS } match {
-      case Some(t) => t.children map { EvalNode(_) }
+      case Some(t) => t.children map { TypeSpecifierNode(_) }
       case None => Vector.empty
     }
     val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) }
@@ -80,7 +80,7 @@ case class ClassDeclarationNode(
   idNode: IdentifierNode,
   isEnum: Boolean,
   modifiers: Modifiers,
-  extendsClause: Vector[Node],
+  extendsClause: Vector[TypeSpecifierNode],
   classParameterNodes: Option[ParametersNode],
   nestedClassDeclarations: Vector[ClassDeclarationNode],
   methodDeclarations: Vector[MethodDeclarationNode],
@@ -107,7 +107,7 @@ object ParametersNode {
         t,
         pkg,
         IdentifierNode(t.head),
-        t.children find { _.getType == AS } map { u => EvalNode(u.head) },
+        t.children find { _.getType == AS } map { u => TypeSpecifierNode(u.head) },
         t.children find { _.getType == QUESTION } map { u => EvalNode(u.head) },
         t.children exists { _.getType == DOTDOTDOT }
       )
@@ -135,7 +135,7 @@ case class ParameterNode(
   tree: Tree,
   scope: Option[ClassResolutionScope],
   idNode: IdentifierNode,
-  classId: Option[EvalNode],
+  classId: Option[TypeSpecifierNode],
   defaultValue: Option[EvalNode],
   isExpandable: Boolean
   ) extends MemberDeclarationNode {
@@ -145,15 +145,9 @@ case class ParameterNode(
   def toParameter: Parameter = {
     val ttype = classId match {
       case None => CgscriptClass.Object
-      // TODO This resolution logic should be combined with the similar extends clause logic in CgscriptClass
-      case Some(idNode: IdentifierNode) => scope flatMap { _ lookupClassInScope idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
-        throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
+      case Some(typeSpecifierNode) => typeSpecifierNode.resolveToType(scope) getOrElse {
+        throw EvalException(s"Unknown class in parameter declaration: `${typeSpecifierNode.toNodeString}`", typeSpecifierNode.tree)
       }
-      case Some(dotNode: DotNode) =>
-        dotNode.elaborate(ElaborationDomain.empty(scope))
-        Option(dotNode.classResolution) getOrElse {
-          sys.error("not found")
-        }
     }
     Parameter(idNode, ttype, defaultValue, isExpandable)
   }
