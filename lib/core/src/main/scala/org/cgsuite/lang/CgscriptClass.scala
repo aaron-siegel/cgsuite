@@ -142,7 +142,7 @@ class CgscriptClass(
   val classdef: CgscriptClassDef,
   override val id: Symbol,
   val systemClass: Option[Class[_]] = None
-  ) extends Member with LazyLogging { thisClass =>
+  ) extends Member with ClassResolutionScope with LazyLogging { thisClass =>
 
   import CgscriptClass._
 
@@ -156,6 +156,11 @@ class CgscriptClass(
   val enclosingClass: Option[CgscriptClass] = classdef match {
     case NestedClassDef(cls, _) => Some(cls)
     case _ => None
+  }
+
+  val enclosingClassResolutionScope: ClassResolutionScope = enclosingClass match {
+    case Some(cls) => cls
+    case None => pkg
   }
 
   val topClass: CgscriptClass = enclosingClass match {
@@ -331,6 +336,15 @@ class CgscriptClass(
     classInfo.allNestedClasses.get(id)
   }
 
+  override def lookupClassInScope(id: Symbol): Option[CgscriptClass] = {
+    lookupNestedClass(id) orElse {
+      enclosingClass match {
+        case Some(cls) => cls.lookupClassInScope(id)
+        case _ => pkg.lookupClassInScope(id)
+      }
+    }
+  }
+
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
     ensureInitialized()
     classInfo.instanceVarLookup.get(id)
@@ -439,7 +453,7 @@ class CgscriptClass(
 
     // Force constants to declare first
     if (this != Object) {
-      pkg lookupClass Symbol("constants") foreach { constantsCls =>
+      pkg lookupClassInScope Symbol("constants") foreach { constantsCls =>
         if (constantsCls != this) constantsCls.ensureDeclared()
       }
     }
@@ -531,7 +545,7 @@ class CgscriptClass(
             // of this class's enclosing class;
             // Then try looking it up as a global class.
             enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
-              pkg lookupClass superId getOrElse {
+              pkg lookupClassInScope superId getOrElse {
                 CgscriptPackage lookupClass superId getOrElse {
                   throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
                 }

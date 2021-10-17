@@ -518,7 +518,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val description = {
         try {
-          pkg.lookupClass(Symbol("constants")) match {
+          pkg.lookupClassInScope(Symbol("constants")) match {
             case Some(constants) =>
               constants.declNode flatMap { _.docComment } match {
                 case Some(comment) => ClassRenderer(constants).processDocComment(comment, firstSentenceOnly = true)
@@ -896,7 +896,7 @@ case class HelpLinkBuilder(
       case Some(cls) => (Some(cls), None)
       case None =>
         val id = Symbol(ref)
-        val resolution = referringPackage lookupConstant id orElse (CgscriptPackage lookupConstant id)
+        val resolution = referringPackage lookupConstantInScope id orElse (CgscriptPackage lookupConstant id)
         resolution match {
           case Some(Resolution(cls, memberId, _)) =>
             cls lookupMember memberId match {
@@ -913,7 +913,7 @@ case class HelpLinkBuilder(
     if (ref == "")
       referringClass
     else
-      referringPackage lookupClass Symbol(ref) orElse (CgscriptPackage lookupClassByName ref)
+      referringPackage lookupClassInScope Symbol(ref) orElse (CgscriptPackage lookupClassByName ref)
   }
 
   def resolveAsMemberRef(ref: String): (Option[CgscriptClass], Option[Member]) = {

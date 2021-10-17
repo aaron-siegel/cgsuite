@@ -5,7 +5,7 @@ import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
-import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, Parameter}
+import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, ClassResolutionScope, ElaborationDomain, Parameter}
 
 object DeclarationNode {
 
@@ -107,7 +107,7 @@ object ParametersNode {
         t,
         pkg,
         IdentifierNode(t.head),
-        t.children find { _.getType == AS } map { u => IdentifierNode(u.head) },
+        t.children find { _.getType == AS } map { u => EvalNode(u.head) },
         t.children find { _.getType == QUESTION } map { u => EvalNode(u.head) },
         t.children exists { _.getType == DOTDOTDOT }
       )
@@ -133,9 +133,9 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
 
 case class ParameterNode(
   tree: Tree,
-  pkg: Option[CgscriptPackage],
+  scope: Option[ClassResolutionScope],
   idNode: IdentifierNode,
-  classId: Option[IdentifierNode],
+  classId: Option[EvalNode],
   defaultValue: Option[EvalNode],
   isExpandable: Boolean
   ) extends MemberDeclarationNode {
@@ -145,9 +145,15 @@ case class ParameterNode(
   def toParameter: Parameter = {
     val ttype = classId match {
       case None => CgscriptClass.Object
-      case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
+      // TODO This resolution logic should be combined with the similar extends clause logic in CgscriptClass
+      case Some(idNode: IdentifierNode) => scope flatMap { _ lookupClassInScope idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
         throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
       }
+      case Some(dotNode: DotNode) =>
+        dotNode.elaborate(ElaborationDomain.empty(scope))
+        Option(dotNode.classResolution) getOrElse {
+          sys.error("not found")
+        }
     }
     Parameter(idNode, ttype, defaultValue, isExpandable)
   }

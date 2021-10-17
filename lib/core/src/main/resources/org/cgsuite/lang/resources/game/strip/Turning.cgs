@@ -87,7 +87,7 @@
   *
   * (In all cases, the rightmost coin turned must be from heads to tails.)
   */
-class Turning(heapRules) extends StripRuleset
+class Turning(heapRules as game.heap.HeapRuleset) extends StripRuleset
 
   class Position(strip as Strip) extends StripGame, ImpartialGame
   

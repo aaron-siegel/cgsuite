@@ -4,7 +4,7 @@ import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.{CgsuiteException, EvalException}
 import org.cgsuite.lang._
 
-case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends EvalNode {
+case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends TypeSpecifierNode {
   override val children = Vector(obj, idNode)
   val antecedentAsPackagePath: Option[Vector[String]] = obj match {
     case IdentifierNode(_, antecedentId) => Some(Vector(antecedentId.name))
@@ -16,10 +16,10 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
   var classResolution: CgscriptClass = _
   var constantResolution: Resolution = _
   override def elaborate(scope: ElaborationDomain): Unit = {
-    antecedentAsPackage flatMap { _.lookupClass(idNode.id) } match {
+    antecedentAsPackage flatMap { _.lookupClassInScope(idNode.id) } match {
       case Some(cls) => classResolution = cls
       case None =>
-        antecedentAsPackage flatMap { _.lookupConstant(idNode.id) } match {
+        antecedentAsPackage flatMap { _.lookupConstantInScope(idNode.id) } match {
           case Some(res) => constantResolution = res
           case None => obj.elaborate(scope)     // Deliberately bypass idNode
         }
@@ -59,5 +59,10 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ev
       s"${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString}"
     else
       s"(${obj.toNodeStringPrec(OperatorPrecedence.Postfix)}.${idNode.toNodeString})"
+  }
+
+  override def resolveToType(scope: Option[ClassResolutionScope]): Option[CgscriptClass] = {
+    elaborate(ElaborationDomain.empty(scope))
+    Option(classResolution)
   }
 }

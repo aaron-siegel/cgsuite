@@ -27,7 +27,7 @@ object CgscriptPackage {
   def lookupClass(url: URL): Option[CgscriptClass] = classDictionary.values find { _.url contains url }
 
   def lookupConstant(id: Symbol): Option[Resolution] = {
-    lang.lookupConstant(id) orElse util.lookupConstant(id) orElse game.lookupConstant(id)
+    lang.lookupConstantInScope(id) orElse util.lookupConstantInScope(id) orElse game.lookupConstantInScope(id)
   }
 
   // Less efficient!
@@ -37,7 +37,7 @@ object CgscriptPackage {
 
 }
 
-case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
+case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) extends ClassResolutionScope {
 
   private val subpackages = mutable.Map[String, CgscriptPackage]()
   private val classesLookup = mutable.Map[Symbol, CgscriptClass]()
@@ -65,7 +65,7 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
     }
   }
 
-  def lookupClass(id: Symbol): Option[CgscriptClass] = classesLookup.get(id)
+  override def lookupClassInScope(id: Symbol): Option[CgscriptClass] = classesLookup.get(id)
 
   def declareClass(id: Symbol, classdef: CgscriptClassDef, scalaClass: Option[Class[_]]): CgscriptClass = {
 
@@ -92,8 +92,14 @@ case class CgscriptPackage(parent: Option[CgscriptPackage], name: String) {
 
   }
 
-  def lookupConstant(id: Symbol): Option[Resolution] = {
-    lookupClass(Symbol("constants")) flatMap { constantsCls =>
+}
+
+trait ClassResolutionScope {
+
+  def lookupClassInScope(id: Symbol): Option[CgscriptClass]
+
+  def lookupConstantInScope(id: Symbol): Option[Resolution] = {
+    lookupClassInScope(Symbol("constants")) flatMap { constantsCls =>
       Option(Resolver forId id findResolutionForClass constantsCls) match {
         case Some(res) if res.isResolvable => Some(res)
         case _ => None
