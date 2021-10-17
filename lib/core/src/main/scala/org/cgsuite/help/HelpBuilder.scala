@@ -888,7 +888,25 @@ case class HelpLinkBuilder(
     if (ref contains "#")
       resolveAsMemberRef(ref)
     else
-      (resolveAsClassRef(ref), None)
+      resolveAsTopRef(ref)
+  }
+
+  def resolveAsTopRef(ref: String): (Option[CgscriptClass], Option[Member]) = {
+    resolveAsClassRef(ref) match {
+      case Some(cls) => (Some(cls), None)
+      case None =>
+        val id = Symbol(ref)
+        val resolution = referringPackage lookupConstant id orElse (CgscriptPackage lookupConstant id)
+        resolution match {
+          case Some(Resolution(cls, memberId, _)) =>
+            cls lookupMember memberId match {
+              case Some(member) => (Some(cls), Some(member))
+              case None => (None, None)
+            }
+
+          case None => (None, None)
+        }
+    }
   }
 
   def resolveAsClassRef(ref: String): Option[CgscriptClass] = {
