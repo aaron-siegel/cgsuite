@@ -62,7 +62,7 @@ case class DotNode(tree: Tree, obj: EvalNode, idNode: IdentifierNode) extends Ty
   }
 
   override def resolveToType(scope: Option[ClassResolutionScope]): Option[CgscriptClass] = {
-    elaborate(ElaborationDomain.empty(scope))
-    Option(classResolution)
+    antecedentAsPackage flatMap { _.lookupClassInScope(idNode.id) }
   }
+
 }
