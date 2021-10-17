@@ -47,19 +47,14 @@ entering `R.NimValueSequence(100)`; no periodicity is apparent after computing j
 +++ Take-and-Break Codes +++
 
 CGSuite supports a wide variety of take-and-break codes.  You can use 
-the digits 0-9 and A-F in the usual fashion for octal and hexadecimal games.  
-In addition, you can use G-Z for "digits" 16-35, and there is a special notation 
-for larger "digits"; for example
-
-`&64;`
-
-for a digit of size 64. In addition, it's possible to attach modifiers to code digits
+the digits 0-9 and A-F in the usual fashion for octal and hexadecimal games,
+and G-Z for digits 16-35. It's also possible to attach modifiers to code digits
 that place further restrictions on the available moves. For example, the ruleset
 
 `game.heap.TakeAndBreak("4.0")`
 
-is "split a heap into two non-empty heaps".  If you compute just a few nim values,
-you'll see that it's not very interesting.  However, try changing this to
+is "split a heap into two non-empty heaps". If you compute just a few nim values,
+you'll see that it's not very interesting. However, try changing this to
 
 `game.heap.TakeAndBreak("4!.0")`
 
@@ -72,8 +67,9 @@ It's unknown whether Grundy's Game is ultimately periodic. Likewise,
 would be the variant "remove one token and split the remainder into two 
 nonempty heaps of different sizes," and so on.
 
-Various other modifiers and extensions are possible, including infinite repeating codes;
-see the class documentation for [[TakeAndBreak]] for the full range of options.
+Various other modifiers and extensions are possible, including infinite repeating codes
+and a special notation for "digits" larger than 35;
+see the class documentation for [[game.heap.TakeAndBreak]] for the full range of options.
 
 +++ Other Heap Games +++
 

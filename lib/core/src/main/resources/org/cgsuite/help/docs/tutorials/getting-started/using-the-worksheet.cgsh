@@ -70,14 +70,13 @@ following function computes the Collatz stopping time of `n` (i.e., the number o
 where each step replaces `n` by `n/2` if `n` is even, or `3n + 1` if `n` is odd). Copy the entire function onto a
 a single Worksheet cell if you want to try it.
 
-`> def Collatz(n) :=
-\sp\sp if n == 1 then 0
-\sp\sp elseif n.IsEven then 1 + Collatz(n/2)
-\sp\sp else 1 + Collatz(3*n+1)
-\sp\sp end`
+``\onlyin def Collatz(n) :=
+  if n == 1 then 0
+  elseif n.IsEven then 1 + Collatz(n/2)
+  else 1 + Collatz(3*n+1)
+  end``
 
-`> Collatz(97)`\\
-\<big\>118\</big\>
+``Collatz(97)``
 
 +++ Objects and Types +++
 

@@ -76,6 +76,10 @@ code.big {
     line-height: 80%
 }
 
+pre {
+    font-family: Courier, monospace
+}
+
 pre.bold {
     font-weight: bold;
     font-family: Courier, monospace;

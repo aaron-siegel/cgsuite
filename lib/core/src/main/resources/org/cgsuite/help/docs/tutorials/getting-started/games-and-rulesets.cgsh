@@ -79,9 +79,9 @@ Many other variants can be defined this way. For example, one might define
 `Oxen := game.grid.GenClobber(maxDistance => 2)`
 
 (A "violent ox" is a Chess-like piece that can move and capture up to two squares orthogonally, used in certain
-variants of Shogi.
+variants of Shogi.)
 "Oxen" isn't a well-studied game, so it isn't defined by default in CGSuite, but it's a good example of how CGSuite's
-ruleset schemas can be used to construct a wide range of rulesets. Perhaps you'll discover something new!)
+ruleset schemas can be used to construct a wide range of rulesets. Perhaps you'll discover something new!
 
 +++ Ruleset Composition +++
 
@@ -98,7 +98,7 @@ are available as well; for example, Cutcake (described in \ww) is defined in CGS
 
 `Cutcake := game.heap.TakeAndBreak("4.0") CakeProduct game.heap.TakeAndBreak("4.0")`
 
-We'll have much more to say about Heap and Take-and-Break games in the upcoming [[impartial-games]] section of the
+We'll have much more to say about Heap and Take-and-Break games in the upcoming Impartial Games section of the
 tutorial.
 
 \## Footer ##

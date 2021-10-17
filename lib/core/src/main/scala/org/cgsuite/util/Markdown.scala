@@ -86,6 +86,8 @@ class MarkdownBuilder(
   private val result = new StringBuffer()
   private val statementBuf = new StringBuffer()
   private val execStatements = ArrayBuffer[String]()
+  private var execShowInput = true
+  private var execShowOutput = true
   private var hasFooter = false
 
   emit("  ")
@@ -96,16 +98,36 @@ class MarkdownBuilder(
 
   }
 
+  def beginExecCode(showInput: Boolean, showOutput: Boolean): String = {
+    state = State.ExecCode
+    execShowInput = showInput
+    execShowOutput = showOutput
+    statementBuf.delete(0, statementBuf.length)
+    if (execShowInput && execShowOutput)
+      "<pre>&gt; "
+    else if (execShowInput)
+      "<pre>"
+    else
+      ""
+  }
+
   def consumeNextChar(): String = {
 
     (state, location, stream.consume) match {
 
       case (State.Normal, _, '`') if stream.next == '`' => stream.consume;
-        if (stream.peek(10) == "\\hierarchy") {
-          for (_ <- 1 to 10) { stream.consume }
-          state = State.Hierarchy; "<pre class=\"bold\">\n"
+        if (stream.next == '\\') {
+          stream.consume
+          val special = stream consumeWhile { _.isLetter }
+          if (stream.next == ' ') stream.consume
+          special match {
+            case "hierarchy" => state = State.Hierarchy; "<pre class=\"bold\">\n"
+            case "onlyin" => beginExecCode(showInput = true, showOutput = false)
+            case "onlyout" => beginExecCode(showInput = false, showOutput = true)
+            case _ => sys.error(s"Unknown special: \\$special")
+          }
         } else {
-          state = State.ExecCode; statementBuf.delete(0, statementBuf.length); "<code>&gt; "
+          beginExecCode(showInput = true, showOutput = true)
         }
       case (State.Normal, _, '`') => state = State.Code; "<code>"
       case (State.Normal, _, '~') if stream.next == '~' => stream.consume; state = State.Bold; "<b>"
@@ -122,18 +144,27 @@ class MarkdownBuilder(
       case (State.ExecCode, _, '`') if stream.next == '`' =>
         stream.consume; state = State.Normal; execStatements += statementBuf.toString
         val imageFilePrefix = s"$imageTargetPrefix-${execStatements.length - 1}"
-        s"""</code><p style="margin-top:3pt;">
-           |  <img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x" />
-           |</p>""".stripMargin
+        val endInputString = if (execShowInput) "</pre>" else ""
+        val outputString = {
+          if (execShowOutput) {
+            val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x" />"""
+            if (execShowInput) {
+              s"""<p style="margin-top:-10pt;">$imgString</p>"""
+            } else {
+              imgString
+            }
+          } else ""
+        }
+        s"$endInputString$outputString"
       case (State.Code, _, '`') => state = State.Normal; "</code>"
       case (State.Bold, _, '~') if stream.next == '~' => stream.consume; state = State.Normal; "</b>"
       case (State.Emph, _, '~') => state = State.Normal; "</em>"
       case (State.Math, _, '$') => state = State.Normal; "</code>"
-      case (State.Section3, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; "</h3>"
-      case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h2><div class="section">"""
-      case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; """</h1><div class="section">"""
+      case (State.Section3, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; if (stream.next == '\n') stream.consume; "</h3>"
+      case (State.Section2, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; if (stream.next == '\n') stream.consume; """</h2><div class="section">"""
+      case (State.Section1, _, '+') if stream.next == '+' => state = State.Normal; stream consumeWhile { _ == '+' }; if (stream.next == '\n') stream.consume; """</h1><div class="section">"""
 
-      case (State.ExecCode, _, ch) => statementBuf append ch; ch.toString
+      case (State.ExecCode, _, ch) => statementBuf append ch; if (execShowInput) ch.toString else ""
       case (State.Hierarchy, _, ch) => ch.toString
 
       case (_, Location.Normal, '^') if state != State.Code => location = Location.Super; "<sup>"
@@ -153,8 +184,9 @@ class MarkdownBuilder(
       case (_, _, '\\') if stream.next.isLetter => consumeSpecialSeq()
       case (_, _, '\\') => special(stream.consume)
 
+      case (State.ExecCode, _, '\n') => "\n"
       case (State.Code, _, '\n') => "\n  <br>"
-      case (_, _, '\n') if stream.next == '\n' => stream.consume; "\n  <p>"
+      case (_, _, '\n') if stream.next == '\n' && !(stream.peek(3) == "\n++" || stream.peek(4) == "\n\\##") => stream.consume; "\n  <p>"
       case (_, _, '\n') => " "
 
       case (_, _, '.') if firstSentenceOnly => stream.exhaust(); "."
