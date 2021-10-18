@@ -192,7 +192,8 @@ class MarkdownBuilder(
         val imageFilePrefix = s"$imageTargetPrefix-${execStatements.length - 1}"
         val outputString = {
           if (showOutput) {
-            val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x" style="vertical-align: middle;" />"""
+            val style = if (showInput) "" else " style=\"vertical-align: middle; margin: 2pt 0pt 2pt 0pt;\""
+            val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x"$style />"""
             if (showInput) {
               s"""<p style="margin-top:-10pt;">$imgString</p>"""
             } else {
