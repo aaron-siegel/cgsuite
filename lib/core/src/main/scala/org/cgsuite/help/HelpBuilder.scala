@@ -877,7 +877,7 @@ case class HelpLinkBuilder(
     }
     val refText = targetMemberOpt match {
       case Some(member) => member.idNode.id.name
-      case None => targetClass.name
+      case None => if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
     }
     /*
     val refText = {
@@ -934,10 +934,16 @@ case class HelpLinkBuilder(
   }
 
   def resolveAsClassRef(ref: String): Option[CgscriptClass] = {
-    if (ref == "")
-      referringClass
-    else
-      referringPackage lookupClassInScope Symbol(ref) orElse (CgscriptPackage lookupClassByName ref)
+    val path = ref.split('.').toVector
+    val classRef = path.length match {
+      case 0 => referringClass
+      case 1 => referringPackage lookupClassInScope Symbol(path.head) orElse (CgscriptPackage lookupClassByName path.head)
+      case _ => CgscriptPackage.root.lookupSubpackage(path dropRight 1) flatMap { _ lookupClassInScope Symbol(path.last) }
+    }
+    classRef orElse {
+      // Try it as a package (= constants class) instead
+      CgscriptPackage.root lookupSubpackage path flatMap { _.lookupClassInScope(Symbol("constants")) }
+    }
   }
 
   def resolveAsMemberRef(ref: String): (Option[CgscriptClass], Option[Member]) = {

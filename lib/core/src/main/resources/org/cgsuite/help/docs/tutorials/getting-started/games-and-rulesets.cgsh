@@ -32,6 +32,8 @@ You can also directly manipulate the game $G$; for example:
 (A ~sensible Left option~ of `G` is a Left option that contributes to its canonical form. This particular `Clobber`
 position has only one of them! To see all of `G`'s Left options, try `G.LeftOptions` instead.)
 
+$G$ can be manipulated with all the usual algebraic operations:
+
 \display{H := G + G + *2}
 
 Note that the expression `G + G + *2` does ~not~ get automatically simplified, the way a sum of `CanonicalShortGame`s would.
@@ -87,11 +89,10 @@ ruleset schemas can be used to construct a wide range of rulesets. Perhaps you'l
 
 It's also possible to use rulesets as "building blocks" to form more complex ones. For example,
 `game.heap.HeapRuleset` is the base class for general impartial games played on heaps of tokens (such as `Nim`).
-Another class, `game.heap.PartizanHeapRuleset`, takes as input two instances of `HeapRuleset` - a "Left ruleset" and
-"Right ruleset" - and implements a partizan ruleset where Left moves according to the Left ruleset, and likewise
-for Right. For example,
+Given any two `HeapRuleset` instances `L` and `R`, CGSuite can construct their "partizan join", in which Left moves
+according to `L` and Right moves according to `R`. For example,
 
-`game.heap.PartizanHeapRuleset(game.heap.Nim, game.heap.Kayles)`
+`game.heap.Nim PartizanJoin game.heap.Kayles`
 
 is the ruleset where Left moves according to `Nim` and Right moves according to `Kayles`. Other composition operators
 are available as well; for example, Cutcake (described in \ww) is defined in CGSuite in terms of a "cake product":
