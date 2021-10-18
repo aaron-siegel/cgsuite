@@ -10,7 +10,7 @@ class Ruleset
     * permitted to move unless ~both~ players have at least one option.
     * This ensures that every position of the variant is dicotic.
     *
-    * See also [[DicoticVariantGame]].
+    * See also [[game.variant.DicoticVariantGame]].
     */
   def DicoticVariant := game.variant.DicoticVariantRuleset(this);
 
@@ -19,7 +19,7 @@ class Ruleset
     * The impartial variant is a modified version of this ruleset, in which either player may
     * move as Left ~or~ Right.
     *
-    * See also [[ImpartialVariantGame]].
+    * See also [[game.variant.ImpartialVariantGame]].
     */
   def ImpartialVariant := game.variant.ImpartialVariantRuleset(this);
 

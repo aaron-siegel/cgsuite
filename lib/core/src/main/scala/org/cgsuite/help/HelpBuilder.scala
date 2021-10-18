@@ -774,7 +774,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       Some(markdown)
     } catch {
       case exc: Exception =>
-        exc.printStackTrace()
+        logger.error("Exception occurred processing markdown.", exc)
         markdownErrors = true
         None
     }

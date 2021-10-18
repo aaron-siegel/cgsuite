@@ -1,10 +1,9 @@
 package org.cgsuite.help
 
 import com.typesafe.scalalogging.Logger
-import org.cgsuite.help.Markdown.{Location, State, logger}
+import org.cgsuite.help.Markdown.{Location, State, Style}
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object Markdown {
@@ -23,7 +22,11 @@ object Markdown {
   }
 
   object State extends Enumeration {
-    val Normal, Code, Emph, Bold, Math, Section1, Section2, Section3 = Value
+    val Normal, Code, Math, Section1, Section2, Section3 = Value
+  }
+
+  object Style extends Enumeration {
+    val Normal, Emph, Bold = Value
   }
 
   object Location extends Enumeration {
@@ -89,9 +92,11 @@ class MarkdownBuilder(
 
   private val stream = new MarkdownTokenStream(rawInput, stripAsterisks)
   private var state = State.Normal
+  private var style = Style.Normal
   private var location = Location.Normal
   private val result = new StringBuffer()
   private val execStatements = ArrayBuffer[(String, Double)]()
+  private var atParagraphStart = true
   private var hasFooter = false
 
   emit("  ")
@@ -104,50 +109,66 @@ class MarkdownBuilder(
 
   def consumeNextToken(): String = {
 
-    (state, location, stream.next) match {
+    (state, style, location, stream.next) match {
 
-      case (_, _, Special(str, arg)) => resolveSpecial(str, arg)
+      // Special commands
+      case (_, _, _, Special(str, arg)) => resolveSpecial(str, arg)
 
-      case (State.Normal, _, ControlSequence("`")) => state = State.Code; "<code>"
-      case (State.Normal, _, ControlSequence("~~")) => state = State.Bold; "<b>"
-      case (State.Normal, _, ControlSequence("~")) => state = State.Emph; "<em>"
-      case (State.Normal, _, ControlSequence("$")) => state = State.Math; "<code>"
-      case (State.Normal, _, ControlSequence("++")) => state = State.Section1; "</div><h1>"
-      case (State.Normal, _, ControlSequence("+++")) => state = State.Section2; "</div><h2>"
-      case (State.Normal, _, ControlSequence("++++")) => state = State.Section3; "<h3>"
+      // If in a summary, just echo a link
+      case (_, _, _, Link(target, text)) if firstSentenceOnly => text getOrElse { s"<code>$target</code>" }
 
-      case (State.Code, _, ControlSequence("`")) => state = State.Normal; "</code>"
-      case (State.Bold, _, ControlSequence("~~")) => state = State.Normal; "</b>"
-      case (State.Emph, _, ControlSequence("~")) => state = State.Normal; "</em>"
-      case (State.Math, _, ControlSequence("$")) => state = State.Normal; "</code>"
-      case (State.Section3, _, ControlSequence("++++")) => state = State.Normal; "</h3>"
-      case (State.Section2, _, ControlSequence("+++")) => state = State.Normal; """</h2><div class="section">"""
-      case (State.Section1, _, ControlSequence("++")) => state = State.Normal; """</h1><div class="section">"""
+      // Link to build
+      case (_, _, _, Link(target, text)) => linkBuilder.hyperlink(target, text)
 
-      case (_, Location.Normal, ControlSequence("^")) => location = Location.Super; "<sup>"
-      case (_, Location.Normal, ControlSequence("_")) => location = Location.Sub; "<sub>"
+      // Paragraph break
+      case (_, _, _, ControlSequence("\n\n")) => "\n  <p>"
 
-      case (_, Location.Super, ControlSequence("^")) => location = Location.Normal; "</sup>"
-      case (_, Location.Sub, ControlSequence("_")) => location = Location.Normal; "</sub>"
+      // Begin state
+      case (State.Normal, _, _, ControlSequence("`")) => state = State.Code; "<code>"
+      case (State.Normal, _, _, ControlSequence("$")) => state = State.Math; "<code>"
+      case (State.Normal, _, _, ControlSequence("++")) => state = State.Section1; atParagraphStart = true; "</div><h1>"
+      case (State.Normal, _, _, ControlSequence("+++")) => state = State.Section2; atParagraphStart = true; "</div><h2>"
+      case (State.Normal, _, _, ControlSequence("++++")) => state = State.Section3; atParagraphStart = true; "<h3>"
 
-      case (_, _, OrdinaryChar('<')) => "&lt;"
-      case (_, _, OrdinaryChar('>')) => "&gt;"
-      case (_, _, OrdinaryChar('"')) => "&quot;"
-      case (_, _, OrdinaryChar('&')) => "&amp;"
-      case (State.Code | State.Math, _, OrdinaryChar('-')) => "&#8209;"   // Non-breaking hyphen
+      // End state
+      case (State.Code, _, _, ControlSequence("`")) => state = State.Normal; "</code>"
+      case (State.Math, _, _, ControlSequence("$")) => state = State.Normal; "</code>"
+      case (State.Section1, _, _, ControlSequence("++")) => state = State.Normal; """</h1><div class="section">"""
+      case (State.Section2, _, _, ControlSequence("+++")) => state = State.Normal; """</h2><div class="section">"""
+      case (State.Section3, _, _, ControlSequence("++++")) => state = State.Normal; "</h3>"
 
-      case (_, _, Link(target, text)) => linkBuilder.hyperlink(target, text)
+      // Begin style
+      case (_, Style.Normal, _, ControlSequence("~")) => style = Style.Emph; "<em>"
+      case (_, Style.Normal, _, ControlSequence("~~")) => style = Style.Bold; "<b>"
 
-      case (State.Code, _, OrdinaryChar('\n')) => "\n  <br>"
-      case (_, _, ControlSequence("\n\n")) => "\n  <p>"
-      case (_, _, OrdinaryChar('\n')) => " "
+      // End style
+      case (_, Style.Emph, _, ControlSequence("~")) => style = Style.Normal; "</em>"
+      case (_, Style.Bold, _, ControlSequence("~~")) => style = Style.Normal; "</b>"
 
-      case (_, _, OrdinaryChar('.')) if firstSentenceOnly => stream.exhaust(); "."
+      // Begin location
+      case (_, _, Location.Normal, ControlSequence("^")) => location = Location.Super; "<sup>"
+      case (_, _, Location.Normal, ControlSequence("_")) => location = Location.Sub; "<sub>"
 
-      case (_, _, OrdinaryChar(ch)) => ch.toString
+      // End location
+      case (_, _, Location.Super, ControlSequence("^")) => location = Location.Normal; "</sup>"
+      case (_, _, Location.Sub, ControlSequence("_")) => location = Location.Normal; "</sub>"
 
-      // TODO This shouldn't be allowed, but it's temporarily swallowed to ease the transition
-      case (State.Math, _, ControlSequence("~")) => ""
+      // Character convenience mappings
+      case (_, _, _, OrdinaryChar('<')) => "&lt;"
+      case (_, _, _, OrdinaryChar('>')) => "&gt;"
+      case (_, _, _, OrdinaryChar('"')) => "&quot;"
+      case (_, _, _, OrdinaryChar('&')) => "&amp;"
+
+      case (State.Code | State.Math, _, _, OrdinaryChar('-')) => "&#8209;"   // Non-breaking hyphen
+      case (State.Code, _, _, OrdinaryChar('\n')) => "\n  <br>"
+
+      case (_, _, _, OrdinaryChar('\n')) => " "
+
+      // If firstSentenceOnly, then stop when we hit a period
+      case (_, _, _, OrdinaryChar('.')) if firstSentenceOnly => stream.exhaust(); "."
+
+      // Other ordinary characters are simply echoed
+      case (_, _, _, OrdinaryChar(ch)) => ch.toString
 
       case x => sys.error(s"Invalid Markdown: $x")
 
