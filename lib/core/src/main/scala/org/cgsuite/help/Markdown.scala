@@ -4,6 +4,7 @@ import com.typesafe.scalalogging.Logger
 import org.cgsuite.help.Markdown.{Location, State, Style}
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object Markdown {
@@ -189,6 +190,7 @@ class MarkdownBuilder(
 
       case "exec" => resolveExec(arg, showInput = false, showOutput = true)
       case "execHalf" => resolveExec(arg, showInput = false, showOutput = true, scale = 0.5)
+      case "execText" => resolveExecText(arg)
       case "display" => resolveExec(arg, showInput = true, showOutput = true)
       case "displayAndHide" => resolveExec(arg, showInput = true, showOutput = false)
       case "classDiagram" => classDiagram(arg getOrElse { sys.error("Missing hierarchy arg") })
@@ -232,6 +234,14 @@ class MarkdownBuilder(
         }
         s"$inputString$outputString"
 
+    }
+  }
+
+  def resolveExecText(arg: Option[String]): String = {
+    prepareParagraph()
+    arg match {
+      case None => sys.error("exec special missing input")
+      case Some(input) => org.cgsuite.lang.System.evaluateOrException(input, mutable.AnyRefMap()).head.toString
     }
   }
 
