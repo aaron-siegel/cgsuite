@@ -71,7 +71,7 @@ object Markdown {
 
 }
 
-case class Markdown(text: String, hasFooter: Boolean, execStatements: Vector[String])
+case class Markdown(text: String, hasFooter: Boolean, execStatements: Vector[(String, Double)])
 
 trait LinkBuilder {
 
@@ -91,7 +91,7 @@ class MarkdownBuilder(
   private var state = State.Normal
   private var location = Location.Normal
   private val result = new StringBuffer()
-  private val execStatements = ArrayBuffer[String]()
+  private val execStatements = ArrayBuffer[(String, Double)]()
   private var hasFooter = false
 
   emit("  ")
@@ -160,6 +160,7 @@ class MarkdownBuilder(
     str match {
 
       case "exec" => resolveExec(arg, showInput = false, showOutput = true)
+      case "execHalf" => resolveExec(arg, showInput = false, showOutput = true, scale = 0.5)
       case "display" => resolveExec(arg, showInput = true, showOutput = true)
       case "displayAndHide" => resolveExec(arg, showInput = true, showOutput = false)
       case "classDiagram" => classDiagram(arg getOrElse { sys.error("Missing hierarchy arg") })
@@ -172,12 +173,12 @@ class MarkdownBuilder(
 
   }
 
-  def resolveExec(inputOpt: Option[String], showInput: Boolean, showOutput: Boolean): String = {
+  def resolveExec(inputOpt: Option[String], showInput: Boolean, showOutput: Boolean, scale: Double = 1.0): String = {
     inputOpt match {
       case None => sys.error("exec special missing input")
       case Some(input) =>
 
-        execStatements += input
+        execStatements += ((input, scale))
 
         val inputString = {
           if (showInput && showOutput)
@@ -191,7 +192,7 @@ class MarkdownBuilder(
         val imageFilePrefix = s"$imageTargetPrefix-${execStatements.length - 1}"
         val outputString = {
           if (showOutput) {
-            val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x" />"""
+            val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x" style="vertical-align: middle;" />"""
             if (showInput) {
               s"""<p style="margin-top:-10pt;">$imgString</p>"""
             } else {

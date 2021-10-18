@@ -22,6 +22,11 @@ singleton class constants
     * nonempty, then that toad may not move.
     *
     * Right moves frogs to the left in the identical fashion.
+    *
+    * A typical opening sequence might look like this:
+    *
+    * \execHalf{game.strip.ToadsAndFrogs("ttt..fff")} \to \execHalf{game.strip.ToadsAndFrogs("tt.t.fff")} \to
+    * \execHalf{game.strip.ToadsAndFrogs("tt.tf.ff")} \to \execHalf{game.strip.ToadsAndFrogs("tt..ftff")}
     */
   var ToadsAndFrogs := game.strip.GenToadsAndFrogs(1);
 

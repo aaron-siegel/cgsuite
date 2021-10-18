@@ -758,9 +758,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     try {
       val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
       val varMap = mutable.AnyRefMap[Symbol, Any]()
-      markdown.execStatements.zipWithIndex.foreach { case (statement, ordinal) =>
+      markdown.execStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
         try {
-          generateImages(targetFile, statement, ordinal, varMap)
+          generateImages(targetFile, statement, scale, ordinal, varMap)
         } catch {
           case exc: Throwable =>
             if (!reportedImageException) {
@@ -780,21 +780,21 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     }
   }
 
-  def generateImages(targetFile: File, statement: String, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
+  def generateImages(targetFile: File, statement: String, rescale: Double, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
     val output = org.cgsuite.lang.System.evaluateOrException(statement, varMap)
     val outputFilePrefix = s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal"
     if (output.nonEmpty) {
       for (scale <- Vector(1.0, 2.0)) {
-        generateImage(output.last, outputFilePrefix, scale)
+        generateImage(output.last, outputFilePrefix, scale, rescale)
       }
     }
   }
 
-  def generateImage(output: Output, outputFilePrefix: String, scale: Double): Unit = {
+  def generateImage(output: Output, outputFilePrefix: String, scale: Double, rescale: Double): Unit = {
     val size = output.getSize(HelpBuilder.preferredImageWidth)
-    val image = new BufferedImage((size.width * scale).toInt, (size.height * scale).toInt, BufferedImage.TYPE_INT_ARGB)
+    val image = new BufferedImage((size.width * scale * rescale).toInt, (size.height * scale * rescale).toInt, BufferedImage.TYPE_INT_ARGB)
     val g2d = image.getGraphics.asInstanceOf[Graphics2D]
-    g2d.scale(scale, scale)
+    g2d.scale(scale * rescale, scale * rescale)
     output.paint(g2d, HelpBuilder.preferredImageWidth)
     val outputFile = new java.io.File(f"$outputFilePrefix-$scale%1.1fx.png")
     //ImageUtil.writeHiResImage(image, outputFile, "png", 144)
