@@ -584,13 +584,13 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           if (cls == ancestorClass) ""
           else {
             val link = linkBuilder.hyperlinkToClass(ancestorClass)
-            s"<p><em>(description copied from </em>$link<em>)</em>\n"
+            s"<em>(description copied from </em>$link<em>)</em>\n<p>"
           }
         }
-        s"$disclaimer<p>$processedComment"
+        s"$disclaimer$processedComment"
     }
 
-    val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$memberSuffix</code>\n  """ else ""
+    val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$memberSuffix</code>\n<p>""" else ""
 
     s"""<a name="$name"></a>
        |<p><div class="section">

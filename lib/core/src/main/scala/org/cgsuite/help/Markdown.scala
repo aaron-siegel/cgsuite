@@ -202,7 +202,7 @@ class MarkdownBuilder(
   }
 
   def resolveExec(inputOpt: Option[String], showInput: Boolean, showOutput: Boolean, scale: Double = 1.0): String = {
-    previousParagraphEnded = false
+    prepareParagraph()
     inputOpt match {
       case None => sys.error("exec special missing input")
       case Some(input) =>
@@ -240,6 +240,7 @@ class MarkdownBuilder(
   def emit(str: String): Unit = result append str
 
   def special(str: String): String = {
+    prepareParagraph()
     if (str.length == 1) {
       val ch = str.head
       Markdown.specials getOrElse (ch, ch.toString)
