@@ -17,7 +17,8 @@ class GameStripTest extends CgscriptSpec {
   "game.strip" should "define Turning properly" in {
     executeTests(Table(
       header,
-      ("Turning", """game.strip.Turning(game.heap.Spawning("1-3"))("htththtth").NimValue""", "29")
+      ("Turning", """game.strip.Turning(game.heap.Spawning("1-3"))("htththtth").NimValue""", "29"),
+      ("Turning", """game.strip.Turning("1-3")("htththtth").NimValue""", "29")      // Same with String constructor
     ))
   }
 
