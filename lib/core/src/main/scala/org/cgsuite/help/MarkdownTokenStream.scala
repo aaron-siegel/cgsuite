@@ -36,15 +36,11 @@ class MarkdownTokenStream(input: String, stripAsterisks: Boolean = false) {
 
         case '\n' if !inCodeBlock && markdownStream.next == '\n' =>
           markdownStream consumeWhile { _ == '\n' }
-          if (markdownStream.next == '+')
-            OrdinaryChar('\n')
-          else
-            ControlSequence("\n\n")
+          ControlSequence("\n\n")
 
         case '+' if !inCodeBlock && markdownStream.next == '+' =>
           val token = ControlSequence("+" + markdownStream.consumeWhile { _ == '+' })
-          if (markdownStream.next == '\n')
-            markdownStream.consume
+          markdownStream consumeWhile { _ == '\n' }     // Swallow paragraph breaks after a section heading
           token
 
         case '~' if !inCodeBlock && markdownStream.next == '~' =>

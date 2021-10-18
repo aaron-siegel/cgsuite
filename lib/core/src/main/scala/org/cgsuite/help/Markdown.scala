@@ -96,7 +96,7 @@ class MarkdownBuilder(
   private var location = Location.Normal
   private val result = new StringBuffer()
   private val execStatements = ArrayBuffer[(String, Double)]()
-  private var atParagraphStart = true
+  private var previousParagraphEnded = false
   private var hasFooter = false
 
   emit("  ")
@@ -115,27 +115,27 @@ class MarkdownBuilder(
       case (_, _, _, Special(str, arg)) => resolveSpecial(str, arg)
 
       // If in a summary, just echo a link
-      case (_, _, _, Link(target, text)) if firstSentenceOnly => text getOrElse { s"<code>$target</code>" }
+      case (_, _, _, Link(target, text)) if firstSentenceOnly => prepareParagraph(); text getOrElse { s"<code>$target</code>" }
 
       // Link to build
-      case (_, _, _, Link(target, text)) => linkBuilder.hyperlink(target, text)
+      case (_, _, _, Link(target, text)) => prepareParagraph(); linkBuilder.hyperlink(target, text)
 
       // Paragraph break
-      case (_, _, _, ControlSequence("\n\n")) => "\n  <p>"
+      case (_, _, _, ControlSequence("\n\n")) => previousParagraphEnded = true; "\n"
 
       // Begin state
       case (State.Normal, _, _, ControlSequence("`")) => state = State.Code; "<code>"
       case (State.Normal, _, _, ControlSequence("$")) => state = State.Math; "<code>"
-      case (State.Normal, _, _, ControlSequence("++")) => state = State.Section1; atParagraphStart = true; "</div><h1>"
-      case (State.Normal, _, _, ControlSequence("+++")) => state = State.Section2; atParagraphStart = true; "</div><h2>"
-      case (State.Normal, _, _, ControlSequence("++++")) => state = State.Section3; atParagraphStart = true; "<h3>"
+      case (State.Normal, _, _, ControlSequence("++")) => state = State.Section1; previousParagraphEnded = false; "</div>\n<h1>"
+      case (State.Normal, _, _, ControlSequence("+++")) => state = State.Section2; previousParagraphEnded = false; "</div>\n<h2>"
+      case (State.Normal, _, _, ControlSequence("++++")) => state = State.Section3; previousParagraphEnded = false; "\n<h3>"
 
       // End state
       case (State.Code, _, _, ControlSequence("`")) => state = State.Normal; "</code>"
       case (State.Math, _, _, ControlSequence("$")) => state = State.Normal; "</code>"
-      case (State.Section1, _, _, ControlSequence("++")) => state = State.Normal; """</h1><div class="section">"""
-      case (State.Section2, _, _, ControlSequence("+++")) => state = State.Normal; """</h2><div class="section">"""
-      case (State.Section3, _, _, ControlSequence("++++")) => state = State.Normal; "</h3>"
+      case (State.Section1, _, _, ControlSequence("++")) => state = State.Normal; previousParagraphEnded = false; "</h1>\n<div class=\"section\">"
+      case (State.Section2, _, _, ControlSequence("+++")) => state = State.Normal; previousParagraphEnded = false; "</h2>\n<div class=\"section\">"
+      case (State.Section3, _, _, ControlSequence("++++")) => state = State.Normal; previousParagraphEnded = false; "</h3>\n"
 
       // Begin style
       case (_, Style.Normal, _, ControlSequence("~")) => style = Style.Emph; "<em>"
@@ -154,13 +154,13 @@ class MarkdownBuilder(
       case (_, _, Location.Sub, ControlSequence("_")) => location = Location.Normal; "</sub>"
 
       // Character convenience mappings
-      case (_, _, _, OrdinaryChar('<')) => "&lt;"
-      case (_, _, _, OrdinaryChar('>')) => "&gt;"
-      case (_, _, _, OrdinaryChar('"')) => "&quot;"
-      case (_, _, _, OrdinaryChar('&')) => "&amp;"
+      case (_, _, _, OrdinaryChar('<')) => prepareParagraph(); "&lt;"
+      case (_, _, _, OrdinaryChar('>')) => prepareParagraph(); "&gt;"
+      case (_, _, _, OrdinaryChar('"')) => prepareParagraph(); "&quot;"
+      case (_, _, _, OrdinaryChar('&')) => prepareParagraph(); "&amp;"
 
-      case (State.Code | State.Math, _, _, OrdinaryChar('-')) => "&#8209;"   // Non-breaking hyphen
-      case (State.Code, _, _, OrdinaryChar('\n')) => "\n  <br>"
+      case (State.Code | State.Math, _, _, OrdinaryChar('-')) => prepareParagraph(); "&#8209;"   // Non-breaking hyphen
+      case (State.Code, _, _, OrdinaryChar('\n')) => prepareParagraph(); "\n  <br>"
 
       case (_, _, _, OrdinaryChar('\n')) => " "
 
@@ -168,12 +168,19 @@ class MarkdownBuilder(
       case (_, _, _, OrdinaryChar('.')) if firstSentenceOnly => stream.exhaust(); "."
 
       // Other ordinary characters are simply echoed
-      case (_, _, _, OrdinaryChar(ch)) => ch.toString
+      case (_, _, _, OrdinaryChar(ch)) => prepareParagraph(); ch.toString
 
       case x => sys.error(s"Invalid Markdown: $x")
 
     }
 
+  }
+
+  def prepareParagraph(): Unit = {
+    if (previousParagraphEnded) {
+      previousParagraphEnded = false
+      emit("<p>")
+    }
   }
 
   def resolveSpecial(str: String, arg: Option[String]): String = {
@@ -195,6 +202,7 @@ class MarkdownBuilder(
   }
 
   def resolveExec(inputOpt: Option[String], showInput: Boolean, showOutput: Boolean, scale: Double = 1.0): String = {
+    previousParagraphEnded = false
     inputOpt match {
       case None => sys.error("exec special missing input")
       case Some(input) =>
