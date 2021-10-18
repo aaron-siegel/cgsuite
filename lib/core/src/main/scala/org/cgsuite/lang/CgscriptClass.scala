@@ -250,7 +250,7 @@ class CgscriptClass(
 
   def isSingleton = classInfo.modifiers.hasSingleton
 
-  def isStatic = classInfo.modifiers.hasStatic
+  def isStatic = false
 
   def isSystem = classInfo.modifiers.hasSystem
 
@@ -321,9 +321,9 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
-  def lookupMethodGroup(id: Symbol): Option[MethodGroup] = {
+  def lookupMethodGroup(id: Symbol, asStatic: Boolean = false): Option[MethodGroup] = {
     ensureInitialized()
-    classInfo.allMethodGroups.get(id)
+    classInfo.allMethodGroups.get((id, asStatic))
   }
 
   // TODO This is temporary- for compatibility during refactor
@@ -686,39 +686,52 @@ class CgscriptClass(
 
     val allMembers: Vector[Member] = localMembers ++ inheritedMembers
 
-    val allMethodGroups: Map[Symbol, MethodGroup] = allMembers groupBy { _.id } filterNot { case (_, members) =>
+    val allMethodGroups: Map[(Symbol, Boolean), MethodGroup] = {
 
-      // This filter block allows a locally defined nested class to shadow inherited methods.
-      // TODO: It'd be more elegant for the nested class constructor to simply join the method group.
-      // So, this should be viewed as a temporary solution to enable an important pattern.
-      members.exists { localNestedClasses contains _ } &&
-        members.forall { member =>
-          localNestedClasses.contains(member) || (member.isInstanceOf[CgscriptClass#Method] && member.declaringClass != thisClass)
+      val groupedMembers: Map[(Symbol, Boolean), Vector[Member]] = {
+        (allMembers ++ constructor) groupBy {
+          case _: Constructor => (Symbol("Eval"), true)    // Treat the Constructor as belonging to static Eval group
+          case member => (member.id, member.isStatic)
         }
+      }
 
-    } collect {
+      groupedMembers filterNot { case (_, members) =>
 
-      case (id, members) if members.head.isInstanceOf[CgscriptClass#Method] =>
+        // This filter block allows a locally defined nested class to shadow inherited methods.
+        // TODO: It'd be more elegant for the nested class constructor to simply join the method group.
+        // So, this should be viewed as a temporary solution to enable an important pattern.
+        members.exists { localNestedClasses contains _ } &&
+          members.forall { member =>
+            localNestedClasses.contains(member) || (member.isInstanceOf[CgscriptClass#Method] && member.declaringClass != thisClass)
+          }
 
-        if (members exists { !_.isInstanceOf[CgscriptClass#Method] }) {
-          throwExceptionForDuplicateSymbol(id, members)
-        }
-        val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
-        val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
+      } collect {
 
-        if (locallyDefinedMethods.nonEmpty) {
-          // Check for "static consistency": if any method is static, all must be
-          val isStatic = locallyDefinedMethods.head.isStatic
-          if (methods exists { _.isStatic != isStatic })
-            throw EvalException(
-              s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`",
-              token = locallyDefinedMethods.head.declNode map { _.idNode.token }
-            )
-        }
+        case ((id, isStatic), members) if members.head.isInstanceOf[CgscriptClass#Method] =>
 
-        val checkedMethods = validateMethods(methods)
+          if (members exists { !_.isInstanceOf[CgscriptClass#Method] }) {
+            throwExceptionForDuplicateSymbol(id, members)
+          }
+          val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
 
-        id -> MethodGroup(id, checkedMethods)
+          /*
+          val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
+          if (locallyDefinedMethods.nonEmpty) {
+            // Check for "static consistency": if any method is static, all must be
+            val isStatic = locallyDefinedMethods.head.isStatic
+            if (methods exists { _.isStatic != isStatic })
+              throw EvalException(
+                s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`",
+                token = locallyDefinedMethods.head.declNode map { _.idNode.token }
+              )
+          }
+          */
+
+          val checkedMethods = validateMethods(methods)
+
+          (id, isStatic) -> MethodGroup(id, checkedMethods)
+
+      }
 
     }
 
@@ -763,7 +776,7 @@ class CgscriptClass(
     val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
     val allSymbolsInThisClass: Set[Symbol] = {
-      instanceVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ allMethodGroups.keySet ++ allNestedClasses.keySet
+      instanceVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ allMethodGroups.keySet.map { _._1 } ++ allNestedClasses.keySet
     }
     val allSymbolsInClassScope: Vector[Set[Symbol]] = {
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Vector.empty)
@@ -774,7 +787,7 @@ class CgscriptClass(
         allNestedClasses.values ++ allMethodGroups.values.flatMap { _.methods }
     }
 
-    assert(allUnshadowedMembers.map { _.id }.toSet == allSymbolsInThisClass)
+//    assert(allUnshadowedMembers.map { _.id }.toSet == allSymbolsInThisClass ++ constructor.map { _ => Symbol("Eval") })
 
     logDebug(s"Validating class.")
 
@@ -969,6 +982,7 @@ class CgscriptClass(
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
     lazy val evalMethod = forceLookupMethodGroup(Symbol("Eval"))
+    lazy val staticEvalMethod = forceLookupMethodGroup(Symbol("Eval"), asStatic = true)
     lazy val optionsMethod = forceLookupAutoinvokeMethod(Symbol("Options"))
     lazy val optionsMethodWithParameter = forceLookupMethod(Symbol("Options"), Vector(CgscriptClass.Player))
     lazy val decompositionMethod = forceLookupAutoinvokeMethod(Symbol("Decomposition"))
@@ -978,8 +992,8 @@ class CgscriptClass(
     lazy val toOutputMethod = forceLookupAutoinvokeMethod(Symbol("ToOutput"))
     lazy val heapOptionsMethod = forceLookupMethod(Symbol("HeapOptions"), Vector(CgscriptClass.Integer))
 
-    private def forceLookupMethodGroup(id: Symbol): MethodGroup = {
-      lookupMethodGroup(id) getOrElse {
+    private def forceLookupMethodGroup(id: Symbol, asStatic: Boolean = false): MethodGroup = {
+      lookupMethodGroup(id, asStatic) getOrElse {
         throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
       }
     }
@@ -1289,6 +1303,9 @@ class CgscriptClass(
     def autoinvoke: Boolean
     def isStatic: Boolean
     def isOverride: Boolean
+
+    def allowMutableArguments: Boolean = true
+
     def call(obj: Any, args: Array[Any]): Any
 
     val methodName = idNode.id.name
@@ -1422,7 +1439,7 @@ class CgscriptClass(
   trait Constructor extends Method with CallSite {
 
     val autoinvoke = false
-    val isStatic = false
+    val isStatic = true
     val isOverride = false
 
     override val ordinal = CallSite.newCallSiteOrdinal

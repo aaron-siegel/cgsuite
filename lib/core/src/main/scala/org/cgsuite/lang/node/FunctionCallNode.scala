@@ -84,13 +84,15 @@ case class FunctionCallNode(
       case cs: CallSite => resolveAndEvaluateCallSite(domain, cs)
       case img: InstanceMethodGroup => resolveAndEvaluateMethod(domain, img.enclosingObject, img.methodGroup)
       case script: Script => resolveAndEvaluateScript(domain, script)
-      case co: ClassObject => co.forClass.constructor match {
-        case Some(ctor) => resolveAndEvaluateCallSite(domain, ctor)
-        case None => throw EvalException(
-          s"The class `${co.forClass.qualifiedName}` has no constructor and cannot be directly instantiated.",
-          token = Some(token)
-        )
-      }
+      case co: ClassObject =>
+        try {
+          val evalMethod = co.forClass.classInfo.staticEvalMethod
+          resolveAndEvaluateMethod(domain, null, evalMethod)
+        } catch {
+          case exc: CgsuiteException =>
+            exc addToken token
+            throw exc
+        }
       case any =>
         try {
           val evalMethod = CgscriptClass.of(any).classInfo.evalMethod
@@ -179,7 +181,13 @@ case class FunctionCallNode(
   def resolveAndEvaluateSingletonMethod(domain: EvaluationDomain, baseObject: Any, methodGroup: CgscriptClass#MethodGroup): Any = {
 
     val method = methodGroup.methodsWithArguments.head
-    val args = evaluateArgsForCallSite(domain, methodGroup.ordinal, method.parameters, method.locationMessage)
+    val args = evaluateArgsForCallSite(
+      domain,
+      methodGroup.ordinal,
+      method.parameters,
+      method.locationMessage,
+      allowMutableArguments = method.allowMutableArguments
+    )
 
     try {
       method.call(baseObject, args)

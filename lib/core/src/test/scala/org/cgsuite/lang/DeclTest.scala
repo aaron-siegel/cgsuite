@@ -120,7 +120,7 @@ class DeclTest extends CgscriptSpec {
       ("Illegal var args", "test.init.IllegalExpandableParameter.expandableParameter(1, 2, 3)", "!!Invalid expansion for parameter `args`: must be in last position"),
       ("Nested initializer", "test.init.InitializerLocalScope.x", "[1,2,3]"),
       ("Attempt to instantiate with no constructor", "test.init.NoConstructor()",
-        "!!The class `test.init.NoConstructor` has no constructor and cannot be directly instantiated."),
+        "!!No method `Eval` for class: `test.init.NoConstructor`"),
       ("Instantiate InstanceClass", "test.init.NestedNoConstructor.Nested", "InstanceClass.instance"),
       ("Attempt to instantiate nested class with no constructor", "test.init.NestedNoConstructor.Nested()",
         "!!The class `test.init.NestedNoConstructor.Nested` has no constructor and cannot be directly instantiated."),
