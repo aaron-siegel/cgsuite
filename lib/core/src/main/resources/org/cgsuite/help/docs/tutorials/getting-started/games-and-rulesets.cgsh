@@ -14,30 +14,30 @@ Right options. In general, CGSuite won't compute the options of an instance of `
 
 To see how this works, enter the following into the Worksheet:
 
-``G := game.grid.Clobber("xoxo|ox..")``
+\display{G := game.grid.Clobber("xoxo|ox..")}
 
 This constructs the specified $2 x 4$ Clobber position and assigns it to the variable $G$, ready for further
 analysis.
 
 Now you can find the canonical form of $G$:
 
-``G.CanonicalForm``
+\display{G.CanonicalForm}
 
 The result will be a `CanonicalShortGame`, which you can manipulate like any other.
 
 You can also directly manipulate the game $G$; for example:
 
-``G.SensibleLeftOptions``
+\display{G.SensibleLeftOptions}
 
 (A ~sensible Left option~ of `G` is a Left option that contributes to its canonical form. This particular `Clobber`
 position has only one of them! To see all of `G`'s Left options, try `G.LeftOptions` instead.)
 
-``H := G + G + *2``
+\display{H := G + G + *2}
 
 Note that the expression `G + G + *2` does ~not~ get automatically simplified, the way a sum of `CanonicalShortGame`s would.
 You can easily collapse the whole thing to a canonical form, though:
 
-``H.CanonicalForm``
+\display{H.CanonicalForm}
 
 +++ Rulesets +++
 
@@ -101,6 +101,6 @@ are available as well; for example, Cutcake (described in \ww) is defined in CGS
 We'll have much more to say about Heap and Take-and-Break games in the upcoming Impartial Games section of the
 tutorial.
 
-\## Footer ##
+\footer
 
 ~~Continue on to the next part of the tutorial: [[using-the-explorer]]~~

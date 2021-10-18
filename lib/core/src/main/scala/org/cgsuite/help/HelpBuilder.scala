@@ -10,7 +10,6 @@ import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang._
 import org.cgsuite.output.Output
-import org.cgsuite.util.{LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -54,6 +53,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
 
+  private var markdownErrors = false
+
   CgscriptClass.Object.ensureDeclared()
 
   private[help] val allClasses = CgscriptPackage.allClasses filter { cls =>
@@ -85,6 +86,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     renderClasses()
     renderPackageMembers()
 
+    if (markdownErrors) {
+      sys.error("There were markdown errors.")
+    }
+
   }
 
   def renderCgshFiles(): Unit = {
@@ -109,31 +114,38 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       }
 
       val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref + "/", fixedTargets, CgscriptPackage.root)
-      val markdown = generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder)
 
-      val header =
-        s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-           |<html>
-           |<head>
-           |  <link rel="stylesheet" href="$backref/cgsuite.css" type="text/css">
-           |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-           |  <title>$title</title>
-           |</head>
-           |
-           |<body><div class="spacer">
-           |<!--<div class="blanksection">&nbsp;</div>
-           |<p>
-           |${standardHeaderBar(backref)}-->
-           |<h1>$title</h1>
-           |<div class="section">
-           |
-           |""".stripMargin
+      generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder) match {
 
-      val footer = s"\n\n${if (markdown.hasFooter) "" else "</div>"}<p></div></body></html>"
+        case Some(markdown) =>
+          val header =
+            s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+               |<html>
+               |<head>
+               |  <link rel="stylesheet" href="$backref/cgsuite.css" type="text/css">
+               |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+               |  <title>$title</title>
+               |</head>
+               |
+               |<body><div class="spacer">
+               |<!--<div class="blanksection">&nbsp;</div>
+               |<p>
+               |${standardHeaderBar(backref)}-->
+               |<h1>$title</h1>
+               |<div class="section">
+               |
+               |""".stripMargin
 
-      targetFile overwrite header
-      targetFile append markdown.text
-      targetFile append footer
+          val footer = s"\n\n${if (markdown.hasFooter) "" else "</div>"}<p></div></body></html>"
+
+          targetFile overwrite header
+          targetFile append markdown.text
+          targetFile append footer
+
+        case None =>
+          logger.error(s"Failed to generate Markdown: $cgshFile")
+
+      }
 
     }
 
@@ -670,7 +682,12 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     // TODO Links don't work quite right for copied doc comments
     // (Link GENERATION works fine, but link RESOLUTION does not)
 
-    generateMarkdown(file, comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly).text
+    generateMarkdown(file, comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly) match {
+
+      case Some(markdown) => markdown.text
+      case None => logger.error(s"Failed to generate markdown: $file"); "&nbsp;"
+
+    }
 
   }
 
@@ -737,23 +754,30 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   var reportedImageException: Boolean = false
 
-  def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
-    val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
-    val varMap = mutable.AnyRefMap[Symbol, Any]()
-    markdown.execStatements.zipWithIndex.foreach { case (statement, ordinal) =>
-      try {
-        generateImages(targetFile, statement, ordinal, varMap)
-      } catch {
-        case exc: Throwable =>
-          if (!reportedImageException) {
-            logger.error(s"Could not generate image for statement: $statement", exc)
-            reportedImageException = true
-          } else {
-            logger.error(s"Could not generate image for statement: $statement")
-          }
+  def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Option[Markdown] = {
+    try {
+      val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+      val varMap = mutable.AnyRefMap[Symbol, Any]()
+      markdown.execStatements.zipWithIndex.foreach { case (statement, ordinal) =>
+        try {
+          generateImages(targetFile, statement, ordinal, varMap)
+        } catch {
+          case exc: Throwable =>
+            if (!reportedImageException) {
+              logger.error(s"Could not generate image for statement: $statement", exc)
+              reportedImageException = true
+            } else {
+              logger.error(s"Could not generate image for statement: $statement")
+            }
+        }
       }
+      Some(markdown)
+    } catch {
+      case exc: Exception =>
+        exc.printStackTrace()
+        markdownErrors = true
+        None
     }
-    markdown
   }
 
   def generateImages(targetFile: File, statement: String, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {

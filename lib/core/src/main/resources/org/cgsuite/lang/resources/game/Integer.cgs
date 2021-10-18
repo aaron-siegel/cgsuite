@@ -5,12 +5,12 @@
   * Integers in CGSuite are instances of [[CanonicalShortGame]], with
   * all the usual operations. For example:
   *
-  * ``5.LeftOptions``
+  * \display{5.LeftOptions}
   *
   * CGSuite supports arbitrarily large integers with exact precision,
   * and most integer operations can handle large inputs efficiently:
   *
-  * ``2^400 NimProduct 2^400``
+  * \display{2^400 NimProduct 2^400}
   */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 

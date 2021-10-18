@@ -1,6 +1,6 @@
 The Normal Values Hierarchy
 
-``\hierarchy
+\classDiagram{
                           NormalValue
          ┌─────────────────────┴─────────────────┐
     SidedValue                                   │
@@ -16,4 +16,4 @@ CanonicalShortGame       Pseudonumber            │
       Nimber                Integer
          └─────────────────────┤
                              Zero
-``
+}

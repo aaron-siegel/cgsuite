@@ -116,7 +116,7 @@ Indeed, we see `6+Tiny(1)`, `7+Tiny(2)`, `8+Tiny(3)`, `9+Tiny(4)`, among other p
 Exercise: Find a position `(p, q)` whose atomic weight has the form `x + G`, where `x` is a number and `G` is an infinitesimal
 ~other than~ `0`, `*`, `^`, `Tiny(n)`. (They exist.)
 
-\## Footer ##
+\footer
 
-~~Congratulations! You've reached the end of the ~Getting Started~ tutorial. Feel free to try one of the other
-[[/contents][tutorials]], or browse the [[/reference/overview][package overview]].~~
+~~Congratulations! You've reached the end of the [[/tutorials/getting-started/getting-started][Getting Started]] tutorial. Feel free to try one of the other
+[[/contents][tutorials]] or browse the [[/reference/overview][package overview]].~~

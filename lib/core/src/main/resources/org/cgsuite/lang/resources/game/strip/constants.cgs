@@ -5,8 +5,31 @@
  */
 singleton class constants
 
+  /** Ruleset for Toads and Frogs.
+    *
+    * Toads and Frogs is played on a $1 \times n$ strip whose cells may be occupied by a blue Toad or a red Frog.
+    * A typical $1 \times 10$ starting position:
+    *
+    * \display{game.strip.ToadsAndFrogs("tttt..ffff")}
+    *
+    * On her turn, Left may move a toad in one of two ways:
+    * \ul
+    * \li If the space to the toad's right is empty, move the toad one space to the right.
+    * \li If the space to the toad's right is occupied by a frog, and the next space immediately to the right of
+    *     the frog is empty, jump over the frog and land in the next space. (This does not result in capture.)
+    * \endul
+    * If the space to a toad's right is occupied by another toad, or if several spaces to its right are
+    * nonempty, then that toad may not move.
+    *
+    * Right moves frogs to the left in the identical fashion.
+    */
   var ToadsAndFrogs := game.strip.GenToadsAndFrogs(1);
 
+  /** Ruleset for Elephants and Rhinos.
+    *
+    * Elephants and Rhinos is identical to [[ToadsAndFrogs][Toads and Frogs]], except that jumps are not permitted:
+    * the only legal move for Left is to move a toad (an "elephant") one space to the right.
+    */
   var ElephantsAndRhinos := game.strip.GenToadsAndFrogs(0);
 
   var BackslidingToadsAndFrogs := game.strip.GenToadsAndFrogs(1, backsliding => true);
