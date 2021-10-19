@@ -21,22 +21,42 @@ singleton class constants
     * If the space to a toad's right is occupied by another toad, or if several spaces to its right are
     * nonempty, then that toad may not move.
     *
-    * Right moves frogs to the left in the identical fashion.
+    * Right moves frogs to the left in the analogous fashion.
     *
     * A typical opening sequence might look like this:
     *
     * \execHalf{game.strip.ToadsAndFrogs("ttt..fff")} \to \execHalf{game.strip.ToadsAndFrogs("tt.t.fff")} \to
     * \execHalf{game.strip.ToadsAndFrogs("tt.tf.ff")} \to \execHalf{game.strip.ToadsAndFrogs("tt..ftff")}
+    *
+    * It is defined as an instance of [[GenToadsAndFrogs]] by:
+    *
+    * `ToadsAndFrogs := game.strip.GenToadsAndFrogs()`
     */
-  var ToadsAndFrogs := game.strip.GenToadsAndFrogs(1);
+  var ToadsAndFrogs := game.strip.GenToadsAndFrogs();
 
   /** Ruleset for Elephants and Rhinos.
     *
-    * Elephants and Rhinos is identical to [[ToadsAndFrogs][Toads and Frogs]], except that jumps are not permitted:
+    * Elephants and Rhinos is the variant of [[ToadsAndFrogs][Toads and Frogs]] in which jumps are not permitted:
     * the only legal move for Left is to move a toad (an "elephant") one space to the right.
+    *
+    * It is defined as an instance of [[GenToadsAndFrogs]] by:
+    *
+    * `ElephantsAndRhinos := game.strip.GenToadsAndFrogs(maxJump => 0)`
     */
-  var ElephantsAndRhinos := game.strip.GenToadsAndFrogs(0);
+  var ElephantsAndRhinos := game.strip.GenToadsAndFrogs(maxJump => 0);
 
-  var BackslidingToadsAndFrogs := game.strip.GenToadsAndFrogs(1, backsliding => true);
+  /** Ruleset for Backsliding Toads and Frogs.
+    *
+    * Backsliding Toads and Frogs is a variant of [[ToadsAndFrogs][Toads and Frogs]] that adds an additional type of
+    * move. In addition to "forward sliding" and "jumping" moves, Backsliding Toads and Frogs adds an additional
+    * "backsliding" move: if the space to the ~left~ of a toad (i.e., the space behind it) is empty, then Left may
+    * elect to move the toad one space to its left.
+    *
+    * Backsliding Toads and Frogs is obviously loopy, and hence should be evaluated using [[Game#GameValue]] rather
+    * than [[Game#CanonicalForm]]. It is defined as an instance of [[GenToadsAndFrogs]] by:
+    *
+    * `BackslidingToadsAndFrogs := game.strip.GenToadsAndFrogs(minSlide => -1)`
+    */
+  var BackslidingToadsAndFrogs := game.strip.GenToadsAndFrogs(minSlide => -1);
 
 end
