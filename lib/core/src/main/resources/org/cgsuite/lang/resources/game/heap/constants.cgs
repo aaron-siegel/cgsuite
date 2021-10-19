@@ -2,15 +2,36 @@
 
 /**
  * Ruleset library for games played on heaps of tokens.
+ *
+ * `game.heap` actually contains two closely related families of games: the ~heap games~, played on a single heap
+ * of tokens (equivalently, parameterized by a single integer $n \geq 0$); and the ~coordinate games~, played on a
+ * coordinate pair of integers $(m,n)$.
+ *
+ * Every impartial heap ruleset is a subclass of the base class [[HeapRuleset]]. The most familiar heap games are the
+ * ~~generalized take-and-break games~~, which include octal games such as [[Kayles]]; they are implemented by the
+ * [[TakeAndBreak]] class.
+ *
+ * The coordinate rulesets similarly derive from [[CoordinateRuleset]]. They include two-heap games in which the
+ * heaps interact, such as [[Wythoff]], as well as single-heap games with a "memory", such as [[FibonacciNim]].
+ *
+ * Partizan variants are provided by the [[PartizanHeapRuleset]] and [[PartizanCoordinateRuleset]] classes, which take
+ * as input a pair of Left and Right `HeapRuleset`s or `CoordinateRuleset`s (respectively).
+ *
+ * It is not necessary to create a new class to define a new heap or coordinate ruleset; one can simply pass a function
+ * to [[HeapRuleset]] or [[CoordinateRuleset]]. Arbitrary behavior can be described this way; for example:
+ *
+ * `game.heap.HeapRuleset(n -> [[a, b] for b from 0 while b^2 < n for a from 0 to b - 1])`
+ *
+ * is the ruleset: replace a heap of size `n` by any two heaps `a` and `b` with `a < b < sqrt(n)`.
  */
 singleton class constants
 
   /** Ruleset for Cutcake.
     *
     * A position in Cutcake is an $m \&times; n$ rectangle (the "cake"), represented by a coordinate pair
-    * $(m, n)$. Left may "cut" the cake along any row,
+    * $(m, n)$. Left may "cut" the cake along the first coordinate,
     * replacing $(m, n)$ by the sum of $(a, n)$ and $(m - a, n)$,
-    * with $1 \&le; a < m$. Likewise, Right may cut along any column, moving to the sum of
+    * with $1 \&le; a < m$. Likewise, Right may cut along the second coordinate, moving to the sum of
     * $(m, b)$ and $(m, n - b)$, with $1 \&le; b < n$.
     *
     * Cutcake is defined as an instance of [[GenCutcake]] by
@@ -21,27 +42,60 @@ singleton class constants
 
   /** Ruleset for Dawson's Kayles.
     *
-    * Dawson's Kayles is the [[TakeAndBreak][octal game]] \<b\>0.07\</b\>: Remove exactly two
-    * tokens from a heap, optionally splitting the remainder of the heap into two separate heaps.
-    * It is defined as an instance of [[TakeAndBreak]] by
+    * Dawson's Kayles is the [[TakeAndBreak][octal game]] ~~0.07~~: remove exactly two
+    * tokens from a heap, optionally splitting the remainder into two separate heaps.
     *
     * `DawsonsKayles := TakeAndBreak("0.07")`
     */
   var DawsonsKayles := TakeAndBreak("0.07");
 
   /** Ruleset for Eatcake.
+    *
+    * Eatcake is a variation on [[Cutcake]], represented by a coordinate pair $(m, n)$. Left
+    * removes any row from the "cake", replacing $(m, n)$ by the sum of $(a, n)$ and
+    * $(m - a - 1, n)$, with $0 \&le; a < m$. Likewise, Right removes any column, moving to
+    * the sum of $(m, b)$ and $(m, n - b - 1)$, with $0 \&le; b < n$.
+    *
+    * Eatcake is defined as an instance of [[GenCutcake]] by
+    *
+    * `Eatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"))`
+    *
+    * It is also known as Bynum's Game.
     */
   var Eatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"));
 
   /** Ruleset for Fibonacci Nim.
+    *
+    * Fibonacci Nim is played with heaps of tokens. On her turn, a player may remove at most $2k$ tokens from a
+    * heap, where $k$ is the number of tokens removed on the previous turn. When played with multiple heaps, each
+    * heap has its own "memory".
+    *
+    * The structure of P-positions in Fibonacci Nim is related to the Fibonacci numbers; see the
+    * [[https://en.wikipedia.org/wiki/Fibonacci_nim][Wikipedia article]] on Fibonacci Nim for details.
+    *
+    * Fibonnaci Nim is defined as an instance of [[GenMem]] by
+    *
+    * `FibonacciNim := TakeAway(2)`
+    *
+    * See also [[#TakeAway]].
     */
   var FibonacciNim := TakeAway(2);
 
   /** Ruleset for Grundy's Game.
+    *
+    * Grundy's Game is the [[TakeAndBreak][take-and-break]] game ~~4!.0~~: split a heap into two unequal heaps
+    * (without removing any tokens).
+    *
+    * `GrundysGame := TakeAndBreak("4!.0")`
     */
   var GrundysGame := TakeAndBreak("4!.0");
 
   /** Ruleset for Kayles.
+    *
+    * Kayles is the [[TakeAndBreak][octal game]] ~~0.77~~: remove one or two tokens from a heap, optionally
+    * splitting the remainder into two separate heaps.
+    *
+    * `Kayles := TakeAndBreak("0.77")`
     */
   var Kayles := TakeAndBreak("0.77");
 

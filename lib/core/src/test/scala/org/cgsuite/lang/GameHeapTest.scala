@@ -81,7 +81,7 @@ class GameHeapTest extends CgscriptSpec {
       // Sym
       ("game.heap.Spawning(\"1+S\")", "2046", "[0,1,2,4,3,6,7,8,16,18,25,32,11,64,31,128,10,256,5,512,28]"),
 
-      ("game.heap.FunctionalHeapRuleset(k -> [[a,b] for a from 0 to k - 1 for b from 0 to a - 1])",
+      ("game.heap.HeapRuleset(k -> [[a,b] for a from 0 to k - 1 for b from 0 to a - 1])",
         "190", "[0,0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37]")
 
     )

@@ -2,6 +2,8 @@
 
 class CoordinateRuleset extends Ruleset
 
+  static def Eval(fn as Function) := FunctionalCoordinateRuleset(fn);
+
   def Eval(coord as Coordinates) := Position(coord);
 
   def Eval(row as Integer, col as Integer) := Position((row, col));

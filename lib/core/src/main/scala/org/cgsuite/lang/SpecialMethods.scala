@@ -76,6 +76,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Take" -> { (collection: Iterable[_], n: Integer) =>
       collection.take(n.intValue)
     },
+    "cgsuite.lang.List.IndexOf" -> { (list: IndexedSeq[_], obj: Any) =>
+      Integer(list.indexOf(obj) + 1)
+    },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toVector
     },

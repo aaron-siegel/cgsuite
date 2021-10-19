@@ -18,15 +18,20 @@
   * Grundy's Game (split a heap into two unequal heaps) might be implemented by:
   *
   * `override def HeapOptions(n as Integer) :=` \\
-  * `\sp[\[k, n-k] for k from 1 to n-1 where k != n-k];`
+  * `\sp[[k, n-k] for k from 1 to n-1 where k != n-k];`
   *
-  * In practice, it is usually easiest to use a built-in class, such as [[TakeAndBreak]] or
-  * [[FunctionalHeapRuleset]], rather than creating a new subclass of `HeapRuleset`. For example,
+  * It's also possible to create a `HeapRuleset` directly from a function, rather than implementing a subclass:
+  *
+  * `game.heap.HeapRuleset(n -> [[k, n-k] for k from 1 to n-1 where k != n-k])`
+  *
+  * In practice, it is often easiest to use a built-in class such as [[TakeAndBreak]]. For example,
   * Grundy's Game can also be specified simply as:
   *
   * `game.heap.TakeAndBreak("4!.0")`
   */
 system class HeapRuleset extends Ruleset
+
+  static def Eval(fn as Function) := FunctionalHeapRuleset(fn);
 
   /** The acrostic product of this ruleset and `that`.
     *
