@@ -903,7 +903,6 @@ class CgscriptClass(
             )
           }
           if (matchingMethods.size > 1 && !localDeclarations.head.isOverride) {
-            methods foreach println
             throw EvalException(
               s"Method `${localDeclarations.head.qualifiedName}` must be declared with `override`, since it overrides `${matchingMethods(1).qualifiedName}`",
               token = Some(localDeclarations.head.idNode.token)

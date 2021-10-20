@@ -329,7 +329,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val enumElementDetails = cls.classInfo.localEnumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val staticMemberDetails = staticMembers sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+      val staticMemberDetails = staticMembersWithoutConstructor sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
       val memberDetails = (instanceMembers ++ classParameters) filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
 
