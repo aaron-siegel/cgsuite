@@ -280,6 +280,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val (staticMembers, instanceMembers) = members partition { _.isStatic }
 
+      val staticMembersWithoutConstructor = staticMembers filterNot { _.isInstanceOf[CgscriptClass#Constructor] }
+
       val enumElementSummary = {
         if (cls.classInfo.localEnumElements.isEmpty)
           ""
@@ -288,10 +290,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       }
 
       val staticMemberSummary = {
-        if (staticMembers.isEmpty)
+        if (staticMembersWithoutConstructor.isEmpty)
           ""
         else
-          makeMemberSummary(cls, staticMembers, "<h2>Static Members</h2>")
+          makeMemberSummary(cls, staticMembersWithoutConstructor, "<h2>Static Members</h2>")
       }
 
       val parameterSummary = {
@@ -350,7 +352,6 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       searchIndex appendLine s"${cls.qualifiedName},${cls.qualifiedName},$relpath,1"
       members foreach { member =>
         if (member.declaringClass == cls) {
-//          searchIndex appendLine s"${member.name},${cls.name}.${member.name},$relpath#${member.name}"
           searchIndex appendLine s"${cls.name}.${member.name},${cls.qualifiedName}.${member.name},$relpath#${member.name},0"
         }
       }

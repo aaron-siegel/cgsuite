@@ -14,7 +14,7 @@ class GameStripTest extends CgscriptSpec {
     ))
   }
 
-  "game.strip" should "define Turning properly" in {
+  it should "define Turning properly" in {
     executeTests(Table(
       header,
       ("Turning", """game.strip.Turning(game.heap.Spawning("1-3"))("htththtth").NimValue""", "29"),
@@ -22,10 +22,18 @@ class GameStripTest extends CgscriptSpec {
     ))
   }
 
+  it should "define Toppling Dominoes properly" in {
+    executeTests(Table(
+      header,
+      ("TopplingDominoes", """game.strip.TopplingDominoes("lrrlrrl").CanonicalForm""", "Tiny(1/2)"),
+      ("TopplingDominoes (grey)", """game.strip.TopplingDominoes("lere").CanonicalForm""", "{1|0,{0|-1}}")
+    ))
+  }
+
   it should "avoid a weird class load order bug" in {
     executeTests(Table(
       header,
-      ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(2).Class""", "\u27eagame.strip.GenToadsAndFrogs\u27eb")
+      ("GenToadsAndFrogs loaded first", """game.strip.GenToadsAndFrogs(maxJump => 2).Class""", "\u27eagame.strip.GenToadsAndFrogs\u27eb")
     ))
   }
 

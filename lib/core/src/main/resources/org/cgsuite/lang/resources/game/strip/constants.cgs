@@ -1,8 +1,12 @@
 /*${cgsuite.banner}*/
 
-/**
- * Ruleset library for games played on one-dimensional strips.
- */
+/** Ruleset library for games played on one-dimensional strips.
+  *
+  * The strip games include classical examples such as [[ToadsAndFrogs][Toads and Frogs]] and
+  * [[TopplingDominoes][Toppling Dominoes]], as well as the large family of [[Turning][Turning]] games.
+  *
+  * [[StripRuleset]] is the base class for all rulesets in this package.
+  */
 singleton class constants
 
   /** Ruleset for Toads and Frogs.

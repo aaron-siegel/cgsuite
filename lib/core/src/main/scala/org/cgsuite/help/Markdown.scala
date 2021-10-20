@@ -54,6 +54,7 @@ object Markdown {
     "infty" -> "&infin;",
     "leq" -> "&le;",
     "geq" -> "&ge;",
+    "neq" -> "&ne;",
     "sim" -> "~",
     "sp" -> "&nbsp;&nbsp;",
     "cdot" -> "&middot;",
