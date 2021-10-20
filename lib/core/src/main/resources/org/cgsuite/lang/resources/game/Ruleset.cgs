@@ -1,9 +1,26 @@
 /*${cgsuite.banner}*/
 
+/** Base class for all rulesets defined in CGSuite.
+  */
 class Ruleset
 
+  /** The dicotic variant (or all-small variant) of this ruleset.
+    *
+    * The dicotic variant is a modified version of this ruleset, in which neither player is
+    * permitted to move unless ~both~ players have at least one option.
+    * This ensures that every position of the variant is dicotic.
+    *
+    * See also [[game.variant.DicoticVariantGame]].
+    */
   def DicoticVariant := game.variant.DicoticVariantRuleset(this);
 
+  /** The impartial variant of this ruleset.
+    *
+    * The impartial variant is a modified version of this ruleset, in which either player may
+    * move as Left ~or~ Right.
+    *
+    * See also [[game.variant.ImpartialVariantGame]].
+    */
   def ImpartialVariant := game.variant.ImpartialVariantRuleset(this);
 
 end

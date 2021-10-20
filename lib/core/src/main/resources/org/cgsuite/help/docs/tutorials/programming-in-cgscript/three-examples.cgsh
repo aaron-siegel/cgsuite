@@ -252,7 +252,7 @@ use the $java$ keyword at all, unless you want to get involved in low-level CGSu
 <li>Write a new class $PartizanSubtraction2$ which is just like $examples.PartizanSubtraction$, but which takes a pair
 of ~procedures~ f_L_ and f_R_, enumerating the (possibly infinite) subtraction sets.  For example,
 
-$PartizanSubtraction2(n -> n^2, n -> n*(n+1)/2, 10)$
+`PartizanSubtraction2(n -> n^2, n -> n*(n+1)/2, 10)`
 
 would construct a heap of size 10 in the game where Left can take a perfect-square number of tokens, and Right a
 triangular number of tokens.  (You can assume that f_L_ and f_R_ are nondecreasing as functions of ~n~.)

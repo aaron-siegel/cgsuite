@@ -497,3 +497,13 @@ case class StatementSequenceNode(tree: Tree, statements: Vector[EvalNode], suppr
       s"begin $seqStr end"
   }
 }
+
+object TypeSpecifierNode {
+  def apply(tree: Tree): TypeSpecifierNode = {
+    EvalNode(tree).asInstanceOf[TypeSpecifierNode]
+  }
+}
+
+trait TypeSpecifierNode extends EvalNode {
+  def resolveToType(scope: Option[ClassResolutionScope]): Option[CgscriptClass]
+}

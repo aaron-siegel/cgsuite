@@ -31,8 +31,14 @@ class DeclTest extends CgscriptSpec {
     decl("test.classdef.ImmutableNestedClassOfMutable", "mutable class ImmutableNestedClassOfMutable class Nested end end")
     decl("test.classdef.MutableVarOfImmutable", "class MutableVarOfImmutable mutable var x := 4; end")
     decl("test.classdef.ImmutableVarWithNoInitializer", "class ImmutableVarWithNoInitializer var x; end")
-    decl("test.classdef.UnknownClassInParameterDeclaration",
-      "class UnknownClassInParameterDeclaration def Method(parameter as UnknownClass) := 3; end")
+    decl("test.classdef.UnknownClassInParameterDeclaration1",
+      "class UnknownClassInParameterDeclaration1 def Method(parameter as UnknownClass) := 3; end")
+    decl("test.classdef.UnknownClassInParameterDeclaration2",
+      "class UnknownClassInParameterDeclaration2 def Method(parameter as foo.bar.UnknownClass) := 3; end")
+    decl("test.classdef.UnknownClassInExtendsClause1",
+      "class UnknownClassInExtendsClause1 extends UnknownClass end")
+    decl("test.classdef.UnknownClassInExtendsClause2",
+      "class UnknownClassInExtendsClause2 extends foo.bar.UnknownClass end")
     decl("test.classdef.IdenticalAutoinvokeMethods", "class IdenticalAutoinvokeMethods def Method := 3; def Method := 4; end")
     decl("test.classdef.IdenticalParameterizedMethods",
       "class IdenticalParameterizedMethods def Method(x as Integer, y as Integer) := x + y; def Method(x as Integer, y as Integer) := x - y; end")
@@ -77,8 +83,14 @@ class DeclTest extends CgscriptSpec {
         "!!Class `test.classdef.MutableVarOfImmutable` is immutable, but variable `x` is declared `mutable`"),
       ("Immutable var with no initializer", "test.classdef.ImmutableVarWithNoInitializer.X",
         "!!Immutable variable `x` must be assigned a value (or else declared `mutable`)"),
-      ("Unknown class in parameter declaration", "test.classdef.UnknownClassInParameterDeclaration",
-        "!!Unknown class in parameter declaration: `UnknownClass`")
+      ("Unknown class in parameter declaration 1", "test.classdef.UnknownClassInParameterDeclaration1",
+        "!!Unknown class in parameter declaration: `UnknownClass`"),
+      ("Unknown class in parameter declaration 2", "test.classdef.UnknownClassInParameterDeclaration2",
+        "!!Unknown class in parameter declaration: `foo.bar.UnknownClass`"),
+      ("Unknown class in extends clause 1", "test.classdef.UnknownClassInExtendsClause1",
+        "!!Unknown class in extends clause: `UnknownClass`"),
+      ("Unknown class in extends clause 2", "test.classdef.UnknownClassInExtendsClause2",
+        "!!Unknown class in extends clause: `foo.bar.UnknownClass`")
     ))
 
   }
@@ -108,7 +120,7 @@ class DeclTest extends CgscriptSpec {
       ("Illegal var args", "test.init.IllegalExpandableParameter.expandableParameter(1, 2, 3)", "!!Invalid expansion for parameter `args`: must be in last position"),
       ("Nested initializer", "test.init.InitializerLocalScope.x", "[1,2,3]"),
       ("Attempt to instantiate with no constructor", "test.init.NoConstructor()",
-        "!!The class `test.init.NoConstructor` has no constructor and cannot be directly instantiated."),
+        "!!No method `Eval` for class: `test.init.NoConstructor`"),
       ("Instantiate InstanceClass", "test.init.NestedNoConstructor.Nested", "InstanceClass.instance"),
       ("Attempt to instantiate nested class with no constructor", "test.init.NestedNoConstructor.Nested()",
         "!!The class `test.init.NestedNoConstructor.Nested` has no constructor and cannot be directly instantiated."),

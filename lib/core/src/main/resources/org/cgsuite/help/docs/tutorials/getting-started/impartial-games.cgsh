@@ -7,7 +7,7 @@ This section describes CGSuite's specialized support for impartial games.
 Rulesets and positions in heap games can be constructed in much the same way as other
 types of games. For example:
 
-`R := game.heap.TakeAndBreak("0.07");`
+\displayAndHide{R := game.heap.TakeAndBreak("0.07")}
 
 constructs the ruleset for the octal game \<b\>0.07\</b\> (aka Dawson's Kayles). Then
 
@@ -15,13 +15,11 @@ constructs the ruleset for the octal game \<b\>0.07\</b\> (aka Dawson's Kayles).
 
 (say) creates a Dawson's Kayles heap of size 24. Canonical forms can be calculated just as for partizan games:
 
-`> R(24).CanonicalForm`\\
-\<big\>`*`3\</big\>
+\display{R(24).CanonicalForm}
 
 Or, alternatively, you can use `NimValue` to get the integer nim value (Grundy value):
 
-`R(24).NimValue`\\
-\<big\>3\</big\>
+\display{R(24).NimValue}
 
 +++ Sequences of Nim Values +++
 
@@ -35,7 +33,7 @@ This gives the first `300` nim values of Dawson's Kayles. Periodicity can be che
 
 `R.CheckPeriodicity(300)`
 
-This tells CGSuite to attempt to determine if \<b\>0.07\</b\> is periodic, computing
+This tells CGSuite to attempt to determine if ~~0.07~~ is periodic, computing
 at most 300 values. It succeeds, and gives the correct answer, period 34. Now
 we can pretty-print the period by typing:
 
@@ -47,79 +45,29 @@ entering `R.NimValueSequence(100)`; no periodicity is apparent after computing j
 +++ Take-and-Break Codes +++
 
 CGSuite supports a wide variety of take-and-break codes.  You can use 
-the digits 0-9 and A-F in the usual fashion for octal and hexadecimal games.  
-In addition, you can use G-Z for "digits" 16-35, and there is a special notation 
-for larger "digits"; for example
+the digits 0-9 and A-F in the usual fashion for octal and hexadecimal games,
+and G-Z for digits 16-35. It's also possible to attach modifiers to code digits
+that place further restrictions on the available moves. For example, the ruleset
 
-`&64;`
+`game.heap.TakeAndBreak("4.0")`
 
-for a digit of size 64.  You could also enter this as a hex code by
+is "split a heap into two non-empty heaps". If you compute just a few nim values,
+you'll see that it's not very interesting. However, try changing this to
 
-`&x40;`
+`game.heap.TakeAndBreak("4!.0")`
 
-(A value of 64 corresponds to splitting a heap into exactly six nonempty heaps.)
+The ! after the digit `4` means "the resulting heaps must all be unequal", so we now
+have Grundy's Game: "split a heap into two nonempty heaps of different sizes".
+It's unknown whether Grundy's Game is ultimately periodic. Likewise,
 
-In addition, it's possible to place restrictions on moves in a take-and-break 
-game.  For example, appending ! to a digit means that all the resulting 
-heaps must be unequal.  For example, the game
-
-`4.0`
-
-is "split a heap into two non-empty heaps".  If you compute just a few nim values,
-you'll see that it's not very 
-interesting.  However, change this to
-
-`4!.0`
-
-and we now have Grundy's Game: "split a heap into two non-empty heaps of 
-different sizes".  It's unknown whether Grundy's Game is ultimately periodic.  
-Likewise,
-
-`0.4!`
+`game.heap.TakeAndBreak("0.4!")`
 
 would be the variant "remove one token and split the remainder into two 
-non-empty heaps of different sizes."  And so on.
+nonempty heaps of different sizes," and so on.
 
-Finally, certain ~infinite~ repeating codes are possible by bracketing 
-the final digit(s) of a code.  Here is a list of examples.
-\ul
-
-\li `0.[3]` - Nim (remove any number of tokens from
-              a heap)
-
-\li `0.77` - Kayles (remove one or two tokens from
-              a heap, optionally splitting the remainder into two heaps)
-
-\li `4!.0` - Grundy's Game (split any heap into
-              two unequal heaps)
-
-\li `20.017` - Either add a token to a non-empty heap;
-              or remove a heap of size 2 completely; or remove three tokens
-              from a heap, optionally splitting the remainder into two heaps
-
-\li `0.[37]` - Remove any (positive) number of tokens
-              from a heap.  If the number of tokens removed is even, then
-              the heap may optionally be split into two heaps
-
-\li `8!.0` - Split any heap into exactly three pairwise
-              unequal heaps
-
-\li `8?.0` - Split any heap into exactly three heaps,
-              which cannot all be equal
-
-\li `0.(r?8!g)` - Remove one token from a heap.
-              The remainder may either be left as a single heap; or split
-              into exactly three heaps, not all the same; or split into
-              exactly four pairwise unequal heaps.  (Note that
-              `'r' = 27 = (1 | 2 | 8 | 16)` and
-              `'g' = 16`)
-
-\li `0.&127;&64;` - Either: remove one
-              token from a heap, splitting the remainder into ~at most six~
-              pairwise unequal heaps; or remove two tokens from
-              a heap, splitting the remainder into ~exactly six~
-              nonempty heaps
-\endul
+Various other modifiers and extensions are possible, including infinite repeating codes
+and a special notation for "digits" larger than 35;
+see the class documentation for [[game.heap.TakeAndBreak]] for the full range of options.
 
 +++ Other Heap Games +++
 
@@ -132,11 +80,10 @@ You can also quickly experiment with new rulesets with the [[game.heap.Functiona
 `Integer`s. Then `f(n)` is the collection of options of heap `n`, expressed as a collection of summand heaps. For
 example, let
 
-`R := game.heap.FunctionalHeapRuleset(n -> [\[a,b] for a from 0 to n - 1 for b from 0 to a - 1])`
+`R := game.heap.FunctionalHeapRuleset(n -> [[a, b] for b from 0 while b^2 < n for a from 0 to b - 1])`
 
-Then a legal move is to replace a heap of size `n` with any two heaps `a` and `b`, provided that
-`a < b < n`.
+Then `R` is the ruleset: replace a heap of size `n` by any two heaps `a` and `b` with `a < b < sqrt(n)`.
 
-\## Footer ##
+\footer
 
 ~~Continue on to the next part of the tutorial: [[cgsuite-in-action]]~~

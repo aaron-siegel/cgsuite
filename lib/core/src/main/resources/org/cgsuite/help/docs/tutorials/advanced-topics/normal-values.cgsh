@@ -1,0 +1,29 @@
+The Normal Values Hierarchy
+
+Normal-play game values are naturally organized into a hierarchy (partial order),
+which is summarized by the diagram below. Every class is an ancestor of all the classes beneath it in the hierarchy.
+
+The base of the hierarchy is [[NormalValue]], which encapsulates the (fairly limited) shared structure of all
+normal-play game values. The elements of [[CanonicalStopper]] and its descendants are identified with their
+canonical forms, and so are also subclasses of [[Game]] with explicit Left and Right options. The remaining classes
+do not have explicit canonical forms and hence are not subclasses of [[Game]]; they are value systems only.
+
++++ +++
+
+\classDiagram{
+                          NormalValue
+         ┌─────────────────────┴─────────────────┐
+    SidedValue                                   │
+         │                                 SurrealNumber
+ StopperSidedValue                               │
+         │                                       │
+ CanonicalStopper                            Rational
+         ├─────────────────────┐                 │
+CanonicalShortGame       Pseudonumber            │
+         │     └───────────────┼─────────────────┘
+      Uptimal           DyadicRational
+         │                     │
+      Nimber                Integer
+         └─────────────────────┤
+                             Zero
+}

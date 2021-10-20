@@ -142,7 +142,7 @@ class CgscriptClass(
   val classdef: CgscriptClassDef,
   override val id: Symbol,
   val systemClass: Option[Class[_]] = None
-  ) extends Member with LazyLogging { thisClass =>
+  ) extends Member with ClassResolutionScope with LazyLogging { thisClass =>
 
   import CgscriptClass._
 
@@ -156,6 +156,11 @@ class CgscriptClass(
   val enclosingClass: Option[CgscriptClass] = classdef match {
     case NestedClassDef(cls, _) => Some(cls)
     case _ => None
+  }
+
+  val enclosingClassResolutionScope: ClassResolutionScope = enclosingClass match {
+    case Some(cls) => cls
+    case None => pkg
   }
 
   val topClass: CgscriptClass = enclosingClass match {
@@ -245,6 +250,8 @@ class CgscriptClass(
 
   def isSingleton = classInfo.modifiers.hasSingleton
 
+  def isStatic = false
+
   def isSystem = classInfo.modifiers.hasSystem
 
   def constructor = classInfo.constructor
@@ -314,9 +321,9 @@ class CgscriptClass(
     cls.locallyDefinedNestedClasses.values foreach { addDerivedClassesToUnloadList(list, _) }
   }
 
-  def lookupMethodGroup(id: Symbol): Option[MethodGroup] = {
+  def lookupMethodGroup(id: Symbol, asStatic: Boolean = false): Option[MethodGroup] = {
     ensureInitialized()
-    classInfo.allMethodGroups.get(id)
+    classInfo.allMethodGroups.get((id, asStatic))
   }
 
   // TODO This is temporary- for compatibility during refactor
@@ -327,6 +334,15 @@ class CgscriptClass(
   def lookupNestedClass(id: Symbol): Option[CgscriptClass] = {
     ensureInitialized()
     classInfo.allNestedClasses.get(id)
+  }
+
+  override def lookupClassInScope(id: Symbol): Option[CgscriptClass] = {
+    lookupNestedClass(id) orElse {
+      enclosingClass match {
+        case Some(cls) => cls.lookupClassInScope(id)
+        case _ => pkg.lookupClassInScope(id)
+      }
+    }
   }
 
   def lookupVar(id: Symbol): Option[CgscriptClass#Var] = {
@@ -437,7 +453,7 @@ class CgscriptClass(
 
     // Force constants to declare first
     if (this != Object) {
-      pkg lookupClass Symbol("constants") foreach { constantsCls =>
+      pkg lookupClassInScope Symbol("constants") foreach { constantsCls =>
         if (constantsCls != this) constantsCls.ensureDeclared()
       }
     }
@@ -522,24 +538,10 @@ class CgscriptClass(
 
       } else {
 
-        classDeclNode.extendsClause map {
-          case IdentifierNode(tree, superId) =>
-            // Try looking this id up two ways:
-            // First, if this is a nested class, then look it up as some other nested class
-            // of this class's enclosing class;
-            // Then try looking it up as a global class.
-            enclosingClass flatMap { _ lookupNestedClass superId } getOrElse {
-              pkg lookupClass superId getOrElse {
-                CgscriptPackage lookupClass superId getOrElse {
-                  throw EvalException(s"Unknown superclass: `${superId.name}`", tree)
-                }
-              }
-            }
-          case node: DotNode =>
-            node.elaborate(ElaborationDomain.empty(Some(pkg)))
-            Option(node.classResolution) getOrElse {
-              sys.error("not found")
-            }
+        classDeclNode.extendsClause map { typeSpecifierNode =>
+          typeSpecifierNode.resolveToType(Some(enclosingClassResolutionScope)) getOrElse {
+            throw EvalException(s"Unknown class in extends clause: `${typeSpecifierNode.toNodeString}`", typeSpecifierNode.tree)
+          }
         }
       }
 
@@ -565,7 +567,22 @@ class CgscriptClass(
       Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = declNode.modifiers.hasStatic)
     }
 
-    val localMethods: Vector[Method] = classDeclNode.methodDeclarations map { parseMethod(_, classDeclNode.modifiers) }
+    val systemConstructorMethods: Vector[Method] = {
+      if (modifiers.hasSystem) {
+        // For system classes, we treat constructor params as *methods* of the class, not vars
+        classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
+          paramsNode.parameterNodes map { paramNode =>
+            buildExternalMethod(paramNode, Modifiers.none, Vector.empty, autoinvoke = true)
+          }
+        }
+      } else {
+        Vector.empty
+      }
+    }
+
+    val ordinaryLocalMethods: Vector[Method] = classDeclNode.methodDeclarations map { parseMethod(_, classDeclNode.modifiers) }
+
+    val localMethods: Vector[Method] = systemConstructorMethods ++ ordinaryLocalMethods
 
     val localNestedClasses: Vector[CgscriptClass] = classDeclNode.nestedClassDeclarations map { decl =>
       val id = decl.idNode.id
@@ -587,11 +604,17 @@ class CgscriptClass(
       }
     }
 
-    val constructorParamVars: Vector[Var] = constructor match {
-      case Some(ctor) => ctor.parameters map { param =>
-        Var(param.idNode, Some(classDeclNode), isMutable = false, isStatic = false, isConstructorParam = true)
+    val constructorParamVars = {
+      if (modifiers.hasSystem)
+        // For system classes, we treat constructor params as *methods* of the class, not vars
+        Vector.empty
+      else {
+        classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
+          paramsNode.parameterNodes map { paramNode =>
+            Var(paramNode.idNode, Some(paramNode), isMutable = false, isStatic = false, asConstructorParam = Some(paramNode.toParameter))
+          }
+        }
       }
-      case None => Vector.empty
     }
 
     val localMembers: Vector[Member] = localInstanceVars ++ constructorParamVars ++ localEnumElements ++ localMethods ++ localNestedClasses
@@ -659,43 +682,56 @@ class CgscriptClass(
     }
     */
 
-    val inheritedMembers: Vector[Member] = supers.flatMap { _.classInfo.allMembers }.distinct
+    val inheritedMembers: Vector[Member] = supers.flatMap { _.classInfo.allMembers }.distinct filterNot { _.isStatic }
 
     val allMembers: Vector[Member] = localMembers ++ inheritedMembers
 
-    val allMethodGroups: Map[Symbol, MethodGroup] = allMembers groupBy { _.id } filterNot { case (_, members) =>
+    val allMethodGroups: Map[(Symbol, Boolean), MethodGroup] = {
 
-      // This filter block allows a locally defined nested class to shadow inherited methods.
-      // TODO: It'd be more elegant for the nested class constructor to simply join the method group.
-      // So, this should be viewed as a temporary solution to enable an important pattern.
-      members.exists { localNestedClasses contains _ } &&
-        members.forall { member =>
-          localNestedClasses.contains(member) || (member.isInstanceOf[CgscriptClass#Method] && member.declaringClass != thisClass)
+      val groupedMembers: Map[(Symbol, Boolean), Vector[Member]] = {
+        (allMembers ++ constructor) groupBy {
+          case _: Constructor => (Symbol("Eval"), true)    // Treat the Constructor as belonging to static Eval group
+          case member => (member.id, member.isStatic)
         }
+      }
 
-    } collect {
+      groupedMembers filterNot { case (_, members) =>
 
-      case (id, members) if members.head.isInstanceOf[CgscriptClass#Method] =>
+        // This filter block allows a locally defined nested class to shadow inherited methods.
+        // TODO: It'd be more elegant for the nested class constructor to simply join the method group.
+        // So, this should be viewed as a temporary solution to enable an important pattern.
+        members.exists { localNestedClasses contains _ } &&
+          members.forall { member =>
+            localNestedClasses.contains(member) || (member.isInstanceOf[CgscriptClass#Method] && member.declaringClass != thisClass)
+          }
 
-        if (members exists { !_.isInstanceOf[CgscriptClass#Method] }) {
-          throwExceptionForDuplicateSymbol(id, members)
-        }
-        val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
-        val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
+      } collect {
 
-        if (locallyDefinedMethods.nonEmpty) {
-          // Check for "static consistency": if any method is static, all must be
-          val isStatic = locallyDefinedMethods.head.isStatic
-          if (methods exists { _.isStatic != isStatic })
-            throw EvalException(
-              s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`",
-              token = locallyDefinedMethods.head.declNode map { _.idNode.token }
-            )
-        }
+        case ((id, isStatic), members) if members.head.isInstanceOf[CgscriptClass#Method] =>
 
-        val checkedMethods = validateMethods(methods)
+          if (members exists { !_.isInstanceOf[CgscriptClass#Method] }) {
+            throwExceptionForDuplicateSymbol(id, members)
+          }
+          val methods = members map { _.asInstanceOf[CgscriptClass#Method] }
 
-        id -> MethodGroup(id, checkedMethods)
+          /*
+          val locallyDefinedMethods = methods filter { _.declaringClass == thisClass }
+          if (locallyDefinedMethods.nonEmpty) {
+            // Check for "static consistency": if any method is static, all must be
+            val isStatic = locallyDefinedMethods.head.isStatic
+            if (methods exists { _.isStatic != isStatic })
+              throw EvalException(
+                s"Inconsistent use of `static` for method `${locallyDefinedMethods.head.qualifiedName}`",
+                token = locallyDefinedMethods.head.declNode map { _.idNode.token }
+              )
+          }
+          */
+
+          val checkedMethods = validateMethods(methods)
+
+          (id, isStatic) -> MethodGroup(id, checkedMethods)
+
+      }
 
     }
 
@@ -740,11 +776,18 @@ class CgscriptClass(
     val staticVarOrdinals: Map[Symbol, Int] = staticVarSymbols.zipWithIndex.toMap
 
     val allSymbolsInThisClass: Set[Symbol] = {
-      instanceVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ allMethodGroups.keySet ++ allNestedClasses.keySet
+      instanceVarOrdinals.keySet ++ staticVarOrdinals.keySet ++ allMethodGroups.keySet.map { _._1 } ++ allNestedClasses.keySet
     }
     val allSymbolsInClassScope: Vector[Set[Symbol]] = {
       allSymbolsInThisClass +: enclosingClass.map { _.classInfo.allSymbolsInClassScope }.getOrElse(Vector.empty)
     }
+
+    val allUnshadowedMembers: Vector[Member] = {
+      Vector.empty ++ instanceVarLookup.values ++ staticVarLookup.values ++ localEnumElements ++
+        allNestedClasses.values ++ allMethodGroups.values.flatMap { _.methods }
+    }
+
+//    assert(allUnshadowedMembers.map { _.id }.toSet == allSymbolsInThisClass ++ constructor.map { _ => Symbol("Eval") })
 
     logDebug(s"Validating class.")
 
@@ -939,6 +982,7 @@ class CgscriptClass(
 
     // For efficiency, we cache lookups for some methods that get called in hardcoded locations
     lazy val evalMethod = forceLookupMethodGroup(Symbol("Eval"))
+    lazy val staticEvalMethod = forceLookupMethodGroup(Symbol("Eval"), asStatic = true)
     lazy val optionsMethod = forceLookupAutoinvokeMethod(Symbol("Options"))
     lazy val optionsMethodWithParameter = forceLookupMethod(Symbol("Options"), Vector(CgscriptClass.Player))
     lazy val decompositionMethod = forceLookupAutoinvokeMethod(Symbol("Decomposition"))
@@ -948,8 +992,8 @@ class CgscriptClass(
     lazy val toOutputMethod = forceLookupAutoinvokeMethod(Symbol("ToOutput"))
     lazy val heapOptionsMethod = forceLookupMethod(Symbol("HeapOptions"), Vector(CgscriptClass.Integer))
 
-    private def forceLookupMethodGroup(id: Symbol): MethodGroup = {
-      lookupMethodGroup(id) getOrElse {
+    private def forceLookupMethodGroup(id: Symbol, asStatic: Boolean = false): MethodGroup = {
+      lookupMethodGroup(id, asStatic) getOrElse {
         throw EvalException(s"No method `${id.name}` for class: `$qualifiedName`")
       }
     }
@@ -980,7 +1024,7 @@ class CgscriptClass(
 
   private def parseMethod(node: MethodDeclarationNode, classModifiers: Modifiers): Method = {
 
-    val name = node.idNode.id.name
+    val methodName = node.idNode.id.name
 
     val (autoinvoke, parameters) = node.parameters match {
       case Some(n) => (false, n.toParameters)
@@ -993,32 +1037,40 @@ class CgscriptClass(
           throw EvalException(s"Method is declared `external`, but class `$qualifiedName` is not declared `system`", node.tree)
         if (node.body.isDefined)
           throw EvalException(s"Method is declared `external` but has a method body", node.tree)
-        logger.debug(s"$logPrefix Declaring external method: $name")
-        SpecialMethods.specialMethods.get(qualifiedName + "." + name) match {
-          case Some(fn) =>
-            logger.debug(s"$logPrefix   It's a special method.")
-            ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride)(fn)
-          case None =>
-            val externalName = externalMethodName(name)
-            val externalParameterTypes = parameters map { _.paramType.javaClass }
-            logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
-            val externalMethod = try {
-              javaClass.getMethod(externalName, externalParameterTypes: _*)
-            } catch {
-              case _: NoSuchMethodException =>
-                throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$name`", node.tree)
-            }
-            logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
-            SystemMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, externalMethod)
-        }
+        buildExternalMethod(node, node.modifiers, parameters, autoinvoke)
       } else {
-        logger.debug(s"$logPrefix Declaring user method: $name")
+        logger.debug(s"$logPrefix Declaring user method: $methodName")
         val body = node.body getOrElse { sys.error("no body") }
         UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
       }
     }
 
     newMethod
+
+  }
+
+  private def buildExternalMethod(node: MemberDeclarationNode, modifiers: Modifiers, parameters: Vector[Parameter], autoinvoke: Boolean): Method = {
+
+    val methodName = node.idNode.id.name
+
+    logger.debug(s"$logPrefix Declaring external method: $methodName")
+    SpecialMethods.specialMethods.get(qualifiedName + "." + methodName) match {
+      case Some(fn) =>
+        logger.debug(s"$logPrefix   It's a special method.")
+        ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers.hasStatic, modifiers.hasOverride)(fn)
+      case None =>
+        val externalName = externalMethodName(methodName)
+        val externalParameterTypes = parameters map { _.paramType.javaClass }
+        logger.debug(s"$logPrefix   It's a Java method via reflection: ${javaClass.getName}.$externalName(${externalParameterTypes mkString ","})")
+        val externalMethod = try {
+          javaClass.getMethod(externalName, externalParameterTypes: _*)
+        } catch {
+          case _: NoSuchMethodException =>
+            throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$methodName`", node.tree)
+        }
+        logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
+        SystemMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers.hasStatic, modifiers.hasOverride, externalMethod)
+    }
 
   }
 
@@ -1155,10 +1207,12 @@ class CgscriptClass(
     declNode: Option[MemberDeclarationNode],
     isMutable: Boolean,
     isStatic: Boolean,
-    isConstructorParam: Boolean = false
+    asConstructorParam: Option[Parameter] = None
   ) extends Member {
 
     def declaringClass = thisClass
+
+    def isConstructorParam = asConstructorParam.isDefined
 
   }
 
@@ -1249,6 +1303,9 @@ class CgscriptClass(
     def autoinvoke: Boolean
     def isStatic: Boolean
     def isOverride: Boolean
+
+    def allowMutableArguments: Boolean = true
+
     def call(obj: Any, args: Array[Any]): Any
 
     val methodName = idNode.id.name
@@ -1382,7 +1439,7 @@ class CgscriptClass(
   trait Constructor extends Method with CallSite {
 
     val autoinvoke = false
-    val isStatic = false
+    val isStatic = true
     val isOverride = false
 
     override val ordinal = CallSite.newCallSiteOrdinal

@@ -1,24 +1,104 @@
 /*${cgsuite.banner}*/
 
-class Turning(arg) extends StripRuleset
+/** Ruleset schema for coin-turning games.
+  *
+  * A ~coin-turning~ (or just ~turning~) game is played on a $1 \&times; n$ strip of coins, each showing heads
+  * or tails:
+  *
+  * \display{game.strip.Turning("1-3")("htthhhtth")}
+  *
+  * A move consists of turning over some number of coins (from heads to tails or vice versa), provided that the
+  * rightmost coin among them is turned from heads to tails. The permitted number and arrangement of
+  * coins flipped is determined by the specific instance of `Turning`.
+  *
+  * A Turning ruleset `R` is typically specified by a [[String]], the ~turning code~ of `R`. Turning codes are
+  * flexible enough to specify most of the Turning games commonly encountered in the literature. In the most general
+  * case, a Turning ruleset can be created from any [[game.heap.HeapRuleset]] (its ~heap representation~; see below).
+  *
+  * \<h3\>Turning Codes\</h3\>
+  *
+  * A turning code is given as a range of integers specifying the number of coins that may be turned on each move.
+  * The code `"1-3"`, used in the example above, signifies that it is legal to turn $1$, $2$, or $3$ coins,
+  * provided (as always) that the rightmost coin is turned from heads to tails. This is the ruleset Mock Turtles
+  * described in \ww.
+  *
+  * Turning code ranges may be suffixed with various modifiers that constrain the allowed moves.
+  * For example, the code `"1-3C"` signifies
+  * that it is legal to flip exactly $1$, $2$, or $3$ ~consecutive~ coins. The available modifiers are:
+  * \ul
+  * \li `C\sp\&nbsp;`\sp Coins turned must be consecutive (adjacent)
+  * \li `E\sp\&nbsp;`\sp Coins turned must be equally spaced
+  * \li `S\sp\&nbsp;`\sp Coins turned must be symmetrically arranged
+  * \li `F\sp\&nbsp;`\sp The leftmost coin must be among those turned
+  * \li `C(n)`\sp Coins turned must all be within a contiguous span of `n` adjacent coins
+  * \endul
+  *
+  * Instead of a range, it is also permissible to specify a single integer with or without a modifier (such as `"3C"` =
+  * turn exactly three consecutive coins),
+  * or an unbounded range (such as `"3+C"` = turn at least three consecutive coins).
+  * Multiple code ranges may be conjoined in a comma-separated list; then ~any~ element of the list can be used as
+  * a legal move (such as `"2-3,6C"` = turn any two or three coins, or any six consecutive coins).
+  *
+  * Numerous examples of turning codes are given below.
+  *
+  * \<h3\>The Heap Representation\</h3\>
+  *
+  * Every Turning ruleset `R` has an associated [[game.heap.HeapRuleset]], with the coin in the $n$^th^ position (from the Left of
+  * the strip) corresponding to a heap of size $n$. Suppose `R` permits a move that turns the coins in positions
+  * $a_1_ < a_2_ < \&ctdot; < a_k_$, with $a_k_$ turning from heads to tails; then in the associated `HeapRuleset`,
+  * there is a move from a heap of size $a_k_$ to the sum of heaps $a_1_,a_2_,\&hellip;,a_k-1_$.
+  *
+  * In normal play, the two
+  * rulesets are equivalent: two identical heaps always sum to $0$, so the value of a sum of heaps depends only on
+  * the ~parity~ of the number of heaps of each size. Thus heads in the $n$^th^ position corresponds to an odd number
+  * of heaps of size $n$, and tails in the $n$^th^ position corresponds to an even number of heaps of size $n$.
+  * (In misere play, a Turning ruleset will not in general have the same behavior as its heap representation.)
+  *
+  * Instead of specifying a Turning code, one may construct a Turning ruleset `R` from an arbitrary [[game.heap.HeapRuleset]] `H`;
+  * then `R` will be the Turning ruleset whose heap representation is `H`. For efficiency, CGSuite performs all (normal-play) nim
+  * value calculations on the underlying heap representation. (This is true when a Turning code is specified as well.
+  * For a Turning code `S`, the Heap ruleset associated to `Turning(S)` is [[game.heap.Spawning]]`(S)`, and CGSuite
+  * will perform nim value calculations on the underlying instance of `Spawning`.)
+  *
+  * \<h3\>Examples\</h3\>
+  *
+  * The following rulesets are named in \ww; all of them can be constructed with an appropriate
+  * turning code.
+  *
+  * \<table\>
+  * \<tr\>\<td\>\<b\>Ruleset Name\</b\>\</th\>\<td\>\<b\>Code\</b\>\</th\>\<td\>\<b\>It is legal to turn ...\</b\>\</th\>\</tr\>
+  * \<tr\>\<td\>Turning Turtles\</td\>\<td\>`1-2`\</td\>\<td\>Any one or two coins\</td\>\</tr\>
+  * \<tr\>\<td\>Mock Turtles\</td\>\<td\>`1-3`\</td\>\<td\>Up to three coins\</td\>\</tr\>
+  * \<tr\>\<td\>Moebius\</td\>\<td\>`1-5`\</td\>\<td\>Up to five coins\</td\>\</tr\>
+  * \<tr\>\<td\>Mogul\</td\>\<td\>`1-7`\</td\>\<td\>Up to seven coins\</td\>\</tr\>
+  * \<tr\>\<td\>Moidores\</td\>\<td\>`1-9`\</td\>\<td\>Up to nine coins\</td\>\</tr\>
+  * \<tr\>\<td\>Motley\</td\>\<td\>`1+`\</td\>\<td\>Any number of coins\</td\>\</tr\>
+  * \<tr\>\<td\>Twins\</td\>\<td\>`2`\</td\>\<td\>Exactly two coins\</td\>\</tr\>
+  * \<tr\>\<td\>Triplets\</td\>\<td\>`3`\</td\>\<td\>Exactly three coins\</td\>\</tr\>
+  * \<tr\>\<td\>Ruler\</td\>\<td\>`1+C`\</td\>\<td\>Any number of consecutive coins\</td\>\</tr\>
+  * \<tr\>\<td\>Mock Turtle Fives\sp\</td\>\<td\>`1-3C(5)`\sp\</td\>\<td\>Up to three out of five consecutive coins\</td\>\</tr\>
+  * \<tr\>\<td\>Triplet Fives\</td\>\<td\>`3C(5)`\</td\>\<td\>Exactly three out of five consecutive coins\</td\>\</tr\>
+  * \<tr\>\<td\>Ruler Fives\</td\>\<td\>`1-5C`\</td\>\<td\>Up to five coins, all consecutive\</td\>\</tr\>
+  * \<tr\>\<td\>Turnips\</td\>\<td\>`3E`\</td\>\<td\>Exactly three equally spaced coins\</td\>\</tr\>
+  * \<tr\>\<td\>Grunt\</td\>\<td\>`4FS`\</td\>\<td\>Exactly four symmetrically arranged coins, one of which must be the leftmost coin\</td\>\</tr\>
+  * \<tr\>\<td\>Sym\</td\>\<td\>`1+S`\</td\>\<td\>Any number of symmetrically arranged coins\</td\>\</tr\>
+  * \<tr\>\<td\>Sympler\</td\>\<td\>`1+FS`\</td\>\<td\>Any number of symmetrically arranged coins, one of which must be the leftmost coin\</td\>\</tr\>
+  * \</table\>
+  *
+  * (In all cases, the rightmost coin turned must be from heads to tails.)
+  */
+class Turning(heapRules as game.heap.HeapRuleset) extends StripRuleset
 
-  var heapRules :=
-    if arg is game.heap.HeapRuleset then
-      arg
-    elseif arg is String then
-      game.heap.Spawning(arg)
-    else
-      error("Expecting a `HeapRuleset` or a `String`.")
-    end;
+  static def Eval(code as String) := Turning(game.heap.Spawning(code));
 
   class Position(strip as Strip) extends StripGame, ImpartialGame
-  
+
     override def Options begin
-    
+
       for n from 1 to strip.Length where strip[n] == 1
       for heaps in heapRules HeapOptions n
       yield
-        var updates := {j => 1 - strip[j] for j in heaps};
+        var updates := { j => 1 - strip[j] for j in heaps };
         Position(strip Updated updates Updated { n => 0 })
       end
     

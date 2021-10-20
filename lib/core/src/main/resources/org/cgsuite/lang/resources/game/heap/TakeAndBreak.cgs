@@ -1,13 +1,128 @@
 /*${cgsuite.banner}*/
 
-system class TakeAndBreak(code as String) extends HeapRuleset
+/** A generalized Take-and-Break ruleset.
+  *
+  * A ~take-and-break~ ruleset `R` is a special case of [[HeapRuleset]] whose structure is
+  * specified by a [[String]], the ~take-and-break code~ of `R`. The most familiar examples
+  * are ~octal games~, whose codes are specified by octal digits, as in:
+  *
+  * `Kayles := game.heap.TakeAndBreak("0.77")`
+  *
+  * In the general take-and-break ruleset, a typical move from a heap
+  * $H(n)$ of size $n$ is to remove $j$ tokens from $n$, then split the remainder into $r$
+  * smaller heaps, leaving the position
+  *
+  * $H(a_1_) + H(a_2_) + \&ctdot; + H(a_r_)$
+  *
+  * with $a_1_ + a_2_ + \&ctdot; + a_r_ = n - j$.
+  *
+  * A typical take-and-break code has the form
+  *
+  * $d_0_.d_1_d_2_\&ctdot;d_k_$
+  *
+  * If the $j$^th^ digit $d_j_$ is nonzero, then it is permissible to remove $j$ tokens in at
+  * least some circumstances. The binary expansion of $d_j_$ determines when removal of $j$ tokens
+  * is permitted. Write
+  *
+  * $d_j_ = e_0_ + 2^1^e_1_ + 2^2^e_2_ + \&ctdot; + 2^t^e_t_$
+  *
+  * where each $e_i_ = 0$ or $1$. Then it is permissible to remove $j$ tokens, splitting the remainder
+  * into ~exactly~ $i$ nonempty heaps, if and only if $e_i_ = 1$.
+  *
+  * The `TakeAndBreak` class supports highly general take-and-break codes.
+  * The digits 0-9 and A-F represent octal and hexadecimal games in the usual fashion, and these
+  * are extended by G-Z for digits 16-35. More complex behaviors are represented by a "generalized digit"
+  * notation: instead of 0-9 or A-Z, a "digit" can be a comma-separated list of explicit ~heap counts~
+  * enclosed in braces. For example, `0.{2,3}` means "remove one token and split the remainder into exactly
+  * two or three nonempty heaps"; it's equivalent to the hexadecimal representation `0.C`. Unbounded ranges are
+  * supported: `0.{2+}` means "remove one token and split the remainder into two or more nonempty heaps".
+  *
+  * Moreover, digits can be suffixed with modifier symbols to create generalized rulesets. Appending ! to a digit
+  * requires that all the resulting heaps must be unequal. For example, whereas `"4.0"` is "split a heap into two
+  * non-empty heaps", the variant `"4!.0"` is "split a heap into two non-empty heaps of unequal size"
+  * ([[GrundysGame][Grundy's Game]]). The following
+  * modifiers are supported:
+  * \ul
+  * \li `d!`\sp All heaps must be pairwise unequal in size
+  * \li `d?`\sp Heaps cannot all be equal in size
+  * \li `d=`\sp Heaps must all be identical in size
+  * \endul
+  *
+  * Finally, an infinite repeating code can be represented by bracketing the final digit(s) of the code. For example,
+  * `0.[3]` is equivalent to $0.3333\&hellip;$, which is [[Nim]].
+  *
+  * Here is a list of examples illustrating the complex behavior that is possible with generalized take-and-break codes.
+  *
+  * \li `0.[3]` - [[Nim]] (remove any number of tokens from a heap)
+  *
+  * \li `0.77` - [[Kayles]] (remove one or two tokens from
+  *               a heap, optionally splitting the remainder into two heaps)
+  *
+  * \li `4!.0` - [[GrundysGame][Grundy's Game]] (split any heap into two unequal heaps)
+  *
+  * \li `20.017` - Either add a token to a non-empty heap;
+  *               or remove a heap of size 2 completely; or remove three tokens
+  *               from a heap, optionally splitting the remainder into two heaps
+  *
+  * \li `0.[37]` - Remove any (strictly positive) number of tokens
+  *               from a heap.  If the number of tokens removed is even, then
+  *               the heap may optionally be split into two heaps
+  *
+  * \li `8!.0` - Split any heap into exactly three pairwise unequal heaps
+  *
+  * \li `8?.0` - Split any heap into exactly three heaps, which cannot all be equal
+  *
+  * \<!--\li `0.(R?8!G)` - Remove one token from a heap.
+  *               The remainder may either be left as a single heap; or split
+  *               into exactly three heaps, not all the same; or split into
+  *               exactly four pairwise unequal heaps.  (Note that
+  *               `R = 27 = (1 | 2 | 8 | 16)` and `G = 16`)--\>
+  *
+  * \li `0.{1,2,3,4,5,6}{6}` - Either: remove one
+  *               token from a heap, splitting the remainder into ~at most six~
+  *               pairwise unequal heaps; or remove two tokens from
+  *               a heap, splitting the remainder into ~exactly six~
+  *               nonempty heaps
+  *
+  * \li `{2+}.0` - Split any heap into two or more heaps
+  *
+  * \li `{2+}!.0` - Split any heap into two or more heaps, all of which must be pairwise
+  *               unequal in size
+  *
+  * \li `0.[{0+}=]` - Remove any number of tokens (but at least one), splitting
+  *               the remainder into any number of heaps (zero or more) of equal size
+  * \endul
+  */
+system class TakeAndBreak(
+  /** The take-and-break code for this ruleset. */
+  code as String
+  ) extends HeapRuleset
 
-  external def Code as String;
+  /** A take-and-break ruleset constructed from a subtraction set.
+    *
+    * This method provides a convenient way to create take-and-break rulesets whose codes
+    * consist entirely of the digits `0` and `X`, for some fixed value of `X`.
+    * `subtset` must be a [[Collection]] of [[Integer]]s; then the resulting code will have
+    * an `X` at its $j$^th^ position if and only if $j$ is an element of `subtset`. In the
+    * special case `X = 3`, we have the familiar ~subtraction games~: remove $j$ tokens from
+    * a heap if and only if $j$ is an element of `subtset`. For example:
+    *
+    * `game.heap.TakeAndBreak.FromSubtractionSet([2,3,5,9], "3")`
+    *
+    * yields the ruleset with code `0.033030003`: remove exactly $2$, $3$, $5$, or $9$ tokens
+    * from a heap. If `allbut` is `true`, then the occurrences
+    * of `0` and `X` are inverted (e.g., for `X = 3`, remove $j$ tokens just if $j$ is ~not~ an element of `subtset`); thus
+    *
+    * `game.heap.TakeAndBreak.FromSubtractionSet([2,3,5,9], "3", allbut => true)`
+    *
+    * yields the ruleset with code `0.300303330[3]`.
+    *
+    * `codeDigit` may be a generalized digit, such as `"4!"`.
+    */
+  external static def FromSubtractionSet(subtset as Collection, codeDigit as String ? "3", allbut as Boolean ? false);
 
   external override def HeapOptions(heapSize as Integer);
 
-  external static def FromSubtractionSet(subtset as Collection, codeDigit as String, allbut as Boolean ? false);
-
-  override def ToOutput := "TakeAndBreak(\"" + Code + "\")";
+  override def ToOutput := "TakeAndBreak(\"" + code + "\")";
 
 end
