@@ -39,6 +39,13 @@ object HelpBuilder {
        |</div></div>
      """.stripMargin
 
+  def anchorName(member: Member): String = {
+    if (member.isStatic)
+      s"static_${member.name}"
+    else
+      member.name
+  }
+
 }
 
 case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder =>
@@ -352,7 +359,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       searchIndex appendLine s"${cls.qualifiedName},${cls.qualifiedName},$relpath,1"
       members foreach { member =>
         if (member.declaringClass == cls) {
-          searchIndex appendLine s"${cls.name}.${member.name},${cls.qualifiedName}.${member.name},$relpath#${member.name},0"
+          searchIndex appendLine s"${cls.name}.${member.name},${cls.qualifiedName}.${member.name},$relpath#${anchorName(member)},0"
         }
       }
 
@@ -593,7 +600,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$memberSuffix</code>\n<p>""" else ""
 
-    s"""<a name="$name"></a>
+    s"""<a name="${anchorName(member)}"></a>
        |<p><div class="section">
        |  $declStr$comment
        |</div>""".stripMargin
@@ -873,7 +880,7 @@ case class HelpLinkBuilder(
     val classRef = relativeRef(targetClass)
     val classRefSuffix = targetMemberOpt match {
       case Some(member) if targetClass.isPackageObject => s".${member.name}.html#top"
-      case Some(member) => s".html#${member.name}"
+      case Some(member) => s".html#${anchorName(member)}"
       case None => ".html#top"
     }
     val refText = targetMemberOpt match {

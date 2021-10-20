@@ -31,6 +31,15 @@
   */
 system class HeapRuleset extends Ruleset
 
+  /** Creates a `HeapRuleset` with options given by the specified function.
+    *
+    * `fn` must be a function that takes an [[Integer]] as input and returns a `Collection` of `Collection`s of
+    * `Integer`s. For example:
+    *
+    * `game.heap.HeapRuleset(n -> [[k, n-k] for k from 1 to n-1 where k != n-k])`
+    *
+    * The result will be a `HeapRuleset` whose [[#HeapOptions]] are given by the specified function.
+    */
   static def Eval(fn as Function) := FunctionalHeapRuleset(fn);
 
   /** The acrostic product of this ruleset and `that`.
@@ -134,7 +143,7 @@ system class HeapRuleset extends Ruleset
     )
   end
 
-  /** Constructs a position of this ruleset with the specified heap size.
+  /** The position of this ruleset with the specified heap size.
     */
   def Eval(heapSize as Integer) := Position(heapSize);
 
