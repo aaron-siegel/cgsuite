@@ -76,7 +76,7 @@ object Markdown {
 
 }
 
-case class Markdown(text: String, hasFooter: Boolean, execStatements: Vector[(String, Double)])
+case class Markdown(text: String, hasFooter: Boolean, evalStatements: Vector[(String, Double)])
 
 trait LinkBuilder {
 
@@ -97,7 +97,7 @@ class MarkdownBuilder(
   private var style = Style.Normal
   private var location = Location.Normal
   private val result = new StringBuffer()
-  private val execStatements = ArrayBuffer[(String, Double)]()
+  private val evalStatements = ArrayBuffer[(String, Double)]()
   private var previousParagraphEnded = false
   private var hasFooter = false
 
@@ -189,9 +189,9 @@ class MarkdownBuilder(
 
     str match {
 
-      case "exec" => resolveExec(arg, showInput = false, showOutput = true)
-      case "execHalf" => resolveExec(arg, showInput = false, showOutput = true, scale = 0.5)
-      case "execText" => resolveExecText(arg)
+      case "eval" => resolveExec(arg, showInput = false, showOutput = true)
+      case "evalHalf" => resolveExec(arg, showInput = false, showOutput = true, scale = 0.5)
+      case "evalText" => resolveExecText(arg)
       case "display" => resolveExec(arg, showInput = true, showOutput = true)
       case "displayAndHide" => resolveExec(arg, showInput = true, showOutput = false)
       case "classDiagram" => classDiagram(arg getOrElse { sys.error("Missing hierarchy arg") })
@@ -207,10 +207,10 @@ class MarkdownBuilder(
   def resolveExec(inputOpt: Option[String], showInput: Boolean, showOutput: Boolean, scale: Double = 1.0): String = {
     prepareParagraph()
     inputOpt match {
-      case None => sys.error("exec special missing input")
+      case None => sys.error("eval special missing input")
       case Some(input) =>
 
-        execStatements += ((input, scale))
+        evalStatements += ((input, scale))
 
         val inputString = {
           if (showInput && showOutput)
@@ -221,7 +221,7 @@ class MarkdownBuilder(
             ""
         }
 
-        val imageFilePrefix = s"$imageTargetPrefix-${execStatements.length - 1}"
+        val imageFilePrefix = s"$imageTargetPrefix-${evalStatements.length - 1}"
         val outputString = {
           if (showOutput) {
             val style = if (showInput) "" else " style=\"vertical-align: middle; margin: 2pt 0pt 2pt 0pt;\""
@@ -241,7 +241,7 @@ class MarkdownBuilder(
   def resolveExecText(arg: Option[String]): String = {
     prepareParagraph()
     arg match {
-      case None => sys.error("exec special missing input")
+      case None => sys.error("eval special missing input")
       case Some(input) => org.cgsuite.lang.System.evaluateOrException(input, mutable.AnyRefMap()).head.toString
     }
   }
@@ -286,6 +286,6 @@ class MarkdownBuilder(
     s"<pre class=\"bold\">$buf</pre>"
   }
 
-  def toMarkdown: Markdown = Markdown(result.toString, hasFooter, execStatements.toVector)
+  def toMarkdown: Markdown = Markdown(result.toString, hasFooter, evalStatements.toVector)
 
 }

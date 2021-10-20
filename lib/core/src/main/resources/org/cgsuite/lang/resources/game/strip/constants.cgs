@@ -29,8 +29,8 @@ singleton class constants
     *
     * A typical opening sequence might look like this:
     *
-    * \execHalf{game.strip.ToadsAndFrogs("ttt..fff")} \to \execHalf{game.strip.ToadsAndFrogs("tt.t.fff")} \to
-    * \execHalf{game.strip.ToadsAndFrogs("tt.tf.ff")} \to \execHalf{game.strip.ToadsAndFrogs("tt..ftff")}
+    * \evalHalf{game.strip.ToadsAndFrogs("ttt..fff")} \to \evalHalf{game.strip.ToadsAndFrogs("tt.t.fff")} \to
+    * \evalHalf{game.strip.ToadsAndFrogs("tt.tf.ff")} \to \evalHalf{game.strip.ToadsAndFrogs("tt..ftff")}
     *
     * It is defined as an instance of [[GenToadsAndFrogs]] by:
     *

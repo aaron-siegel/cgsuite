@@ -766,7 +766,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     try {
       val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
       val varMap = mutable.AnyRefMap[Symbol, Any]()
-      markdown.execStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
+      markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
         try {
           generateImages(targetFile, statement, scale, ordinal, varMap)
         } catch {
@@ -887,21 +887,6 @@ case class HelpLinkBuilder(
       case Some(member) => member.idNode.id.name
       case None => if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
     }
-    /*
-    val refText = {
-      if (referringClass contains targetClass) {
-        targetMemberOpt match {
-          case Some(member) => member.idNode.id.name
-          case None => targetClass.name
-        }
-      } else {
-        targetMemberOpt match {
-          case Some(member) => s"${qualifiedRefName(targetClass)}.${member.idNode.id.name}"
-          case None => qualifiedRefName(targetClass)
-        }
-      }
-    }
-    */
     val codePrefix = if (textOpt.isDefined) "" else """<code>"""
     val linkText = textOpt getOrElse s"$refText"
     val codeSuffix = if (textOpt.isDefined) "" else "</code>"
