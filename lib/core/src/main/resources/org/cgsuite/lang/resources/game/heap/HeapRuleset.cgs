@@ -1,19 +1,188 @@
 /*${cgsuite.banner}*/
 
+/** Base class for rulesets played on heaps of tokens.
+  *
+  * A position in a heap ruleset `R` is represented by a single integer $n$, the ~heap size~.
+  * From a position $R(n)$, a typical legal move is to a disjunctive sum of heaps
+  *
+  * $R(a_1_) + R(a_2_) + \&ctdot; + R(a_k_)$.
+  *
+  * Some rulesets (such as many [[TakeAndBreak][take-and-break]] rulesets) require that
+  * $a_1_ + a_2_ + \&ctdot; + a_k_ \&le; n$, but in the general case, there are no such
+  * restrictions.
+  *
+  * Subclasses of `HeapRuleset` must implement [[#HeapOptions]], which takes as input a nonnegative
+  * [[Integer]] (the heap size) and returns a [[Collection]] of `Collection`s of nonnegative `Integer`s.
+  * Each element `L` of the outer `Collection` represents one option from `heapSize`, and each
+  * element of `L` is the heap size of one summand of that option. For example,
+  * Grundy's Game (split a heap into two unequal heaps) might be implemented by:
+  *
+  * `override def HeapOptions(n as Integer) :=` \\
+  * `\sp[[k, n-k] for k from 1 to n-1 where k != n-k];`
+  *
+  * It's also possible to create a `HeapRuleset` directly from a function, rather than implementing a subclass:
+  *
+  * `game.heap.HeapRuleset(n -> [[k, n-k] for k from 1 to n-1 where k != n-k])`
+  *
+  * In practice, it is often easiest to use a built-in class such as [[TakeAndBreak]]. For example,
+  * Grundy's Game can also be specified simply as:
+  *
+  * `game.heap.TakeAndBreak("4!.0")`
+  */
 system class HeapRuleset extends Ruleset
 
+  /** Creates a `HeapRuleset` with options given by the specified function.
+    *
+    * `fn` must be a function that takes an [[Integer]] as input and returns a `Collection` of `Collection`s of
+    * `Integer`s. For example:
+    *
+    * `game.heap.HeapRuleset(n -> [[k, n-k] for k from 1 to n-1 where k != n-k])`
+    *
+    * The result will be a `HeapRuleset` whose [[#HeapOptions]] are given by the specified function.
+    */
+  static def Eval(fn as Function) := FunctionalHeapRuleset(fn);
+
+  /** The acrostic product of this ruleset and `that`.
+    *
+    * The acrostic product `A := R.AcrosticProduct(S)` of the `HeapRuleset`s `R` and `S` is an impartial
+    * [[CoordinateRuleset]] defined as follows.
+    * From a position `A(m,n)`, it is legal to move on `m` as if it were an element of `R`, ~or~ on `n`
+    * as if it were an element of `S`. That is, for each option
+    *
+    * $R(a_1_) + R(a_2_) + \&ctdot; R(a_k_)$
+    *
+    * of `R(m)`, there is a move from `A(m,n)` to
+    *
+    * $A(a_1_,n) + A(a_2_,n) + \&ctdot; + A(a_k_,n)$.
+    *
+    * Likewise, for each option
+    *
+    * $S(b_1_) + S(b_2_) + \&ctdot; S(b_l_)$
+    *
+    * of `S(n)`, there is a move from `A(m,n)` to
+    *
+    * $A(m,b_1_) + A(m,b_2_) + \&ctdot; + A(m,b_l_)$.
+    *
+    * The theory of acrostic products is discussed in \ww, Chapter 14; no general solution is known.
+    */
+  def AcrosticProduct(that as HeapRuleset) begin
+    FunctionalCoordinateRuleset((m, n) -> begin
+      var mOpts := [[(a, n) for a in mOpt] for mOpt in HeapOptions(m)];
+      var nOpts := [[(m, b) for b in nOpt] for nOpt in that.HeapOptions(n)];
+      mOpts Concat nOpts
+      end
+    )
+  end
+
+  /** The cake product of this ruleset and `that`.
+    *
+    * The cake product `C := R.CakeProduct(S)` of the `HeapRuleset`s `R` and `S` is a partizan [[CoordinateRuleset]]
+    * defined as follows.
+    * From a position `C(m,n)`, Left may move on `m` as if it were an element of `R`, and Right may move on
+    * `n` as if it were an element of `S`. That is, for each option
+    *
+    * $R(a_1_) + R(a_2_) + \&ctdot; R(a_k_)$
+    *
+    * of `R(m)`, Left has a move from `C(m,n)` to
+    *
+    * $C(a_1_,n) + C(a_2_,n) + \&ctdot; + C(a_k_,n)$.
+    *
+    * Likewise, for each option
+    *
+    * $S(b_1_) + S(b_2_) + \&ctdot; S(b_l_)$
+    *
+    * of `S(n)`, Right has a move from `C(m,n)` to
+    *
+    * $C(m,b_1_) + C(m,b_2_) + \&ctdot; + C(m,b_l_)$.
+    *
+    * For the twisted form `T := R.CakeProduct(S, twisted => true)`, the coordinates are swapped after each move, so
+    * (for example) that Left's moves are to
+    *
+    * $T(n,a_1_) + T(n,a_2_) + \&ctdot; + T(n,a_k_)$
+    *
+    * instead.
+    *
+    * The cake product is the partizan analog of the [[#AcrosticProduct][acrostic product]]. It is named by association with
+    * [[Cutcake]] and is implemented by the [[GenCutcake]] class.
+    */
   def CakeProduct(that as HeapRuleset, twisted as Boolean ? false) := GenCutcake(this, that, twisted);
 
-  def Eval(heapSize as Integer) := Position(heapSize);
-
-  def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must override `HeapOptions`.");
-
-  external def HeapNimValue(heapSize as Integer);
-
-  external def NimValueSequence(toHeapSize as Integer);
-
+  /** Checks for periodicity of this ruleset up to the specified heap size.
+    *
+    * If periodicity is detected, the result will be an instance of [[Periodicity]]. Otherwise,
+    * the result will be [[Nothing]].
+    */
   external def CheckPeriodicity(toHeapSize as Integer);
 
+  /** The direct product of this ruleset and `that`.
+    *
+    * The direct product `D := R.DirectProduct(S)` of the `HeapRuleset`s `R` and `S` is an impartial
+    * [[CoordinateRuleset]] defined as follows. Let
+    *
+    * $R(a_1_) + R(a_2_) + \&ctdot; R(a_k_)$
+    *
+    * be an option of `R(m)` and let
+    *
+    * $S(b_1_) + S(b_2_) + \&ctdot; S(b_l_)$
+    *
+    * be an option of `S(n)`. For every ~pair~ of such options, `D(m,n)` has an option given by
+    *
+    * $\&Sigma;_i_D(a_i_,n) + \&Sigma;_j_D(m,b_j_) + \&Sigma;_i,j_D(a_i_,b_j_)$.
+    *
+    * Direct product is related to the [[Integer#NimProduct][Nim product]] of integers: if `R(m)` has nim value
+    * `a` and `S(n)` has nim value `b`, then `D(m,n)` necessarily has nim value `a \otimes b`
+    * (the Tartan Theorem, \ww, Chapter 13).
+    */
+  def DirectProduct(that as HeapRuleset) begin
+    FunctionalCoordinateRuleset((m, n) ->
+      for mOpt in HeapOptions(m)
+      for nOpt in that.HeapOptions(n)
+      yield
+        [(a, n) for a in mOpt] Concat [(m, b) for b in nOpt] Concat [(a, b) for a in mOpt for b in nOpt]
+      end
+    )
+  end
+
+  /** The position of this ruleset with the specified heap size.
+    */
+  def Eval(heapSize as Integer) := Position(heapSize);
+
+  /** The nim value of the specified heap size.
+    */
+  external def HeapNimValue(heapSize as Integer);
+
+  /** The options from the specified heap size.
+    *
+    * `HeapOptions` must always return a [[Collection]] of `Collection`s of nonnegative `Integer`s.
+    */
+  def HeapOptions(heapSize as Integer) := error("Subclasses of `HeapRuleset` must implement `HeapOptions`.");
+
+  /** The `HeapRuleset` obtained by adjoining moves from `that` to this ruleset.
+    * The options from a heap `R.Join(S)(n)` are the union of `R(n)` and `S(n)`.
+    */
+  def Join(that as HeapRuleset) := FunctionalHeapRuleset(n -> HeapOptions(n) Concat that.HeapOptions(n));
+
+  /** A [[List]] of nim values for all heaps up to the specified heap size.
+    */
+  external def NimValueSequence(toHeapSize as Integer);
+
+  /** The partizan join of this ruleset and `that`.
+    *
+    * `R.PartizanJoin(S)` is the [[PartizanHeapRuleset]] whose Left options are given by `R` and whose
+    * Right options are given by `S`. From a heap of size `n`, Left's options are equal to the options of
+    * `R(n)`, and Right's options are equal to the options of `S(n)`.
+    *
+    * `R.PartizanJoin(S)` is a synonym for `game.heap.PartizanHeapRuleset(R, S)`.
+    */
+  def PartizanJoin(that as HeapRuleset) := PartizanHeapRuleset(this, that);
+
+  /** A position of this ruleset.
+    *
+    * Subclasses do not need to implement a `Position` class directly and should instead implement
+    * [[#HeapOptions]]. For efficiency reasons, calculating values of this heap game (such as by using
+    * [[#NimValueSequence]]) will not result in `Position` objects being created. `Position` objects
+    * will only be created when they are needed directly (for example, in the Explorer).
+    */
   class Position(heapSize as Integer) extends ImpartialGame
 
     override def Options := HeapOptions(heapSize) Apply

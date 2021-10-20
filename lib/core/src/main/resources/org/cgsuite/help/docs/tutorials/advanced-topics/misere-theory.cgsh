@@ -34,30 +34,26 @@ the sum `*[2] + *[2]`. Multiple subscripts should be read left-to-right, so
 
 You can enter games directly by using `*` followed by a list.
 
-`*[4,2]`\\
-\<big\>*[42]\</big\>
+\display{*[4,2]}
 
 Lists may contain other lists, in order to obtain nested options.
 
-`*[\[4,2],4,3,1]`\\
-\<big\>*[(42)431]\</big\>
+\display{*[[4,2],4,3,1]}
 
 There is no shorthand for entering `#`'s or subscripts; for `#` you can use an extra pair of brackets:
 
-`*[\[2],2,1,0]`\\
-\<big\>*[2\<sub\>#\</sub\>210]\</big\>
+\display{*[[2],2,1,0]}
 
 And for `+`, just include compound expressions as list elements:
 
-`*[\[*[4] + *[2]]]`\\
-\<big\>*[4\<sub\>2#\</sub\>]\</big\>
+\display{*[[*[4] + *[2]]]}
 
 +++ Misère Operations +++
 
 Many standard misère operations are implemented. Here's a demonstration of Simon Norton's observation that the monoid
 of canonical misère games does not have unique partitions.
 
-`*[\[*[4] + *[2]]].Partitions`
+\display{*[[*[4] + *[2]]].Partitions}
 
 See the class documentation for [[game.misere.MisereCanonicalGame]] for the full list.
 

@@ -1,15 +1,39 @@
 /*${cgsuite.banner}*/
 
-class GenWythoff(r as Integer) extends CoordinateRuleset
+/** Ruleset schema for generalizations of [[Wythoff]].
+  *
+  * `GenWythoff(f)` is an impartial ruleset played on two heaps of tokens, parameterized by a
+  * Fraenkel-Tanny ~bounding function~ `f`. From a position $(a,b)$, a player may either:
+  * \ul
+  * \li Remove any number of tokens from any one heap; or
+  * \li Remove $k$ tokens from one heap and $l$ tokens from the other, provided that
+  * $0 < k \&le; l < f(k)$.
+  * \endul
+  * This formulation (due to A. Fraenkel and Y. Tanny) subsumes various previously studied Wythoff
+  * generalizations. In particular:
+  * \ul
+  * \li `GenWythoff(k -> k + 1)` is ordinary [[Wythoff]].
+  * \li `GenWythoff(k -> k + r)` is Fraenkel's `r-Wythoff` (it is equivalent to the condition
+  * $|k - l| < r$).
+  * \endul
+  */
+class GenWythoff(
+  /** The Fraenkel-Tanny bounding function for this ruleset (see definition above).
+    *
+    * `bound` must be a function from [[Integer]]s to [[Integer]]s, or an error will result.
+    */
+  bound as Function
+  ) extends CoordinateRuleset
 
   override def CoordinateOptions(coord as Coordinates) begin
     var m := coord.Row;
     var n := coord.Col;
-    var diag := (m Min n) + r - 1;
-    var mOpts := {coord - (a, 0) for a from 1 to m};
-    var nOpts := {coord - (0, b) for b from 1 to n};
-    var dOpts := {coord - (d, e) for d from 1 to diag Min m for e from d-r+1 to d+r-1 Min n};
-    mOpts Union nOpts Union dOpts
+    var diag := m Min n;
+    var mOpts  := [coord - (a, 0) for a from 1 to m];
+    var nOpts  := [coord - (0, b) for b from 1 to n];
+    var dOpts1 := [coord - (k, l) for k from 1 to diag for l from k to bound(k) - 1 Min n];
+    var dOpts2 := [coord - (k, l) for l from 1 to diag for k from l + 1 to bound(l) - 1 Min m];
+    [mOpts, nOpts, dOpts1, dOpts2].Flattened
   end
 
 end

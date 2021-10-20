@@ -2,24 +2,125 @@
 
 system class CanonicalStopper extends Game, StopperSidedValue
 
+  /** The degree of loopiness of this stopper.
+    *
+    * `G.Degree` is defined as `G Upsum -G`.
+    */
+  external def Degree;
+
+  /** The downsum of this stopper and `that`.
+    *
+    * `G Downsum H` is the unique value of `T` such that
+    * `G + H = S & T` for some (unique) `S`.
+    *
+    * See also [[#Upsum]].
+    */
+  external def Downsum(that as CanonicalStopper);
+
+  /** The downsum variety of this stopper relative to degree `deg`.
+    * The degree `deg` must be an [[NormalValue#IsIdempotent][idempotent]],
+    * or an error will be raised.
+    *
+    * `G DownsumVariety D` is equal to `G Downsum (-G Upsum D)`.
+    *
+    * See also [[#UpsumVariety]].
+    */
+  external def DownsumVariety(deg as CanonicalStopper);
+
+  /** The number of distinct followers of this game.
+    */
+  external def FollowerCount;
+
+  /** A [[Collection]] of all the followers of this game. Each
+    * distinct follower appears exactly once in the `Collection`.
+    */
+  external def Followers;
+
+  /** The Left stop of this game. `G.LeftStop` is equivalent to `G.Stop(Left)`.
+    *
+    * See [[#Stop]] for the definition and discussion.
+    */
+  external def LeftStop;
+
+  /** Shorthand for the game `{this|0||0}`.
+    */
+  def Miny := {this|0||0};
+
   override external def Options(player as Player);
 
-  external def Degree;
-  external def Downsum(that as CanonicalStopper);
-  external def DownsumVariety(deg as CanonicalStopper);
-  external def FollowerCount;
-  external def Followers;
-  external def LeftStop;
-  def Miny := {this|0||0};
-  external override def OutcomeClass;
+  /** The Right stop of this game. `G.RightStop` is equivalent to `G.Stop(Right)`.
+    *
+    * See [[#Stop]] for the definition and discussion.
+    */
   external def RightStop;
-  external def Stop(player as Player);
-  external def StrongStop(player as Player);
-  def Tiny := {0||0|-this};
-  external def Upsum(that as CanonicalStopper);
-  external def UpsumVariety(deg as CanonicalStopper);
-  external def Variety;
 
-  override external def ToOutput;
+  /** The Left or Right stop of this game.
+    *
+    * The stops `L(G)` and `R(G)` are defined for all [[CanonicalStopper][stoppers]] by
+    *
+    * `L(G) = R(G) = G` if `G` is a pseudonumber; \\
+    * `L(G) = max{R(G^L^)}`, `R(G) = min{L(G^R^)}` otherwise.
+    *
+    * If `G` is loopfree (i.e., an instance of [[CanonicalShortGame]]), then `L(G)` and `R(G)`
+    * will necessarily be [[DyadicRational]]s, since the only loopfree pseudonumbers are ordinary
+    * numbers. If `G` is a
+    * stopper that is not a short game, then `L(G)` and `R(G)` might take on one of the additional values
+    * `on`, `off`, `x + over`, or `x + under`, where `x` is a `DyadicRational`.
+    */
+  external def Stop(player as Player);
+
+  /** The strong Left or Right stop of this game.
+    *
+    * `G.StrongStop(player)` differs from `G.Stop(player)` only in its treatment of the
+    * values `x + over` and `x + under`. If `G.Stop(player)` is equal to `x + over` or
+    * `x + under`, then `G.StrongStop(player)` will be equal to `x`. (That is, in computing
+    * `G.StrongStop(player)`, we simply disregard `x + over` and `x + under` as stopping
+    * positions.)
+    *
+    * In particular, for loopfree games (instances of [[CanonicalShortGame]]), the stop and
+    * strong stop are always equal.
+    *
+    * See also [[#Stop]].
+    */
+  external def StrongStop(player as Player);
+
+  /** Shorthand for the game `{0||0|-this}`.
+    */
+  def Tiny := {0||0|-this};
+
+  /** The upsum of this stopper and `that`.
+    *
+    * `G Upsum H` is the unique value of `S` such that
+    * `G + H = S & T` for some (unique) `T`.
+    *
+    * See also [[#Downsum]].
+    */
+  external def Upsum(that as CanonicalStopper);
+
+  /** The upsum variety of this stopper relative to degree `deg`.
+    * The degree `deg` must be an [[NormalValue#IsIdempotent][idempotent]],
+    * or an error will be raised.
+    *
+    * `G UpsumVariety D` is equal to `G Upsum (-G Downsum -D)`.
+    *
+    * See also [[#DownsumVariety]].
+    */
+  external def UpsumVariety(deg as CanonicalStopper);
+
+  /** The variety of this stopper.
+    *
+    * The ~Stability Conjecture~ asserts that
+    * `G UpsumVariety D == G DownsumVariety D`
+    * for every stopper `G`, where `D = G.Degree`. When this identity holds,
+    * the common value is the ~variety~ of `G`.
+    *
+    * Since the Stability Conjecture is unproven, `G.Variety` will first test it
+    * against `G`. If the Stability Conjecture fails for `G`, then an error
+    * will be raised. If you ever see this error, congratulations! You've
+    * found a counterexample.
+    *
+    * See \ww, Chapter 11 or \cgt, Chapter VI for the relevant theory.
+    */
+  external def Variety;
 
 end

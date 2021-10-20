@@ -6,7 +6,11 @@ system class List extends Collection
 
   external def Contains(x);
 
+  external def Distinct;
+
   external def Grouped(n as Integer);
+
+  external def IndexOf(element);
 
   external def Length;
 

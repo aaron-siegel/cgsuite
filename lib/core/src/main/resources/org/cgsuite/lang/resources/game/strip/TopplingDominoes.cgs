@@ -1,0 +1,28 @@
+/*${cgsuite.banner}*/
+
+/** Ruleset for Toppling Dominoes.
+  */
+singleton class TopplingDominoes extends StripRuleset
+
+  class Position(strip as Strip) extends StripGame
+
+    override def Options(player as Player) begin
+
+      var us := player.Ordinal;
+      var them := player.Opponent.Ordinal;
+
+      for n from 1 to strip.Length              // For each location on the strip
+      where strip[n] == us or strip[n] == 3     // ... if the space is occupied by a domino of our color or a grey domino ...
+      yield Position(strip.UpdatedRange(1, n, 0))             // ... generate an option with dominoes to the left removed ...
+      yield Position(strip.UpdatedRange(n, strip.Length, 0))  // ... and another option with dominoes to the right removed
+      end
+
+    end
+
+  end
+
+  override def CharMap := ".lre";
+
+  override def Icons := [Icon.Blank, Icon.BlackDomino, Icon.WhiteDomino, Icon.GrayDomino];
+
+end

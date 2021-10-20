@@ -471,7 +471,11 @@ public class StyledTextOutput extends AbstractOutput
     {
         init(new Block(text));
     }
-    
+
+    public String text() {
+        return topBlock.text;
+    }
+
     private void append(Block block)
     {
         topBlock.subBlocks.add(block);

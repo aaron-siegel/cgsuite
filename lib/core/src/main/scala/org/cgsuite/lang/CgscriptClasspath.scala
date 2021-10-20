@@ -1,5 +1,6 @@
 package org.cgsuite.lang
 
+import java.nio.file.FileSystemAlreadyExistsException
 import java.nio.file.spi.FileSystemProvider
 import java.util.Collections
 
@@ -44,8 +45,12 @@ object CgscriptClasspath {
         // Search in the production jar.
         val uri = getClass.getResource("resources").toURI
         if (uri.getScheme == "jar") {
-          FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
-            provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+          try {
+            FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+              provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+            }
+          } catch {
+            case _: FileSystemAlreadyExistsException =>
           }
         }
         File(getClass.getResource("resources").toURI)
@@ -85,8 +90,12 @@ object CgscriptClasspath {
   def copyExamples(dest: File): Unit = {
     val uri = getClass.getResource("examples").toURI
     if (uri.getScheme == "jar") {
-      FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
-        provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+      try {
+        FileSystemProvider.installedProviders.asScala find { _.getScheme equalsIgnoreCase "jar" } foreach { provider =>
+          provider.newFileSystem(uri, Collections.emptyMap[String, AnyRef])
+        }
+      } catch {
+        case _: FileSystemAlreadyExistsException =>
       }
     }
     val examplesDir = File(getClass.getResource("examples").toURI)

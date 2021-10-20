@@ -31,6 +31,8 @@ system class Collection
     */
   external def Find(predicate as Function);
 
+  external def Flattened;
+
   /** Returns `true` if every element in this collection
     * satisfies the specified predicate.
     * `predicate` must be a [[Boolean]]-valued function.

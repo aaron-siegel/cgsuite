@@ -18,8 +18,7 @@ You'll see that they return the boolean values `true` and `false`.
 
 The operator `:` is used for ordinal sum:
 
-`> *4:*5`\\
-\<big\>*9\</big\>
+\display{*4:*5}
 
 +++ Variable Assignments +++
 
@@ -58,29 +57,26 @@ You can find a list of all the built-in operators on the reference page for [[Ca
 
 Sometimes it's handy to define functions for operations that you plan to use repeatedly. You can do this as follows:
 
-`> def f(x) := x + 1`
+\display{def f(x) := x + 1}
 
 This defines a function `f`, which you can then invoke using standard function notation.
 
-`> f(6)`\\
-\<big\>7\</big\>
+\display{f(6)}
 
-`> f(*2)`\\
-\<big\>1*2\</big\>
+\display{f(*2)}
 
 You can implement quite sophisticated functions using the CGScript language, which we'll learn about shortly. The
 following function computes the Collatz stopping time of `n` (i.e., the number of steps required to go from `n` to `1`,
 where each step replaces `n` by `n/2` if `n` is even, or `3n + 1` if `n` is odd). Copy the entire function onto a
 a single Worksheet cell if you want to try it.
 
-`> def Collatz(n) :=
-\sp\sp if n == 1 then 0
-\sp\sp elseif n.IsEven then 1 + Collatz(n/2)
-\sp\sp else 1 + Collatz(3*n+1)
-\sp\sp end`
+\displayAndHide{def Collatz(n) :=
+  if n == 1 then 0
+  elseif n.IsEven then 1 + Collatz(n/2)
+  else 1 + Collatz(3*n+1)
+  end}
 
-`> Collatz(97)`\\
-\<big\>118\</big\>
+\display{Collatz(97)}
 
 +++ Objects and Types +++
 
@@ -154,7 +150,7 @@ command in the Command History window to copy its contents directly to the works
 \li Sometimes you might start a calculation and find that it runs for a very long time. For example, a calculation
 such as
 
-`*14.Heat`
+`*14.Heat(1)`
 
 takes a rather long time to complete. If you find it's taking longer than expected and want to abort, just click
 "Kill Calculation" in the System menu, or press Ctrl-K (Command-K on MacOS). This instructs cgsuite to stop the current
@@ -172,6 +168,6 @@ to restart CGSuite), just enter
 into the Worksheet.
 \endul
 
-\## Footer ##
+\footer
 
 ~~Continue on to the next part of the tutorial: [[games-and-rulesets]]~~

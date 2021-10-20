@@ -4,8 +4,12 @@ system class System
 
   external static def ClearAll();
 
+  external static def CopyrightYear;
+
   external static def Error(msg as String);
 
   external static def Print(obj);
+
+  external static def Version;
 
 end

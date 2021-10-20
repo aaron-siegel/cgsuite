@@ -24,6 +24,12 @@ trait UiHarness {
 
 }
 
+object Explorer {
+
+  def newExplorer(g: Game): Explorer = UiHarness.uiHarness.createExplorer(g)
+
+}
+
 trait Explorer {
 
   def selection: Game

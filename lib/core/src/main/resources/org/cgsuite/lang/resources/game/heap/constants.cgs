@@ -2,51 +2,169 @@
 
 /**
  * Ruleset library for games played on heaps of tokens.
+ *
+ * `game.heap` actually contains two closely related families of games: the ~heap games~, played on a single heap
+ * of tokens (equivalently, parameterized by a single integer $n \geq 0$); and the ~coordinate games~, played on a
+ * coordinate pair of integers $(m,n)$.
+ *
+ * Every impartial heap ruleset is a subclass of the base class [[HeapRuleset]]. The most familiar heap games are the
+ * ~~generalized take-and-break games~~, which include octal games such as [[Kayles]]; they are implemented by the
+ * [[TakeAndBreak]] class.
+ *
+ * The coordinate rulesets similarly derive from [[CoordinateRuleset]]. They include two-heap games in which the
+ * heaps interact, such as [[Wythoff]], as well as single-heap games with a "memory", such as [[FibonacciNim]].
+ *
+ * Partizan variants are provided by the [[PartizanHeapRuleset]] and [[PartizanCoordinateRuleset]] classes, which take
+ * as input a pair of Left and Right `HeapRuleset`s or `CoordinateRuleset`s (respectively).
+ *
+ * It is not necessary to create a new class to define a new heap or coordinate ruleset; one can simply pass a function
+ * to [[HeapRuleset]] or [[CoordinateRuleset]]. Arbitrary behavior can be described this way; for example:
+ *
+ * `game.heap.HeapRuleset(n -> [[a, b] for b from 0 while b^2 < n for a from 0 to b - 1])`
+ *
+ * is the ruleset: replace a heap of size `n` by any two heaps `a` and `b` with `a < b < sqrt(n)`.
  */
 singleton class constants
 
+  /** Ruleset for Cutcake.
+    *
+    * A position in Cutcake is an $m \&times; n$ rectangle (the "cake"), represented by a coordinate pair
+    * $(m, n)$. Left may "cut" the cake along the first coordinate,
+    * replacing $(m, n)$ by the sum of $(a, n)$ and $(m - a, n)$,
+    * with $1 \&le; a < m$. Likewise, Right may cut along the second coordinate, moving to the sum of
+    * $(m, b)$ and $(m, n - b)$, with $1 \&le; b < n$.
+    *
+    * Cutcake is defined as an instance of [[GenCutcake]] by
+    *
+    * `Cutcake := GenCutcake(TakeAndBreak("4.0"), TakeAndBreak("4.0"))`
+    */
   var Cutcake := GenCutcake(TakeAndBreak("4.0"), TakeAndBreak("4.0"));
 
+  /** Ruleset for Dawson's Kayles.
+    *
+    * Dawson's Kayles is the [[TakeAndBreak][octal game]] ~~0.07~~: remove exactly two
+    * tokens from a heap, optionally splitting the remainder into two separate heaps.
+    *
+    * `DawsonsKayles := TakeAndBreak("0.07")`
+    */
   var DawsonsKayles := TakeAndBreak("0.07");
 
+  /** Ruleset for Eatcake.
+    *
+    * Eatcake is a variation on [[Cutcake]], represented by a coordinate pair $(m, n)$. Left
+    * removes any row from the "cake", replacing $(m, n)$ by the sum of $(a, n)$ and
+    * $(m - a - 1, n)$, with $0 \&le; a < m$. Likewise, Right removes any column, moving to
+    * the sum of $(m, b)$ and $(m, n - b - 1)$, with $0 \&le; b < n$.
+    *
+    * Eatcake is defined as an instance of [[GenCutcake]] by
+    *
+    * `Eatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"))`
+    *
+    * It is also known as Bynum's Game.
+    */
   var Eatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"));
 
+  /** Ruleset for Fibonacci Nim.
+    *
+    * Fibonacci Nim is played with heaps of tokens. On her turn, a player may remove at most $2k$ tokens from a
+    * heap, where $k$ is the number of tokens removed on the previous turn. When played with multiple heaps, each
+    * heap has its own "memory".
+    *
+    * The structure of P-positions in Fibonacci Nim is related to the Fibonacci numbers; see the
+    * [[https://en.wikipedia.org/wiki/Fibonacci_nim][Wikipedia article]] on Fibonacci Nim for details.
+    *
+    * Fibonnaci Nim is defined as an instance of [[GenMem]] by
+    *
+    * `FibonacciNim := TakeAway(2)`
+    *
+    * See also [[#TakeAway]].
+    */
   var FibonacciNim := TakeAway(2);
 
+  /** Ruleset for Grundy's Game.
+    *
+    * Grundy's Game is the [[TakeAndBreak][take-and-break]] game ~~4!.0~~: split a heap into two unequal heaps
+    * (without removing any tokens).
+    *
+    * `GrundysGame := TakeAndBreak("4!.0")`
+    */
   var GrundysGame := TakeAndBreak("4!.0");
 
+  /** Ruleset for Kayles.
+    *
+    * Kayles is the [[TakeAndBreak][octal game]] ~~0.77~~: remove one or two tokens from a heap, optionally
+    * splitting the remainder into two separate heaps.
+    *
+    * `Kayles := TakeAndBreak("0.77")`
+    */
   var Kayles := TakeAndBreak("0.77");
 
+  /** Ruleset for Maundy Cake.
+    */
   var MaundyCake := GenCutcake(TakeAndBreak("{2+}=.0"), TakeAndBreak("{2+}=.0"));
 
+  /** Ruleset for Mem.
+    */
   var Mem := GenMem((memory, j) -> j >= memory);
 
+  /** Ruleset for Nim.
+    */
   var Nim := TakeAndBreak("0.[3]");
 
+  /** Ruleset for Partizan Euclid.
+    */
   var PartizanEuclid := PartizanCoordinateRuleset(
     FunctionalCoordinateRuleset((p, q) -> if q == 0 or p % q == 0 then [] else [(q, p % q)] end),
     FunctionalCoordinateRuleset((p, q) -> if q == 0 or p % q == 0 then [] else [(q, q - p % q)] end)
   );
 
+  /** Ruleset schema for Partizan Splittles.
+    */
   def PartizanSplittles(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Splittles(leftSet, allbut), Splittles(rightSet, allbut));
 
+  /** Ruleset schema for Partizan Subtraction games.
+    */
   def PartizanSubtraction(leftSet as Collection, rightSet as Collection, allbut as Boolean ? false) :=
     PartizanHeapRuleset(Subtraction(leftSet, allbut), Subtraction(rightSet, allbut));
 
+  /** Ruleset schema for Partizan Take-and-Break games.
+    */
   def PartizanTakeAndBreak(leftCode as String, rightCode as String) :=
     PartizanHeapRuleset(TakeAndBreak(leftCode), TakeAndBreak(rightCode));
 
+  /** Ruleset schema for Splittles.
+    */
   def Splittles(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "7", allbut);
 
+  /** Ruleset schema for Subtraction games.
+    */
   def Subtraction(subtset as Collection, allbut as Boolean ? false) := TakeAndBreak.FromSubtractionSet(subtset, "3", allbut);
 
+  /** Ruleset schema for Take-Away.
+    */
   def TakeAway(limit as DyadicRational) := GenMem((memory, j) -> j <= memory * limit);
 
+  /** Ruleset schema for Generalized Take-Away.
+    */
   def TakeAway(limit as Function) := GenMem((memory, j) -> j <= limit(memory));
 
+  /** Ruleset for Turn-and-Eatcake.
+    */
   var TurnAndEatcake := GenCutcake(TakeAndBreak("0.7"), TakeAndBreak("0.7"), twisted => true);
 
-  var Wythoff := GenWythoff(1);
+  /** Ruleset for Wythoff Nim.
+    *
+    * Wythoff Nim is an impartial game played on two heaps of tokens. From a position $(a,b)$, a player may
+    * remove any number of tokens from any one heap (as in ordinary [[Nim]]), or else remove the same number
+    * of tokens from both heaps.
+    *
+    * Wythoff Nim is an instance of the ruleset schema [[GenWythoff]] and is implemented as a
+    * [[CoordinateRuleset]], so that positions are represented by coordinate pairs:
+    *
+    * `game.heap.Wythoff((10, 11))` \\
+    * `game.heap.Wythoff.NimValueTable(30, 30)`
+    */
+  var Wythoff := GenWythoff(k -> k + 1);
 
 end

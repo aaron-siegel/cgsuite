@@ -3,15 +3,14 @@
 /** An ordinary integer.
   *
   * Integers in CGSuite are instances of [[CanonicalShortGame]], with
-  * all the usual operations. For example,
+  * all the usual operations. For example:
   *
-  * `5.LeftOptions`
-  *
-  * gives the answer `{4}`.
+  * \display{5.LeftOptions}
   *
   * CGSuite supports arbitrarily large integers with exact precision,
-  * and most integer operations can handle large inputs efficiently.
-  * (Example: $2^400^ NimProduct 2^400^$.)
+  * and most integer operations can handle large inputs efficiently:
+  *
+  * \display{2^400 NimProduct 2^400}
   */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 
@@ -49,8 +48,8 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     * $-2^31^ \leq n \lt 2^31^$.
     *
     * CGSuite supports arbitrarily large [[Integer]]s, but small
-    * integers use a different internal representation (native
-    * 32-bit) that is higher performance.
+    * integers use a different internal representation
+    * that is higher performance.
     */
   external def IsSmallInteger;
 
@@ -99,6 +98,15 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
   override external def ToOutput;
 
   /** The ugly product of this [[Integer]] and `that`.
+    *
+    * If $n$ is a power of $2$ and $k < n$, the ugly product $n \&cupdot; k$ is defined by
+    *
+    * $n \&cupdot; k = Floor(k/2)$ if $k$ is [[#IsEvil][evil]]; \\
+    * $n \&cupdot; k = n + Floor(k/2)$ if $k$ is [[#IsOdious][odious]]; \\
+    * $n \&cupdot; n = Ceiling(n/2)$.
+    *
+    * The definition is extended to all integers by the distributive law over [[#NimSum][nim sum]].
+    * See \ww, Chapter 14.
     */
   external def UglyProduct(that as Integer);
 

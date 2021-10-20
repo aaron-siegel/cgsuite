@@ -5,7 +5,7 @@ import org.antlr.runtime.tree.Tree
 import org.cgsuite.exception.EvalException
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.RichTree.treeToRichTree
-import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, Parameter}
+import org.cgsuite.lang.{CgscriptClass, CgscriptPackage, ClassResolutionScope, ElaborationDomain, Parameter}
 
 object DeclarationNode {
 
@@ -39,7 +39,7 @@ object ClassDeclarationNode {
     val modifiers = Modifiers(tree.head, MUTABLE, SINGLETON, SYSTEM)
     val id = IdentifierNode(tree.children(1))
     val extendsClause = tree.children find { _.getType == EXTENDS } match {
-      case Some(t) => t.children map { EvalNode(_) }
+      case Some(t) => t.children map { TypeSpecifierNode(_) }
       case None => Vector.empty
     }
     val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) }
@@ -80,7 +80,7 @@ case class ClassDeclarationNode(
   idNode: IdentifierNode,
   isEnum: Boolean,
   modifiers: Modifiers,
-  extendsClause: Vector[Node],
+  extendsClause: Vector[TypeSpecifierNode],
   classParameterNodes: Option[ParametersNode],
   nestedClassDeclarations: Vector[ClassDeclarationNode],
   methodDeclarations: Vector[MethodDeclarationNode],
@@ -105,8 +105,9 @@ object ParametersNode {
       assert(t.getType == METHOD_PARAMETER)
       ParameterNode(
         t,
+        pkg,
         IdentifierNode(t.head),
-        t.children find { _.getType == AS } map { u => IdentifierNode(u.head) },
+        t.children find { _.getType == AS } map { u => TypeSpecifierNode(u.head) },
         t.children find { _.getType == QUESTION } map { u => EvalNode(u.head) },
         t.children exists { _.getType == DOTDOTDOT }
       )
@@ -114,7 +115,7 @@ object ParametersNode {
     val invalidExpandedParameter = parameters.dropRight(1).find { _.isExpandable }
     invalidExpandedParameter foreach { paramNode =>
       throw EvalException(
-        s"Invalid expansion for parameter `${paramNode.id.id.name}`: must be in last position",
+        s"Invalid expansion for parameter `${paramNode.idNode.id.name}`: must be in last position",
         paramNode.tree
       )
     }
@@ -126,30 +127,31 @@ case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNod
 
   override val children = parameterNodes
 
-  def toParameters: Vector[Parameter] = {
-
-    parameterNodes.map { n =>
-      val ttype = n.classId match {
-        case None => CgscriptClass.Object
-        case Some(idNode) => pkg flatMap { _ lookupClass idNode.id } orElse (CgscriptPackage lookupClass idNode.id) getOrElse {
-          throw EvalException(s"Unknown class in parameter declaration: `${idNode.id.name}`", idNode.tree)
-        }
-      }
-      Parameter(n.id, ttype, n.defaultValue, n.isExpandable)
-    }
-
-  }
+  def toParameters: Vector[Parameter] = parameterNodes map { _.toParameter }
 
 }
 
 case class ParameterNode(
   tree: Tree,
-  id: IdentifierNode,
-  classId: Option[IdentifierNode],
+  scope: Option[ClassResolutionScope],
+  idNode: IdentifierNode,
+  classId: Option[TypeSpecifierNode],
   defaultValue: Option[EvalNode],
   isExpandable: Boolean
-  ) extends Node {
-  override val children = Seq(id) ++ classId ++ defaultValue
+  ) extends MemberDeclarationNode {
+
+  override val children = Seq(idNode) ++ classId ++ defaultValue
+
+  def toParameter: Parameter = {
+    val ttype = classId match {
+      case None => CgscriptClass.Object
+      case Some(typeSpecifierNode) => typeSpecifierNode.resolveToType(scope) getOrElse {
+        throw EvalException(s"Unknown class in parameter declaration: `${typeSpecifierNode.toNodeString}`", typeSpecifierNode.tree)
+      }
+    }
+    Parameter(idNode, ttype, defaultValue, isExpandable)
+  }
+
 }
 
 object ClassVarNode {

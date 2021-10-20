@@ -12,17 +12,17 @@ describes how to design new classes, games, and rulesets.
 
 When you type, say,
 
-`opts := *8.LeftOptions`
+\display{opts := *8.LeftOptions}
 
 you get back all the Left options of `*8`.  The resulting ~set~ is itself an object and can be
     manipulated in various ways.  For example,
 
-`opts.Contains(*3)`
+\display{opts.Contains(*3)}
 
 returns `true` or `false` depending on whether `*3` is in the set.  You can also use these sets to construct
     games, as in
 
-`{ opts,*8 | opts,*8 }`
+\display{{ opts,*8 | opts,*8 }}
 
 which returns the expected `*9` (since we included `*8` in addition to the original set).
 
@@ -46,12 +46,12 @@ square brackets instead of curly braces.  For example,
 
 `[0,*,*2]`
 
-creates the list of `0`, `*` and `*2`.  To appreciate the difference between lists and sets, try entering the following
-two commands into the worksheet:
+creates the list of `0`, `*` and `*2`.  To appreciate the difference between lists and sets, consider the following
+two expressions:
 
-`{1,5,1,3}`
+\display{{1,5,1,3}}
 
-`[1,5,1,3]`
+\display{[1,5,1,3]}
 
 If `x` is a list, then you can access the n^th^ element with square brackets.  For example, let
 
@@ -82,7 +82,7 @@ Note that square brackets are used to retrieve ~list elements~ by index, and als
 The keys of a map don't need to be strings; they can be any object at all, and the same map can use objects of
 different types as keys.  For example:
 
-`x := { "key" => 14, \^\^*4 => 2 }`
+`x := { "key" => 14, ^^*4 => 2 }`
 
 The special syntax
 
@@ -185,6 +185,6 @@ arbitrary positions.
 \endol
 --\>
 
-\## Footer ##
+\footer
 
 ~~Continue on to the next part of the tutorial: [[impartial-games]]~~

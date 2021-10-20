@@ -14,36 +14,41 @@ Right options. In general, CGSuite won't compute the options of an instance of `
 
 To see how this works, enter the following into the Worksheet:
 
-$G := game.grid.Clobber("xoxo|ox..")$
+\display{G := game.grid.Clobber("xoxo|ox..")}
 
 This constructs the specified $2 x 4$ Clobber position and assigns it to the variable $G$, ready for further
 analysis.
 
 Now you can find the canonical form of $G$:
 
-$> G.CanonicalForm$\\
-\<big\>{\doubleup`*`|\v`*`}\</big\>
+\display{G.CanonicalForm}
 
 The result will be a `CanonicalShortGame`, which you can manipulate like any other.
 
 You can also directly manipulate the game $G$; for example:
 
-$G.LeftOptions$\\
-$H := G + G + *2$
+\display{G.SensibleLeftOptions}
 
-Note that the expression $G + G + *2$ does ~not~ get automatically simplified, as a sum of `CanonicalShortGame`s would.
+(A ~sensible Left option~ of `G` is a Left option that contributes to its canonical form. This particular `Clobber`
+position has only one of them! To see all of `G`'s Left options, try `G.LeftOptions` instead.)
+
+$G$ can be manipulated with all the usual algebraic operations:
+
+\display{H := G + G + *2}
+
+Note that the expression `G + G + *2` does ~not~ get automatically simplified, the way a sum of `CanonicalShortGame`s would.
 You can easily collapse the whole thing to a canonical form, though:
 
-$H.CanonicalForm$
+\display{H.CanonicalForm}
 
 +++ Rulesets +++
 
 CGSuite distinguishes between a ~game~, which is a specific position with
 Left and Right options, and its ~ruleset~, which is a class of positions with a shared structure. Thus
 
-$game.grid.Clobber$
+`game.grid.Clobber`
 
-is an instance of the class `Ruleset`, which defines the structure of Clobber in general, which can be ~evaluated~ to
+is an instance of the class `Ruleset`, which defines the structure of Clobber in general, and which can be ~evaluated~ to
 obtain a specific position.
 
 There are numerous rulesets built into CGSuite, collectively forming the "Standard Games Library". Examples include:
@@ -58,12 +63,12 @@ If you want to browse through the full list, the [[/reference/overview]] overvie
 
 +++ Ruleset Schemas +++
 
-If you tried typing $game.grid.Clobber$ into the Worksheet, you probably noticed that it comes with a somewhat
-complicated list of parameters. That's because $Clobber$ itself is a special case of a more general ~schema~ of
-rulesets, $game.grid.GenClobber$. In fact, internally in CGSuite, the ruleset $game.grid.Clobber$ is simply defined as
-an instance of $GenClobber$:
+If you tried typing `game.grid.Clobber` into the Worksheet, you probably noticed that it comes with a somewhat
+complicated list of parameters. That's because `Clobber` itself is a special case of a more general ~schema~ of
+rulesets, `game.grid.GenClobber`. In fact, internally in CGSuite, the ruleset `game.grid.Clobber` is simply defined as
+an instance of `GenClobber`:
 
-`Clobber := game.grid.GenClobber();`
+`Clobber := game.grid.GenClobber()`
 
 But several other rulesets are also defined this way. For example, `Rooks` is played like `Clobber`; but whereas
 `Clobber` pieces can only capture adjacent opposing pieces, the `Rooks` pieces move and capture like Chess rooks. It's
@@ -76,28 +81,27 @@ Many other variants can be defined this way. For example, one might define
 `Oxen := game.grid.GenClobber(maxDistance => 2)`
 
 (A "violent ox" is a Chess-like piece that can move and capture up to two squares orthogonally, used in certain
-variants of Shogi.
+variants of Shogi.)
 "Oxen" isn't a well-studied game, so it isn't defined by default in CGSuite, but it's a good example of how CGSuite's
-ruleset schemas can be used to construct a wide range of rulesets. Perhaps you'll discover something new!)
+ruleset schemas can be used to construct a wide range of rulesets. Perhaps you'll discover something new!
 
 +++ Ruleset Composition +++
 
 It's also possible to use rulesets as "building blocks" to form more complex ones. For example,
 `game.heap.HeapRuleset` is the base class for general impartial games played on heaps of tokens (such as `Nim`).
-Another class, `game.heap.PartizanHeapRuleset`, takes as input two instances of `HeapRuleset` - a "Left ruleset" and
-"Right ruleset" - and implements a partizan ruleset where Left moves according to the Left ruleset, and likewise
-for Right. For example,
+Given any two `HeapRuleset` instances `L` and `R`, CGSuite can construct their "partizan join", in which Left moves
+according to `L` and Right moves according to `R`. For example,
 
-`game.heap.PartizanHeapRuleset(game.heap.Nim, game.heap.Kayles)`
+`game.heap.Nim PartizanJoin game.heap.Kayles`
 
 is the ruleset where Left moves according to `Nim` and Right moves according to `Kayles`. Other composition operators
 are available as well; for example, Cutcake (described in \ww) is defined in CGSuite in terms of a "cake product":
 
-`Cutcake := TakeAndBreak("4.0") CakeProduct TakeAndBreak("4.0")`
+`Cutcake := game.heap.TakeAndBreak("4.0") CakeProduct game.heap.TakeAndBreak("4.0")`
 
-We'll have much more to say about Heap and Take-and-Break games in the upcoming [[impartial-games]] section of the
+We'll have much more to say about Heap and Take-and-Break games in the upcoming Impartial Games section of the
 tutorial.
 
-\## Footer ##
+\footer
 
 ~~Continue on to the next part of the tutorial: [[using-the-explorer]]~~
