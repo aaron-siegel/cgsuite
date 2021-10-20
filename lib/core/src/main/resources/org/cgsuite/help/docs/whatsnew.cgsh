@@ -6,33 +6,35 @@ using CGSuite 2.0, it's strongly recommended that you read through the [[/tutori
 tutorial in addition to this page.
 
 \ul
-\li \<b\>CGScript 2.\</b\> The CGScript language has been completely overhauled. It's much faster than the original CGScript, and the language is
-far more concise and expressive: for example, the `Amazons` implementation in CGScript 2 totals 30 lines of code,
+\li ~~CGScript 2.~~ The CGScript language has been completely overhauled. It's much faster than the original CGScript,
+and the language is
+more concise and expressive: for example, the `Amazons` implementation in CGScript 2 totals 30 lines of code,
 versus 65 in the original CGScript, and canonical form calculations are roughly 6x faster.
 
 Unfortunately, CGScript 2 is not backward-compatible with the original - there was simply no way to achieve these
 improvements while maintaining compatibility. However, CGScript 2 will be the definitive version of the CGScript
 language.
 
-\li \<b\>Standard Games Library.\</b\> CGSuite 2.0 comes bundled with the ~Standard Games Library~, a greatly enlarged library of many rulesets commonly
+\li ~~Standard Games Library.~~ CGSuite 2.0 comes bundled with the ~Standard Games Library~, a greatly enlarged library
+of many rulesets commonly
 encountered in the literature. You can use the [[/reference/overview]] overview as a starting point for browsing
 through the library.
 
 Along with the Standard Games Library is a comprehensive Help system, with searchable documentation for all classes in CGScript.
 
-\li \<b\>Loopy Games.\</b\> Loopy games are now "first-class citizens" of CGSuite. It is no longer a requirement that implementations of
+\li ~~Loopy Games.~~ Loopy games are now "first-class citizens" of CGSuite. It is no longer a requirement that implementations of
 `Game` be loopfree. To create a loopy game, just implement `Game` as you normally would, allowing instances of `Game`
-to be followers of themselves! Then `G.GameValue` can be used in place of `G.CanonicalForm` to obtain the loopy game
-value of `G`. The [[/tutorials/advanced-features/loopy-games]] tutorial goes into more detail on this feature.
+to be followers of themselves; then `G.GameValue` can be used in place of `G.CanonicalForm` to obtain the loopy game
+value of `G`. The [[/tutorials/advanced-topics/loopy-games]] tutorial goes into more detail on this feature.
 
-\li \<b\>Misère Impartial Games.\</b\> Misère impartial games in canonical form are now supported and built in to the language. If `G` is any impartial game,
+\li ~~Misère Impartial Games.~~ Misère impartial games in canonical form are now supported and built in to the language. If `G` is any impartial game,
 then
 
 `G.MisereCanonicalForm`
 
-gives its canonical form. See the [[/tutorials/advanced-features/misere-theory]] tutorial for an overview.
+gives its canonical form. See the [[/tutorials/advanced-topics/misere-theory]] tutorial for an overview.
 
-\li \<b\>Surreal Numbers.\</b\> CGSuite now includes a basic implementation of a fragment of surreal numbers: specifically, the field closure of
+\li ~~Surreal Numbers.~~ CGSuite now includes a basic implementation of a fragment of surreal numbers: specifically, the field closure of
 ordinals below $\epsilon_0_$. `omega` is defined as a constant, and expressions like
 
 `(1/7).Birthday`

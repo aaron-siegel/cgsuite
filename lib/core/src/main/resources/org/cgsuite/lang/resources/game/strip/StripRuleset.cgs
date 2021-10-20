@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** Base class for rulesets played on a one-dimensional strip.
+  */
 class StripRuleset extends Ruleset
 
   def Eval(strip as Strip) := Position(strip);

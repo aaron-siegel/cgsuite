@@ -45,7 +45,7 @@ system class ImpartialGame extends Game
   external def MisereCanonicalForm;
   external def MisereNimValue;
   external def NimValue;
-  override def Options := error("Subclasses of `ImpartialGame` must override the `Options` method.");
+  override def Options := error("Subclasses of `ImpartialGame` must implement the `Options` method.");
   override def Options(player as Player) := Options;
 
 end

@@ -2,9 +2,18 @@
 
 class CoordinateRuleset extends Ruleset
 
+  static def Eval(fn as Function) := FunctionalCoordinateRuleset(fn);
+
   def Eval(coord as Coordinates) := Position(coord);
 
-  def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must override `CoordinateOptions`.");
+  def Eval(row as Integer, col as Integer) := Position((row, col));
+
+  /** The `CoordinateRuleset` obtained by adjoining moves from `that` to this ruleset.
+    */
+  def Adjoin(that as CoordinateRuleset) := FunctionalCoordinateRuleset
+    ((m, n) -> CoordinateOptions((m, n)) Concat that.CoordinateOptions((m, n)));
+
+  def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must implement `CoordinateOptions`.");
 
   def NimValueTable(maxRow as Integer, maxCol as Integer) begin
     Table([Position((m, n)).NimValue for n from 0 to maxCol] for m from 0 to maxRow)
@@ -14,7 +23,8 @@ class CoordinateRuleset extends Ruleset
 
     def Coord := coord;
 
-    override def Options := CoordinateOptions(coord) Apply (c -> Position(c));
+    override def Options := CoordinateOptions(coord) Apply
+      (opt -> if opt is Coordinates then Position(opt) elseif opt.IsEmpty then 0 else Sum(Position(c) for c in opt) end);
 
   end
 

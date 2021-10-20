@@ -22,7 +22,7 @@ object IdentifierNode {
   }
 }
 
-case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
+case class IdentifierNode(tree: Tree, id: Symbol) extends TypeSpecifierNode {
 
   var resolver: Resolver = Resolver.forId(id)
   var constantResolution: Resolution = _
@@ -38,7 +38,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   override def elaborate(scope: ElaborationDomain): Unit = {
     // Can this be resolved as a Class name? Check first in local package scope, then in default package scope
     try {
-      scope.pkg flatMap { _ lookupClass id } orElse (CgscriptPackage lookupClass id) match {
+      scope.pkg flatMap { _ lookupClassInScope id } orElse (CgscriptPackage lookupClass id) match {
         case Some(cls) => classResolution = {
           Some(if (cls.isScript) cls.scriptObject else if (cls.isSingleton) cls.singletonInstance else cls.classObject)
         }
@@ -55,7 +55,7 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
       case None =>
     }
     // Can this be resolved as a constant? Check first in local package scope, then in default package scope
-    scope.pkg flatMap { _ lookupConstant id } orElse (CgscriptPackage lookupConstant id) match {
+    scope.pkg flatMap { _ lookupConstantInScope id } orElse (CgscriptPackage lookupConstant id) match {
       case Some(res) => constantResolution = res
       case None =>
     }
@@ -108,5 +108,9 @@ case class IdentifierNode(tree: Tree, id: Symbol) extends EvalNode {
   }
 
   def toNodeStringPrec(enclosingPrecedence: Int) = id.name
+
+  override def resolveToType(scope: Option[ClassResolutionScope]): Option[CgscriptClass] = {
+    scope flatMap { _ lookupClassInScope id } orElse CgscriptPackage.lookupClass(id)
+  }
 
 }

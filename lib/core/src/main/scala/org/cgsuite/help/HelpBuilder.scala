@@ -10,7 +10,6 @@ import org.cgsuite.exception.CgsuiteException
 import org.cgsuite.help.HelpBuilder._
 import org.cgsuite.lang._
 import org.cgsuite.output.Output
-import org.cgsuite.util.{LinkBuilder, Markdown}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -34,11 +33,18 @@ object HelpBuilder {
     s"""<div class="titlebar"><p><div class="section">
        |  <a href="${backref}contents.html#top">Contents</a>
        |  &nbsp;&nbsp;
-       |  <a href="${backref}reference/overview.html#top">Packages</a>
+       |  <a href="${backref}overview.html#top">Packages</a>
        |  &nbsp;&nbsp;
-       |  <a href="${backref}reference/cgscript-index.html#top">Index</a>
+       |  <a href="${backref}cgscript-index.html#top">Index</a>
        |</div></div>
      """.stripMargin
+
+  def anchorName(member: Member): String = {
+    if (member.isStatic)
+      s"static_${member.name}"
+    else
+      member.name
+  }
 
 }
 
@@ -53,6 +59,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
   private[help] val searchIndex = targetRootDir/"search-index.csv"
 
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
+
+  private var markdownErrors = false
 
   CgscriptClass.Object.ensureDeclared()
 
@@ -85,6 +93,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     renderClasses()
     renderPackageMembers()
 
+    if (markdownErrors) {
+      sys.error("There were markdown errors.")
+    }
+
   }
 
   def renderCgshFiles(): Unit = {
@@ -108,32 +120,39 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           backPath.toString
       }
 
-      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref, fixedTargets, CgscriptPackage.root)
-      val markdown = generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder)
+      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref + "/", fixedTargets, CgscriptPackage.root)
 
-      val header =
-        s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-           |<html>
-           |<head>
-           |  <link rel="stylesheet" href="$backref/cgsuite.css" type="text/css">
-           |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-           |  <title>$title</title>
-           |</head>
-           |
-           |<body><div class="spacer">
-           |<!--<div class="blanksection">&nbsp;</div>
-           |<p>
-           |${standardHeaderBar(backref)}-->
-           |<h1>$title</h1>
-           |<div class="section">
-           |
-           |""".stripMargin
+      generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder) match {
 
-      val footer = s"\n\n${if (markdown.hasFooter) "" else "</div>"}<p></div></body></html>"
+        case Some(markdown) =>
+          val header =
+            s"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+               |<html>
+               |<head>
+               |  <link rel="stylesheet" href="$backref/cgsuite.css" type="text/css">
+               |  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+               |  <title>$title</title>
+               |</head>
+               |
+               |<body><div class="spacer">
+               |<!--<div class="blanksection">&nbsp;</div>
+               |<p>
+               |${standardHeaderBar(backref)}-->
+               |<h1>$title</h1>
+               |<div class="section">
+               |
+               |""".stripMargin
 
-      targetFile overwrite header
-      targetFile append markdown.text
-      targetFile append footer
+          val footer = s"\n\n${if (markdown.hasFooter) "" else "</div>"}<p></div></body></html>"
+
+          targetFile overwrite header
+          targetFile append markdown.text
+          targetFile append footer
+
+        case None =>
+          logger.error(s"Failed to generate Markdown: $cgshFile")
+
+      }
 
     }
 
@@ -182,8 +201,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
       val file = packageDir/s"${cls.name}.${member.name}.html"
-      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
       val backref = "../" * (cls.pkg.path.length + 1)
+      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, backref, fixedTargets, cls.pkg, Some(cls))
 
       val packageStr = s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       val memberTypeStr = member match {
@@ -231,7 +250,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
 
-    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * cls.pkg.path.length, fixedTargets, cls.pkg, Some(cls))
+    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * (cls.pkg.path.length + 1), fixedTargets, cls.pkg, Some(cls))
 
     val file = packageDir/s"${cls.name}.html"
 
@@ -254,8 +273,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         }
       }
 
-      val regularMembers = {
-        cls.classInfo.allMembers
+      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers partition {
+        case v: CgscriptClass#Var if v.isConstructorParam => true
+        case _ => false
       }
 
       val members = {
@@ -265,6 +285,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           regularMembers
       } sortBy { _.id.name }
 
+      val (staticMembers, instanceMembers) = members partition { _.isStatic }
+
+      val staticMembersWithoutConstructor = staticMembers filterNot { _.isInstanceOf[CgscriptClass#Constructor] }
+
       val enumElementSummary = {
         if (cls.classInfo.localEnumElements.isEmpty)
           ""
@@ -273,18 +297,25 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       }
 
       val staticMemberSummary = {
-        if (cls.classInfo.localStaticVars.isEmpty)
+        if (staticMembersWithoutConstructor.isEmpty)
           ""
         else
-          makeMemberSummary(cls, cls.classInfo.localStaticVars sortBy { _.id.name }, "<h2>Static Members</h2>")
+          makeMemberSummary(cls, staticMembersWithoutConstructor, "<h2>Static Members</h2>")
       }
 
-      val memberSummary = makeMemberSummary(cls, members filter {
+      val parameterSummary = {
+        if (classParameters.isEmpty)
+          ""
+        else
+          makeMemberSummary(cls, classParameters, "<h2>Class Parameters</h2>")
+      }
+
+      val memberSummary = makeMemberSummary(cls, instanceMembers filter {
         member => member.declaringClass == cls || member.declaringClass == null
-      }, "<h2>All Members</h2>")
+      }, "<h2>Members</h2>")
 
       val prevMemberSummary = cls.properAncestors.reverse map { declaringClass =>
-        val declaredMembers = members filter { _.declaringClass == declaringClass }
+        val declaredMembers = instanceMembers filter { _.declaringClass == declaringClass }
         if (declaredMembers.isEmpty) {
           ""
         } else {
@@ -298,13 +329,14 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val enumElementDetails = cls.classInfo.localEnumElements sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val staticMemberDetails = cls.classInfo.localStaticVars sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
+      val staticMemberDetails = staticMembersWithoutConstructor sortBy { _.id.name } map makeMemberDetail mkString "\n<p>\n"
 
-      val memberDetails = members filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
+      val memberDetails = (instanceMembers ++ classParameters) filter { _.declaringClass == cls } map makeMemberDetail mkString "\n<p>\n"
 
       packageDir.createDirectories()
       file overwrite header
       classComment foreach file.append
+      file append parameterSummary
       file append enumElementSummary
       file append staticMemberSummary
       file append memberSummary
@@ -327,8 +359,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       searchIndex appendLine s"${cls.qualifiedName},${cls.qualifiedName},$relpath,1"
       members foreach { member =>
         if (member.declaringClass == cls) {
-//          searchIndex appendLine s"${member.name},${cls.name}.${member.name},$relpath#${member.name}"
-          searchIndex appendLine s"${cls.name}.${member.name},${cls.qualifiedName}.${member.name},$relpath#${member.name},0"
+          searchIndex appendLine s"${cls.name}.${member.name},${cls.qualifiedName}.${member.name},$relpath#${anchorName(member)},0"
         }
       }
 
@@ -418,11 +449,23 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
         val etype = entityType(member)
         val name = member.idNode.id.name
-        val memberLink = {
-          if (member.declaringClass == null)
+
+        val memberLink = member match {
+
+          case _ if member.declaringClass == null =>
             linkBuilder.hyperlinkToClass(member.asInstanceOf[CgscriptClass], textOpt = Some(name))
-          else
+
+          case _ =>
             linkBuilder.hyperlinkToClass(declaringClass, Some(member), Some(name))
+        }
+
+        val memberSuffix = member match {
+          case v: CgscriptClass#Var if v.isConstructorParam =>
+            // Class param suffix such as " as Integer?"
+            makeParameterSuffix(linkBuilder, v.asConstructorParam.get, showDefault = true)
+          case _ =>
+            // Method parameters suffix such as "(x as Integer, y as Integer)"
+            makeParameters(linkBuilder, member)
         }
 
         val description = docCommentForMember(member) match {
@@ -435,7 +478,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
            |      <code class="big">$etype${"&nbsp;" * (5 - etype.length)}</code>
            |    </td>
            |    <td class="member">
-           |      <code class="big">$memberLink${makeParameters(linkBuilder, member)}</code>
+           |      <code class="big">$memberLink$memberSuffix</code>
            |      <br>$description
            |    </td>
            |  </tr>
@@ -495,7 +538,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val description = {
         try {
-          pkg.lookupClass(Symbol("constants")) match {
+          pkg.lookupClassInScope(Symbol("constants")) match {
             case Some(constants) =>
               constants.declNode flatMap { _.docComment } match {
                 case Some(comment) => ClassRenderer(constants).processDocComment(comment, firstSentenceOnly = true)
@@ -534,7 +577,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val name = member.idNode.id.name
 
-    val parametersStr = makeParameters(linkBuilder, member)
+    val memberSuffix = member match {
+      case v: CgscriptClass#Var if v.isConstructorParam => makeParameterSuffix(linkBuilder, v.asConstructorParam.get)
+      case _ => makeParameters(linkBuilder, member)
+    }
 
     val commentOpt = docCommentForMember(member)
 
@@ -546,15 +592,15 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           if (cls == ancestorClass) ""
           else {
             val link = linkBuilder.hyperlinkToClass(ancestorClass)
-            s"<p><em>(description copied from </em>$link<em>)</em>\n"
+            s"<em>(description copied from </em>$link<em>)</em>\n<p>"
           }
         }
-        s"$disclaimer<p>$processedComment"
+        s"$disclaimer$processedComment"
     }
 
-    val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$parametersStr</code>\n  """ else ""
+    val declStr = if (includeDecl) s"""<code class="big">${entityType(member)} <b>$name</b>$memberSuffix</code>\n<p>""" else ""
 
-    s"""<a name="$name"></a>
+    s"""<a name="${anchorName(member)}"></a>
        |<p><div class="section">
        |  $declStr$comment
        |</div>""".stripMargin
@@ -565,6 +611,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     member match {
       case _: CgscriptClass => "class"
       case _: CgscriptClass#Method => "def"
+      case v: CgscriptClass#Var if v.isConstructorParam => "param"
       case _: CgscriptClass#Var => "var"
       case _ => sys.error("can't happen")
     }
@@ -610,28 +657,31 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def makeParameters(linkBuilder: HelpLinkBuilder, parameters: Seq[Parameter]): String = {
 
-    val strings = parameters map { parameter =>
+    val withoutParens = parameters map { param =>
+      param.id.name + makeParameterSuffix(linkBuilder, param)
+    } mkString ", "
 
-      val asString = {
-        if (parameter.paramType == CgscriptClass.Object)
-          ""
-        else
-          " as " + linkBuilder.hyperlinkToClass(parameter.paramType)
-      }
+    s"($withoutParens)"
 
-      val expandString = if (parameter.isExpandable) " ..." else ""
+  }
 
-      // TODO: Find some other way to express default parameters
-      val defaultString = parameter.defaultValue match {
-        case None => ""
-        case Some(_) => "?" // " ? " + default.toNodeString
-      }
+  def makeParameterSuffix(linkBuilder: HelpLinkBuilder, parameter: Parameter, showDefault: Boolean = false): String = {
 
-      s"${parameter.id.name}$asString$expandString$defaultString"
-
+    val asString = {
+      if (parameter.paramType == CgscriptClass.Object)
+        ""
+      else
+        " as " + linkBuilder.hyperlinkToClass(parameter.paramType)
     }
 
-    s"(${strings mkString ", "})"
+    val expandString = if (parameter.isExpandable) " ..." else ""
+
+    val defaultString = parameter.defaultValue match {
+      case None => ""
+      case Some(default) => if (showDefault) " ? " + default.toNodeString else "?"
+    }
+
+    s"$asString$expandString$defaultString"
 
   }
 
@@ -640,7 +690,12 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     // TODO Links don't work quite right for copied doc comments
     // (Link GENERATION works fine, but link RESOLUTION does not)
 
-    generateMarkdown(file, comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly).text
+    generateMarkdown(file, comment, linkBuilder, stripAsterisks = true, firstSentenceOnly = firstSentenceOnly) match {
+
+      case Some(markdown) => markdown.text
+      case None => logger.error(s"Failed to generate markdown: $file"); "&nbsp;"
+
+    }
 
   }
 
@@ -707,40 +762,47 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   var reportedImageException: Boolean = false
 
-  def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Markdown = {
-    val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
-    val varMap = mutable.AnyRefMap[Symbol, Any]()
-    markdown.execStatements.zipWithIndex.foreach { case (statement, ordinal) =>
-      try {
-        generateImages(targetFile, statement, ordinal, varMap)
-      } catch {
-        case exc: Throwable =>
-          if (!reportedImageException) {
-            logger.error(s"Could not generate image for statement: $statement", exc)
-            reportedImageException = true
-          } else {
-            logger.error(s"Could not generate image for statement: $statement")
-          }
+  def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Option[Markdown] = {
+    try {
+      val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+      val varMap = mutable.AnyRefMap[Symbol, Any]()
+      markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
+        try {
+          generateImages(targetFile, statement, scale, ordinal, varMap)
+        } catch {
+          case exc: Throwable =>
+            if (!reportedImageException) {
+              logger.error(s"Could not generate image for statement: $statement", exc)
+              reportedImageException = true
+            } else {
+              logger.error(s"Could not generate image for statement: $statement")
+            }
+        }
       }
+      Some(markdown)
+    } catch {
+      case exc: Exception =>
+        logger.error("Exception occurred processing markdown.", exc)
+        markdownErrors = true
+        None
     }
-    markdown
   }
 
-  def generateImages(targetFile: File, statement: String, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
+  def generateImages(targetFile: File, statement: String, rescale: Double, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
     val output = org.cgsuite.lang.System.evaluateOrException(statement, varMap)
     val outputFilePrefix = s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal"
     if (output.nonEmpty) {
       for (scale <- Vector(1.0, 2.0)) {
-        generateImage(output.last, outputFilePrefix, scale)
+        generateImage(output.last, outputFilePrefix, scale, rescale)
       }
     }
   }
 
-  def generateImage(output: Output, outputFilePrefix: String, scale: Double): Unit = {
+  def generateImage(output: Output, outputFilePrefix: String, scale: Double, rescale: Double): Unit = {
     val size = output.getSize(HelpBuilder.preferredImageWidth)
-    val image = new BufferedImage((size.width * scale).toInt, (size.height * scale).toInt, BufferedImage.TYPE_INT_ARGB)
+    val image = new BufferedImage((size.width * scale * rescale).toInt, (size.height * scale * rescale).toInt, BufferedImage.TYPE_INT_ARGB)
     val g2d = image.getGraphics.asInstanceOf[Graphics2D]
-    g2d.scale(scale, scale)
+    g2d.scale(scale * rescale, scale * rescale)
     output.paint(g2d, HelpBuilder.preferredImageWidth)
     val outputFile = new java.io.File(f"$outputFilePrefix-$scale%1.1fx.png")
     //ImageUtil.writeHiResImage(image, outputFile, "png", 144)
@@ -818,29 +880,14 @@ case class HelpLinkBuilder(
     val classRef = relativeRef(targetClass)
     val classRefSuffix = targetMemberOpt match {
       case Some(member) if targetClass.isPackageObject => s".${member.name}.html#top"
-      case Some(member) => s".html#${member.name}"
+      case Some(member) => s".html#${anchorName(member)}"
       case None => ".html#top"
     }
     val refText = targetMemberOpt match {
       case Some(member) => member.idNode.id.name
-      case None => targetClass.name
+      case None => if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
     }
-    /*
-    val refText = {
-      if (referringClass contains targetClass) {
-        targetMemberOpt match {
-          case Some(member) => member.idNode.id.name
-          case None => targetClass.name
-        }
-      } else {
-        targetMemberOpt match {
-          case Some(member) => s"${qualifiedRefName(targetClass)}.${member.idNode.id.name}"
-          case None => qualifiedRefName(targetClass)
-        }
-      }
-    }
-    */
-    val codePrefix = if (textOpt.isDefined) "" else """<code class="big">"""
+    val codePrefix = if (textOpt.isDefined) "" else """<code>"""
     val linkText = textOpt getOrElse s"$refText"
     val codeSuffix = if (textOpt.isDefined) "" else "</code>"
     s"""$codePrefix<a class="valid" href="$classRef$classRefSuffix">$linkText</a>$codeSuffix"""
@@ -858,14 +905,38 @@ case class HelpLinkBuilder(
     if (ref contains "#")
       resolveAsMemberRef(ref)
     else
-      (resolveAsClassRef(ref), None)
+      resolveAsTopRef(ref)
+  }
+
+  def resolveAsTopRef(ref: String): (Option[CgscriptClass], Option[Member]) = {
+    resolveAsClassRef(ref) match {
+      case Some(cls) => (Some(cls), None)
+      case None =>
+        val id = Symbol(ref)
+        val resolution = referringPackage lookupConstantInScope id orElse (CgscriptPackage lookupConstant id)
+        resolution match {
+          case Some(Resolution(cls, memberId, _)) =>
+            cls lookupMember memberId match {
+              case Some(member) => (Some(cls), Some(member))
+              case None => (None, None)
+            }
+
+          case None => (None, None)
+        }
+    }
   }
 
   def resolveAsClassRef(ref: String): Option[CgscriptClass] = {
-    if (ref == "")
-      referringClass
-    else
-      referringPackage lookupClass Symbol(ref) orElse (CgscriptPackage lookupClassByName ref)
+    val path = ref.split('.').toVector
+    val classRef = path.length match {
+      case 0 => referringClass
+      case 1 => referringPackage lookupClassInScope Symbol(path.head) orElse (CgscriptPackage lookupClassByName path.head)
+      case _ => CgscriptPackage.root.lookupSubpackage(path dropRight 1) flatMap { _ lookupClassInScope Symbol(path.last) }
+    }
+    classRef orElse {
+      // Try it as a package (= constants class) instead
+      CgscriptPackage.root lookupSubpackage path flatMap { _.lookupClassInScope(Symbol("constants")) }
+    }
   }
 
   def resolveAsMemberRef(ref: String): (Option[CgscriptClass], Option[Member]) = {
@@ -898,7 +969,7 @@ case class HelpLinkBuilder(
     if (referringPackage == targetClass.pkg)
       targetClass.name
     else
-      backPath + pathTo(targetClass)
+      backPath + "reference/" + pathTo(targetClass)
 
   }
 

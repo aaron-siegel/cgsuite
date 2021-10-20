@@ -15,11 +15,11 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
-
 object System extends LazyLogging {
 
-  val copyrightYear = "2021"
-  val version = "2.0-beta2"
+  val copyrightYear = "2003-2021"
+
+  val version = "2.0-beta3"
 
   def clearAll(): Unit = {
     UiHarness.uiHarness.clearUiVars()

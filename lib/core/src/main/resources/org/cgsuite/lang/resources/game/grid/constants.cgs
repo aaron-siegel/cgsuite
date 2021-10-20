@@ -1,30 +1,28 @@
 /*${cgsuite.banner}*/
 
-/**
- * Ruleset library for games played on two-dimensional square grids.
- */
+/** Ruleset library for games played on two-dimensional square grids.
+  */
 singleton class constants
 
-  /**
-   * Ruleset for Clobber.
-   *
-   * Clobber is played on a square grid with black and white stones. A typical starting position consists of
-   * alternating stones, such as the following on a 3x4 grid:
-   *
-   * ``game.grid.Clobber("xoxo|oxox|xoxo")``
-   *
-   * On her turn, Left selects any black stone and uses it to capture any ~orthogonally adjacent~ white stone.
-   * The selected black stone then moves onto the square of the white stone being captured. Likewise, Right selects a
-   * white stone and captures an orthogonally adjacent black stone. No movement is allowed unless a capture takes
-   * place; isolated stones (or groups of stones) of a single color are therefore terminal.
-   *
-   * A typical move for Left from the above starting position is to the following:
-   *
-   * ``game.grid.Clobber("xo.o|oxxx|xoxo")``
-   *
-   * `Clobber` is an instance of the ruleset schema [[game.grid.GenClobber]], which provides various options for
-   * customization.
-   */
+  /** Ruleset for Clobber.
+    *
+    * Clobber is played on a square grid with black and white stones. A typical starting position consists of
+    * alternating stones, such as the following on a 3x4 grid:
+    *
+    * \display{game.grid.Clobber("xoxo|oxox|xoxo")}
+    *
+    * On her turn, Left selects any black stone and uses it to capture any ~orthogonally adjacent~ white stone.
+    * The selected black stone then moves onto the square of the white stone being captured. Likewise, Right selects a
+    * white stone and captures an orthogonally adjacent black stone. No movement is allowed unless a capture takes
+    * place; isolated stones (or groups of stones) of a single color are therefore terminal.
+    *
+    * A typical move for Left from the above starting position is to the following:
+    *
+    * \display{game.grid.Clobber("xo.o|oxxx|xoxo")}
+    *
+    * `Clobber` is an instance of the ruleset schema [[game.grid.GenClobber]], which provides various options for
+    * customization.
+    */
   var Clobber := game.grid.GenClobber();
   var AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1});
   var HotClobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}});

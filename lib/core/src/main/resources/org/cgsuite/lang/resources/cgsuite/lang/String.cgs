@@ -6,4 +6,6 @@ system class String
 
   override def ToOutput := "\"" + this + "\"";
 
+  def ToUnquotedOutput := cgsuite.util.output.TextOutput(this);
+
 end

@@ -10,6 +10,8 @@ trait Member extends MemberResolution {
 
   def idNode: IdentifierNode
 
+  def isStatic: Boolean
+
   def id = idNode.id
 
   def name = id.name

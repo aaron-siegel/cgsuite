@@ -156,6 +156,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def followers: Iterable[CanonicalStopper] = {
     (0 until loopyGame.getGraph.getNumVertices).map { n =>
+      // The stopper simplification algorithms guarantee that elements of
+      // this Iterable will be distinct.
       CanonicalStopper(loopyGame.deriveGame(n))
     }
   }

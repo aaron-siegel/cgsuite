@@ -91,7 +91,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       // static methods, i.e., methods of class Class.
       CgscriptClass.Class.lookupMethodGroup(id) match {
         case Some(x) => Some(x)
-        case None => cls.lookupMethodGroup(id)
+        case None => cls.lookupMethodGroup(id, asStatic = true)
       }
     } else {
       // In the instance case we can just do a straight lookup.

@@ -1,9 +1,29 @@
 /*${cgsuite.banner}*/
 
-class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) extends StripRuleset
-
-  var minMove := if backsliding then -1 else 1 end;
-  var maxMove := maxJump + 1;
+/** Ruleset schema for generalized Toads and Frogs.
+  *
+  * An instance of this schema is a ruleset played in a similar way as traditional [[ToadsAndFrogs][Toads and Frogs]],
+  * but with variations in the available moves. In particular:
+  * \ul
+  * \li Toads (resp. frogs) may slide $n$ spaces to the right (resp. left), for any $n \neq 0$ with
+  *     $minSlide \leq n \leq maxSlide$, provided that the destination space and all spaces in between are empty.
+  *     Negative values of $n$ are permitted, which correspond to "backsliding" to the left (resp. right).
+  * \li Toads and frogs may jump over $n$ adjacent enemy units, for any $n$ with $1 \leq n \leq maxJump$, provided
+  *     they land on an empty space.
+  * \li If `allowFriendlyJump` is `true`, they may jump over friendly units as well (but must still land on the first
+  *     empty space).
+  * \endul
+  */
+class GenToadsAndFrogs(
+  /** The minimum number of spaces a unit may slide. `minSlide` may be negative ("backsliding"). */
+  minSlide ? 1,
+  /** The maximum number of spaces a unit may slide. */
+  maxSlide ? 1,
+  /** The maximum number of units that may be jumped over. */
+  maxJump ? 1,
+  /** `true` if toads and frogs may jump over friendly units as well. */
+  allowFriendlyJump ? false
+  ) extends StripRuleset
 
   class Position(strip as Strip) extends StripGame
 
@@ -11,14 +31,36 @@ class GenToadsAndFrogs(maxJump as Integer, backsliding as Boolean ? false) exten
 
       var us := player.Ordinal;
       var them := player.Opponent.Ordinal;
+      var ourPieces := strip FindAll us;
 
-      for n in strip FindAll us
-      for k from minMove to maxMove
-      while k < 2 or strip[n+(k-1)*player.Sign] == them
-      where k != 0 and strip[n+k*player.Sign] == 0
-      yield
-        Position(strip Updated {n => 0, n+k*player.Sign => us})
-      end
+      var forwardSlide :=
+        for n in ourPieces
+        for k from 1 to maxSlide
+        while strip[n + k * player.Sign] == 0
+        where k >= minSlide
+        yield
+          Position(strip Updated { n => 0, n + k * player.Sign => us })
+        end;
+
+      var backSlide :=
+        for n in ourPieces
+        for k from -1 to minSlide by -1
+        while strip[n + k * player.Sign] == 0
+        where k <= maxSlide
+        yield
+          Position(strip Updated { n => 0, n + k * player.Sign => us })
+        end;
+
+      var jump :=
+        for n in ourPieces
+        for k from 1 to maxJump
+        while strip[n + k * player.Sign] == them or (allowFriendlyJump and strip[n + k * player.Sign] == us)
+        where strip[n + (k + 1) * player.Sign] == 0
+        yield
+          Position(strip Updated {n => 0, n + (k + 1) * player.Sign => us })
+        end;
+
+      forwardSlide Concat backSlide Concat jump
 
     end
 

@@ -1,11 +1,28 @@
 /*${cgsuite.banner}*/
 
+/** Ruleset schema for generalizations of [[Mem]].
+  *
+  * Let $f(k, a)$ be a [[Boolean]]-valued function. Then
+  * `GenMem(f)` is an impartial game, played on a single heap of size $n$. On her turn, a player may remove any
+  * number of tokens $a$ (with $1 \&le; a \&le; n$), ~provided that~ the predicate $f(k, a)$ is satisfied, where $k$
+  * (the "memory") is equal to the number of tokens removed on the preceding turn. Familiar examples include:
+  *
+  * \ul
+  * \li `f(k, a) := a >= k\sp\sp` \sp ([[Mem]]: remove at least as many tokens as on the preceding turn)
+  * \li `f(k, a) := a <= 2 * k` \sp ([[FibonacciNim][Fibonacci Nim]]: remove at most twice as many tokens as on the preceding turn)
+  * \li `f(k, a) := a <= r * k` \sp ([[TakeAway][Take-Away]]$(r)$, for any [[Rational]] $r$)
+  * \endul
+  *
+  * A position is represented by a coordinate pair `(n, k)` whose options are given by
+  *
+  * `[(n - a, a) for a from 1 to n where f(k, a)]`
+  */
 class GenMem(predicate as Function) extends CoordinateRuleset
 
   override def CoordinateOptions(coord as Coordinates) begin
     var n := coord.Row;
     var memory := coord.Col;
-    [(n - j, j) for j from 1 to n where predicate(memory, j)]
+    [(n - a, a) for a from 1 to n where predicate(memory, a)]
   end
 
 end

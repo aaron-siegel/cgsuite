@@ -21,6 +21,12 @@ object SpecialMethods {
     },
     "cgsuite.lang.Object.JavaClass" -> { (obj: Any, _: Unit) => obj.getClass.getName },
     "cgsuite.lang.Object.ToOutput" -> { (obj: Any, _: Unit) => CgscriptClass instanceToDefaultOutput obj },
+    "cgsuite.lang.Collection.Flattened" -> { (collection: Iterable[_], _: Unit) =>
+      collection flatMap {
+        case it: Iterable[_] => it
+        case obj => Some(obj)
+      }
+    },
     "cgsuite.lang.Collection.Head" -> { (collection: Iterable[_], _: Unit) =>
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.head
     },
@@ -70,6 +76,9 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Take" -> { (collection: Iterable[_], n: Integer) =>
       collection.take(n.intValue)
     },
+    "cgsuite.lang.List.IndexOf" -> { (list: IndexedSeq[_], obj: Any) =>
+      Integer(list.indexOf(obj) + 1)
+    },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toVector
     },
@@ -96,7 +105,6 @@ object SpecialMethods {
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>
       set ++ that
     },
-    "cgsuite.ui.Explorer" -> { (_: Any, g: Game) => UiHarness.uiHarness.createExplorer(g) },
     "cgsuite.util.MutableList.Add" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list += x; null },
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },

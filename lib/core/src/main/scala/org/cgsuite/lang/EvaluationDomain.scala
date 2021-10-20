@@ -46,12 +46,12 @@ class EvaluationDomain(
 
 object ElaborationDomain {
 
-  def empty(pkg: Option[CgscriptPackage] = None) = new ElaborationDomain(pkg, Seq.empty, None)
+  def empty(pkg: Option[ClassResolutionScope] = None) = new ElaborationDomain(pkg, Seq.empty, None)
 
 }
 
 class ElaborationDomain (
-  val pkg: Option[CgscriptPackage],    // None = "external" (Worksheet/REPL) scope
+  val pkg: Option[ClassResolutionScope],    // None = "external" (Worksheet/REPL) scope
   val classVars: Seq[Set[Symbol]],
   val enclosingDomain: Option[ElaborationDomain]
   )

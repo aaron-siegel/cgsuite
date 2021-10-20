@@ -1,6 +1,8 @@
 /*${cgsuite.banner}*/
 
-system class Explorer(g as Game)
+system class Explorer
+
+  external static def NewExplorer(g as Game);
 
   external def Selection;
 

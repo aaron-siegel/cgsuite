@@ -1,6 +1,6 @@
 Contents
 
-Welcome to Combinatorial Game Suite, version \{System.Version\}!
+Welcome to Combinatorial Game Suite, version \evalText{System.Version.ToUnquotedOutput}!
 
 If this is your first time using CGSuite, a good place to start is the [[/tutorials/getting-started/getting-started]]
 tutorial, which gives an overview of many key features of the software. If you're familiar with versions of CGSuite
@@ -11,7 +11,7 @@ of [[whatsnew]] in recent releases.
 
 \<ul class=\"nobullets\"\>
 \<li\>[[/tutorials/getting-started/getting-started]]
-\<li\>[[/tutorials/advanced-features/advanced-features]]
+\<li\>[[/tutorials/advanced-topics/advanced-topics]]
 \<li\>[[/tutorials/programming-in-cgscript/programming-in-cgscript]]
 \</ul\>
 
@@ -30,7 +30,7 @@ of [[whatsnew]] in recent releases.
 \<li\>[[materials]]
 \</ul\>
 
-++++ External Resources +++
+++++ External Resources ++++
 
 (These will open outside CGSuite.)
 
@@ -39,5 +39,5 @@ of [[whatsnew]] in recent releases.
 \<li\>[[https://github.com/aaron-siegel/cgsuite][CGSuite Github Project]]
 \</ul\>
 
-Combinatorial Game Suite is (c) 2003-\{System.Year\} Aaron Siegel (asiegel@users.sourceforge.net). It's open source
+Combinatorial Game Suite is (c) \evalText{System.CopyrightYear.ToUnquotedOutput} Aaron Siegel (asiegel@users.sourceforge.net). It's open source
 and is licensed for use under the [[license][GNU General Public License]], version 3.
