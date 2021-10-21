@@ -2,6 +2,8 @@
 
 system class Explorer
 
+  static def Eval(g as Game) := NewExplorer(g);
+
   external static def NewExplorer(g as Game);
 
   external def Selection;
