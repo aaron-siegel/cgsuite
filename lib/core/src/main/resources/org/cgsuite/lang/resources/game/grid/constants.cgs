@@ -16,23 +16,100 @@ singleton class constants
     * white stone and captures an orthogonally adjacent black stone. No movement is allowed unless a capture takes
     * place; isolated stones (or groups of stones) of a single color are therefore terminal.
     *
-    * A typical move for Left from the above starting position is to the following:
+    * A typical sequence of opening moves might look like this:
     *
-    * \display{game.grid.Clobber("xo.o|oxxx|xoxo")}
+    * \evalHalf{game.grid.Clobber("xoxo|oxox|xoxo")} \to \evalHalf{game.grid.Clobber("xoxo|o.xx|xoxo")} \to
+    * \evalHalf{game.grid.Clobber("x.oo|o.xx|xoxo")} \to \evalHalf{game.grid.Clobber("x.ox|o.x.|xoxo")}
     *
-    * `Clobber` is an instance of the ruleset schema [[game.grid.GenClobber]], which provides various options for
-    * customization.
+    * `Clobber` is an instance of [[GenClobber]] by:
+    *
+    * `Clobber := game.grid.GenClobber()`
     */
   var Clobber := game.grid.GenClobber();
-  var AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1});
-  var HotClobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}});
-  var Kings := game.grid.GenClobber(directions => Coordinates.Compass);
-  var Rooks := game.grid.GenClobber(maxDistance => inf);
-  var Queens := game.grid.GenClobber(directions => Coordinates.Compass, maxDistance => inf);
 
-  var Cram := game.grid.Domineering.ImpartialVariant;
-  
-  var FoxAndGeese := game.grid.GenFoxAndGeese();
+  /** Ruleset for Anti-Clobber.
+    *
+    * Anti-Clobber is a variant of [[Clobber]] played as follows. In ordinary Clobber, stones move onto a space
+    * occupied by an enemy stone, leaving behind an empty space. In Anti-Clobber, stones must move onto an empty space,
+    * leaving behind (spawning) an enemy stone, thus inverting the usual capture rule: an Anti-Clobber move is the equivalent of
+    * a Clobber move played backwards in time. (Thus if Clobber has a Left option from `G` to `H`, then Anti-Clobber has a
+    * Left option from `H` to `G`, and vice versa.)
+    *
+    * Anti-Clobber is defined as an instance of [[GenClobber]] by:
+    *
+    * `AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1})`
+    */
+  var AntiClobber := game.grid.GenClobber(clobbered => {Left => {0}, Right => {0}}, leftBehind => {Left => 2, Right => 1});
+
+  /** Ruleset for the Ceylonese variant of Fox and Geese.
+    *
+    * Ceylonese Fox and Geese is played like ordinary [[FoxAndGeese][Fox and Geese]], but with the fox permitted to
+    * move up to two spaces in the same direction. (The fox may not jump over other pieces, however.)
+    *
+    * It is defined as an instance of [[GenFoxAndGeese]] by:
+    *
+    * `CeyloneseFoxAndGeese := game.grid.GenFoxAndGeese(foxRange => 2)`
+    */
   var CeyloneseFoxAndGeese := game.grid.GenFoxAndGeese(foxRange => 2);
+
+  /** Ruleset for Cram.
+    *
+    * Cram is the impartial variant of [[Domineering]]: it is played just like Domineering, but either player may place
+    * a domino in either orientation (horizontal or vertical).
+    *
+    * It is defined by:
+    *
+    * `Cram := game.grid.Domineering.ImpartialVariant`
+    */
+  var Cram := game.grid.Domineering.ImpartialVariant;
+
+  var FoxAndGeese := game.grid.GenFoxAndGeese();
+
+  /** Ruleset for Hot Clobber.
+    *
+    * Hot Clobber is a variant of [[Clobber]] in which stones may capture ~their own~ pieces in addition to their
+    * opponents'. It is defined as an instance of [[GenClobber]] by:
+    *
+    * `Clobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}})`
+    */
+  var HotClobber := game.grid.GenClobber(clobbered => {Left => {1,2}, Right => {1,2}});
+
+  /** Ruleset for Kings (a variant of Clobber).
+    *
+    * Kings is played just like [[Clobber]], except that pieces are permitted to move and capture as Chess kings: one space
+    * in any orthogonal ~or diagonal~ direction. It is defined as an instance of [[GenClobber]] by:
+    *
+    * `Kings := game.grid.GenClobber(directions => Coordinates.Compass)`
+    */
+  var Kings := game.grid.GenClobber(directions => Coordinates.Compass);
+
+  /** Ruleset for Knights (a variant of Clobber).
+    *
+    * Knights is played just like [[Clobber]], except that pieces are permitted to move and capture as Chess knights
+    * (and they may jump over other pieces, just as in Chess). It is defined as an instance of [[GenClobber]] by:
+    *
+    * `Knights := game.grid.GenClobber(directions => Coordinates.KnightsMove)`
+    */
+  var Knights := game.grid.GenClobber(directions => Coordinates.KnightsMove);
+
+  /** Ruleset for Rooks (a variant of Clobber).
+    *
+    * Rooks is played just like [[Clobber]], except that pieces are permitted to move and capture as Chess rooks: any number of
+    * spaces in any orthogonal direction. (Just as in Chess, the "rooks" may not jump over other pieces.)
+    * It is defined as an instance of [[GenClobber]] by:
+    *
+    * `Rooks := game.grid.GenClobber(maxDistance => inf)`
+    */
+  var Rooks := game.grid.GenClobber(maxDistance => inf);
+
+  /** Ruleset for Queens (a variant of Clobber).
+    *
+    * Queens is played just like [[Clobber]], except that pieces are permitted to move and capture as Chess queens: any number of
+    * spaces in any orthogonal or diagonal direction. (Just as in Chess, the "queens" may not jump over other pieces.)
+    * It is defined as an instance of [[GenClobber]] by:
+    *
+    * `Queens := game.grid.GenClobber(directions => Coordinates.Compass, maxDistance => inf)`
+    */
+  var Queens := game.grid.GenClobber(directions => Coordinates.Compass, maxDistance => inf);
 
 end

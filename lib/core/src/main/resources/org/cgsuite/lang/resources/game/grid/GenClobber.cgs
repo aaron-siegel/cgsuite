@@ -49,7 +49,7 @@ class GenClobber(
   override def CharMap := if clobbered.Values Contains 0 then ".xo#" else ".xo" end;
 
   override def Icons begin
-  
+
     var bwIcons := [Icon.BlackStone, Icon.WhiteStone];
     if maxDistance == inf then
       if directions == Coordinates.Orthogonal then
@@ -60,15 +60,17 @@ class GenClobber(
     elseif maxDistance == 1 then
       if directions == Coordinates.Compass then
         bwIcons := [Icon.BlackKing, Icon.WhiteKing];
+      elseif directions == Coordinates.KnightsMove then
+        bwIcons := [Icon.BlackKnight, Icon.WhiteKnight];
       end
     end
-    
+
     if clobbered.Values Contains 0 then
       [Icon.Blank, bwIcons[1], bwIcons[2], Icon.GraySquare]
     else
       [Icon.Blank, bwIcons[1], bwIcons[2]]
     end
-        
+
   end
 
 end
