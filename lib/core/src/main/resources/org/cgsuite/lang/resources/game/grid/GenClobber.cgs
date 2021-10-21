@@ -7,8 +7,8 @@ class GenClobber(
   maxDistance ? 1
   ) extends GridRuleset
 
-  var clobberedAsList := [clobbered[Left], clobbered[Right]];
-  var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
+  private var clobberedAsList := [clobbered[Left], clobbered[Right]];
+  private var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
 
   class Position(grid as Grid) extends GridGame
 

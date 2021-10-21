@@ -34,7 +34,9 @@ object DeclarationNode {
 }
 
 object ClassDeclarationNode {
+
   def apply(tree: Tree, pkg: CgscriptPackage): ClassDeclarationNode = {
+
     val isEnum = tree.getType == ENUM
     val modifiers = Modifiers(tree.head, MUTABLE, SINGLETON, SYSTEM)
     val id = IdentifierNode(tree.children(1))
@@ -43,6 +45,7 @@ object ClassDeclarationNode {
       case None => Vector.empty
     }
     val constructorParams = tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, Some(pkg)) }
+
     val declarations = tree.children filter { _.getType == DECLARATIONS } flatMap { _.children flatMap { DeclarationNode(_, pkg) } }
     val nestedClassDeclarations = declarations collect {
       case x: ClassDeclarationNode => x
@@ -59,6 +62,7 @@ object ClassDeclarationNode {
     val enumElements = declarations collect {
       case x: EnumElementNode => x
     }
+
     ClassDeclarationNode(
       tree,
       id,
@@ -72,7 +76,9 @@ object ClassDeclarationNode {
       ordinaryInitializers,
       enumElements
     )
+
   }
+
 }
 
 case class ClassDeclarationNode(
@@ -99,6 +105,7 @@ sealed trait MemberDeclarationNode extends Node {
 }
 
 object ParametersNode {
+
   def apply(tree: Tree, pkg: Option[CgscriptPackage]): ParametersNode = {
     assert(tree.getType == METHOD_PARAMETER_LIST)
     val parameters = tree.children map { t =>
@@ -121,6 +128,7 @@ object ParametersNode {
     }
     ParametersNode(tree, pkg, parameters)
   }
+
 }
 
 case class ParametersNode(tree: Tree, pkg: Option[CgscriptPackage], parameterNodes: Vector[ParameterNode]) extends Node {
@@ -155,9 +163,10 @@ case class ParameterNode(
 }
 
 object ClassVarNode {
+
   def apply(tree: Tree): (Modifiers, Seq[AssignToNode]) = {
     assert(tree.getType == CLASS_VAR)
-    val modifiers = Modifiers(tree.head, EXTERNAL, MUTABLE, STATIC)
+    val modifiers = Modifiers(tree.head, EXTERNAL, MUTABLE, STATIC, PRIVATE)
     val nodes = tree.children.tail map { t =>
       t.getType match {
         case DECL_ID => AssignToNode(t, IdentifierNode(t), ConstantNode(null, null), AssignmentDeclType.ClassVarDecl)
@@ -166,19 +175,24 @@ object ClassVarNode {
     }
     (modifiers, nodes)
   }
+
 }
 
 object EnumElementNode {
+
   def apply(tree: Tree): EnumElementNode = {
     assert(tree.getType == ENUM_ELEMENT)
     val modifiers = Modifiers(tree.head, EXTERNAL)
     EnumElementNode(tree, IdentifierNode(tree.children(1)), modifiers)
   }
+
 }
 
 case class EnumElementNode(tree: Tree, idNode: IdentifierNode, modifiers: Modifiers)
   extends MemberDeclarationNode {
+
   val children = Seq(idNode)
+
 }
 
 object MethodDeclarationNode {
@@ -187,7 +201,7 @@ object MethodDeclarationNode {
     MethodDeclarationNode(
       tree,
       IdentifierNode(tree.children(1)),
-      Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC),
+      Modifiers(tree.head, EXTERNAL, OVERRIDE, STATIC, PRIVATE),
       tree.children find { _.getType == METHOD_PARAMETER_LIST } map { ParametersNode(_, pkg) },
       tree.children find { _.getType == STATEMENT_SEQUENCE } map { StatementSequenceNode(_) }
     )
@@ -222,7 +236,9 @@ case class VarDeclarationNode(tree: Tree, body: AssignToNode, modifiers: Modifie
 }
 
 object Modifiers {
+
   val none: Modifiers = Modifiers()
+
   def apply(tree: Tree, allowed: Int*): Modifiers = {
     val tokens = tree.children map { _.token }
     tokens foreach { token =>
@@ -235,9 +251,11 @@ object Modifiers {
       `override` = tokens find { _.getType == OVERRIDE },
       singleton = tokens find { _.getType == SINGLETON },
       static = tokens find { _.getType == STATIC },
-      system = tokens find { _.getType == SYSTEM }
+      system = tokens find { _.getType == SYSTEM },
+      `private` = tokens find { _.getType == PRIVATE }
     )
   }
+
 }
 
 case class Modifiers(
@@ -246,7 +264,8 @@ case class Modifiers(
   `override`: Option[Token] = None,
   singleton: Option[Token] = None,
   static: Option[Token] = None,
-  system: Option[Token] = None
+  system: Option[Token] = None,
+  `private`: Option[Token] = None
   ) {
 
   val hasExternal = external.isDefined
@@ -255,7 +274,10 @@ case class Modifiers(
   val hasSingleton = singleton.isDefined
   val hasStatic = static.isDefined
   val hasSystem = system.isDefined
+  val hasPrivate = `private`.isDefined
 
-  def allModifiers = external ++ mutable ++ `override` ++ singleton ++ static ++ system
+  def allModifiers: Iterable[Token] = {
+    external ++ mutable ++ `override` ++ singleton ++ static ++ system ++ `private`
+  }
 
 }

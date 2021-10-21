@@ -37,7 +37,7 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         tokenTypes.put("DeclKeyword", new int[]
         {
             CLASS, DECL_BEGIN, DECL_END, DEF, ENUM, EXTENDS, EXTERNAL, IMPORT, MUTABLE, OVERRIDE,
-            SINGLETON, STATIC, SYSTEM
+            PRIVATE, SINGLETON, STATIC, SYSTEM
         });
         tokenTypes.put("DeclId", new int[] { DECL_ID });
         tokenTypes.put("InfixOp", new int[] { INFIX_OP });
