@@ -87,6 +87,25 @@ class CgsuiteLangTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.lang.String" should "implement methods properly" in {
+
+    executeTests(Table(
+      header,
+      ("op[]", "\"Hackenbush\"[7]", "\"b\""),
+      ("Concat", """"Winning " Concat "Ways"""", "\"Winning Ways\""),
+      ("Length", "\"Berlekamp\".Length", "9"),
+      ("Matches", """"On Numbers and Games" Matches ".*umber.*G+.*"""", "true"),
+      ("Replace", """"Jangly".Replace("angl", "ohn H. Conwa")""", "\"John H. Conway\""),
+      ("ReplaceRegex", """"Mathematical Plays".ReplaceRegex("(t|P)..", "")""", "\"Mamaal ys\""),
+      ("Substring", "\"Clobber\".Substring(4, 6)", "\"bbe\""),
+      ("ToLowerCase", "\"Toads and Frogs\".ToLowerCase", "\"toads and frogs\""),
+      ("ToUpperCase", "\"Toads and Frogs\".ToUpperCase", "\"TOADS AND FROGS\""),
+      ("ToUnquotedOutput", "\"Toads and Frogs\".ToUnquotedOutput", "Toads and Frogs"),
+      ("Updated", """"Short".Updated(2, "n")""", "\"Snort\"")
+    ))
+
+  }
+
   "cgsuite.util.Table" should "implement methods properly" in {
     executeTests(Table(
       header,

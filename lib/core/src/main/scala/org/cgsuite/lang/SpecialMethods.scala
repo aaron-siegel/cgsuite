@@ -105,6 +105,7 @@ object SpecialMethods {
     "cgsuite.lang.Set.Union" -> { (set: scala.collection.Set[Any], that: Iterable[Any]) =>
       set ++ that
     },
+    "cgsuite.lang.String.op []" -> { (str: String, index: Integer) => str.charAt(index.intValue).toString },
     "cgsuite.util.MutableList.Add" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list += x; null },
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },
@@ -134,6 +135,14 @@ object SpecialMethods {
         list.updated(i - 1, kv._2)
       else
         throw EvalException(s"List index out of bounds: $i")
+    },
+    "cgsuite.lang.String.Replace" -> { (str: String, args: (String, String)) => str.replace(args._1, args._2) },
+    "cgsuite.lang.String.ReplaceRegex" -> { (str: String, args: (String, String)) => str.replaceAll(args._1, args._2) },
+    "cgsuite.lang.String.Substring" -> { (str: String, range: (Integer, Integer)) =>
+      str.substring(range._1.intValue - 1, range._2.intValue)
+    },
+    "cgsuite.lang.String.Updated" -> { (str: String, kv: (Integer, String)) =>
+      str.updated(kv._1.intValue - 1, kv._2.head)
     },
     "cgsuite.util.MutableMap.Put" -> { (map: mutable.Map[Any,Any], kv: (Any, Any)) => map(kv._1) = kv._2; null }
 

@@ -2,10 +2,28 @@
 
 system class String
 
+  external def op[](index as Integer);
+
+  external def Concat(that as String);
+
   external def Length;
+
+  external def Matches(regex as String);
+
+  external def Replace(target as String, replacement as String);
+
+  external def ReplaceRegex(regex as String, replacement as String);
+
+  external def Substring(startIndex as Integer, endIndex as Integer);
+
+  external def ToLowerCase;
 
   override def ToOutput := "\"" + this + "\"";
 
   def ToUnquotedOutput := cgsuite.util.output.TextOutput(this);
+
+  external def ToUpperCase;
+
+  external def Updated(index as Integer, value as String);
 
 end

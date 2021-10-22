@@ -226,6 +226,7 @@ object Ops {
     }
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
+    case (str: String, index: Integer) => str.charAt(index.intValue - 1).toString
   }
 
 }
