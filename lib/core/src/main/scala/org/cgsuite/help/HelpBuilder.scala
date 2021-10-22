@@ -580,7 +580,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     val name = member.idNode.id.name
 
     val memberSuffix = member match {
-      case v: CgscriptClass#Var if v.isConstructorParam => makeParameterSuffix(linkBuilder, v.asConstructorParam.get)
+      case v: CgscriptClass#Var if v.isConstructorParam => makeParameterSuffix(linkBuilder, v.asConstructorParam.get, showDefault = true)
       case _ => makeParameters(linkBuilder, member)
     }
 

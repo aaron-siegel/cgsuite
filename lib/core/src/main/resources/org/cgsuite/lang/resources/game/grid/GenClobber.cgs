@@ -1,5 +1,10 @@
 /*${cgsuite.banner}*/
 
+/** Ruleset schema for generalizations of [[Clobber]].
+  *
+  * An instance of this schema is a ruleset played in a similar way as `Clobber`, but with variations in
+  * the available moves.
+  */
 class GenClobber(
   directions ? Coordinates.Orthogonal,
   clobbered ? {Left => {2}, Right => {1}},
