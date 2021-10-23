@@ -96,8 +96,6 @@ system class Collection
     sum
   end
 
-  external def Take(n as Integer);
-
   /** A `Collection` containing all the elements of this collection
     * except for [[#Head]].
     */

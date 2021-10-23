@@ -4,7 +4,7 @@ import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Symmetry, Table, UiHarness}
+import org.cgsuite.util.{Symmetry, Table}
 
 import scala.collection.mutable
 
@@ -47,6 +47,8 @@ object SpecialMethods {
     "cgsuite.lang.MapEntry.Key" -> { (entry: (_,_), _: Unit) => entry._1 },
     "cgsuite.lang.MapEntry.ToOutput" -> { (entry: (_,_), _: Unit) => OutputBuilder.toOutput(entry) },
     "cgsuite.lang.MapEntry.Value" -> { (entry: (_,_), _: Unit) => entry._2 },
+    "cgsuite.util.MutableList.Sort" -> { (list: mutable.ArrayBuffer[Any], _: Unit) => list.sortInPlace()(UniversalOrdering) },
+    "cgsuite.util.MutableMap.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
@@ -73,9 +75,6 @@ object SpecialMethods {
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
       collection.foreach { x => fn.call(Array(x)) }; null
     },
-    "cgsuite.lang.Collection.Take" -> { (collection: Iterable[_], n: Integer) =>
-      collection.take(n.intValue)
-    },
     "cgsuite.lang.List.IndexOf" -> { (list: IndexedSeq[_], obj: Any) =>
       Integer(list.indexOf(obj) + 1)
     },
@@ -92,6 +91,9 @@ object SpecialMethods {
         output append CgscriptClass.instanceToOutput(x)
       }
       output
+    },
+    "cgsuite.lang.List.Take" -> { (collection: Iterable[_], n: Integer) =>
+      collection.take(n.intValue)
     },
     "cgsuite.lang.Map.ContainsKey" -> { (map: scala.collection.Map[Any,_], key: Any) =>
       map contains key
@@ -114,6 +116,9 @@ object SpecialMethods {
     "cgsuite.util.MutableSet.AddAll" -> { (set: mutable.Set[Any], x: Iterable[_]) => set ++= x; null },
     "cgsuite.util.MutableSet.Remove" -> { (set: mutable.Set[Any], x: Any) => set -= x; null },
     "cgsuite.util.MutableSet.RemoveAll" -> { (set: mutable.Set[Any], x: Iterable[_]) => set --= x; null },
+    "cgsuite.util.MutableMap.ContainsKey" -> { (map: scala.collection.Map[Any,_], key: Any) =>
+      map contains key
+    },
     "cgsuite.util.MutableMap.PutAll" -> { (map: mutable.Map[Any,Any], x: scala.collection.Map[_,_]) => map ++= x; null },
     "cgsuite.util.MutableMap.Remove" -> { (map: mutable.Map[Any,Any], x: Any) => map -= x; null },
     "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null },
@@ -129,7 +134,10 @@ object SpecialMethods {
 
   private val specialMethods2: Map[String, (_, _) => Any] = Map(
 
-    "cgsuite.lang.List.Updated" -> { (list: Seq[_], kv: (Integer, Any)) =>
+    "cgsuite.lang.List.Sublist" -> { (list: IndexedSeq[_], range: (Integer, Integer)) =>
+      list.slice(range._1.intValue - 1, range._2.intValue)
+    },
+    "cgsuite.lang.List.Updated" -> { (list: IndexedSeq[_], kv: (Integer, Any)) =>
       val i = kv._1.intValue
       if (i >= 1 && i <= list.length)
         list.updated(i - 1, kv._2)
@@ -143,6 +151,9 @@ object SpecialMethods {
     },
     "cgsuite.lang.String.Updated" -> { (str: String, kv: (Integer, String)) =>
       str.updated(kv._1.intValue - 1, kv._2.head)
+    },
+    "cgsuite.util.MutableList.Update" -> { (list: mutable.ArrayBuffer[Any], args: (Integer, Any)) =>
+      list.update(args._1.intValue - 1, args._2); null
     },
     "cgsuite.util.MutableMap.Put" -> { (map: mutable.Map[Any,Any], kv: (Any, Any)) => map(kv._1) = kv._2; null }
 

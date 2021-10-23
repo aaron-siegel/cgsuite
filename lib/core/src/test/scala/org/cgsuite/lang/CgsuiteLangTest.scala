@@ -40,14 +40,15 @@ class CgsuiteLangTest extends CgscriptSpec {
   "cgsuite.lang.List" should "implement methods correctly" in {
     executeTests(Table(
       header,
+      ("List: Adjoin", "[5,12,13] Adjoin 99", "[5,12,13,99]"),
+      ("List: Concat", "[5,12,13] Concat [99,101]", "[5,12,13,99,101]"),
+      ("List: Distinct", "[5,12,5,13,12].Distinct", "[5,12,13]"),
+      ("List: Grouped", "[0,1,2,3,4,5,6,7,8,9] Grouped 3", "[[0,1,2],[3,4,5],[6,7,8],[9]]"),
+      ("List: IndexOf", "[5,12,13].IndexOf(12)", "2"),
+      ("List: Length", "[5,12,13].Length", "3"),
       ("List: Lookup", "[5,12,13][2]", "12"),
       ("List: Lookup out of bounds", "[5,12,13][4]", "!!List index out of bounds: 4"),
       ("List: Lookup way out of bounds", "[5,12,13][2^100]", "!!Overflow."),
-      ("List: Updated", "[5,12,13].Updated(2, 99)", "[5,99,13]"),
-      ("List: Updated out of bounds", "[5,12,13].Updated(0, 99)", "!!List index out of bounds: 0"),
-      ("List: Adjoin", "[5,12,13] Adjoin 99", "[5,12,13,99]"),
-      ("List: Concat", "[5,12,13] Concat [99,101]", "[5,12,13,99,101]"),
-      ("List: Grouped", "[0,1,2,3,4,5,6,7,8,9] Grouped 3", "[[0,1,2],[3,4,5],[6,7,8],[9]]"),
       ("List: PeriodicTable", "[0,1,2,3,4,5,6,7,8,9] PeriodicTable 3",
         """0 | 1 | 2
           |--+---+--
@@ -55,7 +56,9 @@ class CgsuiteLangTest extends CgscriptSpec {
           |--+---+--
           |6 | 7 | 8
           |--+---+--
-          |9""".stripMargin)
+          |9""".stripMargin),
+      ("List: Updated", "[5,12,13].Updated(2, 99)", "[5,99,13]"),
+      ("List: Updated out of bounds", "[5,12,13].Updated(0, 99)", "!!List index out of bounds: 0")
     ))
   }
 

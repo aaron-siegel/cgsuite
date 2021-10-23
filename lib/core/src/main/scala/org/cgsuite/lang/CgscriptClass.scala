@@ -1527,6 +1527,7 @@ class CgscriptClass(
         case 0 => ()
         case 1 => args(0)
         case 2 => (args(0), args(1))
+        case 3 => (args(0), args(1), args(2))
       }
       fn(classObject, argsTuple)
     }

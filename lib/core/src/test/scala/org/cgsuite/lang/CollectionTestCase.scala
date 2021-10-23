@@ -1,14 +1,15 @@
 package org.cgsuite.lang
 
-import org.cgsuite.lang
-
 object CollectionTestCase {
 
   val instances = Seq(
 
     CollectionTestCase(
       "[]", "[]",
+      adjoin = "[19]",
+      concat = "[10,*2]",
       exists = "false",
+      flattened = "[]",
       forall = "true",
       head = "!!That `Collection` is empty.",
       isEmpty = "true",
@@ -24,7 +25,10 @@ object CollectionTestCase {
 
     CollectionTestCase(
       "[0,1,3,9,7,5]", "[0,1,3,9,7,5]",
+      adjoin = "[0,1,3,9,7,5,19]",
+      concat = "[0,1,3,9,7,5,10,*2]",
       exists = "true",
+      flattened = "[0,1,3,9,7,5]",
       forall = "false",
       head = "0",
       isEmpty = "false",
@@ -40,7 +44,10 @@ object CollectionTestCase {
 
     CollectionTestCase(
       """["Winning", "Ways", "Mathematical", "Plays"]""", """["Winning","Ways","Mathematical","Plays"]""",
+      adjoin = """["Winning","Ways","Mathematical","Plays",19]""",
+      concat = """["Winning","Ways","Mathematical","Plays",10,*2]""",
       exists = "false",
+      flattened = """["Winning","Ways","Mathematical","Plays"]""",
       forall = "false",
       head = "\"Winning\"",
       isEmpty = "false",
@@ -52,7 +59,7 @@ object CollectionTestCase {
       tail = """["Ways","Mathematical","Plays"]""",
       toList = """["Winning","Ways","Mathematical","Plays"]""",
       toSet = """{"Mathematical","Plays","Ways","Winning"}"""
-    )
+    ),
 
   )
 
@@ -61,7 +68,10 @@ object CollectionTestCase {
 case class CollectionTestCase(
   x: String,
   xOut: String,
+  adjoin: String,
+  concat: String,
   exists: String,
+  flattened: String,
   forall: String,
   head: String,
   isEmpty: String,
@@ -77,7 +87,10 @@ case class CollectionTestCase(
 
   def toTests = Seq(
     (x, xOut),
+    (s"($x).Adjoin(19)", adjoin),
+    (s"($x).Concat([10,*2])", concat),
     (s"($x).Exists(x -> x == 7)", exists),
+    (s"($x).Flattened", flattened),
     (s"($x).ForAll(x -> x == 7)", forall),
     (s"($x).Head", head),
     (s"($x).IsEmpty", isEmpty),

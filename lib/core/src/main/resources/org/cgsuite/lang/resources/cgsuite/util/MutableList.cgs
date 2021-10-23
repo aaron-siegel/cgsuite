@@ -1,11 +1,29 @@
 /*${cgsuite.banner}*/
 
-mutable system class MutableList() extends List
+mutable system class MutableList() extends Collection
 
-  external def Add(obj);
-  external def AddAll(coll as Collection);
+  static def Eval(initialElements as Collection) begin
+    var list := MutableList();
+    list.AddAll(initialElements);
+    list
+  end
+
+  external def Add(element);
+
+  external def AddAll(elements as Collection);
+
   external def Clear();
-  external def Remove(obj);
-  external def RemoveAll(coll as Collection);
+
+  external def Contains(element);
+
+  external def Remove(element);
+
+  external def RemoveAll(elements as Collection);
+
+  external def Sort();
+
+  override def ToOutput := "MutableList(" + ToList.MkOutput(", ") + ")";
+
+  external def Update(index as Integer, element);
 
 end

@@ -211,10 +211,10 @@ object Ops {
   }
 
   val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) {
-    case (seq: Seq[_], index: Integer) => {
+    case (list: scala.collection.IndexedSeq[_], index: Integer) => {
       val i = index.intValue
-      if (i >= 1 && i <= seq.length)
-        seq(i - 1)
+      if (i >= 1 && i <= list.length)
+        list(i - 1)
       else
         throw EvalException(s"List index out of bounds: $i")
     }

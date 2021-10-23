@@ -14,14 +14,18 @@ system class List extends Collection
 
   external def Length;
 
+  external def MkOutput(sep as String);
+
   def PeriodicTable(period as Integer) := Table(Grouped(period));
 
   external def Sorted;
 
-  external def Updated(index as Integer, value);
+  external def Sublist(first as Integer, last as Integer);
 
-  external def MkOutput(sep as String);
+  external def Take(n as Integer);
 
   override def ToOutput := "[" + MkOutput(",") + "]";
+
+  external def Updated(index as Integer, value);
 
 end
