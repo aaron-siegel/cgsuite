@@ -15,10 +15,11 @@ object Markdown {
     imageTargetPrefix: String,
     rawInput: String,
     linkBuilder: LinkBuilder,
+    nextImageOrdinal: Int,
     stripAsterisks: Boolean = false,
     firstSentenceOnly: Boolean = false
   ): Markdown = {
-    val builder = new MarkdownBuilder(imageTargetPrefix, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+    val builder = new MarkdownBuilder(imageTargetPrefix, rawInput, linkBuilder, nextImageOrdinal, stripAsterisks, firstSentenceOnly)
     builder.toMarkdown
   }
 
@@ -88,6 +89,7 @@ class MarkdownBuilder(
   imageTargetPrefix: String,
   rawInput: String,
   linkBuilder: LinkBuilder,
+  nextImageOrdinal: Int,
   stripAsterisks: Boolean = false,
   firstSentenceOnly: Boolean = false
 ) {
@@ -221,7 +223,7 @@ class MarkdownBuilder(
             ""
         }
 
-        val imageFilePrefix = s"$imageTargetPrefix-${evalStatements.length - 1}"
+        val imageFilePrefix = s"$imageTargetPrefix-${nextImageOrdinal + evalStatements.length - 1}"
         val outputString = {
           if (showOutput) {
             val style = if (showInput) "" else " style=\"vertical-align: middle; margin: 2pt 0pt 2pt 0pt;\""

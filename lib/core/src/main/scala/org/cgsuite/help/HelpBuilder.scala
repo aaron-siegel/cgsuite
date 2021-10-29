@@ -60,6 +60,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
 
+  private var nextImageOrdinal = 0
+
   private var markdownErrors = false
 
   CgscriptClass.Object.ensureDeclared()
@@ -764,11 +766,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Option[Markdown] = {
     try {
-      val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+      val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, nextImageOrdinal, stripAsterisks, firstSentenceOnly)
       val varMap = mutable.AnyRefMap[Symbol, Any]()
       markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
         try {
-          generateImages(targetFile, statement, scale, ordinal, varMap)
+          generateImages(targetFile, statement, scale, nextImageOrdinal + ordinal, varMap)
         } catch {
           case exc: Throwable =>
             if (!reportedImageException) {
@@ -779,6 +781,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
             }
         }
       }
+      nextImageOrdinal += markdown.evalStatements.length;
       Some(markdown)
     } catch {
       case exc: Exception =>
