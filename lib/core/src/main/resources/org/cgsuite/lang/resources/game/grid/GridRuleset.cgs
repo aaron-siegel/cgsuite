@@ -4,16 +4,42 @@
   */
 class GridRuleset extends Ruleset
 
+  /** Constructs a position of this ruleset from the specified grid.
+    * This is a convenience alias for [[#Position]], defined by:
+    *
+    * `def Eval(grid as Grid) := Position(grid);`
+    */
   def Eval(grid as Grid) := Position(grid);
 
+  /** Constructs a position of this ruleset from the specified string.
+    * The mapping from strings to grids is given by [[#CharMap]].
+    */
   def Eval(str as String) := Position(Grid.Parse(str, CharMap));
 
+  /** Constructs a position of this ruleset from the specified grid.
+    */
   def Position(grid as Grid) := error("Subclasses of `GridRuleset` must define `Position`.");
 
+  /** The character map for this ruleset.
+    * The ~character map~ specifies how to convert a [[String]] to a [[Grid]] for this ruleset, and vice versa.
+    * The character map is itself a `String`; if `CharMap` has the character `C` in its `n`th position (starting from
+    * `0`), then `C` will correspond to a grid value of `n`.
+    *
+    * For example, if `CharMap` is `".xo"`, then a `.` in the string represents grid value `0`, and `x` represents
+    * grid value `1`, and an `o` represents grid value `2`.
+    */
   def CharMap := error("Subclasses of `GridRuleset` must define `CharMap`.");
 
+  /** The icons for this ruleset.
+    *
+    * `Icons` must be a [[List]] of [[Icon]] objects, such as:
+    *
+    * `[Icon.Blank, Icon.BlackStone, Icon.WhiteStone]`
+    */
   def Icons := error("Subclasses of `GridRuleset` must define `Icons`.");
 
+  /** Base class for positions of this `GridRuleset`.
+    */
   class GridGame(grid as Grid) extends Game
 
     override def ToOutput :=

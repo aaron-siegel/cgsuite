@@ -309,7 +309,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         if (classParameters.isEmpty)
           ""
         else
-          makeMemberSummary(cls, classParameters, "<h2>Class Parameters</h2>")
+          makeMemberSummary(
+            cls,
+            classParameters sortBy { cls.classInfo.constructorParamVars.indexOf(_) },
+            "<h2>Class Parameters</h2>"
+          )
       }
 
       val memberSummary = makeMemberSummary(cls, instanceMembers filter {
