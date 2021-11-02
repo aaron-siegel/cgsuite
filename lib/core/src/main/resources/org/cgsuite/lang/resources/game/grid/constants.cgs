@@ -63,7 +63,45 @@ singleton class constants
     */
   var Cram := game.grid.Domineering.ImpartialVariant;
 
-  var FoxAndGeese := game.grid.GenFoxAndGeese();
+  /** Ruleset for Fox and Geese.
+    *
+    * Fox and Geese is ordinarily played on an $8 \times 8$ grid, with one fox (controlled by Right) and four
+    * geese (controlled by Left). The usual starting position is given by:
+    *
+    * \display{game.grid.FoxAndGeese([(8,2),(8,4),(8,6),(8,8)], (1,5))}
+    *
+    * Positions are specified using a [[Collection]] of coordinates for the geese, together with a single coordinate
+    * pair for the fox. Conventionally, the rows are numbered starting with $1$ at the bottom, and the columns are
+    * numbered starting with $1$ at the left. The board follows a checker pattern with a black square in the lower
+    * right corner.
+    *
+    * On her turn, Left may move a single goose like an ordinary checker piece: one space diagonally towards the
+    * bottom of the board. Right may move his fox like a checker king: one space in any of the four diagonal directions.
+    * The pieces are therefore constrained to remain on white squares. A typical opening sequence:
+    *
+    * \evalHalf{game.grid.FoxAndGeese([(8,2),(8,4),(8,6),(8,8)], (1,5))} \to
+    * \evalHalf{game.grid.FoxAndGeese([(8,2),(8,4),(8,6),(7,7)], (1,5))} \to
+    * \evalHalf{game.grid.FoxAndGeese([(8,2),(8,4),(8,6),(8,8)], (2,4))} \to
+    * \evalHalf{game.grid.FoxAndGeese([(8,2),(8,4),(7,5),(7,7)], (2,4))}
+    *
+    * Since the fox can move in any diagonal direction,
+    * Fox and Geese is loopy, so positions must be evaluated using [[Game#GameValue]].
+    *
+    * \display{game.grid.FoxAndGeese([(4,2),(4,4),(4,6),(4,8)], (1,5)).GameValue}
+    *
+    * The handy [[GenFoxAndGeese#ValuesTable]] method can be used to evaluate all positions with fixed locations for
+    * the geese. The output of `ValuesTable` is $N \times 8$ table; each goose location is marked with an "X", and
+    * each other table entry shows the value of the position with the fox at that location. For example:
+    *
+    * \display{game.grid.FoxAndGeese.ValuesTable([(4,2),(4,4),(4,6),(4,8)])}
+    *
+    * Note the appearance of the explicitly loopy value
+    * \eval{game.grid.FoxAndGeese([(4,2),(4,4),(4,6),(4,8)], (2,8)).GameValue}.
+    *
+    * Fox and Geese is discussed extensively in \ww, Chapter 20. It is implemented as an instance of the ruleset
+    * schema [[GenFoxAndGeese]], which also provides several variants.
+    */
+  var FoxAndGeese := GenFoxAndGeese();
 
   /** Ruleset for Hot Clobber.
     *

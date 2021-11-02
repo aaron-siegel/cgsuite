@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** Base class for rulesets played on square grids.
+  */
 class GridRuleset extends Ruleset
 
   def Eval(grid as Grid) := Position(grid);
