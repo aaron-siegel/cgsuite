@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.lang.node.{EvalNode, IdentifierNode, MemberDeclarationNode}
+import org.cgsuite.lang.node.{EvalNode, IdentifierNode, MemberDeclarationNode, Modifiers}
 
 trait Member extends MemberResolution {
 
@@ -10,11 +10,19 @@ trait Member extends MemberResolution {
 
   def idNode: IdentifierNode
 
-  def isStatic: Boolean
+  def modifiers: Modifiers
 
   def id = idNode.id
 
   def name = id.name
+
+  def isMutable = modifiers.hasMutable
+
+  def isSingleton = modifiers.hasSingleton
+
+  def isStatic = modifiers.hasStatic
+
+  def isSystem = modifiers.hasSystem
 
 }
 
