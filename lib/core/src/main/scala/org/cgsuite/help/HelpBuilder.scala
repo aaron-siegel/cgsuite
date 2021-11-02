@@ -275,7 +275,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         }
       }
 
-      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers partition {
+      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers filterNot {
+        _.modifiers.hasPrivate        // Don't include private members
+      } partition {
         case v: CgscriptClass#Var if v.isConstructorParam => true
         case _ => false
       }
@@ -309,7 +311,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         if (classParameters.isEmpty)
           ""
         else
-          makeMemberSummary(cls, classParameters, "<h2>Class Parameters</h2>")
+          makeMemberSummary(
+            cls,
+            classParameters sortBy { cls.classInfo.constructorParamVars.indexOf(_) },
+            "<h2>Class Parameters</h2>"
+          )
       }
 
       val memberSummary = makeMemberSummary(cls, instanceMembers filter {
@@ -580,7 +586,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     val name = member.idNode.id.name
 
     val memberSuffix = member match {
-      case v: CgscriptClass#Var if v.isConstructorParam => makeParameterSuffix(linkBuilder, v.asConstructorParam.get)
+      case v: CgscriptClass#Var if v.isConstructorParam => makeParameterSuffix(linkBuilder, v.asConstructorParam.get, showDefault = true)
       case _ => makeParameters(linkBuilder, member)
     }
 

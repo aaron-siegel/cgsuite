@@ -246,13 +246,9 @@ class CgscriptClass(
 
   def isScript = scriptObject != null
 
-  def isMutable = classInfo.modifiers.hasMutable
+  def modifiers = classInfo.modifiers
 
-  def isSingleton = classInfo.modifiers.hasSingleton
-
-  def isStatic = false
-
-  def isSystem = classInfo.modifiers.hasSystem
+  override def isStatic = false           // Required (for now) to avoid circular instantiation
 
   def constructor = classInfo.constructor
 
@@ -555,16 +551,16 @@ class CgscriptClass(
 
     val localInstanceVars: Vector[Var] = ordinaryInitializerNodes collect {
       case declNode: VarDeclarationNode if !declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = false)
+        Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
 
     val localStaticVars: Vector[Var] = staticInitializerNodes collect {
       case declNode: VarDeclarationNode if declNode.modifiers.hasStatic =>
-        Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = true)
+        Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
 
     val localEnumElements: Vector[Var] = enumElementNodes map { declNode =>
-      Var(declNode.idNode, Some(declNode), isMutable = declNode.modifiers.hasMutable, isStatic = declNode.modifiers.hasStatic)
+      Var(declNode.idNode, Some(declNode), declNode.modifiers)
     }
 
     val systemConstructorMethods: Vector[Method] = {
@@ -611,7 +607,7 @@ class CgscriptClass(
       else {
         classDeclNode.classParameterNodes.toVector flatMap { paramsNode =>
           paramsNode.parameterNodes map { paramNode =>
-            Var(paramNode.idNode, Some(paramNode), isMutable = false, isStatic = false, asConstructorParam = Some(paramNode.toParameter))
+            Var(paramNode.idNode, Some(paramNode), Modifiers.none, asConstructorParam = Some(paramNode.toParameter))
           }
         }
       }
@@ -896,13 +892,13 @@ class CgscriptClass(
         }
 
         if (localDeclarations.nonEmpty) {
-          if (matchingMethods.size == 1 && localDeclarations.head.isOverride) {
+          if (matchingMethods.size == 1 && localDeclarations.head.modifiers.hasOverride) {
             throw EvalException(
               s"Method `${localDeclarations.head.qualifiedName}` overrides nothing",
               token = Some(localDeclarations.head.idNode.token)
             )
           }
-          if (matchingMethods.size > 1 && !localDeclarations.head.isOverride) {
+          if (matchingMethods.size > 1 && !localDeclarations.head.modifiers.hasOverride) {
             throw EvalException(
               s"Method `${localDeclarations.head.qualifiedName}` must be declared with `override`, since it overrides `${matchingMethods(1).qualifiedName}`",
               token = Some(localDeclarations.head.idNode.token)
@@ -1041,7 +1037,7 @@ class CgscriptClass(
       } else {
         logger.debug(s"$logPrefix Declaring user method: $methodName")
         val body = node.body getOrElse { sys.error("no body") }
-        UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers.hasStatic, node.modifiers.hasOverride, body)
+        UserMethod(node.idNode, Some(node), parameters, autoinvoke, node.modifiers, body)
       }
     }
 
@@ -1057,7 +1053,7 @@ class CgscriptClass(
     SpecialMethods.specialMethods.get(qualifiedName + "." + methodName) match {
       case Some(fn) =>
         logger.debug(s"$logPrefix   It's a special method.")
-        ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers.hasStatic, modifiers.hasOverride)(fn)
+        ExplicitMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers)(fn)
       case None =>
         val externalName = externalMethodName(methodName)
         val externalParameterTypes = parameters map { _.paramType.javaClass }
@@ -1069,7 +1065,7 @@ class CgscriptClass(
             throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$methodName`", node.tree)
         }
         logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
-        SystemMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers.hasStatic, modifiers.hasOverride, externalMethod)
+        SystemMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers, externalMethod)
     }
 
   }
@@ -1205,8 +1201,7 @@ class CgscriptClass(
   case class Var(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
-    isMutable: Boolean,
-    isStatic: Boolean,
+    modifiers: Modifiers,
     asConstructorParam: Option[Parameter] = None
   ) extends Member {
 
@@ -1301,8 +1296,7 @@ class CgscriptClass(
     def idNode: IdentifierNode
     def parameters: Vector[Parameter]
     def autoinvoke: Boolean
-    def isStatic: Boolean
-    def isOverride: Boolean
+    def modifiers: Modifiers
 
     def allowMutableArguments: Boolean = true
 
@@ -1335,8 +1329,7 @@ class CgscriptClass(
     declNode: Option[MemberDeclarationNode],
     parameters: Vector[Parameter],
     autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean,
+    modifiers: Modifiers,
     body: StatementSequenceNode
   ) extends Method {
 
@@ -1378,8 +1371,7 @@ class CgscriptClass(
     declNode: Option[MemberDeclarationNode],
     parameters: Vector[Parameter],
     autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean,
+    modifiers: Modifiers,
     javaMethod: java.lang.reflect.Method
   ) extends Method {
 
@@ -1420,8 +1412,7 @@ class CgscriptClass(
     declNode: Option[MemberDeclarationNode],
     parameters: Vector[Parameter],
     autoinvoke: Boolean,
-    isStatic: Boolean,
-    isOverride: Boolean
+    modifiers: Modifiers
     )
     (fn: (Any, Any) => Any) extends Method {
 
@@ -1439,8 +1430,8 @@ class CgscriptClass(
   trait Constructor extends Method with CallSite {
 
     val autoinvoke = false
-    val isStatic = true
-    val isOverride = false
+
+    val modifiers = Modifiers(static = Some(null))
 
     override val ordinal = CallSite.newCallSiteOrdinal
 
