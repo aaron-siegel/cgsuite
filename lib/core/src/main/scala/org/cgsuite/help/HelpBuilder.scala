@@ -772,6 +772,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Option[Markdown] = {
     try {
+      if (!targetFile.parent.exists()) {
+        targetFile.parent.createDirectories()
+      }
       val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, nextImageOrdinal, stripAsterisks, firstSentenceOnly)
       val varMap = mutable.AnyRefMap[Symbol, Any]()
       markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
@@ -785,6 +788,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
             } else {
               logger.error(s"Could not generate image for statement: $statement")
             }
+            markdownErrors = true
         }
       }
       nextImageOrdinal += markdown.evalStatements.length;
