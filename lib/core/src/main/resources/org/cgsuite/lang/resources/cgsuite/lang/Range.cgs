@@ -1,11 +1,19 @@
 /*${cgsuite.banner}*/
 
+/** A compact range of [[Integer]] values.
+  */
 system class Range extends List
 
+  /** The first integer in this range.
+    */
   external def Start;
-  
+
+  /** The last integer in this range.
+    */
   external def End;
-  
+
+  /** The integer step for this range.
+    */
   external def Step;
 
   override def ToOutput begin

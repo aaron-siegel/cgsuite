@@ -1,5 +1,20 @@
 /*${cgsuite.banner}*/
 
+/** A user-defined function.
+  *
+  * Functions may be created using ~functional notation~:
+  *
+  * \display{x -> x + 1}
+  *
+  * \display{(x, y) -> (x + y) / 2}
+  *
+  * or, on the Worksheet, using `def`:
+  *
+  * \display{def f(x, y) := (x + y) / 2}
+  *
+  * Note that if `def` is used on the Worksheet, it defines a function, but when `def` appears
+  * inside a `class`, it defines a method of that class instead.
+  */
 system class Function
 
   override external def ToOutput;

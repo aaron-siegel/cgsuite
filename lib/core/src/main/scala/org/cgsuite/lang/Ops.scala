@@ -211,22 +211,25 @@ object Ops {
   }
 
   val ArrayReference = BinOp("[]", OperatorPrecedence.Postfix, Some { _ + "[" + _ + "]" }) {
-    case (list: scala.collection.IndexedSeq[_], index: Integer) => {
+    case (list: scala.collection.IndexedSeq[_], index: Integer) =>
       val i = index.intValue
       if (i >= 1 && i <= list.length)
         list(i - 1)
       else
         throw EvalException(s"List index out of bounds: $i")
-    }
-    case (map: Map[Any @unchecked, _], key: Any) => {
+    case (map: Map[Any @unchecked, _], key: Any) =>
       map get key match {
         case Some(value) => value
         case None => throw EvalException(s"Key not found: $key")
       }
-    }
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
-    case (str: String, index: Integer) => str.charAt(index.intValue - 1).toString
+    case (str: String, index: Integer) =>
+      val i = index.intValue
+      if (i >= 1 && i <= str.length)
+        str.charAt(index.intValue - 1).toString
+      else
+        throw EvalException(s"String index out of bounds: $i")
   }
 
 }

@@ -95,6 +95,8 @@ class CgsuiteLangTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("op[]", "\"Hackenbush\"[7]", "\"b\""),
+      ("op[] out of bounds", "\"Hackenbush\"[0]", "!!String index out of bounds: 0"),
+      ("op[] out of bounds", "\"Hackenbush\"[11]", "!!String index out of bounds: 11"),
       ("Concat", """"Winning " Concat "Ways"""", "\"Winning Ways\""),
       ("Length", "\"Berlekamp\".Length", "9"),
       ("Matches", """"On Numbers and Games" Matches ".*umber.*G+.*"""", "true"),

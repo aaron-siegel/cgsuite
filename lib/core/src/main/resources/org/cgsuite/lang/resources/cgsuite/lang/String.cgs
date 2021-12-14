@@ -1,7 +1,13 @@
 /*${cgsuite.banner}*/
 
+/** A character string.
+  */
 system class String
 
+  /** The character appearing at the specified index in this string.
+    * The result will be another `String` with a single character, or
+    * [[Nothing]] if the index is out of range.
+    */
   external def op[](index as Integer);
 
   external def Concat(that as String);
