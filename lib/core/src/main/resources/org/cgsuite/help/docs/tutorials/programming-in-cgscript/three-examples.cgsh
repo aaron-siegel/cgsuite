@@ -1,259 +1,202 @@
 Three Examples
 
-We'll begin with three example classes of increasing sophistication: Nim; the Partizan Subtraction Games; and Clobber.
+We'll begin with several examples demonstrating how to create new ruleset classes in CGScript.
 
-##TOC##
++++ Example: Nim +++
 
-++ Example: Nim ++
+In the Browser window of CGSuite, you'll see a list of folders containing CGScript files. (If you don't
+see the Browser window, click "Browser" in the Window menu, and then you should see it. If all else fails, you can
+always click "Reset Windows" in the Window menu to restore all windows to their defaults.) Each `.cgs` file contains
+code for one CGScript class, such as a ruleset implementation.
 
-Every class in CGScript is stored in a file with the $.cgs$ extension.  For example, $examples.Clobber$ is stored in
-the file $examples/Clobber.cgs$.  We'll take a look at this file a bit later, but first let's start with something
-simpler: Nim.
+Open up the `examples` folder (you can double-click the folder name to open it), and you'll see several
+example `.cgs` files that are included with CGSuite, such as `Nim.cgs`. These can be accessed from the Worksheet just
+like any other class in CGSuite; for example:
 
-In the Browser window of CGSuite, you'll see a list of files and directories that store $.cgs$ files.  (If you don't
-see the Browser, click "Browser" in the Window menu, and then you should see it.)  Open up the examples folder, and
-double-click $Nim.cgs$.
+`examples.Nim(8).CanonicalForm`
 
-Now you'll see the code that specifies the $examples.Nim$ class in CGScript.  Throughout the code are various comments,
-which are greyed out in the editor window.  These comments are ignored by CGSuite; everything else is part of the class
-description.
+gives the canonical form of a nim-heap of size 8. Notice that the package `examples` corresponds to the folder name,
+and the ruleset name `Nim` corresponds to the file name (without the `.cgs` extension).
+
+Now double-click on `Nim.cgs` to open the file, and you'll see the code that specifies the `examples.Nim`
+class in CGScript. Throughout the code are various comments, which are greyed out in the editor window. These comments
+are ignored by CGSuite; everything else is part of the class description.
 
 The first line of code (aside from the comments) is
 
-$class Nim extends ImpartialGame$
+`singleton class Nim extends Ruleset`
 
-This declares $Nim$ as a subclass of $ImpartialGame$, indicating (obviously) that it's impartial.  The next line
+This defines the class `Nim` and indicates that it's a ruleset. The `singleton` keyword tells CGSuite that `Nim` has
+no parameters as a ruleset: there is only one `Nim` (we'll see an example of a non-singleton ruleset shortly).
 
-$var n;$
+The next line of code is
 
-declares $n$ (the heap size) as a ~member variable~ of $Nim$.  Each object of class $Nim$ will have a specific value of
-$n$ associated with it.
+`class Position(heapSize as Integer) extends ImpartialGame`
 
-The next two lines
+Every ruleset in CGScript has a ~nested class~ called `Position`, which defines the structure of an individual
+position of that ruleset. The `Position` class for `Nim` extends `ImpartialGame`, indicating that `Nim` is impartial.
+It has a single parameter, `heapSize`, which must always be an `Integer`.
 
-$method Nim(Integer n)
-end$
+The meat of the class is the `Options` method:
 
-declare the constructor for $Nim$.  Note that the constructor doesn't do anything at all - it just takes in $n$, the
-heap size, as a parameter.  Since the paramter name matches the name of the member variable $n$, it's automatically
-assigned and we don't need to take any other action.
+`override def Options := [Position(k) for k from 0 to heapSize - 1];`
 
-The meat of the class is the $Options$ method:
+It returns a `List` of all the options for this `Position`: all `Nim` positions
+with strictly smaller heap size.
 
-$override method Options(Player player)
+And that's everything we need in order to implement Nim!
 
-    return setof(Nim(k) for k from 0 to n-1);
++++ Example: Partizan Subtraction +++
 
-end$
+A ~Partizan Subtraction~ ruleset is played with heaps of tokens, as with ~Nim~. ~Subtraction sets~ `L` and `R` are
+specified as parameters to the ruleset; then Left may remove `n` tokens for any `n` in `L`, while Right may remove `n`
+tokens for any `n` in `R`. For example, `L = {1,3}`, `R = {1,2}` specifies the ruleset in which Left may remove $1$ or
+$3$ tokens from a heap, while Right may remove $1$ or $2$.
 
-Its purpose is to construct this position's options.  It takes a single parameter, $player$, of class $Player$.
-The $Player$ class has just two instances, $Left$ and $Right$, and the value of the $player$ parameter determines
-whose options we should be constructing.  Since Nim is impartial, we ignore the $player$ parameter and return the same answer
-regardless of its value.
+The file `PartizanSubtraction.cgs` in the `examples` folder implements the general partizan subtraction ruleset: the
+class `PartizanSubtraction` takes a pair of subtraction sets as parameters; instances of class `PartizanSubtraction`
+represent specific rulesets. Double-click `PartizanSubtraction.cgs` to see the code.
 
-The answer, of course, is just the set of all Nim positions with strictly smaller heap size.
+The first line of code is more complex than for `Nim`:
 
-And that's everything we need in order to implement Nim!  However the $Nim$ class has one additional member:
+`class PartizanSubtraction(leftSet as Collection, rightSet as Collection) extends Ruleset`
 
-$override property ToString.get
+It defines a class with two parameters, `leftSet` and `rightSet`, that can be arbitrary `Collection`s.
 
-    return "Nim(" + n.ToString + ")";
+Note that `PartizanSubtraction` (unlike `Nim`) is ~not~ a `singleton` class: this is because there are many
+Partizan Subtraction rulesets, not just one. (In fact, the `PartizanSubtraction` class is best thought of as a
+~schema~ of rulesets, as we discussed briefly in the [[/tutorials/getting-started/getting-started]] tutorial.)
 
-end$
+Another difference shows up in the next line:
 
-This simply tells cgsuite how to display a $Nim$ position in the worksheet or the explorer.
+`class Position(heapSize as Integer) extends Game`
 
-To test it out, click back over to the worksheet and enter
+`PartizanSubtraction` is partizan, so instead of extending `ImpartialGame`, its positions extend the more general
+class [[Game]].
 
-$g := examples.Nim(8)$
+Things get more interesting with the `Options` method.  The first line:
 
-and then $g.CanonicalForm$ to get the answer, $*8$.  That's hardly earth-shattering, so let's try a more sophisticated
-example.
+`var subtSet := if player == Left then leftSet else rightSet end;`
 
-++ Example: Partizan Subtraction Games ++
+sets a variable, `subtSet`, depending on the player. The next line:
 
-The ~Partizan Subtraction Games~ were described in the
-[[/tutorials/getting-started/getting-started]] tutorial.
-Open up the file $PartizanSubtraction.cgs$ (in the $examples$ directory) to see CGSuite's implementation of it.
+`[ Position(heapSize - k) for k in subtSet where k <= heapSize ]`
 
-There are three parameters: $leftSet$ and $rightSet$, representing the Left and Right subtraction sets; and $n$, the
-heap size.  The first major difference with Nim is in the declaration:
+does the actual work of constructing the options.  It's pretty much self-explanatory: Left's moves from heap `n` are to
+heaps `n-k`, where `k` ranges over all elements of `subtSet` satisfying `n-k >= 0`.
 
-$class PartizanSubtraction extends Game$
+You can test the `PartizanSubtraction` class by typing into the Worksheet, say,
 
-Unlike Nim, the Partizan Subtraction game is partizan.  So instead of extending $ImpartialGame$, it
-extends the more basic class $Game$.  The $Game$ class, in fact, is the ancestor of ~every~ game implementation in CGSuite
-(including $ImpartialGame$ and $Nim$).
+`R := examples.PartizanSubtraction([1,3],[2,3])`
+`R(10).CanonicalForm`
+`Table([n, R(n).CanonicalForm] for n from 1 to 10)`
 
-You'll notice that the constructor looks much like the $Nim$ constructor; the only difference is that
-we have to remember to initialize all three variables.
++++ Example: Clobber +++
 
-Things get more interesting with the $Options$ method.  The first line:
+Now let's turn to a more complex example: Clobber.  Open up the `Clobber.cgs` file to see CGSuite's implementation.
+Notice that it extends a special base class, [[game.grid.GridRuleset]].  The `GridRuleset` class provides generalized
+mechanisms for constructing, displaying, and editing rulesets played on grids. Just as in our previous examples,
+`Clobber` has a nested `Position` class. This time, `Position` takes a [[Grid]] parameter and extends `GridGame`:
 
-$subtractionSet := if player == Player.Left then leftSet else rightSet end;$
+`  class Position(grid as Grid) extends GridGame`
 
-sets a variable, $subtractionSet$, depending on the player.  The next line:
+The member variable `grid` stores the actual content of the position.  Now a `Grid` is just a two-dimensional array of
+integers, so it's up to each ruleset class to decide what the integer values represent. For Clobber, we'll use the
+following mapping:
+\ul
+\li `0` - an empty space
+\li `1` - a black stone
+\li `2` - a white stone
+\endul
+Grids are accessed with coordinate pairs; for example:
 
-$return setof(PartizanSubtraction(leftSet, rightSet, n - k)
-               for k in subtractionSet where n-k >= 0);$
-
-does the actual work of constructing the options.  It's pretty much self-explanatory: Left's moves from heap $n$ are to
-heaps $n-k$, where $k$ ranges over all elements of $leftSet$ satisfying $n-k >= 0$.
-
-You'll note that $subtractionSet$ was
-not declared as a member variable of $PartizanSubtraction$ (that is, it was not mentioned in the $var$ statements at
-the top of the file).  There are actually two types of variables that can appear in a CGScript class:
-<ol>
-<li>~Member variables~, which are declared using $var$ statements.  They are normally used to store intrinsic
-properties or parameters of the class.
-<li>~Local variables~.  Any variable
-that is not declared with a $var$ statement is automatically assumed to be a local variable.  They are normally used
-as temporary storage for doing complex calculations.
-</ol>
-
-Another interesting feature of $PartizanSubtraction$ is that one (or both) of the subtraction sets might contain $0$,
-suggesting a pass move.  CGSuite handles this case correctly: when a game $g$ appears as a follower of itself, the
-game is understood to be loopy.  Try the following command:
-
-$examples.PartizanSubtraction({0},{1},10).CanonicalForm$
-
-++ Example: Clobber ++
-
-Now let's turn to a more complex example: Clobber.  Open up the $Clobber.cgs$ file to see CGSuite's implementation.
-Notice that it extends a special base class, $GridGame$.  The $GridGame$ class provides generalized
-mechanisms for constructing, displaying and editing games played on grids.  All that's left for us to do is to code up
-the rules to Clobber.
-
-First note the line in the constructor:
-
-$    this.GridGame(grid);$
-
-This tells CGSuite to call the constructor for the parent class, $GridGame$.  The $GridGame$ constructor provides
-various conveniences, such as the familiar notation for constructing grids from strings (as in, for example,
-$Clobber("xox|ox.")$).   By calling the parent class constructor, the $Clobber$ class can use these features, too.
-
-The parent class $GridGame$ declares a member variable, $grid$, of class $Grid$, which stores the actual content of the
-position.  Now a $Grid$ is just a two-dimensional array of integers, so it's up to each game class (i.e., each subclass
-of $GridGame$) to decide what the integer values represent.  Clobber uses the following mapping:
-<ul>
-<li>$0$ - an empty space
-<li>$1$ - a black stone
-<li>$2$ - a white stone
-</ul>
-Grids are accessed via their two-dimensional coordinates; for example,
-
-$grid[2,3]$
+`grid[(2,3)]`
 
 refers to the value stored at row 2, column 3.
 
-Now we're ready to tackle the Clobber $Options$ method.  The rules to Clobber are
-more sophisticated, so it's not practical to construct the options all at once with a single $setof$ command.  Instead,
-we loop through all squares on the board looking for legal moves.  The first line of code:
+Now we're ready to tackle the Clobber `Options` method. The first few lines simply define a few convenience
+variables:
 
-$    options := {};$
+`    override def Options(player as Player) begin
 
-initializes an empty set to hold the options.  The next two lines of code:
+      var us := player.Ordinal;
+      var them := player.Opponent.Ordinal;`
 
-$    us := player.Ordinal;
-    them := player.Opponent.Ordinal;$
+This sets local variables `us` and `them` equal to integers meaning "a stone of our color" and "a stone of the opponent's
+color," respectively.  Here `player.Ordinal` gives the ~ordinal~ assigned to each player: Left = 1, Right = 2.
+Likewise, `player.Opponent` turns Left into Right and vice versa.
 
-set local variables $us$ and $them$ equal to integers meaning "a stone of our color" and "a stone of the opponent's
-color," respectively.  Here $Player.Ordinal$ gives the <i>ordinal</i> assigned to each player: Left = 1, Right = 2.
-Likewise, $Player.Opponent$ turns Left into Right and vice versa.
+The bulk of the work is done by the following six lines of code, which sets up a giant iterator that searches the grid
+for all legal moves, constructing a new position each time it finds one.
 
-Next, we search through the board looking for legal moves,
-adding an element to the set each time we find one.
-The next three lines of code are the following:
+`      for coord in (grid FindAll us)
+      for direction in Coordinates.Orthogonal
+      where grid[coord + direction] == them
+      yield
+        Position(grid Updated { coord => 0, coord + direction => us })
+      end`
 
-$    for m from 1 to grid.RowCount do
-        for n from 1 to grid.ColumnCount do
-            if grid[m,n] == us then$
+Let's go through the lines one by one.
 
-These scan through the $grid$, indexed by the ordered pair $[m,n]$.  The expression $grid[m,n]$ looks up the value of
-the grid at coordinate $[m,n]$.  The expression $grid[m,n] == us$ tests whether the grid coordinate $[m,n]$ is
-occupied by a stone of our color.
+`for coord in (grid FindAll us)`
 
-Now comes the meat of the class.  The next line:
+Here `grid FindAll us` searches the grid for all coordinates with a value of `us`, i.e., all spaces in the `grid` that
+are occupied by a stone of the current player's color. The variable `coord` iterates over all such coordinates.
 
-$    for d in Direction.Orthogonal do$
+`for direction in Coordinates.Orthogonal`
 
-iterates over all ~orthogonal~ directions (North, East, South, West).  Remember, this line is reached any time we've
-found a stone of our color, so now we have to look in all four directions to see if there's an enemy stone.  That
-check is accomplished by the next line:
+Likewise, the variable `direction` iterates over the list `Coordinates.Orthogonal`, which is defined by CGSuite to
+contain all ~unit~ orthogonal coordinates: `(-1,0)`, `(0,1)`, `(1,0)`, and `(0,-1)`.
 
-$    if grid[m+d.RowShift,n+d.ColumnShift] == them then$
+`where grid[coord + direction] == them`
 
-which peeks into the grid location at $[m+d.RowShift,n+d.ColumnShift]$.  Here $RowShift$ and $ColumnShift$ are
-properties of the $Direction$ class which tell how far to look in each direction.  For example, if $d$ has the value
-$Direction.West$, then $d.RowShift$ will be 0, and $d.ColumnShift$ will be -1.  Sometimes this might cause CGSuite to
-step off the board - for example, if $d$ is $Direction.West$, and $n$ is $1$, then $n+d.ColumnShift$ will be $0$, which
-is past the edge of the board.  In this case the grid lookup will return $nil$.  This ensures that the condition
+If `direction` is a unit orthogonal coordinate, then `coord + direction` is the coordinate obtained by moving one
+square from `coord` in the direction of `direction`. This clause simply checks that the "target" square of the grid
+at `coord + direction` is occupied by an enemy stone. If it is, then there is a legal move from `coord` to
+`coord + direction`.
 
-$grid[x,y] == z$
+`yield
+  Position(grid Updated { coord => 0, coord + direction => us })
+end`
 
-will be true just if $[x,y]$ is within the boundaries of the grid, ~and~ has the value $z$ at that location.
+Finally, for each `coord` and `direction` where the legal move condition is true, the iterator generates a new
+position. The grid for the new position is obtained from this `grid` by making two updates: set the value at `coord`
+to `0` (an empty space) and the value at `coord + direction` to `us` (replacing the enemy stone by a stone of our
+color).
 
-Whew!  If we've made it this far, then $[m,n]$ contains a stone of our color, and there's an enemy stone in direction
-$d$.  So it's a legal move to clobber the enemy stone, and the next four lines construct the resulting option.
+That's it for the `Options` method! The `Clobber` class has two other methods:
 
-$    copy := grid;
-    copy[m,n] := 0;
-    copy[m+d.RowShift,n+d.ColumnShift] := us;
-    options.Add(Clobber(copy));$
+`  override def CharMap := ".xo";
 
-We clear the location $[m,n]$, replace the new location with a stone of our color, and put the result into the
-$options$ set.
+  override def Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone];`
 
-That's it for the $Options$ method.  Note that the $Clobber$ class has two other properties:
+These two methods govern the aesthetic properties of `Clobber`. The `CharMap` method says that when the user is
+creating new `Clobber` positions, then the characters `.`, `x`, and `o`, respectively, represent grid values `0`,
+`1`, and `2`. The `Icons` method says that when a `Clobber` position is displayed graphically in the Worksheet or
+Explorer, then `Icon.Blank`, `Icon.BlackStone`, and `Icon.WhiteStone`, respectively, represent grid values `0`, `1`,
+and `2`.
 
-$override property CharMap.get
-    return ".xo";
-end$
++++ The System Folder +++
 
-This just tells CGSuite that the grid values 0, 1, 2 are represented by characters ., x, o, respectively, when
-displaying (or parsing) Clobber positions as strings.  Likewise,
+If you've read through the [[/tutorials/getting-started/getting-started]]
+tutorial, then you'll know that each of the rulesets in the `examples` folder is also defined in the CGScript
+Standard Library. For example,
 
-$override property Icons.get
-    return
-    [
-        GridIcon.Blank,
-        GridIcon.BlackStone,
-        GridIcon.WhiteStone
-    ];
-end$
+`game.heap.Nim(8).CanonicalForm`
 
-indicates that in graphical displays, CGSuite should use a blank tile, a black stone, and a white stone.  Different
-grid games, obviously, use different (customized) combinations of characters and icons.
+gives the same answer as
 
-++ The System Folder ++
+`examples.Nim(8).CanonicalForm`
 
-This concludes our tour of examples.  The rest of this tutorial is a detailed discussion of the various language
-features of CGScript.  As we proceed, you'll probably want some additional examples to refer to.  Fortunately, CGSuite
-provides a large library of them.  In the Browser, click on the drop-down box that says "User Folder".  Change this
-to "System Folder".  This is where CGSuite's library classes are stored - everything from the core classes like
-$Integer$, to reference implementations of games like $Amazons$ and $Domineering$.  All of these are accessible from
-the Worksheet; for example, you can type
+Although they are functionally equivalent, however, the rulesets in the Standard Library are defined differently. The
+implementations in the `examples` folder are designed to be simple and instructive, whereas the Standard Library aims
+for a higher degree of robustness and generality.
 
-$game.grid.Amazons("x...|o...")$
+All of the code in the Standard Library can be viewed inside CGSuite, and sometimes it's instructive to do so, to see
+in detail how particular rulesets are implemented. Simply click the drop-down that's labeled "User Folder" in the
+Browser window, and change it to "System Folder", to see the source code for the entire library. (Note that some
+classes in the library have methods labeled `external`; these are defined externally to CGSuite, not in CGScript.)
 
-to construct a typical 2x4 Amazons position.  You can also open them up in the editor and look at the source code.
-Studying the built-in examples is one of the best ways to become proficient in CGScript.
+\footer
 
-In some of these files you might see expressions like
-
-$java "atomicWeight"$
-
-These are the connection points where CGScript interfaces with Java, its host language.  You won't ordinarily need to
-use the $java$ keyword at all, unless you want to get involved in low-level CGSuite programming.
-
-++ Exercises ++
-
-<ol>
-<li>Write a new class $PartizanSubtraction2$ which is just like $examples.PartizanSubtraction$, but which takes a pair
-of ~procedures~ f_L_ and f_R_, enumerating the (possibly infinite) subtraction sets.  For example,
-
-`PartizanSubtraction2(n -> n^2, n -> n*(n+1)/2, 10)`
-
-would construct a heap of size 10 in the game where Left can take a perfect-square number of tokens, and Right a
-triangular number of tokens.  (You can assume that f_L_ and f_R_ are nondecreasing as functions of ~n~.)
-</ol>
+~~Continue on to the next part of the tutorial: [[classes-and-packages]]~~
