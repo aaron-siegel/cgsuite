@@ -84,6 +84,27 @@ system class List extends Collection
     */
   external def Sorted;
 
+  /** The `List` with the same elements as this `List`, but rearranged in a custom
+    * sort order, according to the specified `Function`.
+    *
+    * The `Function` should be a binary function that accepts any two elements
+    * of the list and returns an `Integer`. The sort algorithm
+    * expects that `fn(a,b)` is:
+    *
+    * \ul
+    * \li negative if $a < b$ in the sort order;
+    * \li zero if $a = b$ in the sort order;
+    * \li positive if $a > b$ in the sort order.
+    * \endul
+    *
+    * Here's an example that sorts a list of lists, with the sort order given by
+    * $a < b$ iff $a[2] < b[2]$ (i.e., compare two lists according to their second
+    * element).
+    *
+    * \display{[[5,3,7],[1,6,3],[9,2,8]].SortedWith((a, b) -> a[2] - b[2])}
+    */
+  external def SortedWith(fn as Function);
+
   /** The sublist of this `List` containing just the elements with indices between
     * `first` and `last` (inclusive).
     *
