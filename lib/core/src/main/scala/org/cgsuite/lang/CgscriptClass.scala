@@ -9,7 +9,7 @@ import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
-import org.cgsuite.exception.{CgsuiteException, EvalException}
+import org.cgsuite.exception.{CgsuiteException, EvalException, InvalidArgumentException}
 import org.cgsuite.lang.node._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
@@ -137,6 +137,18 @@ object CgscriptClass {
   }
 
   private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
+
+  implicit class SafeCast(x: Any) {
+
+    def castAs[T](implicit mf: Manifest[T]): T = {
+      x match {
+        case t: T => t
+        case _ =>
+          throw InvalidArgumentException(s"Expected `${CgscriptClass.fromJavaClass[T].qualifiedName}`; found `${CgscriptClass.of(x).qualifiedName}`.")
+      }
+    }
+
+  }
 
 }
 

@@ -3,6 +3,7 @@ package org.cgsuite.lang
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.{EvalException, InvalidArgumentException}
+import org.cgsuite.lang.CgscriptClass.SafeCast
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.util.{Symmetry, Table}
 
@@ -61,16 +62,16 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Adjoin" -> { (collection: Iterable[_], obj: Any) => collection ++ Iterable(obj) },
     "cgsuite.lang.Collection.Concat" -> { (collection: Iterable[_], that: Iterable[_]) => collection ++ that },
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
-      collection.exists { x => fn.call(Array(x)).castAs[Boolean] }
+      collection.exists { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
     },
     "cgsuite.lang.Collection.Filter" -> { (collection: Iterable[_], fn: Function) =>
-      collection.filter { x => fn.call(Array(x)).castAs[Boolean] }
+      collection.filter { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
     },
     "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], fn: Function) =>
-      collection.find { x => fn.call(Array(x)).castAs[Boolean] }.orNull
+      collection.find { x => fn.call(Array(x)).castAs[java.lang.Boolean] }.orNull
     },
     "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], fn: Function) =>
-      collection.forall { x => fn.call(Array(x)).castAs[Boolean] }
+      collection.forall { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
     },
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
       collection.foreach { x => fn.call(Array(x)) }; null
@@ -166,17 +167,5 @@ object SpecialMethods {
     specialMethods0.asInstanceOf[Map[String, (Any, Any) => Any]] ++
     specialMethods1.asInstanceOf[Map[String, (Any, Any) => Any]] ++
     specialMethods2.asInstanceOf[Map[String, (Any, Any) => Any]]
-
-  implicit class SafeCast(x: Any) {
-
-    def castAs[T](implicit mf: Manifest[T]): T = {
-      x match {
-        case t: T => t
-        case _ =>
-          throw InvalidArgumentException(s"Expected `${CgscriptClass.fromJavaClass[T].qualifiedName}`; received `${CgscriptClass.of(x).qualifiedName}`.")
-      }
-    }
-
-  }
 
 }

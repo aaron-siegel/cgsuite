@@ -3,7 +3,8 @@ package org.cgsuite.lang.node
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core.Values._
 import org.cgsuite.core._
-import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, EvalException}
+import org.cgsuite.exception.{CalculationCanceledException, CgsuiteException, EvalException, InvalidArgumentException}
+import org.cgsuite.lang.CgscriptClass.SafeCast
 import org.cgsuite.lang.Ops._
 import org.cgsuite.lang._
 import org.cgsuite.lang.parser.CgsuiteLexer._
@@ -184,19 +185,23 @@ trait EvalNode extends Node {
   final def toNodeString: String = toNodeStringPrec(Int.MaxValue)
   def toNodeStringPrec(enclosingPrecedence: Int): String
 
-  def evaluateAsBoolean(domain: EvaluationDomain): Boolean = {
-    evaluate(domain) match {
-      case x: Boolean => x
-      case _ => sys.error("not a bool")   // TODO Improve these errors
+  def evaluateAs[T](domain: EvaluationDomain)(implicit mf: Manifest[T]): T = {
+    val x = evaluate(domain)
+    try {
+      x.castAs[T]
+    } catch {
+      case exc: InvalidArgumentException =>
+        exc.addToken(token)
+        throw exc
     }
   }
 
+  def evaluateAsBoolean(domain: EvaluationDomain): Boolean = {
+    evaluateAs[java.lang.Boolean](domain)
+  }
+
   def evaluateAsIterator(domain: EvaluationDomain): Iterator[_] = {
-    val result = evaluate(domain)
-    result match {
-      case x: Iterable[_] => x.iterator
-      case _ => sys.error(s"not a collection: $result")
-    }
+    evaluateAs[Iterable[_]](domain).iterator
   }
 
   def evaluateLoopy(domain: EvaluationDomain): Iterable[LoopyGame.Node] = {
