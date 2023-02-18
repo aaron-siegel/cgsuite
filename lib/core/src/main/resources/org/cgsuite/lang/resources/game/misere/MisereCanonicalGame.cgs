@@ -11,22 +11,66 @@ system class MisereCanonicalGame extends ImpartialGame
     * `G.Birthday < (G + *).Birthday.`
     */
   external def IsEven;
+
+  /** `true` if this game is extraverted.
+    */
   external def IsExtraverted;
+
+  /** `true` if this game is generally restive. */
   external def IsGenerallyRestive;
+
+  /** `true` if this game is generally tame. */
   external def IsGenerallyTame;
+
+  /** `true` if this game is half-tame. */
   external def IsHalfTame;
+
+  /** `true` if this game is introverted. */
   external def IsIntroverted;
+
+  /** `true` if this game is a nim-heap. */
   external def IsNimHeap;
+
+  /** `true` if this game is prime. */
   external def IsPrime;
+
+  /** `true` if this game is restive. */
   external def IsRestive;
+
+  /** `true` if this game is restless. */
   external def IsRestless;
+
+  /** `true` if this game is tame. */
   external def IsTame;
+
+  /** `true` if this game is tameable. */
   external def IsTameable;
+
+  /** The mate of this game.
+    *
+    * The mate of $G$ is the game $G^-^$ defined by
+    *
+    * $G^-^ = * \sp\sp\sp\sp if G = 0
+    * G^-^ = \{(G')^-^ : G' \in G\}   otherwise$
+    */
   external def Mate;
+
+  /** The misere outcome class of this game. */
   external def MisereOutcomeClass;
   external override def Options;
+
+  /** The partitions of this game.
+    *
+    */
   external def Partitions;
+
+  /** The parts of this game.
+    *
+    * A part of $G$ is a game $H$ that satisfies $G = H + X$ for some $X$.
+    * It can be shown that every game $G$ has just finitely many distinct parts.
+    */
   external def Parts;
+
   external override def ToOutput;
 
   external def Distinguisher(h as MisereCanonicalGame);

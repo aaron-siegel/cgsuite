@@ -1,5 +1,7 @@
 Classes and Packages
 
+This section describes the structure and content of a CGScript class, for example, a ruleset implementation.
+
 +++ The Structure of a Class +++
 
 Every class in CGSuite is associated with a $.cgs$ file.  The class declaration begins with a line such as
@@ -75,7 +77,7 @@ This will cause CGSuite to generate an error as soon as something other than a `
 
 +++ Inheritance +++
 
-Every class inherits from one or more ~parent classes~ as defined by its $extends$ clause.  A special class, $Object$,
+Every class inherits from one or more ~~parent classes~~ as defined by its $extends$ clause.  A special class, $Object$,
 is automatically an ancestor of every class.  The $extends$ clause is optional, and the declaration
 
 $class MyClass()$
@@ -93,7 +95,7 @@ If a method has the same name as a method in some ancestor class, then the $over
 
 +++ Static Declarations +++
 
-Some variables, properties and methods are ~static~.  Whereas ordinary variables are members of class ~instances~,
+Some variables and methods are `static`.  Whereas ordinary variables are members of class instances,
 static variables are members of the class itself - so they exist just once, and are accessible ~statically~, without
 having to create any objects of the class.
 

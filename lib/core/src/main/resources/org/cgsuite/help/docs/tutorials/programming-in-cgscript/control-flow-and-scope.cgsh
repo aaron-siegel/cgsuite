@@ -2,40 +2,38 @@ Control Flow and Scope
 
 In this section, we introduce the use of control flow and variable scope in CGScript.
 
-##TOC##
++++ Conditionals +++
 
-++ Conditionals ++
-
-A conditional in CGSuite follows the syntax
+A conditional in CGScript follows the syntax
 
 $if ~expression~ then ~statements~ [else ~statements~] end$
 
 For example,
 
 $if x > 5 then
-    Worksheet.Print("x exceeds 5.");
+    System.Print("x exceeds 5.");
 else
-    Worksheet.Print("x does not exceed 5.");
+    System.Print("x does not exceed 5.");
 end$
 
 Conditionals can also have one or more $elseif$ clauses:
 
 $if x > 5 and y == 0 then
-    Worksheet.Print("x exceeds 5 and y is zero.");
+    System.Print("x exceeds 5 and y is zero.");
 elseif x > 5 then
-    Worksheet.Print("x exceeds 5, but y is nonzero.");
+    System.Print("x exceeds 5, but y is nonzero.");
 else
-    Worksheet.Print("x does not exceed 5.");
+    System.Print("x does not exceed 5.");
 end$
 
-The conditions will be evaluated top-down until one of them is $true$.  Then the corresponding statement sequence will
-be evaluated.  If none of the conditions is $true$, then the $else$ statement sequence will be evaluated, if present.
+The conditions will be evaluated top-down until one of them is $true$. If none of the conditions is $true$, then the
+$else$ clause will be evaluated, if present.
 
 Conditionals can be used within expressions; for example
 
-$x := if y%2 == 0 then 1 else -1 end$
+$x := if y % 2 == 0 then 1 else -1 end$
 
-++ Loops ++
++++ Loops +++
 
 The basic loop in CGSuite takes the form
 
