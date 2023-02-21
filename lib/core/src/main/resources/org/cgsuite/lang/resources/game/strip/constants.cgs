@@ -32,7 +32,7 @@ singleton class constants
     * \evalHalf{game.strip.ToadsAndFrogs("ttt..fff")} \to \evalHalf{game.strip.ToadsAndFrogs("tt.t.fff")} \to
     * \evalHalf{game.strip.ToadsAndFrogs("tt.tf.ff")} \to \evalHalf{game.strip.ToadsAndFrogs("tt..ftff")}
     *
-    * It is defined as an instance of [[GenToadsAndFrogs]] by:
+    * `ToadsAndFrogs` is defined as an instance of [[GenToadsAndFrogs]] by:
     *
     * `ToadsAndFrogs := game.strip.GenToadsAndFrogs()`
     */

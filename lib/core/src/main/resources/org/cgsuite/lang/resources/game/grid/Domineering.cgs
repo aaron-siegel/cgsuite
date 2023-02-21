@@ -1,5 +1,22 @@
 /*${cgsuite.banner}*/
 
+/** Ruleset for Domineering.
+  *
+  * Domineering is played on a square grid (typically $8 \times 8$). On her turn, Left may place a vertical domino
+  * anywhere on the grid; likewise, Right may place a horizontal domino. Dominoes may never overlap nor hang off the
+  * edges of the board. A typical opening sequence starting from an empty $6 \times 6$ board:
+  *
+  * \evalHalf{game.grid.Domineering(".#....|.#....|......|......|......|......")} \to
+  * \evalHalf{game.grid.Domineering(".#....|.#....|......|......|....##|......")} \to
+  * \evalHalf{game.grid.Domineering(".#..#.|.#..#.|......|......|....##|......")} \to
+  * \evalHalf{game.grid.Domineering(".#..#.|.####.|......|......|....##|......")}
+  *
+  * You can use a [[String]] or a [[Grid]] to construct a `Domineering` position:
+  *
+  * \display{game.grid.Domineering(".#..#.|.####.|......|......|....##|......")}
+  *
+  * \display{game.grid.Domineering(Grid.Empty(4, 4)).CanonicalForm}
+  */
 singleton class Domineering extends GridRuleset
 
   class Position(grid as Grid) extends GridGame
