@@ -62,19 +62,25 @@ object SpecialMethods {
     "cgsuite.lang.Collection.Adjoin" -> { (collection: Iterable[_], obj: Any) => collection ++ Iterable(obj) },
     "cgsuite.lang.Collection.Concat" -> { (collection: Iterable[_], that: Iterable[_]) => collection ++ that },
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
+      validateArity(fn, 1)
       collection.exists { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
     },
     "cgsuite.lang.Collection.Filter" -> { (collection: Iterable[_], fn: Function) =>
+      validateArity(fn, 1)
       collection.filter { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
     },
     "cgsuite.lang.Collection.Find" -> { (collection: Iterable[_], fn: Function) =>
+      validateArity(fn, 1)
       collection.find { x => fn.call(Array(x)).castAs[java.lang.Boolean] }.orNull
     },
     "cgsuite.lang.Collection.ForAll" -> { (collection: Iterable[_], fn: Function) =>
+      validateArity(fn, 1)
       collection.forall { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
     },
     "cgsuite.lang.Collection.ForEach" -> { (collection: Iterable[_], fn: Function) =>
-      collection.foreach { x => fn.call(Array(x)) }; null
+      validateArity(fn, 1)
+      collection.foreach { x => fn.call(Array(x)) }
+      null
     },
     "cgsuite.lang.List.IndexOf" -> { (list: IndexedSeq[_], obj: Any) =>
       Integer(list.indexOf(obj) + 1)
@@ -94,6 +100,7 @@ object SpecialMethods {
       output
     },
     "cgsuite.lang.List.SortedWith" -> { (list: IndexedSeq[_], fn: Function) =>
+      validateArity(fn, 2)
       list.sorted((x: Any, y: Any) => fn.call(Array(x, y)).castAs[Integer].intValue)
     },
     "cgsuite.lang.List.Take" -> { (collection: Iterable[_], n: Integer) =>
@@ -167,5 +174,11 @@ object SpecialMethods {
     specialMethods0.asInstanceOf[Map[String, (Any, Any) => Any]] ++
     specialMethods1.asInstanceOf[Map[String, (Any, Any) => Any]] ++
     specialMethods2.asInstanceOf[Map[String, (Any, Any) => Any]]
+
+  def validateArity(fn: Function, arity: Int): Unit = {
+    if (fn.parameters.length != arity) {
+      throw InvalidArgumentException(s"Function has invalid number of parameters (expecting $arity, has ${fn.parameters.length}).")
+    }
+  }
 
 }

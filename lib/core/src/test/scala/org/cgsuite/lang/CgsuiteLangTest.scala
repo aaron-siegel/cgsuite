@@ -61,6 +61,8 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("List: SortedWith", "[[5,3,7],[1,6,3],[9,2,8]].SortedWith((a, b) -> a[2] - b[2])", "[[9,2,8],[5,3,7],[1,6,3]]"),
       ("List: SortedWith invalid comparator", "[[5,3,7],[1,6,3],[9,2,8]].SortedWith((a, b) -> \"I am a banana.\")",
         "!!Expected `game.Integer`; found `cgsuite.lang.String`."),
+      ("List: SortedWith invalid comparator 2", "[[5,3,7],[1,6,3],[9,2,8]].SortedWith(a -> 0)",
+        "!!Function has invalid number of parameters (expecting 2, has 1)."),
       ("List: Updated", "[5,12,13].Updated(2, 99)", "[5,99,13]"),
       ("List: Updated out of bounds", "[5,12,13].Updated(0, 99)", "!!List index out of bounds: 0")
     ))
