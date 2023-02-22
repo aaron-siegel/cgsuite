@@ -4,7 +4,9 @@ import java.util
 
 import org.cgsuite.core._
 import org.cgsuite.exception.GridParseException
+import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 object Grid {
@@ -41,7 +43,7 @@ object Grid {
 
 }
 
-class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] with Serializable {
+class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Array[Byte]) extends Ordered[Grid] with Serializable with OutputTarget {
 
   def get(row: Int, col: Int): Byte = values((row-1)*colCount+(col-1))
 
@@ -204,7 +206,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     }
   }
 
-  def permute(symmetry: Symmetry): Grid = {
+  def permuted(symmetry: Symmetry): Grid = {
     val newRowCount = if (symmetry.isTranspose) colCount else rowCount
     val newColCount = if (symmetry.isTranspose) rowCount else colCount
     val newGrid = Grid(newRowCount, newColCount)
@@ -227,7 +229,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     var min = this
     symmetries foreach { symmetry =>
       if (symmetry != Symmetry.Identity) {
-        val newGrid = min.permute(symmetry)
+        val newGrid = min.permuted(symmetry)
         if (newGrid < min)
           min = newGrid
       }
@@ -246,6 +248,24 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   def toString(charMap: String) = {
     val grouped = values map { charMap(_) } grouped colCount map { SeqCharSequence(_) }
     grouped mkString "|"
+  }
+
+  override def toOutput: Output = {
+    val sto = new StyledTextOutput()
+    sto appendMath("Grid([")
+    for (row <- 1 to rowCount) {
+      sto appendMath "["
+      for (col <- 1 to colCount) {
+        sto appendMath get(row, col).toString
+        if (col < colCount)
+          sto appendMath ", "
+      }
+      sto appendMath "]"
+      if (row < rowCount)
+        sto appendMath ", "
+    }
+    sto appendMath "]"
+    sto
   }
 
   def compare(that: Grid): Int = {
