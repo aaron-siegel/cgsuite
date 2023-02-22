@@ -10,28 +10,28 @@ $if ~expression~ then ~statements~ [else ~statements~] end$
 
 For example,
 
-$if x > 5 then
-    System.Print("x exceeds 5.");
+`if x > 5 then
+\sp System.Print("x exceeds 5.");
 else
-    System.Print("x does not exceed 5.");
-end$
+\sp System.Print("x does not exceed 5.");
+end`
 
-Conditionals can also have one or more $elseif$ clauses:
+Conditionals can also have one or more `elseif` clauses:
 
-$if x > 5 and y == 0 then
-    System.Print("x exceeds 5 and y is zero.");
+`if x > 5 and y == 0 then
+\sp System.Print("x exceeds 5 and y is zero.");
 elseif x > 5 then
-    System.Print("x exceeds 5, but y is nonzero.");
+\sp System.Print("x exceeds 5, but y is nonzero.");
 else
-    System.Print("x does not exceed 5.");
-end$
+\sp System.Print("x does not exceed 5.");
+end`
 
-The conditions will be evaluated top-down until one of them is $true$. If none of the conditions is $true$, then the
-$else$ clause will be evaluated, if present.
+The conditions will be evaluated top-down until one of them is `true`. If none of the conditions is `true`, then the
+`else` clause will be evaluated, if present.
 
 Conditionals can be used within expressions; for example
 
-$x := if y % 2 == 0 then 1 else -1 end$
+`var x := if y % 2 == 0 then 1 else -1 end;`
 
 +++ Loops +++
 
@@ -39,55 +39,55 @@ The basic loop in CGSuite takes the form
 
 $while ~expression~ do ~statements~ end$
 
-The statement sequence will be evaluated repeatedly as long as the condition remains $true$.  You can also use
+The statements will be evaluated repeatedly as long as the condition remains `true`. You can also use
 
 $for ~var~ from ~integer~ to ~integer~ do ~statements~ end$
 
-This lets ~var~ range between the two integers, evaluating the statements once for each value.  Try this:
+This lets ~var~ range between the two integers, evaluating the statements once for each value. Example:
 
-$for x from 1 to 5 do
-    Worksheet.Print(x);
-end$
+`for x from 1 to 5 do
+\sp System.Print(x);
+end`
 
-Any of the keywords $for$, $from$ and $to$ can be omitted.  The following are all legal:
+Any of the keywords `for`, `from` and `to` can be omitted. The following are all legal:
 
-$from 1 to 5 do ...$
+`from 1 to 5 do ...`
 
 simply executes the loop five times, without explicitly tracking the loop index.
 
-$for x to 5 do ...$
+`for x to 5 do ...`
 
-assumes that $x$ already has some preassigned value, and steps through the loop until it exceeds $5$.  Finally,
+assumes that `x` already has some preassigned value, and steps through the loop until it exceeds `5`.  Finally,
 
-$for x from 1 do ...$
+`for x from 1 do ...`
 
 will go on forever, unless the loop is explicitly broken (which we'll discuss momentarily).
 
 Two other keywords are useful: the syntax
 
-$for x from 1 to 5 by 2 do ...$
+`for x from 1 to 5 by 2 do ...`
 
-will increment $x$ by two at each step, and the syntax
+will increment `x` by two at each step, and the syntax
 
-$for x from 1 to 5 where x != 3 do ...$
+`for x from 1 to 5 where x != 3 do ...`
 
-will only execute the body when $x != 3$.  In this example, the body would be evaluated four times, for $x = 1,2,4,5$.
+will only execute the body when $x != 3$. In this example, the body would be evaluated four times, for `x = 1,2,4,5`.
 Contrast with
 
-$for x from 1 to 5 while x != 3 do ...$
+`for x from 1 to 5 while x != 3 do ...`
 
-which will ~stop~ the loop at $3$, evaluating the loop only for $x = 1,2$.
+which will ~stop~ the loop at `3`, evaluating the loop only for `x = 1,2`.
 
-++ The in keyword ++
++++ The ~in~ keyword +++
 
 A final type of loop is extremely useful.  You can type
 
 $for ~var~ in ~collection~ do ~statements~ end$
 
 to iterate over all the elements in a collection.  This syntax is used most commonly to iterate over the options of a
-game.  It can also be used in combination with $while$ and $where$.
+game.  It can also be used in combination with `while` and `where`.
 
-All of these types of loops can be used with $setof$, $listof$ and $tableof$, as described in the
+All of these types of loops can be used with collection iterators, as described in the
 [[/tutorials/getting-started/cgscript]] tutorial.
 
 Finally, you can type simply
@@ -96,43 +96,42 @@ $do ~statements~ end$
 
 with no antecedent, to loop forever until explicitly broken.
 
-++ break, continue, return ++
++++ break, continue, return +++
 
-A ~break statement~ consists in its entirety of the keyword
+A ~~break statement~~ consists in its entirety of the keyword
 
-$break;$
+`break;`
 
-If encountered within a loop, CGSuite immediately ceases evaluating the loop.  Similarly,
+If encountered within a loop, CGSuite immediately ceases evaluating the loop. Similarly,
 
-$continue;$
+`continue;`
 
 tells CGSuite to stop evaluating ~this iteration~ of the loop, but to continue evaluating the next iteration.
 
 Finally, we've already seen
 
-$return 5;$
+`return 5;`
 
 which can only appear inside the body of a method.  When a return statement is encountered, CGSuite immediately stops
-evaluating the method and returns the specified value.  If $return$ is specified without a value:
+evaluating the method and returns the specified value.  If `return` is specified without a value:
 
-$return;$
+`return;`
 
-then the implied value is $nil$.  If CGSuite reaches the end of a method without encountering any $return$ statements,
-then the implied value is also $nil$.
+then the implied value is `Nothing`. If CGSuite reaches the end of the method without encountering a `return` statement,
+then it will return the value of the last statement evaluated in the method.
 
-++ Variable Scope ++
++++ Variable Scope +++
 
-Every variable in CGSuite is associated with a particular ~scope~, which refers to the environment where it was defined.
+Every variable in CGSuite is associated with a particular ~~scope~~, which refers to the environment where it was defined.
 There are three basic types of scope in CGSuite:
-<ul>
-<li>~Workspace scope~, which includes all variables assigned on the worksheet.
-<li>~Method scope~.  Whenever a method is called, a new
-scope is immediately created specifically for that method call.  Any local variables defined in the body of the method
-are part of that scope.  As soon as the method call finishes, the scope is destroyed, and the contents of any local
-variables are lost.
-<li>~Member scope~.  There is one member scope for every object, which includes any variables declared using $var$
-statements for that class.
-</ul>
-Ordinarily, variables can only be accessed from within their scope: the worksheet can only see variables in workspace
-scope, etc.  An exception is made for member scopes: they're visible from within a method body, provided it's a method
-of the same class.
+\ul
+\li ~~Workspace scope~~, which includes all variables assigned on the worksheet.
+\li ~~Method scope~~. Any local variables defined inside a method
+are part of that method's scope.
+\li ~~Member scope~~. Any variables defined inside the body of a class (but not inside of one of its methods) are part
+of the member scope of that class.
+\endul
+
+\footer
+
+~~Continue on to the next part of the tutorial: [[grids-and-strips]]~~

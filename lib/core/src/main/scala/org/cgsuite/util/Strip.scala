@@ -23,6 +23,8 @@ object Strip {
 
   val empty = Strip(0)
 
+  def empty(length: Integer): Strip = Strip(length.intValue)
+
 }
 
 class Strip private[util] (private val values: Array[Byte]) extends Serializable {

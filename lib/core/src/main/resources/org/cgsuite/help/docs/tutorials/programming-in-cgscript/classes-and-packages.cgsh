@@ -1,6 +1,6 @@
 Classes and Packages
 
-This section describes the structure and content of a CGScript class, for example, a ruleset implementation.
+This section describes the structure and content of a CGScript class, such as a ruleset implementation.
 
 +++ The Structure of a Class +++
 
@@ -51,7 +51,7 @@ This gives `myVar` the initial value `Nothing`, and is exactly equivalent to:
 `var myVar := Nothing;`
 
 Typically you'd declare `myVar` this way with the intent to assign it a value later on; however, see the below section
-on Mutable and Immutable Variables.
+on Mutable and Immutable Classes.
 
 A method declaration has the form
 
@@ -60,7 +60,7 @@ A method declaration has the form
 or (equivalently, and more convenient for complicated methods)
 
 `def MyMethod(x, y, z) begin
-  x * y + z
+\sp x * y + z
 end`
 
 With `MyMethod` defined as above, CGSuite will admit ~any~ object for the parameters `x`, `y`, and `z`. Sometimes this
@@ -86,9 +86,9 @@ without an $extends$ clause is equivalent to
 
 $class MyClass() extends Object$
 
-A class can ~override~ methods and properties from its ancestors.  This is done through the $override$ keyword:
+A class can ~~override~~ methods and properties from its ancestors.  This is done through the $override$ keyword:
 
-$override method MyMethod(parameters)$
+`override def MyMethod(parameters)`
 
 This specifies that $MyMethod$ is also declared by one or more ancestors, and we are redefining it in the subclass.
 If a method has the same name as a method in some ancestor class, then the $override$ keyword ~must~ be specified.
@@ -96,60 +96,78 @@ If a method has the same name as a method in some ancestor class, then the $over
 +++ Static Declarations +++
 
 Some variables and methods are `static`.  Whereas ordinary variables are members of class instances,
-static variables are members of the class itself - so they exist just once, and are accessible ~statically~, without
+static variables are members of the class itself - so they exist just once, and are accessible without
 having to create any objects of the class.
 
 Static variables can be declared with the static keyword:
 
-$static var myStaticVar;$
+`static var myStaticVar;`
 
 Likewise static methods:
 
-$static method MyStaticMethod(parameters)$
+`static def MyStaticMethod(parameters)`
 
-You can access static methods by calling the class directly, for example,
+You can access static methods by calling the class directly; for example,
 
-$MyClass.MyStaticMethod$
+`MyClass.MyStaticMethod`
 
-A typical example is the $Worksheet.Print$ method, which is a static method of class $Worksheet$.
+A typical example is the `System.Print` method, which is a static method of class `System`.
 
-++ Enums ++
++++ Enums +++
 
-Certain classes come equipped with a fixed set of instances.  For example, the $Player$ class has just two instances,
-$Player.Left$ and $Player.Right$; and $OutcomeClass$ has instances $OutcomeClass.P$, $OutcomeClass.N$, etc.
+Certain classes come equipped with a fixed set of instances.  For example, the `Player` class has just two instances,
+`Player.Left` and `Player.Right`; and `OutcomeClass` has instances `OutcomeClass.P`, `OutcomeClass.N`, etc.
 
-Such classes are known as ~enumerated types~, or enums, and they're treated specially in CGScript.  An enum can be
+Such classes are known as ~~enumerated types~~, or enums, and they're treated specially in CGScript. An enum can be
 declared like so:
 
-$enum OutcomeClass
+`enum OutcomeClass
+\sp P,
+\sp N,
+\sp L,
+\sp R;
+end`
 
-    P,
-    N,
-    L,
-    R;
+This declares an enum with exactly four instances; no others can ever be constructed. `OutcomeClass` is a particularly
+simple example; more complex enums have methods and properties of their own.
 
-end$
++++ Mutable and Immutable Classes +++
 
-This declares an enum with exactly four instances; no others can ever be constructed.  $OutcomeClass$ is a particularly
-simple example; more complex enums have methods and properties of their own (for an example, see the
-$Player$ enum in $cgsuite.game$).
+If you try to reassign a variable within an ordinary class, you'll get an error message.
 
-++ Imports ++
+`class MyClass()
+\sp var x := 3;
+\sp def SetX(newValue) begin
+\sp\sp x := newValue
+\sp end
+end`
 
-Sometimes you'll need to refer to a class that's not in one of the automatic import packages.  In such cases you'll need
-to use an $import$ statement to make that class visible inside your $.cgs$ file.  If you put (say)
+Calling the `SetX` method gives the following error message.
 
-$import game.grid.Clobber;$
+`Cannot reassign to immutable var: \`x\``
 
-at the top of your .cgs file, ~before~ the class or enum declaration, then throughout the rest of the file you can
-refer directly to $Clobber$.  You can also type
+This is because all classes in CGSuite are ~~immutable~~ by default, meaning that their internal structure cannot change
+once it's been defined. Since `x` is a member variable of the immutable class `MyClass`, changing its value would alter
+the internal structure of an immutable class, which is not allowed.
 
-$import game.grid.*;$
+In order to reassign a value to `x`, you need to use the `mutable` modifier for both the variable and the class:
 
-to import ~all~ the classes in the $game.grid$ package.
+`mutable class MyClass()
+\sp mutable var x := 3;
+\sp def SetX(newValue) begin
+\sp\sp x := newValue
+\sp end
+end`
 
-This is the only way to access external classes from within a class file - you can't type $game.grid.Clobber$ directly
-as you can from the worksheet.
+Now you can safely call `SetX` to reassign the value of `x`.
+
+Note that this restriction applies only to member variables of a class. Local variables (declared inside of a method
+definition) and Worksheet variables (declared directly on the worksheet, not inside a class) are always mutable.
+
+A word of advice: if you're inclined to create a mutable class, first pause and think if it's really necessary. CGSuite
+is well-optimized for using immutable objects, and it's generally easier and safer to program with them. While there
+~are~ situations where it's more efficient to use mutable objects, they're relatively rare in CGSuite applications: the
+use of immutable objects will rarely be your performance bottleneck.
 
 \footer
 

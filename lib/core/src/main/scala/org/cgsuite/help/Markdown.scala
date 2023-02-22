@@ -67,7 +67,9 @@ object Markdown {
     "Sigma" -> "&Sigma;",
     "lt" -> "&lt;",
     "epsilon" -> "&epsilon;",
-    "in" -> "&isin;"
+    "in" -> "&isin;",
+    "comment" -> "<!--",
+    "endcomment" -> "-->"
   )
 
   val specialLinks: Map[String, (String, String)] = Map(

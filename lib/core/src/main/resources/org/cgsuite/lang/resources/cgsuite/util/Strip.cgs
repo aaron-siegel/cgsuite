@@ -2,6 +2,8 @@
 
 system class Strip
 
+  external static def Empty(length as Integer) as Strip;
+
   external static def Parse(str as String, charMap as String) as Strip;
 
   external def op[](index as Integer) as Integer;
