@@ -1,29 +1,128 @@
 /*${cgsuite.banner}*/
 
+/** A two-dimensional array of integers. Instances of `Grid` are typically used to represent positions in a grid-based
+ * ruleset, such as [[game.grid.Domineering]].
+ *
+ * An instance `grid` has a fixed number of rows $m$ and columns $n$, and its entries are accessed by
+ *
+ * `grid[(i,j)]`
+ *
+ * for $1 \leq i \leq m$ and $1 \leq j \leq n$. The value $x$ of an entry is constrained so that
+ * $-128 \leq x \leq 127$; attempting to assign values outside this range will raise an exception.
+ *
+ * New grids can be created in two ways:
+ *
+ * `Grid.Empty(m, n)`
+ *
+ * creates an empty $m \times n$ grid, and
+ *
+ * `Grid.Parse(str, charMap)`
+ *
+ * creates a grid by parsing a string according to the specified character map (see method documentation for
+ * [[#Parse]] for details), used by many ruleset implementations.
+ */
 system class Grid
 
+  /** An empty grid with `rowCount` rows and `colCount` columns. */
   external static def Empty(rowCount as Integer, colCount as Integer) as Grid;
 
+  /** The `Grid` corresponding to the specified `String`, as interpreted by `charMap`.
+    *
+    * `charMap` is itself a `String` specifying the relationship between characters in `str` and grid values. If
+    * `charMap = ".xo"`, then the character `.` has value `0`, the character `x` has value `1`, the character `o` has
+    * value `2`, and any other characters are undefined (and will generate an error message).
+    *
+    * The string `str` encodes the `Grid`. Rows are separated by vertical bars, and within each row the `charMap` is
+    * used to determine grid values. Example:
+    *
+    * \display{Grid.Parse("..xo|oxo.", ".xo")}
+    *
+    * See also [[Grid#ToString]].
+    */
   external static def Parse(str as String, charMap as String) as Grid;
 
+  /** The value at grid location `coord`. If `coord` is not within the bounds of this `Grid`, the
+    * value will be [[Nothing]].
+    */
   external def op[](coord as Coordinates) as Integer;
 
+  /** The number of columns in this `Grid`. */
   external def ColCount as Integer;
 
+  /** The decomposition of this `Grid` into connected components separated by entries with the specified `boundaryValue`.
+    * The result will be a `List` of `Grid`s, each corresponding to a single connected component of the original
+    * `Grid`.
+    *
+    * This method is useful in implementations of `Grid`-based rulesets in which the positions can be written as the
+    * disjunctive sum of non-interacting components. Typically, `boundaryValue` will be equal to `0`, representing an
+    * empty `Grid` square.
+    *
+    * The valid adjacencies for the decomposition may optionally be specified by the `directions` parameter. By
+    * default, `Grid` squares will be considered adjacent (for purposes of determining connectivity) only if they are
+    * orthogonally adjacent. Specifying `directions => Coordinates.Compass` will permit both orthogonal and diagonal
+    * adjacencies. Other combinations are possible as well, but the list of `directions` must be symmetric (if
+    * $a \in directions$, then also $-a \in directions$) or the result will be undefined.
+    */
   external def Decomposition(boundaryValue as Integer, directions as List ? Coordinates.Orthogonal) as List;
 
+  /** A `List` of all coordinates at which this `Grid` has the specified value. */
   external def FindAll(value as Integer) as List;
 
+  /** `true` if the specified coordinates are within the bounds of this `Grid`. */
   external def IsInBounds(coord as Coordinates) as Boolean;
 
+  /** A new `Grid` obtained by permuting this `Grid` according to the specified [[Symmetry]].
+    *
+    * The result will be a rotation or reflection of this `Grid`.
+    */
+  external def Permuted(symmetry as Symmetry) as Grid;
+
+  /** The number of rows in this `Grid`. */
   external def RowCount as Integer;
 
+  /** A `Grid` containing only those elements of this `Grid` whose coordinates lie within the rectangle
+    * delineated by `northwest` and `southeast`.
+    *
+    * Example:
+    * \display{grid := Grid.Parse("....|.xo.|.ox.|....", ".xo");
+    *  grid.Subgrid((2,2), (3,3)).ToString(".xo")}
+    */
   external def Subgrid(northwest as Coordinates, southeast as Coordinates) as Grid;
 
+  /** A `Grid` that is uniquely equivalent to this one under the specified symmetry group.
+    *
+    * If `H := G.SymmetryInvariant(symmetries)`, then it will be the case that:
+    * \ul
+    * \li `H == G.Permuted(S)` for some symmetry `S` in `symmetries`; and
+    * \li If `J == G.Permuted(S)` for any `S` in `symmetries`, then `H == J.SymmetryInvariant(symmetries)` as well.
+    * \endul
+    *
+    * This method is useful for efficiently implementing rulesets whose values are known to be symmetry-invariant.
+    */
   external def SymmetryInvariant(symmetries as List) as Grid;
 
+  /** Converts this `Grid` to a `String` according to the specified `charMap`. This method is the exact inverse of
+    * [[#Parse]], and it will always be the case that
+    *
+    * `Grid.Parse(str, charMap).ToString(charMap) == str`
+    *
+    * and
+    *
+    * `Grid.Parse(grid.ToString(charMap), charMap) == grid`
+    *
+    * provided that `str` is a valid string.
+    */
   external def ToString(charMap as String) as String;
 
+  external override def ToOutput as Output;
+
+  /** The `Grid` obtained from this `Grid` by applying the replacement values specified by `newValues`.
+    *
+    * `newValues` must be a `Map` whose keys are [[Coordinates]] and whose values are [[Integer]]s. For example:
+    *
+    * \display{grid := Grid.Empty(4, 4);
+    *  grid.Updated({ (2, 2) => 1, (3, 3) => 1 }).ToString(".x")}
+    */
   external def Updated(newValues as Map) as Grid;
 
 end

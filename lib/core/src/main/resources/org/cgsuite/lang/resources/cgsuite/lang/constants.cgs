@@ -5,12 +5,28 @@
  */
 singleton class constants
 
+  /** The maximum value of the specified collection.
+    *
+    * This is a synonym for [[Collection#Max][Collection.Max]].
+    */
   def Max(elements as Collection) := elements.Max;
 
+  /** The minimal excluded value of the specified collection.
+    *
+    * This is a synonym for [[Collection#Mex][Collection.Mex]].
+    */
   def Mex(elements as Collection) := elements.Mex;
 
+  /** The minimum value of the specified collection.
+    *
+    * This is a synonym for [[Collection#Min][Collection.Min]].
+    */
   def Min(elements as Collection) := elements.Min;
 
+  /** The sum of the specified collection.
+    *
+    * This is a synonym for [[Collection#Sum][Collection.Sum]].
+    */
   def Sum(elements as Collection) := elements.Sum;
 
 end

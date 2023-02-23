@@ -85,6 +85,7 @@ tokens
     OR          = 'or';
     OVERRIDE    = 'override';
     PASS        = 'pass';
+    PRIVATE     = 'private';
     RETURN      = 'return';
     SINGLETON   = 'singleton';
     STATIC      = 'static';
@@ -338,7 +339,7 @@ defInitializer
     ;
 
 modifiers
-    : (OVERRIDE | MUTABLE | STATIC | EXTERNAL)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC* EXTERNAL*)
+    : (OVERRIDE | MUTABLE | STATIC | EXTERNAL | PRIVATE)* -> ^(MODIFIERS OVERRIDE* MUTABLE* STATIC* EXTERNAL* PRIVATE*)
     ;
 
 opCode

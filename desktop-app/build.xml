@@ -63,7 +63,7 @@
     </target>
     
     <!-- Distribution sequence
-         1. Run cgsuite-dist target
+         1. Run cgsuite-dist target (only on MacOS!)
          2. Right click CGSuite, choose Package As / Installers
          3. Run cgsuite-installer-renames target
     -->

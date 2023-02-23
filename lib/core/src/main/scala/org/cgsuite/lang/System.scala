@@ -17,9 +17,9 @@ import scala.collection.mutable
 
 object System extends LazyLogging {
 
-  val copyrightYear = "2003-2021"
+  val copyrightYear = "2003-2023"
 
-  val version = "2.0-beta3"
+  val version = "2.0-beta4"
 
   def clearAll(): Unit = {
     UiHarness.uiHarness.clearUiVars()

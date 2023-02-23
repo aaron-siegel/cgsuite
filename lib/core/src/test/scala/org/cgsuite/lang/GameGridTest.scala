@@ -39,7 +39,7 @@ class GameGridTest extends CgscriptSpec {
       ("CeyloneseFoxAndGeese", "game.grid.CeyloneseFoxAndGeese({(4,2),(4,4),(4,6),(4,8)}, (1,1)).GameValue", "{9||4v[on]*|5/2*|||3|5/2*,5/2v||5/2}"),
       ("GenFoxAndGeese", "game.grid.GenFoxAndGeese(boardWidth => 10)({(3,1),(3,3),(3,5),(3,7),(3,9)}, (1,9)).GameValue", "{6over|5*}"),
       ("FoxAndGeese.ValuesTable", "game.grid.FoxAndGeese.ValuesTable({(3,1),(3,3),(3,5),(3,7)})",
-        """|      "X" |       |       "X" |   |      "X" |    |        "X" |      @
+        """|        X |       |         X |   |        X |    |          X |      @
            |----------+-------+-----------+---+----------+----+------------+------@
            |          | 2over |           | 2 |          | 3* |            | 4over@
            |----------+-------+-----------+---+----------+----+------------+------@

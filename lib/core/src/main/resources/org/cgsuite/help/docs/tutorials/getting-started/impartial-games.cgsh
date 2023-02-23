@@ -40,7 +40,7 @@ we can pretty-print the period by typing:
 `R.NimValueSequence(300).PeriodicTable(34)`
 
 Try it! (If `CheckPeriod` fails to determine periodicity, it will return the special value `Nothing`: try this by
-entering `R.NimValueSequence(100)`; no periodicity is apparent after computing just `100` values.)
+entering `R.CheckPeriodicity(100)`; no periodicity is apparent after computing just `100` values.)
 
 +++ Take-and-Break Codes +++
 

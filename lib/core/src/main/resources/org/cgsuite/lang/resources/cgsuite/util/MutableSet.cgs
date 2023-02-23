@@ -1,11 +1,25 @@
 /*${cgsuite.banner}*/
 
-mutable system class MutableSet() extends Set
+mutable system class MutableSet() extends Collection
 
-  external def Add(obj);
-  external def AddAll(coll as Collection);
+  static def Eval(initialElements as Collection) begin
+    var set := MutableSet();
+    set.AddAll(initialElements);
+    set
+  end
+
+  external def Add(element);
+
+  external def AddAll(elements as Collection);
+
   external def Clear();
-  external def Remove(obj);
-  external def RemoveAll(coll as Collection);
+
+  external def Contains(element);
+
+  external def Remove(element);
+
+  external def RemoveAll(elements as Collection);
+
+  override def ToOutput := "MutableSet(" + ToList.Sorted.MkOutput(", ") + ")";
 
 end

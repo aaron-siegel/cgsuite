@@ -1,14 +1,52 @@
 /*${cgsuite.banner}*/
 
+/** Ruleset schema for generalizations of [[Clobber]].
+  *
+  * An instance of this schema is a ruleset played in a similar way as `Clobber`, but with variations in
+  * the available moves.
+  */
 class GenClobber(
+  /** The directions in which the pieces are permitted to move. `directions` must be a [[List]] of [[Coordinates]];
+    * the default in ordinary [[Clobber]] is [[Coordinates#Orthogonal][Coordinates.Orthogonal]].
+    */
   directions ? Coordinates.Orthogonal,
+  /** A [[Map]] specifying which piece types a unit may clobber. The `Map` keys must be `Left` and `Right`; each value
+    * must be a [[Collection]] of integers (`0` = empty, `1` = Left piece, `2` = Right piece). The default is
+    *
+    * `{Left => {2}, Right => {1}}`
+    *
+    * which indicates that Left may clobber only Right pieces, and Right may clobber only Left pieces. If instead
+    *
+    * `{Left => {1,2}, Right => {1,2}}`
+    *
+    * is specified, then either player may clobber a piece of either color. If `0` appears in either of the sets, then
+    * the relevant player(s) may move onto empty space.
+    */
   clobbered ? {Left => {2}, Right => {1}},
+  /** A [[Map]] specifying what happens to the square each piece moves ~away~ from. The `Map` keys must be `Left` and
+    * `Right`; each value must be an [[Integer]] (`0` = empty, `1` = Left piece, `2` = Right piece). The default is
+    *
+    * `{Left => 0, Right => 0}`
+    *
+    * which indicates that after a piece moves, its origin square remains empty. If instead
+    *
+    * `{Left => 2, Right => 1}`
+    *
+    * is specified, then each piece spawns a piece of the opposite color in the vacated square, as in [[AntiClobber]].
+    */
   leftBehind ? {Left => 0, Right => 0},
+  /** The maximum distance a piece may move. Each piece is permitted to move up to `maxDistance` times in one of the
+    * directions specified by the `directions` parameter, provided all of the intermediate squares are clobberable
+    * (i.e., match one of the values specified by the `clobbered` parameter). Pieces may never change direction
+    * during a move.
+    *
+    * `maxDistance` may be `inf` to indicate that there is no limit.
+    */
   maxDistance ? 1
   ) extends GridRuleset
 
-  var clobberedAsList := [clobbered[Left], clobbered[Right]];
-  var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
+  private var clobberedAsList := [clobbered[Left], clobbered[Right]];
+  private var leftBehindAsList := [leftBehind[Left], leftBehind[Right]];
 
   class Position(grid as Grid) extends GridGame
 
@@ -49,7 +87,7 @@ class GenClobber(
   override def CharMap := if clobbered.Values Contains 0 then ".xo#" else ".xo" end;
 
   override def Icons begin
-  
+
     var bwIcons := [Icon.BlackStone, Icon.WhiteStone];
     if maxDistance == inf then
       if directions == Coordinates.Orthogonal then
@@ -60,15 +98,17 @@ class GenClobber(
     elseif maxDistance == 1 then
       if directions == Coordinates.Compass then
         bwIcons := [Icon.BlackKing, Icon.WhiteKing];
+      elseif directions == Coordinates.KnightsMove then
+        bwIcons := [Icon.BlackKnight, Icon.WhiteKnight];
       end
     end
-    
+
     if clobbered.Values Contains 0 then
       [Icon.Blank, bwIcons[1], bwIcons[2], Icon.GraySquare]
     else
       [Icon.Blank, bwIcons[1], bwIcons[2]]
     end
-        
+
   end
 
 end

@@ -29,15 +29,15 @@ public class CgsuiteLanguageHierarchy extends LanguageHierarchy<CgsuiteTokenId>
         
         tokenTypes.put("Keyword", new int[]
         {
-            AND, AS, BEGIN, BREAK, BY, CLASS_VAR, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ERROR,
+            AND, AS, BEGIN, BREAK, BY, CLEAR, CONTINUE, DO, ELSE, ELSEIF, END, ERROR,
             FALSE, FINALLY, FOR, FOREACH, FROM, IF, IN, IS,
             NOT, OP, OR, PASS, RETURN, SQUOTE, SUPER,
             THEN, THIS, TO, TRUE, TRY, UNARY, VAR, WHERE, WHILE, YIELD
         });
         tokenTypes.put("DeclKeyword", new int[]
         {
-            CLASS, DECL_BEGIN, DECL_END, DEF, ENUM, EXTENDS, EXTERNAL, IMPORT, MUTABLE, OVERRIDE,
-            SINGLETON, STATIC, SYSTEM
+            CLASS, CLASS_VAR, DECL_BEGIN, DECL_END, DEF, ENUM, EXTENDS, EXTERNAL, IMPORT, MUTABLE, OVERRIDE,
+            PRIVATE, SINGLETON, STATIC, SYSTEM
         });
         tokenTypes.put("DeclId", new int[] { DECL_ID });
         tokenTypes.put("InfixOp", new int[] { INFIX_OP });

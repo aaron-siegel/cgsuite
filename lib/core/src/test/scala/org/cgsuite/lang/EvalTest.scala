@@ -254,6 +254,17 @@ class EvalTest extends CgscriptSpec {
     ))
   }
 
+  it should "handle conditionals correctly" in {
+    executeTests(Table(
+      header,
+      ("if-then", "if 5 > 4 then 3 end", "3"),
+      ("if-then 2", "if 5 < 4 then 3 end", "Nothing"),
+      ("if-then-else", "if 5 < 4 then 3 else 4 end", "4"),
+      ("if-then-elseif-else", "if 5 < 4 then 3 elseif 5 > 4 then 4 else 5 end", "4"),
+      ("if-then with non-boolean", "if 3 then 3 end", "!!Expected `cgsuite.lang.Boolean`; found `game.Integer`.")
+    ))
+  }
+
   it should "handle various types of loops correctly" in {
 
     // (name, initializer, fn, for-snippet, result, optional-sorted-result, sum)
