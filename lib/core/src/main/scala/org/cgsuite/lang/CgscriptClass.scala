@@ -9,7 +9,7 @@ import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.antlr.runtime.tree.Tree
 import org.cgsuite.core._
 import org.cgsuite.core.misere.MisereCanonicalGameOps
-import org.cgsuite.exception.{CgsuiteException, EvalException}
+import org.cgsuite.exception.{CgsuiteException, EvalException, InvalidArgumentException}
 import org.cgsuite.lang.node._
 import org.cgsuite.lang.parser.CgsuiteLexer._
 import org.cgsuite.lang.parser.ParserUtil
@@ -52,6 +52,7 @@ object CgscriptClass {
   val List = CgscriptPackage.lookupClassByName("List").get
   lazy val NothingClass = CgscriptPackage.lookupClassByName("Nothing").get
   lazy val HeapRuleset = CgscriptPackage.lookupClassByName("game.heap.HeapRuleset").get
+  lazy val Boolean = CgscriptPackage.lookupClassByName("Boolean").get
   lazy val Integer = CgscriptPackage.lookupClassByName("Integer").get
   lazy val Player = CgscriptPackage.lookupClassByName("Player").get
   lazy val Grid = CgscriptPackage.lookupClassByName("Grid").get
@@ -62,9 +63,11 @@ object CgscriptClass {
     x match {
       case null => NothingClass
       case so: StandardObject => so.cls
-      case _ => classLookupCache.getOrElseUpdate(x.getClass, resolveToSystemClass(x))
+      case _ => classLookupCache.getOrElseUpdate(x.getClass, javaClassToSystemClass(x.getClass))
     }
   }
+
+  def fromJavaClass[T](implicit mf: Manifest[T]): CgscriptClass = javaClassToSystemClass(mf.runtimeClass)
 
   def is(x: Any, cls: CgscriptClass) = of(x).ancestors.contains(cls)
 
@@ -124,16 +127,28 @@ object CgscriptClass {
 
   }
 
-  private[lang] def resolveToSystemClass(x: Any): CgscriptClass = {
+  private[lang] def javaClassToSystemClass(javaClass: Class[_]): CgscriptClass = {
     // This is slow, but we cache the results so that it only happens once
     // per distinct (Java) type witnessed.
-    val systemClass = SystemClassRegistry.typedSystemClasses find { case (_, cls) => cls isAssignableFrom x.getClass }
+    val systemClass = SystemClassRegistry.typedSystemClasses find { case (_, cls) => cls isAssignableFrom javaClass }
     systemClass flatMap { case (name, _) => CgscriptPackage.lookupClassByName(name) } getOrElse {
-      sys.error(s"Could not determine CGScript class for object of type `${x.getClass}`: $x")
+      sys.error(s"Could not determine CGScript class for type `$javaClass`.")
     }
   }
 
   private val classLookupCache = mutable.AnyRefMap[Class[_], CgscriptClass]()
+
+  implicit class SafeCast(x: Any) {
+
+    def castAs[T](implicit mf: Manifest[T]): T = {
+      x match {
+        case t: T => t
+        case _ =>
+          throw InvalidArgumentException(s"Expected `${CgscriptClass.fromJavaClass[T].qualifiedName}`; found `${CgscriptClass.of(x).qualifiedName}`.")
+      }
+    }
+
+  }
 
 }
 
@@ -1518,6 +1533,7 @@ class CgscriptClass(
         case 0 => ()
         case 1 => args(0)
         case 2 => (args(0), args(1))
+        case 3 => (args(0), args(1), args(2))
       }
       fn(classObject, argsTuple)
     }

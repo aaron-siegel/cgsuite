@@ -36,8 +36,8 @@ class GenClobber(
     */
   leftBehind ? {Left => 0, Right => 0},
   /** The maximum distance a piece may move. Each piece is permitted to move up to `maxDistance` times in one of the
-    * directions specified by the [[directions]] parameter, provided all of the intermediate squares are clobberable
-    * (i.e., match one of the values specified by the [[clobbered]] parameter). Pieces may never change direction
+    * directions specified by the `directions` parameter, provided all of the intermediate squares are clobberable
+    * (i.e., match one of the values specified by the `clobbered` parameter). Pieces may never change direction
     * during a move.
     *
     * `maxDistance` may be `inf` to indicate that there is no limit.

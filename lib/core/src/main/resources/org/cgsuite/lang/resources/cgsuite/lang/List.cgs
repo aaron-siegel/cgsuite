@@ -1,27 +1,128 @@
 /*${cgsuite.banner}*/
 
+/** A collection whose elements appear in sequence.
+  *
+  * Basic usage of lists is discussed in the [[/tutorials/getting-started/cgscript]]
+  * tutorial page.
+  *
+  * Lists in CGSuite are immutable: they cannot be modified once created. Operations
+  * such as [[Collection#Concat]] or [[#Updated]] will create a new list with
+  * the new elements, without modifying the original list. A separate [[MutableList]]
+  * class is provided for applications that specifically need a modifiable list.
+  *
+  * Lists in CGSuite use one-based indexing: if `x` is a list, then
+  * `x[1]` is the first element of `x`, and `x[x.Length]` is the last.
+  *
+  * Lists are stored internally as arrays, so indexed lookup is a fast operation
+  * and appending to a long list is relatively slow. It is generally best to avoid
+  * multiple sequential [[Collection#Adjoin]] operations; instead, use list
+  * comprehension (see the [[/tutorials/getting-started/cgscript]] tutorial) or
+  * a [[MutableList]].
+  */
 system class List extends Collection
 
+  /** The `List` obtained by replacing every element `x` of this `List` with
+    * `fn(x)`.
+    */
   def Apply(fn as Function) := [fn(x) for x in this];
 
+  /** `true` if `x` is an element of this `List`.
+    */
   external def Contains(x);
 
+  /** The `List` obtained by de-duplicating this `List`.
+    *
+    * The result will contain one copy of each distinct element of this `List`,
+    * in order of first appearance.
+    */
   external def Distinct;
 
+  /** Groups this `List` into sublists containing at most `n` elements each.
+    *
+    * The result will be a `List` of `List`s. If the number of elements in this
+    * `List` is a multiple of `n`, then each sublist will contain exactly `n`
+    * elements. Otherwise, the final sublist will contain `k` elements, where
+    * `k == this.Length % n`.
+    *
+    * Example:
+    *
+    * \display{[1,2,3,4,5,6,7,8].Grouped(3)}
+    */
   external def Grouped(n as Integer);
 
+  /** The list index at which `element` first appears, or `0` if `element` is
+    * not contained in this `List`.
+    */
   external def IndexOf(element);
 
+  /** The length of this list. This is an exact synonym for [[Collection#Size]].
+    */
   external def Length;
 
-  def PeriodicTable(period as Integer) := Table(Grouped(period));
-
-  external def Sorted;
-
-  external def Updated(index as Integer, value);
-
+  /** Generates [[Output]] for this `List`, with elements separated by `sep`.
+    *
+    * Example:
+    *
+    * \display{[1,2,3,4].MkOutput("; ")}
+    */
   external def MkOutput(sep as String);
 
+  /** A table containing the elements of this list, with exactly `period` columns.
+    * `list.PeriodicTable(n)` is exactly equivalent to `Table(list.Grouped(n))`.
+    *
+    * Example:
+    *
+    * \display{[1,2,3,4,5,6,7,8].PeriodicTable(3)}
+    */
+  def PeriodicTable(period as Integer) := Table(Grouped(period));
+
+  /** The `List` with the same elements as this `List`, but rearranged in sort order.
+    *
+    * Example:
+    *
+    * \display{[3,7,1,4,7,1].Sorted}
+    */
+  external def Sorted;
+
+  /** The `List` with the same elements as this `List`, but rearranged in a custom
+    * sort order, according to the specified `Function`.
+    *
+    * The `Function` should be a binary function that accepts any two elements
+    * of the list and returns an `Integer`. The sort algorithm
+    * expects that `fn(a,b)` is:
+    *
+    * \ul
+    * \li negative if $a < b$ in the sort order;
+    * \li zero if $a = b$ in the sort order;
+    * \li positive if $a > b$ in the sort order.
+    * \endul
+    *
+    * Here's an example that sorts a list of lists, with the sort order given by
+    * $a < b$ iff $a[2] < b[2]$ (i.e., compare two lists according to their second
+    * element).
+    *
+    * \display{[[5,3,7],[1,6,3],[9,2,8]].SortedWith((a, b) -> a[2] - b[2])}
+    */
+  external def SortedWith(fn as Function);
+
+  /** The sublist of this `List` containing just the elements with indices between
+    * `first` and `last` (inclusive).
+    *
+    * Example:
+    *
+    * \display{[1,4,9,16,25,36].Sublist(3, 5)}
+    */
+  external def Sublist(first as Integer, last as Integer);
+
+  /** The `List` containing just the first `n` elements of this `List`.
+    */
+  external def Take(n as Integer);
+
   override def ToOutput := "[" + MkOutput(",") + "]";
+
+  /** The `List` obtained from this `List` by replacing the element at the specified
+    * index with `value`.
+    */
+  external def Updated(index as Integer, value);
 
 end

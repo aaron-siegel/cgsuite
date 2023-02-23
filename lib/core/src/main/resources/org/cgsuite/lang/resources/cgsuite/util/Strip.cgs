@@ -1,21 +1,78 @@
 /*${cgsuite.banner}*/
 
+/** A one-dimensional array of integers. Instances of `Strip` are typically used to represent positions in a strip-based
+ * ruleset, such as [[game.strip.TopplingDominoes]].
+ *
+ * An instance `strip` has a fixed length $n$, and its entries are accessed by
+ *
+ * `strip[i]`
+ *
+ * for $1 \leq i \leq n$. The value $x$ of an entry is constrained so that
+ * $-128 \leq x \leq 127$; attempting to assign values outside this range will raise an exception.
+ *
+ * New strips can be created in two ways:
+ *
+ * `Strip.Empty(n)`
+ *
+ * creates an empty strip of length $n$, and
+ *
+ * `Strip.Parse(str, charMap)`
+ *
+ * creates a strip by parsing a string according to the specified character map (see method documentation for
+ * [[#Parse]] for details), used by many ruleset implementations.
+ *
+ * A `Strip` is functionally identical to a $1 \times n$ [[Grid]], but with an interface that is more logical for the
+ * one-dimensional case.
+ */
 system class Strip
 
+  /** An empty strip with `length` entries. */
+  external static def Empty(length as Integer) as Strip;
+
+  /** The `Strip` corresponding to the specified `String`, as interpreted by `charMap`.
+    *
+    * The behavior is identical to parsing a $1 \times n$ [[Grid]]; see the documentation for
+    * [[Grid#Parse]] for details.
+    */
   external static def Parse(str as String, charMap as String) as Strip;
 
+  /** The value at strip location `index`. If `index` is not within the bounds of this `Strip`, the
+    * value will be [[Nothing]].
+    */
   external def op[](index as Integer) as Integer;
 
+  /** A `List` of all indices at which this `Strip` has the specified value. */
   external def FindAll(value as Integer) as List;
 
+  /** The number of entries in this `Strip`. */
   external def Length as Integer;
 
+  /** A `Strip` containing only those elements of this `Strip` whose indices lie between `first` and `last`
+    * (inclusive).
+    */
   external def Substrip(first as Integer, last as Integer) as Strip;
 
+  external override def ToOutput as Output;
+
+  /** Converts this `Strip` to a `String` according to the specified `charMap`.
+    *
+    * The behavior is identical to converting a $1 \times n$ [[Grid]]; see the documentation for
+    * [[Grid#ToString]] for details.
+    */
   external def ToString(charMap as String) as String;
 
+  /** The `Strip` obtained from this `Strip` by applying the replacement values specified by `newValues`.
+    *
+    * `newValues` must be a `Map` whose keys and values are [[Integer]]s. For example:
+    *
+    * \display{strip := Strip.Empty(8);
+    *  strip.Updated({ 2 => 1, 5 => 1 }).ToString(".x")}
+    */
   external def Updated(newValues as Map) as Strip;
 
+  /** The `Strip` obtained from this `Strip` by setting all values between `first` and `last` (inclusive) to
+    * `newValue`.
+    */
   external def UpdatedRange(first as Integer, last as Integer, newValue as Integer) as Strip;
 
 end

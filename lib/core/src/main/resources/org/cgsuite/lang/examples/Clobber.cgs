@@ -8,8 +8,8 @@
  * adjacent black stone. No moves are permitted without capture.
  *
  * Examples:
- * g := examples.Clobber("xoxo|ox..")
- * g.CanonicalForm
+ * G := examples.Clobber("xoxo|ox..")
+ * G.CanonicalForm
  */
 
 // Define Clobber as a subclass of GridRuleset
@@ -24,7 +24,7 @@ singleton class Clobber extends game.grid.GridRuleset
       var us := player.Ordinal;
       var them := player.Opponent.Ordinal;
 
-      for coord in grid FindAll us                // For each coordinate that matches the player's color ...
+      for coord in (grid FindAll us)              // For each coordinate that matches the player's color ...
       for direction in Coordinates.Orthogonal     // ... and for each orthogonal direction ...
       where grid[coord + direction] == them       // ... such that an opposing stone is adjacent in that direction ...
       yield

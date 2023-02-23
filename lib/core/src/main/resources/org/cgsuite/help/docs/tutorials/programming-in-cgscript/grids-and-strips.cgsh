@@ -2,83 +2,76 @@ Grids and Strips
 
 This section describes several tools included with CGSuite to assist with game implementation.
 
-##TOC##
++++ Grids +++
 
-++ Grids ++
+A ~~grid~~ is a matrix of integers with a fixed number of rows and columns.  CGScript provides dedicated support for grids
+via a utility class, $cgsuite.util.Grid$, and associated ruleset skeleton, $game.grid.GridRuleset$.
 
-A ~grid~ is a matrix of integers with a fixed number of rows and columns.  CGScript provides dedicated support for grids
-via a utility class, $cgsuite.util.Grid$, and associated game skeleton, $game.GridGame$.
-
-Games such as Clobber that are played on grids will normally be subclasses of $GridGame$, which implements the nuts and
-bolts of constructing, displaying and exploring grid-based positions.  An example of $GridGame$ usage was given in the
+Rulesets such as Clobber that are played on grids will normally be subclasses of `GridRuleset`, which implements the nuts and
+bolts of constructing, displaying and exploring grid-based positions.  An example of `GridRuleset` usage was given in the
 first section of this tutorial ([[three-examples]]); this section will focus on the underlying utility classes.
 
-A blank $Grid$ can be created by passing the dimensions of the grid to its constructor.  For example
+A blank `Grid` can be created by passing the dimensions of the grid to the static method `Grid.Empty`.  For example:
 
-$grid := Grid(3,4)$
+`grid := Grid.Empty(3,4)`
 
-constructs an empty grid with 3 rows and 4 columns.  Grid values can be accessed and assigned with brackets; for
-example
+constructs an empty grid with 3 rows and 4 columns. Grid values can be accessed with brackets:
 
-$grid[1,3] := 5$
+`x := grid[(1,3)]`
 
-puts the value 5 at row 1, column 3, and
+The notation is the same as for lists, except that the argument to the accessor is a coordinate pair, rather than a single
+integer. Accessing a location that is out of bounds returns `Nothing`. For example, in the $3x4$ grid above, any of
+the following would return `Nothing`:
 
-$grid[1,3]$
+`grid[(0,1)]
+grid[(4,4)]
+grid[(-8,20)]`
 
-retrieves it.
+Like most objects in CGSuite, grids are immutable. To create a new grid by changing some of the values of an existing
+one, use the `Updated` method:
 
-Grids can accept any value between $-128$ and $127$.  The default value for all entries in a newly constructed grid
-is 0.  Retrieving a value from a location out of bounds returns $nil$.  For example, in the $3x4$ grid above, any of
-the following would return $nil$:
+`newGrid := grid.Updated({ (1,1) => 5, (1,2) => 4, (2,1) => -1 })`
 
-$grid[0,3]
-grid[4,4]
-grid[-8,20]$
+Grids can accept any value $x$ with $-128 \leq x \leq 127$. This limitation is for efficiency reasons: the grid structure
+is optimized for implementations of games played on grids, where each grid location has a small finite number of states.
+If you need more flexibility, use a different structure, such as a list of lists (which can accept any type of value,
+but will be less efficient).
 
-Grids can also be constructed by parsing strings, using the static method $Grid.ParseGrid$.  For example:
++++ Grid Manipulation +++
 
-$Grid.ParseGrid("xox.|..ox|oxx.", ".xo")$
+Grids can also be constructed by parsing strings, using the static method `Grid.Parse`.  For example:
+
+`Grid.Parse("xox.|..ox|oxx.", ".xo")`
 
 constructs the following 3x4 grid:
 
-$1210
+`1210
 0021
-2110$
+2110`
 
-The second argument to $ParseGrid$ (in this case $".xo"$) is the ~character map~ which describes the mapping between
-symbols and grid values.  The first character in the map corresponds to grid value 0, the second to grid value 1, etc.
+The second argument to `Grid.Parse` (in this case `".xo"`) is the ~~character map~~, which describes the mapping between
+symbols and grid values. The first character in the map corresponds to grid value 0, the second to grid value 1, etc.
 
-++ Utility Methods ++
+CGScript provides a range of other methods for manipulating grids in ways that are common to ruleset implementations,
+such as `Subgrid`, `Decomposition`, and `SymmetryInvariant`. See the help page for the [[cgsuite.util.Grid]] class for
+details.
 
-CGScript provides several utility methods for manipulating grids.
-<ul>
-<li>$SubGrid(m1,n1,m2,n2)$ - constructs a new grid corresponding to the rectangular portion of this grid bounded by
-$(m1,n1)$ and $(m2,n2)$.
-<li>$Paste(grid,m,n)$ - pastes a copy of the specified $grid$ onto this one, with coordinate $(1,1)$ of $grid$
-aligning with $(m,n)$ of $this$.
-<li>$Decompose(boundaryValue)$ - decomposes this grid along the boundary $boundaryValue$.  This method will separate
-the grid into orthogonally connected regions, with the specified boundary.  The return value will be a list of grids,
-each of minimal size to represent the corresponding region.  This is useful for games that tend to decompose into
-disjoint subregions.
-<li>$LibertyCount(m,n,libertyValue)$ - determines the number of liberties for the contiguous block at $(m,n)$, defined
-as follows.  Let $x$ be the grid value at $(m,n)$.  CGScript first determines the set of all grid locations that are
-orthogonally connected to $(m,n)$ entirely by entries of value $x$.  Then CGScript determines the number of entries with
-value $libertyValue$ that are orthogonally adjacent to some member of this set.  This number is the return value of
-$LibertyCount$.
-</ul>
++++ Strips +++
 
-++ Strips ++
-
-A ~strip game~ is a game played on a 1-by-n grid.  The $Grid$ class is cumbersome for strip games, so CGScript provides
-a special subclass, $Strip$, and an associated $StripGame$ skeleton.  The API is the similar to $Grid$, except that
+A ~~strip game~~ is a game played on a 1-by-n grid.  The `Grid` class is cumbersome for strip games, so CGScript provides
+a related class, `Strip`, and an associated `game.strip.StripRuleset` skeleton.  The structure is similar to $Grid$, except that
 a single number (the strip location) is used in place of a pair of grid coordinates.  For example,
 
-$strip := Strip(8)$
+`strip := Strip.Empty(8)`
 
-constructs a strip of length 8, and syntax like $strip[3]$, etc., is used to access it.
+constructs a strip of length 8, and syntax like `strip[3]`, etc., is used to access it.
 
-++ Symmetries ++
+\footer
+
+~~Continue on to the next part of the tutorial: [[advanced-language-features]]~~
+
+\comment
++++ Symmetries +++
 
 CGScript also provides tools for symmetry checking.  This can greatly speed up implementations of games where symmetries
 are common.  The eight symmetries are defined in the $cgsuite.util.Symmetry$ enum.
@@ -105,3 +98,4 @@ Domineering), it can provide an enormous speed gain.  For other games, however, 
 effect.  For example, Amazons is ostensibly symmetric, but in practice symmetries are rarely encountered as followers
 of a given starting position.  Adding symmetry checking to Amazons actually results in ~slower~ performance:
 CGSuite does a lot of extra work checking all the different symmetries, and realizes little benefit.
+\endcomment

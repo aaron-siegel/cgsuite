@@ -1,8 +1,15 @@
 /*${cgsuite.banner}*/
 
+/** A single entry of a [[Map]].
+  */
 system class MapEntry
 
+  /** The map key for this entry.
+    */
   external def Key;
+
+  /** The map value for this entry.
+    */
   external def Value;
 
   override external def ToOutput;
