@@ -4,6 +4,7 @@ import java.util
 
 import org.cgsuite.core.{Integer, SmallInteger}
 import org.cgsuite.exception.GridParseException
+import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -23,9 +24,11 @@ object Strip {
 
   val empty = Strip(0)
 
+  def empty(length: Integer): Strip = Strip(length.intValue)
+
 }
 
-class Strip private[util] (private val values: Array[Byte]) extends Serializable {
+class Strip private[util] (private val values: Array[Byte]) extends Serializable with OutputTarget {
 
   def length = values.length
 
@@ -95,6 +98,14 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
   override def equals(that: Any): Boolean = that match {
     case other: Strip => util.Arrays.equals(values, other.values)
     case _ => false
+  }
+
+  override def toOutput: Output = {
+    val sto = new StyledTextOutput()
+    sto appendMath "Strip(["
+    sto appendMath (values mkString ", ")
+    sto appendMath "])"
+    sto
   }
 
   def toString(charMap: String): String = {

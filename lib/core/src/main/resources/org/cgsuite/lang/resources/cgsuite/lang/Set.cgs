@@ -1,15 +1,41 @@
 /*${cgsuite.banner}*/
 
+/** A collection with at most one copy of each element.
+  *
+  * Basic usage of sets is discussed in the [[/tutorials/getting-started/cgscript]]
+  * tutorial page.
+  *
+  * Sets in CGSuite are immutable: they cannot be modified once created. Operations
+  * such as [[Collection#Concat]] or [[#Union]] will create a new set with
+  * the new elements, without modifying the original set. A separate [[MutableSet]]
+  * class is provided for applications that specifically need a modifiable set.
+  */
 system class Set extends Collection
 
+  /** The `Set` obtained by replacing every element `x` of this `Set` with
+    * `fn(x)`.
+    */
+  def Apply(fn as Function) := {fn(x) for x in this};
+
+  /** `true` if `x` is an element of this `Set`.
+    */
   external def Contains(x);
 
-  def Apply(fn as Function) := {fn(x) for x in this};
-  
+  /** The set intersection of this set and `that`.
+    */
   external def Intersection(that as Set);
 
+  /** The set obtained by replacing elements in this set according to the specified
+    * replacement map.
+    *
+    * The result will contain each element `x` of this set, unless `x` also appears
+    * as a key in the `replacements` [[Map]]. In that case, the result will contain
+    * `replacements[x]` instead of `x`.
+    */
   external def Replaced(replacements as Map);
   
+  /** The set union of this set and `that`.
+    */
   external def Union(that as Collection);
 
   override def ToOutput := "{" + ToList.Sorted.MkOutput(",") + "}";

@@ -60,6 +60,8 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   private[help] val cgshFiles = allMatchingFiles(srcDir) { _.extension contains ".cgsh" }
 
+  private var nextImageOrdinal = 0
+
   private var markdownErrors = false
 
   CgscriptClass.Object.ensureDeclared()
@@ -770,11 +772,14 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def generateMarkdown(targetFile: File, rawInput: String, linkBuilder: LinkBuilder, stripAsterisks: Boolean = false, firstSentenceOnly: Boolean = false): Option[Markdown] = {
     try {
-      val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, stripAsterisks, firstSentenceOnly)
+      if (!targetFile.parent.exists()) {
+        targetFile.parent.createDirectories()
+      }
+      val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, nextImageOrdinal, stripAsterisks, firstSentenceOnly)
       val varMap = mutable.AnyRefMap[Symbol, Any]()
       markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
         try {
-          generateImages(targetFile, statement, scale, ordinal, varMap)
+          generateImages(targetFile, statement, scale, nextImageOrdinal + ordinal, varMap)
         } catch {
           case exc: Throwable =>
             if (!reportedImageException) {
@@ -783,8 +788,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
             } else {
               logger.error(s"Could not generate image for statement: $statement")
             }
+            markdownErrors = true
         }
       }
+      nextImageOrdinal += markdown.evalStatements.length;
       Some(markdown)
     } catch {
       case exc: Exception =>
@@ -889,9 +896,15 @@ case class HelpLinkBuilder(
       case Some(member) => s".html#${anchorName(member)}"
       case None => ".html#top"
     }
+    val classDisplayName = if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
     val refText = targetMemberOpt match {
-      case Some(member) => member.idNode.id.name
-      case None => if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
+      case Some(member) if referringClass contains targetClass =>
+        // Print just the member name
+        member.idNode.id.name
+      case Some(member) =>
+        // Print the member name qualified with the class name
+        s"$classDisplayName.${member.idNode.id.name}"
+      case None => classDisplayName
     }
     val codePrefix = if (textOpt.isDefined) "" else """<code>"""
     val linkText = textOpt getOrElse s"$refText"
@@ -963,7 +976,16 @@ case class HelpLinkBuilder(
       case Some(clsref) =>
         clsref lookupMember memberId match {
           case Some(member) => (Some(clsref), Some(member))
-          case None => (None, None)
+          case None =>
+            // Check for static. TODO This should be refactored.
+            clsref.classInfo.staticVarLookup.get(memberId) match {
+              case Some(staticMember) => (Some(clsref), Some(staticMember))
+              case None =>
+                clsref.lookupMethodGroup(memberId, asStatic = true) match {
+                  case Some(staticMethodGroup) => (Some(clsref), Some(staticMethodGroup.methods.head))
+                  case None => (None, None)
+                }
+            }
         }
       case None => (None, None)
     }

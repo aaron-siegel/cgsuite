@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** A unique value that represents the absence of a result.
+  */
 singleton system class Nothing
 
   override def ToOutput := "Nothing";
