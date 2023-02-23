@@ -7,7 +7,7 @@ import java.lang.{System => JSystem}
 
 import com.typesafe.scalalogging.Logger
 import javax.imageio.ImageIO
-import net.dv8tion.jda.api.{JDABuilder, OnlineStatus}
+import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.{Activity, Message, User}
 import net.dv8tion.jda.api.events.message.{GenericMessageEvent, MessageReceivedEvent, MessageUpdateEvent}
 import net.dv8tion.jda.api.hooks.ListenerAdapter

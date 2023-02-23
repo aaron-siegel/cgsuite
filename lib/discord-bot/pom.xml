@@ -26,7 +26,7 @@
     <dependency>
       <groupId>net.dv8tion</groupId>
       <artifactId>JDA</artifactId>
-      <version>4.3.0_277</version>
+      <version>4.4.0_352</version>
     </dependency>
     <dependency>
       <groupId>org.cgsuite</groupId>
