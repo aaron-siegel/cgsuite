@@ -1,15 +1,29 @@
 /*${cgsuite.banner}*/
 
+/** Various system utilities. */
 system class System
 
+  /** Clears all cached variables, classes, and calculations.
+    *
+    * Calling this method will destroy the contents of any Worksheet variables, clear the [[CanonicalShortGame]] cache
+    * and related caches, and force all CGScript classes to reload.
+    */
   external static def ClearAll();
 
-  external static def CopyrightYear;
+  /** The copyright year of this version of CGSuite.
+    * The hard-coded value is currently \evalText{System.CopyrightYear}.
+    */
+  external static def CopyrightYear as String;
 
+  /** Raises an error with the specified error message. */
   external static def Error(msg as String);
 
+  /** Prints the specified object to the Worksheet. */
   external static def Print(obj);
 
-  external static def Version;
+  /** The version ID of this version of CGSuite.
+    * The hard-coded value is currently \evalText{System.Version}.
+    */
+  external static def Version as String;
 
 end

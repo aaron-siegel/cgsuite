@@ -65,10 +65,10 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
       null
   }
 
-  private def updated(row: Int, col: Int, newValue: Byte): Grid = {
+  def updated(row: Int, col: Int, newValue: Byte): Grid = {
     val newValues = new Array[Byte](values.length)
     System.arraycopy(values, 0, newValues, 0, values.length)
-    newValues((row-1)*colCount+(col-1)) = newValue
+    newValues((row - 1) * colCount + (col - 1)) = newValue
     new Grid(rowCount, colCount, newValues)
   }
 
