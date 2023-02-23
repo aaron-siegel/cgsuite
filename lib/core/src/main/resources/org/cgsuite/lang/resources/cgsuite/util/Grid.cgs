@@ -116,12 +116,20 @@ system class Grid
 
   external override def ToOutput as Output;
 
+  /** The `Grid` obtained from this `Grid` by replacing the value at the specified `Coordinates` with the specified
+    * new value. Example:
+    *
+    * \display{grid := Grid.Empty(4, 4);
+    *  grid.Updated((2,2), 1)}
+    */
+  external def Updated(coord as Coordinates, newValue as Integer) as Grid;
+
   /** The `Grid` obtained from this `Grid` by applying the replacement values specified by `newValues`.
     *
     * `newValues` must be a `Map` whose keys are [[Coordinates]] and whose values are [[Integer]]s. For example:
     *
     * \display{grid := Grid.Empty(4, 4);
-    *  grid.Updated({ (2, 2) => 1, (3, 3) => 1 }).ToString(".x")}
+    *  grid.Updated({ (2, 2) => 1, (3, 3) => 1 })}
     */
   external def Updated(newValues as Map) as Grid;
 

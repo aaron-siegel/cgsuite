@@ -3,7 +3,7 @@ package org.cgsuite.util
 import java.util
 
 import org.cgsuite.core.{Integer, SmallInteger}
-import org.cgsuite.exception.GridParseException
+import org.cgsuite.exception.{GridParseException, InvalidArgumentException}
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 import scala.collection.mutable.ArrayBuffer
@@ -44,13 +44,33 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
       null
   }
 
+  def updated(index: Integer, newValue: Integer): Strip = {
+    checkIndex(index.intValue)
+    checkValue(newValue.intValue)
+    updatedRange(index, index, newValue)
+  }
+
+  private def checkIndex(index: Int): Unit = {
+    if (index < 1 || index > values.length) {
+      throw InvalidArgumentException(s"Index is out of bounds: $index")
+    }
+  }
+
+  private def checkValue(value: Int): Unit = {
+    if (value < -128 || value > 127) {
+      throw InvalidArgumentException(s"Value is out of range (must satisfy -128 <= x <= 127): $value")
+    }
+  }
+
   def updated(positions: scala.collection.Map[Integer, Integer]): Strip = {
     val newValues = new Array[Byte](values.length)
     System.arraycopy(values, 0, newValues, 0, values.length)
     val it = positions.iterator
     while (it.hasNext) {
-      val (pos, newValue) = it.next()
-      newValues(pos.intValue-1) = newValue.intValue.toByte
+      val (index, newValue) = it.next()
+      checkIndex(index.intValue)
+      checkValue(newValue.intValue)
+      newValues(index.intValue-1) = newValue.intValue.toByte
     }
     new Strip(newValues)
   }
@@ -58,7 +78,7 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
   def updatedRange(first: Integer, last: Integer, value: Integer): Strip = {
     val newValues = new Array[Byte](values.length)
     System.arraycopy(values, 0, newValues, 0, values.length)
-    util.Arrays.fill(newValues, first.intValue - 1, last.intValue, value.intValue.toByte)
+    util.Arrays.fill(newValues, (first.intValue - 1) max 0, last.intValue min values.length, value.intValue.toByte)
     new Strip(newValues)
   }
 
@@ -103,7 +123,7 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
   override def toOutput: Output = {
     val sto = new StyledTextOutput()
     sto appendMath "Strip(["
-    sto appendMath (values mkString ", ")
+    sto appendMath (values mkString ",")
     sto appendMath "])"
     sto
   }

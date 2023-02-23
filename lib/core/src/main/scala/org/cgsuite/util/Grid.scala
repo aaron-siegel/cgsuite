@@ -3,7 +3,7 @@ package org.cgsuite.util
 import java.util
 
 import org.cgsuite.core._
-import org.cgsuite.exception.GridParseException
+import org.cgsuite.exception.{GridParseException, InvalidArgumentException}
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 import scala.collection.mutable
@@ -12,8 +12,18 @@ import scala.collection.mutable.ArrayBuffer
 object Grid {
 
   def apply(rowCount: Int, colCount: Int) = {
-    new Grid(rowCount, colCount, new Array[Byte](rowCount * colCount))
+    if (rowCount < 0) {
+      throw InvalidArgumentException(s"Invalid RowCount: $rowCount")
+    } else if (colCount < 0) {
+      throw InvalidArgumentException(s"Invalid ColCount: $colCount")
+    } else if (rowCount == 0 || colCount == 0) {
+      new Grid(0, 0, new Array[Byte](0))
+    } else {
+      new Grid(rowCount, colCount, new Array[Byte](rowCount * colCount))
+    }
   }
+
+  val empty = Grid(0, 0)
 
   // TODO Better Int <-> Integer conversions?
   def empty(rowCount: Integer, colCount: Integer) = Grid(rowCount.intValue, colCount.intValue)
@@ -55,7 +65,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
       null
   }
 
-  def updated(row: Int, col: Int, newValue: Byte): Grid = {
+  private def updated(row: Int, col: Int, newValue: Byte): Grid = {
     val newValues = new Array[Byte](values.length)
     System.arraycopy(values, 0, newValues, 0, values.length)
     newValues((row-1)*colCount+(col-1)) = newValue
@@ -63,9 +73,21 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   }
 
   def updated(coord: Coordinates, newValue: Integer): Grid = {
-    if (!isInBounds(coord))
-      sys.error("out of bounds")
+    checkCoord(coord)
+    checkValue(newValue.intValue)
     updated(coord.row, coord.col, newValue.intValue.toByte)
+  }
+
+  private def checkCoord(coord: Coordinates): Unit = {
+    if (!isInBounds(coord)) {
+      throw InvalidArgumentException(s"Coordinate is out of bounds: $coord")
+    }
+  }
+
+  private def checkValue(value: Int): Unit = {
+    if (value < -128 || value > 127) {
+      throw InvalidArgumentException(s"Value is out of range (must satisfy -128 <= x <= 127): $value")
+    }
   }
 
   def updated(coords: scala.collection.Map[Coordinates, Integer]): Grid = {
@@ -74,7 +96,9 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     val it = coords.iterator
     while (it.hasNext) {
       val (coord, newValue) = it.next()
-      newValues((coord.row-1)*colCount+(coord.col-1)) = newValue.intValue.toByte
+      checkCoord(coord)
+      checkValue(newValue.intValue)
+      newValues((coord.row - 1) * colCount + (coord.col - 1)) = newValue.intValue.toByte
     }
     new Grid(rowCount, colCount, newValues)
   }
@@ -101,7 +125,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
     rowInt >= 1 && rowInt <= rowCount && colInt >= 1 && colInt <= colCount
   }
 
-  def findAll(value: Integer): IndexedSeq[Any] = {
+  def findAll(value: Integer): IndexedSeq[Coordinates] = {
     val byte = value.intValue.toByte
     var cnt = 0
     var i = 0
@@ -125,13 +149,19 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
   }
 
   def subgrid(minRow: Int, maxRow: Int, minCol: Int, maxCol: Int): Grid = {
-    val subgrid = Grid(maxRow-minRow+1, maxCol-minCol+1)
-    var row = minRow
-    while (row <= maxRow) {
-      System.arraycopy(values, (row-1)*colCount+minCol-1, subgrid.values, (row-minRow)*subgrid.colCount, subgrid.colCount)
-      row += 1
+    val newRows = maxRow - minRow + 1
+    val newCols = maxCol - minCol + 1
+    if (newRows <= 0 || newCols <= 0) {
+      Grid.empty
+    } else {
+      val subgrid = Grid(newRows, newCols)
+      var row = minRow
+      while (row <= maxRow) {
+        System.arraycopy(values, (row - 1) * colCount + minCol - 1, subgrid.values, (row - minRow) * subgrid.colCount, subgrid.colCount)
+        row += 1
+      }
+      subgrid
     }
-    subgrid
   }
 
   def decomposition(boundaryValue: Integer, directions: IndexedSeq[Coordinates] = Coordinates.Orthogonal): IndexedSeq[Grid] = {
@@ -258,11 +288,11 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
       for (col <- 1 to colCount) {
         sto appendMath get(row, col).toString
         if (col < colCount)
-          sto appendMath ", "
+          sto appendMath ","
       }
       sto appendMath "]"
       if (row < rowCount)
-        sto appendMath ", "
+        sto appendMath ","
     }
     sto appendMath "])"
     sto
