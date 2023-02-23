@@ -494,7 +494,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       }
 
-      s"\n$header\n\n$tableHeader${rows mkString ""}$footer"
+      if (rows.isEmpty) {
+        s"\n$header"
+      } else {
+        s"\n$header\n\n$tableHeader${rows mkString ""}$footer"
+      }
 
     }
 
