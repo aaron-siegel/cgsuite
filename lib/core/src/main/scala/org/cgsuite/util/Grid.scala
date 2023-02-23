@@ -264,7 +264,7 @@ class Grid private[util] (val rowCount: Int, val colCount: Int, val values: Arra
       if (row < rowCount)
         sto appendMath ", "
     }
-    sto appendMath "]"
+    sto appendMath "])"
     sto
   }
 

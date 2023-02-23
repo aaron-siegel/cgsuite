@@ -896,9 +896,15 @@ case class HelpLinkBuilder(
       case Some(member) => s".html#${anchorName(member)}"
       case None => ".html#top"
     }
+    val classDisplayName = if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
     val refText = targetMemberOpt match {
-      case Some(member) => member.idNode.id.name
-      case None => if (targetClass.isPackageObject) targetClass.pkg.qualifiedName else targetClass.name
+      case Some(member) if referringClass contains targetClass =>
+        // Print just the member name
+        member.idNode.id.name
+      case Some(member) =>
+        // Print the member name qualified with the class name
+        s"$classDisplayName.${member.idNode.id.name}"
+      case None => classDisplayName
     }
     val codePrefix = if (textOpt.isDefined) "" else """<code>"""
     val linkText = textOpt getOrElse s"$refText"

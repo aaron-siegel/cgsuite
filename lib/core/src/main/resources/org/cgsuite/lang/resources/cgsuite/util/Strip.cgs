@@ -20,6 +20,9 @@
  *
  * creates a strip by parsing a string according to the specified character map (see method documentation for
  * [[#Parse]] for details), used by many ruleset implementations.
+ *
+ * A `Strip` is functionally identical to a $1 \times n$ [[Grid]], but with an interface that is more logical for the
+ * one-dimensional case.
  */
 system class Strip
 
@@ -54,7 +57,7 @@ system class Strip
   /** Converts this `Strip` to a `String` according to the specified `charMap`.
     *
     * The behavior is identical to converting a $1 \times n$ [[Grid]]; see the documentation for
-    * [[Grid#Parse]] for details.
+    * [[Grid#ToString]] for details.
     */
   external def ToString(charMap as String) as String;
 
