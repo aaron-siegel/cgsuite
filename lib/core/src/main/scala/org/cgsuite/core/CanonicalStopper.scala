@@ -82,7 +82,8 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       case Left => loopyGame.getLeftOptions
       case Right => loopyGame.getRightOptions
     }
-    lgOpts.asScala.map { CanonicalStopper(_) }
+    val lgOptsScala = lgOpts.asScala.toSet
+    lgOptsScala map { CanonicalStopper(_) }
   }
 
   override def sortedOptions(player: Player): Seq[CanonicalStopper] = {

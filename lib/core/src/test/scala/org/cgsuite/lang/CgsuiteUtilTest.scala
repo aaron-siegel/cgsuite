@@ -8,7 +8,8 @@ class CgsuiteUtilTest extends CgscriptSpec {
 
     executeTests(Table(
       header,
-      ("Parse", """strip := Strip.Parse(".abbd.", ".abcd")""", "Strip.instance"),
+      ("Empty", "Strip.Empty(8).Length", "8"),
+      ("Parse", """strip := Strip.Parse(".abbd.", ".abcd")""", "Strip([0, 1, 2, 2, 4, 0])"),
       ("ToString", """strip.ToString(".abcd")""", "\".abbd.\""),
       ("op []", "strip[3]", "2"),
       ("FindAll", "strip.FindAll(2)", "[3,4]"),

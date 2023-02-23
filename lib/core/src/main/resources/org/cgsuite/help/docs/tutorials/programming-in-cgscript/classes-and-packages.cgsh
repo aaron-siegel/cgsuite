@@ -1,188 +1,174 @@
 Classes and Packages
 
-##TOC##
+This section describes the structure and content of a CGScript class, such as a ruleset implementation.
 
-++ The Structure of a Class ++
++++ The Structure of a Class +++
 
 Every class in CGSuite is associated with a $.cgs$ file.  The class declaration begins with a line such as
 
-$class Clobber extends GridGame$
+$class PartizanSubtraction(leftSet as Collection, rightSet as Collection) extends Ruleset$
 
-specifying the ~name~ of the class and (optionally) its ~parent~ class.  The class name ~must~ be identical to the
-filename of its $.cgs$ file.
+or
 
-Every class belongs to a ~package~, which is defined by the directory where the $.cgs$ file resides.  If the $.cgs$
+$singleton class Clobber extends game.grid.GridRuleset$
+
+The declaration specifies several things:
+\ul
+\li The ~~name~~ of the class (`PartizanSubtraction` or `Clobber`);
+\li The ~~parent~~ class or classes (`Ruleset` in the first example; the more specific class `game.grid.GridRuleset` in the second);
+\li The ~~class parameters~~ (`leftSet` and `rightSet`; the `Clobber` class doesn't have any);
+\li Optional ~~modifiers~~ (`Clobber` has the modifier `singleton`, indicating that it has no parameters and only one instance).
+\endul
+
+Every class belongs to a ~~package~~, which is defined by the directory where the $.cgs$ file resides.  If the $.cgs$
 file is given by, say,
 
-$game/grid/Clobber.cgs$
+$game/grid/GridRuleset.cgs$
 
 (relative to either the User Folder or the System Folder), then the package will be $game.grid$, so the
-~qualified name~ of the class will be $game.grid.Clobber$.
+~~qualified name~~ of the class will be $game.grid.GridRuleset$. This is why all of the examples in the `examples` folder
+are contained in the examples package, such as `examples.Clobber`.
 
-Three packages in CGSuite are special: $cgsuite.lang$, $cgsuite.util$, and $game$.  These packages are
-~automatic imports~.  References to their classes don't need to be qualified: you can type simply $Integer$ instead of
-$cgsuite.lang.Integer$.  Classes from any other package, such as $game.grid$, need to be qualified (unless you're using
-import statements - see below).
+Three packages in CGSuite are special: $cgsuite.lang$, $cgsuite.util$, and $game$. These packages contain the essential
+building blocks of CGScript, and references to their classes don't need to be qualified: you can type simply $Integer$ instead of
+$cgsuite.lang.Integer$. Classes from any other package, such as $game.grid$ or `examples`, need to be qualified.
 
-++ Declarations ++
++++ Declarations +++
 
-The remainder of the class is a sequence of declarations: variables, methods, and properties.
+The remainder of the class is a sequence of declarations: variables, methods, and initializers.
 
 A variable declaration has the form
 
-$var myVar;$
+`var myVar := *2;`
 
-This establishes $myVar$ as a member variable.  By convention, variables and packages start with lowercase letters, and
-classes, methods and properties are capitalized.  (However, this is not an absolute requirement.)
+This establishes $myVar$ as a member variable with the value `*2`. By convention, variables and packages start with
+lowercase letters, and classes and methods are capitalized. You can also omit the assignment:
+
+`var myVar;`
+
+This gives `myVar` the initial value `Nothing`, and is exactly equivalent to:
+
+`var myVar := Nothing;`
+
+Typically you'd declare `myVar` this way with the intent to assign it a value later on; however, see the below section
+on Mutable and Immutable Classes.
 
 A method declaration has the form
 
-$method MyMethod(parameters)
-    // Method body
-end$
+`def MyMethod(x, y, z) := x * y + z;`
 
-Here $parameters$ is a comma-separated list of the method parameters.  Each parameter can optionally be annotated with
-a type.  For example, the full declaration might be
+or (equivalently, and more convenient for complicated methods)
 
-$method MyMethod(obj, Integer n, String str)$
+`def MyMethod(x, y, z) begin
+\sp x * y + z
+end`
 
-which would define a method with three parameters.  The $obj$ parameter is unrestricted, while the $n$ and $str$
-parameters are constrained to be an $Integer$ and a $String$, respectively.
+With `MyMethod` defined as above, CGSuite will admit ~any~ object for the parameters `x`, `y`, and `z`. Sometimes this
+isn't what we want: for example, maybe we only ~intended~ for `MyMethod` to admit numbers; but if one calls (say)
 
-Note that CGScript is ~not~ a typed language.  The constraint "$Integer n$" ensures that $n$ will be an $Integer$ when
-it's passed as an argument to the method, but it does not constrain the values that can be assigned later to $n$.  For
-example, the following code is completely legal:
+`MyMethod(*2, *4, *8)`
 
-$method MyMethod(Integer n)
-    n := "This is not an integer.";
-end$
+CGSuite blithely accepts the input, generating an error only later, when the multiplication `x * y` is evaluated.
+This can be prevented by specifying types for the parameters:
 
-A method whose name is identical to the class name is a ~constructor~, which is used to initialize new instances of the
-class.  If some of the constructor parameter names are identical to member variable names, then the corresponding
-member variables will be automatically assigned when the object is created.
+`def MyMethod(x as Rational, y as Rational, z as Rational) := x * y + z;`
 
-A property declaration has the form
+This will cause CGSuite to generate an error as soon as something other than a `Rational` is passed to `MyMethod`.
 
-$property MyProperty.get
-    // Property body
-end$
++++ Inheritance +++
 
-A property is really just a zero-parameter method, but the calling syntax is different; you'll type
-
-$myObject.MyProperty$
-
-to activate the property, as opposed to
-
-$myObject.MyMethod()$
-
-for a zero-parameter method.
-
-We'll discuss property ~setters~ in a later chapter, [[advanced-language-features]].
-
-Methods and properties are visible to all objects, but variables are visible only to the declaring class and its
-descendants.  (In programming language theory these are ~public~ and ~protected~ access modes, respectively.)
-
-++ Inheritance ++
-
-Every class inherits from one or more ~parent classes~ as defined by its $extends$ clause.  A special class, $Object$,
+Every class inherits from one or more ~~parent classes~~ as defined by its $extends$ clause.  A special class, $Object$,
 is automatically an ancestor of every class.  The $extends$ clause is optional, and the declaration
 
-$class MyClass$
+$class MyClass()$
 
 without an $extends$ clause is equivalent to
 
-$class MyClass extends Object$
+$class MyClass() extends Object$
 
-Multiple inheritance is permitted; for example, we could implement Cram (impartial Domineering) with a declaration like
+A class can ~~override~~ methods and properties from its ancestors.  This is done through the $override$ keyword:
 
-$class Cram extends GridGame, ImpartialGame$
+`override def MyMethod(parameters)`
 
-A class can ~override~ methods and properties from its ancestors.  This is done through the $override$ keyword:
+This specifies that $MyMethod$ is also declared by one or more ancestors, and we are redefining it in the subclass.
+If a method has the same name as a method in some ancestor class, then the $override$ keyword ~must~ be specified.
 
-$override method MyMethod(parameters)$
++++ Static Declarations +++
 
-This specifies that $MyMethod$ is also declared by one or more ancestors, and we are ~redefining~ it in the subclass.
-If a method has the same name as a method in some ancestor class, then the $override$ keyword must be specified.
-
-++ this and is ++
-
-The keyword $this$ can be used from within a method to refer to "the current object" - that is, the object on which
-the method is being invoked.  You can type
-
-$this.Class$
-
-to get the object's class.  Consider the following example:
-
-$class MyClass
-    method PrintMyClass()
-        Worksheet.Print(this.Class);
-    end
-end$
-
-Now calling $obj.PrintMyClass()$ will ~not~ necessarily print "MyClass", since $obj$ might be a ~subclass~ of $MyClass$.
-However, it ~is~ guaranteed to print the name of a subclass of $MyClass$.
-
-Another handy tool is the keyword $is$.  You can use it to determine whether an object matches a particular type.
-For example,
-
-$obj is MyClass$
-
-will be $true$ if either $obj$ has type $MyClass$, ~or~ its type is a descendant of $MyClass$.
-
-++ Static Declarations ++
-
-Some variables, properties and methods are ~static~.  Whereas ordinary variables are members of class ~instances~,
-static variables are members of the class itself - so they exist just once, and are accessible ~statically~, without
+Some variables and methods are `static`.  Whereas ordinary variables are members of class instances,
+static variables are members of the class itself - so they exist just once, and are accessible without
 having to create any objects of the class.
 
 Static variables can be declared with the static keyword:
 
-$static var myStaticVar;$
+`static var myStaticVar;`
 
 Likewise static methods:
 
-$static method MyStaticMethod(parameters)$
+`static def MyStaticMethod(parameters)`
 
-You can access static methods by calling the class directly, for example,
+You can access static methods by calling the class directly; for example,
 
-$MyClass.MyStaticMethod$
+`MyClass.MyStaticMethod`
 
-A typical example is the $Worksheet.Print$ method, which is a static method of class $Worksheet$.
+A typical example is the `System.Print` method, which is a static method of class `System`.
 
-++ Enums ++
++++ Enums +++
 
-Certain classes come equipped with a fixed set of instances.  For example, the $Player$ class has just two instances,
-$Player.Left$ and $Player.Right$; and $OutcomeClass$ has instances $OutcomeClass.P$, $OutcomeClass.N$, etc.
+Certain classes come equipped with a fixed set of instances.  For example, the `Player` class has just two instances,
+`Player.Left` and `Player.Right`; and `OutcomeClass` has instances `OutcomeClass.P`, `OutcomeClass.N`, etc.
 
-Such classes are known as ~enumerated types~, or enums, and they're treated specially in CGScript.  An enum can be
+Such classes are known as ~~enumerated types~~, or enums, and they're treated specially in CGScript. An enum can be
 declared like so:
 
-$enum OutcomeClass
+`enum OutcomeClass
+\sp P,
+\sp N,
+\sp L,
+\sp R;
+end`
 
-    P,
-    N,
-    L,
-    R;
+This declares an enum with exactly four instances; no others can ever be constructed. `OutcomeClass` is a particularly
+simple example; more complex enums have methods and properties of their own.
 
-end$
++++ Mutable and Immutable Classes +++
 
-This declares an enum with exactly four instances; no others can ever be constructed.  $OutcomeClass$ is a particularly
-simple example; more complex enums have methods and properties of their own (for an example, see the
-$Player$ enum in $cgsuite.game$).
+If you try to reassign a variable within an ordinary class, you'll get an error message.
 
-++ Imports ++
+`class MyClass()
+\sp var x := 3;
+\sp def SetX(newValue) begin
+\sp\sp x := newValue
+\sp end
+end`
 
-Sometimes you'll need to refer to a class that's not in one of the automatic import packages.  In such cases you'll need
-to use an $import$ statement to make that class visible inside your $.cgs$ file.  If you put (say)
+Calling the `SetX` method gives the following error message.
 
-$import game.grid.Clobber;$
+`Cannot reassign to immutable var: \`x\``
 
-at the top of your .cgs file, ~before~ the class or enum declaration, then throughout the rest of the file you can
-refer directly to $Clobber$.  You can also type
+This is because all classes in CGSuite are ~~immutable~~ by default, meaning that their internal structure cannot change
+once it's been defined. Since `x` is a member variable of the immutable class `MyClass`, changing its value would alter
+the internal structure of an immutable class, which is not allowed.
 
-$import game.grid.*;$
+In order to reassign a value to `x`, you need to use the `mutable` modifier for both the variable and the class:
 
-to import ~all~ the classes in the $game.grid$ package.
+`mutable class MyClass()
+\sp mutable var x := 3;
+\sp def SetX(newValue) begin
+\sp\sp x := newValue
+\sp end
+end`
 
-This is the only way to access external classes from within a class file - you can't type $game.grid.Clobber$ directly
-as you can from the worksheet.
+Now you can safely call `SetX` to reassign the value of `x`.
+
+Note that this restriction applies only to member variables of a class. Local variables (declared inside of a method
+definition) and Worksheet variables (declared directly on the worksheet, not inside a class) are always mutable.
+
+A word of advice: if you're inclined to create a mutable class, first pause and think if it's really necessary. CGSuite
+is well-optimized for using immutable objects, and it's generally easier and safer to program with them. While there
+~are~ situations where it's more efficient to use mutable objects, they're relatively rare in CGSuite applications: the
+use of immutable objects will rarely be your performance bottleneck.
+
+\footer
+
+~~Continue on to the next part of the tutorial: [[control-flow-and-scope]]~~

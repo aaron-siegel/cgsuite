@@ -43,6 +43,15 @@ system class Coordinates
     */
   static var Compass := [North, Northeast, East, Southeast, South, Southwest, West, Northwest];
 
+  static var Hexagonal := [North, Northeast, East, South, Southwest, West];
+
+  /** A `List` of all eight "knight's move" directions, in clockwise order.
+    * Specifically:
+    *
+    * `[(1,2), (2,1), (2,-1), (1,-2), (-1,-2), (-2,-1), (-2,1), (-1,2)]`
+    */
+  static var KnightsMove := [(1,2), (2,1), (2,-1), (1,-2), (-1,-2), (-2,-1), (-2,1), (-1,2)];
+
   /** The column of these `Coordinates`. */
   external def Col;
   /** The row of these `Coordinates`. */

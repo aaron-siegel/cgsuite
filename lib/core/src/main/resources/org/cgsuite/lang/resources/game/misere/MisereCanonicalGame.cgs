@@ -11,25 +11,93 @@ system class MisereCanonicalGame extends ImpartialGame
     * `G.Birthday < (G + *).Birthday.`
     */
   external def IsEven;
+
+  /** `true` if this game is extraverted. */
   external def IsExtraverted;
+
+  /** `true` if this game is generally restive. */
   external def IsGenerallyRestive;
+
+  /** `true` if this game is generally tame. */
   external def IsGenerallyTame;
+
+  /** `true` if this game is half-tame.
+   *
+   * A game $G$ is half-tame if $G$ is not generally tame, and
+   * $G + G$ is generally tame of genus $0^0^$.
+   */
   external def IsHalfTame;
+
+  /** `true` if this game is introverted. */
   external def IsIntroverted;
+
+  /** `true` if this game is a nim-heap. */
   external def IsNimHeap;
+
+  /** `true` if this game is prime.
+   *
+   * A game is prime if it has no proper parts.
+   */
   external def IsPrime;
+
+  /** `true` if this game is restive. */
   external def IsRestive;
+
+  /** `true` if this game is restless. */
   external def IsRestless;
+
+  /** `true` if this game is tame. */
   external def IsTame;
+
+  /** `true` if this game is tameable. */
   external def IsTameable;
+
+  /** The mate of this game.
+    *
+    * The mate of $G$ is the game $G^-^$ defined by
+    *
+    * $G^-^ = * \sp\sp\sp\sp if G = 0
+    * G^-^ = \{(G')^-^ : G' \in G\}   otherwise$
+    */
   external def Mate;
+
+  /** The misere outcome class of this game. */
   external def MisereOutcomeClass;
+
   external override def Options;
+
+  /** A `List` containing all the partitions of this game.
+    *
+    * A partition of $G$ is a decomposition into summands of the form
+    * $G = G_1_ + G_2_ + ... + G_k_$, with no $G_i_$ equal to $0$ or $*$.
+    * It can be shown that every game $G$ has
+    * just finitely many distinct partitions.
+    *
+    * Each partition is represented as a `List` of the summands of that
+    * partition.
+    */
   external def Partitions;
+
+  /** A `List` containing all the parts of this game.
+    *
+    * A part of $G$ is a game $H$ that satisfies $G = H + X$ for some $X$, with
+    * $H \neq 0$ or $*$.
+    * It can be shown that every game $G$ has just finitely many distinct parts.
+    */
   external def Parts;
+
   external override def ToOutput;
 
+  /** A game that distinguishes this game from `H` in misere play.
+   *
+   * The result will be a game `X` that satisfies $o^-^(G + X) \neq o^-^(H + X)$.
+   */
   external def Distinguisher(h as MisereCanonicalGame);
+
+  /** `true` if this game is linked to `H`.
+   *
+   * $G$ is linked to $H$ iff $o^-^(G + X) = o^-^(H + X) = P$ for some $X$.
+   */
   external def IsLinkedTo(h as MisereCanonicalGame);
   external def Link(h as MisereCanonicalGame);
   external def MisereMinus(h as MisereCanonicalGame);

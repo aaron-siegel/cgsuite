@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** Base class for enumerated values in CGSuite.
+  */
 system class Enum
 
   external def Literal;

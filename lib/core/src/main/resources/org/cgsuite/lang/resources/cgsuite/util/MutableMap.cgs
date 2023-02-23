@@ -1,11 +1,27 @@
 /*${cgsuite.banner}*/
 
-mutable system class MutableMap() extends Map
+mutable system class MutableMap() extends Collection
+
+  static def Eval(initialEntries as Map) begin
+    var map := MutableMap();
+    map.PutAll(initialEntries);
+    map
+  end
 
   external def Clear();
+
+  external def ContainsKey(key);
+
+  external def Entries;
+
   external def Put(key, value);
-  external def PutAll(map as Map);
+
+  external def PutAll(entries as Map);
+
   external def Remove(key);
+
   external def RemoveAll(keys as Collection);
+
+  override def ToOutput := "MutableMap(" + Entries.ToList.Sorted.MkOutput(", ") + ")";
 
 end

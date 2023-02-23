@@ -1,5 +1,20 @@
 /*${cgsuite.banner}*/
 
+/** Ruleset schema for Fission.
+  *
+  * Fission is played with black stones on a square grid. On her turn, Left may select any stone `S`, provided that
+  * the spaces immediately north and south of `S` are vacant. The stone `S` is replaced by two stones to its north and
+  * south. Right plays similarly, "fissioning" `S` to its east and west instead.
+  *
+  * \evalHalf{game.grid.Fission("....|..x.|....|....")} \to
+  * \evalHalf{game.grid.Fission("..x.|....|..x.|....")} \to
+  * \evalHalf{game.grid.Fission(".x.x|....|..x.|....")} \to
+  * \evalHalf{game.grid.Fission(".x.x|..x.|....|..x.")}
+  *
+  * \display{game.grid.Fission("....|..x.|....|#..#")}
+  *
+  * (The gray squares are blocked spaces, to facilitate play on generalized grid shapes.)
+  */
 singleton class Fission extends GridRuleset
 
   class Position(grid as Grid) extends GridGame
@@ -19,5 +34,7 @@ singleton class Fission extends GridRuleset
   end
 
   override def CharMap := ".x#";
+
+  override def Icons := [Icon.Blank, Icon.BlackStone, Icon.GraySquare];
 
 end

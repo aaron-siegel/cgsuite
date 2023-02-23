@@ -1,13 +1,44 @@
 /*${cgsuite.banner}*/
 
+/** A collection that maps keys to values.
+  *
+  * Basic usage of maps is discussed in the [[/tutorials/getting-started/cgscript]]
+  * tutorial page.
+  *
+  * Every `Map` is a `Collection` of [[MapEntry]] objects. Thus if you use methods
+  * of `Collection` on a `Map`, you'll get back a `MapEntry`. For example:
+  *
+  * \display{map := { 3 => 9, 4 => 16 }; map.Head}
+  *
+  * You can use [[#Keys]] or [[#Values]] to get collections just of the map keys
+  * or map values, rather than [[MapEntry]] objects.
+  *
+  * Maps in CGSuite are immutable: they cannot be modified once created. Operations
+  * such as [[Collection#Concat]] will create a new map with
+  * the new elements, without modifying the original map. A separate [[MutableMap]]
+  * class is provided for applications that specifically need a modifiable map.
+  */
 system class Map extends Collection
 
+  /** The value corresponding to the specified key. If the specified key is not
+    * present in this map, the result will be [[Nothing]].
+    */
+  external def op[](key);
+
+  /** `true` if the specified key is present in this map.
+    */
   external def ContainsKey(key);
 
+  /** The entries of this map, as a [[Set]] of [[MapEntry]] objects.
+    */
   external def Entries;
 
+  /** The keys of this map, as a [[Set]].
+    */
   external def Keys;
 
+  /** All the values of this map, as a [[Set]].
+    */
   external def Values;
 
   override def ToOutput begin

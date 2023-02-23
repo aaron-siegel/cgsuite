@@ -5,7 +5,7 @@ which is summarized by the diagram below. Every class is an ancestor of all the 
 
 The base of the hierarchy is [[NormalValue]], which encapsulates the (fairly limited) shared structure of all
 normal-play game values. The elements of [[CanonicalStopper]] and its descendants are identified with their
-canonical forms, and so are also subclasses of [[Game]] with explicit Left and Right options. The remaining classes
+canonical forms; they are also subclasses of [[Game]] with explicit Left and Right options. The remaining classes
 do not have explicit canonical forms and hence are not subclasses of [[Game]]; they are value systems only.
 
 +++ +++
@@ -27,3 +27,7 @@ CanonicalShortGame       Pseudonumber            │
          └─────────────────────┤
                              Zero
 }
+
+\footer
+
+~~Continue on to the next part of the tutorial: [[misere-theory]]~~

@@ -1,5 +1,32 @@
 /*${cgsuite.banner}*/
 
+/** Ruleset for Amazons.
+  *
+  * Amazons is played on a square grid (typically $10 \times 10$), with black and white "Amazons" (depicted by Chess
+  * queens) and various black stones. A typical starting position on the $10 \times 10$ grid is:
+  *
+  * \evalHalf{game.grid.Amazons("...o..o...|..........|..........|o........o|..........|..........|x........x|..........|..........|...x..x...")}
+  *
+  * On her turn, Left must do two things:
+  * \ul
+  * \li Move a black Amazon like a Chess queen: any number of spaces in any orthogonal or diagonal direction (but without jumping over
+  *     another piece); and
+  * \li "Fire an arrow" from the queen that just moved. To fire an arrow, trace a line of any number of spaces in any orthogonal or diagonal
+  *     direction (without jumping over another piece), starting from the queen that just moved and ending on a vacant square, the "target".
+  *     Then place a black stone in the target square. The placed stone is now a permanent obstacle.
+  * \endul
+  *
+  * A typical opening move:
+  *
+  * \evalHalf{game.grid.Amazons("...o..o...|..........|..........|o........o|..........|..........|x........x|..........|..........|...x..x...")} \to
+  * \evalHalf{game.grid.Amazons("...o..o...|......#...|..........|o........o|...x......|..........|x........x|..........|..........|......x...")}
+  *
+  * To construct an Amazons position:
+  *
+  * \display{game.grid.Amazons("x..#|....|.#.o")}
+  *
+  * Amazons is a well-studied game with an active following; cf. the [[https://en.wikipedia.org/wiki/Game_of_the_Amazons][Wikipedia page on Amazons]].
+  */
 singleton class Amazons extends GridRuleset
 
   class Position(grid as Grid) extends GridGame

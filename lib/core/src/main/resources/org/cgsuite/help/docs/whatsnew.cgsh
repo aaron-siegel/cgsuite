@@ -35,7 +35,7 @@ then
 gives its canonical form. See the [[/tutorials/advanced-topics/misere-theory]] tutorial for an overview.
 
 \li ~~Surreal Numbers.~~ CGSuite now includes a basic implementation of a fragment of surreal numbers: specifically, the field closure of
-ordinals below $\epsilon_0_$. `omega` is defined as a constant, and expressions like
+ordinals below $\epsilon_0_$. The ordinal `omega` is defined as a constant, and expressions like
 
 `(1/7).Birthday`
 

@@ -1,28 +1,41 @@
 /*${cgsuite.banner}*/
 
-class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends Ruleset
+/** Ruleset schema for generalizations of Fox and Geese.
+  *
+  * This schema generalizes the [[FoxAndGeese][Fox and Geese]] ruleset, allowing for varying board widths and
+  * fox capabilities, such as used in the [[CeyloneseFoxAndGeese][Ceylonese]] variant. See the
+  * [[FoxAndGeese]] documentation for the relevant background material.
+  */
+class GenFoxAndGeese(
+  /** The width of the game board. The default is 8, used in traditional [[FoxAndGeese][Fox and Geese]]. */
+  boardWidth as Integer ? 8,
+  /** The range of the fox. On his turn, Right may move the fox in any diagonal direction, up to a distance of
+    * `foxRange`. The fox may never change direction during a move and may never jump over geese.
+    */
+  foxRange as Integer ? 1
+  ) extends Ruleset
 
   if foxRange < 1 then
     error("`foxRange` must be >= 1");
   end
 
-  var GeeseMoves := [(-1,-1),(-1,1)];
+  private var GeeseMoves := [(-1,-1),(-1,1)];
 
-  def Eval(geese as Set, fox as Coordinates) begin
+  def Eval(geese as Collection, fox as Coordinates) begin
     ValidateGeese(geese);
     if not IsValidCoordinate(fox) then
       error("`fox` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even)")
     end
-    Position(geese, fox)
+    Position(geese.ToSet, fox)
   end
 
-  def ValidateGeese(geese as Set) begin
+  private def ValidateGeese(geese as Collection) begin
     if not geese.ForAll(c -> IsValidCoordinate(c)) then
       error("Every element of `geese` must be a valid `Coordinates` (1 <= col <= boardWidth; row >= 1; row + col even)")
     end
   end
 
-  def IsValidCoordinate(c) begin
+  private def IsValidCoordinate(c) begin
     c is Coordinates and 1 <= c.Row and 1 <= c.Col and c.Col <= boardWidth and (c.Row + c.Col).IsEven
   end
 
@@ -66,17 +79,31 @@ class GenFoxAndGeese(boardWidth as Integer ? 8, foxRange as Integer ? 1) extends
 
     override def DepthHint := Sum(goose.Row for goose in geese);
 
+    override def ToOutput begin
+      var maxRow := geese.Apply(x -> x.Row).Max Max fox.Row;
+      var emptyGrid := Grid.Empty(maxRow, boardWidth);
+      var checkeredUpdates := { (row, col) => 3 for row from 1 to maxRow for col from 1 to boardWidth where (maxRow + 1 - row + col) % 2 == 1 };
+      var gooseUpdates := { (maxRow + 1 - coord.Row, coord.Col) => 1 for coord in geese };
+      var grid := emptyGrid Updated checkeredUpdates Updated gooseUpdates Updated { (maxRow + 1 - fox.Row, fox.Col) => 2 };
+      cgsuite.util.output.GridOutput(grid, [icon.Literal for icon in Icons], this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")")
+    end
+
   end
 
-  def ValuesTable(geese as Set) begin
+  private var CharMap := ".xo.";
 
-    ValidateGeese(geese);
-    var maxGooseRow := geese.Apply(x -> x.Row).Max;
+  private var Icons := [Icon.Blank, Icon.BlackStone, Icon.WhiteStone, Icon.GraySquare];
+
+  def ValuesTable(geese as Collection) begin
+
+    var geeseSet := geese.ToSet;
+    ValidateGeese(geeseSet);
+    var maxGooseRow := geeseSet.Apply(x -> x.Row).Max;
     Table([
       if geese Contains (row,col) then
-        "X"
+        "X".ToUnquotedOutput
       elseif (row + col) % 2 == 0 then
-        Position(geese, (row,col)).GameValue
+        Position(geeseSet, (row,col)).GameValue
       else
         Nothing
       end
