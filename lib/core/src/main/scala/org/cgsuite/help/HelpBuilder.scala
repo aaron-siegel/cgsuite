@@ -970,7 +970,16 @@ case class HelpLinkBuilder(
       case Some(clsref) =>
         clsref lookupMember memberId match {
           case Some(member) => (Some(clsref), Some(member))
-          case None => (None, None)
+          case None =>
+            // Check for static. TODO This should be refactored.
+            clsref.classInfo.staticVarLookup.get(memberId) match {
+              case Some(staticMember) => (Some(clsref), Some(staticMember))
+              case None =>
+                clsref.lookupMethodGroup(memberId, asStatic = true) match {
+                  case Some(staticMethodGroup) => (Some(clsref), Some(staticMethodGroup.methods.head))
+                  case None => (None, None)
+                }
+            }
         }
       case None => (None, None)
     }

@@ -19,7 +19,7 @@
  * `Grid.Parse(str, charMap)`
  *
  * creates a grid by parsing a string according to the specified character map (see method documentation for
- * [[Grid#Parse]] for details), used by many ruleset implementations.
+ * [[#Parse]] for details), used by many ruleset implementations.
  */
 system class Grid
 
@@ -102,7 +102,7 @@ system class Grid
   external def SymmetryInvariant(symmetries as List) as Grid;
 
   /** Converts this `Grid` to a `String` according to the specified `charMap`. This method is the exact inverse of
-    * [[Grid#Parse]], and it will always be the case that
+    * [[#Parse]], and it will always be the case that
     *
     * `Grid.Parse(str, charMap).ToString(charMap) == str`
     *
@@ -114,7 +114,7 @@ system class Grid
     */
   external def ToString(charMap as String) as String;
 
-  external override def ToOutput;
+  external override def ToOutput as Output;
 
   /** The `Grid` obtained from this `Grid` by applying the replacement values specified by `newValues`.
     *
