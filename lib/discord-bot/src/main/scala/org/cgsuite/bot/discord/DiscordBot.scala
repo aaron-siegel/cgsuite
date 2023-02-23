@@ -111,9 +111,11 @@ class DiscordBot(token: String) extends ListenerAdapter {
           s"""Welcome to the EXPERIMENTAL CGSuite Discord bot, version ${System.version}.
              |I should be able to resolve most CGSuite commands. However, I
              |am brand new and have not really been tested; you have been
-             |warned. Please report any issues to asiegel.
-             |```:help             Print this message
-             |:version          Print CGSuite and system version info```
+             |warned. Please report any issues to @asiegel.
+             |```>>:help             Print this message
+             |>>:version          Print CGSuite and system version info
+             |>>command           Any valid CGSuite command; for example:
+             |>>*5 + *6           Compute the sum of *5 and *6```
              |""".stripMargin
       case "version" =>
           s"""```CGSuite ${System.version}
