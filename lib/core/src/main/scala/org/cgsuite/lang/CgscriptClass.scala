@@ -1077,7 +1077,7 @@ class CgscriptClass(
           javaClass.getMethod(externalName, externalParameterTypes: _*)
         } catch {
           case _: NoSuchMethodException =>
-            throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass`.`$externalName`): `$qualifiedName.$methodName`", node.tree)
+            throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass.$externalName`): `$qualifiedName.$methodName`", node.tree)
         }
         logger.debug(s"$logPrefix   Found the Java method: $externalMethod")
         SystemMethod(node.idNode, Some(node), parameters, autoinvoke, modifiers, externalMethod)

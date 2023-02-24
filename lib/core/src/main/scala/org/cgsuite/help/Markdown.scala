@@ -63,6 +63,7 @@ object Markdown {
     "times" -> "&times;",
     "otimes" -> "&otimes;",
     "oplus" -> "&oplus;",
+    "oast" -> "&circledast;",
     "lip" -> "&lip;",
     "Sigma" -> "&Sigma;",
     "lt" -> "&lt;",

@@ -1,5 +1,10 @@
 /*${cgsuite.banner}*/
 
+/** A nimber.
+  *
+  * A ~~nimber~~ is a game value of the form $*m$ for some $m \geq 0$. The class `Nimber` represents exactly the
+  * intersection of [[CanonicalShortGame]] and [[ImpartialGame]].
+  */
 system class Nimber extends ImpartialGame, Uptimal
 
   override external def Options;

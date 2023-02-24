@@ -22,6 +22,10 @@ system class SurrealNumber extends NormalValue
 
   external def Denominator as GeneralizedOrdinal;
 
+  external def Max(that as SurrealNumber) as SurrealNumber;
+
+  external def Min(that as SurrealNumber) as SurrealNumber;
+
   external def Numerator as GeneralizedOrdinal;
 
   external def Reciprocal as GeneralizedOrdinal;

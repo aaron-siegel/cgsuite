@@ -1,5 +1,21 @@
 /*${cgsuite.banner}*/
 
+/** An uptimal.
+  *
+  * An ~~uptimal~~ is any [[CanonicalShortGame]] that can be expressed as a sum or difference of the following
+  * components:
+  * \ul
+  * \li The dyadic rationals;
+  * \li The nimbers; and
+  * \li The games $\^^n^$ for $n \geq 0$.
+  * \endul
+  * Every uptimal $G$ can be written in the form
+  *
+  * $G = x + *m + a_1_\^ + a_2_\^^2^ + ... + a_k_\^^k^$
+  *
+  * where $x$ is a dyadic rational, $*m$ is a nimber, and $a_1_, ..., a_k_$ are integers. This is known as the
+  * ~~uptimal expansion~~ of $G$.
+  */
 system class Uptimal extends CanonicalShortGame
 
   external def op+(that as Uptimal) as Uptimal;
@@ -10,6 +26,7 @@ system class Uptimal extends CanonicalShortGame
 
   external override def op unary- as Uptimal;
 
+  /** The uptimal expansion of this `Uptimal`. */
   external def UptimalExpansion as UptimalExpansion;
 
 end

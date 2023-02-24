@@ -1,5 +1,6 @@
 /*${cgsuite.banner}*/
 
+/** A finite loopy game value whose onside and offside are stoppers. */
 system class StopperSidedValue extends SidedValue
 
   external def op+(that as StopperSidedValue) as StopperSidedValue;

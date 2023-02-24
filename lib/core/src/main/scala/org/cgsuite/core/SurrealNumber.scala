@@ -10,6 +10,7 @@ import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
+import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -20,6 +21,7 @@ object SurrealNumber {
     construct(numerator, denominator)
   }
 
+  @tailrec
   private def construct(numerator: GeneralizedOrdinal, denominator: GeneralizedOrdinal, isReduced: Boolean = false): SurrealNumber = {
     (numerator, denominator) match {
       case (intNum: Integer, intDen: Integer) => RationalNumber(intNum, intDen)
@@ -147,6 +149,9 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
   )
 
   override def <=(other: SurrealNumber): Boolean = super[Ordered].<=(other)
+
+  def min(other: SurrealNumber): SurrealNumber = if (this < other) this else other
+  def max(other: SurrealNumber): SurrealNumber = if (this > other) this else other
 
   def exp(n: Integer): SurrealNumber = {
     (numerator exp n) / (denominator exp n)
