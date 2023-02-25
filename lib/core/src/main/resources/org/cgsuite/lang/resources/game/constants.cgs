@@ -12,14 +12,63 @@ singleton class constants
   var Offside := Side.Offside;
 
   var inf := 1/0;
+
+  /** The constant value `omega`.
+    *
+    * `omega` is the smallest infinite ordinal (equivalently, the ordinal supremum of the natural numbers). It is
+    * defined in CGSuite by:
+    *
+    * `omega := 1.OmegaPower`
+    */
   var omega := 1.OmegaPower;
 
+  /** The constant value `on`.
+    *
+    * `on` is the [[CanonicalStopper]] defined by:
+    *
+    * `on := {pass|}`
+    */
   var on := {pass|};
+
+  /** The constant value `off`.
+    *
+    * `off` is the [[CanonicalStopper]] defined by:
+    *
+    * `off := -on` (equivalently, `off := {|pass}`)
+    */
   var off := -on;
+
+  /** The constant value `dud`.
+    *
+    * `dud` is the [[StopperSidedValue]] defined by:
+    *
+    * `dud := on + off` (equivalently, `dud := {pass|pass}`)
+    */
   var dud := on & off;
+
+  /** The constant value `over`.
+    *
+    * `over` is the [[CanonicalStopper]] defined by:
+    *
+    * `over := {0|pass}`
+    */
   var over := {0|pass};
+
+  /** The constant value `under`.
+    *
+    * `under` is the [[CanonicalStopper]] defined by:
+    *
+    * `under := -over` (equivalently, `under = {pass|0}`)
+    */
   var under := -over;
-  var upon := {pass|*};
+
+  /** The constant value `upon`.
+    *
+    * `upon` is the [[CanonicalStopper]] defined by:
+    *
+    * `upon := {pass|*}`
+    */
+    var upon := {pass|*};
 
   def Miny(g as CanonicalStopper) := {g|0||0};
   def Tiny(g as CanonicalStopper) := {0||0|-g};

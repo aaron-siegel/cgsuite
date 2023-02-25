@@ -108,11 +108,46 @@ dd {font-size: small;
     margin-left: 25}
         
 table.members {
-    border: 1px solid LightGray;
     border-collapse: collapse;
+    border-top: 1px solid LightGray;
     margin-top: 5;
     margin-bottom: 5;
     width: 100% }
+
+td:first-child, th:first-child {
+    border-collapse: collapse;
+    border-left: 1px solid LightGray;
+}
+
+td:last-child, th:last-child {
+    border-collapse: collapse;
+    border-right: 1px solid LightGray;
+}
+
+tr.rowsep, tr.rowsep1, tr.rowsep2 {
+    background-color: white !important;
+    border-collapse: collapse;
+}
+
+tr.rowsep {
+    height: 12px !important;
+    border-bottom: 1px solid LightGray;
+}
+
+tr.rowsep1 {
+    height: 6px !important;
+    border-bottom: none;
+}
+
+tr.rowsep2 {
+    height: 6px !important;
+    border-bottom: 1px solid LightGray;
+}
+
+td.rowsep {
+    border-left: none !important;
+    border-right: none !important;
+}
 
 tr:nth-child(even) {background: white}
 tr:nth-child(odd) {background: #eeeeee}

@@ -204,7 +204,7 @@ class CgscriptClass(
     case None => nameAsFullyScopedMember
   }
 
-  val qualifiedName: String = {
+  override val qualifiedName: String = {
     if (pkg.isRoot)
       name
     else
@@ -938,7 +938,7 @@ class CgscriptClass(
         if (mostSpecificMethods.size > 1) {
           assert(localDeclarations.isEmpty)   // Otherwise, localDeclarations.head should have filtered out everything else
           throw EvalException(
-            s"Method `${mostSpecificMethods.head.methodName}` must be declared explicitly in class `$qualifiedName`, " +
+            s"Method `${mostSpecificMethods.head.name}` must be declared explicitly in class `$qualifiedName`, " +
               s"because it is defined in multiple superclasses (`${mostSpecificMethods.head.declaringClass.qualifiedName}`, `${mostSpecificMethods(1).declaringClass.qualifiedName}`)",
             token = Some(classDeclNode.idNode.token)
           )
@@ -1239,7 +1239,7 @@ class CgscriptClass(
 
     val methodsWithArguments = methods filter { !_.autoinvoke }
 
-    def name = methods.head.methodName
+    def name = methods.head.name
 
     def qualifiedName = methods.head.qualifiedName
 
@@ -1318,9 +1318,7 @@ class CgscriptClass(
 
     def call(obj: Any, args: Array[Any]): Any
 
-    val methodName = idNode.id.name
     val declaringClass = thisClass
-    val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
     val parametersSignature = if (autoinvoke) "" else s"(${parameters.map { _.paramType.qualifiedName }.mkString(", ")})"
     val locationMessage = s"in call to `$qualifiedName`"

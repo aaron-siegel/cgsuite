@@ -1,9 +1,9 @@
 /*${cgsuite.banner}*/
 
-/** Ruleset schema for generalizations of [[Wythoff]].
+/** Ruleset schema for generalizations of [[Wythoff][Wythoff]].
   *
   * `GenWythoff(f)` is an impartial ruleset played on two heaps of tokens, parameterized by a
-  * Fraenkel-Tanny ~bounding function~ `f`. From a position $(a,b)$, a player may either:
+  * Fraenkel-Tanny ~~bounding function~~ `f`. From a position $(a,b)$, a player may either:
   * \ul
   * \li Remove any number of tokens from any one heap; or
   * \li Remove $k$ tokens from one heap and $l$ tokens from the other, provided that
@@ -12,7 +12,7 @@
   * This formulation (due to A. Fraenkel and Y. Tanny) subsumes various previously studied Wythoff
   * generalizations. In particular:
   * \ul
-  * \li `GenWythoff(k -> k + 1)` is ordinary [[Wythoff]].
+  * \li `GenWythoff(k -> k + 1)` is ordinary [[Wythoff][Wythoff]].
   * \li `GenWythoff(k -> k + r)` is Fraenkel's `r-Wythoff` (it is equivalent to the condition
   * $|k - l| < r$).
   * \endul

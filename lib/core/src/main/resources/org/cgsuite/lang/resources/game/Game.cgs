@@ -57,6 +57,12 @@ system class Game
     * The ~~ordinal product~~ $G\oast{}H$ of $G$ and $H$ is defined by:
     *
     * $G\oast{}H = {G\oast{}H^L^:G^L^, G\oast{}H^R^:-G^R^ | G\oast{}H^L^:G^R^, G\oast{}H^R^:-G^L^}$.
+    *
+    * It is a generalization of the following operation on Hackenbush stalks: replace every blue edge in $H$ with a
+    * copy of $G$, and every red edge with a copy of $-G$.
+    *
+    * Ordinal product is associative and left-distributive over ordinal sum, and it satisfies
+    * $-(G\oast{}H) = G\oast{}-H$.
     */
   external def OrdinalProduct(that as Game);
 

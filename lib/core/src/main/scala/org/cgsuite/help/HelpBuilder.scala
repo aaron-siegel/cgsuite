@@ -622,8 +622,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   }
 
-  def entityType(member: Member): String = {
-    member match {
+  def entityType(any: AnyRef): String = {
+    any match {
+      case _: CgscriptPackage => "package"
       case _: CgscriptClass => "class"
       case _: CgscriptClass#Method => "def"
       case v: CgscriptClass#Var if v.isConstructorParam => "param"
@@ -732,42 +733,108 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
          |<div class="blanksection">&nbsp;</div><p>-->
          |<h1>Index of CGScript Classes</h1>
          |<div class="section">
+         |  This index lists all the packages, classes, methods, and constants that have top-level scope in CGScript.
+         |</div>
+         |<p>
+         |<div class="section">
          |
          |<table class="members">
          |""".stripMargin
 
-    // TODO Package constants too
+    val (constantsClasses, ordinaryClasses) = allClasses partition { _.name == "constants" }
+    val constantsMembers = constantsClasses flatMap { _.classInfo.localMembers }
+    val membersToSummarize = (ordinaryClasses ++ constantsMembers ++ allPackages) sortBy {
+      case cls: CgscriptClass => (cls.pkg.qualifiedName, cls.name)
+      case member: Member => (member.declaringClass.pkg.qualifiedName, member.name)
+      case pkg: CgscriptPackage => (pkg.qualifiedName, "")
+    }
 
-    val classes = allClasses filterNot {
+    var packageMemberCount = 0
 
-      // Exclude constants classes from the index
-      _.name == "constants"
+    val summaries = membersToSummarize.zipWithIndex map { case (member, index) =>
 
-    } map { cls =>
+      // TODO There is surely a more elegant way to combine these cases
+      val (memberLink, description) = member match {
 
-        val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>"""
-
-        val description = {
-          try {
-            cls.declNode flatMap { _.docComment } match {
-              case Some(comment) => ClassRenderer(cls).processDocComment(comment, firstSentenceOnly = true)
-              case None => "&nbsp;"
+        case cls: CgscriptClass =>
+          (s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>""",
+            try {
+              cls.declNode flatMap { _.docComment } match {
+                case Some(comment) => ClassRenderer(cls).processDocComment(comment, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            } catch {
+              case exc: CgsuiteException =>
+                logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
             }
-          } catch {
-            case exc: CgsuiteException =>
-              logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
-          }
-        }
+          )
 
-        s"""  <tr>
-           |    <td class="entitytype">
-           |      $memberLink
-           |    </td>
-           |    <td class="member">
-           |      $description
-           |    </td>
-           |  </tr>
-       """.stripMargin
+        case member: Member =>
+          (s"""<a class="valid" href="${member.declaringClass.pkg.path mkString "/"}/constants.${member.name}.html#top">${member.displayName}</a>""",
+            try {
+              docCommentForMember(member) match {
+                case Some((commentStr, _)) =>
+                  ClassRenderer(member.declaringClass).processDocComment(commentStr, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            } catch {
+              case exc: CgsuiteException =>
+                logger warn s"Error rendering member `${member.qualifiedName}`: `${exc.getMessage}`"
+            }
+          )
+
+        case pkg: CgscriptPackage =>
+          (s"""<a class="valid" href="${pkg.path mkString "/"}/constants.html#top">${pkg.qualifiedName}</a>""",
+            try {
+              val constantsClass = pkg.lookupClassInScope(Symbol("constants"))
+              constantsClass flatMap { _.declNode } flatMap { _.docComment } match {
+                case Some(comment) => ClassRenderer(constantsClass.get).processDocComment(comment, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            } catch {
+              case exc: CgsuiteException =>
+                logger warn s"Error rendering package `${pkg.qualifiedName}`: `${exc.getMessage}`"
+            }
+          )
+
+      }
+
+      val etype = entityType(member)
+
+      val rowBreak = {
+        // Put a row break before each package except the first.
+        if (index > 0 && member.isInstanceOf[CgscriptPackage]) {
+          if (packageMemberCount % 2 == 0) {
+            // If index is even, put a double row-break (each half height) to ensure we "rectify the count".
+            s"""  <tr class="rowsep1"><td colspan="3" class="rowsep"></td></tr><tr class="rowsep2"><td colspan="3" class="rowsep"></td></tr>"""
+          } else {
+            // Just a single row-break.
+            s"""  <tr class="rowsep"><td colspan="3" class="rowsep"></td></tr>"""
+          }
+        } else {
+          ""
+        }
+      }
+
+      if (member.isInstanceOf[CgscriptPackage]) {
+        packageMemberCount = 0
+      }
+
+      packageMemberCount += 1
+
+      s"""  $rowBreak
+         |  <tr>
+         |    <td class="entitytype">
+         |      <b>$etype</b>
+         |    </td>
+         |    <td class="entitytype">
+         |      $memberLink
+         |    </td>
+         |    <td class="member">
+         |      $description
+         |    </td>
+         |  </tr>
+         |""".stripMargin
 
     }
 
@@ -775,7 +842,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     referenceDir.createDirectories()
     file overwrite header
-    classes foreach file.append
+    summaries foreach file.append
     file append footer
 
   }
