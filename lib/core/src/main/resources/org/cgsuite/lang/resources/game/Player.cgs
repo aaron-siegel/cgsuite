@@ -1,12 +1,30 @@
 /*${cgsuite.banner}*/
 
+/** Enumerated type with two values, `Left` and `Right`. */
 system enum Player
 
+  /** Enumerated value representing `Left` as a `Player`. */
   external Left,
+
+  /** Enumerated value representing `Right` as a `Player`. */
   external Right;
 
+  /** Signed representation of this `Player`.
+    *
+    * Defined by: `Left.Sign == 1` and `Right.Sign == -1`.
+    */
   external def Sign; // := if this === Left then 1 else -1 end;
+
+  /** The opponent of this `Player`.
+    *
+    * Defined by: `Left.Opponent == Right` and `Right.Opponent == Left`.
+    */
   external def Opponent; // := if this === Left then Right else Left end;
+
+  /** Ordinal representation of this `Player`.
+    *
+    * Defined by: `Left.Ordinal == 1` and `Right.Ordinal == 2`.
+    */
   external def Ordinal; // := if this == Left then 1 else 2 end;
 
   external override def Literal;

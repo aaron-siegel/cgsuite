@@ -575,7 +575,7 @@ class CgscriptClass(
     }
 
     val localEnumElements: Vector[Var] = enumElementNodes map { declNode =>
-      Var(declNode.idNode, Some(declNode), declNode.modifiers)
+      Var(declNode.idNode, Some(declNode), declNode.modifiers, isEnumElement = true)
     }
 
     val systemConstructorMethods: Vector[Method] = {
@@ -1217,7 +1217,8 @@ class CgscriptClass(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
     modifiers: Modifiers,
-    asConstructorParam: Option[Parameter] = None
+    asConstructorParam: Option[Parameter] = None,
+    isEnumElement: Boolean = false
   ) extends Member {
 
     def declaringClass = thisClass

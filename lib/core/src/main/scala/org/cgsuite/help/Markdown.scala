@@ -67,7 +67,12 @@ object Markdown {
     "lip" -> "&lip;",
     "Sigma" -> "&Sigma;",
     "lt" -> "&lt;",
+    "alpha" -> "&alpha;",
+    "beta" -> "&beta;",
+    "gamma" -> "&gamma;",
+    "delta" -> "&delta;",
     "epsilon" -> "&epsilon;",
+    "omega" -> "&omega;",
     "in" -> "&isin;",
     "comment" -> "<!--",
     "endcomment" -> "-->"

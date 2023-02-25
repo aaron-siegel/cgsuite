@@ -1,8 +1,34 @@
 /*${cgsuite.banner}*/
 
+/** A `Game` whose Left and Right options are specified as explicit [[Collection]]s.
+  *
+  * When games are constructed using braces and slashes, they will normally be simplified when possible:
+  *
+  * \display{{*|*}}
+  *
+  * When a component is not simplifiable, then the result will be an `ExplicitGame` instead. For example:
+  *
+  * \display{{*|game.heap.Nim(1)}}
+  *
+  * This game has the identical structure to `{*|*}`, but it is not automatically simplified, because
+  * `game.heap.Nim(1)` is a [[game.heap.HeapRuleset][HeapRuleset]] position, not a [[CanonicalShortGame]]. Compare:
+  *
+  * \display{{*|*}.Class}
+  *
+  * \display{{*|game.heap.Nim(1)}.Class}
+  *
+  * You can force an expression to be constructed as an `ExplicitGame` by enclosing the braces in single quotes:
+  *
+  * \display{'{*|*}'}
+  *
+  * This is useful in certain contexts where the explicit form of a game is relevant and simplification is undesirable.
+  *
+  * \display{('{*|*}':1).CanonicalForm}
+  */
 system class ExplicitGame extends Game
 
   override external def Options(player as Player);
+
   override def ToOutput := "'{" + LeftOptions.ToList.Sorted.MkOutput(",") + "|" +
     RightOptions.ToList.Sorted.MkOutput(",") + "}'";
 

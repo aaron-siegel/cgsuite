@@ -1,15 +1,39 @@
 /*${cgsuite.banner}*/
 
+/** Enumerated type representing a normal-play outcome class.
+  *
+  * `OutcomeClass` represents the four classical (loopfree) classes `P`, `N`, `L`, and `R`, as well as the five
+  * additional outcome classes that include draws and can arise in loopy games.
+  *
+  * This class can also represent misere-play outcome classes, which have the same nine possibilities.
+  */
 system enum OutcomeClass
 
+  /** Outcome class representing a second-player win. */
   external P,
+
+  /** Outcome class representing a first-player win. */
   external N,
+
+  /** Outcome class representing a win for `Left` (no matter who moves first). */
   external L,
+
+  /** Outcome class representing a win for `Right` (no matter who moves first). */
   external R,
+
+  /** Outcome class representing a draw (no matter who moves first). */
   external D,
+
+  /** Outcome class representing a win for `Left` moving second and a draw if `Right` moves second. */
   external PHat,
+
+  /** Outcome class representing a win for `Right` moving second and a draw if `Left` moves second. */
   external PCheck,
+
+  /** Outcome class representing a win for `Left` moving first and a draw if `Right` moves first. */
   external NHat,
+
+  /** Outcome class representing a win for `Right` moving first and a draw if `Left` moves first. */
   external NCheck;
 
   external override def Literal;

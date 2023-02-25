@@ -275,8 +275,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         }
       }
 
-      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers filterNot {
-        _.modifiers.hasPrivate        // Don't include private members
+      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers filterNot { member =>
+        // Don't include private members
+        member.modifiers.hasPrivate ||
+        // Don't include enum elements (they'll be handled separately)
+        member.isInstanceOf[CgscriptClass#Var] && member.asInstanceOf[CgscriptClass#Var].isEnumElement
       } partition {
         case v: CgscriptClass#Var if v.isConstructorParam => true
         case _ => false
@@ -735,30 +738,35 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     // TODO Package constants too
 
-    val classes = allClasses map { cls =>
+    val classes = allClasses filterNot {
 
-      val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>"""
+      // Exclude constants classes from the index
+      _.name == "constants"
 
-      val description = {
-        try {
-          cls.declNode flatMap { _.docComment } match {
-            case Some(comment) => ClassRenderer(cls).processDocComment(comment, firstSentenceOnly = true)
-            case None => "&nbsp;"
+    } map { cls =>
+
+        val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>"""
+
+        val description = {
+          try {
+            cls.declNode flatMap { _.docComment } match {
+              case Some(comment) => ClassRenderer(cls).processDocComment(comment, firstSentenceOnly = true)
+              case None => "&nbsp;"
+            }
+          } catch {
+            case exc: CgsuiteException =>
+              logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
           }
-        } catch {
-          case exc: CgsuiteException =>
-            logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
         }
-      }
 
-      s"""  <tr>
-         |    <td class="entitytype">
-         |      $memberLink
-         |    </td>
-         |    <td class="member">
-         |      $description
-         |    </td>
-         |  </tr>
+        s"""  <tr>
+           |    <td class="entitytype">
+           |      $memberLink
+           |    </td>
+           |    <td class="member">
+           |      $description
+           |    </td>
+           |  </tr>
        """.stripMargin
 
     }
