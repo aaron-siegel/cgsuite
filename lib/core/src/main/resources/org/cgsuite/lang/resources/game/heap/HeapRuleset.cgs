@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-/** Base class for rulesets played on heaps of tokens.
+/** Base class for impartial rulesets played on heaps of tokens.
   *
   * A position in a heap ruleset `R` is represented by a single integer $n$, the ~heap size~.
   * From a position $R(n)$, a typical legal move is to a disjunctive sum of heaps
@@ -178,7 +178,7 @@ system class HeapRuleset extends Ruleset
 
   /** A position of this ruleset.
     *
-    * Subclasses do not need to implement a `Position` class directly and should instead implement
+    * Subclasses of `HeapRuleset` do not need to implement a `Position` class directly and should instead implement
     * [[#HeapOptions]]. For efficiency reasons, calculating values of this heap game (such as by using
     * [[#NimValueSequence]]) will not result in `Position` objects being created. `Position` objects
     * will only be created when they are needed directly (for example, in the Explorer).

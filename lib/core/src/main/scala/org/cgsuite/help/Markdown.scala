@@ -59,6 +59,7 @@ object Markdown {
     "sim" -> "~",
     "sp" -> "&nbsp;&nbsp;",
     "cdot" -> "&middot;",
+    "cdots" -> "&ctdot;",
     "doubleup" -> "&uArr;",
     "times" -> "&times;",
     "otimes" -> "&otimes;",

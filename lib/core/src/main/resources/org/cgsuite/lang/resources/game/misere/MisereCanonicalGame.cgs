@@ -1,7 +1,14 @@
 /*${cgsuite.banner}*/
 
+/** An impartial combinatorial game in misère canonical form.
+  *
+  * This class implements the canonical theory of misère impartial games. Instances can be obtained by calling
+  * `G.MisereCanonicalForm` for any impartial game `G` in CGSuite, or constructed directly by applying the `*` operator
+  * to a [[List]]. See the [[/tutorials/advanced-topics/misere-theory]] tutorial for the full details.
+  */
 system class MisereCanonicalGame extends ImpartialGame
 
+  /** The birthday of this game. */
   external def Birthday;
   
   /** `true` if this game is even.
@@ -56,8 +63,8 @@ system class MisereCanonicalGame extends ImpartialGame
     *
     * The mate of $G$ is the game $G^-^$ defined by
     *
-    * $G^-^ = * \sp\sp\sp\sp if G = 0
-    * G^-^ = \{(G')^-^ : G' \in G\}   otherwise$
+    * $G^-^ = *\sp\sp\sp\sp\sp\sp\sp\sp\sp{}if G = 0$ \\
+    * $G^-^ = \{(G')^-^ : G' \in G\}\sp otherwise$
     */
   external def Mate;
 
