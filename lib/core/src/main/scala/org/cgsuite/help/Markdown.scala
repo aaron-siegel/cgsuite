@@ -128,8 +128,10 @@ class MarkdownBuilder(
       // Special commands
       case (_, _, _, Special(str, arg)) => resolveSpecial(str, arg)
 
-      // If in a summary, just echo a link
-      case (_, _, _, Link(target, text)) if firstSentenceOnly => prepareParagraph(); text getOrElse { s"<code>$target</code>" }
+      // If in a summary, just echo a link, replacing # with .
+      case (_, _, _, Link(target, text)) if firstSentenceOnly =>
+        prepareParagraph()
+        text getOrElse { s"<code>${target.replace('#', '.')}</code>" }
 
       // Link to build
       case (_, _, _, Link(target, text)) => prepareParagraph(); linkBuilder.hyperlink(target, text)

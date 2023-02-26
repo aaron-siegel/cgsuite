@@ -775,7 +775,7 @@ class CgscriptClass(
 
     }
 
-    val staticVarLookup: Map[Symbol, Var] = localStaticVars.map { v => (v.id, v) }.toMap
+    val staticVarLookup: Map[Symbol, Var] = (localStaticVars ++ localEnumElements).map { v => (v.id, v) }.toMap
 
     val inheritedInstanceVars: Vector[CgscriptClass#Var] = supers.flatMap { _.classInfo.allInstanceVars }.distinct
     val allInstanceVars: Vector[CgscriptClass#Var] = constructorParamVars ++ inheritedInstanceVars ++ localInstanceVars

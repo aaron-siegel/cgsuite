@@ -5,12 +5,27 @@
  */
 singleton class constants
 
+  /** Convenience alias for [[Player#Left]]. */
   var Left := Player.Left;
+
+  /** Convenience alias for [[Player#Right]]. */
   var Right := Player.Right;
 
+  /** Convenience alias for [[Side#Onside]]. */
   var Onside := Side.Onside;
+
+  /** Convenience alias for [[Side#Offside]]. */
   var Offside := Side.Offside;
 
+  /** The constant value `inf`.
+    *
+    * `inf` is defined in CGSuite by:
+    *
+    * `inf := 1/0`
+    *
+    * It is an instance of [[Rational]] and is treated as a member of the rational number system, with the expected
+    * order-relations.
+    */
   var inf := 1/0;
 
   /** The constant value `omega`.
@@ -70,7 +85,7 @@ singleton class constants
     */
     var upon := {pass|*};
 
-  def Miny(g as CanonicalStopper) := {g|0||0};
-  def Tiny(g as CanonicalStopper) := {0||0|-g};
+  def Miny(G as CanonicalStopper) := {G|0||0};
+  def Tiny(G as CanonicalStopper) := {0||0|-G};
 
 end
