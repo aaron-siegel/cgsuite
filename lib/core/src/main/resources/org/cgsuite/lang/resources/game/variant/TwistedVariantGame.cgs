@@ -1,0 +1,11 @@
+/*${cgsuite.banner}*/
+
+class TwistedVariantGame(base as Game) extends Game
+
+  override def DepthHint := base.DepthHint;
+
+  override def Options(player as Player) begin
+    [-TwistedVariantGame(g) for g in base.Options(player)]
+  end
+
+end

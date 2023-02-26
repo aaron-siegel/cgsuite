@@ -156,7 +156,7 @@ system class Game
   /** The dicotic (all-small) variant of this `Game`.
     *
     * The dicotic variant of $G$ is played identically to $G$, but terminates immediately if either player has no
-    * move. Formally, it is the game $d(G)$ given by
+    * move. Formally, it is the game $d(G)$ given recursively by
     *
     * $d(G) = {d(G^L^) | d(G^R^)}$ if there is at least one $G^L^$ and at least one $G^R^$;\\
     * $d(G) = 0$ otherwise.
@@ -166,10 +166,19 @@ system class Game
   /** The impartial variant of this `Game`.
     *
     * The impartial variant of $G$ is the game obtained from $G$ by allowing either player to make any available move
-    * (for Left and/or Right). Formally, it is the game $i(G)$ given by
+    * (for Left and/or Right). Formally, it is the game $i(G)$ given recursively by
     *
     * $i(G) = {i(G^L^), i(G^R^) | i(G^L^), i(G^R^)}$.
     */
   def ImpartialVariant := game.variant.ImpartialVariantGame(this);
+
+  /** The twisted variant of this `Game`.
+    *
+    * The twisted variant of $G$ is the game obtained from $G$ by reversing the roles of Left and Right after
+    * every move. Formally, it is the game $t(G)$ given recursively by
+    *
+    * $t(G) = {-t(G^L^) | -t(G^R^)}$.
+    */
+  def TwistedVariant := game.variant.TwistedVariantGame(this);
 
 end
