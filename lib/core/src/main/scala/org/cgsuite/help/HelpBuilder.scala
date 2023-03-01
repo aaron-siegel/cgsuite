@@ -937,7 +937,7 @@ case class HelpLinkBuilder(
 
   def hyperlinkForExternalPath(ref: String, textOpt: Option[String]): String = {
 
-    s"""<a class="valid" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a>"""
+    s"""<a class="external" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a> (external link)"""
 
   }
 
