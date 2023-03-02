@@ -41,7 +41,6 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
 
     "cgsuite.util.Strip" -> classOf[Strip],
-    "cgsuite.util.Genus" -> classOf[Genus],
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.Table" -> classOf[Table],
@@ -74,6 +73,7 @@ private[lang] object SystemClassRegistry {
     "game.SidedValue" -> classOf[SidedValue],
     "game.NormalValue" -> classOf[NormalValue],
 
+    "game.misere.Genus" -> classOf[Genus],
     "game.misere.MisereCanonicalGame" -> classOf[MisereCanonicalGame],
 
     "game.CompoundImpartialGame" -> classOf[CompoundImpartialGame],
