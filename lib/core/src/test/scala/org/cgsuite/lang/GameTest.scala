@@ -297,6 +297,13 @@ class GameTest extends CgscriptSpec {
 
   }
 
+  it should "implement methods correctly" in {
+    executeTests(Table(
+      header,
+      ("Followers", """game.grid.Amazons("x...|o...").Followers.Size""", "2784")
+    ))
+  }
+
   "game.Player" should "behave correctly" in {
     executeTests(Table(
       header,

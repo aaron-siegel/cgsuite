@@ -38,15 +38,6 @@ system class CanonicalStopper extends Game, StopperSidedValue
     */
   external def DownsumVariety(deg as CanonicalStopper);
 
-  /** The number of distinct followers of this game.
-    */
-  external def FollowerCount;
-
-  /** A [[Collection]] of all the followers of this game. Each
-    * distinct follower appears exactly once in the `Collection`.
-    */
-  external def Followers;
-
   /** The Left stop of this game. `G.LeftStop` is equivalent to `G.Stop(Left)`.
     *
     * See [[#Stop]] for the definition and discussion.

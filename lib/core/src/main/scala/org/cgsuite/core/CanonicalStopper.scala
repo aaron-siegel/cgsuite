@@ -153,14 +153,14 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       throw InvalidOperationException("Variety degree must be an idempotent.")
   }
 
-  def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
+  override def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
 
-  def followers: Iterable[CanonicalStopper] = {
+  override def followers: Set[_ <: CanonicalStopper] = {
     (0 until loopyGame.getGraph.getNumVertices).map { n =>
       // The stopper simplification algorithms guarantee that elements of
       // this Iterable will be distinct.
       CanonicalStopper(loopyGame.deriveGame(n))
-    }
+    }.toSet
   }
 
   override def isIdempotent = this + this == this

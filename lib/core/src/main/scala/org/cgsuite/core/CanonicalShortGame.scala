@@ -183,7 +183,9 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def followerCount: Integer = SmallInteger(ops.followerCount(gameId))
 
-  override def followers = ops.followerIds(gameId).asScala map { CanonicalShortGame(_) }
+  override def followers: Set[_ <: CanonicalShortGame] = {
+    ops.followerIds(gameId).asScala.toSet.map { id: java.lang.Integer => CanonicalShortGame(id) }
+  }
 
   def freeze = cool(temperature)
 

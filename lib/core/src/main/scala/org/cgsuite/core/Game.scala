@@ -180,4 +180,17 @@ trait Game extends OutputTarget {
 
   def decomposition: Iterable[_] = Seq(this)
 
+  def followerCount: Integer = SmallInteger(followers.size)
+
+  def followers: Set[_ <: Game] = buildFollowers(mutable.Set()).toSet
+
+  private def buildFollowers(cache: mutable.Set[Game]): mutable.Set[Game] = {
+    if (!cache.contains(this)) {
+      cache += this
+      options(Left) foreach { _.buildFollowers(cache) }
+      options(Right) foreach { _.buildFollowers(cache) }
+    }
+    cache
+  }
+
 }

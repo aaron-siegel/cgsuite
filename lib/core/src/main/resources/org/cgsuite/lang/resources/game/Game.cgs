@@ -147,6 +147,12 @@ system class Game
     */
   def Decomposition := [this];
 
+  /** The number of distinct followers of this game. */
+  external def FollowerCount;
+
+  /** A [[Set]] of all the followers of this game. */
+  external def Followers;
+
   /** The Left options of this `Game`. This is simply an alias for `Options(Left)`. */
   def LeftOptions := Options(Left);
 
