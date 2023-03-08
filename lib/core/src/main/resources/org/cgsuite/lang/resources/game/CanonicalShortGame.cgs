@@ -147,7 +147,7 @@ system class CanonicalShortGame extends CanonicalStopper
     *
     * where $I$ ranges over all [[#Incentives][incentives]] of $U$.
     */
-  external def NortonMultiply(that as CanonicalShortGame) as CanonicalShortGame;
+  external def NortonProduct(that as CanonicalShortGame) as CanonicalShortGame;
 
   /** The value of this game overheated from `s` to `t`. */
   external def Overheat(s as CanonicalShortGame, t as CanonicalShortGame) as CanonicalShortGame;

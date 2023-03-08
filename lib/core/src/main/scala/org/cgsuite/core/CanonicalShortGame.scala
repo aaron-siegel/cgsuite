@@ -102,7 +102,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   override def -(other: CanonicalShortGame) = CanonicalShortGame(ops.subtract(gameId, other.gameId))
 
-  override def nCopies(n: Integer): CanonicalShortGame = n nortonMultiply this
+  override def nCopies(n: Integer): CanonicalShortGame = n nortonProduct this
 
   def <=(other: CanonicalShortGame) = ops.leq(gameId, other.gameId)
 
@@ -143,7 +143,7 @@ trait CanonicalShortGame extends CanonicalStopper {
     else {
       val naiveAtomicWeightId = ops.naiveAtomicWeight(gameId)
       val isAtomic = isAllSmall || {
-        val difference = ops.subtract(gameId, ops.nortonMultiply(naiveAtomicWeightId, ops.UP_ID))
+        val difference = ops.subtract(gameId, ops.nortonProduct(naiveAtomicWeightId, ops.UP_ID))
         val farStar = ops.farStar(gameId)
         var nextPow2 = 2
         while (nextPow2 < farStar)
@@ -254,7 +254,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def mean: DyadicRationalNumber = ops.mean(gameId)
 
-  def nortonMultiply(that: CanonicalShortGame) = CanonicalShortGame(ops.nortonMultiply(gameId, that.gameId))
+  def nortonProduct(that: CanonicalShortGame) = CanonicalShortGame(ops.nortonProduct(gameId, that.gameId))
 
   def ordinalSum(that: CanonicalShortGame) = CanonicalShortGame(ops.ordinalSum(gameId, that.gameId))
 
