@@ -66,7 +66,11 @@ system class Game
     */
   external def OrdinalProduct(that as Game);
 
-  /** The reduced canonical form of this `Game`. This is simply shorthand for `CanonicalForm.ReducedCanonicalForm`;
+  /** The reduced canonical form of this `Game`.
+    *
+    * The ~~reduced canonical form~~ of $G$ is the simplest game infinitesimally close to $G$.
+    * In general, `G.ReducedCanonicalForm` is simply shorthand for
+    * `G.CanonicalForm.ReducedCanonicalForm`;
     * CGSuite will first compute the corresponding [[CanonicalShortGame]] and then call
     * [[CanonicalShortGame#ReducedCanonicalForm]].
     */

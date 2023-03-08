@@ -60,8 +60,8 @@ system class CanonicalStopper extends Game, StopperSidedValue
     *
     * The stops `L(G)` and `R(G)` are defined for all [[CanonicalStopper][stoppers]] by
     *
-    * `L(G) = R(G) = G` if `G` is a pseudonumber; \\
-    * `L(G) = max{R(G^L^)}`, `R(G) = min{L(G^R^)}` otherwise.
+    * $L(G) = R(G) = G$ if $G$ is a pseudonumber; \\
+    * $L(G) = max{R(G^L^)}$, $R(G) = min{L(G^R^)}$ otherwise.
     *
     * If `G` is loopfree (i.e., an instance of [[CanonicalShortGame]]), then `L(G)` and `R(G)`
     * will necessarily be [[DyadicRational]]s, since the only loopfree pseudonumbers are ordinary

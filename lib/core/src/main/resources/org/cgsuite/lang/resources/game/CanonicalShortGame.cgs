@@ -76,6 +76,8 @@ system class CanonicalShortGame extends CanonicalStopper
     * `G.Incentives` is a `List` of `CanonicalShortGame`s, representing all Left and
     * Right incentives together in one `List` (with each distinct value appearing
     * exactly once).
+    *
+    * See also [[#LeftIncentives]] and [[#RightIncentives]].
     */
   external def Incentives as List;
 
@@ -109,14 +111,20 @@ system class CanonicalShortGame extends CanonicalStopper
     */
   external def IsEvenTempered as Boolean;
 
-  /** `true` if this `CanonicalShortGame` is odd. See [[#IsEven]] for the definition.
-    */
+  /** `true` if this `CanonicalShortGame` is odd. See [[#IsEven]] for the definition. */
   external def IsOdd as Boolean;
 
-  /** `true` if this `CanonicalShortGame` is odd-tempered. See [[#IsEvenTempered]] for the definition.
-    */
+  /** `true` if this `CanonicalShortGame` is odd-tempered. See [[#IsEvenTempered]] for the definition. */
   external def IsOddTempered as Boolean;
 
+  /** The Left incentives of this `CanonicalShortGame`.
+    *
+    * `G.LeftIncentives` is a `List` containing all games of the form
+    *
+    * $G^L^ - G$
+    *
+    * with $G^L^$ a Left option of $G$.
+    */
   external def LeftIncentives as List;
 
   /** The mean value of this `CanonicalShortGame`, as a [[DyadicRational]].
@@ -130,16 +138,40 @@ system class CanonicalShortGame extends CanonicalStopper
     */
   external def Mean as DyadicRational;
 
-  external def NortonMultiply(h as CanonicalShortGame) as CanonicalShortGame;
+  /** The Norton product of this game and `that`.
+    *
+    * The ~~Norton product~~ $G\cdot{}U$ is defined by
+    *
+    * $G\cdot{}U =$ the sum of $G$ copies of $U$, if $G$ is an integer;\\
+    * $G\cdot{}U = {G^L^\cdot{}U + (U + I) | G^R^\cdot{}U - (U + I)}$ otherwise,
+    *
+    * where $I$ ranges over all [[#Incentives][incentives]] of $U$.
+    */
+  external def NortonMultiply(that as CanonicalShortGame) as CanonicalShortGame;
 
+  /** The value of this game overheated from `s` to `t`. */
   external def Overheat(s as CanonicalShortGame, t as CanonicalShortGame) as CanonicalShortGame;
 
-  external def Pow(x as Pseudonumber) as CanonicalShortGame;
+  /** The value of this game raised to the specified power. */
+  external def Pow(x as Pseudonumber);
 
-  external def PowTo(x as Pseudonumber) as CanonicalShortGame;
+  /** The value of this game raised to the specified cumulative power. */
+  external def PowTo(x as Pseudonumber);
 
+  /** The reduced canonical form of this game.
+    *
+    * The ~~reduced canonical form~~ of $G$ is the simplest game infinitesimally close to $G$.
+    */
   external override def ReducedCanonicalForm as CanonicalShortGame;
 
+  /** The Right incentives of this `CanonicalShortGame`.
+    *
+    * `G.RightIncentives` is a `List` containing all games of the form
+    *
+    * $G - G^R^$
+    *
+    * with $G^R^$ a Right option of $G$.
+    */
   external def RightIncentives as List;
 
   external override def RightStop as DyadicRational;
@@ -148,7 +180,7 @@ system class CanonicalShortGame extends CanonicalStopper
     *
     * It is defined by
     *
-    * $SC(x) = x$ \sp if $x$ is a number;\\
+    * $SC(x) = 1$ \sp if $x$ is a number;\\
     * $SC(G) = \Sigma\,SC(G^L^) + \Sigma\,SC(G^R^)$ \sp otherwise,
     *
     * where the sums are understood to range over all Left and Right options of $G$.
@@ -167,6 +199,7 @@ system class CanonicalShortGame extends CanonicalStopper
    */
   external def Temperature as DyadicRational;
 
+  /** The thermograph of this `CanonicalShortGame`. */
   external def Thermograph as Thermograph;
 
   external override def ToOutput as String;
