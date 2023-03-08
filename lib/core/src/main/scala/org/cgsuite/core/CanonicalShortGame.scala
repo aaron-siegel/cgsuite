@@ -163,7 +163,7 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def companion: CanonicalShortGame = CanonicalShortGame(ops.companion(gameId))
 
-  def conwayProduct(that: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.conwayMultiply(gameId, that.gameId))
+  def conwayProduct(that: CanonicalShortGame): CanonicalShortGame = CanonicalShortGame(ops.conwayProduct(gameId, that.gameId))
 
   override def conwayProduct(that: Game): Game = {
     that match {
