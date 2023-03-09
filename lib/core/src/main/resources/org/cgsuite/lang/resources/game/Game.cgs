@@ -45,6 +45,8 @@ system class Game
     */
   external def CanonicalForm;
 
+  external def ConjunctiveSum(that as Game);
+
   /** The Conway product of this game and `that`. */
   external def ConwayProduct(that as Game);
 
@@ -75,6 +77,8 @@ system class Game
     * [[CanonicalShortGame#ReducedCanonicalForm]].
     */
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
+
+  external def SelectiveSum(that as Game);
 
   /** The sensible Left options of this `Game`. This is simply an alias for `SensibleOptions(Left)`. */
   external def SensibleLeftOptions;

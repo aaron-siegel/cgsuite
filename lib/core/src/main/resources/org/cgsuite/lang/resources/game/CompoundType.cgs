@@ -1,0 +1,14 @@
+/*${cgsuite.banner}*/
+
+system enum CompoundType
+
+  external ConjunctiveSum,
+  external ConwayProduct,
+  external DisjunctiveSum,
+  external OrdinalProduct,
+  external OrdinalSum,
+  external SelectiveSum;
+
+  external override def Literal;
+
+end

@@ -625,6 +625,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
   def entityType(any: AnyRef): String = {
     any match {
       case _: CgscriptPackage => "package"
+      case cls: CgscriptClass if cls.properAncestors.contains(CgscriptClass.Enum) => "enum"
       case _: CgscriptClass => "class"
       case _: CgscriptClass#Method => "def"
       case v: CgscriptClass#Var if v.isConstructorParam => "param"

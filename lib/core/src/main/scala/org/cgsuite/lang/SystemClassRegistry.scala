@@ -84,6 +84,7 @@ private[lang] object SystemClassRegistry {
     "game.ImpartialGame" -> classOf[ImpartialGame],
     "game.Game" -> classOf[Game],
 
+    "game.CompoundType" -> classOf[CompoundType],
     "game.Player" -> classOf[Player],
     "game.Side" -> classOf[Side],
     "game.OutcomeClass" -> classOf[LoopyOutcomeClass],

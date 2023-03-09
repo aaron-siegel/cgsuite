@@ -4,7 +4,7 @@
   */
 system class Object
 
-  /** The class object corresponding to this `Object`'s class.
+  /** The class object corresponding to this `Object`'s CGScript class.
     */
   external def Class;
   

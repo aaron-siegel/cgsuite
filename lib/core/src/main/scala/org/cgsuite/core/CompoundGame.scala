@@ -4,6 +4,52 @@ import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.output.StyledTextOutput
 import org.cgsuite.util.TranspositionCache
 
+object CompoundGame {
+
+  def compoundOptions(compoundType: CompoundType, g: Game, h: Game, player: Player): Iterable[Game] = {
+
+    compoundType match {
+
+      case ConjunctiveSum =>
+        for (gOpt <- g.options(player); hOpt <- h.options(player)) yield {
+          CompoundGame(ConjunctiveSum, gOpt, hOpt)
+        }
+
+      case ConwayProduct =>
+        for {
+          p <- Seq(Left, Right)
+          gOpt <- g.options(p)
+          hOpt <- h.options(if (player == Left) p else p.opponent)
+        } yield {
+          CompoundGame(ConwayProduct, gOpt, h) + CompoundGame(ConwayProduct, g, hOpt) - CompoundGame(ConwayProduct, gOpt, hOpt)
+        }
+
+      case DisjunctiveSum =>
+        g.options(player).map { CompoundGame(DisjunctiveSum, _, h) } ++
+          h.options(player).map { CompoundGame(DisjunctiveSum, g, _) }
+
+      case OrdinalProduct =>
+        for {
+          p <- Seq(Left, Right)
+          hOpt <- h.options(p)
+          gOpt <- (if (p == Left) g else -g).options(player)
+        } yield {
+          CompoundGame(OrdinalProduct, g, hOpt) ordinalSum gOpt
+        }
+
+      case OrdinalSum =>
+        g.options(player) ++ h.options(player).map { CompoundGame(OrdinalSum, g, _) }
+
+      case SelectiveSum =>
+        compoundOptions(DisjunctiveSum, g, h, player) ++
+          compoundOptions(ConjunctiveSum, g, h, player)
+
+    }
+
+  }
+
+}
+
 case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Game {
 
   override def unary_- : Game = {
@@ -13,33 +59,8 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
     }
   }
 
-  def options(player: Player) = compoundType match {
-
-    case DisjunctiveSum =>
-      g.options(player).map { CompoundGame(DisjunctiveSum, _, h) } ++
-      h.options(player).map { CompoundGame(DisjunctiveSum, g, _) }
-
-    case OrdinalSum =>
-      g.options(player) ++ h.options(player).map { CompoundGame(OrdinalSum, g, _) }
-
-    case OrdinalProduct =>
-      for {
-        p <- Seq(Left, Right)
-        hOpt <- h.options(p)
-        gOpt <- (if (p == Left) g else -g).options(player)
-      } yield {
-        CompoundGame(OrdinalProduct, g, hOpt) ordinalSum gOpt
-      }
-
-    case ConwayProduct =>
-      for {
-        p <- Seq(Left, Right)
-        gOpt <- g.options(p)
-        hOpt <- h.options(if (player == Left) p else p.opponent)
-      } yield {
-        CompoundGame(ConwayProduct, gOpt, h) + CompoundGame(ConwayProduct, g, hOpt) - CompoundGame(ConwayProduct, gOpt, hOpt)
-      }
-
+  override def options(player: Player): Iterable[Game] = {
+    CompoundGame.compoundOptions(compoundType, g, h, player)
   }
 
   override def depthHint: Int = g.depthHint + h.depthHint
@@ -80,6 +101,39 @@ object CompoundImpartialGame {
     new CompoundImpartialGame(compoundType, g, h)
   }
 
+  def compoundOptions(compoundType: CompoundType, g: ImpartialGame, h: ImpartialGame): Iterable[ImpartialGame] = {
+
+    compoundType match {
+
+      case ConjunctiveSum =>
+        for (gOpt <- g.options; hOpt <- h.options) yield {
+          CompoundImpartialGame(ConjunctiveSum, gOpt, hOpt)
+        }
+
+      case ConwayProduct =>
+        for (gOpt <- g.options; hOpt <- h.options) yield {
+          CompoundImpartialGame(ConwayProduct, gOpt, h) + CompoundImpartialGame(ConwayProduct, g, hOpt) + CompoundImpartialGame(ConwayProduct, gOpt, hOpt)
+        }
+
+      case DisjunctiveSum =>
+        g.options.map { CompoundImpartialGame(DisjunctiveSum, _, h) } ++
+          h.options.map { CompoundImpartialGame(DisjunctiveSum, g, _) }
+
+      case OrdinalProduct =>
+        for (gOpt <- g.options; hOpt <- h.options) yield {
+          CompoundImpartialGame(OrdinalProduct, g, hOpt) ordinalSum gOpt
+        }
+
+      case OrdinalSum =>
+        g.options ++ h.options.map { CompoundImpartialGame(OrdinalSum, g, _) }
+
+      case SelectiveSum =>
+        compoundOptions(DisjunctiveSum, g, h) ++ compoundOptions(ConjunctiveSum, g, h)
+
+    }
+
+  }
+
 }
 
 class CompoundImpartialGame(compoundType: CompoundType, g: ImpartialGame, h: ImpartialGame)
@@ -88,34 +142,7 @@ class CompoundImpartialGame(compoundType: CompoundType, g: ImpartialGame, h: Imp
   override def unary_- : CompoundImpartialGame = this
 
   override def options: Iterable[ImpartialGame] = {
-
-    compoundType match {
-
-      case DisjunctiveSum =>
-        g.options.map { CompoundImpartialGame(DisjunctiveSum, _, h) } ++
-        h.options.map { CompoundImpartialGame(DisjunctiveSum, g, _) }
-
-      case OrdinalSum =>
-        g.options ++ h.options.map { CompoundImpartialGame(OrdinalSum, g, _) }
-
-      case OrdinalProduct =>
-        for {
-          gOpt <- g.options
-          hOpt <- h.options
-        } yield {
-          CompoundImpartialGame(OrdinalProduct, g, hOpt) ordinalSum gOpt
-        }
-
-      case ConwayProduct =>
-        for {
-          gOpt <- g.options
-          hOpt <- h.options
-        } yield {
-          CompoundImpartialGame(ConwayProduct, gOpt, h) + CompoundImpartialGame(ConwayProduct, g, hOpt) + CompoundImpartialGame(ConwayProduct, gOpt, hOpt)
-        }
-
-    }
-
+    CompoundImpartialGame.compoundOptions(compoundType, g, h)
   }
 
   override def nimValue(tc: TranspositionCache): Integer = {
@@ -140,19 +167,9 @@ sealed trait CompoundType {
   def symbol(g: Game, h: Game): String
 }
 
-case object DisjunctiveSum extends CompoundType {
+case object ConjunctiveSum extends CompoundType {
   val precedence = 3
-  def symbol(g: Game, h: Game) = "+"
-}
-
-case object OrdinalSum extends CompoundType {
-  val precedence = 2
-  def symbol(g: Game, h: Game) = ":"
-}
-
-case object OrdinalProduct extends CompoundType {
-  val precedence = 4
-  def symbol(g: Game, h: Game) = "OrdinalProduct"
+  def symbol(g: Game, h: Game) = "ConjunctiveSum"
 }
 
 case object ConwayProduct extends CompoundType {
@@ -163,4 +180,24 @@ case object ConwayProduct extends CompoundType {
       case _ => "ConwayProduct"
     }
   }
+}
+
+case object DisjunctiveSum extends CompoundType {
+  val precedence = 3
+  def symbol(g: Game, h: Game) = "+"
+}
+
+case object OrdinalProduct extends CompoundType {
+  val precedence = 4
+  def symbol(g: Game, h: Game) = "OrdinalProduct"
+}
+
+case object OrdinalSum extends CompoundType {
+  val precedence = 2
+  def symbol(g: Game, h: Game) = ":"
+}
+
+case object SelectiveSum extends CompoundType {
+  val precedence = 3
+  def symbol(g: Game, h: Game) = "SelectiveSum"
 }

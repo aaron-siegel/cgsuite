@@ -26,11 +26,15 @@ trait Game extends OutputTarget {
     CanonicalShortGameReducer.reduce(this, tc.tableFor[CanonicalShortGame](Symbol("CanonicalShortGame")))
   }
 
+  def conjunctiveSum(that: Game): Game = CompoundGame(ConjunctiveSum, this, that)
+
   def conwayProduct(that: Game): Game = CompoundGame(ConwayProduct, this, that)
 
   def ordinalProduct(that: Game): Game = CompoundGame(OrdinalProduct, this, that)
 
   def ordinalSum(that: Game): Game = CompoundGame(OrdinalSum, this, that)
+
+  def selectiveSum(that: Game): Game = CompoundGame(SelectiveSum, this, that)
 
   def gameValue: SidedValue = gameValue(new TranspositionCache())
 

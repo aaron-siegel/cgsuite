@@ -51,6 +51,7 @@ object SpecialMethods {
     "cgsuite.util.MutableList.Sort" -> { (list: mutable.ArrayBuffer[Any], _: Unit) => list.sortInPlace()(UniversalOrdering) },
     "cgsuite.util.MutableMap.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
+    "game.CompoundType.Literal" -> { (compoundType: CompoundType, _: Unit) => compoundType.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
     "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString }

@@ -913,7 +913,12 @@ class CgscriptClass(
               token = Some(localDeclarations.head.idNode.token)
             )
           }
-          if (matchingMethods.size > 1 && !localDeclarations.head.modifiers.hasOverride) {
+          if (matchingMethods.size > 1 && !localDeclarations.head.modifiers.hasOverride &&
+              // There is an edge case in which a constructor parameter is externalized and is
+              // therefore treated as a Method. For now, we special-case system methods.
+              // (Example: CompoundImpartialGame constructor parameters)
+              // TODO Find a more graceful solution to this
+              !localDeclarations.head.isInstanceOf[SystemMethod]) {
             throw EvalException(
               s"Method `${localDeclarations.head.qualifiedName}` must be declared with `override`, since it overrides `${matchingMethods(1).qualifiedName}`",
               token = Some(localDeclarations.head.idNode.token)
@@ -1171,6 +1176,12 @@ class CgscriptClass(
       classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("NHat"))) = NHat
       classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("NCheck"))) = NCheck
     }
+    if (qualifiedName == "game.CompoundType") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("ConwayProduct"))) = ConwayProduct
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("DisjunctiveSum"))) = DisjunctiveSum
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("OrdinalSum"))) = OrdinalSum
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("OrdinalProduct"))) = OrdinalProduct
+    }
     if (qualifiedName == "cgsuite.util.Symmetry") {
       import Symmetry._
       Map(Symbol("Identity") -> Identity, Symbol("Inversion") -> Inversion, Symbol("HorizontalFlip") -> HorizontalFlip, Symbol("VerticalFlip") -> VerticalFlip,
@@ -1401,6 +1412,8 @@ class CgscriptClass(
       */
       Profiler.start(reflect)
       try {
+        logger.debug(javaMethod.toString)
+        logger.debug(target.getClass.toString)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
