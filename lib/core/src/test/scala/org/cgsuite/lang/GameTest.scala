@@ -304,6 +304,14 @@ class GameTest extends CgscriptSpec {
     ))
   }
 
+  "game.CompoundGame" should "implement compounds correctly" in {
+
+    val tests = CompoundGameTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests : _*))
+
+  }
+
   "game.Player" should "behave correctly" in {
     executeTests(Table(
       header,
