@@ -202,6 +202,9 @@ class GameTest extends CgscriptSpec {
       ("(1/8).Subordinate(1)", "-3"),
       ("(^.PowTo(5)+*).Subordinate(*)", "5"),
       ("*.Subordinate(1)", "!!That game cannot be subordinated to the specified base."),
+      ("(+-1).Subordinate(0)", "+-1"),
+      ("(+-1).Subordinate(+-1)", "0"),
+      ("(-13/16).Subordinate(-1)", "3/8"),
       ("^.PowTo(5).Subordinate('{*|*}')", "5")    // Subordinating to a non-canonical base
     )
 
