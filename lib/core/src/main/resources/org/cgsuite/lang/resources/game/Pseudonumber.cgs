@@ -10,7 +10,4 @@
   * $x + under$, where $x$ is a dyadic rational.
   */
 system class Pseudonumber extends CanonicalStopper
-
-  external def Blowup;
-
 end

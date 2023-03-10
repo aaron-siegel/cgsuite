@@ -127,18 +127,6 @@ trait DyadicRationalNumber extends Uptimal with Pseudonumber with RationalNumber
 
   override def outcomeClass: OutcomeClass = super[RationalNumber].outcomeClass
 
-  def blowup: DyadicRationalNumber = {
-    if (this <= zero) {
-      throw InvalidArgumentException("Exponent must be a nonnegative pseudonumber.")
-    } else if (isInteger) {
-      this - one
-    } else if (step(-1) == zero) {
-      DyadicRationalNumber.fromSection(None, Some(step(1).blowup))
-    } else {
-      DyadicRationalNumber.fromSection(step(-1).blowup, step(1).blowup)
-    }
-  }
-
   def min(other: DyadicRationalNumber) = if (this < other) this else other
   def max(other: DyadicRationalNumber) = if (this > other) this else other
   def mean(other: DyadicRationalNumber) = ((this + other) / two).asInstanceOf[DyadicRationalNumber]

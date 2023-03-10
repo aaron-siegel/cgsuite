@@ -280,12 +280,24 @@ trait CanonicalShortGame extends CanonicalStopper {
   def powTo(x: Pseudonumber): CanonicalStopper = {
     x match {
       case r: DyadicRationalNumber => powTo(r)
-      case _ => ordinalSum(x.blowup)
+      case _ => try {
+        ordinalSum(x.subordinate(Values.one))
+      } catch {
+        case _: InvalidOperationException => throw InvalidOperationException("Invalid exponent.")
+      }
     }
   }
 
   def powTo(x: DyadicRationalNumber): CanonicalShortGame = {
-    if (x.isZero) zero else ordinalSum(x.blowup)
+    if (x.isZero) {
+      zero
+    } else {
+      try {
+        ordinalSum(x.subordinate(Values.one))
+      } catch {
+        case _: InvalidOperationException => throw InvalidOperationException("Invalid exponent.")
+      }
+    }
   }
 
   def reducedCanonicalForm: CanonicalShortGame = CanonicalShortGame(ops.rcf(gameId))
