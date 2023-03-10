@@ -209,11 +209,60 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
 
   def isSwitch: Boolean = this == -this
 
+  override def leftOptions: Iterable[CanonicalStopper] = options(Left)
+
   override def offside = this
 
   override def onside = this
 
   def ordinalSum(that: CanonicalStopper): CanonicalStopper = CanonicalStopper(loopyGame.ordinalSum(that.loopyGame))
+
+  override def rightOptions: Iterable[CanonicalStopper] = options(Right)
+
+  def subordinate(base: Game): CanonicalStopper = {
+    val node = subordinateR(
+      base.leftOptions.map { _.canonicalForm }.toSet,
+      base.rightOptions.map { _.canonicalForm }.toSet,
+      mutable.Map()
+    )
+    CanonicalStopper(new LoopyGame(node))
+  }
+
+  private def subordinateR(
+    loBase: Set[CanonicalStopper],
+    roBase: Set[CanonicalStopper],
+    visited: mutable.Map[CanonicalStopper, LoopyGame.Node]
+  ): LoopyGame.Node = {
+
+    visited.get(this) match {
+      case Some(node) => node
+      case None =>
+        val reduction = new LoopyGame.Node()
+        visited(this) = reduction
+        val lo = leftOptions
+        val ro = rightOptions
+        for (bl <- loBase) {
+          if (!lo.exists(_ >= bl) && !bl.rightOptions.exists(this >= _)) {
+            throw InvalidOperationException("That game cannot be subordinated to the specified base.")
+          }
+        }
+        for (br <- roBase) {
+          if (!ro.exists(_ <= br) && !br.leftOptions.exists(this <= _)) {
+            throw InvalidOperationException("That game cannot be subordinated to the specified base.")
+          }
+        }
+        val loSub = lo collect {
+          case gl if !loBase.contains(gl) => gl.subordinateR(loBase, roBase, visited)
+        }
+        val roSub = ro collect {
+          case gr if !roBase.contains(gr) => gr.subordinateR(loBase, roBase, visited)
+        }
+        loSub.foreach(reduction.addLeftEdge)
+        roSub.foreach(reduction.addRightEdge)
+        reduction
+    }
+
+  }
 
   def upsum(that: CanonicalStopper): CanonicalStopper = (this + that).onside
 

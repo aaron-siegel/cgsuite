@@ -248,6 +248,8 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def leftIncentives = incentives(Left)
 
+  override def leftOptions: Iterable[CanonicalShortGame] = options(Left)
+
   override def leftStop: DyadicRationalNumber = ops.leftStop(gameId)
 
   def mean: DyadicRationalNumber = ops.mean(gameId)
@@ -288,9 +290,40 @@ trait CanonicalShortGame extends CanonicalStopper {
 
   def rightIncentives = incentives(Right)
 
+  override def rightOptions: Iterable[CanonicalShortGame] = options(Right)
+
   override def rightStop: DyadicRationalNumber = ops.rightStop(gameId)
 
   def stopCount: Integer = Integer(ops.stopCount(gameId))
+
+  override def subordinate(base: Game): CanonicalShortGame = {
+    subordinate(
+      base.leftOptions.map { _.canonicalForm }.toSet,
+      base.rightOptions.map { _.canonicalForm }.toSet
+    )
+  }
+
+  private def subordinate(loBase: Set[CanonicalShortGame], roBase: Set[CanonicalShortGame]): CanonicalShortGame = {
+    val lo = leftOptions
+    val ro = rightOptions
+    for (bl <- loBase) {
+      if (!lo.exists(_ >= bl) && !bl.rightOptions.exists(this >= _)) {
+        throw InvalidOperationException("That game cannot be subordinated to the specified base.")
+      }
+    }
+    for (br <- roBase) {
+      if (!ro.exists(_ <= br) && !br.leftOptions.exists(this <= _)) {
+        throw InvalidOperationException("That game cannot be subordinated to the specified base.")
+      }
+    }
+    val loSub = lo collect {
+      case gl if !loBase.contains(gl) => gl.subordinate(loBase, roBase)
+    }
+    val roSub = ro collect {
+      case gr if !roBase.contains(gr) => gr.subordinate(loBase, roBase)
+    }
+    CanonicalShortGame(loSub, roSub)
+  }
 
   override def switch: CanonicalShortGame = CanonicalShortGame(this)(-this)
 
