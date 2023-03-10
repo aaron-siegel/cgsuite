@@ -198,7 +198,14 @@ class GameTest extends CgscriptSpec {
       ("{0||0|-2}.PowTo({5|pass})", "{{Tiny(2)||0|-2|||0|-2||||0|-2}||0|-2|||{0|-2},pass}"),
       ("{0||0|-2}.PowTo(on)", "{pass||0|-2}"),
       ("(+-1).PowTo(3)", "{1,{1,+-1|-1}|-1}"),
-      ("(+-1).Pow(3)", "!!Invalid base for `Pow` operation (base must be of the form {0|H}).")
+      ("(+-1).Pow(3)", "!!Invalid base for `Pow` operation (base must be of the form {0|H})."),
+      ("(1/8).Subordinate(1)", "-3"),
+      ("(^.PowTo(5)+*).Subordinate(*)", "5"),
+      ("*.Subordinate(1)", "!!That game cannot be subordinated to the specified base."),
+      ("(+-1).Subordinate(0)", "+-1"),
+      ("(+-1).Subordinate(+-1)", "0"),
+      ("(-13/16).Subordinate(-1)", "3/8"),
+      ("^.PowTo(5).Subordinate('{*|*}')", "5")    // Subordinating to a non-canonical base
     )
 
     executeTests(Table(
@@ -221,6 +228,13 @@ class GameTest extends CgscriptSpec {
     val instances = Seq(
       ("upon.Downsum(^.Pow(on))", "^[on]"),
       ("upon.DownsumVariety(^.Pow(on))", "v<on>"),
+      ("over.Subordinate(1)", "off"),
+      ("(upon+*).Subordinate(*)", "on"),
+      ("upon.Subordinate('{*|*}')", "on"),
+      ("{0,*|0,pass}.Subordinate(*)", "over"),
+      ("on.Subordinate(1)", "on"),
+      ("over.Subordinate(1)", "off"),
+      ("on.Subordinate(*)", "!!That game cannot be subordinated to the specified base."),
       ("upon.Upsum(^.Pow(on))", "{0|^<on>*}"),
       ("upon.UpsumVariety(^.Pow(on))", "v<on>")
     )

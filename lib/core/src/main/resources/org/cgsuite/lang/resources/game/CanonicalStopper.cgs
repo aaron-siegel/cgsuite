@@ -86,6 +86,20 @@ system class CanonicalStopper extends Game, StopperSidedValue
     */
   external def StrongStop(player as Player);
 
+  /** The subordinate of this game to the specified base.
+    *
+    * `G.Subordinate(B)` is the unique `H` such that `G = B:H`. The base `B` must be a short game
+    * (but not necessarily in canonical form). If `G` cannot be expressed in the form `B:H`, then
+    * an error will occur.
+    *
+    * \display{(3/8).Subordinate(1)}
+    *
+    * Subordinating to a non-canonical base:
+    *
+    * \display{^.Subordinate('{*|*}')}
+    */
+  external def Subordinate(base as Game);
+
   /** Shorthand for the game `{0||0|-this}`.
     */
   def Tiny := {0||0|-this};
