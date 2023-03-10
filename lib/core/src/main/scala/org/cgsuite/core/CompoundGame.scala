@@ -54,7 +54,7 @@ case class CompoundGame(compoundType: CompoundType, g: Game, h: Game) extends Ga
 
   override def unary_- : Game = {
     compoundType match {
-      case DisjunctiveSum | OrdinalSum => CompoundGame(compoundType, -g, -h)
+      case ConjunctiveSum | DisjunctiveSum | OrdinalSum | SelectiveSum => CompoundGame(compoundType, -g, -h)
       case ConwayProduct | OrdinalProduct => super.unary_-
     }
   }

@@ -326,6 +326,19 @@ class GameTest extends CgscriptSpec {
 
   }
 
+  it should "implement negatives correctly" in {
+    executeTests(Table(
+      header,
+      ("-ConjunctiveSum", "-(1 ConjunctiveSum '{1|0}')", "-1 ConjunctiveSum '{0|-1}'"),
+      ("-ConwayProduct", "-(1 ConwayProduct '{1|0}')", "-(1 * '{1|0}')"),
+      ("-ConwayProduct", "-(1/2 ConwayProduct '{1|0}')", "-(1/2 ConwayProduct '{1|0}')"),
+      ("-DisjunctiveSum", "-(1 + '{1|0}')", "-1 + '{0|-1}'"),
+      ("-OrdinalProduct", "-(1 OrdinalProduct '{1|0}')", "-(1 OrdinalProduct '{1|0}')"),
+      ("-OrdinalSum", "-(1 : '{1|0}')", "-1 : '{0|-1}'"),
+      ("-ConjunctiveSum", "-(1 SelectiveSum '{1|0}')", "-1 SelectiveSum '{0|-1}'"),
+    ))
+  }
+
   "game.Player" should "behave correctly" in {
     executeTests(Table(
       header,
