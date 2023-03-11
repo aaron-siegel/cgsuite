@@ -1,6 +1,6 @@
 Toads and Frogs Exhaustive Search
 
-In this example, we'll search for the most complicated [[game.strip.GenToadsAndFrogs][Toads and Frogs]] positions of
+In this example, we'll search for the most complicated [[game.strip.constants#ToadsAndFrogs][Toads and Frogs]] positions of
 length 11.
 
 There are various ways to measure how "complicated" a game position is; for purposes of this tutorial, we'll use the

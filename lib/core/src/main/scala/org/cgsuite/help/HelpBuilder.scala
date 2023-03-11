@@ -232,7 +232,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
          |<p>
          |
          |$packageStr
-         |<h1>${cls.pkg.qualifiedName}.${member.name}</h1>
+         |<h1>${member.name}</h1>
          |
          |<p><div class="section">
          |  <code class="big">$memberTypeStr <b>${cls.pkg.qualifiedName}.${member.name}</b>$parametersStr</code>
