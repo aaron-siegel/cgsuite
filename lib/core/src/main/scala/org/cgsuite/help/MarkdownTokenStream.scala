@@ -1,5 +1,8 @@
 package org.cgsuite.help
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+
 class MarkdownTokenStream(input: String, stripAsterisks: Boolean = false) {
 
   val markdownStream = new MarkdownStream(input, stripAsterisks)
@@ -59,21 +62,26 @@ class MarkdownTokenStream(input: String, stripAsterisks: Boolean = false) {
   private def nextSpecial: Special = {
     if (markdownStream.next.isLetter) {
       val command = markdownStream consumeWhile { _.isLetter }
-      val arg = markdownStream.next match {
-        case '{' => Some(consumeSpecialArg)
-        case _ => None
-      }
-      Special(command, arg)
+      val args = consumeSpecialArgs()
+      Special(command, args)
     } else {
-      Special(markdownStream.consume.toString, None)
+      Special(markdownStream.consume.toString, Vector.empty)
     }
   }
 
-  private def consumeSpecialArg: String = {
+  private def consumeSpecialArgs(): Vector[String] = {
+    val args = ArrayBuffer[String]()
+    while (markdownStream.next == '{') {
+      args += consumeSpecialArg()
+    }
+    args.toVector
+  }
+
+  private def consumeSpecialArg(): String = {
     assert(markdownStream.next == '{')
     markdownStream.consume
     var bracesCount = 1
-    val buf = new StringBuilder
+    val buf = new mutable.StringBuilder
     while (bracesCount > 0) {
       if (markdownStream.isDone)
         sys.error("runaway special arg")
@@ -120,7 +128,7 @@ sealed trait MarkdownToken
 case object Done extends MarkdownToken
 case class OrdinaryChar(ch: Char) extends MarkdownToken
 case class ControlSequence(str: String) extends MarkdownToken
-case class Special(command: String, arg: Option[String]) extends MarkdownToken
+case class Special(command: String, args: Vector[String]) extends MarkdownToken
 case class Link(target: String, text: Option[String]) extends MarkdownToken
 
 class MarkdownStream(rawInput: String, stripAsterisks: Boolean = false) {

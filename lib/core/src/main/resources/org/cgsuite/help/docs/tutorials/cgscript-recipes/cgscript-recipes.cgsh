@@ -1,0 +1,8 @@
+CGScript Recipes
+
+This tutorial contains some examples of useful things you can do with CGScript. It assumes you've already read through the
+[[/tutorials/getting-started/cgscript]] section from the ~Getting Started~ tutorial.
+
+\ol
+\li [[toads-and-frogs-search]] - Search for the most complicated Toads and Frogs positions of a given length
+\endol

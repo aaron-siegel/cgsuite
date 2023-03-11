@@ -1,12 +1,24 @@
 /*${cgsuite.banner}*/
 
+/** Enumerated type representing a [[CompoundGame]] operation. */
 system enum CompoundType
 
+  /** The conjunctive sum operation. See [[Game#ConjunctiveSum]] for details. */
   external ConjunctiveSum,
+
+  /** The Conway product operation. See [[Game#ConwayProduct]] for details. */
   external ConwayProduct,
+
+  /** The disjunctive sum operation (ordinary game addition). */
   external DisjunctiveSum,
+
+  /** The ordinal product operation. See [[Game#OrdinalProduct]] for details. */
   external OrdinalProduct,
+
+  /** The ordinal sum operation. */
   external OrdinalSum,
+
+  /** The selective sum operation. See [[Game#SelectiveSum]] for details. */
   external SelectiveSum;
 
   external override def Literal;

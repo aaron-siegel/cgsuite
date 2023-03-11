@@ -45,6 +45,15 @@ system class Game
     */
   external def CanonicalForm;
 
+  /** The conjunctive sum of this `Game` and `that`.
+    *
+    * The ~~conjunctive sum~~ $G\wedge{}H$ of $G$ and $H$ is defined by:
+    *
+    * $G\wedge{}H = {G^L^\wedge{}H^L^ | G^R^\wedge{}H^R^}$
+    *
+    * (move in both components). In particular, $G\wedge{}H \cong 0$ whenever
+    * either $G \cong 0$ or $H \cong 0$.
+    */
   external def ConjunctiveSum(that as Game);
 
   /** The Conway product of this game and `that`. */
@@ -78,6 +87,14 @@ system class Game
     */
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
 
+  /** The selective sum of this `Game` and `that`.
+    *
+    * The ~~selective sum~~ $G\vee{}H$ of $G$ and $H$ is defined by:
+    *
+    * $G\wedge{}H = {G^L^\vee{}H, G\vee{}H^L^, G^L^\vee{}H^L^ | G^R^\wedge{}H, G\wedge{}H^R^, G^R^\wedge{}H^R^}$
+    *
+    * (move in one or both components).
+    */
   external def SelectiveSum(that as Game);
 
   /** The sensible Left options of this `Game`. This is simply an alias for `SensibleOptions(Left)`. */

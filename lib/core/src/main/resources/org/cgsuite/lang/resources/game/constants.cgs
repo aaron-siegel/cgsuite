@@ -85,7 +85,10 @@ singleton class constants
     */
     var upon := {pass|*};
 
+  /** The game $\miny_G$ (miny-$G$). Equal to ${G|0||0}$. */
   def Miny(G as CanonicalStopper) := {G|0||0};
+
+  /** The game $\tiny_G$ (tiny-$G$). Equal to ${0||0|-G}$. */
   def Tiny(G as CanonicalStopper) := {0||0|-G};
 
 end

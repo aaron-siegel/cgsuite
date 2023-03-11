@@ -80,7 +80,7 @@ a single Worksheet cell if you want to try it.
 
 +++ Objects and Types +++
 
-Pretty much everything you will encounter in CGSuite is an ~object~. The game `{2||1|0}` is an object; when we wrote
+Pretty much everything you will encounter in CGSuite is an ~~object~~. The game `{2||1|0}` is an object; when we wrote
 `G := {2||1|0}` above, we assigned this object to the variable `G`. Integers are objects too, and you can access
 their properties with the dot operator as well. All of the following are valid CGSuite expressions:
 
@@ -91,7 +91,7 @@ their properties with the dot operator as well. All of the following are valid C
 `^^*.AtomicWeight`\\
 `(G + {2|*}).Temperature`
 
-Every object has an associated ~type~ as well. The game `{2||1|0}` has type `CanonicalShortGame`, which means it is
+Every object has an associated ~~type~~ as well. The game `{2||1|0}` has type `CanonicalShortGame`, which means it is
 just that: a short combinatorial game in canonical form. Whenever you add two objects of type `CanonicalShortGame`,
 CGSuite will compute the sum and automatically put it into canonical form as well. Integers such has `5` have a more
 specific type, `Integer`, which is a subtype of `CanonicalShortGame`. This means they inherit all the properties and
@@ -124,7 +124,7 @@ Here are a few tips and tricks to help you use the Worksheet more effectively:
 \li You can put several commands on the same line by separating them with semicolons, as the following example
 illustrates. Output will only be generated for the last command on the line.
 
-`G := {2|*}; H := G + {1|0}; H.Thermograph.Plot();`
+`G := {2|*}; H := G + {1|0}; H.Thermograph.Plot()`
 
 \li If a Worksheet command ~ends~ with a semicolon, then output will be suppressed entirely. This is useful when (for example)
 you want to set a variable equal to some complicated expression for which you specifically don't want all the output.
@@ -156,7 +156,7 @@ takes a rather long time to complete. If you find it's taking longer than expect
 "Kill Calculation" in the System menu, or press Ctrl-K (Command-K on MacOS). This instructs cgsuite to stop the current
 calculation immediately.
 
-\li CGSuite runs a user-defined ~startup script~ every time it starts. You can edit the startup script to include any
+\li CGSuite runs a user-defined ~~startup script~~ every time it starts. You can edit the startup script to include any
 functions or variables that you use especially frequently, to avoid having to redefine them every time you start
 CGSuite. To edit the startup script, double-click `startup.cgs` in the `Browser` window of CGSuite.
 
@@ -166,6 +166,13 @@ to restart CGSuite), just enter
 `startup()`
 
 into the Worksheet.
+
+\li You can create other user-defined scripts if you'd like, as well. Just select New/Script from the File menu and give
+the script a name (such as `myscript.cgs`). Then you can run it from the Worksheet just like the startup script:
+
+`myscript()`
+
+(Unlike the startup script, other scripts won't run automatically when CGSuite starts.)
 \endul
 
 \footer
