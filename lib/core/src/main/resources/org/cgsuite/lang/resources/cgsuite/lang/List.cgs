@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-/** A collection whose elements appear in sequence.
+/** A [[Collection]] whose elements appear in sequence.
   *
   * Basic usage of lists is discussed in the [[/tutorials/getting-started/cgscript]]
   * tutorial page.
@@ -15,7 +15,7 @@
   *
   * Lists are stored internally as arrays, so indexed lookup is a fast operation
   * and appending to a long list is relatively slow. It is generally best to avoid
-  * multiple sequential [[Collection#Adjoin]] operations; instead, use list
+  * multiple sequential [[Collection#Adjoin][Adjoin]] operations; instead, use list
   * comprehension (see the [[/tutorials/getting-started/cgscript]] tutorial) or
   * a [[MutableList]].
   */
@@ -26,9 +26,9 @@ system class List extends Collection
     */
   def Apply(fn as Function) := [fn(x) for x in this];
 
-  /** `true` if `x` is an element of this `List`.
+  /** `true` if this `List` contains the specified element.
     */
-  external def Contains(x);
+  external def Contains(element);
 
   /** The `List` obtained by de-duplicating this `List`.
     *

@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-/** A collection with at most one copy of each element.
+/** A [[Collection]] with at most one copy of each element.
   *
   * Basic usage of sets is discussed in the [[/tutorials/getting-started/cgscript]]
   * tutorial page.

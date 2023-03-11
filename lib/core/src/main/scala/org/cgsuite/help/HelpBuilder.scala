@@ -110,7 +110,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       val backPath = targetDir relativize targetRootDir
       val targetFile = targetDir/s"${cgshFile.nameWithoutExtension}.html"
 
-      logger info s"Generating file: $cgshFile -> $targetFile"
+      logger debug s"Generating file: $cgshFile -> $targetFile"
 
       val lines = cgshFile.lines
       val title = lines.head
@@ -260,7 +260,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val relpath = targetRootDir relativize file
 
-      logger info s"Generating class `${cls.qualifiedName}` to $file"
+      logger debug s"Generating class `${cls.qualifiedName}` to $file"
 
       val header = makeHeader()
 

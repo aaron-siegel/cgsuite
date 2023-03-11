@@ -124,6 +124,18 @@ object SpecialMethods {
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },
     "cgsuite.util.MutableList.RemoveAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list --= x; null },
+    "cgsuite.util.MutableList.RemoveAt" -> { (list: mutable.ArrayBuffer[Any], index: Integer) =>
+      val i = index.intValue
+      if (i >= 1 && i <= list.length) {
+        list.remove(i.intValue - 1)
+      } else {
+        throw EvalException(s"List index out of bounds: $index")
+      }
+    },
+    "cgsuite.util.MutableList.SortWith" -> { (list: mutable.ArrayBuffer[Any], fn: Function) =>
+      validateArity(fn, 2)
+      list.sortInPlace()((x: Any, y: Any) => fn.call(Array(x, y)).castAs[Integer].intValue)
+    },
     "cgsuite.util.MutableSet.Add" -> { (set: mutable.Set[Any], x: Any) => set += x; null },
     "cgsuite.util.MutableSet.AddAll" -> { (set: mutable.Set[Any], x: Iterable[_]) => set ++= x; null },
     "cgsuite.util.MutableSet.Remove" -> { (set: mutable.Set[Any], x: Any) => set -= x; null },

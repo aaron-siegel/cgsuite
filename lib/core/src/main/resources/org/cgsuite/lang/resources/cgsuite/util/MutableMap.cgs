@@ -1,25 +1,42 @@
 /*${cgsuite.banner}*/
 
+/** A mutable [[Collection]] that maps keys to values.
+  *
+  * `MutableMap` is the mutable analog of [[Map]]; it is a map whose entries may be modified.
+  *
+  * It is advisable to use mutable collections sparingly; see the [[tbd]] tutorial for further discussion.
+  */
 mutable system class MutableMap() extends Collection
 
+  /** Constructs a new `MutableMap` and populates it with the entries of the specified `Map`. */
   static def Eval(initialEntries as Map) begin
     var map := MutableMap();
     map.PutAll(initialEntries);
     map
   end
 
+  /** Removes all entries from this `MutableMap`. */
   external def Clear();
 
+  /** `true` if the specified key is present in this `MutableMap`. */
   external def ContainsKey(key);
 
+  /** The entries of this `MutableMap`, as a [[Set]] of [[MapEntry]] objects.
+    */
   external def Entries;
 
+  /** Assigns the specified value to the specified key in this `MutableMap`. If the specified key has already been
+    * assigned a value, it will be replaced with the new one.
+    */
   external def Put(key, value);
 
+  /** Assigns values to keys in this `MutableMap` according to all entries in the specified `Map`. */
   external def PutAll(entries as Map);
 
+  /** Removes the entry with the specified key from this `MutableMap`. */
   external def Remove(key);
 
+  /** Removes all entries from this `MutableMap` whose keys are contained in the specified [[Collection]]. */
   external def RemoveAll(keys as Collection);
 
   override def ToOutput := "MutableMap(" + Entries.ToList.Sorted.MkOutput(", ") + ")";
