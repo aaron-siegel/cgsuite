@@ -6,7 +6,7 @@
   * A `MutableList` is not an instance of `List`, but the [[#ToList]] method can be used to construct an
   * immutable `List` with the same elements.
   *
-  * It is advisable to use mutable collections sparingly; see the [[tbd]] tutorial for further discussion.
+  * It is advisable to use mutable collections sparingly; see the [[/tutorials/getting-started/cgscript]] tutorial for further discussion.
   */
 mutable system class MutableList() extends Collection
 

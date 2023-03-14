@@ -4,7 +4,7 @@
   *
   * `MutableSet` is the mutable analog of [[Set]]; it is a set whose elements may be modified.
   *
-  * It is advisable to use mutable collections sparingly; see the [[tbd]] tutorial for further discussion.
+  * It is advisable to use mutable collections sparingly; see the [[/tutorials/getting-started/cgscript]] tutorial for further discussion.
   */
 mutable system class MutableSet() extends Collection
 
