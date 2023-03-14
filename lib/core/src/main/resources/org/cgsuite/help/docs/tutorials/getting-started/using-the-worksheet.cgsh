@@ -178,3 +178,24 @@ the script a name (such as `myscript.cgs`). Then you can run it from the Workshe
 \footer
 
 ~~Continue on to the next part of the tutorial: [[games-and-rulesets]]~~
+
+\comment
++++Exercises+++
+\ol
+    \li Let `g` be the game `{3||1|*}`. Calculate
+    the canonical forms of `g + g` and `g + g + g + g`.
+    Compute the mean and temperature of `g`. How does `g`
+    compare with `1` and `1*`?
+    \li Use the `LeftOptions` and `RightOptions`
+    properties to determine the canonical form of `^5`.
+    \li You can construct a 4x4 Domineering position by typing
+
+    `game.grid.Domineering(Grid.Empty(4,4))`
+
+    Let `h` be the canonical form of this position. Try comparing `h` with
+    small positive and negative numbers. Make a conjecture as to whether
+    or not `h` is an infinitesimal, and then use `h.IsInfinitesimal`
+    to verify it. How does `h` compare with various tinies?
+    \li Try to find constraints on positive numbers $a, b, c (a > b)$ such that ${a|b} + +_c_ = {a+_c_|b+_c_}$.
+\endol
+\endcomment
