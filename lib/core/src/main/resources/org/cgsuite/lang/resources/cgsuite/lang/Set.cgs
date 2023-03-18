@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-/** A collection with at most one copy of each element.
+/** A [[Collection]] with at most one copy of each element.
   *
   * Basic usage of sets is discussed in the [[/tutorials/getting-started/cgscript]]
   * tutorial page.
@@ -17,15 +17,15 @@ system class Set extends Collection
     */
   def Apply(fn as Function) := {fn(x) for x in this};
 
-  /** `true` if `x` is an element of this `Set`.
+  /** `true` if this `Set` contains the specified element.
     */
-  external def Contains(x);
+  external def Contains(element);
 
-  /** The set intersection of this set and `that`.
+  /** The set intersection of this `Set` and `that`.
     */
   external def Intersection(that as Set);
 
-  /** The set obtained by replacing elements in this set according to the specified
+  /** The `Set` obtained by replacing elements in this `Set` according to the specified
     * replacement map.
     *
     * The result will contain each element `x` of this set, unless `x` also appears
@@ -34,7 +34,7 @@ system class Set extends Collection
     */
   external def Replaced(replacements as Map);
   
-  /** The set union of this set and `that`.
+  /** The set union of this `Set` and `that`.
     */
   external def Union(that as Collection);
 

@@ -1,5 +1,16 @@
 /*${cgsuite.banner}*/
 
+/** A finite stopper in canonical form.
+  *
+  * A ~~stopper~~ is a loopy game $G$ such that no subposition of $G$ admits an infinite ~alternating~ sequence of
+  * play. It can be shown that stoppers have canonical forms in normal play, just like ordinary loopfree games (see
+  * \ww, Chapter 11 or \cgt, Chapter VI).
+  *
+  * A `CanonicalStopper` represents both a (normal-play) game value
+  * and the canonical form of that value, and
+  * therefore extends both the [[Game]] and [[NormalValue]] classes. It is the most general class of game values
+  * for which this is the case.
+  */
 system class CanonicalStopper extends Game, StopperSidedValue
 
   /** The degree of loopiness of this stopper.
@@ -27,15 +38,6 @@ system class CanonicalStopper extends Game, StopperSidedValue
     */
   external def DownsumVariety(deg as CanonicalStopper);
 
-  /** The number of distinct followers of this game.
-    */
-  external def FollowerCount;
-
-  /** A [[Collection]] of all the followers of this game. Each
-    * distinct follower appears exactly once in the `Collection`.
-    */
-  external def Followers;
-
   /** The Left stop of this game. `G.LeftStop` is equivalent to `G.Stop(Left)`.
     *
     * See [[#Stop]] for the definition and discussion.
@@ -58,8 +60,8 @@ system class CanonicalStopper extends Game, StopperSidedValue
     *
     * The stops `L(G)` and `R(G)` are defined for all [[CanonicalStopper][stoppers]] by
     *
-    * `L(G) = R(G) = G` if `G` is a pseudonumber; \\
-    * `L(G) = max{R(G^L^)}`, `R(G) = min{L(G^R^)}` otherwise.
+    * $L(G) = R(G) = G$ if $G$ is a pseudonumber; \\
+    * $L(G) = max{R(G^L^)}$, $R(G) = min{L(G^R^)}$ otherwise.
     *
     * If `G` is loopfree (i.e., an instance of [[CanonicalShortGame]]), then `L(G)` and `R(G)`
     * will necessarily be [[DyadicRational]]s, since the only loopfree pseudonumbers are ordinary

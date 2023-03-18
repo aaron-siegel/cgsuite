@@ -166,12 +166,12 @@ class GameTest extends CgscriptSpec {
       ("{3||2+*|1+*}.Heat(-3)", "1"),
       ("{3||2+*|1+*}.Heat(-4)", "0"),
       ("{3||2+*|1+*}.Heat(*)", "{3*||2|1}"),
-      ("0.NortonMultiply(^)", "0"),
-      ("6.NortonMultiply(^)", "^6"),
-      ("(-4).NortonMultiply(^)", "v4"),
-      ("(1/2).NortonMultiply(^)", "{^^*|v*}"),
-      ("^.NortonMultiply(^)", "{^^*||0|v4}"),
-      ("Tiny(2).NortonMultiply(^)", "{^^*||0|v6}"),
+      ("0.NortonProduct(^)", "0"),
+      ("6.NortonProduct(^)", "^6"),
+      ("(-4).NortonProduct(^)", "v4"),
+      ("(1/2).NortonProduct(^)", "{^^*|v*}"),
+      ("^.NortonProduct(^)", "{^^*||0|v4}"),
+      ("Tiny(2).NortonProduct(^)", "{^^*||0|v6}"),
       ("{3||2+*|1+*}.Overheat(*,1+*)", "{1||+-(1*)|-1,{-1|-3}}"),
       ("(7/16).Overheat(0,0)", "^[3]"),
       ("^.Pow({pass|1})", "!!Invalid exponent."),
@@ -309,6 +309,34 @@ class GameTest extends CgscriptSpec {
       //  "!!That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.")
     ))
 
+  }
+
+  it should "implement methods correctly" in {
+    executeTests(Table(
+      header,
+      ("Followers", """game.grid.Amazons("x...|o...").Followers.Size""", "2784")
+    ))
+  }
+
+  "game.CompoundGame" should "implement compounds correctly" in {
+
+    val tests = CompoundGameTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests : _*))
+
+  }
+
+  it should "implement negatives correctly" in {
+    executeTests(Table(
+      header,
+      ("-ConjunctiveSum", "-(1 ConjunctiveSum '{1|0}')", "-1 ConjunctiveSum '{0|-1}'"),
+      ("-ConwayProduct", "-(1 ConwayProduct '{1|0}')", "-(1 * '{1|0}')"),
+      ("-ConwayProduct", "-(1/2 ConwayProduct '{1|0}')", "-(1/2 ConwayProduct '{1|0}')"),
+      ("-DisjunctiveSum", "-(1 + '{1|0}')", "-1 + '{0|-1}'"),
+      ("-OrdinalProduct", "-(1 OrdinalProduct '{1|0}')", "-(1 OrdinalProduct '{1|0}')"),
+      ("-OrdinalSum", "-(1 : '{1|0}')", "-1 : '{0|-1}'"),
+      ("-ConjunctiveSum", "-(1 SelectiveSum '{1|0}')", "-1 SelectiveSum '{0|-1}'"),
+    ))
   }
 
   "game.Player" should "behave correctly" in {

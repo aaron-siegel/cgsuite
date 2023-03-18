@@ -57,7 +57,7 @@
           <arguments>
             <argument>-classpath</argument>
             <classpath/>
-            <argument>org.cgsuite.help.HelpBuilder</argument>
+            <argument>org.cgsuite.tools.PostBuildScript</argument>
           </arguments>
         </configuration>
       </plugin>

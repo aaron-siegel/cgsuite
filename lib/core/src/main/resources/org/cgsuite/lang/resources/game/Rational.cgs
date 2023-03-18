@@ -1,5 +1,16 @@
 /*${cgsuite.banner}*/
 
+/** An ordinary rational number.
+  *
+  * Rationals in CGSuite are instances of [[CanonicalShortGame]], with all the usual operations. For example:
+  *
+  * \display{(3/8).LeftOptions}
+  *
+  * Class `Rational` incorporates the special values \eval{1/0} and \eval{-1/0}, which are not rational numbers, but
+  * generally fit well within the rational number system and are useful in various contexts.
+  *
+  * \display{1/0}
+  */
 system class Rational extends SurrealNumber
 
   external def op+(that as Rational) as Rational;
@@ -18,14 +29,13 @@ system class Rational extends SurrealNumber
 
   external override def op unary- as Rational;
 
-  /* The least `Integer` greater than or equal to this `Rational`.
-   */
+  /** The least `Integer` greater than or equal to this `Rational`. */
   external def Ceiling as Integer;
 
-  /* The greatest `Integer` less than or equal to this `Rational`.
-   */
+  /** The greatest `Integer` less than or equal to this `Rational`. */
   external def Floor as Integer;
 
+  /** `true` if this `Rational` is dyadic (i.e., if its denominator is a power of 2). */
   external def IsDyadic as Boolean;
 
   external def Max(that as Rational) as Rational;

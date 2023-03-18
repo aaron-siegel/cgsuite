@@ -1,5 +1,11 @@
 /*${cgsuite.banner}*/
 
+/** A rational number whose denominator is a power of 2.
+  *
+  * Algebraically, dyadic rationals behave identically to general [[Rational]]s, but they are distinguished
+  * by the fact that they are also instances of [[CanonicalShortGame]], with Left and Right options and all the
+  * other properties of games.
+  */
 system class DyadicRational extends Uptimal, Pseudonumber, Rational
 
   external def op<=(that as DyadicRational) as Boolean;

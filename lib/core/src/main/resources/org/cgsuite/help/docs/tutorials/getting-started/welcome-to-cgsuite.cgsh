@@ -7,6 +7,9 @@ scripting language, CGScript, that can be used to create and explore new ones.
 
 In this tutorial, we'll walk through the basics on how to use CGSuite and how to navigate its help system. Other
 tutorials describe advanced features of CGSuite and the detailed structure of the CGScript language.
+If you want to enlarge the Help window, try selecting "Undock Window" from the Window menu, and resize it however you'd
+like. (This is particularly useful on smaller screens.) If your CGSuite windows ever get stuck in a strange
+configuration, you can always reset them by selecting "Reset Windows" from the Window menu.
 
 A working knowledge of combinatorial game theory is assumed; if you've read the first volume of ~Winning Ways~, or an
 introductory text such as ~Lessons in Play~ (or are working through them and using CGSuite as a companion), then
@@ -16,8 +19,8 @@ page for suggestions on useful reference materials (including the two books just
 
 +++ The Worksheet +++
 
-Much of your interaction with CGSuite will be through the ~Worksheet~, the notebook-style interface in the central part
-of the CGSuite window. In the Worksheet, you'll see a `>` symbol, the ~prompt~, with a highlighted text field to its
+Much of your interaction with CGSuite will be through the ~~Worksheet~~, the notebook-style interface in the central part
+of the CGSuite window. In the Worksheet, you'll see a `>` symbol, the ~~prompt~~, with a highlighted text field to its
 right. Try clicking on the text field and entering a basic expression such as:
 
 `1 + 1`
@@ -39,6 +42,13 @@ CGSuite can do exact calculations over arbitrarily large integers and rational n
 and is permitted to operate on non-integers. CGSuite does ~not~ allow irrational numbers, so typing (say) `2^(1/2)`
 will give you an error (try it!)
 
+This tutorial contains many more examples of commands that you can enter
+into the Worksheet. If you're interested in seeing the results, but
+you don't want to type everything in manually, you can copy-paste directly
+from this tutorial into the worksheet. Simply highlight the command
+with the mouse and press Ctrl-C (Command-C on Mac OS);
+then click on the Worksheet prompt and press Ctrl-V (Command-V on Mac OS).
+
 +++ Entering Games +++
 
 You can enter abstract partizan games using standard notation, and CGSuite will automatically simplify them into
@@ -46,7 +56,7 @@ canonical form. For example, to specify the game whose only Left option is `0` a
 
 \display{{0|1,2}}
 
-In the above example, the dominated Right option `2` is removed and the result expressed in the usual form `1/2`.
+In the above example, the dominated Right option `2` is removed and the result is expressed in the usual form `1/2`.
 
 Sums are computed just as you'd expect:
 

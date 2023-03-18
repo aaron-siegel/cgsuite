@@ -31,7 +31,6 @@ package org.cgsuite.core;
 
 
 import org.cgsuite.exception.CalculationCanceledException$;
-import org.cgsuite.exception.OutOfBoundsException;
 import org.cgsuite.exception.OutOfBoundsException$;
 import scala.None$;
 import scala.Option;
@@ -616,7 +615,7 @@ public final class CanonicalShortGameOps
     {
         if (isInteger(id))
         {
-            return nortonMultiply(id, sId);        // G copies of s
+            return nortonProduct(id, sId);        // G copies of s
         }
 
         int[] newLeftOptions = new int[getNumLeftOptions(id)],
@@ -1097,7 +1096,7 @@ public final class CanonicalShortGameOps
         return pack(incentiveIds);
     }
     
-    static int nortonMultiply(int gId, int uId)
+    static int nortonProduct(int gId, int uId)
     {
         int result = lookupOpResult(OPERATION_NORTON_MULTIPLY, gId, uId);
         if (result != -1)
@@ -1139,7 +1138,7 @@ public final class CanonicalShortGameOps
 
             for (int i = 0; i < getNumLeftOptions(gId); i++)
             {
-                int glDotU = nortonMultiply(getLeftOption(gId, i), uId);
+                int glDotU = nortonProduct(getLeftOption(gId, i), uId);
                 for (int j = 0; j < uPlusIncentives.length; j++)
                 {
                     newLeftOptions[i * uPlusIncentives.length + j] = add(glDotU, uPlusIncentives[j]);
@@ -1147,7 +1146,7 @@ public final class CanonicalShortGameOps
             }
             for (int i = 0; i < getNumRightOptions(gId); i++)
             {
-                int grDotU = nortonMultiply(getRightOption(gId, i), uId);
+                int grDotU = nortonProduct(getRightOption(gId, i), uId);
                 for (int j = 0; j < uPlusIncentives.length; j++)
                 {
                     newRightOptions[i * uPlusIncentives.length + j] = subtract(grDotU, uPlusIncentives[j]);
@@ -1161,7 +1160,7 @@ public final class CanonicalShortGameOps
         return result;
     }
 
-    static int conwayMultiply(int gId, int hId)
+    static int conwayProduct(int gId, int hId)
     {
         if (isNimber(gId) && isNimber(hId))
         {
@@ -1186,9 +1185,9 @@ public final class CanonicalShortGameOps
             {
                 newLeftOptions[i * hll + j] =
                     subtract(
-                        add(conwayMultiply(getLeftOption(gId, i), hId),
-                             conwayMultiply(gId, getLeftOption(hId, j))),
-                        conwayMultiply(getLeftOption(gId, i), getLeftOption(hId, j))
+                        add(conwayProduct(getLeftOption(gId, i), hId),
+                             conwayProduct(gId, getLeftOption(hId, j))),
+                        conwayProduct(getLeftOption(gId, i), getLeftOption(hId, j))
                         );
             }
         }
@@ -1198,9 +1197,9 @@ public final class CanonicalShortGameOps
             {
                 newLeftOptions[gll * hll + i * hrl + j] =
                     subtract(
-                        add(conwayMultiply(getRightOption(gId, i), hId),
-                             conwayMultiply(gId, getRightOption(hId, j))),
-                        conwayMultiply(getRightOption(gId, i), getRightOption(hId, j))
+                        add(conwayProduct(getRightOption(gId, i), hId),
+                             conwayProduct(gId, getRightOption(hId, j))),
+                        conwayProduct(getRightOption(gId, i), getRightOption(hId, j))
                         );
             }
         }
@@ -1210,9 +1209,9 @@ public final class CanonicalShortGameOps
             {
                 newRightOptions[i * hrl + j] =
                     subtract(
-                        add(conwayMultiply(getLeftOption(gId, i), hId),
-                             conwayMultiply(gId, getRightOption(hId, j))),
-                        conwayMultiply(getLeftOption(gId, i), getRightOption(hId, j))
+                        add(conwayProduct(getLeftOption(gId, i), hId),
+                             conwayProduct(gId, getRightOption(hId, j))),
+                        conwayProduct(getLeftOption(gId, i), getRightOption(hId, j))
                         );
             }
         }
@@ -1222,9 +1221,9 @@ public final class CanonicalShortGameOps
             {
                 newRightOptions[gll * hrl + i * hll + j] =
                     subtract(
-                        add(conwayMultiply(getRightOption(gId, i), hId),
-                             conwayMultiply(gId, getLeftOption(hId, j))),
-                        conwayMultiply(getRightOption(gId, i), getLeftOption(hId, j))
+                        add(conwayProduct(getRightOption(gId, i), hId),
+                             conwayProduct(gId, getLeftOption(hId, j))),
+                        conwayProduct(getRightOption(gId, i), getLeftOption(hId, j))
                         );
             }
         }

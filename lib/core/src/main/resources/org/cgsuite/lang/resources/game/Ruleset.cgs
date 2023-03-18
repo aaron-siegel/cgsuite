@@ -23,4 +23,13 @@ class Ruleset
     */
   def ImpartialVariant := game.variant.ImpartialVariantRuleset(this);
 
+  /** The twisted variant of this ruleset.
+    *
+    * The twisted variant is a modified version of this ruleset, in which the roles of Left and Right
+    * are reversed after every move.
+    *
+    * See also [[game.variant.TwistedVariantGame]].
+    */
+  def TwistedVariant := game.variant.TwistedVariantRuleset(this);
+
 end

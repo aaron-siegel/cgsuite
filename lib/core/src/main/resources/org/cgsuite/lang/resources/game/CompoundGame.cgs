@@ -1,9 +1,31 @@
 /*${cgsuite.banner}*/
 
-system class CompoundGame extends Game
+/** A compound of two component games. Instances of `CompoundGame` represent abstract sums
+  * of games with arbitrary structure (not necessarily in canonical form). A variety of
+  * different types of sums are represented, as enumerated by the [[CompoundType]] enum.
+  *
+  * Instances of `CompoundGame` are most often constructed by applying ordinary operations
+  * to non-canonical games:
+  *
+  * \display{game.grid.Domineering("..") + 1}
+  *
+  * They can also be constructed directly; this can be used to construct literal compounds
+  * that would ordinarily be simplified:
+  *
+  * \display{CompoundGame(CompoundType.DisjunctiveSum, 2, 1)}
+  *
+  * (Note that while $2 + 1$ is ~equal~ to $3$, it is not ~identical~, since $2 + 1$ has
+  * an option to $1$ and $3$ does not.)
+  */
+system class CompoundGame(
+  /** The type of this compound, as a [[CompoundType]] instance. */
+  CompoundType as CompoundType,
+  /** The left-hand side component of this compound. */
+  G as Game,
+  /** The right-hand side component of this compound. */
+  H as Game
+  ) extends Game
 
-  external def G;
-  external def H;
   external override def Options(player as Player);
   external override def ToOutput;
 

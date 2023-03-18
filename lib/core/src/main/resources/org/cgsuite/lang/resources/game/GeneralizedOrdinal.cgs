@@ -1,7 +1,24 @@
 /*${cgsuite.banner}*/
 
+/** A surreal number that is the difference of two ordinals.
+  *
+  * A surreal number $x$ is a ~~generalized ordinal~~ if $x = \alpha - \beta$, for some ordinals $\alpha$ and $\beta$.
+  * Thus this class represents the additive group closure of the ordinals below $\epsilon_0$.
+  */
 system class GeneralizedOrdinal extends SurrealNumber
 
+  /** The omega-power of this generalized ordinal.
+    *
+    * The ~~omega-power~~ of a surreal number $x$ is the surreal number $\omega^x^$. If $x = \alpha - \beta$ is a
+    * generalized ordinal, then $\omega^x^ = \omega^\alpha^ / \omega^\beta^$, and therefore is always representable as
+    * an instance of [[SurrealNumber]].
+    *
+    * The omega-power can also be constructed using the exponentation operator, with identical result:
+    *
+    * \display{3.OmegaPower}
+    *
+    * \display{omega^3}
+    */
   external def OmegaPower;
 
   override external def ToOutput;

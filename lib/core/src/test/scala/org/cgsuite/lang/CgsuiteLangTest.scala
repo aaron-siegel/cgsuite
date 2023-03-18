@@ -108,6 +108,7 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("Matches", """"On Numbers and Games" Matches ".*umber.*G+.*"""", "true"),
       ("Replace", """"Jangly".Replace("angl", "ohn H. Conwa")""", "\"John H. Conway\""),
       ("ReplaceRegex", """"Mathematical Plays".ReplaceRegex("(t|P)..", "")""", "\"Mamaal ys\""),
+      ("ReplaceRegex 2", """"Winning Ways".ReplaceRegex("W(.)[a-z]*", "M$1sh")""", "\"Mish Mash\""),
       ("Substring", "\"Clobber\".Substring(4, 6)", "\"bbe\""),
       ("ToLowerCase", "\"Toads and Frogs\".ToLowerCase", "\"toads and frogs\""),
       ("ToUpperCase", "\"Toads and Frogs\".ToUpperCase", "\"TOADS AND FROGS\""),

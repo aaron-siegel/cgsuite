@@ -133,7 +133,10 @@ simple example; more complex enums have methods and properties of their own.
 
 +++ Mutable and Immutable Classes +++
 
-If you try to reassign a variable within an ordinary class, you'll get an error message.
+Mutable and immutable collections were discussed in the [[/tutorials/getting-started/cgscript]] tutorial. The same
+principles apply to any object in CGSuite. Most objects are immutable, meaning their internal structure cannot change
+once it's been defined. This applies to objects of user-defined classes; ordinarily, if you try to reassign a variable
+within a class, you'll get an error message. Consider the following class:
 
 `class MyClass()
 \sp var x := 3;
@@ -142,12 +145,11 @@ If you try to reassign a variable within an ordinary class, you'll get an error 
 \sp end
 end`
 
-Calling the `SetX` method gives the following error message.
+Calling the `SetX` method gives the following error.
 
 `Cannot reassign to immutable var: \`x\``
 
-This is because all classes in CGSuite are ~~immutable~~ by default, meaning that their internal structure cannot change
-once it's been defined. Since `x` is a member variable of the immutable class `MyClass`, changing its value would alter
+Since `x` is a member variable of the immutable class `MyClass`, changing its value would alter
 the internal structure of an immutable class, which is not allowed.
 
 In order to reassign a value to `x`, you need to use the `mutable` modifier for both the variable and the class:
@@ -162,10 +164,11 @@ end`
 Now you can safely call `SetX` to reassign the value of `x`.
 
 Note that this restriction applies only to member variables of a class. Local variables (declared inside of a method
-definition) and Worksheet variables (declared directly on the worksheet, not inside a class) are always mutable.
+definition) and Worksheet variables (declared directly on the worksheet, not inside a class) can always be reassigned,
+since reassigning them does not change the structure of any immutable object.
 
-A word of advice: if you're inclined to create a mutable class, first pause and think if it's really necessary. CGSuite
-is well-optimized for using immutable objects, and it's generally easier and safer to program with them. While there
+A word of advice: if you're inclined to create a mutable class, first pause and consider whether it's really necessary.
+CGSuite is well-optimized for using immutable objects, and it's generally easier and safer to program with them. While there
 ~are~ situations where it's more efficient to use mutable objects, they're relatively rare in CGSuite applications: the
 use of immutable objects will rarely be your performance bottleneck.
 

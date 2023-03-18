@@ -8,6 +8,7 @@ object CanonicalStopperTestCase {
       "on", "on", "Pseudonumber",
       degree = "on",
       followerCount = "1",
+      followers = Some("{on}"),
       isIdempotent = "true",
       isInfinitesimal = "false",
       isNumberish = "false",
@@ -25,6 +26,7 @@ object CanonicalStopperTestCase {
       "off", "off", "Pseudonumber",
       degree = "on",
       followerCount = "1",
+      followers = Some("{off}"),
       isIdempotent = "true",
       isInfinitesimal = "false",
       isNumberish = "false",
@@ -42,6 +44,7 @@ object CanonicalStopperTestCase {
       "over", "over", "Pseudonumber",
       degree = "over",
       followerCount = "2",
+      followers = Some("{0,over}"),
       isIdempotent = "true",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -59,6 +62,7 @@ object CanonicalStopperTestCase {
       "{pass|3/2}", "3/2under", "Pseudonumber",
       degree = "over",
       followerCount = "5",
+      followers = Some("{0,1,3/2,2,3/2under}"),
       isIdempotent = "false",
       isInfinitesimal = "false",
       isNumberish = "true",
@@ -76,6 +80,7 @@ object CanonicalStopperTestCase {
       "{-1/4+*|pass}", "-1/4v[on]", "CanonicalStopper",
       degree = "^<on>",
       followerCount = "6",
+      followers = Some("{-1,-1/2,-1/4,0,-1/4*,-1/4v[on]}"),
       isIdempotent = "false",
       isInfinitesimal = "false",
       isNumberish = "true",
@@ -93,6 +98,7 @@ object CanonicalStopperTestCase {
       "begin uponth := {0||0|0,pass}; {0|uponth||-uponth} end", "{0|^<on>||v<on>}", "CanonicalStopper",
       degree = "^<on>",
       followerCount = "7",
+      followers = Some("{0,v[on]*,^[on]*,v<on>,{0|^<on>||v<on>},^<on>,{0|^<on>}}"),
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -110,6 +116,7 @@ object CanonicalStopperTestCase {
       "{0|||0||0|off}", "{0|Tiny(on)}", "CanonicalStopper",
       degree = "{0||||0|||Miny(on)|0||off}",
       followerCount = "5",
+      followers = Some("{0,off,Tiny(on),{0|Tiny(on)},{0|off}}"),
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -127,6 +134,7 @@ object CanonicalStopperTestCase {
       "{on|0||0}", "Miny(on)", "CanonicalStopper",
       degree = "Tiny(on)",
       followerCount = "4",
+      followers = Some("{0,on,{on|0},Miny(on)}"),
       isIdempotent = "true",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -144,6 +152,7 @@ object CanonicalStopperTestCase {
       "{0||0|under}", "Tiny(over)", "CanonicalStopper",
       degree = "Tiny(over)",
       followerCount = "4",
+      followers = Some("{0,under,{0|under},Tiny(over)}"),
       isIdempotent = "true",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -161,6 +170,7 @@ object CanonicalStopperTestCase {
       "+-{0|pass}", "+-over", "CanonicalStopper",
       degree = "over",
       followerCount = "4",
+      followers = Some("{0,under,over,+-over}"),
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -178,6 +188,7 @@ object CanonicalStopperTestCase {
       "+-{5|pass}", "+-(5over)", "CanonicalStopper",
       degree = "over",
       followerCount = "14",
+      followers = Some("{-5,-4,-3,-2,-1,0,1,2,3,4,5,-5under,5over,+-(5over)}"),
       isIdempotent = "false",
       isInfinitesimal = "false",
       isNumberish = "false",
@@ -195,6 +206,7 @@ object CanonicalStopperTestCase {
       "a{0||||0|||a|*||*}", "a{0||||0|||a|*||*}", "CanonicalStopper",
       degree = "{0|a{0|0,{0|||a|0||0}}}",
       followerCount = "6",
+      followers = Some("{0,*,a{0||||0|||a|*||*},a{0||||0|a||*|||*},a{0||0|a|||*||||*},a{0|||0||a|*||||*}}"),
       isIdempotent = "false",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -212,6 +224,7 @@ object CanonicalStopperTestCase {
       "{0|{0||||-1|||-1+*,a{0||0|a|||-1+*||||-1+*}||-2|b{-2,{-1,-1+*||-1+*|b|||-2}|-2}}}", "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}", "CanonicalStopper",
       degree = "{0|{0||||-1|||-1*,a{0||0|a|||-1*||||-1*}||-2|b{-2,{-1,-1*||-1*|b|||-2}|-2}}}",
       followerCount = "17",
+      followers = None,
       isIdempotent = "true",
       isInfinitesimal = "true",
       isNumberish = "true",
@@ -235,6 +248,7 @@ case class CanonicalStopperTestCase(
   cls: String,
   degree: String,
   followerCount: String,
+  followers: Option[String],
   isIdempotent: String,
   isInfinitesimal: String,
   isNumberish: String,
@@ -249,7 +263,7 @@ case class CanonicalStopperTestCase(
 ) {
 
   def toTests = {
-    Seq(
+    val testPairs = Seq(
       (x, xOut),
       (s"($x).Class", s"\u27eagame.$cls\u27eb"),
       (s"($x).Degree", degree),
@@ -281,7 +295,8 @@ case class CanonicalStopperTestCase(
       (s"($x).Stop(Left)", leftStop),
       (s"($x).Stop(Right)", rightStop),
       (s"($x).Variety", variety)
-    ) map { case (expr, result) => (expr, expr, result) }
+    ) ++ followers.map { (s"($x).Followers", _) }
+    testPairs map { case (expr, result) => (expr, expr, result) }
   }
 
 }

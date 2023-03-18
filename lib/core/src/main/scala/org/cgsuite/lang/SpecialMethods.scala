@@ -51,6 +51,7 @@ object SpecialMethods {
     "cgsuite.util.MutableList.Sort" -> { (list: mutable.ArrayBuffer[Any], _: Unit) => list.sortInPlace()(UniversalOrdering) },
     "cgsuite.util.MutableMap.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
+    "game.CompoundType.Literal" -> { (compoundType: CompoundType, _: Unit) => compoundType.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
     "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString }
@@ -123,6 +124,18 @@ object SpecialMethods {
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },
     "cgsuite.util.MutableList.RemoveAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list --= x; null },
+    "cgsuite.util.MutableList.RemoveAt" -> { (list: mutable.ArrayBuffer[Any], index: Integer) =>
+      val i = index.intValue
+      if (i >= 1 && i <= list.length) {
+        list.remove(i.intValue - 1)
+      } else {
+        throw EvalException(s"List index out of bounds: $index")
+      }
+    },
+    "cgsuite.util.MutableList.SortWith" -> { (list: mutable.ArrayBuffer[Any], fn: Function) =>
+      validateArity(fn, 2)
+      list.sortInPlace()((x: Any, y: Any) => fn.call(Array(x, y)).castAs[Integer].intValue)
+    },
     "cgsuite.util.MutableSet.Add" -> { (set: mutable.Set[Any], x: Any) => set += x; null },
     "cgsuite.util.MutableSet.AddAll" -> { (set: mutable.Set[Any], x: Iterable[_]) => set ++= x; null },
     "cgsuite.util.MutableSet.Remove" -> { (set: mutable.Set[Any], x: Any) => set -= x; null },

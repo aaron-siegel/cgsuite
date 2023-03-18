@@ -4,7 +4,7 @@
   */
 system class Object
 
-  /** The class object corresponding to this `Object`'s class.
+  /** The class object corresponding to this `Object`'s CGScript class.
     */
   external def Class;
   
@@ -12,8 +12,8 @@ system class Object
     *
     * If this object belongs to a nested class, then its `EnclosingObject`
     * is the object in which it's nested. For example, if `G` is an
-    * instance of a subclass of [[Game][`Game`]], then `G.EnclosingObject` will
-    * ordinarily be the corresponding [[Ruleset][`Ruleset`]].
+    * instance of a subclass of [[Game]], then `G.EnclosingObject` will
+    * ordinarily be the corresponding [[Ruleset]].
     *
     * If this object does not belong to a nested class, then
     * `EnclosingObject` will return [[Nothing]].

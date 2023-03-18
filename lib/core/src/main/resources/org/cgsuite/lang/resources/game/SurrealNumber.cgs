@@ -1,5 +1,20 @@
 /*${cgsuite.banner}*/
 
+/** A surreal number that is the quotient of [[GeneralizedOrdinal]]s.
+  *
+  * This class implements a fragment of the surreal number system. It represents the field closure of the ordinals
+  * below $\epsilon_0_$, i.e., all surreal numbers of the form
+  *
+  * $(\alpha - \beta) / (\gamma - \delta)$
+  *
+  * where $\alpha$, $\beta$, $\gamma$, and $\delta$ are ordinals $< \epsilon_0_$.
+  *
+  * It can be shown that any surreal number of this type can be expressed uniquely in lowest terms, so that the
+  * numerator and denominator have no common factor in the ring of [[GeneralizedOrdinal]]s. Each `SurrealNumber` will
+  * be simplified into this form, analogous to the simplification of [[Rational]] numbers. For example:
+  *
+  * \display{(omega^(omega+2)-omega^omega)/(omega-1)}
+  */
 system class SurrealNumber extends NormalValue
 
   external def op+(that as SurrealNumber) as SurrealNumber;
@@ -16,16 +31,29 @@ system class SurrealNumber extends NormalValue
 
   external def op<=(that as SurrealNumber) as Boolean;
 
+  /** The absolute value of this `SurrealNumber`. The absolute value $|x|$ is equal to $x$ if $x \geq 0$, or $-x$
+    * otherwise. */
   external def Abs as SurrealNumber;
 
+  /** The birthday of this `SurrealNumber`. The birthday will always be an ordinal. */
   external def Birthday as GeneralizedOrdinal;
 
+  /** The denominator of this `SurrealNumber` (in lowest terms). */
   external def Denominator as GeneralizedOrdinal;
 
+  /** The greater of this `SurrealNumber` and `that`. */
+  external def Max(that as SurrealNumber) as SurrealNumber;
+
+  /** The lesser of this `SurrealNumber` and `that`. */
+  external def Min(that as SurrealNumber) as SurrealNumber;
+
+  /** The numerator of this `SurrealNumber` (in lowest terms). */
   external def Numerator as GeneralizedOrdinal;
 
+  /** The reciprocal of this `SurrealNumber`. */
   external def Reciprocal as GeneralizedOrdinal;
 
+  /** The sign of this `SurrealNumber`. The value of `x.Sign` will be `1` if `x > 0`, `-1` if `x < 0`, or `0` if `x = 0`. */
   external def Sign as Integer;
 
   external override def ToOutput;

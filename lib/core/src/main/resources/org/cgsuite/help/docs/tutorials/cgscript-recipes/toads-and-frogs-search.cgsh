@@ -1,0 +1,57 @@
+Toads and Frogs Exhaustive Search
+
+In this example, we'll search for the most complicated [[game.strip.constants#ToadsAndFrogs][Toads and Frogs]] positions of
+length 11.
+
+There are various ways to measure how "complicated" a game position is; for purposes of this tutorial, we'll use the
+[[CanonicalShortGame#StopCount][stop count]] of the position.
+
++++ Enumerating Positions +++
+
+One way to construct a Toads and Frogs position is with a [[String]] containing the characters `.` (empty space), `t` (toad),
+and `f` (frog).
+
+\display{game.strip.ToadsAndFrogs("ttt..fff")}
+
+Our strategy will be to first enumerate all valid `String`s of length `n`, construct the corresponding Toads and Frogs
+positions, and then calculate their canonical forms and stop counts.
+
+Here's a recursive function that does the `String` enumeration:
+
+\displayAndHide{def tfstrings(n) begin
+  if n == 0 then [""]           // Base case: a List with just the empty string
+  else
+    prev := tfstrings(n-1);     // Generate strings of length n-1
+    for str in prev             // For each such string ...
+    for ch in [".", "t", "f"]   // And each valid character ...
+    yield str Concat ch;        // Yield a new string of length n.
+    end
+  end
+end}
+
+Of course it should always return a [[List]] whose size is a power of 3; let's sanity check this.
+
+\display{tfstrings(5).Length}
+
+Great. Now we can use this to construct a `List` of all Toads and Frogs positions of length exactly 11.
+
+\displayAndHide{positions := [game.strip.ToadsAndFrogs(str) for str in tfstrings(11)];}
+
+Note the semicolon at the end of the command; this suppresses output, so that we don't end up displaying the contents
+of a `List` with $3^11^$ elements!
+
+\display{positions.Length}
+
++++ Searching the Positions +++
+
+Now let's find the maximum stop count among all positions in the `positions` list.
+
+\display{[g.CanonicalForm.StopCount for g in positions].Max}
+
+And now we can filter down to just those positions that achieve the maximum:
+
+\display{complicated := positions.Filter(g -> g.CanonicalForm.StopCount == 32)}{700}
+
+Just a single mirror-image pair! And the canonical form of the first of them is:
+
+\display{complicated[1].CanonicalForm}{700}

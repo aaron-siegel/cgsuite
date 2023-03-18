@@ -1,5 +1,13 @@
 /*${cgsuite.banner}*/
 
+/** The empty game.
+  *
+  * `Zero` is the unique [[Integer]] that is also a [[Nimber]] (and moreover, the unique number that is also impartial).
+  * Its class has only one representative, and hence is implemented as a `singleton`.
+  *
+  * There are no methods or properties defined by `Zero` - only those inherited from `Integer` or `Nimber`. It exists
+  * as a separate class only to inherit from both `Integer` and `Nimber`, so that the value $0$ can masquerade as
+  * either.
+  */
 singleton system class Zero extends Integer, Nimber
-
 end

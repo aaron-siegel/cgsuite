@@ -175,6 +175,45 @@ Try the following, for example:
 `*2.Class`\\
 `game.heap.Nim is game.heap.HeapRuleset`
 
++++ Mutable Collections +++
+
+Most objects in CGSuite are ~~immutable~~, meaning they can never be modified once they are created. This includes
+the basic collections. Once a list has been created, say,
+
+\display{list := [1,5,3]}
+
+then its contents are guaranteed never to change. Operations that transform the list create new `List` instances that
+represent the changes, rather than modifying the original `List`. For example:
+
+\display{newList := list.Updated(2, 7)}
+
+\display{list}
+
+\display{newList}
+
+Usually, this is the desired behavior. If the `List` is to be used (say) as the parameter for a ruleset position, then
+it ~should~ be immutable, since the ruleset position represents an immutable mathematical object. In fact, CGSuite
+relies on the fact that most objects are immutable in order to optimize its calculations in various ways.
+
+Occasionally, though, it's useful to have ~~mutable~~ collections, whose values are permitted to change
+(say, when working with very large collections that are frequently updated, or when implementing complex logic in
+CGScript). These CGScript provides as the separate [[MutableList]], [[MutableSet]], and [[MutableMap]] classes.
+
+\display{list := MutableList([1,5,3])}
+
+\display{list.Update(2, 7)}
+
+\display{list}
+
+Use them with care, however! Although immutable collections may seem inefficient at first glance, they are
+well-optimized in CGSuite, and they will only rarely be the bottleneck in a CGSuite calculation. Even when they provide
+a small increase in efficiency, it often comes at the expense of greater code complexity. The usual guideline is to use
+immutable objects unless you're certain that they're the performance bottleneck in your calculation.
+
+\footer
+
+~~Continue on to the next part of the tutorial: [[impartial-games]]~~
+
 \<!--
 +++ Exercises +++
 \ol
@@ -184,7 +223,3 @@ forms.  (You can do this by using the `ReducedCanonicalForm` property in place o
 arbitrary positions.
 \endol
 --\>
-
-\footer
-
-~~Continue on to the next part of the tutorial: [[impartial-games]]~~
