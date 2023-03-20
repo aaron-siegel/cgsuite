@@ -7,6 +7,11 @@
         </folder>
         <file name="Refactoring_hidden"/>
         <file name="Tools_hidden"/>
+        <folder name="Window">
+            <folder name="SelectDocumentNode">
+                <file name="org-netbeans-modules-project-ui-SelectInProjects.instance_hidden"/>
+            </folder>
+        </folder>
     </folder>
     <folder name="Editors">
         <folder name="Actions">
