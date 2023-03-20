@@ -53,6 +53,16 @@
                     <attr name="position" intvalue="300"/>
                 </file>
             </folder>
+            <folder name="OutputBox">
+                <file name="org-openide-actions-CopyAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
+                    <attr name="position" intvalue="100"/>
+                </file>
+                <file name="org-cgsuite-ui-worksheet-actions-CopyAsImageAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-cgsuite-ui-worksheet-actions-CopyAsImageAction.instance"/>
+                    <attr name="position" intvalue="200"/>
+                </file>
+            </folder>
         </folder>
     </folder>
 </filesystem>

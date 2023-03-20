@@ -32,9 +32,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.AbstractAction;
 import javax.swing.Box;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.Scrollable;
@@ -47,6 +45,7 @@ import org.cgsuite.output.OutputBox;
 import org.cgsuite.output.StyledTextOutput;
 import org.cgsuite.ui.history.CommandHistoryBuffer;
 import org.cgsuite.ui.history.CommandListener;
+import org.cgsuite.ui.worksheet.actions.CopyAsImageAction;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Task;
@@ -81,11 +80,6 @@ public class WorksheetPanel extends JPanel
     private final Queue<List<Output>> outputQueue;
     private OutputBox calculatingOutputBox;
 
-    private JPopupMenu outputBoxContextMenu;
-    private JMenuItem copyOutputBoxMenuItem;
-    private JMenuItem copyOutputBoxAsImageMenuItem;
-    private OutputBox outputBoxForContextMenu;
-
     /** Creates new form WorksheetPanel */
     public WorksheetPanel()
     {
@@ -111,14 +105,6 @@ public class WorksheetPanel extends JPanel
 
     public void initialize()
     {
-        outputBoxContextMenu = new JPopupMenu();
-        copyOutputBoxMenuItem = new JMenuItem("Copy");
-        copyOutputBoxMenuItem.addActionListener(evt -> copyOutputBoxAsText(outputBoxForContextMenu));
-        copyOutputBoxAsImageMenuItem = new JMenuItem("Copy As Image");
-        copyOutputBoxAsImageMenuItem.addActionListener(evt -> copyOutputBoxAsImage(outputBoxForContextMenu));
-        outputBoxContextMenu.add(copyOutputBoxMenuItem);
-        outputBoxContextMenu.add(copyOutputBoxAsImageMenuItem);
-
         getBuffer();
         getViewport().addComponentListener(new ComponentAdapter()
         {
@@ -402,13 +388,17 @@ public class WorksheetPanel extends JPanel
                 copyOutputBoxAsText(outputBox);
             }
         });
+        outputBox.getActionMap().put(CopyAsImageAction.ACTION_MAP_KEY, new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent evt) {
+                copyOutputBoxAsImage(outputBox);
+            }
+        });
         return outputBox;
     }
 
     private void showOutputBoxContextMenu(MouseEvent evt, OutputBox outputBox) {
         outputBox.requestFocusInWindow();
-        outputBoxForContextMenu = outputBox;
-        outputBoxContextMenu.show(outputBox, evt.getX(), evt.getY());
+        PopupMenuHelper.OUTPUT_BOX_POPUP_MENU.show(outputBox, evt.getX(), evt.getY());
     }
 
     private void copyOutputBoxAsText(OutputBox outputBox) {
