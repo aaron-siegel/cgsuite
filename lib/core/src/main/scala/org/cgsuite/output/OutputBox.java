@@ -164,20 +164,6 @@ public class OutputBox extends JPanel implements FocusListener
         recalc();
     }
 
-    private void quickSave()
-    {
-        try
-        {
-            BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
-            output.paint((Graphics2D) image.getGraphics(), worksheetWidth);
-            File file = new File("/Users/asiegel/CGSuite/image.png");
-            ImageIO.write(image, "png", file);
-        }
-        catch (IOException exc)
-        {
-        }
-    }
-
     @Override
     public Dimension getMinimumSize()
     {

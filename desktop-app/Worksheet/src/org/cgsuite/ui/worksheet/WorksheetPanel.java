@@ -26,6 +26,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,7 +37,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
-import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -83,6 +83,7 @@ public class WorksheetPanel extends JPanel
 
     private JPopupMenu outputBoxContextMenu;
     private JMenuItem copyOutputBoxMenuItem;
+    private JMenuItem copyOutputBoxAsImageMenuItem;
     private OutputBox outputBoxForContextMenu;
 
     /** Creates new form WorksheetPanel */
@@ -113,7 +114,10 @@ public class WorksheetPanel extends JPanel
         outputBoxContextMenu = new JPopupMenu();
         copyOutputBoxMenuItem = new JMenuItem("Copy");
         copyOutputBoxMenuItem.addActionListener(evt -> copyOutputBoxAsText(outputBoxForContextMenu));
+        copyOutputBoxAsImageMenuItem = new JMenuItem("Copy As Image");
+        copyOutputBoxAsImageMenuItem.addActionListener(evt -> copyOutputBoxAsImage(outputBoxForContextMenu));
         outputBoxContextMenu.add(copyOutputBoxMenuItem);
+        outputBoxContextMenu.add(copyOutputBoxAsImageMenuItem);
 
         getBuffer();
         getViewport().addComponentListener(new ComponentAdapter()
@@ -402,6 +406,7 @@ public class WorksheetPanel extends JPanel
     }
 
     private void showOutputBoxContextMenu(MouseEvent evt, OutputBox outputBox) {
+        outputBox.requestFocusInWindow();
         outputBoxForContextMenu = outputBox;
         outputBoxContextMenu.show(outputBox, evt.getX(), evt.getY());
     }
@@ -411,6 +416,13 @@ public class WorksheetPanel extends JPanel
         Clipboard clipboard = getClipboard();
         StringSelection stringSelection = new StringSelection(text);
         clipboard.setContents(stringSelection, null);
+    }
+
+    private void copyOutputBoxAsImage(OutputBox outputBox) {
+        BufferedImage image = outputBox.getOutput().toImage(getWidth());
+        Clipboard clipboard = getClipboard();
+        ImageSelection imageSelection = new ImageSelection(image);
+        clipboard.setContents(imageSelection, null);
     }
 
     private Clipboard getClipboard() {

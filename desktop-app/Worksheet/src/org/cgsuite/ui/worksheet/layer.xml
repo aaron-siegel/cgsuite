@@ -33,5 +33,8 @@
         <file name="D-K.shadow">
             <attr name="originalFile" stringvalue="Actions/System/org-cgsuite-ui-worksheet-actions-KillCalculationAction.instance"/>
         </file>
+        <file name="DS-C.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/org-cgsuite-ui-worksheet-actions-CopyAsImageAction.instance"/>
+        </file>
     </folder>
 </filesystem>
