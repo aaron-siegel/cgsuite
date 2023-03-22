@@ -391,7 +391,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         if (cls.isPackageObject)
           ""
         else
-          s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
+          s"""<p><code class="big">package <a class="valid" href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       }
 
       val classtypeStr = {
