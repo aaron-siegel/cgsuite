@@ -32,4 +32,6 @@ system class Object
     */
   external def ToOutput;
 
+  def ToString := ToOutput.ToString;
+
 end
