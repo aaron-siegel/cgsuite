@@ -1,7 +1,7 @@
 Welcome to CGSuite!
 
 CGSuite is a computer algebra system for research in combinatorial game theory. It implements the Conway
-algebra of partizan combinatorial games, along with several related systems. CGSuite has a built-in library of
+algebra of partizan combinatorial games and several related systems. CGSuite has a built-in library of
 well-known rulesets such as Clobber, Toads and Frogs, Kayles, and Wythoff Nim, and it includes a custom-designed
 scripting language, CGScript, that can be used to create and explore new ones.
 
