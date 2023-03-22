@@ -1,0 +1,115 @@
+<html>
+
+<head>
+  <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+  <link rel="stylesheet" href="./cgsuite-web.css" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Combinatorial Game Suite</title>
+</head>
+
+<body>
+
+<div class="spacer">
+
+<br>
+
+<div class="section">
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%">
+  <tr>
+    <td width="25%">
+      <p align="center" style="margin-left: 12">
+        <img border="0" src="images/large-thermograph.png" width="72%">
+      </p>
+    </td>
+    <td>
+      <p class="title">CGSuite</p>
+      <p class="subtitle">A computer algebra system for research<br>in combinatorial game theory</p>
+    </td>
+    <td width="25%">
+    <p align="center" style="margin-right: 12">
+    <img border="0" src="images/amazons.png" width="84%"></td>
+  </tr>
+</table>
+<hr>
+
+<p>&nbsp;
+<div class="thinspacer">
+<!--
+<table border="0" cellpadding="12" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%">
+<tr>
+
+<td valign="top" width="25%" nowrap>
+  <p>
+  <table border="1" cellpadding="12" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber4">
+    <tr>
+      <td width="100%">
+      </td>
+    </tr>
+  </table>
+</td>
+
+<td>
+-->
+
+<p id="latestVersion">Latest Version: </p>
+
+<p><i>Combinatorial Game Suite</i> is a computer algebra system for research in combinatorial game theory.
+It implements the Conway algebra of partizan combinatorial games and several related systems. CGSuite has a built-in
+library of well-known rulesets such as Clobber, Toads and Frogs, Kayles, and Wythoff Nim, and it includes a
+custom-designed scripting language, CGScript, that can be used to create and explore new ones.</p>
+
+<p>Once installed, CGSuite includes an extensive documentation system with tutorials and reference material.
+A working knowledge of combinatorial game theory is assumed; an introductory CGT text, such as <i>Winning Ways</i>
+by Berlekamp, Conway, and Guy or <i>Lessons in Play</i> by Albert, Nowakowski, and Wolfe,
+will provide the necessary background.</p>
+
+<br>
+
+<p align="center">
+<a href="download.html" class="button">DOWNLOAD</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://www.github.com/aaron-siegel/cgsuite" class="button">GITHUB</a>
+</p>
+
+<br>
+
+<p>CGSuite is, and will always be, completely free and open source, and versions are available for Mac OS, Windows, and Linux.
+It is licensed for personal and research use
+under the GNU General Public License, version 3; for more details, or to obtain the CGSuite source code,
+please visit the github page (linked above).</p>
+
+<p>CGSuite and site content are (c) 2003-2023 Aaron Siegel.</p>
+
+<p>&nbsp;</p>
+
+</div>
+
+<hr>
+
+<p>&nbsp;</p>
+
+<p align="center">
+<img src="images/screenshot.png" width="82%"/>
+</p>
+
+<script>
+  function setVersion(name) {
+    var element = document.getElementById("latestVersion");
+    var aTag = document.createElement("a");
+    var linkText = document.createTextNode(name);
+    aTag.appendChild(linkText);
+    aTag.className = "valid"
+    aTag.href = "download.html";
+    element.appendChild(aTag);
+  }
+  fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases')
+    .then(response => response.json())
+    .then(releases => setVersion(releases[0].name))
+</script>
+<!--
+</td>
+</tr>
+</table>-->
+</div></div>
+
+</body></html>
