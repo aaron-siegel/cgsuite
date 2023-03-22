@@ -2,6 +2,10 @@
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
 <filesystem>
     <folder name="Actions">
+        <folder name="File">
+            <file name="org-netbeans-modules-project-ui-actions-CloseAllProjectsAction.instance_hidden"/>
+            <file name="org-netbeans-modules-project-ui-actions-CloseOtherProjectsAction.instance_hidden"/>
+        </folder>
         <folder name="Help">
             <file name="master-help.xml_hidden"/>
         </folder>
@@ -11,6 +15,13 @@
             <folder name="SelectDocumentNode">
                 <file name="org-netbeans-modules-project-ui-SelectInProjects.instance_hidden"/>
             </folder>
+            <file name="org-netbeans-core-windows-actions-CloneDocumentAction.instance_hidden"/>
+            <file name="org-netbeans-core-windows-actions-CloseModeAction.instance_hidden"/>
+            <file name="org-netbeans-core-windows-actions-CollapseTabGroupAction.instance_hidden"/>
+            <file name="org-netbeans-core-windows-actions-DockModeAction.instance_hidden"/>
+            <file name="org-netbeans-core-windows-actions-MinimizeModeAction.instance_hidden"/>
+            <file name="org-netbeans-core-windows-actions-NewTabGroupAction.instance_hidden"/>
+            <file name="org-netbeans-core-windows-actions-UndockModeAction.instance_hidden"/>
         </folder>
     </folder>
     <folder name="Editors">
@@ -37,7 +48,9 @@
             <file name="WhereUsedAction.shadow_hidden"/>
             <file name="clipboard-history.shadow_hidden"/>
             <file name="clipboard-lines.shadow_hidden"/>
+            <file name="org-netbeans-modules-editor-MainMenuAction$FindSelectionAction.instance_hidden"/>
             <file name="org-netbeans-modules-editor-MainMenuAction$PasteFormattedAction.instance_hidden"/>
+            <file name="org-netbeans-modules-editor-MainMenuAction$SelectIdentifierAction.instance_hidden"/>
             <file name="org-netbeans-modules-editor-MainMenuAction$StartMacroRecordingAction.instance_hidden"/>
             <file name="org-netbeans-modules-editor-MainMenuAction$StopMacroRecordingAction.instance_hidden"/>
             <file name="org-netbeans-modules-search-FindInFilesAction-separatorBefore.instance_hidden"/>
@@ -107,8 +120,10 @@
             <file name="Hints.instance_hidden"/>
             <file name="MarkOccurrences.instance_hidden"/>
         </folder>
+        <file name="FontsAndColors.instance_hidden"/>
         <file name="General.instance_hidden"/>
         <file name="Keymaps.instance_hidden"/>
+        <file name="Team.instance_hidden"/>
     </folder>
     <folder name="QuickSearch">
         <file name="Actions_hidden"/>
