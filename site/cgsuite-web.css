@@ -15,14 +15,14 @@ body {
 
 div.spacer, div.titlebar {
     background-color: #F6F6F6;
-    max-width: 960px;
+    max-width: 1200px;
     margin: auto;
     padding-left: 12px;
     padding-right: 36px
 }
 
 div.thinspacer {
-	max-width: 720px;
+	max-width: 960px;
 	margin: auto;
 }
 
