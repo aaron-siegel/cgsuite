@@ -15,14 +15,22 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -31,11 +39,14 @@ import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.DefaultEditorKit;
 import org.cgsuite.output.Output;
 import org.cgsuite.output.OutputBox;
 import org.cgsuite.output.StyledTextOutput;
 import org.cgsuite.ui.history.CommandHistoryBuffer;
 import org.cgsuite.ui.history.CommandListener;
+import org.cgsuite.ui.worksheet.actions.CopyAsImageAction;
+import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Task;
 import org.openide.util.TaskListener;
@@ -360,7 +371,56 @@ public class WorksheetPanel extends JPanel
         outputBox.setOutput(output);
         outputBox.setWorksheetWidth(getWidth());
         outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        outputBox.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    showOutputBoxContextMenu(evt, outputBox);
+                }
+            }
+            @Override public void mouseReleased(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    showOutputBoxContextMenu(evt, outputBox);
+                }
+            }
+        });
+        outputBox.getActionMap().put(DefaultEditorKit.copyAction, new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent evt) {
+                copyOutputBoxAsText(outputBox);
+            }
+        });
+        outputBox.getActionMap().put(CopyAsImageAction.ACTION_MAP_KEY, new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent evt) {
+                copyOutputBoxAsImage(outputBox);
+            }
+        });
         return outputBox;
+    }
+
+    private void showOutputBoxContextMenu(MouseEvent evt, OutputBox outputBox) {
+        outputBox.requestFocusInWindow();
+        PopupMenuHelper.OUTPUT_BOX_POPUP_MENU.show(outputBox, evt.getX(), evt.getY());
+    }
+
+    private void copyOutputBoxAsText(OutputBox outputBox) {
+        String text = outputBox.getOutput().toString();
+        Clipboard clipboard = getClipboard();
+        StringSelection stringSelection = new StringSelection(text);
+        clipboard.setContents(stringSelection, null);
+    }
+
+    private void copyOutputBoxAsImage(OutputBox outputBox) {
+        BufferedImage image = outputBox.getOutput().toImage(getWidth());
+        Clipboard clipboard = getClipboard();
+        ImageSelection imageSelection = new ImageSelection(image);
+        clipboard.setContents(imageSelection, null);
+    }
+
+    private Clipboard getClipboard() {
+        Clipboard clipboard = Lookup.getDefault().lookup(Clipboard.class);
+        if (clipboard == null) {
+            clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        }
+        return clipboard;
     }
 
     public void clear()

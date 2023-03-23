@@ -4,7 +4,14 @@ import org.scalatest.prop.TableDrivenPropertyChecks.Table
 
 class GameGridTest extends CgscriptSpec {
 
-  "game.grid" should "define Amazons properly" in {
+  "game.grid" should "define base methods properly" in {
+    executeTests(Table(
+      header,
+      ("GridString", """game.grid.Amazons("x...|o...").GridString""", "\"x...|o...\"")
+    ))
+  }
+
+  it should "define Amazons properly" in {
     executeTests(Table(
       header,
       ("Amazons", """game.grid.Amazons("x...|o...").CanonicalForm""", "+-{3,{4|0,{1|0,*}},{4|{0,{1/2|0}|v},+-1,+-{1,{2|0}}}}")
