@@ -33,5 +33,36 @@
         <file name="D-K.shadow">
             <attr name="originalFile" stringvalue="Actions/System/org-cgsuite-ui-worksheet-actions-KillCalculationAction.instance"/>
         </file>
+        <file name="DS-C.shadow">
+            <attr name="originalFile" stringvalue="Actions/Edit/org-cgsuite-ui-worksheet-actions-CopyAsImageAction.instance"/>
+        </file>
+    </folder>
+    <folder name="Worksheet">
+        <folder name="Popups">
+            <folder name="InputPane">
+                <file name="org-openide-actions-CutAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CutAction.instance"/>
+                    <attr name="position" intvalue="100"/>
+                </file>
+                <file name="org-openide-actions-CopyAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
+                    <attr name="position" intvalue="200"/>
+                </file>
+                <file name="org-openide-actions-PasteAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-PasteAction.instance"/>
+                    <attr name="position" intvalue="300"/>
+                </file>
+            </folder>
+            <folder name="OutputBox">
+                <file name="org-openide-actions-CopyAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-openide-actions-CopyAction.instance"/>
+                    <attr name="position" intvalue="100"/>
+                </file>
+                <file name="org-cgsuite-ui-worksheet-actions-CopyAsImageAction.shadow">
+                    <attr name="originalFile" stringvalue="Actions/Edit/org-cgsuite-ui-worksheet-actions-CopyAsImageAction.instance"/>
+                    <attr name="position" intvalue="200"/>
+                </file>
+            </folder>
+        </folder>
     </folder>
 </filesystem>
