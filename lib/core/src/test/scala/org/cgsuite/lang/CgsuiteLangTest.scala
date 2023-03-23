@@ -82,6 +82,20 @@ class CgsuiteLangTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.lang.Object" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("Object.Class", "3.Class", "\u27eagame.Integer\u27eb"),
+      ("Object.EnclosingObject 1", "3.EnclosingObject", "Nothing"),
+      ("Object.EnclosingObject 2", """game.grid.Amazons("x...|o...").EnclosingObject""", "Amazons"),
+      ("Object.JavaClass", "3.JavaClass", "\"org.cgsuite.core.SmallIntegerImpl\""),
+      ("Object.ToOutput", "3.ToOutput", "3"),
+      ("Object.ToString", "3.ToString", "\"3\"")
+    ))
+
+  }
+
   "cgsuite.lang.Range" should "implement Collection faithfully" in {
 
     executeTests(Table(
