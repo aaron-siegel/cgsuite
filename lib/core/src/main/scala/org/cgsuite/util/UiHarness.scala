@@ -4,7 +4,7 @@ import org.cgsuite.core.Game
 
 object UiHarness {
 
-  var uiHarnessRef: UiHarness = _
+  var uiHarnessRef: UiHarness = NullUiHarness
 
   def uiHarness = uiHarnessRef
 
@@ -21,6 +21,18 @@ trait UiHarness {
   def createExplorer(g: Game): Explorer
 
   def print(obj: AnyRef): Unit
+
+}
+
+object NullUiHarness extends UiHarness {
+
+  override def clearUiVars(): Unit = ()
+
+  override def createExplorer(g: Game): Explorer = {
+    throw new UnsupportedOperationException("NullUiHarness.createExplorer")
+  }
+
+  override def print(obj: AnyRef): Unit = ()
 
 }
 

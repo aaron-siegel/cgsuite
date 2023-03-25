@@ -58,7 +58,7 @@
             </filterset>
         </copy>
         
-        <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" todir="${cluster}/modules/ext"/>
+        <!--<copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" todir="${cluster}/modules/ext"/>-->
         
     </target>
     

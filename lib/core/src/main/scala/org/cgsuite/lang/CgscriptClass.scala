@@ -1413,7 +1413,7 @@ class CgscriptClass(
       Profiler.start(reflect)
       try {
         logger.debug(javaMethod.toString)
-        logger.debug(target.getClass.toString)
+        if (!isStatic) logger.debug(target.getClass.toString)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
