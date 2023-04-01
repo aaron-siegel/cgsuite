@@ -346,7 +346,7 @@ class EvalTest extends CgscriptSpec {
         """.stripMargin, """["foo","bar"]"""),
       ("Function involving assignment - syntax error", "x -> y := x", "!!Syntax error."),
       ("False eval", "5(3)", "!!No method `Eval` for class: `game.Integer`"),
-      ("Function eval - infinite recursion", "j := n -> j(n); j(5)", "!!Possible infinite recursion.")
+      ("Function eval - infinite recursion", "j := n -> j(n); j(5)", "!!Maximum recursive depth exceeded. (Possible infinite recursion?)")
     ))
 
   }

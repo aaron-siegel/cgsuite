@@ -1424,6 +1424,8 @@ class CgscriptClass(
             case nestedExc: CgsuiteException =>
               // TODO nestedExc.setInvocationTarget(qualifiedName)
               throw nestedExc
+            case nestedExc: StackOverflowError =>
+              throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", nestedExc)
             case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
           }
         )
