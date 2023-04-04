@@ -1,0 +1,190 @@
+/*${cgsuite.banner}*/
+
+/*   <style type="text/css">
+       ul { list-style-type: disc; list-style-image: none; list-style-position: outside; }
+     </style>
+*/
+
+body {
+    font-size: medium;
+    font-family: Optima, Arial, Helvetica, SansSerif, sans-serif;
+    color: Black;
+    background-color: #F6F6F6;
+    line-height: 125%;
+    overflow-x: hidden }
+
+div.spacer, div.titlebar {
+    background-color: #F6F6F6;
+    max-width: 1200px;
+    margin: auto;
+    padding-left: 12px;
+    padding-right: 36px
+}
+
+div.thinspacer {
+	max-width: 960px;
+	margin: auto;
+}
+
+div.titlebar {
+    position: fixed;
+    top:0;
+    left:0;
+    right:0
+}
+
+div.section {
+    background-color: White;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid LightGray
+}
+
+div.blanksection {
+    background-color: #F6F6F6;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #F6F6F6
+}
+
+p  {font-size: medium;
+     margin-top: 0;
+     margin-bottom: 10;
+     line-height: 1.4
+     }
+
+p.title {
+    font-size: 5em;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20 }
+    
+p.subtitle {
+	font-size: x-large;
+	text-align: center;
+	line-height: 1.6;
+	margin-top: 10;
+	margin-bottom: 10 }
+
+button.main {
+    font-size: large;
+    color: white;
+    background-color: teal;
+    border-radius: 6px;
+    border: 0px;
+    padding: 6px 0px;
+    width: 150px;
+}
+
+.button {
+    display: inline-block;
+    font-size: 15px;
+    font-weight: normal;
+    font-family: Verdana;
+    color: white;
+    background-color: teal;
+    border-radius: 6px;
+    border: 0px;
+    padding: 6px 0px;
+    width: 165px;
+    outline: none;
+    text-align: center;
+    text-decoration: none;
+}
+
+.button:hover {
+    display: inline-block;
+    font-size: 15px;
+    font-weight: normal;
+    font-family: Verdana;
+    color: white;
+    background-color: teal;
+    border-radius: 6px;
+    border: 0px;
+    padding: 6px 0px;
+    width: 165px;
+    outline: none;
+    text-align: center;
+    text-decoration: none;
+}
+
+h1 { font-size: xx-large;
+     font-weight: bold;
+     margin-top: 10;
+     margin-bottom: 5}
+
+h2 { font-size: x-large;
+     font-weight: bold;
+     margin-top: 10;
+     margin-bottom: 5}
+
+h3 { font-size: large;
+     font-weight: bold;
+     margin-top: 10;
+     margin-bottom: 5}
+
+h4 { font-size: medium;
+     font-weight: bold;
+     margin-top: 10;
+     margin-bottom: 5}
+
+code {
+    font-family: Courier, monospace
+}
+
+code.big {
+    font-size: large;
+    font-family: Courier, monospace;
+    line-height: 80%
+}
+
+pre {
+    font-family: Courier, monospace
+}
+
+pre.bold {
+    font-weight: bold;
+    font-family: Courier, monospace;
+}
+
+ul.nobullets {
+    list-style-type: none;
+    padding-left: 24px
+}
+
+dl {margin-left: 0;
+    margin-top: 10;
+    margin-bottom: 5}
+
+dt {font-size: small;
+    font-style: normal;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0;
+    text-indent: 0}
+
+dd {font-size: small;
+    font-style: normal;
+    font-weight: normal;
+    margin-top: 2;
+    margin-left: 25}
+        
+small {font-size: x-small}
+
+a.valid:link, a.valid:visited {
+    color: Teal;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a.valid:hover {
+    color: DarkGoldenrod;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a.valid:active {
+    color: DarkGoldenrod;
+    font-weight: bold;
+    text-decoration: none;
+}
