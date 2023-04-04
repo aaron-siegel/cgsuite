@@ -1413,7 +1413,7 @@ class CgscriptClass(
       Profiler.start(reflect)
       try {
         logger.debug(javaMethod.toString)
-        logger.debug(target.getClass.toString)
+        if (!isStatic) logger.debug(target.getClass.toString)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
@@ -1424,6 +1424,8 @@ class CgscriptClass(
             case nestedExc: CgsuiteException =>
               // TODO nestedExc.setInvocationTarget(qualifiedName)
               throw nestedExc
+            case nestedExc: StackOverflowError =>
+              throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", nestedExc)
             case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
           }
         )

@@ -129,7 +129,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
             exc addToken referenceToken
             throw exc
           case _: StackOverflowError =>
-            throw EvalException("Possible infinite recursion.")
+            throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)")
         }
 
       } else if (asFunctionCallAntecedent) {

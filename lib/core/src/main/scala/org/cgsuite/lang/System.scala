@@ -19,7 +19,7 @@ object System extends LazyLogging {
 
   val copyrightYear = "2003-2023"
 
-  val version = "2.0-beta6"
+  val version = "2.0"
 
   def clearAll(): Unit = {
     UiHarness.uiHarness.clearUiVars()
