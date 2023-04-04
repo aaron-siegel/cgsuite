@@ -65,23 +65,27 @@ tutorial (select "Getting Started" from the Help menu).</p>
 </div>
 
 <script>
-  function setVersion(name) {
-    var element = document.getElementById("latestVersion");
+  function setVersion(id, name, link) {
+    var element = document.getElementById(id);
     var aTag = document.createElement("a");
     var linkText = document.createTextNode(name);
     aTag.appendChild(linkText);
     aTag.className = "valid"
-    aTag.href = "https://www.github.com/aaron-siegel/cgsuite/releases";
+    aTag.href = "https://www.github.com/aaron-siegel/cgsuite/releases/".concat(link);
     element.appendChild(aTag);
   }
+  function setNA(id) {
+    var element = document.getElementById(id);
+    var text = document.createTextNode("None");
+    element.appendChild(text);
+  }
+  fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases/latest')
+    .then(response => response.json())
+    .then(release => setVersion("latestVersion", release.name, "latest"))
   fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases')
     .then(response => response.json())
-    .then(releases => setVersion(releases[0].name))
+    .then(releases => { releases[0].name.includes("beta") ? setVersion("latestBeta", releases[0].name, "tag/".concat(releases[0].tag_name)) : setNA("latestBeta") })
 </script>
-<!--
-</td>
-</tr>
-</table>-->
 </div></div>
 
 </body></html>

@@ -102,9 +102,9 @@ please visit the github page (linked above).</p>
     aTag.href = "download.html";
     element.appendChild(aTag);
   }
-  fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases')
+  fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases/latest')
     .then(response => response.json())
-    .then(releases => setVersion(releases[0].name))
+    .then(release => setVersion(release.name))
 </script>
 <!--
 </td>
