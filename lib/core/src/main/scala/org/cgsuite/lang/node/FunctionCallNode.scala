@@ -123,7 +123,7 @@ case class FunctionCallNode(
         exc addToken token
         throw exc
       case _: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
+        throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", token = Some(token))
     }
 
   }
@@ -196,7 +196,7 @@ case class FunctionCallNode(
         exc addToken token
         throw exc
       case _: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
+        throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", token = Some(token))
     }
 
   }
@@ -237,7 +237,7 @@ case class FunctionCallNode(
         exc addToken token
         throw exc
       case _: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
+        throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", token = Some(token))
     }
 
   }

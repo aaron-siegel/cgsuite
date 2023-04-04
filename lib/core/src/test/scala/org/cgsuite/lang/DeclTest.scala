@@ -124,8 +124,8 @@ class DeclTest extends CgscriptSpec {
       ("Instantiate InstanceClass", "test.init.NestedNoConstructor.Nested", "InstanceClass.instance"),
       ("Attempt to instantiate nested class with no constructor", "test.init.NestedNoConstructor.Nested()",
         "!!The class `test.init.NestedNoConstructor.Nested` has no constructor and cannot be directly instantiated."),
-      ("Infinite recursion (method call)", "test.init.InfiniteRecursion.Infinite()", "!!Possible infinite recursion."),
-      ("Infinite recursion (autoinvoke)", "test.init.InfiniteRecursion.InfiniteAuto", "!!Possible infinite recursion.")
+      ("Infinite recursion (method call)", "test.init.InfiniteRecursion.Infinite()", "!!Maximum recursive depth exceeded. (Possible infinite recursion?)"),
+      ("Infinite recursion (autoinvoke)", "test.init.InfiniteRecursion.InfiniteAuto", "!!Maximum recursive depth exceeded. (Possible infinite recursion?)")
     ))
 
   }
