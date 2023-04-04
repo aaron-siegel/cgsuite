@@ -22,7 +22,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultEditorKit;
-import netscape.javascript.JSObject;
+//import netscape.javascript.JSObject;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -86,8 +86,9 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
             webView.contextMenuEnabledProperty().setValue(false);
             webView.getEngine().getLoadWorker().stateProperty().addListener((observableValue, oldValue, newValue) -> {
                 if (newValue == State.SUCCEEDED) {
-                    JSObject window = (JSObject) webView.getEngine().executeScript("window");
-                    window.setMember("cgsuite", webEngineCtl);
+                    // TODO
+//                    JSObject window = (JSObject) webView.getEngine().executeScript("window");
+//                    window.setMember("cgsuite", webEngineCtl);
                 }
             });
             navigateTo(CONTENTS_PAGE);
