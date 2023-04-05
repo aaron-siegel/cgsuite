@@ -22,7 +22,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultEditorKit;
-//import netscape.javascript.JSObject;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -86,9 +85,13 @@ public final class CgsuiteHelpTopComponent extends TopComponent {
             webView.contextMenuEnabledProperty().setValue(false);
             webView.getEngine().getLoadWorker().stateProperty().addListener((observableValue, oldValue, newValue) -> {
                 if (newValue == State.SUCCEEDED) {
-                    // TODO
-//                    JSObject window = (JSObject) webView.getEngine().executeScript("window");
-//                    window.setMember("cgsuite", webEngineCtl);
+                    // NetBeans doesn't recognize the netscape.javascript package at compile time, and I
+                    // haven't been able to figure out why. This simply funnels the needed functionality
+                    // through a helper class in cgsuite-core. Pretty lame, but it works.
+                    Object window = webView.getEngine().executeScript("window");
+                    HelpUtil.setJSMember(window, "cgsuite", webEngineCtl);
+                    //JSObject window = (JSObject) webView.getEngine().executeScript("window");
+                    //window.setMember("cgsuite", webEngineCtl);
                 }
             });
             navigateTo(CONTENTS_PAGE);
