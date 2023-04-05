@@ -1,0 +1,21 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <properties>
+    <jfx.classifier>win</jfx.classifier>
+    <jfx.version>17.0.6</jfx.version>
+  </properties>
+
+  <parent>
+    <groupId>org.cgsuite</groupId>
+    <artifactId>cgsuite-jfx-bundle</artifactId>
+    <version>${jfx.version}</version>
+    <relativePath>pom.xml</relativePath>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.cgsuite</groupId>
+  <artifactId>cgsuite-jfx-bundle-windows</artifactId>
+  <version>${jfx.version}</version>
+  <packaging>pom</packaging>
+
+</project>

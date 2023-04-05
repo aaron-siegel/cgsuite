@@ -10,9 +10,7 @@
         <mkdir dir="${basedir}/CGSuiteCoreLib/release/modules/ext"/>
         <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" tofile="${basedir}/CGSuiteCoreLib/release/modules/ext/cgsuite-core.jar"/>
         <mkdir dir="${basedir}/JavaFX/release/modules/ext"/>
-        <copy todir="${basedir}/JavaFX/release/modules/ext">
-            <fileset dir="${basedir}/local/jfx-bundles/macos/jfx/lib" includes="*.jar,*.dylib"/>
-        </copy>
+        <copy file="${basedir}/../lib/jfx-bundle/target/cgsuite-jfx-bundle-mac-${cgsuite.jfx.version}-jar-with-dependencies.jar" tofile="${basedir}/JavaFX/release/modules/ext/cgsuite-jfx-bundle.jar"/>
     </target>
     
     <target name="branding" depends="-init,-pre-branding" if="run.branding">

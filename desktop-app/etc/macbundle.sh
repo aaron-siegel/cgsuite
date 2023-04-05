@@ -8,6 +8,7 @@ else
     ./make-alias.sh /Applications $2
 fi
 
+# We need to copy the JRE here, not in Ant, in order to preserve executable file modes
 echo Copying JRE.
 mkdir ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
 cp -r ../local/jre-bundles/macos/jre/* ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre

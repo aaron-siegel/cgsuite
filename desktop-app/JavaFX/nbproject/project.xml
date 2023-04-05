@@ -47,36 +47,8 @@
                 <package>javafx.util.converter</package>
             </public-packages>
             <class-path-extension>
-                <runtime-relative-path>ext/javafx-swt.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx-swt.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.graphics.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.graphics.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.base.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.base.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.swing.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.swing.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.controls.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.controls.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.media.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.media.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.fxml.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.fxml.jar</binary-origin>
-            </class-path-extension>
-            <class-path-extension>
-                <runtime-relative-path>ext/javafx.web.jar</runtime-relative-path>
-                <binary-origin>release/modules/ext/javafx.web.jar</binary-origin>
+                <runtime-relative-path>ext/cgsuite-jfx-bundle.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/cgsuite-jfx-bundle.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>
