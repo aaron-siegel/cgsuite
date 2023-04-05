@@ -9,7 +9,8 @@ else
 fi
 
 echo Copying JRE.
-cp -r ../local/jre-bundles/macos/jre ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite
+mkdir ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
+cp -r ../local/jre-bundles/macos/jre/* ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
 
 ./create-dmg.sh \
   --volname CGSuite \

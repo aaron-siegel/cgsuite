@@ -11,7 +11,7 @@
         <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" tofile="${basedir}/CGSuiteCoreLib/release/modules/ext/cgsuite-core.jar"/>
         <mkdir dir="${basedir}/JavaFX/release/modules/ext"/>
         <copy todir="${basedir}/JavaFX/release/modules/ext">
-            <fileset dir="${basedir}/local/jfx-bundles/macos/lib" includes="*.jar,*.dylib"/>
+            <fileset dir="${basedir}/local/jfx-bundles/macos/jfx/lib" includes="*.jar,*.dylib"/>
         </copy>
     </target>
     
