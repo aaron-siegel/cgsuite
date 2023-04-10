@@ -33,6 +33,18 @@
         </copy>
     </target>
     
+    <target name="build-zip" depends="suite.build-zip,-post-build-zip"/>
+    
+    <target name="-post-build-zip">
+        <!-- Remove cgsuite-jfx-bundle.jar from the archive -->
+        <zip destfile="${dist.dir}/temp.zip">
+            <zipfileset src="${dist.dir}/${app.name}.zip">
+                <exclude name="**/cgsuite-jfx-bundle.jar" />
+            </zipfileset>
+        </zip>
+        <move file="${dist.dir}/temp.zip" tofile="${dist.dir}/${app.name}.zip" /> 
+    </target>
+    
     <target name="build-launchers" depends="suite.build-launchers,-post-build-launchers"/>
     
     <target name="-post-build-launchers">

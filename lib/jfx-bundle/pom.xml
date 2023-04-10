@@ -13,41 +13,121 @@
   <dependencies>
     <dependency>
       <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <version>${jfx.version}</version>
+      <classifier>${jfx.classifier}</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${jfx.version}</version>
+      <classifier>${jfx.classifier}</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-graphics</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${jfx.version}</version>
+      <classifier>${jfx.classifier}</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-controls</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-graphics</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <version>${jfx.version}</version>
+      <classifier>${jfx.classifier}</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-media</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-graphics</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
       <version>${jfx.version}</version>
       <classifier>${jfx.classifier}</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-swing</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-graphics</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
       <version>${jfx.version}</version>
       <classifier>${jfx.classifier}</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-web</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-controls</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-media</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
   <build>
 
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
-
     <plugins>
-
-      <!-- maven-clean -->
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>src/main/gen</directory>
-              <includes>
-                <include>**/*</include>
-              </includes>
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
 
       <!-- maven-assembly -->
       <plugin>
