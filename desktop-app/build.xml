@@ -90,6 +90,7 @@
         <exec executable="${basedir}/etc/macbundle.sh" dir="${basedir}/etc">
             <arg value="${dist.dir}/cgsuite-${app.version}.dmg"/>
             <arg value="${dist.dir}/macbundle"/>
+            <arg value="${cgsuite.jre.version}"/>
         </exec>
     </target>
     

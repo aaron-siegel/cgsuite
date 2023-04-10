@@ -46,7 +46,7 @@ class DiscordBot(token: String) extends ListenerAdapter {
 
   def start(): Unit = {
 
-    logger info "This is the CGSuite Discord Bot."
+    logger info s"This is the CGSuite Discord Bot, version ${System.version}."
 
     UiHarness.setUiHarness(ReplUiHarness)
 
