@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!-- You may freely edit this file. See harness/README in the NetBeans platform -->
 <!-- for some information on what you could do (e.g. targets to override). -->
 <!-- If you delete this file and reopen the project it will be recreated. -->
+
 <project name="CGSuite" basedir=".">
     <description>Builds the module suite CGSuite.</description>
     <import file="nbproject/build-impl.xml"/>
@@ -36,22 +38,14 @@
     <target name="build-zip" depends="suite.build-zip,-post-build-zip"/>
     
     <target name="-post-build-zip">
-        <!-- Remove cgsuite-jfx-bundle.jar from the archive -->
+        <!-- Remove cgsuite-jfx-bundle.jar from the archive; a native-only version
+             will later be restored by the installer -->
         <zip destfile="${dist.dir}/temp.zip">
             <zipfileset src="${dist.dir}/${app.name}.zip">
                 <exclude name="**/cgsuite-jfx-bundle.jar" />
             </zipfileset>
         </zip>
         <move file="${dist.dir}/temp.zip" tofile="${dist.dir}/${app.name}.zip" /> 
-    </target>
-    
-    <target name="build-launchers" depends="suite.build-launchers,-post-build-launchers"/>
-    
-    <target name="-post-build-launchers">
-        <!-- Replace app.exe with custom app.exe with customized icons -->
-        <!--<copy file="${basedir}/etc/app.exe" tofile="${build.launcher.dir}/bin/CGSuite.exe" overwrite="true"/>-->
-        <!-- Set default heap size to 512m, and enable assertions -->
-        <replace file="${build.launcher.dir}/etc/${app.name}.conf" token="-J-Xmx64m" value="-J-Xmx512m -J-ea"/>
     </target>
     
     <target name="release" depends="files-init">
@@ -81,18 +75,7 @@
          3. Run cgsuite-installer-renames target
     -->
 
-    <target name="cgsuite-dist" depends="clean,cgsuite-src-dist,cgsuite-mac-bundle"/>
-    
-    <target name="cgsuite-src-dist" depends="-init">
-        <mkdir dir="${dist.dir}"/>
-        <delete file="${dist.dir}/cgsuite-${app.version}-src.tar.bz2"/>
-        <tar destfile="${dist.dir}/cgsuite-${app.version}-src.tar.bz2"
-             basedir="${basedir}/.."
-             compression="bzip2"
-             longfile="gnu"
-             excludes="**/.idea/,**/*.iml,**/target/"
-             excludesfile="../.gitignore"/>
-    </target>
+    <target name="cgsuite-dist" depends="clean,cgsuite-mac-bundle"/>
     
     <target name="cgsuite-mac-bundle" depends="build-mac">
         <delete file="${dist.dir}/cgsuite-${app.version}.dmg"/>
