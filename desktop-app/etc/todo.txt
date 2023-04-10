@@ -1,9 +1,0 @@
-* There's a display bug in (1+*).Tiny (parenthesis shouldn't belong)
-* Tiny(Tiny()) display
-
-* Misere games
-* Loopy games
-* Coordinate games
-* Java heap space option
-* Grid.Decompose(boundaryValue, directions)
-* Impartial variant editor/output
