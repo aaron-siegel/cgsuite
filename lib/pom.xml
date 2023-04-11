@@ -48,7 +48,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.6</version>
+      <version>1.2.12</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -58,12 +58,12 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
-      <version>1.9</version>
+      <version>1.10.0</version>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr</artifactId>
-      <version>3.5.2</version>
+      <version>3.5.3</version>
     </dependency>
     <dependency>
       <groupId>cc.redberry</groupId>
@@ -73,17 +73,17 @@
     <dependency>
       <groupId>org.jline</groupId>
       <artifactId>jline</artifactId>
-      <version>3.20.0</version>
+      <version>3.23.0</version>
     </dependency>
     <dependency>
       <groupId>org.jline</groupId>
       <artifactId>jline-terminal-jansi</artifactId>
-      <version>3.20.0</version>
+      <version>3.23.0</version>
     </dependency>
     <dependency>
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
-      <version>0.15.0</version>
+      <version>0.18.0</version>
     </dependency>
     <dependency>
       <!-- The UI needs this to be bundled in the cgsuite fatjar.
@@ -108,19 +108,19 @@
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.tools.version}</artifactId>
-      <version>3.2.10</version>
+      <version>3.2.15</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.scalacheck</groupId>
       <artifactId>scalacheck_${scala.tools.version}</artifactId>
-      <version>1.14.1</version>
+      <version>1.17.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>gunit</artifactId>
-      <version>3.5.2</version>
+      <version>3.5.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -135,7 +135,7 @@
       <!-- maven-clean -->
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
         <configuration>
           <filesets>
             <fileset>
@@ -153,7 +153,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.5.0</version>
         <configuration>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -184,7 +184,7 @@
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>4.5.4</version>
+        <version>4.8.1</version>
         <executions>
           <execution>
             <id>scala-compile-first</id>
@@ -224,7 +224,7 @@
       <plugin>
         <groupId>org.scalatest</groupId>
         <artifactId>scalatest-maven-plugin</artifactId>
-        <version>2.0.2</version>
+        <version>2.2.0</version>
         <configuration>
           <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
           <junitxml>.</junitxml>
