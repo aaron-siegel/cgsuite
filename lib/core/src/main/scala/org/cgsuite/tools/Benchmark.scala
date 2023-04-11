@@ -94,7 +94,7 @@ case class Benchmark(instances: Vector[Benchmark.Instance]) {
 
     val systemInformation =
       s"""Date           : $dateTime
-         |CGSuite Version: 2.0
+         |CGSuite Version: ${System.version}
          |Git Branch     : $branch
          |Git SHA        : $sha
          |Java Version   : ${util.Properties.javaVersion}
