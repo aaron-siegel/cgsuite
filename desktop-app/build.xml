@@ -5,14 +5,17 @@
 <!-- If you delete this file and reopen the project it will be recreated. -->
 
 <project name="CGSuite" basedir=".">
+    
     <description>Builds the module suite CGSuite.</description>
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-init" depends="suite.-init">
         <mkdir dir="${basedir}/CGSuiteCoreLib/release/modules/ext"/>
-        <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar" tofile="${basedir}/CGSuiteCoreLib/release/modules/ext/cgsuite-core.jar"/>
+        <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar"
+              tofile="${basedir}/CGSuiteCoreLib/release/modules/ext/cgsuite-core.jar"/>
         <mkdir dir="${basedir}/JavaFX/release/modules/ext"/>
-        <copy file="${basedir}/../lib/jfx-bundle/target/cgsuite-jfx-bundle-mac-${cgsuite.jfx.version}-jar-with-dependencies.jar" tofile="${basedir}/JavaFX/release/modules/ext/cgsuite-jfx-bundle.jar"/>
+        <copy file="${basedir}/../lib/jfx-bundle/target/cgsuite-jfx-bundle-mac-${cgsuite.jfx.version}-jar-with-dependencies.jar"
+              tofile="${basedir}/JavaFX/release/modules/ext/cgsuite-jfx-bundle.jar"/>
     </target>
     
     <target name="branding" depends="-init,-pre-branding" if="run.branding">
