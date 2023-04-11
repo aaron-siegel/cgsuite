@@ -122,19 +122,24 @@ case class Benchmark(instances: Vector[Benchmark.Instance]) {
 
     }
 
-    if (!consoleOnly)
+    if (!consoleOnly) {
       writer.close()
+    }
 
     def emit(str: String): Unit = {
       print(str)
-      if (!consoleOnly)
+      if (!consoleOnly) {
         writer.print(str)
+        writer.flush()
+      }
     }
 
     def emitln(str: String): Unit = {
       println(str)
-      if (!consoleOnly)
+      if (!consoleOnly) {
         writer.println(str)
+        writer.flush()
+      }
     }
 
   }
