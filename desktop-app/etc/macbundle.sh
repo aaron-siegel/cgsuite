@@ -13,7 +13,7 @@ fi
 # We need to copy the JRE here, not in Ant, in order to preserve executable file modes
 echo Copying JRE.
 mkdir ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
-cp -r ../local/jre-bundles/macos/jre-$3/* ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
+cp -r ../local/jre-bundles/macos/prepared-jre-$3/* ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
 
 ./create-dmg.sh \
   --volname CGSuite \
