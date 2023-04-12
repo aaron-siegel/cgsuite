@@ -86,7 +86,7 @@
     <dependency>
       <groupId>io.methvin</groupId>
       <artifactId>directory-watcher-better-files_${scala.tools.version}</artifactId>
-      <version>0.18.0</version>
+      <version>0.15.0</version>
     </dependency>
     <dependency>
       <!-- The UI needs this to be bundled in the cgsuite fatjar.
