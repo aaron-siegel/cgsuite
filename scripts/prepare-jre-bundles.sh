@@ -40,6 +40,10 @@ for os in {macos,windows,linux}; do
         --module-path "$os/jdk-$1/jmods" \
         --output "$os/prepared-jre-$1"
 
+    # Bundle the copyright notices & etc. This ensures they'll be handled
+    # correctly by the uninstaller (I'm not sure why it matters)
+    (cd "$os/prepared-jre-$1"; zip -9 -r -q legal.zip legal; "rm" -Rf legal)
+
 done
 
 # NOTE: Due to a bug in NBI, for newer JREs to work, we need to create a
@@ -57,11 +61,13 @@ echo "Copying cgsuite-jfx-bundle ..."
 cp $basedir/lib/jfx-bundle/target/cgsuite-jfx-bundle-windows-$1-jar-with-dependencies.jar windows/prepared-jre-$1/cgsuite-jfx-bundle.jar
 cp $basedir/lib/jfx-bundle/target/cgsuite-jfx-bundle-linux-$1-jar-with-dependencies.jar linux/prepared-jre-$1/cgsuite-jfx-bundle.jar
 
-echo "Building JRE archives ..."
+echo "Building JRE archive for windows ..."
 
 rm windows/windows-jre-$1.zip
 (cd windows/prepared-jre-$1; zip -9 -r -y -q ../windows-jre-$1.zip .)
 (cd windows; cat unz600xn.exe windows-jre-$1.zip > windows-jre-$1.exe)
+
+echo "Building JRE archive for linux ..."
 
 rm linux/linux-jre-$1.zip
 (cd linux/prepared-jre-$1; zip -9 -r -y -q ../linux-jre-$1.zip .)
