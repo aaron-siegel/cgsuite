@@ -47,8 +47,7 @@ for os in {macos,windows,linux}; do
 done
 
 # NOTE: Due to a bug in NBI, for newer JREs to work, we need to create a
-# fake unpack200.exe in the Windows JRE. Example:
-# touch jre-17.0.6/bin/unpack200.exe
+# "phantom" unpack200.exe in the Windows JRE binaries dir.
 
 echo "Creating phantom unpack200.exe ..."
 
