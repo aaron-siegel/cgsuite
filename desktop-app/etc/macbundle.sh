@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Usage: macbundle.sh <dmg-target-file> <bundle-dir> <jre-version>
+
 if [ -e $2/Applications ];
 then
     echo Applications alias already exists.
@@ -8,8 +10,10 @@ else
     ./make-alias.sh /Applications $2
 fi
 
+# We need to copy the JRE here, not in Ant, in order to preserve executable file modes
 echo Copying JRE.
-cp -r ../local/jre-bundles/macos/jre ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite
+mkdir ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
+cp -r ../local/jre-bundles/macos/prepared-jre-$3/* ../dist/macbundle/CGSuite.app/Contents/Resources/CGSuite/jre
 
 ./create-dmg.sh \
   --volname CGSuite \

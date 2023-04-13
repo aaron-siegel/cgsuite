@@ -5,7 +5,7 @@ import java.awt._
 import java.io.File
 
 import javax.imageio.ImageIO
-import javax.swing.{JFrame, JPanel}
+import javax.swing.{JFrame, JPanel, WindowConstants}
 
 object SplashGraphicGenerator {
 
@@ -24,7 +24,7 @@ object SplashGraphicGenerator {
     frame.setLayout(new BorderLayout())
     frame.add(panel, BorderLayout.CENTER)
     frame.setSize(new Dimension(640, 480))
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     frame.setVisible(true)
 
   }

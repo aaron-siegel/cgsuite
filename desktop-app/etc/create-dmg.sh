@@ -110,7 +110,7 @@ test -d "$AUX_PATH" || {
 # Create the image
 echo "Creating disk image..."
 test -f "${DMG_TEMP_NAME}" && rm -f "${DMG_TEMP_NAME}"
-hdiutil create -srcfolder "$SRC_FOLDER" -volname "${VOLUME_NAME}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 500m "${DMG_TEMP_NAME}"
+hdiutil create -srcfolder "$SRC_FOLDER" -volname "${VOLUME_NAME}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 800m "${DMG_TEMP_NAME}"
 
 # mount it
 echo "Mounting disk image..."
