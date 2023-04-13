@@ -93,6 +93,7 @@
     </target>
     
     <target name="cgsuite-installer-renames" depends="-init">
+        <chmod file="${dist.dir}/CGSuite-linux.sh" perm="a+rx"/>
         <move file="${dist.dir}/CGSuite-windows.exe" tofile="${dist.dir}/cgsuite-${app.version}.exe"/>
         <move file="${dist.dir}/CGSuite-linux.sh" tofile="${dist.dir}/cgsuite-${app.version}.sh"/>
     </target>
