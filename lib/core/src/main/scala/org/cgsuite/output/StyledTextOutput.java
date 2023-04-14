@@ -413,7 +413,7 @@ public class StyledTextOutput extends AbstractOutput
     }
     
     private final static int MAX_STO_LENGTH = Short.MAX_VALUE;
-    
+
     private static FontRenderContext screenFrc;
     
     private static FontRenderContext getScreenFrc()
@@ -850,7 +850,7 @@ public class StyledTextOutput extends AbstractOutput
             if (info.bottom > clipRect.y &&
                 info.top < clipRect.y + clipRect.height)
             {
-                info.layout.draw(g, 0.0f, 1.0f + info.top + info.layout.getAscent());
+                info.layout.draw(g, 0.0f, 2.0f + info.top + info.layout.getAscent());
             }
         }
     }
