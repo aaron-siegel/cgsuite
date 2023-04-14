@@ -7,7 +7,6 @@ package org.cgsuite.ui.history;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,7 +20,7 @@ import org.openide.util.lookup.ServiceProvider;
  * @author asiegel
  */
 @ServiceProvider(service=CommandHistoryBuffer.class)
-public class CommandHistoryBufferImpl extends AbstractListModel implements CommandHistoryBuffer
+public class CommandHistoryBufferImpl extends AbstractListModel<String> implements CommandHistoryBuffer
 {
     private final static Logger LOG = Logger.getLogger(CommandHistoryBufferImpl.class.getName());
     
@@ -32,8 +31,8 @@ public class CommandHistoryBufferImpl extends AbstractListModel implements Comma
     
     public CommandHistoryBufferImpl()
     {
-        history = new ArrayList<String>();
-        listeners = new ArrayList<CommandListener>();
+        history = new ArrayList<>();
+        listeners = new ArrayList<>();
     }
     
     synchronized void load()
