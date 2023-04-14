@@ -5,6 +5,7 @@
 package org.cgsuite.ui.explorer;
 
 import java.awt.Color;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -103,7 +104,7 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         analysisPanel = new javax.swing.JPanel();
         commandPanel = new javax.swing.JPanel();
         inputPanel = new org.cgsuite.ui.worksheet.InputPanel();
-        commandComboBox = new javax.swing.JComboBox();
+        commandComboBox = new javax.swing.JComboBox<>();
         analysisScrollPane = new javax.swing.JScrollPane();
         analysisWorksheetPanel = new org.cgsuite.ui.worksheet.WorksheetPanel();
         treeScrollPane = new javax.swing.JScrollPane();
@@ -131,7 +132,6 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
         setBackground(java.awt.Color.white);
         setLayout(new java.awt.BorderLayout());
 
-        primarySplitPane.setBackground(null);
         primarySplitPane.setDividerLocation(480);
 
         detailSplitPane.setBackground(new java.awt.Color(238, 238, 237));
@@ -144,15 +144,13 @@ public final class ExplorerTopComponent extends TopComponent implements Explorer
 
         commandPanel.setBackground(java.awt.Color.white);
         commandPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(160, 160, 160)));
-        commandPanel.setForeground(null);
         commandPanel.setLayout(new javax.swing.BoxLayout(commandPanel, javax.swing.BoxLayout.Y_AXIS));
 
         inputPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
         commandPanel.add(inputPanel);
 
-        commandComboBox.setBackground(new java.awt.Color(255, 255, 255));
         commandComboBox.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
-        commandComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Selection.CanonicalForm", "Selection.CanonicalForm.Thermograph.Plot()", "Selection.CanonicalForm.AtomicWeight" }));
+        commandComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Selection.CanonicalForm", "Selection.CanonicalForm.Thermograph.Plot()", "Selection.CanonicalForm.AtomicWeight" }));
         commandComboBox.setAlignmentX(0.0F);
         commandComboBox.setMinimumSize(new java.awt.Dimension(90, 27));
         commandComboBox.addActionListener(new java.awt.event.ActionListener() {
@@ -330,7 +328,7 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
     private javax.swing.JPanel analysisPanel;
     private javax.swing.JScrollPane analysisScrollPane;
     private org.cgsuite.ui.worksheet.WorksheetPanel analysisWorksheetPanel;
-    private javax.swing.JComboBox commandComboBox;
+    private javax.swing.JComboBox<String> commandComboBox;
     private javax.swing.JPanel commandPanel;
     private javax.swing.JSplitPane detailSplitPane;
     private javax.swing.JScrollPane editorScrollPane;
@@ -594,8 +592,8 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
 
         switch (evt.getKeyCode())
         {
-            case KeyEvent.VK_ENTER:
-                if (evt.getModifiers() == 0)
+            case KeyEvent.VK_ENTER -> {
+                if ((evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0)
                 {
                     evt.consume();
                     if (!source.getText().equals(""))
@@ -604,12 +602,12 @@ private void expandSensibleLinesMenuItemActionPerformed(java.awt.event.ActionEve
                         source.setText("");
                     }
                 }
-                else if (evt.getModifiers() == KeyEvent.SHIFT_MASK)
+                else
                 {
                     evt.consume();
                     source.insert("\n", source.getCaretPosition());
                 }
-                break;
+            }
         }
     }
 

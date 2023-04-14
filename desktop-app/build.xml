@@ -5,10 +5,10 @@
 <!-- If you delete this file and reopen the project it will be recreated. -->
 
 <project name="CGSuite" basedir=".">
-    
+
     <description>Builds the module suite CGSuite.</description>
     <import file="nbproject/build-impl.xml"/>
-    
+
     <target name="-init" depends="suite.-init">
         <mkdir dir="${basedir}/CGSuiteCoreLib/release/modules/ext"/>
         <copy file="${basedir}/../lib/core/target/cgsuite-core-${cgsuite.lib.version}-jar-with-dependencies.jar"
@@ -17,12 +17,12 @@
         <copy file="${basedir}/../lib/jfx-bundle/target/cgsuite-jfx-bundle-mac-${cgsuite.jfx.version}-jar-with-dependencies.jar"
               tofile="${basedir}/JavaFX/release/modules/ext/cgsuite-jfx-bundle.jar"/>
     </target>
-    
+
     <target name="branding" depends="-init,-pre-branding" if="run.branding">
         <mkdir dir="${cluster}"/>
         <branding cluster="${cluster}" overrides="${suite.build.dir}/branding-tmp" token="${branding.token}"/>
     </target>
-    
+
     <target name="-pre-branding" depends="-init">
         <mkdir dir="${suite.build.dir}/branding-tmp"/>
         <!-- Copy non-properties files from branding dir to temp location -->
@@ -37,9 +37,9 @@
             </filterset>
         </copy>
     </target>
-    
+
     <target name="build-zip" depends="suite.build-zip,-post-build-zip"/>
-    
+
     <target name="-post-build-zip">
         <!-- Remove cgsuite-jfx-bundle.jar from the archive; a native-only version
              will later be restored by the installer -->
@@ -48,20 +48,20 @@
                 <exclude name="**/cgsuite-jfx-bundle.jar" />
             </zipfileset>
         </zip>
-        <move file="${dist.dir}/temp.zip" tofile="${dist.dir}/${app.name}.zip" /> 
+        <move file="${dist.dir}/temp.zip" tofile="${dist.dir}/${app.name}.zip" />
     </target>
-    
+
     <target name="release" depends="files-init">
-        
+
         <mkdir dir="${cluster}"/>
-        
+
         <!-- Copy everything except .cgs files -->
         <copy todir="${cluster}">
             <fileset dir="${release.dir}">
                 <patternset includes="${release.files}" excludes="**/*.cgs"/>
             </fileset>
         </copy>
-        
+
         <!-- Now copy the .cgs files, applying properties filterset -->
         <copy todir="${cluster}">
             <fileset dir="${release.dir}" includes="**/*.cgs"/>
@@ -69,9 +69,9 @@
                 <filtersfile file="${basedir}/nbproject/project.properties"/>
             </filterset>
         </copy>
-        
+
     </target>
-    
+
     <!-- Distribution sequence
          1. Run cgsuite-dist target (only on MacOS!)
          2. Right click CGSuite, choose Package As / Installers
@@ -79,7 +79,7 @@
     -->
 
     <target name="cgsuite-dist" depends="clean,cgsuite-mac-bundle"/>
-    
+
     <target name="cgsuite-mac-bundle" depends="build-mac">
         <delete file="${dist.dir}/cgsuite-${app.version}.dmg"/>
         <mkdir dir="${dist.dir}/macbundle"/>
@@ -91,7 +91,7 @@
             <arg value="${cgsuite.jre.version}"/>
         </exec>
     </target>
-    
+
     <target name="cgsuite-installer-renames" depends="-init">
         <chmod file="${dist.dir}/CGSuite-linux.sh" perm="a+rx"/>
         <move file="${dist.dir}/CGSuite-windows.exe" tofile="${dist.dir}/cgsuite-${app.version}.exe"/>

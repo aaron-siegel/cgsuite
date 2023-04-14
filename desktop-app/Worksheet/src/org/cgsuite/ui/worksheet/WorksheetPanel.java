@@ -22,6 +22,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -193,8 +194,9 @@ public class WorksheetPanel extends JPanel
 
         switch (evt.getKeyCode())
         {
-            case KeyEvent.VK_ENTER:
-                if (evt.getModifiers() == 0)
+
+            case KeyEvent.VK_ENTER -> {
+                if ((evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0)
                 {
                     evt.consume();
                     if (!source.getText().equals(""))
@@ -202,15 +204,15 @@ public class WorksheetPanel extends JPanel
                         processCommand(source);
                     }
                 }
-                else if (evt.getModifiers() == KeyEvent.SHIFT_MASK)
+                else
                 {
                     evt.consume();
                     source.insert("\n", source.getCaretPosition());
                 }
-                break;
+            }
 
-            case KeyEvent.VK_UP:
-                if (evt.getModifiers() == 0 && source.getCaretLine() == 0)
+            case KeyEvent.VK_UP -> {
+                if (evt.getModifiersEx() == 0 && source.getCaretLine() == 0)
                 {
                     evt.consume();
                     if (commandHistoryPrefix == null)
@@ -223,11 +225,11 @@ public class WorksheetPanel extends JPanel
                     scrollToBottomLeft();
                     updateFocus();
                 }
-                break;
+            }
 
-            case KeyEvent.VK_DOWN:
-                if (evt.getModifiers() == 0 && commandHistoryPrefix != null &&
-                    (source.getCaretLine() == source.getLineCount()-1))
+            case KeyEvent.VK_DOWN -> {
+                if (evt.getModifiersEx() == 0 && commandHistoryPrefix != null &&
+                        (source.getCaretLine() == source.getLineCount()-1))
                 {
                     evt.consume();
                     seekingCommand = true;
@@ -235,10 +237,8 @@ public class WorksheetPanel extends JPanel
                     scrollToBottomLeft();
                     updateFocus();
                 }
-                break;
+            }
 
-            default:
-                break;
         }
     }
 

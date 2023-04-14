@@ -19,7 +19,7 @@ import org.openide.util.actions.CallbackSystemAction;
     @ActionReference(path = "Menu/Edit", position = 1150)
 })
 @NbBundle.Messages("CTL_CopyAsImageAction=Copy as Image")
-public class CopyAsImageAction extends CallbackSystemAction {
+public final class CopyAsImageAction extends CallbackSystemAction {
 
     public final static String ACTION_MAP_KEY = "cgsuite/copy-as-image";
 

@@ -17,6 +17,8 @@ import java.beans.PropertyChangeListener;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.cgsuite.filetype.cgscript.CgscriptEditorKit;
 import org.netbeans.modules.editor.NbEditorDocument;
 import org.netbeans.modules.editor.NbEditorKit;
@@ -72,6 +74,26 @@ public class InputPanel extends JPanel
 
             inputPane.setEditorKit(kit);
             inputPane.setDocument(doc);
+
+            inputPane.getDocument().addDocumentListener(new DocumentListener() {
+                // We need to repaint the enclosing Panel when the document is updated.
+                // This works around a Java/NB bug on Windows systems that causes underscores
+                // not to be displayed because they fall outside the bounds of the InputPane
+                // (only when the OS display scale was set below 150%).
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    repaint();
+                }
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    repaint();
+                }
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    repaint();
+                }
+            });
+
             isActivated = true;
         }
         catch (Exception exc)

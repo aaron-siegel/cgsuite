@@ -31,14 +31,11 @@ package org.cgsuite.ui.worksheet;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JEditorPane;
-import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 
 public class InputPane extends JEditorPane
 {
-    JPopupMenu popupMenu;
-
     public InputPane()
     {
         addMouseListener(new MouseAdapter() {

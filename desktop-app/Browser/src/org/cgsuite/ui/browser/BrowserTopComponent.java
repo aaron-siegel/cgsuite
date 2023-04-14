@@ -156,7 +156,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jComboBox1 = new javax.swing.JComboBox();
+        jComboBox1 = new javax.swing.JComboBox<>();
         jScrollPane1 = new BeanTreeView();
 
         setLayout(new java.awt.BorderLayout());
@@ -176,7 +176,7 @@ public final class BrowserTopComponent extends TopComponent implements ExplorerM
     }//GEN-LAST:event_jComboBox1ItemStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JComboBox<RootFolder> jComboBox1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
     /**
