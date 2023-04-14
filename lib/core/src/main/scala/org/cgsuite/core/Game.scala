@@ -125,6 +125,10 @@ trait Game extends OutputTarget {
     )
   }
 
+  def misereOutcomeClass: OutcomeClass = {
+    MisereOutcomeClassReducer.reduce(this, new TranspositionCache().tableFor[OutcomeClass](Symbol("MisereOutcomeClass")))
+  }
+
   def outcomeClass: LoopyOutcomeClass = gameValue.outcomeClass
 
   def gameName: String = getClass.getName

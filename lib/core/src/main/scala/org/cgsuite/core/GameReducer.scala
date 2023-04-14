@@ -10,13 +10,9 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   private val visitorCache = mutable.Set[Game]()
 
-  def zero: T
-
-  def plus(a: T, b: T): T
-
   def construct(opts: O): T
 
-  def loopyExceptionMsg: String
+  def loopyExceptionMsg: String = s"That is not a short game."
 
   def makeOptions(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): O
 
@@ -26,26 +22,6 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
   }
 
   def reduce(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
-
-    val decomp = g.decomposition
-    if (decomp.size == 1 && decomp.head == this) {
-      reduce2(g, tt, visited)
-    } else {
-      var result: T = zero
-      val it = decomp.iterator
-      while (it.hasNext) {
-        val component = it.next() match {
-          // TODO Is this unchecked match really the right thing to do?
-          case g: G @unchecked => reduce2(g, tt, visited)
-        }
-        result = plus(result, component)
-      }
-      result
-    }
-
-  }
-
-  private def reduce2(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
 
     tt.get(g) match {
       case Some(x) => x
@@ -67,6 +43,34 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
 }
 
+private[core] trait DisjunctiveLoopfreeReducer[G <: Game, O, T] extends LoopfreeReducer[G, O, T] {
+
+  def zero: T
+
+  def plus(a: T, b: T): T
+
+  override def reduce(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): T = {
+
+    val decomp = g.decomposition
+    if (decomp.size == 1 && decomp.head == this) {
+      super.reduce(g, tt, visited)
+    } else {
+      var result: T = zero
+      val it = decomp.iterator
+      while (it.hasNext) {
+        val component = it.next() match {
+          // TODO Is this unchecked match really the right thing to do?
+          case g: G@unchecked => super.reduce(g, tt, visited)
+        }
+        result = plus(result, component)
+      }
+      result
+    }
+
+  }
+
+}
+
 private[core] trait PartizanLoopfreeReducer[T] extends LoopfreeReducer[Game, (Iterable[T], Iterable[T]), T] {
 
   override def makeOptions(g: Game, tt: TranspositionTable[T], visited: mutable.Set[Game]): (Iterable[T], Iterable[T]) = {
@@ -79,6 +83,9 @@ private[core] trait PartizanLoopfreeReducer[T] extends LoopfreeReducer[Game, (It
 
 }
 
+private[core] trait DisjunctivePartizanLoopfreeReducer[T] extends PartizanLoopfreeReducer[T] with
+  DisjunctiveLoopfreeReducer[Game, (Iterable[T], Iterable[T]), T]
+
 private[core] trait ImpartialLoopfreeReducer[T] extends LoopfreeReducer[ImpartialGame, Iterable[T], T] {
 
   override def makeOptions(g: ImpartialGame, tt: TranspositionTable[T], visited: mutable.Set[Game]): Iterable[T] = {
@@ -89,7 +96,10 @@ private[core] trait ImpartialLoopfreeReducer[T] extends LoopfreeReducer[Impartia
 
 }
 
-private[core] case object CanonicalShortGameReducer extends PartizanLoopfreeReducer[CanonicalShortGame] {
+private[core] trait DisjunctiveImpartialLoopfreeReducer[T] extends ImpartialLoopfreeReducer[T] with
+  DisjunctiveLoopfreeReducer[ImpartialGame, Iterable[T], T]
+
+private[core] case object CanonicalShortGameReducer extends DisjunctivePartizanLoopfreeReducer[CanonicalShortGame] {
 
   override def zero = Values.zero
 
@@ -104,7 +114,7 @@ private[core] case object CanonicalShortGameReducer extends PartizanLoopfreeRedu
 
 }
 
-private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] {
+private[core] case object NimValueReducer extends DisjunctiveImpartialLoopfreeReducer[Int] {
 
   override def zero = 0
 
@@ -116,7 +126,7 @@ private[core] case object NimValueReducer extends ImpartialLoopfreeReducer[Int] 
 
 }
 
-private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeReducer[MisereCanonicalGame] {
+private[core] case object MisereCanonicalGameReducer extends DisjunctiveImpartialLoopfreeReducer[MisereCanonicalGame] {
 
   override def zero = MisereValues.zero
 
@@ -124,6 +134,19 @@ private[core] case object MisereCanonicalGameReducer extends ImpartialLoopfreeRe
 
   override def construct(opts: Iterable[MisereCanonicalGame]) = MisereCanonicalGame(opts.toSeq : _*)
 
-  override def loopyExceptionMsg = s"That is not a short game."
+}
+
+private[core] case object MisereOutcomeClassReducer extends PartizanLoopfreeReducer[OutcomeClass] {
+
+  def construct(opts: (Iterable[OutcomeClass], Iterable[OutcomeClass])): OutcomeClass = {
+    val (lOpts, rOpts) = opts
+    val leftN = lOpts.isEmpty || lOpts.exists { c => c == OutcomeClass.P || c == OutcomeClass.L }
+    val rightN = rOpts.isEmpty || rOpts.exists { c => c == OutcomeClass.P || c == OutcomeClass.R }
+    if (leftN) {
+      if (rightN) OutcomeClass.N else OutcomeClass.L
+    } else {
+      if (rightN) OutcomeClass.R else OutcomeClass.P
+    }
+  }
 
 }

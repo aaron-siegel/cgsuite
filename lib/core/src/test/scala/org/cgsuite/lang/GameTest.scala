@@ -314,7 +314,8 @@ class GameTest extends CgscriptSpec {
   it should "implement methods correctly" in {
     executeTests(Table(
       header,
-      ("Followers", """game.grid.Amazons("x...|o...").Followers.Size""", "2784")
+      ("Followers", """game.grid.Amazons("x...|o...").Followers.Size""", "2784"),
+      ("MisereOutcomeClass", """game.grid.Domineering(Grid.Empty(2, 4)).MisereOutcomeClass""", "N")
     ))
   }
 
