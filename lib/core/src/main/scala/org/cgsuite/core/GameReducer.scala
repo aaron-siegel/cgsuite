@@ -12,7 +12,7 @@ private[core] trait LoopfreeReducer[G <: Game, O, T] {
 
   def construct(opts: O): T
 
-  def loopyExceptionMsg: String = s"That is not a short game."
+  def loopyExceptionMsg: String = "That is not a short game."
 
   def makeOptions(g: G, tt: TranspositionTable[T], visited: mutable.Set[Game]): O
 
@@ -110,7 +110,7 @@ private[core] case object CanonicalShortGameReducer extends DisjunctivePartizanL
     CanonicalShortGame(lo, ro)
   }
 
-  override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."
+  override def loopyExceptionMsg = "That is not a short game. If that is intentional, try `GameValue` in place of `CanonicalForm`."
 
 }
 
@@ -122,7 +122,7 @@ private[core] case object NimValueReducer extends DisjunctiveImpartialLoopfreeRe
 
   override def construct(opts: Iterable[Int]): Int = ImpartialGame.mex(opts)
 
-  override def loopyExceptionMsg = s"That is not a short game. If that is intentional, try `GameValue` in place of `NimValue`."
+  override def loopyExceptionMsg = "That is not a short game. If that is intentional, try `GameValue` in place of `NimValue`."
 
 }
 
@@ -136,17 +136,36 @@ private[core] case object MisereCanonicalGameReducer extends DisjunctiveImpartia
 
 }
 
-private[core] case object MisereOutcomeClassReducer extends PartizanLoopfreeReducer[OutcomeClass] {
+private[core] case object MisereOutcomeReducer {
 
-  def construct(opts: (Iterable[OutcomeClass], Iterable[OutcomeClass])): OutcomeClass = {
-    val (lOpts, rOpts) = opts
-    val leftN = lOpts.isEmpty || lOpts.exists { c => c == OutcomeClass.P || c == OutcomeClass.L }
-    val rightN = rOpts.isEmpty || rOpts.exists { c => c == OutcomeClass.P || c == OutcomeClass.R }
-    if (leftN) {
-      if (rightN) OutcomeClass.N else OutcomeClass.L
-    } else {
-      if (rightN) OutcomeClass.R else OutcomeClass.P
+  private val visitorCache = mutable.Set[Game]()
+
+  def reduce(player: Player, g: Game, tt: TranspositionTable[Outcome]): Outcome = {
+    reduce(player, g, tt, visitorCache)
+  }
+
+  def reduce(player: Player, g: Game, tt: TranspositionTable[Outcome], visitorCache: mutable.Set[Game]): Outcome = {
+
+    tt.get((player, g)) match {
+
+      case Some(x) => x
+      case None if !visitorCache.contains(g) =>
+        val gOpts = g.options(player)
+        val iWin = Outcome.winner(player)
+        val result = {
+          if (gOpts.isEmpty || gOpts.exists { reduce(player.opponent, _, tt, visitorCache) == iWin }) {
+            iWin
+          } else {
+            Outcome.winner(player.opponent)
+          }
+        }
+        tt.put((player, g), result)
+        result
+      case _ =>
+        throw NotShortGameException("That is not a short game.")
+
     }
+
   }
 
 }

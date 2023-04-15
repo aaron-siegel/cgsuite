@@ -114,7 +114,7 @@ object CanonicalShortGameTestCase {
       leftOptions = "{}",
       leftStop = "-1823437481924",
       mean = "-1823437481924",
-      misereOutcomeClass = "!!Maximum recursive depth exceeded. (Possible infinite recursion?)",
+      misereOutcomeClass = "L",
       outcomeClass = "R",
       reducedCanonicalForm = "-1823437481924",
       rightIncentives = "{-1}",
