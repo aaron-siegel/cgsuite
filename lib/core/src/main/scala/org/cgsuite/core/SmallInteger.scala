@@ -18,7 +18,13 @@ object SmallInteger {
   def gcd(a: Int, b: Int): Int = gcdR(a.abs, b.abs)
   
   private def gcdR(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
-  
+
+  def lb(n: Int): Int = 31 - java.lang.Integer.numberOfLeadingZeros(n)
+
+  def isTwoPower(n: Int): Boolean = n >= 1 && java.lang.Integer.bitCount(n) == 1
+
+  def isFermatTwoPower(n: Int) = isTwoPower(n) && isTwoPower(lb(n))
+
   val minSmall = apply(Int.MinValue)
   val maxSmall = apply(Int.MaxValue)
   
@@ -91,7 +97,7 @@ trait SmallInteger extends Integer {
     if (intValue <= 0)
       throw ArithmeticException(s"Argument to Lb is not strictly positive: $intValue")
     else
-      SmallInteger(31 - java.lang.Integer.numberOfLeadingZeros(intValue))
+      SmallInteger(SmallInteger.lb(intValue))
   }
 
   override def nimSum(other: Integer) = other match {
@@ -110,7 +116,7 @@ trait SmallInteger extends Integer {
   
   override def sign = SmallInteger(intValue.sign)
   
-  override def isTwoPower = intValue >= 1 && java.lang.Integer.bitCount(intValue) == 1
+  override def isTwoPower = SmallInteger.isTwoPower(intValue)
 
   override def toString = intValue.toString
 
