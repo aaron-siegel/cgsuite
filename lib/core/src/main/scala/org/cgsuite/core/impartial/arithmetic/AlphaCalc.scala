@@ -12,10 +12,14 @@ import scala.collection.mutable
 
 object AlphaCalc extends LazyLogging {
 
+  def main(args: Array[String]): Unit = {
+    run(from = 173, preload = true)
+  }
+
   private val excessCache = mutable.Map[Int, Int]()
   private val qSetCache = mutable.Map[Int, Array[Int]]()
 
-  def run(preload: Boolean = false): Unit = {
+  def run(from: Int = 3, preload: Boolean = false): Unit = {
     if (preload) {
       excessCache(47) = 1
       excessCache(59) = 1
@@ -24,20 +28,31 @@ object AlphaCalc extends LazyLogging {
       excessCache(173) = 0
       excessCache(179) = 1
       excessCache(227) = 1
+      qSetCache(47) = Array(23)
+      qSetCache(59) = Array(29)
+      qSetCache(107) = Array(53)
+      qSetCache(139) = Array(3, 23)
+      qSetCache(173) = Array(4, 43)
+      qSetCache(179) = Array(89)
+      qSetCache(227) = Array(113)
     }
     LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.WARN)
     println()
-    println(f"${"p"}%3s ${"Q(f(p))"}%15s excess ${"alpha_p"}%20s ${"t(sec)"}%8s     alpha_seq")
-    var k = 1
+    println(f"${"p"}%4s ${"f(p)"}%4s ${"Q(f(p))"}%15s ${"exponent"}%7s excess ${"alpha_p"}%20s ${"t(sec)"}%8s     alpha_seq")
+    var k = FieldTable.primes.indexOf(from)
     while (true) {
       val startTime = System.currentTimeMillis()
       val p = FieldTable.primes(k)
+      print(f"$p%4d ${f(p)}%4d")
       val qSet = this.qSet(p)
-      val excess = this.excess(p)
-      val durationSecs = (System.currentTimeMillis() - startTime) / 1000.0
       val qSetStr = s"{${qSet mkString ","}}"
-      val alphaSeq = (1 to k) map { i => this.excess(FieldTable.primes(i)) } mkString ","
-      println(f"$p%3d $qSetStr%15s $excess%6d ${alphap(p)}%20s $durationSecs%8.1f     $alphaSeq")
+      val exponent = ImpartialTermAlgebra((qSet flatMap componentsOf).distinct).termCount
+      print(f" $qSetStr%15s $exponent%8d")
+      val excess = this.excess(p)
+      print(f" $excess%6d ${alphap(p)}%20s")
+      val alphaSeq = "" //(1 to k) map { i => this.excess(FieldTable.primes(i)) } mkString ","
+      val durationSecs = (System.currentTimeMillis() - startTime) / 1000.0
+      println(f" $durationSecs%8.1f     $alphaSeq")
       k += 1
     }
   }
@@ -120,7 +135,7 @@ object AlphaCalc extends LazyLogging {
         }
       }
       if (!done) {
-        if (m <= 1) m += 1 else m *= m
+        m += 1
       }
     }
 
@@ -136,7 +151,7 @@ object AlphaCalc extends LazyLogging {
     if (qSetCache contains p)
       return qSetCache(p)
 
-    val result = kappa(f(p))
+    val result = kappa(f(p)).sortBy(primePower)
     qSetCache(p) = result
     result
 
@@ -191,7 +206,7 @@ object AlphaCalc extends LazyLogging {
     val qSet = this.qSet(p)
     val excess = this.excess(p)
     val terms = qSet map kappaq
-    Integer(excess) + terms.foldLeft[GeneralizedOrdinal](Values.zero) { _ + _ }
+    Integer(excess) + terms.sum
   }
 
   def kappaq(q: Int): GeneralizedOrdinal = {
@@ -251,7 +266,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
       case (q, p) if q == p =>
         val qSet = AlphaCalc.qSet(p)
         val excess = AlphaCalc.excess(p)
-        assert(excess == 0 || excess == 1 || SmallInteger.isFermatTwoPower(excess))
+        assert(excess == 0 || excess == 1 || SmallInteger.isTwoPower(excess))
         val kappaBlocks = qSet.map { q2 =>
           val index = qComponents.indexOf(q2)
           assert(index >= 0, s"$q2 not in ${qComponents.toSeq}")
@@ -259,11 +274,15 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
         }
         excess match {
           case 0 => kappaBlocks
-          case 1 => kappaBlocks :+ 0
-          case _ => kappaBlocks :+ qComponents.indexOf(excess)
+          case _ => kappaBlocks :+ SmallInteger.lb(excess)
         }
       case _ => Array[Int](degreeProducts(index - 1))
     }
+  }
+
+  logger.info {
+    val ktStrings = kappaTable map { element => s"{${element.toSeq.sorted mkString ","}}" }
+    s"(q, kappa_q^p)   =   ${qComponents zip ktStrings map { case (q, ktString) => s"$q -> $ktString"} mkString "   "}"
   }
 
   //for (index <- qComponents.indices) { println(s"${qComponents(index)}: ${kappaTable(index) mkString ","}") }
