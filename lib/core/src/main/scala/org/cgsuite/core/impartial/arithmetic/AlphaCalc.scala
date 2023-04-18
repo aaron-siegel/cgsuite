@@ -129,8 +129,9 @@ object AlphaCalc extends LazyLogging {
       logger.info(s"[p = $p] Trying m = $m, alpha = ${alpha.toSeq.sorted} (${algebra.termCount} terms)")
       if (dividesTwoPowerMinus1(p, algebra.termCount)) {
         val testpow = ((BigInt(1) << algebra.termCount) - BigInt(1)) / BigInt(p)
-        val pow = algebra.pow(alpha, testpow)
-        if (pow.size != 1 || !pow.contains(0)) {
+        val alphaTerm = Element(alpha.toSeq.sorted)
+        val pow = algebra.pow(alphaTerm, testpow)
+        if (!pow.isOne) {
           done = true
         }
       }
@@ -182,10 +183,10 @@ object AlphaCalc extends LazyLogging {
       logger.info(s"Field has exponent ${algebra.termCount}.")
       val kappagInAlgebra = kappag map { r => algebra.degreeProducts(algebra.qComponents.indexOf(r))}
 
-      var curpow = mutable.Set[Int]() ++ kappagInAlgebra
+      var curpow = Element(kappagInAlgebra)
       var pow = curpow
       var degree = 1
-      while (pow.size > 1 || !pow.contains(0)) {
+      while (!pow.isOne) {
         curpow = algebra.multiply(curpow, curpow)
         pow = algebra.multiply(pow, curpow)
         degree += 1
@@ -259,6 +260,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
   val qDegrees = qComponents map { AlphaCalc.primePower(_)._1 }
   val degreeProducts = (0 to qDegrees.length).map { qDegrees.take(_).product }.toArray
   val termCount = degreeProducts.last
+  val accumulator = new Array[Long]((termCount + 63) >> 6)
 
   // Associates to each component kappa_q the element given by
   // kappa_q^p (where p is the prime divisor of q).
@@ -370,36 +372,46 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
     Element(terms.toSeq.sorted)
   }
 
-  def applyTermProductToSum(sum: mutable.Set[Int], x: Int, y: Int): Unit = {
+  @inline
+  private def flipAccumulatorTerm(x: Int): Unit = {
+    accumulator(x / 64) ^= 1L << x
+  }
+
+  private def accumulatorContains(x: Int): Boolean = {
+    (accumulator(x / 64) & (1L << x)) != 0
+  }
+
+  def accumulateTermProduct(x: Int, y: Int): Unit = {
     if (y == 0) {
-      if (sum.contains(x))
-        sum.remove(x)
-      else
-        sum.add(x)
+      flipAccumulatorTerm(x)
     } else {
       // Take the highest-order remaining qComponent from y.
-      val index = (qComponents.length to 0 by -1).find { y / degreeProducts(_) != 0 }.get
+      var index = qComponents.length
+      while (y / degreeProducts(index) == 0) {
+        index -= 1
+      }
       // Multiply that component into x to get a sum of terms.
       val product = qPowerTimesTerm(index, y / degreeProducts(index), x)
       // Apply each component of the sum.
       for (term <- product.terms) {
-        applyTermProductToSum(sum, term, y % degreeProducts(index))
+        accumulateTermProduct(term, y % degreeProducts(index))
       }
     }
   }
 
-  def multiply(a: mutable.Set[Int], b: mutable.Set[Int]): mutable.Set[Int] = {
-    val product = mutable.Set[Int]()
-    for (x <- a; y <- b) {
-      applyTermProductToSum(product, x, y)
+  def multiply(a: Element, b: Element): Element = {
+    util.Arrays.fill(accumulator, 0)
+    for (x <- a.terms; y <- b.terms) {
+      accumulateTermProduct(x, y)
     }
-    product
+    Element(0 until termCount collect {
+      case x if accumulatorContains(x) => x
+    })
   }
 
-  def pow(x: mutable.Set[Int], n: BigInt): mutable.Set[Int] = {
-    var curpow: mutable.Set[Int] = x
-    var result: mutable.Set[Int] = mutable.Set[Int]()
-    result.add(0)
+  def pow(x: Element, n: BigInt): Element = {
+    var curpow: Element = x
+    var result: Element = Element(Seq(0))
     var i = n
     while (i != BigInt(0)) {
       if (i.testBit(0)) {
@@ -411,6 +423,18 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
     result
   }
 
-  case class Element(terms: Seq[Int])
+}
+
+object Element {
+
+  def apply(terms: Seq[Int]): Element = new Element(terms.sorted)
+
+}
+
+case class Element private (terms: Seq[Int]) {
+
+  def isOne: Boolean = {
+    terms.size == 1 && terms.head == 0
+  }
 
 }
