@@ -260,38 +260,40 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
   val degreeProducts = (0 to qDegrees.length).map { qDegrees.take(_).product }.toArray
   val termCount = degreeProducts.last
 
-  val kappaTable = qComponents.indices map { index =>
+  // Associates to each component kappa_q the element given by
+  // kappa_q^p (where p is the prime divisor of q).
+  val kappaTable: IndexedSeq[Element] = qComponents.indices map { index =>
     (qComponents(index), qDegrees(index)) match {
-      case (_, 2) => Array[Int](degreeProducts(index), degreeProducts(index) - 1)
+      case (_, 2) => Element(Seq(degreeProducts(index), degreeProducts(index) - 1))
       case (q, p) if q == p =>
         val qSet = AlphaCalc.qSet(p)
         val excess = AlphaCalc.excess(p)
         assert(excess == 0 || excess == 1 || SmallInteger.isTwoPower(excess))
-        val kappaBlocks = qSet.map { q2 =>
+        val kappaBlocks = qSet.toSeq.map { q2 =>
           val index = qComponents.indexOf(q2)
           assert(index >= 0, s"$q2 not in ${qComponents.toSeq}")
           degreeProducts(index)
         }
-        excess match {
+        Element(excess match {
           case 0 => kappaBlocks
           case _ => kappaBlocks :+ SmallInteger.lb(excess)
-        }
-      case _ => Array[Int](degreeProducts(index - 1))
+        })
+      case _ => Element(Seq(degreeProducts(index - 1)))
     }
   }
 
   logger.info {
-    val ktStrings = kappaTable map { element => s"{${element.toSeq.sorted mkString ","}}" }
+    val ktStrings = kappaTable map { element => s"{${element.terms.sorted mkString ","}}" }
     s"(q, kappa_q^p)   =   ${qComponents zip ktStrings map { case (q, ktString) => s"$q -> $ktString"} mkString "   "}"
   }
 
   //for (index <- qComponents.indices) { println(s"${qComponents(index)}: ${kappaTable(index) mkString ","}") }
 
-  val qPowerTimesTermTable = new Array[Array[Array[Array[Int]]]](qComponents.length)
+  val qPowerTimesTermTable = new Array[Array[Array[Element]]](qComponents.length)
   qPowerTimesTermTable.indices foreach { index =>
-    qPowerTimesTermTable(index) = new Array[Array[Array[Int]]](qDegrees(index))
+    qPowerTimesTermTable(index) = new Array[Array[Element]](qDegrees(index))
     1 until qDegrees(index) foreach { qExponent =>
-      qPowerTimesTermTable(index)(qExponent) = new Array[Array[Int]](termCount)
+      qPowerTimesTermTable(index)(qExponent) = new Array[Element](termCount)
     }
   }
 
@@ -301,7 +303,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
     qPowerTimesTerm(qIndex, qExponent, term)
   }
 
-  def qPowerTimesTerm(qIndex: Int, qExponent: Int, term: Int): Array[Int] = {
+  def qPowerTimesTerm(qIndex: Int, qExponent: Int, term: Int): Element = {
 
     val cached = qPowerTimesTermTable(qIndex)(qExponent)(term)
     if (cached != null) {
@@ -314,14 +316,14 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
 
   }
 
-  def qPowerTimesTermCalc(qIndex: Int, qExponent: Int, term: Int): Array[Int] = {
+  def qPowerTimesTermCalc(qIndex: Int, qExponent: Int, term: Int): Element = {
 
     val p = qDegrees(qIndex)
     val qExponentInTerm = (term % degreeProducts(qIndex + 1)) / degreeProducts(qIndex)
     val qExponentNew = qExponent + qExponentInTerm
 
     if (qExponentNew < p) {
-      Array[Int](term + qExponent * degreeProducts(qIndex))
+      Element(Seq(term + qExponent * degreeProducts(qIndex)))
     } else {
 
       assert(qExponentNew < 2 * p)
@@ -330,25 +332,25 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
       logger.debug("parts = " + highOrderPart + "," + lowOrderPart)
       // We want to return highOrderPart * (lowOrderPart * kappa^p).
       // Retrieve the summands of kappa^p.
-      val kappaExpansion: Array[Int] = kappaTable(qIndex)
-      logger.debug("kexp = " + util.Arrays.toString(kappaExpansion))
+      val kappaExpansion = kappaTable(qIndex)
+      logger.debug("kexp = " + kappaExpansion)
       // Compute the summands of lowOrderPart * kappa^p.
       val terms = mutable.Set[Int]()
-      for (term <- kappaExpansion) {
-        for (product <- termTimesTerm(lowOrderPart, term)) {
-          if (terms.contains(product))
-            terms.remove(product)
+      for (term <- kappaExpansion.terms) {
+        for (productTerm <- termTimesTerm(lowOrderPart, term).terms) {
+          if (terms.contains(productTerm))
+            terms.remove(productTerm)
           else
-            terms.add(product)
+            terms.add(productTerm)
         }
       }
-      terms.toArray.sorted map { highOrderPart + _ }
+      Element(terms.toSeq.sorted map { highOrderPart + _ })
 
     }
 
   }
 
-  def termTimesTerm(x: Int, y: Int): Array[Int] = {
+  def termTimesTerm(x: Int, y: Int): Element = {
     assert(x >= 0)
     assert(y >= 0)
     var terms = mutable.Set(y)
@@ -357,7 +359,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
       if (xExponent > 0) {
         val newTerms = mutable.Set[Int]()
         for (term <- terms) {
-          for (productTerm <- qPowerTimesTerm(xIndex, xExponent, term)) {
+          for (productTerm <- qPowerTimesTerm(xIndex, xExponent, term).terms) {
             if (newTerms.contains(productTerm)) newTerms.remove(productTerm)
             else newTerms.add(productTerm)
           }
@@ -365,7 +367,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
         terms = newTerms
       }
     }
-    terms.toArray.sorted
+    Element(terms.toSeq.sorted)
   }
 
   def applyTermProductToSum(sum: mutable.Set[Int], x: Int, y: Int): Unit = {
@@ -378,9 +380,9 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
       // Take the highest-order remaining qComponent from y.
       val index = (qComponents.length to 0 by -1).find { y / degreeProducts(_) != 0 }.get
       // Multiply that component into x to get a sum of terms.
-      val terms = qPowerTimesTerm(index, y / degreeProducts(index), x)
+      val product = qPowerTimesTerm(index, y / degreeProducts(index), x)
       // Apply each component of the sum.
-      for (term <- terms) {
+      for (term <- product.terms) {
         applyTermProductToSum(sum, term, y % degreeProducts(index))
       }
     }
@@ -408,5 +410,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
     }
     result
   }
+
+  case class Element(terms: Seq[Int])
 
 }
