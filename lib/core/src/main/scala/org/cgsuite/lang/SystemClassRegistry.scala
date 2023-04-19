@@ -65,6 +65,7 @@ private[lang] object SystemClassRegistry {
     "game.Rational" -> classOf[RationalNumber],
     "game.SurrealNumber" -> classOf[SurrealNumber],
     "game.Nimber" -> classOf[Nimber],
+    "game.TransfiniteNimber" -> classOf[TransfiniteNimber],
     "game.Uptimal" -> classOf[Uptimal],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
     "game.Pseudonumber" -> classOf[Pseudonumber],

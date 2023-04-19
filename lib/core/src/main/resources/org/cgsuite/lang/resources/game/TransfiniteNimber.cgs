@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class TransfiniteNimber extends NormalValue
+
+  external override def ToOutput;
+
+end

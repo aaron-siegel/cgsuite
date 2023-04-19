@@ -20,7 +20,7 @@ object Nimber {
   
 }
 
-trait Nimber extends ImpartialGame with Uptimal {
+trait Nimber extends ImpartialGame with Uptimal with TransfiniteNimber {
   
   def nimValue: Integer
   def intNimValue: Int

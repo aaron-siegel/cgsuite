@@ -7,13 +7,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.cgsuite.core.{GeneralizedOrdinal, Integer, SmallInteger, Values}
 import org.cgsuite.dsl._
 import org.slf4j.LoggerFactory
+import better.files._
 
 import scala.collection.mutable
 
 object AlphaCalc extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
-    run(from = 173, preload = true)
+    run()
   }
 
   private val excessCache = mutable.Map[Int, Int]()
@@ -50,9 +51,15 @@ object AlphaCalc extends LazyLogging {
       print(f" $qSetStr%15s $exponent%8d")
       val excess = this.excess(p)
       print(f" $excess%6d ${alphap(p)}%20s")
-      val alphaSeq = "" //(1 to k) map { i => this.excess(FieldTable.primes(i)) } mkString ","
+      val alphaSeq = (1 to k) map { i => this.excess(FieldTable.primes(i)) } mkString ","
       val durationSecs = (System.currentTimeMillis() - startTime) / 1000.0
       println(f" $durationSecs%8.1f     $alphaSeq")
+      val qSetSeq = (1 to k) map { i =>
+        s"{${this.qSet(FieldTable.primes(i)) mkString ","}}"
+      } mkString ", "
+      val file = "local" / "alpha-calc.txt"
+      file appendLine alphaSeq
+      file appendLine qSetSeq
       k += 1
     }
   }
@@ -177,7 +184,7 @@ object AlphaCalc extends LazyLogging {
 
       val g = n / q
       val kappag = kappa(g)
-      val components = kappag flatMap componentsOf
+      val components = (kappag flatMap componentsOf).distinct.sortBy(primePower)
       logger.info(s"Computing the degree of kappa($g) (components = {${components mkString ","}}).")
       val algebra = ImpartialTermAlgebra(components)
       logger.info(s"Field has exponent ${algebra.termCount}.")
@@ -187,6 +194,7 @@ object AlphaCalc extends LazyLogging {
       var pow = curpow
       var degree = 1
       while (!pow.isOne) {
+        logger.info(s"Trying degree ${degree + 1} (curpow/pow has ${curpow.terms.size}/${pow.terms.size} terms)...")
         curpow = algebra.multiply(curpow, curpow)
         pow = algebra.multiply(pow, curpow)
         degree += 1
@@ -390,7 +398,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
       while (y / degreeProducts(index) == 0) {
         index -= 1
       }
-      // Multiply that component into x to get a sum of terms.
+      // Multiply that component by x to get a sum of terms.
       val product = qPowerTimesTerm(index, y / degreeProducts(index), x)
       // Apply each component of the sum.
       for (term <- product.terms) {

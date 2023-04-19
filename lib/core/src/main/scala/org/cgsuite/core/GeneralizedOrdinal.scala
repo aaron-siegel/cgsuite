@@ -4,6 +4,7 @@ import java.util
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
+import org.cgsuite.exception.ArithmeticException
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
@@ -114,6 +115,19 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
     else
       GeneralizedOrdinal(terms map { case Term(coefficient, exponent) => Term(coefficient.abs, exponent) } : _*)
   }
+
+  def nimSum(that: GeneralizedOrdinal): GeneralizedOrdinal = {
+    if (!isOrdinal || !that.isOrdinal)
+      throw ArithmeticException("NimSum applies only to nonnegative integers.")
+    val termsByExponent = (terms ++ that.terms).groupBy(_.exponent)
+    val newTerms = termsByExponent.values.map {
+      case IndexedSeq(term) => term
+      case IndexedSeq(x, y) => Term(x.coefficient nimSum y.coefficient, x.exponent)
+    }
+    GeneralizedOrdinal(newTerms.toSeq : _*)
+  }
+
+  def nimProduct(that: GeneralizedOrdinal): GeneralizedOrdinal = ???
 
   override def compare(that: SurrealNumber): Int = {
     that match {

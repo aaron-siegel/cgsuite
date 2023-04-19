@@ -5,10 +5,12 @@
   * A ~~nimber~~ is a game value of the form $*m$ for some $m \geq 0$. The class `Nimber` represents exactly the
   * intersection of [[CanonicalShortGame]] and [[ImpartialGame]].
   */
-system class Nimber extends ImpartialGame, Uptimal
+system class Nimber extends ImpartialGame, Uptimal, TransfiniteNimber
 
   override external def Options;
 
   override def Options(player as Player) := Options;
+
+  external override def ToOutput;
 
 end
