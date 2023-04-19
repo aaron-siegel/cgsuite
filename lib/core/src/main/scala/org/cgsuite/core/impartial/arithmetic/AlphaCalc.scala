@@ -22,20 +22,8 @@ object AlphaCalc extends LazyLogging {
 
   def run(from: Int = 3, preload: Boolean = false): Unit = {
     if (preload) {
-      excessCache(47) = 1
-      excessCache(59) = 1
-      excessCache(107) = 1
-      excessCache(139) = 0
-      excessCache(173) = 0
-      excessCache(179) = 1
-      excessCache(227) = 1
-      qSetCache(47) = Array(23)
-      qSetCache(59) = Array(29)
-      qSetCache(107) = Array(53)
-      qSetCache(139) = Array(3, 23)
-      qSetCache(173) = Array(4, 43)
-      qSetCache(179) = Array(89)
-      qSetCache(227) = Array(113)
+      FieldTable.excess.indices.drop(1) foreach { k => excessCache.put(FieldTable.primes(k), FieldTable.excess(k)) }
+      FieldTable.qSet.indices.drop(1) foreach { k => qSetCache.put(FieldTable.primes(k), FieldTable.qSet(k).toArray) }
     }
     LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.WARN)
     println()
@@ -135,6 +123,7 @@ object AlphaCalc extends LazyLogging {
       }
       logger.info(s"[p = $p] Trying m = $m, alpha = ${alpha.toSeq.sorted} (${algebra.termCount} terms)")
       if (dividesTwoPowerMinus1(p, algebra.termCount)) {
+        assert(((BigInt(1) << algebra.termCount) - BigInt(1)) % BigInt(p) == BigInt(0))
         val testpow = ((BigInt(1) << algebra.termCount) - BigInt(1)) / BigInt(p)
         val alphaTerm = Element(alpha.toSeq.sorted)
         val pow = algebra.pow(alphaTerm, testpow)
@@ -165,40 +154,37 @@ object AlphaCalc extends LazyLogging {
 
   }
 
-  def kappa(n: Int): Array[Int] = {
+  def kappa(h: Int): Array[Int] = {
 
     // Find the smallest prime divisor of n
-    val p = FieldTable.primes.find { n % _ == 0 } getOrElse {
-      throw new IllegalArgumentException(n.toString)
+    val p = FieldTable.primes.find { h % _ == 0 } getOrElse {
+      throw new IllegalArgumentException(h.toString)
     }
 
     // Find the largest power of p that divides n
     var q = p
-    while (n % (q * p) == 0) {
+    while (h % (q * p) == 0) {
       q *= p
     }
 
-    if (n == q) {
+    if (h == q) {
       Array(q)
     } else {
 
-      val g = n / q
+      val g = h / q
       val kappag = kappa(g)
       val components = (kappag flatMap componentsOf).distinct.sortBy(primePower)
       logger.info(s"Computing the degree of kappa($g) (components = {${components mkString ","}}).")
       val algebra = ImpartialTermAlgebra(components)
       logger.info(s"Field has exponent ${algebra.termCount}.")
-      val kappagInAlgebra = kappag map { r => algebra.degreeProducts(algebra.qComponents.indexOf(r))}
+      val kappagInAlgebra = Element(kappag map { r => algebra.degreeProducts(algebra.qComponents.indexOf(r))})
 
-      var curpow = Element(kappagInAlgebra)
-      var pow = curpow
-      var degree = 1
-      while (!pow.isOne) {
-        logger.info(s"Trying degree ${degree + 1} (curpow/pow has ${curpow.terms.size}/${pow.terms.size} terms)...")
-        curpow = algebra.multiply(curpow, curpow)
-        pow = algebra.multiply(pow, curpow)
+      var pow = kappagInAlgebra
+      var degree = 0
+      do {
+        pow = algebra.multiply(pow, pow)
         degree += 1
-      }
+      } while (pow != kappagInAlgebra)
 
       logger.info(s"Degree is $degree.")
 
