@@ -2,18 +2,19 @@ package org.cgsuite.core.impartial.arithmetic
 
 object FieldTable {
 
-  val excess = IndexedSeq(
+  val excess = Vector(
     0, 0, 0, 1, 1, 0, 0, 4, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 4, 1
   )
 
-  val qSet = IndexedSeq(
-    Seq(), Seq(2), Seq(4), Seq(3), Seq(5), Seq(4, 3), Seq(8), Seq(9), Seq(11), Seq(4, 7), Seq(5), Seq(4, 9), Seq(5),
-    Seq(7), Seq(23), Seq(13), Seq(29), Seq(3, 5), Seq(3, 11), Seq(5, 7), Seq(9), Seq(13), Seq(41), Seq(11), Seq(16, 3),
-    Seq(25), Seq(3, 17), Seq(53), Seq(4, 9), Seq(4, 7), Seq(7), Seq(5, 13), Seq(17), Seq(3, 23), Seq(37), Seq(3, 5),
-    Seq(13), Seq(81), Seq(83)
+  val qSet = Vector(
+    Vector(), Vector(2), Vector(4), Vector(3), Vector(5), Vector(4, 3), Vector(8), Vector(9), Vector(11), Vector(4, 7),
+    Vector(5), Vector(4, 9), Vector(5), Vector(7), Vector(23), Vector(13), Vector(29), Vector(3, 5), Vector(3, 11),
+    Vector(5, 7), Vector(9), Vector(13), Vector(41), Vector(11), Vector(16, 3), Vector(25), Vector(3, 17), Vector(53),
+    Vector(4, 9), Vector(4, 7), Vector(7), Vector(5, 13), Vector(17), Vector(3, 23), Vector(37), Vector(3, 5),
+    Vector(13), Vector(81), Vector(83)
   )
 
-  val primes = IndexedSeq(
+  val primes = Vector(
        2,    3,    5,    7,   11,   13,   17,   19,   23,   29,   31,   37,   41,   43,   47,   53,   59,   61,   67,   71,   73,   79,   83,   89,   97,  101,  103,  107,  109,  113,  127,  131,
      137,  139,  149,  151,  157,  163,  167,  173,  179,  181,  191,  193,  197,  199,  211,  223,  227,  229,  233,  239,  241,  251,  257,  263,  269,  271,  277,  281,  283,  293,  307,  311,
      313,  317,  331,  337,  347,  349,  353,  359,  367,  373,  379,  383,  389,  397,  401,  409,  419,  421,  431,  433,  439,  443,  449,  457,  461,  463,  467,  479,  487,  491,  499,  503,

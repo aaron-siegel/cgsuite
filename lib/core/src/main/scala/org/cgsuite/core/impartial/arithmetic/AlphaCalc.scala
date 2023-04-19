@@ -18,12 +18,12 @@ object AlphaCalc extends LazyLogging {
   }
 
   private val excessCache = mutable.Map[Int, Int]()
-  private val qSetCache = mutable.Map[Int, Array[Int]]()
+  private val qSetCache = mutable.Map[Int, IndexedSeq[Int]]()
 
   def run(from: Int = 3, preload: Boolean = false): Unit = {
     if (preload) {
       FieldTable.excess.indices.drop(1) foreach { k => excessCache.put(FieldTable.primes(k), FieldTable.excess(k)) }
-      FieldTable.qSet.indices.drop(1) foreach { k => qSetCache.put(FieldTable.primes(k), FieldTable.qSet(k).toArray) }
+      FieldTable.qSet.indices.drop(1) foreach { k => qSetCache.put(FieldTable.primes(k), FieldTable.qSet(k)) }
     }
     LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.WARN)
     println()
@@ -95,9 +95,9 @@ object AlphaCalc extends LazyLogging {
     if (excessCache contains p)
       return excessCache(p)
 
-    val qs = qSet(p)
-    logger.info(s"Computing excess for p = $p (Q-Set = {${qs mkString ","}}).")
-    var components = (qs flatMap componentsOf).distinct
+    val qSet = this.qSet(p)
+    logger.info(s"Computing excess for p = $p (Q-Set = {${qSet mkString ","}}).")
+    var components = (qSet flatMap componentsOf).distinct
     var algebra = ImpartialTermAlgebra(components)
     var m = 0L
     var done = false
@@ -118,7 +118,7 @@ object AlphaCalc extends LazyLogging {
             alpha += i
         }
       }
-      for (q <- qSet(p)) {
+      for (q <- qSet) {
         alpha += algebra.degreeProducts(algebra.qComponents.indexOf(q))
       }
       logger.info(s"[p = $p] Trying m = $m, alpha = ${alpha.toSeq.sorted} (${algebra.termCount} terms)")
@@ -141,20 +141,20 @@ object AlphaCalc extends LazyLogging {
 
   }
 
-  def qSet(p: Int): Array[Int] = {
+  def qSet(p: Int): IndexedSeq[Int] = {
 
     if (p == 2)
-      return Array.empty
+      return Vector.empty
     if (qSetCache contains p)
       return qSetCache(p)
 
-    val result = kappa(f(p)).sortBy(primePower)
+    val result = kappa(f(p))
     qSetCache(p) = result
     result
 
   }
 
-  def kappa(h: Int): Array[Int] = {
+  def kappa(h: Int): IndexedSeq[Int] = {
 
     // Find the smallest prime divisor of n
     val p = FieldTable.primes.find { h % _ == 0 } getOrElse {
@@ -168,7 +168,7 @@ object AlphaCalc extends LazyLogging {
     }
 
     if (h == q) {
-      Array(q)
+      Vector(q)
     } else {
 
       val g = h / q
@@ -191,7 +191,7 @@ object AlphaCalc extends LazyLogging {
       if (degree % q == 0)
         kappag
       else
-        kappag :+ q
+        (kappag :+ q).sortBy(primePower)
 
     }
 
@@ -241,7 +241,7 @@ object AlphaCalc extends LazyLogging {
 
 object ImpartialTermAlgebra {
 
-  def apply(qComponents: Seq[Int]): ImpartialTermAlgebra = {
+  def apply(qComponents: IndexedSeq[Int]): ImpartialTermAlgebra = {
     new ImpartialTermAlgebra(qComponents.sortBy(AlphaCalc.primePower).toArray)
   }
 
@@ -265,7 +265,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
         val qSet = AlphaCalc.qSet(p)
         val excess = AlphaCalc.excess(p)
         assert(excess == 0 || excess == 1 || SmallInteger.isTwoPower(excess))
-        val kappaBlocks = qSet.toSeq.map { q2 =>
+        val kappaBlocks = qSet.map { q2 =>
           val index = qComponents.indexOf(q2)
           assert(index >= 0, s"$q2 not in ${qComponents.toSeq}")
           degreeProducts(index)
