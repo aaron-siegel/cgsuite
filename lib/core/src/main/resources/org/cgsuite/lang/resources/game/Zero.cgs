@@ -10,4 +10,7 @@
   * either.
   */
 singleton system class Zero extends Integer, Nimber
+
+  override external def ToOutput;
+
 end

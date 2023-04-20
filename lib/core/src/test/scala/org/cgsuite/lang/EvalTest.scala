@@ -406,7 +406,7 @@ class EvalTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("Invalid argument type (System method)", "3.NimSum(1/2)",
-        "!!Argument `that` (in call to `game.Integer.NimSum`) has type `game.DyadicRational`, which does not match expected type `game.Integer`"),
+        "!!Method `game.Integer.NimSum` cannot be applied to argument types: `game.DyadicRational`"),
       ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
         "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
     ))

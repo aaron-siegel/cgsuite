@@ -1,5 +1,6 @@
 package org.cgsuite.core
 
+import org.cgsuite.core.Values._
 import org.cgsuite.exception.InvalidArgumentException
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
@@ -32,7 +33,8 @@ trait TransfiniteNimber extends NormalValue with OutputTarget {
   }
 
   override def toOutput: StyledTextOutput = {
-    val useParens = nimValue.terms.size > 1 || nimValue.terms.head.coefficient != Values.one
+    val useParens = nimValue.terms.size > 1 ||
+      (nimValue.terms.head.exponent != zero && nimValue.terms.head.coefficient != one)
     val sto = new StyledTextOutput()
     sto.appendMath("*")
     if (useParens) sto.appendMath("(")

@@ -2,30 +2,38 @@ package org.cgsuite.core.impartial.arithmetic
 
 import java.util
 
-import ch.qos.logback.classic.{Level, Logger}
+import ch.qos.logback.classic.Logger
 import com.typesafe.scalalogging.LazyLogging
 import org.cgsuite.core.{GeneralizedOrdinal, Integer, SmallInteger, Values}
 import org.cgsuite.dsl._
 import org.slf4j.LoggerFactory
 import better.files._
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.{ConsoleAppender, OutputStreamAppender}
 
 import scala.collection.mutable
 
 object AlphaCalc extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
-    run()
+    run(from = 263, preloadTo = 1009)
   }
 
   private val excessCache = mutable.Map[Int, Int]()
   private val qSetCache = mutable.Map[Int, IndexedSeq[Int]]()
 
-  def run(from: Int = 3, preload: Boolean = false): Unit = {
-    if (preload) {
-      FieldTable.excess.indices.drop(1) foreach { k => excessCache.put(FieldTable.primes(k), FieldTable.excess(k)) }
-      FieldTable.qSet.indices.drop(1) foreach { k => qSetCache.put(FieldTable.primes(k), FieldTable.qSet(k)) }
-    }
-    LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger].setLevel(Level.WARN)
+  def run(from: Int = 3, preloadTo: Int = 0): Unit = {
+    val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val consoleAppender = rootLogger.getAppender("STDOUT")
+    rootLogger.detachAppender("STDOUT")
+    val appender = new OutputStreamAppender[ILoggingEvent]
+    appender.setOutputStream("local/alpha-calc.log".toFile.newOutputStream)
+    appender.setEncoder(consoleAppender.asInstanceOf[ConsoleAppender[ILoggingEvent]].getEncoder)
+    appender.start()
+    rootLogger.addAppender(appender)
+    val kPreload = FieldTable.primes.indexOf(preloadTo)
+    FieldTable.excess.indices.slice(1, kPreload + 1) foreach { k => excessCache.put(FieldTable.primes(k), FieldTable.excess(k)) }
+    FieldTable.qSet.indices.slice(1, kPreload + 1) foreach { k => qSetCache.put(FieldTable.primes(k), FieldTable.qSet(k)) }
     println()
     println(f"${"p"}%4s ${"f(p)"}%4s ${"Q(f(p))"}%15s ${"exponent"}%7s excess ${"alpha_p"}%20s ${"t(sec)"}%8s     alpha_seq")
     var k = FieldTable.primes.indexOf(from)
@@ -35,18 +43,23 @@ object AlphaCalc extends LazyLogging {
       print(f"$p%4d ${f(p)}%4d")
       val qSet = this.qSet(p)
       val qSetStr = s"{${qSet mkString ","}}"
-      val exponent = ImpartialTermAlgebra((qSet flatMap componentsOf).distinct).termCount
+      val exponent = ImpartialTermAlgebra((qSet flatMap primitiveComponents).distinct).termCount
       print(f" $qSetStr%15s $exponent%8d")
       val excess = this.excess(p)
       print(f" $excess%6d ${alphap(p)}%20s")
-      val alphaSeq = (1 to k) map { i => this.excess(FieldTable.primes(i)) } mkString ","
+      val excessSeq = (1 to k) map { i =>
+        this.excessCache.getOrElse(FieldTable.primes(i), "??")
+      } mkString ","
       val durationSecs = (System.currentTimeMillis() - startTime) / 1000.0
-      println(f" $durationSecs%8.1f     $alphaSeq")
+      println(f" $durationSecs%8.1f     $excessSeq")
       val qSetSeq = (1 to k) map { i =>
-        s"{${this.qSet(FieldTable.primes(i)) mkString ","}}"
+        this.qSetCache.get(i) match {
+          case Some(qSet) => s"{${qSet mkString ","}}"
+          case None => "??"
+        }
       } mkString ", "
       val file = "local" / "alpha-calc.txt"
-      file appendLine alphaSeq
+      file appendLine excessSeq
       file appendLine qSetSeq
       k += 1
     }
@@ -70,7 +83,7 @@ object AlphaCalc extends LazyLogging {
     twoPower == 1
   }
 
-  def componentsOf(q: Int): Set[Int] = {
+  def primitiveComponents(q: Int): Set[Int] = {
     val (p, _) = primePower(q)
     var pn = 1
     val components = mutable.Set[Int]()
@@ -78,7 +91,7 @@ object AlphaCalc extends LazyLogging {
       pn *= p
       components += pn
     }
-    components ++= (qSet(p) flatMap componentsOf)
+    components ++= (qSet(p) flatMap primitiveComponents)
     val pExcess = excess(p)
     if (pExcess == 2 || pExcess == 4) {
       components += pExcess
@@ -95,49 +108,90 @@ object AlphaCalc extends LazyLogging {
     if (excessCache contains p)
       return excessCache(p)
 
+    // The Q-set of p is the collection of prime powers q such that kappa_q
+    // is a summand of kappa_{f(p)}.
     val qSet = this.qSet(p)
-    logger.info(s"Computing excess for p = $p (Q-Set = {${qSet mkString ","}}).")
-    var components = (qSet flatMap componentsOf).distinct
-    var algebra = ImpartialTermAlgebra(components)
-    var m = 0L
+    logger.info(s"[p = $p] Computing excess (Q-Set = {${qSet mkString ","}}).")
+
+    // Now we construct the set of all primitive components of kappa_{f(p)}:
+    // That is, all prime powers q such that kappa_q appears in the field closure
+    // of kappa_{f(p)}.
+    var components = qSet.flatMap(primitiveComponents).distinct.sortBy(primePower)
+
+    // The finite summand of kappa_{f(p)}. If the Q-set contains an even q, then
+    // this will be 2^(q/2); otherwise 0.
+    // (It's 2^(q/2) because kappa_{2^n} = 2^2^(n-1).)
+    val finitePart: Integer = qSet.find(_ % 2 == 0) match {
+      case Some(n) => two.intExp(Integer(n) div two)
+      case None => zero
+    }
+
+    var excess = {
+      val fp = f(p)
+      if (fp != 2 && fp % 2 == 0 && SmallInteger.isThreePower(fp / 2)) {
+        4       // f(p) = 2*3^k
+      } else if (qSet.size == 1 && qSet.head % 2 != 0) {
+        1       // Q-set is a single odd prime power
+      } else {
+        0
+      }
+    }
     var done = false
     while (!done) {
-      if (m >= (1 << 30))
-        sys.error("m >= 2^30")
-      val alpha = mutable.Set[Int]()
-      if (m > 0) {
-        if (m > 1) {
-          val q = 1 << (SmallInteger.lb(SmallInteger.lb(m.toInt)) + 1)
-          if (!components.contains(q)) {
-            components = components :+ q
-            algebra = ImpartialTermAlgebra(components)
-          }
-        }
-        0 to SmallInteger.lb(m.toInt) foreach { i =>
-          if ((m & (1L << i)) != 0)
-            alpha += i
+
+      val adjustedFinitePart = finitePart + Integer(excess)
+      // Determine any new field components needed to represent the excess;
+      // these are all the q-values corresponding to
+      // Fermat 2-powers that are <= finitePart + m
+      val finiteComponents = {
+        if (adjustedFinitePart <= one) {
+          IndexedSeq.empty
+        } else {
+          for (k <- 0 to adjustedFinitePart.lb.lb.intValue)
+            yield 1 << (k + 1)
         }
       }
-      for (q <- qSet) {
-        alpha += algebra.degreeProducts(algebra.qComponents.indexOf(q))
+
+      // Construct the term algebra generated by all the relevant components
+      val algebra = ImpartialTermAlgebra(components ++ finiteComponents)
+
+      // Construct the representation of alpha_p in the term algebra
+      val alphaFiniteTerms = {
+        if (adjustedFinitePart.isZero) {
+          IndexedSeq.empty
+        } else {
+          (0 to adjustedFinitePart.lb.intValue) filter { adjustedFinitePart.bigIntValue.testBit(_) }
+        }
       }
-      logger.info(s"[p = $p] Trying m = $m, alpha = ${alpha.toSeq.sorted} (${algebra.termCount} terms)")
+      val alphaLargeTerms = qSet collect {
+        case q if q % 2 != 0 => algebra.degreeProducts(algebra.qComponents.indexOf(q))
+      }
+      val alphaTerms = (alphaFiniteTerms ++ alphaLargeTerms).sorted
+      val alpha = Element(alphaTerms)
+
+      // Finally, check whether alpha has an existing pth root. Since alpha^(2^E - 1) = 1,
+      // where E is the exponent (`termCount`) of the algebra, this is equivalent to checking
+      // that alpha^((2^E - 1) / p) = 1.
+      logger.info(s"[p = $p] Trying excess = $excess, alpha = $alphaTerms (${algebra.termCount} terms)")
       if (dividesTwoPowerMinus1(p, algebra.termCount)) {
-        assert(((BigInt(1) << algebra.termCount) - BigInt(1)) % BigInt(p) == BigInt(0))
         val testpow = ((BigInt(1) << algebra.termCount) - BigInt(1)) / BigInt(p)
-        val alphaTerm = Element(alpha.toSeq.sorted)
-        val pow = algebra.pow(alphaTerm, testpow)
+        val pow = algebra.pow(alpha, testpow)
         if (!pow.isOne) {
           done = true
         }
+      } else {
+        logger.info(s"[p = $p] dividesTwoPowerMinus1 failed.")
+        done = true
       }
+
       if (!done) {
-        m += 1
+        excess += 1
       }
+
     }
 
-    excessCache(p) = m.toInt
-    m.toInt
+    excessCache(p) = excess
+    excess
 
   }
 
@@ -173,7 +227,7 @@ object AlphaCalc extends LazyLogging {
 
       val g = h / q
       val kappag = kappa(g)
-      val components = (kappag flatMap componentsOf).distinct.sortBy(primePower)
+      val components = (kappag flatMap primitiveComponents).distinct.sortBy(primePower)
       logger.info(s"Computing the degree of kappa($g) (components = {${components mkString ","}}).")
       val algebra = ImpartialTermAlgebra(components)
       logger.info(s"Field has exponent ${algebra.termCount}.")
@@ -242,7 +296,7 @@ object AlphaCalc extends LazyLogging {
 object ImpartialTermAlgebra {
 
   def apply(qComponents: IndexedSeq[Int]): ImpartialTermAlgebra = {
-    new ImpartialTermAlgebra(qComponents.sortBy(AlphaCalc.primePower).toArray)
+    new ImpartialTermAlgebra(qComponents.distinct.sortBy(AlphaCalc.primePower).toArray)
   }
 
 }
@@ -407,11 +461,17 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
     var curpow: Element = x
     var result: Element = Element(Seq(0))
     var i = n
+    var checkpointTime = System.currentTimeMillis()
     while (i != BigInt(0)) {
       if (i.testBit(0)) {
         result = multiply(result, curpow)
       }
       curpow = multiply(curpow, curpow)
+      if (System.currentTimeMillis() - checkpointTime >= 60000L) {
+        val bitsComplete = n.bitLength - i.bitLength
+        logger.info(f"$bitsComplete/${n.bitLength} bits complete (${bitsComplete.toDouble/n.bitLength}%2.1f%%); curpow/result has ${curpow.terms.size}/${result.terms.size} terms")
+        checkpointTime = System.currentTimeMillis()
+      }
       i >>= 1
     }
     result

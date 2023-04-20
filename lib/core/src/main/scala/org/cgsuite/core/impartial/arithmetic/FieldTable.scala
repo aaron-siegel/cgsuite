@@ -3,7 +3,8 @@ package org.cgsuite.core.impartial.arithmetic
 object FieldTable {
 
   val excess = Vector(
-    0, 0, 0, 1, 1, 0, 0, 4, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 4, 1
+    0, 0, 0, 1, 1, 0, 0, 4, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 4,
+    1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0
   )
 
   val qSet = Vector(
@@ -11,7 +12,9 @@ object FieldTable {
     Vector(5), Vector(4, 9), Vector(5), Vector(7), Vector(23), Vector(13), Vector(29), Vector(3, 5), Vector(3, 11),
     Vector(5, 7), Vector(9), Vector(13), Vector(41), Vector(11), Vector(16, 3), Vector(25), Vector(3, 17), Vector(53),
     Vector(4, 9), Vector(4, 7), Vector(7), Vector(5, 13), Vector(17), Vector(3, 23), Vector(37), Vector(3, 5),
-    Vector(13), Vector(81), Vector(83)
+    Vector(13), Vector(81), Vector(83), Vector(4, 43), Vector(89), Vector(9, 5), Vector(5, 19), Vector(32, 3),
+    Vector(4, 49), Vector(9, 11), Vector(5, 7), Vector(37), Vector(113), Vector(19), Vector(29), Vector(7, 17),
+    Vector(8, 3), Vector(25), Vector(16)
   )
 
   val primes = Vector(

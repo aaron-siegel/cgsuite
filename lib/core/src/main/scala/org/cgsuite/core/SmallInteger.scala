@@ -8,6 +8,8 @@ package org.cgsuite.core
 
 import org.cgsuite.exception.ArithmeticException
 
+import scala.annotation.tailrec
+
 object SmallInteger {
 
   def apply(x: Int): SmallInteger = x match {
@@ -24,6 +26,9 @@ object SmallInteger {
   def isTwoPower(n: Int): Boolean = n >= 1 && java.lang.Integer.bitCount(n) == 1
 
   def isFermatTwoPower(n: Int) = isTwoPower(n) && isTwoPower(lb(n))
+
+  @tailrec
+  def isThreePower(n: Int): Boolean = n == 1 || (n > 1 && n % 3 == 0 && isThreePower(n / 3))
 
   val minSmall = apply(Int.MinValue)
   val maxSmall = apply(Int.MaxValue)

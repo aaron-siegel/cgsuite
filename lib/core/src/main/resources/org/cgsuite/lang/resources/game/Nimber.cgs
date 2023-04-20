@@ -11,6 +11,6 @@ system class Nimber extends ImpartialGame, Uptimal, TransfiniteNimber
 
   override def Options(player as Player) := Options;
 
-  external override def ToOutput;
+  override external def ToOutput;
 
 end

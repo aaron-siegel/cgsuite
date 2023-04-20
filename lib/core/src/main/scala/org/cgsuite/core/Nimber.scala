@@ -7,6 +7,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.exception.InvalidArgumentException
+import org.cgsuite.output.StyledTextOutput
 
 object Nimber {
 
@@ -45,6 +46,8 @@ trait Nimber extends ImpartialGame with Uptimal with TransfiniteNimber {
   override def outcomeClass: ImpartialOutcomeClass = {
     if (nimValue.isZero) OutcomeClass.P else OutcomeClass.N
   }
+
+  override def toOutput: StyledTextOutput = super[Uptimal].toOutput
   
 }
 
