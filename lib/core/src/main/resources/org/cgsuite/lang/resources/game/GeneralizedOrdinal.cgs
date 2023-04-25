@@ -7,6 +7,8 @@
   */
 system class GeneralizedOrdinal extends SurrealNumber
 
+  external def NimExp(that as Integer);
+
   external def NimProduct(that as GeneralizedOrdinal);
 
   external def NimSum(that as GeneralizedOrdinal);

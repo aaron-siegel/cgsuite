@@ -56,8 +56,12 @@ object GeneralizedOrdinal {
           n += 1
           pn *= p
         }
-        for (i <- 0 until n) yield {
-          KappaComponent(k, i, ((coefficient div p.intExp(Integer(i))) % p).intValue)
+        for (
+          i <- 0 until n;
+          exponent = (coefficient div p.intExp(Integer(i))) % p
+          if !exponent.isZero
+        ) yield {
+          KappaComponent(k, i, exponent.intValue)
         }
       }
     }
@@ -257,6 +261,8 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
   }
 
   def nimExp(n: Integer): GeneralizedOrdinal = {
+    if (n < zero)
+      throw ArithmeticException("Exponent for NimExp must be a nonnegative integer.")
     var bigInt: BigInt = n.bigIntValue
     var curpow: GeneralizedOrdinal = this
     var pow: GeneralizedOrdinal = one

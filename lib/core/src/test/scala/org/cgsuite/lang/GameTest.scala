@@ -48,7 +48,7 @@ class GameTest extends CgscriptSpec {
 
   }
 
-  "game.GeneralizedOrdinal" should "implement methods correctly" in {
+  "game.GeneralizedOrdinal" should "implement unary methods correctly" in {
 
     val unaryInstances = Seq(
       ("omega", "\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "1", "true", "L"),
@@ -73,6 +73,38 @@ class GameTest extends CgscriptSpec {
     } map { case (expr, result) => (expr, expr, result) }
 
     executeTests(Table(header, unaryTests : _*))
+
+  }
+
+  it should "implement >=2-ary methods correctly" in {
+
+    val instances = Seq(
+      ("(omega^omega*4 + omega^3*9 + 11) NimSum (omega^omega*6 + omega^3*5 + omega)", "ω^ω×2+ω^3×12+ω+11"),
+      ("omega NimProduct 7", "ω×7"),
+      ("omega NimProduct omega", "ω^2"),
+      ("omega NimProduct omega^2", "2"),
+      ("omega^3 NimProduct omega^3", "ω^6"),
+      ("omega^3 NimProduct omega^6", "ω"),
+      ("omega^3 NimProduct omega^8", "2"),
+      ("omega^8 NimProduct omega^8", "ω^5×2"),
+      ("omega^omega NimProduct omega^(omega*4)", "4"),
+      ("omega^(omega*49) NimProduct omega^(omega*100)", "4"),
+      ("omega^(omega^2*4) NimProduct omega^(omega^2*3)", "ω+1"),
+      ("omega^(omega^2*31) NimProduct omega^(omega^2*24)", "ω+1"),
+      ("omega^(omega^2*32) NimProduct omega^(omega^2*24)", "ω^(ω^2+1)+ω^ω^2"),
+      ("omega NimExp 3", "2"),
+      ("omega^3 NimExp 9", "2"),
+      ("omega^27 NimExp 81", "2"),
+      ("omega^(omega^41) NimExp 191", "ω^ω^6+ω^ω"),
+      ("omega^(omega^42) NimExp 193", "ω+65536"),
+      ("omega^omega^3 NimExp 66", "ω^(ω×4)+ω^(ω×2)+ω^ω×4+1"),   // The example on p. 449-450 of CGT
+      ("omega^omega^13 NimExp 47", "ω^ω^7+1")                   // Lenstra's example
+    )
+
+    executeTests(Table(
+      header,
+      instances map { case (expr, result) => (expr, expr, result) }: _*
+    ))
 
   }
 
