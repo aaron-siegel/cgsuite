@@ -121,6 +121,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def *(other: Integer) = Integer(bigIntValue * other.bigIntValue)
   def %(other: Integer) = Integer(bigIntValue % other.bigIntValue)
   def ^(other: Integer) = Integer(bigIntValue ^ other.bigIntValue)
+  def <<(other: Integer) = Integer(bigIntValue << other.intValue)
 
   def *(other: CanonicalShortGame): CanonicalShortGame = other.nCopies(this)
   def *(other: CanonicalStopper): StopperSidedValue = other.nCopies(this)
@@ -196,7 +197,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def max(other: Integer) = if (this > other) this else other
 
-  def nimProduct(other: Integer): Integer = {
+  override def nimProduct(other: Integer): Integer = {
     if (bigIntValue < 0 || other.bigIntValue < 0)
       throw ArithmeticException("NimProduct applies only to nonnegative integers.")
     var result: Integer = Values.zero

@@ -1,6 +1,7 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
+import org.cgsuite.core.impartial.arithmetic.FieldTable
 import org.cgsuite.exception.InvalidArgumentException
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
