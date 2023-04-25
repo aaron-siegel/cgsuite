@@ -27,10 +27,16 @@ trait Nimber extends ImpartialGame with Uptimal with TransfiniteNimber {
   def intNimValue: Int
 
   override lazy val uptimalExpansion = new UptimalExpansion(Values.zero, intNimValue)
-  def conwayProduct(that: Nimber) = Nimber(nimValue nimProduct that.nimValue)
+  override def conwayProduct(that: TransfiniteNimber): TransfiniteNimber = {
+    that match {
+      case thatNimber: Nimber => conwayProduct(thatNimber)
+      case _ => super.conwayProduct(that)
+    }
+  }
+  def conwayProduct(that: Nimber): Nimber = Nimber(nimValue nimProduct that.nimValue)
   override def numberPart = Values.zero
   override def nimberPart = intNimValue
-  def ordinalSum(that: Nimber) = Nimber(intNimValue + that.intNimValue)
+  def ordinalSum(that: Nimber): Nimber = Nimber(intNimValue + that.intNimValue)
   override def uptimalLength = 0
   override def uptimalCoefficient(n: Int) = 0
 

@@ -1,7 +1,6 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.core.impartial.arithmetic.FieldTable
 import org.cgsuite.exception.InvalidArgumentException
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
@@ -29,7 +28,7 @@ trait TransfiniteNimber extends NormalValue with OutputTarget {
     TransfiniteNimber(nimValue nimSum other.nimValue)
   }
 
-  def *(other: TransfiniteNimber): TransfiniteNimber = {
+  def conwayProduct(other: TransfiniteNimber): TransfiniteNimber = {
     TransfiniteNimber(nimValue nimProduct other.nimValue)
   }
 

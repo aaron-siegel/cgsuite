@@ -2,6 +2,8 @@
 
 system class TransfiniteNimber extends NormalValue
 
+  external def ConwayProduct(that as TransfiniteNimber);
+
   external override def ToOutput;
 
 end

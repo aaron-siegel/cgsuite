@@ -52,6 +52,10 @@ class EvalTest extends CgscriptSpec {
       ("Nim operator (misere spec - recursive", "*[[2],0]", "*[2#0]"),
       ("Nim operator (misere spec - invalid", "*[\"foo\"]", "!!Invalid misere game specifier: must be a `List` of `Integer`s or `MisereCanonicalGame`s"),
       ("Nim operator (negative value)", "*(-8)", "!!Nim value is negative: -8"),
+      ("Nim operator (transfinite)", "*(omega*omega)", "*ω^2"),
+      ("Nim operator (transfinite sum)", "*(omega+5)", "*(ω+5)"),
+      ("Nim operator (transfinite product)", "*(omega*5)", "*(ω×5)"),
+      ("Nim operator (non-ordinal)", "*(omega-1)", "!!Nim value is not an ordinal: ω-1"),
       ("Nim operator (invalid type)", "*\"foo\"", "!!No operation `nim` for argument of type `cgsuite.lang.String`"),
       ("Ups", "^^^^^^+vvv*+^19*3+v14", "^8*2"),
       ("Up operator (invalid type)", "^\"foo\"", "!!No operation `up` for arguments of types `cgsuite.lang.String`, `game.Zero`"),
@@ -406,7 +410,7 @@ class EvalTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("Invalid argument type (System method)", "3.NimSum(1/2)",
-        "!!Method `game.GeneralizedOrdinal.NimSum` cannot be applied to argument types: `game.DyadicRational`"),
+        "!!Method `game.Integer.NimSum` cannot be applied to argument types: `game.DyadicRational`"),
       ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
         "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
     ))

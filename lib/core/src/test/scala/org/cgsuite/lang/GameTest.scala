@@ -98,12 +98,25 @@ class GameTest extends CgscriptSpec {
       ("omega^(omega^41) NimExp 191", "ω^ω^6+ω^ω"),
       ("omega^(omega^42) NimExp 193", "ω+65536"),
       ("omega^omega^3 NimExp 66", "ω^(ω×4)+ω^(ω×2)+ω^ω×4+1"),   // The example on p. 449-450 of CGT
-      ("omega^omega^13 NimExp 47", "ω^ω^7+1")                   // Lenstra's example
+      ("omega^omega^13 NimExp 47", "ω^ω^7+1"),                  // Lenstra's example
+      ("omega^omega^omega NimProduct 2", "!!NimProduct out of range."),
+      ("omega^omega^1000 NimProduct 2", "!!NimProduct out of range."),
+      ("(omega-1) NimSum 2", "!!NimSum applies only to ordinals."),
+      ("(omega-1) NimProduct 2", "!!NimProduct applies only to ordinals.")
     )
 
     executeTests(Table(
       header,
       instances map { case (expr, result) => (expr, expr, result) }: _*
+    ))
+
+  }
+
+  "game.TransfiniteNimber" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("ConwayProduct", "(*omega) ConwayProduct *(omega^2)", "*2")
     ))
 
   }
