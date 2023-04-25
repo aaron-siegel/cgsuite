@@ -64,9 +64,9 @@ class EvalTest extends CgscriptSpec {
       ("Dyadic times non-dyadic", "(1/2) * (1/3)", "1/6"),
       ("Ordinal plus integer", "omega + 5", "\u03C9+5"),
       ("Integer minus ordinal", "5 - omega", "-\u03C9+5"),
-      ("Multiple ordinal expression", "omega*3 + omega^(omega^2+omega) - omega^19*9*omega", "\u03C9^(\u03C9^2+\u03C9)-9\u03C9^20+3\u03C9"),
+      ("Multiple ordinal expression", "omega*3 + omega^(omega^2+omega) - omega^19*9*omega", "\u03C9^(\u03C9^2+\u03C9)-\u03C9^20\u00d79+\u03C9\u00d73"),
       ("Ordinal cancellation", "(omega + 5)-omega", "5"),
-      ("Ordinal exponentiation", "(omega^omega^2+1)^6", "\u03C9^(6\u03C9^2)+6\u03C9^(5\u03C9^2)+15\u03C9^(4\u03C9^2)+20\u03C9^(3\u03C9^2)+15\u03C9^(2\u03C9^2)+6\u03C9^\u03C9^2+1"),
+      ("Ordinal exponentiation", "(omega^omega^2+1)^6", "\u03C9^(\u03C9^2\u00d76)+\u03C9^(\u03C9^2\u00d75)\u00d76+\u03C9^(\u03C9^2\u00d74)\u00d715+\u03C9^(\u03C9^2\u00d73)\u00d720+\u03C9^(\u03C9^2\u00d72)\u00d715+\u03C9^\u03C9^2\u00d76+1"),
       ("Surreal number", "1/omega", "1/\u03C9"),
       ("Surreal number plus surreal number", "omega^omega + 1/(omega+1)", "(\u03C9^(\u03C9+1)+\u03C9^\u03C9+1)/(\u03C9+1)"),
       ("Surreal number simplification", "(omega^(omega+1)-omega^omega-omega+1)/(omega-1)", "\u03C9^\u03C9-1")
@@ -406,7 +406,7 @@ class EvalTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("Invalid argument type (System method)", "3.NimSum(1/2)",
-        "!!Method `game.Integer.NimSum` cannot be applied to argument types: `game.DyadicRational`"),
+        "!!Method `game.GeneralizedOrdinal.NimSum` cannot be applied to argument types: `game.DyadicRational`"),
       ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
         "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
     ))

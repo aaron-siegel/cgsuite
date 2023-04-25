@@ -331,10 +331,11 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
       case _ => sys.error("coefficient cannot be 0")
     }
 
-    if (term.exponent.terms.isEmpty || term.coefficient.abs != one)
+    if (term.exponent.terms.isEmpty) {
+
       output appendText (baseStyles, term.coefficient.abs.toString)
 
-    if (term.exponent.terms.nonEmpty) {
+    } else {
 
       output appendSymbol (baseStyles, StyledTextOutput.Symbol.OMEGA)
 
@@ -349,6 +350,13 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
         term.exponent.appendToOutput(output, nextExponent)
         if (requireParensForExponent)
           output appendText (baseStyles, caretModes, ")")
+      }
+
+      if (term.coefficient.abs != one) {
+
+        output appendSymbol (baseStyles, StyledTextOutput.Symbol.TIMES)
+        output appendText(baseStyles, term.coefficient.abs.toString)
+
       }
 
     }

@@ -56,8 +56,8 @@ class GameTest extends CgscriptSpec {
       ("omega+5", "\u03C9+5", "GeneralizedOrdinal", "\u03C9+5", "\u03C9+5", "1", "true", "L"),
       ("omega-5", "\u03C9-5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "1", "false", "L"),
       ("-omega+5", "-\u03C9+5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "-1", "false", "R"),
-      ("omega*5", "5\u03C9", "GeneralizedOrdinal", "5\u03C9", "5\u03C9", "1", "true", "L"),
-      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "\u03C9^\u03C9+5\u03C9^19+\u03C9^2+1", "1", "false", "L")
+      ("omega*5", "\u03C9\u00d75", "GeneralizedOrdinal", "\u03C9\u00d75", "\u03C9\u00d75", "1", "true", "L"),
+      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-\u03C9^19\u00d75+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-\u03C9^19\u00d75+\u03C9^2+1", "\u03C9^\u03C9+\u03C9^19\u00d75+\u03C9^2+1", "1", "false", "L")
     )
 
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, abs, birthday, sign, isOrdinal, outcomeClass) =>
