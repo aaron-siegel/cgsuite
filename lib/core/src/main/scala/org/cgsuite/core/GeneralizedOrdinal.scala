@@ -235,17 +235,6 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
     GeneralizedOrdinal(newTerms.toSeq : _*)
   }
 
-  def nimProduct(that: Integer): GeneralizedOrdinal = {
-    if (!isOrdinal || !that.isOrdinal)
-      throw ArithmeticException("NimProduct applies only to ordinals.")
-    val termProducts = {
-      for (thisTerm <- this.terms) yield {
-        Term(thisTerm.coefficient.nimProduct(that), thisTerm.exponent)
-      }
-    }
-    GeneralizedOrdinal(termProducts : _*)
-  }
-
   def nimProduct(that: GeneralizedOrdinal): GeneralizedOrdinal = {
     if (!isOrdinal || !that.isOrdinal)
       throw ArithmeticException("NimProduct applies only to ordinals.")
@@ -254,7 +243,31 @@ trait GeneralizedOrdinal extends SurrealNumber with OutputTarget {
         thisTerm.nimProduct(thatTerm)
       }
     }
-    termProducts.foldLeft[GeneralizedOrdinal](zero) { _ nimSum _ }
+    termProducts.nimSum
+  }
+
+  // This is more efficient than this.nimProduct(this), taking advantage of characteristic 2
+  def nimSquare: GeneralizedOrdinal = {
+    val termSquares = {
+      for (term <- terms) yield {
+        term.nimProduct(term)
+      }
+    }
+    termSquares.nimSum
+  }
+
+  def nimExp(n: Integer): GeneralizedOrdinal = {
+    var bigInt: BigInt = n.bigIntValue
+    var curpow: GeneralizedOrdinal = this
+    var pow: GeneralizedOrdinal = one
+    while (bigInt.bitLength > 0) {
+      if (bigInt.testBit(0)) {
+        pow = pow nimProduct curpow
+      }
+      curpow = curpow.nimSquare
+      bigInt >>= 1
+    }
+    pow
   }
 
   override def compare(that: SurrealNumber): Int = {

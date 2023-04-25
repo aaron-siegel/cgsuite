@@ -34,4 +34,8 @@ package object dsl extends ValuesTrait {
     override def compare(x: GeneralizedOrdinal, y: GeneralizedOrdinal): Int = x compare y
   }
 
+  implicit class RichGOIterable(iterable: Iterable[GeneralizedOrdinal]) {
+    def nimSum: GeneralizedOrdinal = iterable.foldLeft[GeneralizedOrdinal](zero) { _ nimSum _ }
+  }
+
 }

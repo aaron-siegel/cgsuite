@@ -197,16 +197,23 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def max(other: Integer) = if (this > other) this else other
 
-  override def nimProduct(other: Integer): Integer = {
-    if (bigIntValue < 0 || other.bigIntValue < 0)
+  override def nimProduct(that: GeneralizedOrdinal): GeneralizedOrdinal = {
+    that match {
+      case thatInteger: Integer => nimProduct(thatInteger)
+      case _ => super.nimProduct(that)
+    }
+  }
+
+  def nimProduct(that: Integer): Integer = {
+    if (bigIntValue < 0 || that.bigIntValue < 0)
       throw ArithmeticException("NimProduct applies only to nonnegative integers.")
     var result: Integer = Values.zero
     var m = 0
     while (m < bigIntValue.bitLength) {
       if (bigIntValue.testBit(m)) {
         var n = 0
-        while (n < other.bigIntValue.bitLength) {
-          if (other.bigIntValue.testBit(n)) {
+        while (n < that.bigIntValue.bitLength) {
+          if (that.bigIntValue.testBit(n)) {
             result = result.nimSum(Integer.pow2NimProduct(m, n))
           }
           n += 1
