@@ -66,6 +66,10 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     */
   external def Lb;
 
+  external def NimDiv(that as Integer);
+
+  external def NimInverse;
+
   /** The nim product of this [[Integer]] and `that`.
     *
     * The nim product $a \otimes b$ of two integers $a,b$ is given by

@@ -230,6 +230,24 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
     Integer(bigIntValue ^ other.bigIntValue)
   }
 
+  // cf. Lenstra (1978), Nim Multiplication, Exercise 5 (p. 14)
+  def nimInverse: Integer = {
+    if (bigIntValue <= 0)
+      throw ArithmeticException("NimInverse applies only to positive integers.")
+    if (this == one) {
+      one
+    } else {
+      val fermatExponent = lb.lb
+      val fermatFloor = one << (one << fermatExponent)
+      val n = this nimSum (this div fermatFloor)
+      n nimProduct (this nimProduct n).nimInverse
+    }
+  }
+
+  def nimDiv(that: Integer): Integer = {
+    this nimProduct that.nimInverse
+  }
+
   override def sign = Integer(bigIntValue.signum)
 
   def uglyProduct(that: Integer) = {
