@@ -36,7 +36,7 @@ trait TransfiniteNimber extends NormalValue with OutputTarget {
     val useParens = nimValue.terms.size > 1 ||
       (nimValue.terms.head.exponent != zero && nimValue.terms.head.coefficient != one)
     val sto = new StyledTextOutput()
-    sto.appendMath("*")
+    sto.appendSymbol(StyledTextOutput.Symbol.STAR)
     if (useParens) sto.appendMath("(")
     sto.append(nimValue.toOutput)
     if (useParens) sto.appendMath(")")
