@@ -2,6 +2,7 @@ package org.cgsuite.lang
 
 import java.lang.{System => JSystem}
 
+import better.files._
 import ch.qos.logback.classic.{Level, Logger}
 import org.cgsuite.core.{CanonicalShortGame, Game}
 import org.cgsuite.exception.EvalException
@@ -31,6 +32,17 @@ object Repl {
 
     UiHarness.setUiHarness(ReplUiHarness)
     var done = false
+
+    CgscriptClass.Object.ensureInitialized()
+    if (args.nonEmpty) {
+      val folder = args.head.toFile
+      if (folder.exists && folder.isDirectory) {
+        println(s"Adding folder to classpath: $folder")
+        CgscriptClasspath.declareClasspathRoot(args.head.toFile, ensureStartupScriptExists = false)
+      } else {
+        println(s"WARNING: Folder does not exist: $folder")
+      }
+    }
 
     while (!done) {
       val str = lineReader.readLine("> ").trim
@@ -92,8 +104,6 @@ object Repl {
 
     if (str == "")
       return
-
-    CgscriptClass.Object.ensureInitialized()
 
     val start = JSystem.nanoTime
     try {
