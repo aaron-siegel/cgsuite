@@ -54,7 +54,15 @@ object SpecialMethods {
     "game.CompoundType.Literal" -> { (compoundType: CompoundType, _: Unit) => compoundType.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
-    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString }
+    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString },
+    "cgsuite.lang.List.ScatterPlot" -> { (list: IndexedSeq[_], _: Unit) =>
+      val listOfInts = list map {
+        case n: Integer => n.intValue
+        case _ => throw NotNumberException("Invalid `ScatterPlot`: That list contains an element that is not an `Integer`.")
+      }
+      val coordinates = listOfInts.zipWithIndex map { case (n, index) => Coordinates(n, index + 1) }
+      ScatterPlotOutput(coordinates)
+    }
 
   )
 
@@ -88,14 +96,6 @@ object SpecialMethods {
     },
     "cgsuite.lang.List.Grouped" -> { (list: IndexedSeq[_], n: Integer) =>
       list.grouped(n.intValue).toVector
-    },
-    "cgsuite.lang.List.ScatterPlot" -> { (list: IndexedSeq[_], pixelScale: Integer) =>
-      val listOfInts = list map {
-        case n: Integer => n.intValue
-        case _ => throw NotNumberException("Invalid `ScatterPlot`: That list contains an element that is not an `Integer`.")
-      }
-      val coordinates = listOfInts.zipWithIndex map { case (n, index) => Coordinates(n, index + 1) }
-      ScatterPlotOutput(coordinates)
     },
     "cgsuite.lang.List.MkOutput" -> { (list: IndexedSeq[_], sep: String) =>
       val output = new StyledTextOutput
