@@ -1,6 +1,6 @@
 package org.cgsuite.output
 
-import java.awt.event.MouseEvent
+import java.awt.event.{MouseAdapter, MouseEvent}
 import java.awt.image.BufferedImage
 import java.awt.{BasicStroke, Color, Cursor, Dimension, Graphics2D}
 import java.io.PrintWriter
@@ -36,7 +36,7 @@ object ScatterPlotOutput {
 
 }
 
-case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutput with InteractiveOutput {
+case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutput {
 
   val width = 1024
   val height = 640
@@ -55,16 +55,6 @@ case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutpu
 
   val xScale = width.toDouble / colCount
   val yScale = height.toDouble / rowCount
-
-  override def processMouseEvent(evt: MouseEvent): Boolean = {
-    evt.getID match {
-      case MouseEvent.MOUSE_MOVED | MouseEvent.MOUSE_ENTERED =>
-        mousePosition = (evt.getX, evt.getY); true
-      case MouseEvent.MOUSE_EXITED =>
-        mousePosition = null; true
-      case _ => false
-    }
-  }
 
   def write(out: PrintWriter, mode: Mode): Unit = {
     out print s"<$rowCount x $colCount ScatterPlot>"
@@ -88,13 +78,13 @@ case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutpu
 
     if (mousePosition != null) {
       val (x, y) = mousePosition
-      graphics.setStroke(ScatterPlotOutput.DashedStroke)
-      graphics.drawLine(0, y, width, y)
-      graphics.drawLine(x, 0, x, height)
-      graphics.setColor(Color.red)
       val col = (x / xScale + minCol).toInt
       val row = (-y / yScale + maxRow).toInt
-      if (col >= 0 && row >= 0) {
+      if (col >= baseMinCol && row >= baseMinRow) {
+        graphics.setStroke(ScatterPlotOutput.DashedStroke)
+        graphics.drawLine(0, y, width, y)
+        graphics.drawLine(x, 0, x, height)
+        graphics.setColor(Color.red)
         graphics.drawString(s"($col,$row)", x + 3, y - graphics.getFontMetrics.getAscent / 2)
       }
     }
@@ -167,6 +157,31 @@ case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutpu
       graphics.drawLine(x, y, x, y)
     }
 
+  }
+
+  override def box(): OutputBox = {
+    new OutputBox(this) {
+      addMouseListener(new MouseAdapter {
+        override def mouseExited(evt: MouseEvent): Unit = {
+          mousePosition = null
+          setCursor(Cursor.getDefaultCursor)
+          repaint()
+        }
+      })
+      addMouseMotionListener(new MouseAdapter {
+        override def mouseMoved(evt: MouseEvent): Unit = {
+          mousePosition = (evt.getX, evt.getY)
+          val col = (evt.getX / xScale + minCol).toInt
+          val row = (-evt.getY / yScale + maxRow).toInt
+          if (col >= baseMinCol && row >= baseMinRow) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+          } else {
+            setCursor(Cursor.getDefaultCursor)
+          }
+          repaint()
+        }
+      })
+    }
   }
 
 }

@@ -36,10 +36,17 @@ public abstract class AbstractOutput implements Output
         return this;
     }
 
+    @Override
+    public OutputBox box() {
+        return new OutputBox(this);
+    }
+
     public void display(int preferredWidth) {
         JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());
-        frame.getContentPane().add(new OutputBox(this, preferredWidth));
+        OutputBox box = box();
+        box.setWorksheetWidth(preferredWidth);
+        frame.getContentPane().add(box);
         frame.pack();
         frame.setVisible(true);
     }

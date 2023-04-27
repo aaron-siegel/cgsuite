@@ -30,7 +30,7 @@ package org.cgsuite.util
 
 import org.cgsuite.core.{Integer, RationalNumber}
 import org.cgsuite.exception.NotNumberException
-import org.cgsuite.output.{IntensityPlotOutput, Output, OutputTarget, ScatterPlotOutput, TableOutput}
+import org.cgsuite.output.{IntensityPlotOutput, Output, OutputTarget, TableOutput}
 import org.cgsuite.util.Table.Format
 
 object Table {
