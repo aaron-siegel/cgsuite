@@ -20,6 +20,16 @@ trait TransfiniteNimber extends NormalValue with OutputTarget {
 
   def nimValue: GeneralizedOrdinal
 
+  override def isAllSmall = true
+  override def isInfinitesimal = true
+  override def isLoopfree = true
+  override def isNimber = true
+  override def isNumberish = true
+  override def isPlumtree = true
+  override def isStopper = true
+  override def isStopperSided = true
+  override def isUptimal = true
+
   override def outcomeClass: ImpartialOutcomeClass = {
     if (isZero) OutcomeClass.P else OutcomeClass.N
   }
