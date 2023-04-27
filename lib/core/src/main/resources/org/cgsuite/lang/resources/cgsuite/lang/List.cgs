@@ -59,6 +59,8 @@ system class List extends Collection
     */
   external def Length;
 
+  external def ScatterPlot(pixelScale as Integer ? 0);
+
   /** Generates [[Output]] for this `List`, with elements separated by `sep`.
     *
     * Example:

@@ -4,6 +4,7 @@
  */
 package org.cgsuite.output;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
@@ -33,6 +34,23 @@ public abstract class AbstractOutput implements Output
     @Override
     public Output toOutput() {
         return this;
+    }
+
+    public void display(int preferredWidth) {
+        JFrame frame = new JFrame();
+        frame.setLayout(new BorderLayout());
+        frame.getContentPane().add(new JPanel() {
+           @Override
+           public Dimension getPreferredSize() {
+               return AbstractOutput.this.getSize(preferredWidth);
+           }
+           @Override
+           public void paint(Graphics graphics) {
+               AbstractOutput.this.paint((Graphics2D) graphics, preferredWidth);
+           }
+        });
+        frame.pack();
+        frame.setVisible(true);
     }
 
 }

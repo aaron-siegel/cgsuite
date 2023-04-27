@@ -11,7 +11,7 @@ trait HeapRuleset {
   def heapNimValue(heapSize: Integer): Integer = SmallInteger(sequence nimValue heapSize.intValue)
 
   def nimValueSequence(toHeapSize: Integer): IndexedSeq[Integer] = {
-    ArraySeq.unsafeWrapArray(sequence nimValues toHeapSize.intValue) map { SmallInteger(_) }
+    ArraySeq.unsafeWrapArray(sequence nimValues toHeapSize.intValue) drop 1 map { SmallInteger(_) }
   }
 
   def heapOptions(heapSize: Integer): Iterable[IndexedSeq[Integer]]
@@ -23,7 +23,7 @@ trait HeapRuleset {
 
     override def advance(): Boolean = {
       if (it.hasNext) {
-        current = it.next().toSeq
+        current = it.next()
         true
       } else {
         false
