@@ -1,7 +1,8 @@
 package org.cgsuite.output
 
+import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
-import java.awt.{BasicStroke, Color, Dimension, Graphics2D}
+import java.awt.{BasicStroke, Color, Cursor, Dimension, Graphics2D}
 import java.io.PrintWriter
 
 import org.cgsuite.output.Output.Mode
@@ -24,13 +25,23 @@ object ScatterPlotOutput {
     }
   }
 
+  val DashedStroke = new BasicStroke(
+    1.0f,
+    BasicStroke.CAP_BUTT,
+    BasicStroke.JOIN_BEVEL,
+    0,
+    Array(3.0f),
+    0
+  )
+
 }
 
-case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutput {
+case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutput with InteractiveOutput {
 
   val width = 1024
   val height = 640
   var cachedImage: BufferedImage = _
+  var mousePosition: (Int, Int) = _
 
   val maxRow = array.map { _.row }.max max 0
   val baseMinRow = array.map { _.row }.min min 0
@@ -44,6 +55,16 @@ case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutpu
 
   val xScale = width.toDouble / colCount
   val yScale = height.toDouble / rowCount
+
+  override def processMouseEvent(evt: MouseEvent): Boolean = {
+    evt.getID match {
+      case MouseEvent.MOUSE_MOVED | MouseEvent.MOUSE_ENTERED =>
+        mousePosition = (evt.getX, evt.getY); true
+      case MouseEvent.MOUSE_EXITED =>
+        mousePosition = null; true
+      case _ => false
+    }
+  }
 
   def write(out: PrintWriter, mode: Mode): Unit = {
     out print s"<$rowCount x $colCount ScatterPlot>"
@@ -64,6 +85,19 @@ case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutpu
     }
 
     graphics.drawImage(cachedImage, 0, 0, null)
+
+    if (mousePosition != null) {
+      val (x, y) = mousePosition
+      graphics.setStroke(ScatterPlotOutput.DashedStroke)
+      graphics.drawLine(0, y, width, y)
+      graphics.drawLine(x, 0, x, height)
+      graphics.setColor(Color.red)
+      val col = (x / xScale + minCol).toInt
+      val row = (-y / yScale + maxRow).toInt
+      if (col >= 0 && row >= 0) {
+        graphics.drawString(s"($col,$row)", x + 3, y - graphics.getFontMetrics.getAscent / 2)
+      }
+    }
 
   }
 
@@ -122,6 +156,7 @@ case class ScatterPlotOutput(array: Iterable[Coordinates]) extends AbstractOutpu
             }
           }
         }
+      case None =>
     }
 
     // Points

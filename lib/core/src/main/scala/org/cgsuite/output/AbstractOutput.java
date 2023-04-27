@@ -39,16 +39,7 @@ public abstract class AbstractOutput implements Output
     public void display(int preferredWidth) {
         JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());
-        frame.getContentPane().add(new JPanel() {
-           @Override
-           public Dimension getPreferredSize() {
-               return AbstractOutput.this.getSize(preferredWidth);
-           }
-           @Override
-           public void paint(Graphics graphics) {
-               AbstractOutput.this.paint((Graphics2D) graphics, preferredWidth);
-           }
-        });
+        frame.getContentPane().add(new OutputBox(this, preferredWidth));
         frame.pack();
         frame.setVisible(true);
     }

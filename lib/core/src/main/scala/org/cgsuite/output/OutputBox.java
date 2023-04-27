@@ -32,10 +32,7 @@ package org.cgsuite.output;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -106,6 +103,24 @@ public class OutputBox extends JPanel implements FocusListener
             public void mouseClicked(MouseEvent e) {
                 requestFocusInWindow();
             }
+            @Override
+            public void mouseExited(MouseEvent evt) {
+                if (output instanceof InteractiveOutput &&
+                    ((InteractiveOutput) output).processMouseEvent(evt)) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                    repaint();
+                }
+            }
+        });
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent evt) {
+                if (output instanceof InteractiveOutput &&
+                    ((InteractiveOutput) output).processMouseEvent(evt)) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                    repaint();
+                }
+            }
         });
     }
     
@@ -113,6 +128,11 @@ public class OutputBox extends JPanel implements FocusListener
     {
         this();
         setOutput(initialOutput);
+    }
+
+    public OutputBox(Output initialOutput, int initialWorksheetWidth) {
+        this(initialOutput);
+        setWorksheetWidth(initialWorksheetWidth);
     }
     
     public void setWorksheetWidth(int newWorksheetWidth)
