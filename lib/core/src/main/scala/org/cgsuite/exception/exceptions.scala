@@ -35,6 +35,9 @@ case class NotNumberException(msg: String, cause: Throwable = null, token: Optio
 case class NotShortGameException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
+case class NotStableException(msg: String, cause: Throwable = null, token: Option[Token] = None)
+  extends CgsuiteException(msg, cause, token)
+
 case class NotStopperException(msg: String, cause: Throwable = null, token: Option[Token] = None)
   extends CgsuiteException(msg, cause, token)
 
