@@ -3,7 +3,7 @@ package org.cgsuite.core
 import java.util
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
-import org.cgsuite.core.impartial.arithmetic.{AlphaCalc, FieldTable}
+import org.cgsuite.core.impartial.arithmetic.{NimFieldCalculator, NimFieldConstants}
 import org.cgsuite.dsl._
 import org.cgsuite.exception.ArithmeticException
 import org.cgsuite.output.StyledTextOutput.Style
@@ -28,7 +28,7 @@ object GeneralizedOrdinal {
     }
   }
 
-  private val kMax = Integer(FieldTable.excess.size - 1)
+  private val kMax = Integer(NimFieldConstants.excess.size - 1)
 
   case class Term(coefficient: Integer, exponent: GeneralizedOrdinal) extends Ordered[Term] {
 
@@ -49,7 +49,7 @@ object GeneralizedOrdinal {
         if (exponent > kMax)
           throw ArithmeticException("NimProduct out of range.")
         val k = exponent.asInstanceOf[Integer].intValue
-        val p = Integer(FieldTable.primes(k + 1))
+        val p = Integer(NimFieldConstants.primes(k + 1))
         var n = 1
         var pn = p
         while (pn <= coefficient) {
@@ -118,7 +118,7 @@ object GeneralizedOrdinal {
 
   private def toOrdinal(components: List[KappaComponent], coefficient: Integer): GeneralizedOrdinal = {
     val terms = components map { component =>
-      val p = FieldTable.primes(component.k + 1)
+      val p = NimFieldConstants.primes(component.k + 1)
       Term(Integer(p).intExp(Integer(component.n)) * Integer(component.exponent), Integer(component.k))
     }
     GeneralizedOrdinal(terms : _*).ordOmegaPower * coefficient
@@ -127,28 +127,28 @@ object GeneralizedOrdinal {
   private case class KappaComponent(k: Int, n: Int, exponent: Int) extends Ordered[KappaComponent] {
 
     assert(exponent >= 1)
-    assert(exponent < FieldTable.primes(k + 1))
+    assert(exponent < NimFieldConstants.primes(k + 1))
 
-    def p = FieldTable.primes(k + 1)
+    def p = NimFieldConstants.primes(k + 1)
 
     override def compare(that: KappaComponent): Int = (-k, -n, exponent) compare (-that.k, -that.n, that.exponent)
 
   }
 
   val alphaSeq: Vector[GeneralizedOrdinal] = {
-    FieldTable.qSet zip FieldTable.excess map { case (qSet, excess) =>
+    NimFieldConstants.qSet zip NimFieldConstants.excess map { case (qSet, excess) =>
       qSet.map(kappa).sum + Integer(excess)
     }
   }
 
-  def alpha(p: Int): GeneralizedOrdinal = alphaSeq(FieldTable.primes.indexOf(p))
+  def alpha(p: Int): GeneralizedOrdinal = alphaSeq(NimFieldConstants.primes.indexOf(p))
 
   def kappa(q: Int): GeneralizedOrdinal = {
-    val (p, n) = AlphaCalc.primePower(q)
+    val (p, n) = NimFieldCalculator.primePower(q)
     if (p == 2) {
       one << (one << Integer(n - 1))
     } else {
-      val k = FieldTable.primes.indexOf(p)
+      val k = NimFieldConstants.primes.indexOf(p)
       val exponent = Integer(k - 1).ordOmegaPower * Integer(p).intExp(Integer(n - 1))
       exponent.ordOmegaPower
     }

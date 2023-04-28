@@ -1,6 +1,6 @@
 package org.cgsuite.core.impartial.arithmetic
 
-object FieldTable {
+object NimFieldConstants {
 
   val excess = Vector(
     0, 0, 0, 1, 1, 0, 0, 4, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 4,
