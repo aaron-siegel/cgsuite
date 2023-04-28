@@ -32,7 +32,7 @@ import scala.collection.mutable
 object NimFieldCalculator extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
-    run()
+    run(preloadTo = 179)
   }
 
   private val excessCache = mutable.Map[Int, Int]()
@@ -183,7 +183,7 @@ object NimFieldCalculator extends LazyLogging {
       var pow = kappagInAlgebra
       var degree = 0
       do {
-        pow = algebra.multiply(pow, pow)
+        pow = algebra.square(pow)
         degree += 1
       } while (pow != kappagInAlgebra)
 

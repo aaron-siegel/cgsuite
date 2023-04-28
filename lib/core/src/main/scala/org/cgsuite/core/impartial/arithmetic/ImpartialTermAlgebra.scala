@@ -186,6 +186,18 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
     })
   }
 
+  // We can take advantage of characteristic 2 to provide an implementation
+  // of square(a) that is faster than multiply(a, a).
+  def square(a: Element): Element = {
+    util.Arrays.fill(accumulator, 0)
+    for (x <- a.terms) {
+      accumulateTermProduct(x, x)
+    }
+    Element(0 until termCount collect {
+      case x if accumulatorContains(x) => x
+    })
+  }
+
   def pow(x: Element, n: BigInt): Element = {
     var curpow: Element = x
     var result: Element = Element(Seq(0))
@@ -195,7 +207,7 @@ class ImpartialTermAlgebra private (val qComponents: Array[Int]) extends LazyLog
       if (i.testBit(0)) {
         result = multiply(result, curpow)
       }
-      curpow = multiply(curpow, curpow)
+      curpow = square(curpow)
       if (System.currentTimeMillis() - checkpointTime >= 60000L) {
         val bitsComplete = n.bitLength - i.bitLength
         logger.info(f"$bitsComplete/${n.bitLength} bits complete (${bitsComplete.toDouble/n.bitLength}%2.1f%%); curpow/result has ${curpow.terms.size}/${result.terms.size} terms")
