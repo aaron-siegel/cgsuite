@@ -150,7 +150,7 @@ system class CanonicalStopper extends Game, StopperSidedValue
     * When this identity holds, the common value is the ~~variety~~ of `G`.
     *
     * If `G` is not stable, then an error will be raised. Stability can be checked
-    * in advance with the [[IsStable]] method.
+    * in advance with the [[#IsStable]] method.
     */
   external def Variety;
 
