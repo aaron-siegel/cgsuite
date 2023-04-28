@@ -182,9 +182,9 @@ object TBCode {
 }
 
 case class TBCode(
-                   digits: IndexedSeq[Digit],
-                   additiveDigits: IndexedSeq[Digit] = Vector.empty,
-                   period: Int = 0
+  digits: IndexedSeq[Digit],
+  additiveDigits: IndexedSeq[Digit] = Vector.empty,
+  period: Int = 0
   ) {
 
   assert(digits.nonEmpty)
