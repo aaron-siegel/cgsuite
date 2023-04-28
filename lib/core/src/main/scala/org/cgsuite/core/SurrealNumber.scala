@@ -8,6 +8,7 @@ import cc.redberry.rings.scaladsl._
 import cc.redberry.rings.scaladsl.syntax._
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
 import scala.annotation.tailrec
@@ -108,7 +109,9 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
 
   def abs: SurrealNumber = if (this < zero) -this else this
 
-  def birthday: GeneralizedOrdinal = ???
+  def birthday: GeneralizedOrdinal = {
+    throw EvalException("`Birthday` is not yet implemented for the general `SurrealNumber` (only for `Rational` and `GeneralizedOrdinal`).")
+  }
 
   def sign: Integer = numerator.sign
 
