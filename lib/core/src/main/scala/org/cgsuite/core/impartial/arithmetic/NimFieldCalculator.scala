@@ -32,7 +32,7 @@ import scala.collection.mutable
 object NimFieldCalculator extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
-    run(preloadTo = 179)
+    run()
   }
 
   private val excessCache = mutable.Map[Int, Int]()
@@ -103,26 +103,67 @@ object NimFieldCalculator extends LazyLogging {
   // The set of all prime powers r such that kappa_r appears
   // in the field closure of kappa_q.
   def primitiveComponents(q: Int): Set[Int] = {
+
     val (p, _) = primePower(q)
-    var pn = 1
     val components = mutable.Set[Int]()
+
     // Add kappa_{p^i} for all p^i <= q
+    var pn = 1
     while (pn < q) {
       pn *= p
       components += pn
     }
+
     // Recursively add all primitive components of the Q-set
     // for p (as those are summands of alpha_p)
     components ++= (qSet(p) flatMap primitiveComponents)
-    // Ensure that all Fermat 2-powers <= the excess are present, i.e.,
-    // if 2^2^k <= pExcess, then kappa_{2^(k+1)} is a component.
-    val pExcess = excess(p)
-    if (pExcess >= 2) {
-      for (k <- 0 to SmallInteger.lb(SmallInteger.lb(pExcess))) {
-        components += 1 << (k + 1)
-      }
-    }
+
+    // Now we need to ensure that the finite part of alpha_p is
+    // represented, including the excess.
+    components ++= finiteComponents(p, Integer(excess(p)))
+
     components.toSet
+
+  }
+
+  // Determines the finite kappa-components of the ordinal
+  // kappa_{f(p)} + excess
+  // That is, determines the set of 2-powers q such that
+  // kappa_q appears in the field closure of kappa_{f(p)} + excess.
+  // If excess = excess(p), then this will be the set of 2-powers q
+  // such that kappa_q appears in the field closure of alpha_p.
+  // But excess is given a parameter, because this method is necessary
+  // for *computing* excess(p).
+  def finiteComponents(p: Int, excess: Integer): IndexedSeq[Int] = {
+
+    val finiteSummand = this.finiteSummand(p, excess)
+
+    if (finiteSummand <= one) {
+      IndexedSeq.empty
+    } else {
+      for (k <- 0 to finiteSummand.lb.lb.intValue)
+        yield 1 << (k + 1)
+    }
+
+  }
+
+  // Determines the finite part of the ordinal kappa_{f(p)} + excess
+  // That is, the integer n such that
+  // kappa_{f(p)} + excess = omega*alpha + n
+  def finiteSummand(p: Int, excess: Integer): Integer = {
+
+    val qSet = this.qSet(p)
+
+    // The finite summand of kappa_{f(p)}. If the Q-set contains an even q, then
+    // this will be 2^(q/2); otherwise 0.
+    // (It's 2^(q/2) because kappa_{2^n} = 2^2^(n-1).)
+    val baseFiniteSummand: Integer = qSet.find(_ % 2 == 0) match {
+      case Some(n) => two.intExp(Integer(n) div two)
+      case None => zero
+    }
+
+    baseFiniteSummand + excess
+
   }
 
   // The Q-set of p. Lenstra showed that for all p, we have
@@ -176,7 +217,7 @@ object NimFieldCalculator extends LazyLogging {
       val algebra = ImpartialTermAlgebra(components)
       logger.info(s"Field has exponent ${algebra.termCount}.")
       // Determine the element in the term algebra that represents kappag
-      val kappagInAlgebra = Element(kappagSet map { r => algebra.degreeProducts(algebra.qComponents.indexOf(r)) })
+      val kappagInAlgebra = Element(kappagSet map { r => algebra.basis(algebra.qComponents.indexOf(r)) })
 
       // Now determine deg(kappa_g). This is equal to the least n such that
       // (kappa_g)^(2^n) == kappa_g. (Lenstra, proof of Theorem 3.5).
@@ -198,7 +239,8 @@ object NimFieldCalculator extends LazyLogging {
 
   }
 
-  // The Lenstra excess of p.
+  // The Lenstra excess of p. This is equal to the least integer m such that
+  // kappa_{f(p)} + m  has no pth root in kappa_p.
   def excess(p: Int): Int = {
 
     if (p == 2)
@@ -216,54 +258,42 @@ object NimFieldCalculator extends LazyLogging {
     // of kappa_{f(p)}.
     val components = qSet.flatMap(primitiveComponents).distinct.sortBy(primePower)
 
-    // The finite summand of kappa_{f(p)}. If the Q-set contains an even q, then
-    // this will be 2^(q/2); otherwise 0.
-    // (It's 2^(q/2) because kappa_{2^n} = 2^2^(n-1).)
-    val finitePart: Integer = qSet.find(_ % 2 == 0) match {
-      case Some(n) => two.intExp(Integer(n) div two)
-      case None => zero
-    }
-
-    //
-    var excess = {
+    // Now try each possible value of m = 0, 1, ..., until we find one for which
+    // kappa_{f(p)} has no pth root.
+    // By Lenstra eq. (4.3)-(4.4), we can start with m = 1 when the
+    // Q-set is {q} for some odd q, and we can start with m = 4 when f(p) has
+    // the exact form 2*3^k, k >= 1.
+    var excess: Integer = {
       val fp = f(p)
       if (fp != 2 && fp % 2 == 0 && SmallInteger.isThreePower(fp / 2)) {
-        4       // f(p) = 2*3^k
+        four       // f(p) = 2*3^k
       } else if (qSet.size == 1 && qSet.head % 2 != 0) {
-        1       // Q-set is a single odd prime power
+        one        // Q-set is a single odd prime power
       } else {
-        0
+        zero
       }
     }
+
     var done = false
     while (!done) {
 
-      val adjustedFinitePart = finitePart + Integer(excess)
-      // Determine any new field components needed to represent the excess;
-      // these are all the q-values corresponding to
-      // Fermat 2-powers that are <= finitePart + m
-      val finiteComponents = {
-        if (adjustedFinitePart <= one) {
-          IndexedSeq.empty
-        } else {
-          for (k <- 0 to adjustedFinitePart.lb.lb.intValue)
-            yield 1 << (k + 1)
-        }
-      }
-
-      // Construct the term algebra generated by all the relevant components
+      // Construct the term algebra corresponding to the finite field generated
+      // by kappa_{f(p)} + excess. This consists of the components for kappa_{f(p)}
+      // computed above, plus any new finite components introduced by adding the excess.
+      val finiteSummand = this.finiteSummand(p, excess)
+      val finiteComponents = this.finiteComponents(p, excess)
       val algebra = ImpartialTermAlgebra(components ++ finiteComponents)
 
-      // Construct the representation of alpha_p in the term algebra
+      // Construct the representation of alpha_p in the term algebra.
       val alphaFiniteTerms = {
-        if (adjustedFinitePart.isZero) {
+        if (finiteSummand.isZero) {
           IndexedSeq.empty
         } else {
-          (0 to adjustedFinitePart.lb.intValue) filter { adjustedFinitePart.bigIntValue.testBit(_) }
+          (0 to finiteSummand.lb.intValue) filter { finiteSummand.bigIntValue.testBit(_) }
         }
       }
       val alphaLargeTerms = qSet collect {
-        case q if q % 2 != 0 => algebra.degreeProducts(algebra.qComponents.indexOf(q))
+        case q if q % 2 != 0 => algebra.basis(algebra.qComponents.indexOf(q))
       }
       val alphaTerms = (alphaFiniteTerms ++ alphaLargeTerms).sorted
       val alpha = Element(alphaTerms)
@@ -271,6 +301,8 @@ object NimFieldCalculator extends LazyLogging {
       // Finally, check whether alpha has an existing pth root. Since alpha^(2^E - 1) = 1,
       // where E is the exponent (`termCount`) of the algebra, this is equivalent to checking
       // that alpha^((2^E - 1) / p) = 1.
+      // If alpha has no existing pth root - either because p does not divide 2^E - 1, or because
+      // alpha^((2^E - 1) / p) != 1 - then set done = true.
       logger.info(s"[p = $p] Trying excess = $excess, alpha = $alphaTerms (${algebra.termCount} terms)")
       if (dividesTwoPowerMinus1(p, algebra.termCount)) {
         val testpow = ((BigInt(1) << algebra.termCount) - BigInt(1)) / BigInt(p)
@@ -284,16 +316,17 @@ object NimFieldCalculator extends LazyLogging {
       }
 
       if (!done) {
-        excess += 1
+        excess += one
       }
 
     }
 
-    excessCache(p) = excess
-    excess
+    excessCache(p) = excess.intValue
+    excess.intValue
 
   }
 
+  // The ordinal alpha_p. This is used for human-readable logging.
   def alpha(p: Int): GeneralizedOrdinal = {
     val qSet = this.qSet(p)
     val excess = this.excess(p)
@@ -301,15 +334,16 @@ object NimFieldCalculator extends LazyLogging {
     Integer(excess) + terms.sum
   }
 
+  // The ordinal kappa_q. This is used for human-readable logging.
   def kappa(q: Int): GeneralizedOrdinal = {
     val (p, n) = primePower(q)
     if (p == 2) {
-      Values.two.exp(Values.two.exp(Integer(n - 1)).asInstanceOf[Integer]).asInstanceOf[Integer]
+      two.intExp(two.intExp(Integer(n - 1)))
     } else {
       val k = NimFieldConstants.primes.indexOf(p)
       // Value is omega^(omega^(k-1) * p^(n-1))
-      val exponent = Integer(k - 1).omegaPower.asInstanceOf[GeneralizedOrdinal] * Integer(p).exp(Integer(n - 1)).asInstanceOf[GeneralizedOrdinal]
-      exponent.omegaPower.asInstanceOf[GeneralizedOrdinal]
+      val exponent = Integer(k - 1).ordOmegaPower * Integer(p).intExp(Integer(n - 1))
+      exponent.ordOmegaPower
     }
   }
 

@@ -1,5 +1,13 @@
 /*${cgsuite.banner}*/
 
+/** A nimber whose nim value may be an infinite ordinal.
+  *
+  * For every ordinal $\alpha$, there exists an impartial game
+  * value $*\alpha$, equal to the value of a (transfinite) nim heap
+  * of size $\alpha$. Disjunctive sums and Conway products of these
+  * "transfinite nimbers" obey the rules of transfinite nim
+  * arithmetic; see [[GeneralizedOrdinal#NimProduct]] for more details.
+  */
 system class TransfiniteNimber extends NormalValue
 
   external def ConwayProduct(that as TransfiniteNimber);
