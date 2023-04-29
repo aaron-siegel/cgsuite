@@ -75,7 +75,7 @@ public class CommandLineInterface
 
         if (clo.isSpecified("search4D"))
         {
-            //search4D(clo.getFreeArguments().get(0), clo.isSpecified("persist"), Integer.parseInt(clo.getOptionArguments("search4D").get(0)));
+            search4D(clo.getFreeArguments().get(0), clo.isSpecified("persist"), Integer.parseInt(clo.getOptionArguments("search4D").get(0)));
         }
         else
         {
@@ -313,7 +313,7 @@ public class CommandLineInterface
                     ms.p.quotient.isTame() ? "Yes" : "No"
                     );
             }
-            // TODO System.out.print(String.format("StdForm   : %6s\n", code.standardForm()));
+            System.out.printf("StdForm   : %6s\n", code.standardForm());
             java.util.BitSet kernel = ms.p.quotient.monoid.kernel();
             for (int heap = ms.p.prefn.size() - 1; heap >= 0; heap--)
             {
@@ -442,7 +442,6 @@ public class CommandLineInterface
         return clo;
     }
 
-    /*
     private static void search4D(String first, boolean writeMSV, int timeoutInSec) throws Exception
     {
         java.util.Set<TBCode> stdForms = getStdFormsForThreeDigitOctals();
@@ -470,7 +469,7 @@ public class CommandLineInterface
     {
         if (n == 0)
         {
-            TBCode code = new TBCode(str);
+            TBCode code = TBCode.apply(str);
             if (str.compareTo(first) >= 0 && !stdForms.contains(code.standardForm()))
             {
                 searchSolve(code, writeMSV, timeoutInSec);
@@ -490,12 +489,12 @@ public class CommandLineInterface
     {
         System.out.print(code.toString() + " ... ");
         long time = System.currentTimeMillis();
-        APChecker apchecker = code.getAPChecker();
+        PeriodicityChecker apchecker = code.periodicityChecker();
         try
         {
-            MisereSolver ms = runMisereSolver(code, true, false, writeMSV, false, Integer.MAX_VALUE, timeoutInSec);
-            APInfo apinfo = apchecker.checkSequence(ms.p.prefn);
-            System.out.println("" + apinfo.getPeriod() + " / " + apinfo.getPreperiod() + " / " +
+            MisereSolver ms = runMisereSolver(TakeAndBreak.apply(code.toString()), true, false, writeMSV, false, Integer.MAX_VALUE, timeoutInSec);
+            Periodicity apinfo = apchecker.checkSequence(ms.p.prefn);
+            System.out.println(apinfo.period() + " / " + apinfo.preperiod() + " / " +
                                ms.p.quotient.size() + " / " + ms.p.quotient.pPortionSize());
         }
         catch (TimeoutException exc)
@@ -507,7 +506,7 @@ public class CommandLineInterface
             System.out.println(e.getMessage());
         }
     }
-    */
+
 }
 
 class TimeoutException extends RuntimeException

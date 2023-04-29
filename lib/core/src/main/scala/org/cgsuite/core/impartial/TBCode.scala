@@ -230,11 +230,37 @@ case class TBCode(
 
   def isGeneralizedHexadecimal = digits forall { _.isGeneralizedHexadecimalDigit }
 
+  def isFullyUnconstrained = digits forall { _.isFullyUnconstrained }
+
   def periodicityChecker: PeriodicityChecker = {
     val checker = new PeriodicityChecker
     checker.setLinearCriteria(maxHeaps, maxHeaps, digits.length - 1 + maxHeaps)
     checker.setMaxSaltus(0)
     checker
+  }
+
+  def firstCousin: Option[TBCode] = {
+    if (isOctal && additiveDigits.isEmpty && (digits.length == 1 || digits(1).numericPart % 2 == 0)) {
+      // If it's an octal game with no additive digits and an even-valued d_1, we can reduce
+      // TODO: Standard forms for other codes?
+      val newDigits = 0 to digits.length map { r =>
+        val has1 = r + 1 < digits.length && digits(r + 1).constraint(0) != DigitConstraint.Disallowed
+        val has3 = r < digits.length && digits(r).constraint(1) != DigitConstraint.Disallowed
+        val has7 = r >= 1 && digits(r - 1).constraint(2) != DigitConstraint.Disallowed
+        val numericPart = (if (has1) 1 else 0) | (if (has3) 3 else 0) | (if (has7) 7 else 0)
+        Digit(numericPart, DigitConstraint.Unconstrained)
+      }
+      Some(TBCode(newDigits, Vector.empty))
+    } else {
+      None
+    }
+  }
+
+  def standardForm: TBCode = {
+    firstCousin match {
+      case None => this
+      case Some(cousin) => cousin.standardForm
+    }
   }
 
   override def toString = {
@@ -504,13 +530,15 @@ case class Digit(constraints: Vector[DigitConstraint.Value], allowMore: Boolean 
 
   def isOctalDigit = isGeneralizedOctalDigit && isFullyUnconstrained
 
-  def isGeneralizedOctalDigit = constraints.length <= 2 && !allowMore
+  def isGeneralizedOctalDigit = constraints.length <= 3 && !allowMore
 
   def isHexadecimalDigit = isGeneralizedHexadecimalDigit && isFullyUnconstrained
 
-  def isGeneralizedHexadecimalDigit = constraints.length <= 3 && !allowMore
+  def isGeneralizedHexadecimalDigit = constraints.length <= 4 && !allowMore
 
   def isFullyUnconstrained = constraints forall { c => c == DigitConstraint.Unconstrained || c == DigitConstraint.Disallowed }
+
+  def numericPart = constraints.zipWithIndex.map { case (c, index) => if (c == DigitConstraint.Disallowed) 0L else 1L << index }.sum
 
   override def toString = {
 
@@ -524,7 +552,7 @@ case class Digit(constraints: Vector[DigitConstraint.Value], allowMore: Boolean 
       (consistentConstraints, allowMore) match {
 
         case (true, false) =>
-          val base = constraints.zipWithIndex.map { case (c, index) => if (c == DigitConstraint.Disallowed) 0L else 1L << index }.sum
+          val base = numericPart
           val baseStr = if (base < 32) TBCode.base32Chars.charAt(base.toInt).toString else s"&$base;"
           baseStr + toConstraintString(lastConstraint)
 
