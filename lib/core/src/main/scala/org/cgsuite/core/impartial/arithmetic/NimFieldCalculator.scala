@@ -47,9 +47,7 @@ object NimFieldCalculator extends LazyLogging {
     appender.setEncoder(consoleAppender.asInstanceOf[ConsoleAppender[ILoggingEvent]].getEncoder)
     appender.start()
     rootLogger.addAppender(appender)
-    val kPreload = NimFieldConstants.primes.indexOf(preloadTo)
-    NimFieldConstants.excess.indices.slice(1, kPreload + 1) foreach { k => excessCache.put(NimFieldConstants.primes(k), NimFieldConstants.excess(k)) }
-    NimFieldConstants.qSet.indices.slice(1, kPreload + 1) foreach { k => qSetCache.put(NimFieldConstants.primes(k), NimFieldConstants.qSet(k)) }
+    this.preloadTo(preloadTo)
     println()
     println(f"${"p"}%4s ${"f(p)"}%4s ${"Q(f(p))"}%15s ${"exponent"}%7s excess ${"alpha_p"}%20s ${"t(sec)"}%8s     alpha_seq")
     var k = NimFieldConstants.primes.indexOf(from)
@@ -79,6 +77,12 @@ object NimFieldCalculator extends LazyLogging {
       file appendLine qSetSeq
       k += 1
     }
+  }
+
+  def preloadTo(p: Int): Unit = {
+    val kPreload = NimFieldConstants.primes.indexOf(p)
+    NimFieldConstants.excess.indices.slice(1, kPreload + 1) foreach { k => excessCache.put(NimFieldConstants.primes(k), NimFieldConstants.excess(k)) }
+    NimFieldConstants.qSet.indices.slice(1, kPreload + 1) foreach { k => qSetCache.put(NimFieldConstants.primes(k), NimFieldConstants.qSet(k)) }
   }
 
   def f(n: Int) = {
