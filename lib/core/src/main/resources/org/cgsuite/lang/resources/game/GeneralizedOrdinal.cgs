@@ -7,6 +7,12 @@
   */
 system class GeneralizedOrdinal extends SurrealNumber
 
+  external def NimExp(that as Integer);
+
+  external def NimProduct(that as GeneralizedOrdinal);
+
+  external def NimSum(that as GeneralizedOrdinal);
+
   /** The omega-power of this generalized ordinal.
     *
     * The ~~omega-power~~ of a surreal number $x$ is the surreal number $\omega^x^$. If $x = \alpha - \beta$ is a

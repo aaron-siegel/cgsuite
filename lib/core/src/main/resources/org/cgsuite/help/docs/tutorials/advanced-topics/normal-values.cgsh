@@ -11,21 +11,21 @@ do not have explicit canonical forms and hence are not subclasses of [[Game]]; t
 +++ +++
 
 \classDiagram{
-                          NormalValue
-         ┌─────────────────────┴─────────────────┐
-    SidedValue                                   │
-         │                                 SurrealNumber
- StopperSidedValue                               │
-         │                                       │
- CanonicalStopper                            Rational
-         ├─────────────────────┐                 │
-CanonicalShortGame       Pseudonumber            │
-         │     └───────────────┼─────────────────┘
-      Uptimal           DyadicRational
-         │                     │
-      Nimber                Integer
-         └─────────────────────┤
-                             Zero
+                      NormalValue
+        ┌──────────────────┼───────────────────────┐
+        │              SidedValue                  │
+TransfiniteNimber          │                 SurrealNumber
+        │          StopperSidedValue               │
+        │                  │                       │
+        │           CanonicalStopper            Rational
+        │                  ├───────────────┐       │
+        │         CanonicalShortGame  Pseudonumber │
+        │      ┌───────────┴────────────┐  ├───────┘
+        │   Uptimal                  DyadicRational
+        └──────┤                           │
+             Nimber                     Integer
+               └───────────┬───────────────┘
+                          Zero
 }
 
 \footer

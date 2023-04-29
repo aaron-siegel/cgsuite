@@ -33,6 +33,7 @@ trait Zero extends SmallInteger with Nimber {
   override def options: Iterable[Nothing] = Set.empty
 
   override def toString = "0"
+  override def toOutput = super[SmallInteger].toOutput
 
 }
 
