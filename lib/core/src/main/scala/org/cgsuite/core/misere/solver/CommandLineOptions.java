@@ -93,11 +93,11 @@ public class CommandLineOptions
     {
         for (Option opt : options)
         {
-            out.println(String.format(
+            out.printf(
                 "  %-20s%s",
                 "-" + opt.getStr() + (opt.getAlias() == null ? "" : ", -" + opt.getAlias()),
                 opt.getDescription() == null ? "" : opt.getDescription().replace("\n", "\n                      ")
-                ));
+                );
         }
     }
 
@@ -225,6 +225,8 @@ public class CommandLineOptions
         {
             return str.hashCode() ^ (127 * nArgs);
         }
+
+        public @Override String toString() { return str; }
 
         public int compareTo(Option other)
         {

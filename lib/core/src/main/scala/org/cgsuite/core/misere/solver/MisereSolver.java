@@ -123,7 +123,7 @@ public class MisereSolver
 
     public void next()
     {
-        //org.cgsuite.Context.getActiveContext().checkKernelState();
+        if (Thread.interrupted()) throw new TimeoutException();
 
         long time;
         int nextHeap = p.prefn.size();
@@ -193,7 +193,7 @@ public class MisereSolver
             else
             {
                 logln("Failure = " + leastFailure.toNumericString());
-                //org.cgsuite.Context.getActiveContext().checkKernelState();
+                if (Thread.interrupted()) throw new TimeoutException();
                 /*
                 int lb = certifiedLowerBound(trialP, leastFailure);
                 timeCertifying += (System.nanoTime() - time);
@@ -284,7 +284,7 @@ public class MisereSolver
 
         for (int x = 0; x < p.quotient.monoid.size(); x++)
         {
-            //org.cgsuite.Context.getActiveContext().checkKernelState();
+            if (Thread.interrupted()) throw new TimeoutException();
             if (p.quotient.isP(x) == nextHeapIsP &&
                 p.quotient.meximalSet(x).containsAll(tr))
             {
@@ -608,7 +608,7 @@ public class MisereSolver
             List<List<Integer>> combinations = combinations(heapsInvolved, nHeaps);
             for (List<Integer> heaps : combinations)
             {
-                //org.cgsuite.Context.getActiveContext().checkKernelState();
+                if (Thread.interrupted()) throw new TimeoutException();
                 List<Integer> recalPrefn = new ArrayList<Integer>();
                 recalPrefn.addAll(trialP.prefn);
                 for (int heap : heaps)

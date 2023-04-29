@@ -38,18 +38,16 @@ import scala.jdk.CollectionConverters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class CommandLineInterface
 {
-    private static long timeoutTime = 0L;
-
     private CommandLineInterface()
     {
     }
 
     public static void main(String[] args) throws Exception
     {
-        Thread.currentThread().setPriority(3);
         CommandLineOptions clo = createCLO();
 
         try
@@ -64,9 +62,10 @@ public class CommandLineInterface
             return;
         }
 
-        if (clo.getFreeArguments().size() == 0 || clo.isSpecified("help"))
+        if (clo.isSpecified("help"))
         {
             printHelpMessage(clo);
+            System.exit(0);
         }
 
         CgscriptClass.Object().ensureInitialized();
@@ -75,10 +74,25 @@ public class CommandLineInterface
 
         if (clo.isSpecified("search4D"))
         {
-            search4D(clo.getFreeArguments().get(0), clo.isSpecified("persist"), Integer.parseInt(clo.getOptionArguments("search4D").get(0)));
+            if (!clo.isSpecified("timeout")) {
+                System.out.println("A timeout must be specified to use -search4D.");
+                System.out.println("For help type:  java -jar misere.jar -h");
+                System.exit(-1);
+            }
+            search4D(
+                clo.getOptionArguments("search4D").get(0),
+                clo.isSpecified("persist"),
+                Integer.parseInt(clo.getOptionArguments("timeout").get(0))
+            );
         }
         else
         {
+            if (clo.getFreeArguments().isEmpty())
+            {
+                printHelpMessage(clo);
+                System.exit(0);
+            }
+
             HeapRuleset ruleset = stringsToRuleset(clo.getFreeArguments());
             if (ruleset == null) {
                 System.out.println("There were errors evaluating the command-line arguments.");
@@ -88,22 +102,17 @@ public class CommandLineInterface
                 System.out.println("    A sequence of CGScript expressions that evaluate to `ImpartialGame`s.");
                 System.out.println("For help type:  java -jar misere.jar -h");
                 System.exit(-1);
-                return;
             }
-            try
-            {
-                runMisereSolver(
-                    ruleset,
-                    false,
-                    clo.isSpecified("analyze"),
-                    clo.isSpecified("persist"),
-                    clo.isSpecified("pd2only"),
-                    clo.isSpecified("maxheap") ? Integer.parseInt(clo.getOptionArguments("maxheap").get(0)) : Integer.MAX_VALUE,
-                    clo.isSpecified("timeout") ? Integer.parseInt(clo.getOptionArguments("timeout").get(0)) : 0
-                    );
-            }
-            catch (TimeoutException exc)
-            {
+            MisereSolver result = runMisereSolverOnThread(
+                ruleset,
+                false,
+                clo.isSpecified("analyze"),
+                clo.isSpecified("persist"),
+                clo.isSpecified("pd2only"),
+                clo.isSpecified("maxheap") ? Integer.parseInt(clo.getOptionArguments("maxheap").get(0)) : Integer.MAX_VALUE,
+                clo.isSpecified("timeout") ? Integer.parseInt(clo.getOptionArguments("timeout").get(0)) : 0
+            );
+            if (result == null) {
                 System.out.println("\n\nTimeout!");
             }
         }
@@ -168,9 +177,26 @@ public class CommandLineInterface
         }
     }
 
+    private static MisereSolver runMisereSolverOnThread
+        (HeapRuleset rules, boolean quiet, boolean analyze, boolean writeMSV, boolean pd2Only, int maxHeap, int timeoutInSec) throws Exception
+    {
+        AtomicReference<MisereSolver> result = new AtomicReference<>(null);
+        Thread solverThread = new Thread(() -> {
+            try {
+                result.set(runMisereSolver(rules, quiet, analyze, writeMSV, pd2Only, maxHeap));
+            } catch (TimeoutException exc) {}
+        });
+        solverThread.start();
+        solverThread.join(timeoutInSec * 1000L);
+        if (solverThread.isAlive()) {
+            solverThread.interrupt();
+            solverThread.join();
+        }
+        return result.get();
+    }
+
     private static MisereSolver runMisereSolver
-        (HeapRuleset rules, boolean quiet, boolean analyze, boolean writeMSV, boolean pd2Only, int maxHeap, int timeoutInSec)
-        throws Exception
+        (HeapRuleset rules, boolean quiet, boolean analyze, boolean writeMSV, boolean pd2Only, int maxHeap)
     {
         if (rules instanceof Linearization)
         {
@@ -190,9 +216,15 @@ public class CommandLineInterface
                     System.out.println("\nFound MSV File: " + msvFile);
                     System.out.print("Loading . . . ");
                 }
-                java.io.FileInputStream in = new java.io.FileInputStream(msvFile);
-                ms = new MisereSolver(in);
-                in.close();
+                try {
+                    java.io.FileInputStream in = new java.io.FileInputStream(msvFile);
+                    ms = new MisereSolver(in);
+                    in.close();
+                } catch (Exception exc) {
+                    System.out.println("Error loading MSV file.");
+                    exc.printStackTrace();
+                    System.exit(-1);
+                }
                 if (!quiet)
                 {
                     System.out.println("Done!\n\n=== Loaded Presentation at Heap " + (ms.p.prefn.size()-1) + " ===\n");
@@ -210,15 +242,6 @@ public class CommandLineInterface
         }
         ms.writeXML = writeMSV;
         ms.pd2Only = pd2Only;
-
-        if (timeoutInSec == 0)
-        {
-            timeoutTime = 0L;
-        }
-        else
-        {
-            timeoutTime = System.currentTimeMillis() + 1000L * timeoutInSec;
-        }
 
         int currSize = ms.p.quotient.monoid.size();
         Periodicity apinfo = null;
@@ -332,9 +355,12 @@ public class CommandLineInterface
     {
         System.out.println();
         System.out.println("MisereSolver " + org.cgsuite.lang.System.version());
-        System.out.println("Usage: java -jar misere.jar [options] code");
-        System.out.println("\ncode may be either: a take-and-break code (such as \"0.77\"); or");
-        System.out.println("                    a canonical form (such as \"(2//321)/\")");
+        System.out.println("Usage: java -jar misere.jar [options] patterns");
+        System.out.println();
+        System.out.println("patterns may be either:");
+        System.out.println("    a single take-and-break code (such as \"0.77\"); or");
+        System.out.println("    a single CGScript expression that evaluates to a `HeapRuleset` (such as \"game.heap.Kayles\"); or");
+        System.out.println("    one or more CGScript expressions that evaluate to `ImpartialGame`s (such as \"*[[2],0]\")");
         System.out.println("\nCommand-line options:");
         clo.printHelpMessage(System.out);
         System.out.println();
@@ -489,17 +515,17 @@ public class CommandLineInterface
     {
         System.out.print(code.toString() + " ... ");
         long time = System.currentTimeMillis();
-        PeriodicityChecker apchecker = code.periodicityChecker();
+        PeriodicityChecker checker = code.periodicityChecker();
         try
         {
-            MisereSolver ms = runMisereSolver(TakeAndBreak.apply(code.toString()), true, false, writeMSV, false, Integer.MAX_VALUE, timeoutInSec);
-            Periodicity apinfo = apchecker.checkSequence(ms.p.prefn);
-            System.out.println(apinfo.period() + " / " + apinfo.preperiod() + " / " +
-                               ms.p.quotient.size() + " / " + ms.p.quotient.pPortionSize());
-        }
-        catch (TimeoutException exc)
-        {
-            System.out.println("Timeout (" + (System.currentTimeMillis() - time) + " ms)");
+            MisereSolver ms = runMisereSolverOnThread(TakeAndBreak.apply(code.toString()), true, false, writeMSV, false, Integer.MAX_VALUE, timeoutInSec);
+            if (ms == null) {
+                System.out.println("Timeout (" + (System.currentTimeMillis() - time) + " ms)");
+            } else {
+                Periodicity periodicity = checker.checkSequence(ms.p.prefn);
+                System.out.println(periodicity.period() + " / " + periodicity.preperiod() + " / " +
+                        ms.p.quotient.size() + " / " + ms.p.quotient.pPortionSize());
+            }
         }
         catch (Throwable e)
         {
