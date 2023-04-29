@@ -1,6 +1,6 @@
 package org.cgsuite.core.impartial
 
-import org.cgsuite.core.{Integer, SmallInteger}
+import org.cgsuite.core.{ImpartialGame, Integer, SmallInteger}
 
 import scala.collection.immutable.ArraySeq
 

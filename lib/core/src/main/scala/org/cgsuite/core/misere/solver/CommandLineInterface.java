@@ -29,9 +29,12 @@
 
 package org.cgsuite.core.misere.solver;
 
+import org.cgsuite.core.ImpartialGame;
 import org.cgsuite.core.impartial.*;
 import org.cgsuite.core.misere.MisereCanonicalGame;
 import scala.collection.View;
+import scala.collection.mutable.AnyRefMap;
+import scala.jdk.CollectionConverters;
 
 public class CommandLineInterface
 {
@@ -44,18 +47,6 @@ public class CommandLineInterface
     public static void main(String[] args) throws Exception
     {
         Thread.currentThread().setPriority(3);
-        /*
-        org.cgsuite.Context.setActiveContext(new org.cgsuite.Context.DefaultContext()
-        {
-            public @Override void checkKernelState()
-            {
-                if (timeoutTime != 0 && System.currentTimeMillis() >= timeoutTime)
-                {
-                    throw new TimeoutException();
-                }
-            }
-        }, false);
-        */
         CommandLineOptions clo = createCLO();
 
         try
@@ -122,16 +113,13 @@ public class CommandLineInterface
         }
         else
         {
-            throw new IllegalArgumentException("Not yet supported");
-            /*
             String[] strs = str.split("\\|");
-            MisereCanonicalGame[] games = new MisereCanonicalGame[strs.length];
+            ImpartialGame[] games = new ImpartialGame[strs.length];
             for (int i = 0; i < strs.length; i++)
             {
-                games[i] = MisereCanonicalGame(strs[i]);
+                games[i] = (ImpartialGame) org.cgsuite.lang.System.evaluateObjOrException(strs[i], new AnyRefMap<>()).get();
             }
-            return new Linearization(games);
-             */
+            return Linearization.apply(CollectionConverters.ListHasAsScala(java.util.Arrays.asList(games)).asScala().toSeq());
         }
     }
 
@@ -139,12 +127,10 @@ public class CommandLineInterface
         (HeapRuleset rules, boolean quiet, boolean analyze, boolean writeMSV, boolean pd2Only, int maxHeap, int timeoutInSec)
         throws Exception
     {
-        /*
-        if (rules instanceof org.cgsuite.impartial.Linearization)
+        if (rules instanceof Linearization)
         {
-            maxHeap = Math.min(maxHeap, ((org.cgsuite.impartial.Linearization) rules).size() - 1);
+            maxHeap = Math.min(maxHeap, ((Linearization) rules).positions().size() - 1);
         }
-        */
         TBCode code = (rules instanceof TakeAndBreak ? ((TakeAndBreak) rules).tbCode() : null);
         PeriodicityChecker apchecker = (code == null ? null : code.periodicityChecker());
         MisereSolver ms = null;
@@ -211,21 +197,18 @@ public class CommandLineInterface
                 {
                     if (monoid.size() == currSize)
                     {
-                        if (ms.getRules() instanceof TBCode)
+                        if (ms.getRules() instanceof TakeAndBreak)
                         {
                             System.out.print(monoid.elementToWord(ms.p.prefn.get(heap)));
                             System.out.print(' ');
                         }
                         else
                         {
-                            /*
-                            System.out.print(String.format(
+                            System.out.printf(
                                 "\n%10s <- %s",
                                 monoid.elementToWord(ms.p.prefn.get(heap)),
-                                ((Linearization) ms.getRules()).getPosition(heap)
-                                ));
-                                TODO
-                             */
+                                ((Linearization) ms.getRules()).positions().apply(heap)
+                                );
                         }
                         System.out.flush();
                     }
@@ -291,7 +274,7 @@ public class CommandLineInterface
             {
                 if (!kernel.get(ms.p.prefn.get(heap)))
                 {
-                    System.out.print(String.format("LastRogue : %6d\n", heap));
+                    System.out.printf("LastRogue : %6d\n", heap);
                     break;
                 }
             }
@@ -302,14 +285,14 @@ public class CommandLineInterface
 
     private static void printHelpMessage(CommandLineOptions clo)
     {
-        System.out.println("");
+        System.out.println();
         System.out.println("MisereSolver " + org.cgsuite.lang.System.version());
         System.out.println("Usage: java -jar misere.jar [options] code");
         System.out.println("\ncode may be either: a take-and-break code (such as \"0.77\"); or");
         System.out.println("                    a canonical form (such as \"(2//321)/\")");
         System.out.println("\nCommand-line options:");
         clo.printHelpMessage(System.out);
-        System.out.println("");
+        System.out.println();
         System.exit(0);
     }
 
@@ -328,17 +311,17 @@ public class CommandLineInterface
                 java.util.BitSet maxSG = monoid.mutualDivisibilityClass(idemp);
                 int maxSGSize = maxSG.cardinality();
                 maxSG.and(ms.p.quotient.pPortion);
-                System.out.print(String.format(
+                System.out.printf(
                     "%-11s %6d  %6d  %-25s %-25s\n",
                     monoid.elementToWord(idemp).toString() + (idemp == monoid.kernelIdentity() ? " *" : ""),
                     maxSGSize,
                     monoid.archimedeanComponent(idemp).cardinality(),
                     compactStringForWordList(monoid.elementListToWordList(monoid.idempotentLowerCovers(idemp))),
                     compactStringForWordList(monoid.subsetToWordList(maxSG))
-                    ));
+                    );
             }
         }
-        if (ms.getRules() instanceof TBCode)
+        if (ms.getRules() instanceof TakeAndBreak)
         {
             System.out.print("\nPhi = ");
             for (int pv : ms.p.prefn)
@@ -349,19 +332,15 @@ public class CommandLineInterface
         }
         else
         {
-            /*
             assert ms.getRules() instanceof Linearization;
             for (int i = 0; i < ms.p.prefn.size(); i++)
             {
-                System.out.print(String.format(
+                System.out.printf(
                     "\n%10s <- %s",
                     monoid.elementToWord(ms.p.prefn.get(i)),
-                    ((Linearization) ms.getRules()).getPosition(i)
-                    ));
+                    ((Linearization) ms.getRules()).positions().apply(i)
+                    );
             }
-
-            TODO
-             */
         }
         System.out.flush();
     }
