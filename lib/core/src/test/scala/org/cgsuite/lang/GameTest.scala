@@ -12,7 +12,12 @@ class GameTest extends CgscriptSpec {
       ("MinValue-1", "-2147483649", "-2147483649"),
       ("Max", "3.Max(-2147483648)", "3"),
       ("NimSum", "[11 NimSum n for n from 1 to 16]", "[10,9,8,15,14,13,12,3,2,1,0,7,6,5,4,27]"),
+      ("NimSum (invalid)", "11 NimSum -1", "!!NimSum applies only to nonnegative integers."),
       ("NimProduct", "[8 NimProduct n for n from 1 to 16]", "[8,12,4,11,3,7,15,13,5,1,9,6,14,10,2,128]"),
+      ("NimProduct (invalid)", "11 NimProduct -1", "!!NimProduct applies only to nonnegative integers."),
+      ("NimInverse", "[n.NimInverse for n from 1 to 16]", "[1,3,2,15,12,9,11,10,6,8,7,5,14,13,4,170]"),
+      ("NimInverse (invalid)", "0.NimInverse", "!!NimInverse applies only to positive integers."),
+      ("NimDiv", "[11 NimDiv n for n from 1 to 16]", "[11,6,13,8,14,2,15,4,10,9,1,12,3,5,7,68]"),
       ("UglyProduct", "[14 UglyProduct n for n from 1 to 16]", "[14,13,3,13,3,0,14,7,9,10,4,10,4,7,9,23]"),
       ("Div", "17.Div(4)", "4"),
       ("Div by 0", "17.Div(0)", "!!/ by zero"),
@@ -25,6 +30,12 @@ class GameTest extends CgscriptSpec {
       ("Lb(-32)", "(-32).Lb", "!!Argument to Lb is not strictly positive: -32"),
       ("Lb(-2^40)", "(-2^40).Lb", "!!Argument to Lb is not strictly positive: -1099511627776"),
       //("Random", "Integer.SetSeed(0); [Integer.Random(100) from 1 to 5]", "[61,49,30,48,16]"),
+      ("NimInverse check",
+        """for n from 1 to 3000 do
+          |  if n NimProduct n.NimInverse != 1 then
+          |    error("NimInverse failed at " + n.ToString);
+          |  end
+          |end""".stripMargin, "Nothing"),
       ("Isqrt",
         """
           |for n from 0 to 3000 do
@@ -48,7 +59,7 @@ class GameTest extends CgscriptSpec {
 
   }
 
-  "game.GeneralizedOrdinal" should "implement methods correctly" in {
+  "game.GeneralizedOrdinal" should "implement unary methods correctly" in {
 
     val unaryInstances = Seq(
       ("omega", "\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "1", "true", "L"),
@@ -56,8 +67,8 @@ class GameTest extends CgscriptSpec {
       ("omega+5", "\u03C9+5", "GeneralizedOrdinal", "\u03C9+5", "\u03C9+5", "1", "true", "L"),
       ("omega-5", "\u03C9-5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "1", "false", "L"),
       ("-omega+5", "-\u03C9+5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "-1", "false", "R"),
-      ("omega*5", "5\u03C9", "GeneralizedOrdinal", "5\u03C9", "5\u03C9", "1", "true", "L"),
-      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "\u03C9^\u03C9+5\u03C9^19+\u03C9^2+1", "1", "false", "L")
+      ("omega*5", "\u03C9\u00d75", "GeneralizedOrdinal", "\u03C9\u00d75", "\u03C9\u00d75", "1", "true", "L"),
+      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-\u03C9^19\u00d75+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-\u03C9^19\u00d75+\u03C9^2+1", "\u03C9^\u03C9+\u03C9^19\u00d75+\u03C9^2+1", "1", "false", "L")
     )
 
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, abs, birthday, sign, isOrdinal, outcomeClass) =>
@@ -73,6 +84,51 @@ class GameTest extends CgscriptSpec {
     } map { case (expr, result) => (expr, expr, result) }
 
     executeTests(Table(header, unaryTests : _*))
+
+  }
+
+  it should "implement >=2-ary methods correctly" in {
+
+    val instances = Seq(
+      ("(omega^omega*4 + omega^3*9 + 11) NimSum (omega^omega*6 + omega^3*5 + omega)", "ω^ω×2+ω^3×12+ω+11"),
+      ("omega NimProduct 7", "ω×7"),
+      ("omega NimProduct omega", "ω^2"),
+      ("omega NimProduct omega^2", "2"),
+      ("omega^3 NimProduct omega^3", "ω^6"),
+      ("omega^3 NimProduct omega^6", "ω"),
+      ("omega^3 NimProduct omega^8", "2"),
+      ("omega^8 NimProduct omega^8", "ω^5×2"),
+      ("omega^omega NimProduct omega^(omega*4)", "4"),
+      ("omega^(omega*49) NimProduct omega^(omega*100)", "4"),
+      ("omega^(omega^2*4) NimProduct omega^(omega^2*3)", "ω+1"),
+      ("omega^(omega^2*31) NimProduct omega^(omega^2*24)", "ω+1"),
+      ("omega^(omega^2*32) NimProduct omega^(omega^2*24)", "ω^(ω^2+1)+ω^ω^2"),
+      ("omega NimExp 3", "2"),
+      ("omega^3 NimExp 9", "2"),
+      ("omega^27 NimExp 81", "2"),
+      ("omega^(omega^41) NimExp 191", "ω^ω^6+ω^ω"),
+      ("omega^(omega^42) NimExp 193", "ω+65536"),
+      ("omega^omega^3 NimExp 66", "ω^(ω×4)+ω^(ω×2)+ω^ω×4+1"),   // The example on p. 449-450 of CGT
+      ("omega^omega^13 NimExp 47", "ω^ω^7+1"),                  // Lenstra's example
+      ("omega^omega^omega NimProduct 2", "!!NimProduct out of range."),
+      ("omega^omega^1000 NimProduct 2", "!!NimProduct out of range."),
+      ("(omega-1) NimSum 2", "!!NimSum applies only to ordinals."),
+      ("(omega-1) NimProduct 2", "!!NimProduct applies only to ordinals.")
+    )
+
+    executeTests(Table(
+      header,
+      instances map { case (expr, result) => (expr, expr, result) }: _*
+    ))
+
+  }
+
+  "game.TransfiniteNimber" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("ConwayProduct", "(*omega) ConwayProduct *(omega^2)", "*2")
+    ))
 
   }
 

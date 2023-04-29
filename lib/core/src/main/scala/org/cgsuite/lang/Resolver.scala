@@ -139,7 +139,7 @@ case class Resolution(cls: CgscriptClass, id: Symbol, static: Boolean = false) {
       } else {
 
         throw EvalException(
-          s"Expected arguments for method: `${group.qualifiedName}`",
+          s"Expected arguments for method `${group.name}` in class `${group.declaringClass.qualifiedName}`",
           token = Some(referenceToken)
         )
 
