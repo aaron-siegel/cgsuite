@@ -1252,8 +1252,6 @@ class CgscriptClass(
 
     def name = methods.head.name
 
-    def qualifiedName = methods.head.qualifiedName
-
     def isStatic = methods.head.isStatic
 
     def lookupMethod(

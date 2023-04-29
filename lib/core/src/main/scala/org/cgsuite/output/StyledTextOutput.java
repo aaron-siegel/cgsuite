@@ -334,6 +334,8 @@ public class StyledTextOutput extends AbstractOutput
         CALZ            (FontRef.SYMBOL, 'Z', "Z", "\\mathcal{Z}"),
         /** Greek letter omega. */
         OMEGA           (FontRef.SANS_SERIF, '\u03C9', "\u03C9", "\\omega"),
+        /** Times symbol. */
+        TIMES           (FontRef.SANS_SERIF, '\u00d7', "\u00d7", "\\times"),
         ;
         
         private FontRef fontRef;
