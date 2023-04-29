@@ -31,10 +31,13 @@ package org.cgsuite.core.misere.solver;
 
 import org.cgsuite.core.ImpartialGame;
 import org.cgsuite.core.impartial.*;
-import org.cgsuite.core.misere.MisereCanonicalGame;
-import scala.collection.View;
+import org.cgsuite.lang.CgscriptClass;
+import scala.Option;
 import scala.collection.mutable.AnyRefMap;
 import scala.jdk.CollectionConverters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommandLineInterface
 {
@@ -66,6 +69,8 @@ public class CommandLineInterface
             printHelpMessage(clo);
         }
 
+        CgscriptClass.Object().ensureInitialized();
+
         long time = System.nanoTime();
 
         if (clo.isSpecified("search4D"))
@@ -74,10 +79,21 @@ public class CommandLineInterface
         }
         else
         {
+            HeapRuleset ruleset = stringsToRuleset(clo.getFreeArguments());
+            if (ruleset == null) {
+                System.out.println("There were errors evaluating the command-line arguments.");
+                System.out.println("MisereSolver expects one of the following:");
+                System.out.println("    A single take-and-break code; or");
+                System.out.println("    A single CGScript expression that evaluates to a `HeapRuleset`; or");
+                System.out.println("    A sequence of CGScript expressions that evaluate to `ImpartialGame`s.");
+                System.out.println("For help type:  java -jar misere.jar -h");
+                System.exit(-1);
+                return;
+            }
             try
             {
                 runMisereSolver(
-                    stringToRules(clo.getFreeArguments().get(0)),
+                    ruleset,
                     false,
                     clo.isSpecified("analyze"),
                     clo.isSpecified("persist"),
@@ -105,21 +121,50 @@ public class CommandLineInterface
         System.out.println("Used " + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) >> 20) + " MB of memory.\n");
     }
 
-    private static HeapRuleset stringToRules(String str)
+    private static HeapRuleset stringsToRuleset(List<String> strings)
     {
-        if (str.contains("."))
-        {
-            return TakeAndBreak.apply(str);
-        }
-        else
-        {
-            String[] strs = str.split("\\|");
-            ImpartialGame[] games = new ImpartialGame[strs.length];
-            for (int i = 0; i < strs.length; i++)
-            {
-                games[i] = (ImpartialGame) org.cgsuite.lang.System.evaluateObjOrException(strs[i], new AnyRefMap<>()).get();
+        // If it's just one string, first try parsing as a take-and-break code.
+        if (strings.size() == 1) {
+            try {
+                return TakeAndBreak.apply(strings.get(0));
+            } catch (Exception exc) {
             }
-            return Linearization.apply(CollectionConverters.ListHasAsScala(java.util.Arrays.asList(games)).asScala().toSeq());
+        }
+
+        // Now parse each argument as a CGScript expression.
+        boolean success = true;
+
+        List<ImpartialGame> games = new ArrayList<>();
+        for (String str : strings)
+        {
+            Option<Object> result = null;
+            try {
+                result = org.cgsuite.lang.System.evaluateObjOrException(str, new AnyRefMap<>());
+            } catch (Exception exc) {
+                System.out.println("Invalid CGScript expression: " + str);
+                exc.printStackTrace();
+                success = false;
+            }
+            if (result != null) {
+                if (strings.size() == 1 && result.isDefined() && result.get() instanceof HeapRuleset) {
+                    return (HeapRuleset) result.get();
+                } else if (result.isDefined() && result.get() instanceof ImpartialGame) {
+                    games.add((ImpartialGame) result.get());
+                } else {
+                    if (strings.size() == 1) {
+                        System.out.println("CGScript expression does not evaluate to a HeapRuleset or ImpartialGame: " + str);
+                    } else {
+                        System.out.println("CGScript expression does not evaluate to an ImpartialGame: " + str);
+                    }
+                    success = false;
+                }
+            }
+        }
+
+        if (success) {
+            return Linearization.apply(CollectionConverters.ListHasAsScala(games).asScala().toSeq());
+        } else {
+            return null;
         }
     }
 
@@ -249,11 +294,11 @@ public class CommandLineInterface
         {
             if (apinfo == null || apinfo.saltus() != 0)
             {
-                System.out.print(String.format("=== No Solution Found by Heap %d ===\n\n", ms.p.prefn.size()-1));
+                System.out.printf("=== No Solution Found by Heap %d ===\n\n", ms.p.prefn.size()-1);
             }
             else
             {
-                System.out.print(String.format(
+                System.out.printf(
                     "=== Solution Found at Heap %d ===\n\n" +
                     "Period    : %6d\n" +
                     "Preperiod : %6d\n" +
@@ -266,7 +311,7 @@ public class CommandLineInterface
                     ms.p.quotient.monoid.size(),
                     ms.p.quotient.pPortionSize(),
                     ms.p.quotient.isTame() ? "Yes" : "No"
-                    ));
+                    );
             }
             // TODO System.out.print(String.format("StdForm   : %6s\n", code.standardForm()));
             java.util.BitSet kernel = ms.p.quotient.monoid.kernel();
@@ -383,7 +428,7 @@ public class CommandLineInterface
 
     private static CommandLineOptions createCLO()
     {
-        CommandLineOptions clo = new CommandLineOptions(1);
+        CommandLineOptions clo = new CommandLineOptions(Integer.MAX_VALUE);
         clo.addOption("analyze", "a", 0, "Print monoid analysis as each quotient is generated");
         clo.addOption("help", "h", 0, "Print this message and exit");
         clo.addOption("persist", "p", 0, "Read and write .MSV file for this quotient");
