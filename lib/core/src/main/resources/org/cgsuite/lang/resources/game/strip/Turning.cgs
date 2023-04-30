@@ -112,7 +112,7 @@ class Turning(heapRules as game.heap.HeapRuleset) extends StripRuleset
       var value := 0;
       var seq := heapRules.NimValueSequence(strip.Length);
       for n from 1 to strip.Length where strip[n] == 1 do
-        value := value NimSum seq[n+1];     // TODO Somewhat counterintuitive to have nim value seq start with 0
+        value := value NimSum seq[n];
       end
       value
       
