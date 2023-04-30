@@ -88,16 +88,36 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def run(): Unit = {
 
+    val allHelpSources = resourcesDir.toFile.glob("**/*.{cgs,cgsh}")
+    val lastModified = allHelpSources.toVector.map { _.lastModifiedTime.toEpochMilli }.max
+
+    if (searchIndex.exists && searchIndex.lastModifiedTime.toEpochMilli >= lastModified) {
+      println("Documentation is up to date.")
+    } else {
+      renderAll()
+    }
+
+  }
+
+  def renderAll(): Unit = {
+
     searchIndex overwrite ""
+    println("Rendering .cgsh files ...")
     renderCgshFiles()
+    println("Rendering overview ...")
     renderOverview()
+    println("Rendering index ...")
     renderIndex()
+    println("Rendering classes ...")
     renderClasses()
+    println("Rendering package members ...")
     renderPackageMembers()
 
     if (markdownErrors) {
       sys.error("There were markdown errors.")
     }
+
+    println("Documentation successfully generated.")
 
   }
 
