@@ -42,7 +42,7 @@ object System extends LazyLogging {
     }
   }
 
-  def evaluateOrException(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
+  def evaluateObjOrException(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Option[Any] = {
     val tree = ParserUtil.parseScript(input)
     logger debug s"Parse Tree: ${tree.toStringTree}"
     val node = StatementSequenceNode(tree.getChild(0))
@@ -52,9 +52,16 @@ object System extends LazyLogging {
     val domain = new EvaluationDomain(new Array[Any](scope.localVariableCount), dynamicVarMap = Some(varMap))
     val result = node.evaluate(domain)
     if (node.suppressOutput)
-      Vector.empty
+      None
     else
-      objectToOutput(result)
+      Some(result)
+  }
+
+  def evaluateOrException(input: String, varMap: mutable.AnyRefMap[Symbol, Any]): Vector[Output] = {
+    evaluateObjOrException(input, varMap) match {
+      case None => Vector.empty
+      case Some(result) => objectToOutput(result)
+    }
   }
 
   def objectToOutput(obj: Any): Vector[Output] = {
