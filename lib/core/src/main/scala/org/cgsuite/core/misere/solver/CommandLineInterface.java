@@ -477,7 +477,7 @@ public class CommandLineInterface
 
     private static java.util.Set<TBCode> getStdFormsForThreeDigitOctals()
     {
-        java.util.Set<TBCode> stdForms = new java.util.HashSet<TBCode>();
+        java.util.Set<TBCode> stdForms = new java.util.HashSet<>();
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)

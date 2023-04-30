@@ -40,17 +40,17 @@ import java.util.*;
  */
 public class CommandLineOptions
 {
-    private SortedSet<Option> options;
-    private Map<String,Option> optionsByStr;
-    private int maxFreeArgs;
+    private final SortedSet<Option> options;
+    private final Map<String,Option> optionsByStr;
+    private final int maxFreeArgs;
 
     private Map<Option,List<String>> results;
 
     public CommandLineOptions(int maxFreeArgs)
     {
         this.maxFreeArgs = maxFreeArgs;
-        options = new TreeSet<Option>();
-        optionsByStr = new HashMap<String,Option>();
+        options = new TreeSet<>();
+        optionsByStr = new HashMap<>();
     }
 
     public void addOption(String str, int nArgs)
@@ -94,8 +94,8 @@ public class CommandLineOptions
         for (Option opt : options)
         {
             out.printf(
-                "  %-20s%s",
-                "-" + opt.getStr() + (opt.getAlias() == null ? "" : ", -" + opt.getAlias()),
+                "  %-20s%s\n",
+                "--" + opt.getStr() + (opt.getAlias() == null ? "" : ", -" + opt.getAlias()),
                 opt.getDescription() == null ? "" : opt.getDescription().replace("\n", "\n                      ")
                 );
         }
@@ -103,8 +103,8 @@ public class CommandLineOptions
 
     public void parse(String[] args)
     {
-        results = new HashMap<Option,List<String>>();
-        List<String> freeArgs = new ArrayList<String>();
+        results = new HashMap<>();
+        List<String> freeArgs = new ArrayList<>();
         for (int i = 0; i < args.length; )
         {
             i = parseArgument(args, freeArgs, i);
@@ -149,7 +149,24 @@ public class CommandLineOptions
             {
                 throw new IllegalArgumentException(args[i]);
             }
-            Option opt = optionsByStr.get(args[i].substring(1));
+            String str;
+            if (args[i].charAt(1) == '-')
+            {
+                if (args[i].length() == 2)
+                {
+                    throw new IllegalArgumentException(args[i]);
+                }
+                str = args[i].substring(2);
+            }
+            else
+            {
+                if (args[i].length() != 2)
+                {
+                    throw new IllegalArgumentException(args[i]);
+                }
+                str = args[i].substring(1);
+            }
+            Option opt = optionsByStr.get(str);
             if (opt == null || args.length < i + 1 + opt.getNArgs())
             {
                 throw new IllegalArgumentException(args[i]);
@@ -175,10 +192,10 @@ public class CommandLineOptions
 
     public static class Option implements Comparable<Option>
     {
-        private String str;
-        private String alias;
-        private int nArgs;
-        private String description;
+        private final String str;
+        private final String alias;
+        private final int nArgs;
+        private final String description;
 
         public Option(String str, String alias, int nArgs, String description)
         {
@@ -218,7 +235,7 @@ public class CommandLineOptions
                 str.equals(((Option) obj).str) &&
                 nArgs == ((Option) obj).nArgs &&
                 (alias == null && ((Option) obj).alias == null ||
-                 alias.equals(((Option) obj).alias));
+                 alias != null && alias.equals(((Option) obj).alias));
         }
 
         public @Override int hashCode()
