@@ -57,6 +57,17 @@ class GameHeapTest extends CgscriptSpec {
 
   }
 
+  it should "handle a TakeAndBreak edge case properly" in {
+
+    executeTests(Table(
+      header,
+      // This was responsible for a bug that first appeared at heap size 92679!
+      // This is because 46341 is the least integer with n^2 >= 2^31.
+      ("Grundy's Game edge case", "game.heap.GrundysGame(92679).Options.Size", "46339")
+    ))
+
+  }
+
   it should "define other heap games properly" in {
 
     val instances = Seq(

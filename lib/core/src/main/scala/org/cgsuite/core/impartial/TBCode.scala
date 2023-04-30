@@ -390,7 +390,7 @@ case class TBCode(
         case DigitConstraint.PairwiseUnequal =>
           val nextHeapSize = heapBuffer(heapIndex) + 1
           val incrementThrough = nextHeapSize + (curHeapCount - heapIndex)
-          if (incrementThrough * (incrementThrough - 1) / 2 - nextHeapSize * (nextHeapSize - 1) / 2 <= tokensToDistribute)
+          if (incrementThrough.toLong * (incrementThrough - 1) / 2 - nextHeapSize.toLong * (nextHeapSize - 1) / 2 <= tokensToDistribute)
             nextHeapSize
           else
             -1
@@ -424,7 +424,8 @@ case class TBCode(
         i += 1
       }
       heapBuffer(curHeapCount - 1) = tokensToDistribute - tokensDistributed
-      assert(curHeapCount <= 1 || heapBuffer(curHeapCount - 1) >= heapBuffer(curHeapCount - 2))
+      assert(curHeapCount <= 1 || heapBuffer(curHeapCount - 1) >= heapBuffer(curHeapCount - 2),
+        s"FAILED at this.heapSize=${this.heapSize}, heapIndex=$heapIndex, heapSize=$heapSize: $curHeapCount <= 1 || ${heapBuffer(curHeapCount - 1)} >= ${heapBuffer(curHeapCount - 2)}")
 
     }
 
