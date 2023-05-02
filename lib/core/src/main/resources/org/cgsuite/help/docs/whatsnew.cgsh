@@ -1,9 +1,35 @@
 What's New
 
-This is a list of the most important differences between CGSuite 2.0 and previous versions. Many things have changed,
-and if this is your first time
-using CGSuite 2.0, it's strongly recommended that you read through the [[/tutorials/getting-started/getting-started]]
-tutorial in addition to this page.
+This is a list of the most important differences in the most recent versions of CGSuite.
+
+If this is your first time
+using CGSuite 2.x, it's strongly recommended that you read through the [[/tutorials/getting-started/getting-started]]
+tutorial in addition to this page; much has changed from earlier versions.
+
++++ Version 2.1 +++
+
+\ul
+\li ~~Scatter Plots of Integer Sequences.~~ The newly introduced method [[List#ScatterPlot]] generates a scatter plot
+for a given list of integers. The primary application is to visualize the large-scale structure of nim values of a
+particular heap game. For an example, try entering on the Worksheet:
+
+`> R := game.heap.TakeAndBreak("0.007");
+\sp{}R.NimValueSequence(20000).ScatterPlot()`
+
+\li ~~Transfinite Nim Arithmetic.~~ CGSuite 2.1 includes an implementation of Conway's transfinite nim arithmetic,
+using Lenstra's algorithms for effective nim multiplication of ordinals below `omega^omega^omega`. The core implementation
+is given by [[GeneralizedOrdinal#NimSum]] and [[GeneralizedOrdinal#NimProduct]]; the corresponding game values are
+instances of [[TransfiniteNimber]].
+
+\display{omega^(omega^13) NimExp 47}
+
+\li Upgraded the versions of the core Java and NetBeans platforms used by CGSuite (to JDK 17 and version 17.0,
+respectively).
+
+\li Fixed several UI bugs on Windows. Numerous other bugfixes, code cleanup, and improved error messages.
+\endul
+
++++ Version 2.0 +++
 
 \ul
 \li ~~CGScript 2.~~ The CGScript language has been completely overhauled. It's much faster than the original CGScript,
