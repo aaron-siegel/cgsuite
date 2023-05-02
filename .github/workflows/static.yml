@@ -36,7 +36,6 @@ jobs:
       - name: Build Core Library and External Help
         run: ./.github/scripts/build.sh
         shell: bash
-        working-directory: ./cgsuite
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
