@@ -1,7 +1,6 @@
 package org.cgsuite.core
 
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.InvalidOperationException
 import org.cgsuite.output.StyledTextOutput
 
 import scala.collection.mutable
@@ -43,8 +42,6 @@ trait Pseudonumber extends CanonicalStopper {
 
   def abs: Pseudonumber = if (this < zero) -this else this
 
-  def blowup: Pseudonumber
-
   private[core] override def appendTo(
     output: StyledTextOutput,
     forceBrackets: Boolean,
@@ -72,8 +69,6 @@ case object OnImpl extends Pseudonumber {
     }
   }
 
-  def blowup = this
-
   private[core] override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     output.appendMath("on"); 0
   }
@@ -92,8 +87,6 @@ case object OffImpl extends Pseudonumber {
       case Right => Set(this)
     }
   }
-
-  def blowup = throw InvalidOperationException(s"Invalid exponent.")
 
   private[core] override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     output.appendMath("off"); 0
@@ -125,16 +118,6 @@ case class OverNumberImpl private[core] (x: DyadicRationalNumber, overSign: Int)
   }
 
   override def unary_- : Pseudonumber = OverNumberImpl(-x, -overSign)
-
-  def blowup = {
-    if (x.isZero && overSign == 1) {
-      off
-    } else if (x > zero) {
-      OverNumberImpl(x.blowup, overSign)
-    } else {
-      throw InvalidOperationException(s"Invalid exponent.")
-    }
-  }
 
   private[core] override def appendTo(output: StyledTextOutput, forceBrackets: Boolean, forceParens: Boolean): Int = {
     if (!x.isZero) {

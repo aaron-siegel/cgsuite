@@ -1,10 +1,11 @@
 /*${cgsuite.banner}*/
 
-/** Base class for enumerated values in CGSuite.
+/** Base class for enumerated types in CGSuite.
   */
 system class Enum
 
-  external def Literal;
+  /** The [[String]] literal of this enumerated value. */
+  external def Literal as String;
 
   override def ToOutput := Literal;
 

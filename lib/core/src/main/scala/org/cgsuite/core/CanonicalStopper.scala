@@ -4,7 +4,7 @@ import java.util
 
 import org.cgsuite.core.CanonicalStopper._
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.{CounterexampleException, InvalidOperationException, NotStopperException}
+import org.cgsuite.exception.{CounterexampleException, InvalidOperationException, NotStableException, NotStopperException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
@@ -153,14 +153,14 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
       throw InvalidOperationException("Variety degree must be an idempotent.")
   }
 
-  def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
+  override def followerCount: Integer = SmallInteger(loopyGame.getGraph.getNumVertices)
 
-  def followers: Iterable[CanonicalStopper] = {
+  override def followers: Set[_ <: CanonicalStopper] = {
     (0 until loopyGame.getGraph.getNumVertices).map { n =>
       // The stopper simplification algorithms guarantee that elements of
       // this Iterable will be distinct.
       CanonicalStopper(loopyGame.deriveGame(n))
-    }
+    }.toSet
   }
 
   override def isIdempotent = this + this == this
@@ -205,15 +205,69 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     }
   }
 
+  def isStable: Boolean = {
+    val deg = degree
+    upsumVariety(deg) == downsumVariety(deg)
+  }
+
   override def isStopper = true
 
   def isSwitch: Boolean = this == -this
+
+  override def leftOptions: Iterable[CanonicalStopper] = options(Left)
 
   override def offside = this
 
   override def onside = this
 
   def ordinalSum(that: CanonicalStopper): CanonicalStopper = CanonicalStopper(loopyGame.ordinalSum(that.loopyGame))
+
+  override def rightOptions: Iterable[CanonicalStopper] = options(Right)
+
+  def subordinate(base: Game): CanonicalStopper = {
+    val node = subordinateR(
+      base.leftOptions.map { _.canonicalForm }.toSet,
+      base.rightOptions.map { _.canonicalForm }.toSet,
+      mutable.Map()
+    )
+    CanonicalStopper(new LoopyGame(node))
+  }
+
+  private def subordinateR(
+    loBase: Set[CanonicalStopper],
+    roBase: Set[CanonicalStopper],
+    visited: mutable.Map[CanonicalStopper, LoopyGame.Node]
+  ): LoopyGame.Node = {
+
+    visited.get(this) match {
+      case Some(node) => node
+      case None =>
+        val reduction = new LoopyGame.Node()
+        visited(this) = reduction
+        val lo = leftOptions
+        val ro = rightOptions
+        for (bl <- loBase) {
+          if (!lo.exists(_ >= bl) && !bl.rightOptions.exists(this >= _)) {
+            throw InvalidOperationException("That game cannot be subordinated to the specified base.")
+          }
+        }
+        for (br <- roBase) {
+          if (!ro.exists(_ <= br) && !br.leftOptions.exists(this <= _)) {
+            throw InvalidOperationException("That game cannot be subordinated to the specified base.")
+          }
+        }
+        val loSub = lo collect {
+          case gl if !loBase.contains(gl) => gl.subordinateR(loBase, roBase, visited)
+        }
+        val roSub = ro collect {
+          case gr if !roBase.contains(gr) => gr.subordinateR(loBase, roBase, visited)
+        }
+        loSub.foreach(reduction.addLeftEdge)
+        roSub.foreach(reduction.addRightEdge)
+        reduction
+    }
+
+  }
 
   def upsum(that: CanonicalStopper): CanonicalStopper = (this + that).onside
 
@@ -230,10 +284,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (v == downsumVariety(deg))
       v
     else
-      throw CounterexampleException(
-        "Congratulations! You've found a counterexample to the Stability Conjecture. " +
-          "Please report this finding to asiegel@users.sourceforge.net."
-      )
+      throw NotStableException("That game is not stable.")
   }
 
   def stop(player: Player): Pseudonumber = {

@@ -25,12 +25,16 @@ class GenCutcake(
 
   def Eval(coord as Coordinates) := Position(coord);
 
+  def GameValueTable(maxRow as Integer, maxCol as Integer) begin
+    Table([Position((m, n)).GameValue for n from 1 to maxCol] for m from 1 to maxRow)
+  end
+
   class Position(coord as Coordinates) extends Game
 
     override def Options(player as Player) begin
-    
+
       var twist := if twisted then coord.Swap else coord end;
-    
+
       if player == Left then
         var a := twist.Row;
         for summands in leftRuleset.HeapOptions(twist.Col) yield
@@ -42,9 +46,9 @@ class GenCutcake(
           if summands.IsEmpty then 0 else Sum(Position((a,b)) for a in summands) end
         end
       end
-    
+
     end
-  
+
   end
 
 end

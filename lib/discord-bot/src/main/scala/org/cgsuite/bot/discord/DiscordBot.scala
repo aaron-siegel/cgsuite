@@ -23,11 +23,11 @@ import scala.collection.mutable
 
 /*
  Steps to install on a CentOS server:
- 1. Obtain jdk-8u291-linux-x64.rpm from Oracle
- 2. yum localinstall jdk-8u291-linux-x64.rpm
- 3. yum install liberation-sans-fonts
- 4. mkdir ~/CGSuite
- 5. java -Xmx1G -cp cgsuite-discord-bot-${version}-jar-with-dependencies.jar org.cgsuite.bot.discord.DiscordBot <token>
+ 1. Obtain jdk-17_linux-x64.rpm from Oracle
+ 2. On remote machine: yum localinstall jdk-17_linux-x64.rpm
+ 3. On remote machine: yum install liberation-sans-fonts
+ 4. On remote machine: mkdir ~/CGSuite
+ 5. On dev machine: scripts/deploy-discord-bot.sh
  */
 
 object DiscordBot {
@@ -46,7 +46,7 @@ class DiscordBot(token: String) extends ListenerAdapter {
 
   def start(): Unit = {
 
-    logger info "This is the CGSuite Discord Bot."
+    logger info s"This is the CGSuite Discord Bot, version ${System.version}."
 
     UiHarness.setUiHarness(ReplUiHarness)
 
@@ -111,9 +111,11 @@ class DiscordBot(token: String) extends ListenerAdapter {
           s"""Welcome to the EXPERIMENTAL CGSuite Discord bot, version ${System.version}.
              |I should be able to resolve most CGSuite commands. However, I
              |am brand new and have not really been tested; you have been
-             |warned. Please report any issues to asiegel.
-             |```:help             Print this message
-             |:version          Print CGSuite and system version info```
+             |warned. Please report any issues to @asiegel.
+             |```>>:help             Print this message
+             |>>:version          Print CGSuite and system version info
+             |>>command           Any valid CGSuite command; for example:
+             |>>*5 + *6           Compute the sum of *5 and *6```
              |""".stripMargin
       case "version" =>
           s"""```CGSuite ${System.version}

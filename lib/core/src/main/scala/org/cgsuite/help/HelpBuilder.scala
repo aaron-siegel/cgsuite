@@ -25,7 +25,7 @@ object HelpBuilder {
   def main(args: Array[String]): Unit = {
     val resourcesDir = if (args.isEmpty) "src/main/resources" else ""
     val buildDir = if (args.isEmpty) "target/classes" else args.head
-    val builder = HelpBuilder(resourcesDir, buildDir)
+    val builder = HelpBuilder(resourcesDir.toFile, buildDir.toFile, externalBuild = false)
     builder.run()
   }
 
@@ -48,11 +48,11 @@ object HelpBuilder {
 
 }
 
-case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder =>
+case class HelpBuilder(resourcesDir: File, buildDir: File, externalBuild: Boolean) { thisHelpBuilder =>
 
   private[help] val srcDir = resourcesDir/packagePath
 
-  private[help] val targetRootDir = buildDir/packagePath
+  private[help] val targetRootDir = if (externalBuild) buildDir else buildDir/packagePath
 
   private[help] val referenceDir = targetRootDir/"reference"
 
@@ -88,16 +88,36 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def run(): Unit = {
 
+    val allHelpSources = resourcesDir.glob("**/*.{cgs,cgsh}")
+    val lastModified = allHelpSources.toVector.map { _.lastModifiedTime.toEpochMilli }.max
+
+    if (searchIndex.exists && searchIndex.lastModifiedTime.toEpochMilli >= lastModified) {
+      println("Documentation is up to date.")
+    } else {
+      renderAll()
+    }
+
+  }
+
+  def renderAll(): Unit = {
+
     searchIndex overwrite ""
+    println("Rendering .cgsh files ...")
     renderCgshFiles()
+    println("Rendering overview ...")
     renderOverview()
+    println("Rendering index ...")
     renderIndex()
+    println("Rendering classes ...")
     renderClasses()
+    println("Rendering package members ...")
     renderPackageMembers()
 
     if (markdownErrors) {
       sys.error("There were markdown errors.")
     }
+
+    println("Documentation successfully generated.")
 
   }
 
@@ -110,7 +130,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       val backPath = targetDir relativize targetRootDir
       val targetFile = targetDir/s"${cgshFile.nameWithoutExtension}.html"
 
-      logger info s"Generating file: $cgshFile -> $targetFile"
+      logger debug s"Generating file: $cgshFile -> $targetFile"
 
       val lines = cgshFile.lines
       val title = lines.head
@@ -122,7 +142,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           backPath.toString
       }
 
-      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref + "/", fixedTargets, CgscriptPackage.root)
+      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, externalBuild, backref + "/", fixedTargets, CgscriptPackage.root)
 
       generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder) match {
 
@@ -204,7 +224,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
       val file = packageDir/s"${cls.name}.${member.name}.html"
       val backref = "../" * (cls.pkg.path.length + 1)
-      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, backref, fixedTargets, cls.pkg, Some(cls))
+      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, externalBuild, backref, fixedTargets, cls.pkg, Some(cls))
 
       val packageStr = s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       val memberTypeStr = member match {
@@ -232,7 +252,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
          |<p>
          |
          |$packageStr
-         |<h1>${cls.pkg.qualifiedName}.${member.name}</h1>
+         |<h1>${member.name}</h1>
          |
          |<p><div class="section">
          |  <code class="big">$memberTypeStr <b>${cls.pkg.qualifiedName}.${member.name}</b>$parametersStr</code>
@@ -252,7 +272,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
 
-    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * (cls.pkg.path.length + 1), fixedTargets, cls.pkg, Some(cls))
+    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, externalBuild, "../" * (cls.pkg.path.length + 1), fixedTargets, cls.pkg, Some(cls))
 
     val file = packageDir/s"${cls.name}.html"
 
@@ -260,7 +280,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       val relpath = targetRootDir relativize file
 
-      logger info s"Generating class `${cls.qualifiedName}` to $file"
+      logger debug s"Generating class `${cls.qualifiedName}` to $file"
 
       val header = makeHeader()
 
@@ -275,8 +295,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         }
       }
 
-      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers filterNot {
-        _.modifiers.hasPrivate        // Don't include private members
+      val (classParameters, regularMembers) = cls.classInfo.allUnshadowedMembers filterNot { member =>
+        // Don't include private members
+        member.modifiers.hasPrivate ||
+        // Don't include enum elements (they'll be handled separately)
+        member.isInstanceOf[CgscriptClass#Var] && member.asInstanceOf[CgscriptClass#Var].isEnumElement
       } partition {
         case v: CgscriptClass#Var if v.isConstructorParam => true
         case _ => false
@@ -388,7 +411,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
         if (cls.isPackageObject)
           ""
         else
-          s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
+          s"""<p><code class="big">package <a class="valid" href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       }
 
       val classtypeStr = {
@@ -494,7 +517,11 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
       }
 
-      s"\n$header\n\n$tableHeader${rows mkString ""}$footer"
+      if (rows.isEmpty) {
+        s"\n$header"
+      } else {
+        s"\n$header\n\n$tableHeader${rows mkString ""}$footer"
+      }
 
     }
 
@@ -615,8 +642,10 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   }
 
-  def entityType(member: Member): String = {
-    member match {
+  def entityType(any: AnyRef): String = {
+    any match {
+      case _: CgscriptPackage => "package"
+      case cls: CgscriptClass if cls.properAncestors.contains(CgscriptClass.Enum) => "enum"
       case _: CgscriptClass => "class"
       case _: CgscriptClass#Method => "def"
       case v: CgscriptClass#Var if v.isConstructorParam => "param"
@@ -725,29 +754,100 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
          |<div class="blanksection">&nbsp;</div><p>-->
          |<h1>Index of CGScript Classes</h1>
          |<div class="section">
+         |  This index lists all the packages, classes, methods, and constants that have top-level scope in CGScript.
+         |</div>
+         |<p>
+         |<div class="section">
          |
          |<table class="members">
          |""".stripMargin
 
-    // TODO Package constants too
+    val (constantsClasses, ordinaryClasses) = allClasses partition { _.name == "constants" }
+    val constantsMembers = constantsClasses flatMap { _.classInfo.localMembers }
+    val membersToSummarize = (ordinaryClasses ++ constantsMembers ++ allPackages) sortBy {
+      case cls: CgscriptClass => (cls.pkg.qualifiedName, cls.name)
+      case member: Member => (member.declaringClass.pkg.qualifiedName, member.name)
+      case pkg: CgscriptPackage => (pkg.qualifiedName, "")
+    }
 
-    val classes = allClasses map { cls =>
+    var packageMemberCount = 0
 
-      val memberLink = s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>"""
+    val summaries = membersToSummarize.zipWithIndex map { case (member, index) =>
 
-      val description = {
-        try {
-          cls.declNode flatMap { _.docComment } match {
-            case Some(comment) => ClassRenderer(cls).processDocComment(comment, firstSentenceOnly = true)
-            case None => "&nbsp;"
+      // TODO There is surely a more elegant way to combine these cases
+      val (memberLink, description) = member match {
+
+        case cls: CgscriptClass =>
+          (s"""<a class="valid" href="${cls.pkg.path mkString "/"}/${cls.name}.html#top">${cls.qualifiedName}</a>""",
+            try {
+              cls.declNode flatMap { _.docComment } match {
+                case Some(comment) => ClassRenderer(cls).processDocComment(comment, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            } catch {
+              case exc: CgsuiteException =>
+                logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
+            }
+          )
+
+        case member: Member =>
+          (s"""<a class="valid" href="${member.declaringClass.pkg.path mkString "/"}/constants.${member.name}.html#top">${member.displayName}</a>""",
+            try {
+              docCommentForMember(member) match {
+                case Some((commentStr, _)) =>
+                  ClassRenderer(member.declaringClass).processDocComment(commentStr, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            } catch {
+              case exc: CgsuiteException =>
+                logger warn s"Error rendering member `${member.qualifiedName}`: `${exc.getMessage}`"
+            }
+          )
+
+        case pkg: CgscriptPackage =>
+          (s"""<a class="valid" href="${pkg.path mkString "/"}/constants.html#top">${pkg.qualifiedName}</a>""",
+            try {
+              val constantsClass = pkg.lookupClassInScope(Symbol("constants"))
+              constantsClass flatMap { _.declNode } flatMap { _.docComment } match {
+                case Some(comment) => ClassRenderer(constantsClass.get).processDocComment(comment, firstSentenceOnly = true)
+                case None => "&nbsp;"
+              }
+            } catch {
+              case exc: CgsuiteException =>
+                logger warn s"Error rendering package `${pkg.qualifiedName}`: `${exc.getMessage}`"
+            }
+          )
+
+      }
+
+      val etype = entityType(member)
+
+      val rowBreak = {
+        // Put a row break before each package except the first.
+        if (index > 0 && member.isInstanceOf[CgscriptPackage]) {
+          if (packageMemberCount % 2 == 0) {
+            // If index is even, put a double row-break (each half height) to ensure we "rectify the count".
+            s"""  <tr class="rowsep1"><td colspan="3" class="rowsep"></td></tr><tr class="rowsep2"><td colspan="3" class="rowsep"></td></tr>"""
+          } else {
+            // Just a single row-break.
+            s"""  <tr class="rowsep"><td colspan="3" class="rowsep"></td></tr>"""
           }
-        } catch {
-          case exc: CgsuiteException =>
-            logger warn s"Error rendering class `${cls.qualifiedName}`: `${exc.getMessage}`"
+        } else {
+          ""
         }
       }
 
-      s"""  <tr>
+      if (member.isInstanceOf[CgscriptPackage]) {
+        packageMemberCount = 0
+      }
+
+      packageMemberCount += 1
+
+      s"""  $rowBreak
+         |  <tr>
+         |    <td class="entitytype">
+         |      <b>$etype</b>
+         |    </td>
          |    <td class="entitytype">
          |      $memberLink
          |    </td>
@@ -755,7 +855,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
          |      $description
          |    </td>
          |  </tr>
-       """.stripMargin
+         |""".stripMargin
 
     }
 
@@ -763,7 +863,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     referenceDir.createDirectories()
     file overwrite header
-    classes foreach file.append
+    summaries foreach file.append
     file append footer
 
   }
@@ -777,9 +877,9 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       }
       val markdown = Markdown(targetFile.nameWithoutExtension, rawInput, linkBuilder, nextImageOrdinal, stripAsterisks, firstSentenceOnly)
       val varMap = mutable.AnyRefMap[Symbol, Any]()
-      markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale), ordinal) =>
+      markdown.evalStatements.zipWithIndex.foreach { case ((statement, scale, preferredImageWidth), ordinal) =>
         try {
-          generateImages(targetFile, statement, scale, nextImageOrdinal + ordinal, varMap)
+          generateImages(targetFile, statement, scale, preferredImageWidth, nextImageOrdinal + ordinal, varMap)
         } catch {
           case exc: Throwable =>
             if (!reportedImageException) {
@@ -801,22 +901,23 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
     }
   }
 
-  def generateImages(targetFile: File, statement: String, rescale: Double, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
+  def generateImages(targetFile: File, statement: String, rescale: Double, preferredImageWidth: Int, ordinal: Int, varMap: mutable.AnyRefMap[Symbol, Any]): Unit = {
     val output = org.cgsuite.lang.System.evaluateOrException(statement, varMap)
     val outputFilePrefix = s"${targetFile.parent}/${targetFile.nameWithoutExtension}-$ordinal"
     if (output.nonEmpty) {
       for (scale <- Vector(1.0, 2.0)) {
-        generateImage(output.last, outputFilePrefix, scale, rescale)
+        generateImage(output.last, outputFilePrefix, scale, rescale, preferredImageWidth)
       }
     }
   }
 
-  def generateImage(output: Output, outputFilePrefix: String, scale: Double, rescale: Double): Unit = {
-    val size = output.getSize(HelpBuilder.preferredImageWidth)
+  def generateImage(output: Output, outputFilePrefix: String, scale: Double, rescale: Double, preferredImageWidth: Int): Unit = {
+    val scaledImageWidth = (preferredImageWidth / rescale).toInt
+    val size = output.getSize(scaledImageWidth)
     val image = new BufferedImage((size.width * scale * rescale).toInt, (size.height * scale * rescale).toInt, BufferedImage.TYPE_INT_ARGB)
     val g2d = image.getGraphics.asInstanceOf[Graphics2D]
     g2d.scale(scale * rescale, scale * rescale)
-    output.paint(g2d, HelpBuilder.preferredImageWidth)
+    output.paint(g2d, scaledImageWidth)
     val outputFile = new java.io.File(f"$outputFilePrefix-$scale%1.1fx.png")
     //ImageUtil.writeHiResImage(image, outputFile, "png", 144)
     ImageIO.write(image, "png", outputFile)
@@ -827,6 +928,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 case class HelpLinkBuilder(
   targetRootDir: File,
   targetDir: File,
+  externalBuild: Boolean,
   backPath: String,
   fixedTargets: Map[String, String],
   referringPackage: CgscriptPackage,
@@ -858,7 +960,11 @@ case class HelpLinkBuilder(
 
   def hyperlinkForExternalPath(ref: String, textOpt: Option[String]): String = {
 
-    s"""<a class="valid" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a>"""
+    if (externalBuild) {
+      s"""<a class="external" href="$ref">${textOpt getOrElse "??????"}</a>"""
+    } else {
+      s"""<a class="external" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a> (external link)"""
+    }
 
   }
 

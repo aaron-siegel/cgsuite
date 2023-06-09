@@ -5,31 +5,73 @@
 system class String
 
   /** The character appearing at the specified index in this string.
-    * The result will be another `String` with a single character, or
-    * [[Nothing]] if the index is out of range.
+    * The result will be another `String` with a single character.
+    *
+    * \display{"Winning Ways"[11]}
     */
   external def op[](index as Integer);
 
+  /** The concatenation of this `String` and `that`.
+    *
+    * \display{"Winning".Concat(" Ways")}
+    */
   external def Concat(that as String);
 
+  /** The length of this `String`.
+    */
   external def Length;
 
+  /** `true` if this `String` matches the specified regular expression.
+    *
+    * \display{"Winning Ways".Matches("W.+ W.+")}
+    *
+    * CGSuite uses Java regular expressions. For a complete description of the regular expression syntax, see the Java
+    * [[https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html][Summary of regular expression constructs]].
+    */
   external def Matches(regex as String);
 
+  /** Replaces all occurrences of the specified target in this `String` with the specified replacement.
+    *
+    * \display{"Winning Ways".Replace("W", "Gr")}
+    */
   external def Replace(target as String, replacement as String);
 
+  /** Replaces all occurrences of the specified regular expression in this `String` with the specified replacement.
+    *
+    * \display{"Winning Ways".ReplaceRegex("W(.)[a-z]*", "M$1sh")}
+    *
+    * CGSuite uses Java regular expressions. For a complete description of the regular expression syntax, see the Java
+    * [[https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html][Summary of regular expression constructs]].
+    */
   external def ReplaceRegex(regex as String, replacement as String);
 
+  /** The substring of this `String` bounded by the specified indices (inclusive).
+    *
+    * \display{"Winning Ways".Substring(2, 7)}
+    */
   external def Substring(startIndex as Integer, endIndex as Integer);
 
+  /** The `String` obtained by replacing all uppercase letters in this `String` with lowercase.
+    *
+    * \display{"Winning Ways".ToLowerCase}
+    */
   external def ToLowerCase;
 
   override def ToOutput := "\"" + this + "\"";
 
+  /** Generates an instance of [[Output]] containing the text of this `String` without quote marks. */
   def ToUnquotedOutput := cgsuite.util.output.TextOutput(this);
 
+  /** The `String` obtained by replacing all uppercase letters in this `String` with lowercase.
+    *
+    * \display{"Winning Ways".ToUpperCase}
+    */
   external def ToUpperCase;
 
+  /** The `String` obtained by replacing the letter at the specified index with the specified value.
+    *
+    * \display{"Winning Ways".Updated(11, "r")}
+    */
   external def Updated(index as Integer, value as String);
 
 end

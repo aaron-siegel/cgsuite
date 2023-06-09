@@ -1,7 +1,13 @@
 /*${cgsuite.banner}*/
 
+/** A finite pseudonumber in canonical form.
+  *
+  * A ~~pseudonumber~~ is a stopper $P$ such that for every subposition $Q$ of $P$,
+  *
+  * $Q^L < Q^R$ for every $Q^L$ and $Q^R$.
+  *
+  * It can be shown that the only finite pseudonumbers are $on$, $off$, and games of the form $x$, $x + over$, or
+  * $x + under$, where $x$ is a dyadic rational.
+  */
 system class Pseudonumber extends CanonicalStopper
-
-  external def Blowup;
-
 end

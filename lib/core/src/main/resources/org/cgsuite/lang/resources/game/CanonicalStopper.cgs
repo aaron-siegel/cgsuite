@@ -1,5 +1,16 @@
 /*${cgsuite.banner}*/
 
+/** A finite stopper in canonical form.
+  *
+  * A ~~stopper~~ is a loopy game $G$ such that no subposition of $G$ admits an infinite ~alternating~ sequence of
+  * play. It can be shown that stoppers have canonical forms in normal play, just like ordinary loopfree games (see
+  * \ww, Chapter 11 or \cgt, Chapter VI).
+  *
+  * A `CanonicalStopper` represents both a (normal-play) game value
+  * and the canonical form of that value, and
+  * therefore extends both the [[Game]] and [[NormalValue]] classes. It is the most general class of game values
+  * for which this is the case.
+  */
 system class CanonicalStopper extends Game, StopperSidedValue
 
   /** The degree of loopiness of this stopper.
@@ -27,14 +38,22 @@ system class CanonicalStopper extends Game, StopperSidedValue
     */
   external def DownsumVariety(deg as CanonicalStopper);
 
-  /** The number of distinct followers of this game.
+  /** `true` if this game is stable.
+    *
+    * A stopper `G` of degree `D` is ~~stable~~ if its upsum and downsum variety
+    * relative to degree `D` are equal, i.e., if
+    *
+    * `(G UpsumVariety D) == (G DownsumVariety D)`.
+    *
+    * It was previously conjectured that every stopper whose degree is an idempotent
+    * is stable (and hence has a well-defined variety), but in 2022 Ian Grenville
+    * found a counterexample to this conjecture: the unstable game
+    *
+    * `U := a{0|{0||||0,*2|||a|0||0}||0}`
+    *
+    * See \ww, Chapter 11 or \cgt, Chapter VI for the relevant theory.
     */
-  external def FollowerCount;
-
-  /** A [[Collection]] of all the followers of this game. Each
-    * distinct follower appears exactly once in the `Collection`.
-    */
-  external def Followers;
+  external def IsStable;
 
   /** The Left stop of this game. `G.LeftStop` is equivalent to `G.Stop(Left)`.
     *
@@ -58,8 +77,8 @@ system class CanonicalStopper extends Game, StopperSidedValue
     *
     * The stops `L(G)` and `R(G)` are defined for all [[CanonicalStopper][stoppers]] by
     *
-    * `L(G) = R(G) = G` if `G` is a pseudonumber; \\
-    * `L(G) = max{R(G^L^)}`, `R(G) = min{L(G^R^)}` otherwise.
+    * $L(G) = R(G) = G$ if $G$ is a pseudonumber; \\
+    * $L(G) = max{R(G^L^)}$, $R(G) = min{L(G^R^)}$ otherwise.
     *
     * If `G` is loopfree (i.e., an instance of [[CanonicalShortGame]]), then `L(G)` and `R(G)`
     * will necessarily be [[DyadicRational]]s, since the only loopfree pseudonumbers are ordinary
@@ -83,6 +102,20 @@ system class CanonicalStopper extends Game, StopperSidedValue
     * See also [[#Stop]].
     */
   external def StrongStop(player as Player);
+
+  /** The subordinate of this game to the specified base.
+    *
+    * `G.Subordinate(B)` is the unique `H` such that `G = B:H`. The base `B` must be a short game
+    * (but not necessarily in canonical form). If `G` cannot be expressed in the form `B:H`, then
+    * an error will occur.
+    *
+    * \display{(3/8).Subordinate(1)}
+    *
+    * Subordinating to a non-canonical base:
+    *
+    * \display{^.Subordinate('{*|*}')}
+    */
+  external def Subordinate(base as Game);
 
   /** Shorthand for the game `{0||0|-this}`.
     */
@@ -109,17 +142,15 @@ system class CanonicalStopper extends Game, StopperSidedValue
 
   /** The variety of this stopper.
     *
-    * The ~Stability Conjecture~ asserts that
-    * `G UpsumVariety D == G DownsumVariety D`
-    * for every stopper `G`, where `D = G.Degree`. When this identity holds,
-    * the common value is the ~variety~ of `G`.
+    * A stopper `G` of degree `D` is ~~stable~~ if its upsum and downsum variety
+    * relative to degree `D` are equal, i.e., if
     *
-    * Since the Stability Conjecture is unproven, `G.Variety` will first test it
-    * against `G`. If the Stability Conjecture fails for `G`, then an error
-    * will be raised. If you ever see this error, congratulations! You've
-    * found a counterexample.
+    * `(G UpsumVariety D) == (G DownsumVariety D)`.
     *
-    * See \ww, Chapter 11 or \cgt, Chapter VI for the relevant theory.
+    * When this identity holds, the common value is the ~~variety~~ of `G`.
+    *
+    * If `G` is not stable, then an error will be raised. Stability can be checked
+    * in advance with the [[#IsStable]] method.
     */
   external def Variety;
 

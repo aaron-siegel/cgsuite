@@ -1,5 +1,6 @@
 /*${cgsuite.banner}*/
 
+/** An arbitrary finite loopy game value. */
 system class SidedValue extends NormalValue
 
   external def op+(that as SidedValue) as SidedValue;

@@ -1,6 +1,20 @@
 /*${cgsuite.banner}*/
 
-system class NegativeGame extends Game
+/** The negative of an underlying game `G`.
+  *
+  * This class takes an arbitrary game `G` as a parameter and represents the structure of the negative of `G`.
+  * It is normally not necessary to construct instances of `NegativeGame` directly: the notation `-G` is usually
+  * preferred to `NegativeGame(G)`. They differ, however, in that `-G` will be simplified when possible, whereas
+  * `NegativeGame(G)` will always be returned in its unsimplified form. Compare:
+  *
+  * \display{-*2}
+  *
+  * \display{NegativeGame(*2)}
+  */
+system class NegativeGame(
+  /** The underlying `Game` of this `NegativeGame`. */
+  G as Game
+  ) extends Game
 
   external override def ToOutput;
 

@@ -61,12 +61,20 @@ system class Strip
     */
   external def ToString(charMap as String) as String;
 
+  /** The `Strip` obtained from this `Strip` by replacing the value at the specified index with the specified new
+    * value. Example:
+    *
+    * \display{strip := Strip.Empty(8);
+    *  strip.Updated(5, 1)}
+    */
+  external def Updated(index as Integer, newValue as Integer) as Strip;
+
   /** The `Strip` obtained from this `Strip` by applying the replacement values specified by `newValues`.
     *
     * `newValues` must be a `Map` whose keys and values are [[Integer]]s. For example:
     *
     * \display{strip := Strip.Empty(8);
-    *  strip.Updated({ 2 => 1, 5 => 1 }).ToString(".x")}
+    *  strip.Updated({ 2 => 1, 5 => 1 })}
     */
   external def Updated(newValues as Map) as Strip;
 

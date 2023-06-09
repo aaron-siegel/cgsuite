@@ -1,8 +1,16 @@
 /*${cgsuite.banner}*/
 
+/** Enumerated type with two values, `Onside` and `Offside`.
+  *
+  * The ~~onside~~ and ~~offside~~ are defined in the context of loopy game values. See [[SidedValue]] and
+  * [[StopperSidedValue]]. The theory is described in \ww, Chapter 11 and \cgt, Chapter VI.
+  */
 system enum Side
 
+  /** Enumerated value representing the `Onside` of a game value. */
   external Onside,
+
+  /** Enumerated value representing the `Offside` of a game value. */
   external Offside;
 
   external override def Literal;

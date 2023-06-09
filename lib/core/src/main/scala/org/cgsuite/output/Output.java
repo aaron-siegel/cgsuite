@@ -31,6 +31,7 @@ package org.cgsuite.output;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
 import java.io.Serializable;
 
@@ -88,6 +89,10 @@ public interface Output extends OutputTarget, Serializable
      * @param   preferredWidth The desired width of the output, in pixels.
      */
     void paint(Graphics2D graphics, int preferredWidth);
+
+    BufferedImage toImage(int preferredWidth);
+
+    OutputBox box();
         
     /**
      * An output mode.

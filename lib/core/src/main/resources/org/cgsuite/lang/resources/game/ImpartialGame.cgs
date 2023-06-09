@@ -38,14 +38,46 @@ system class ImpartialGame extends Game
     */
   external def Genus;
 
-  /** The misere canonical form of this `ImpartialGame`.
+  /** The misère canonical form of this `ImpartialGame`.
     *
-    *
+    * The ~misère canonical form~ of an impartial game $G$ is the simplest game
+    * that is equal to $G$ in misère play. See the documentation for
+    * [[game.misere.MisereCanonicalGame]] for details on how misère canonical form
+    * is represented in CGSuite.
     */
-  external def MisereCanonicalForm;
+  external def MisereCanonicalForm as game.misere.MisereCanonicalGame;
+
+  /** The misère nim value of this `ImpartialGame`.
+    *
+    * The misère nim value $g^-^(G)$ of $G$ is defined recursively by:
+    *
+    * $g^-^(G) = 1$ if $G = 0$\\
+    * $g^-^(G) = mex{g(G') : G' \in G}$ otherwise
+    *
+    * Equivalently, it is the unique natural number $m$ such that $G + *m$ is a P-position
+    * (but unlike in normal play, it is ~not~ necessarily the case that $G = *m$).
+    */
   external def MisereNimValue;
+
+  /** The nim value of this `ImpartialGame`.
+    *
+    * The Nim value $g(G)$ of $G$ is defined recursively by:
+    *
+    * $g(G) = mex{g(G') : G' \in G}$
+    *
+    * Equivalently, it is the unique natural number $m$ such that $G = *m$ (in normal play).
+    *
+    * Nim value is sometimes referred to as the ~~Grundy value~~ or ~~Grundy number~~ of $G$.
+    */
   external def NimValue;
+
+
   override def Options := error("Subclasses of `ImpartialGame` must implement the `Options` method.");
+
+  /** The options of this `Game` for the specified `Player`.
+    *
+    * Subclasses of `ImpartialGame`
+    */
   override def Options(player as Player) := Options;
 
 end

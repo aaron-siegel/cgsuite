@@ -1,0 +1,91 @@
+<html>
+
+<head>
+  <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+  <link rel="stylesheet" href="./cgsuite-web.css" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Combinatorial Game Suite</title>
+</head>
+
+<body>
+
+<div class="spacer">
+
+<br>
+
+<div class="section">
+<p class="title" align="center">Download CGSuite</p>
+<hr>
+
+<p>&nbsp;
+<div class="thinspacer">
+
+<p>To download CGSuite, choose one of the versions below. Most users will want the latest stable version, but if you're
+feeling adventurous and want access to all the newest features, you can try the latest beta instead.</p>
+
+</div>
+
+<br><hr><br>
+
+<div class="thinspacer">
+
+<table cellpadding="4" style="margin-left: 16px;">
+  <tr>
+    <td>Latest Stable Release:&nbsp;&nbsp;&nbsp;</td>
+    <td id="latestVersion"></td>
+  </tr>
+  <tr>
+    <td>Latest Beta Release:</td>
+    <td id="latestBeta"></td>
+  </tr>
+  <tr>
+    <td>All Earlier Releases:</td>
+    <td><a class="valid" href="https://www.github.com/aaron-siegel/cgsuite/releases">Github Releases Page</a></td>
+  </tr>
+</table>
+
+</div>
+
+<br><hr><br>
+
+<div class="thinspacer">
+
+<p>From the Release page, download the appropriate installer for your operating system (<code>.dmg</code> for Mac,
+<code>.exe</code> for Windows, or <code>.sh</code> for Linux), run it, and you're good to go!</p>
+
+<p>Once you've installed CGSuite, you can access its extensive documentation in the Help system. If you're new to
+CGSuite, or if this is your first time using version 2.0 or later, a good place to start is the <i>Getting Started</i>
+tutorial (select "Getting Started" from the Help menu).</p>
+
+<p>CGSuite and site content are (c) 2003-2023 Aaron Siegel.</p>
+
+<p>&nbsp;</p>
+
+</div>
+
+<script>
+  function setVersion(id, name, link) {
+    var element = document.getElementById(id);
+    var aTag = document.createElement("a");
+    var linkText = document.createTextNode(name);
+    aTag.appendChild(linkText);
+    aTag.className = "valid"
+    aTag.href = "https://www.github.com/aaron-siegel/cgsuite/releases/".concat(link);
+    element.appendChild(aTag);
+  }
+  function setNA(id) {
+    var element = document.getElementById(id);
+    var text = document.createTextNode("None");
+    element.appendChild(text);
+  }
+  fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases/latest')
+    .then(response => response.json())
+    .then(release => setVersion("latestVersion", release.name, "latest"))
+  fetch('https://api.github.com/repos/aaron-siegel/cgsuite/releases')
+    .then(response => response.json())
+    .then(releases => { releases[0].name.includes("beta") ? setVersion("latestBeta", releases[0].name, "tag/".concat(releases[0].tag_name)) : setNA("latestBeta") })
+</script>
+</div></div>
+
+</body></html>

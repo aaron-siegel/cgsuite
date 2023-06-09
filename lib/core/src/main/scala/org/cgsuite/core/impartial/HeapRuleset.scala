@@ -23,7 +23,7 @@ trait HeapRuleset {
 
     override def advance(): Boolean = {
       if (it.hasNext) {
-        current = it.next().toSeq
+        current = it.next()
         true
       } else {
         false

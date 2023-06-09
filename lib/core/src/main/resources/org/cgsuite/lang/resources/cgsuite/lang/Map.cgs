@@ -1,6 +1,6 @@
 /*${cgsuite.banner}*/
 
-/** A collection that maps keys to values.
+/** A [[Collection]] that maps keys to values.
   *
   * Basic usage of maps is discussed in the [[/tutorials/getting-started/cgscript]]
   * tutorial page.
@@ -25,11 +25,11 @@ system class Map extends Collection
     */
   external def op[](key);
 
-  /** `true` if the specified key is present in this map.
+  /** `true` if the specified key is present in this `Map`.
     */
   external def ContainsKey(key);
 
-  /** The entries of this map, as a [[Set]] of [[MapEntry]] objects.
+  /** The entries of this `Map`, as a [[Set]] of [[MapEntry]] objects.
     */
   external def Entries;
 

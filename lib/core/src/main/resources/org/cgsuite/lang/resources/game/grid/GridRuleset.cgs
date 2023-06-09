@@ -45,6 +45,8 @@ class GridRuleset extends Ruleset
     override def ToOutput :=
       cgsuite.util.output.GridOutput(grid, [icon.Literal for icon in Icons], this.Class.Name + "(\"" + grid.ToString(CharMap) + "\")");
 
+    def GridString := grid.ToString(CharMap);
+
   end
 
 end

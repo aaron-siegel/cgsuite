@@ -8,8 +8,10 @@ import cc.redberry.rings.scaladsl._
 import cc.redberry.rings.scaladsl.syntax._
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 
+import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -20,6 +22,7 @@ object SurrealNumber {
     construct(numerator, denominator)
   }
 
+  @tailrec
   private def construct(numerator: GeneralizedOrdinal, denominator: GeneralizedOrdinal, isReduced: Boolean = false): SurrealNumber = {
     (numerator, denominator) match {
       case (intNum: Integer, intDen: Integer) => RationalNumber(intNum, intDen)
@@ -106,7 +109,9 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
 
   def abs: SurrealNumber = if (this < zero) -this else this
 
-  def birthday: GeneralizedOrdinal = ???
+  def birthday: GeneralizedOrdinal = {
+    throw EvalException("`Birthday` is not yet implemented for the general `SurrealNumber` (only for `Rational` and `GeneralizedOrdinal`).")
+  }
 
   def sign: Integer = numerator.sign
 
@@ -147,6 +152,9 @@ trait SurrealNumber extends NormalValue with OutputTarget with Ordered[SurrealNu
   )
 
   override def <=(other: SurrealNumber): Boolean = super[Ordered].<=(other)
+
+  def min(other: SurrealNumber): SurrealNumber = if (this < other) this else other
+  def max(other: SurrealNumber): SurrealNumber = if (this > other) this else other
 
   def exp(n: Integer): SurrealNumber = {
     (numerator exp n) / (denominator exp n)

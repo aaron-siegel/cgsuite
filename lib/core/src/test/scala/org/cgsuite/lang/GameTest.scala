@@ -12,7 +12,12 @@ class GameTest extends CgscriptSpec {
       ("MinValue-1", "-2147483649", "-2147483649"),
       ("Max", "3.Max(-2147483648)", "3"),
       ("NimSum", "[11 NimSum n for n from 1 to 16]", "[10,9,8,15,14,13,12,3,2,1,0,7,6,5,4,27]"),
+      ("NimSum (invalid)", "11 NimSum -1", "!!NimSum applies only to nonnegative integers."),
       ("NimProduct", "[8 NimProduct n for n from 1 to 16]", "[8,12,4,11,3,7,15,13,5,1,9,6,14,10,2,128]"),
+      ("NimProduct (invalid)", "11 NimProduct -1", "!!NimProduct applies only to nonnegative integers."),
+      ("NimInverse", "[n.NimInverse for n from 1 to 16]", "[1,3,2,15,12,9,11,10,6,8,7,5,14,13,4,170]"),
+      ("NimInverse (invalid)", "0.NimInverse", "!!NimInverse applies only to positive integers."),
+      ("NimDiv", "[11 NimDiv n for n from 1 to 16]", "[11,6,13,8,14,2,15,4,10,9,1,12,3,5,7,68]"),
       ("UglyProduct", "[14 UglyProduct n for n from 1 to 16]", "[14,13,3,13,3,0,14,7,9,10,4,10,4,7,9,23]"),
       ("Div", "17.Div(4)", "4"),
       ("Div by 0", "17.Div(0)", "!!/ by zero"),
@@ -25,6 +30,12 @@ class GameTest extends CgscriptSpec {
       ("Lb(-32)", "(-32).Lb", "!!Argument to Lb is not strictly positive: -32"),
       ("Lb(-2^40)", "(-2^40).Lb", "!!Argument to Lb is not strictly positive: -1099511627776"),
       //("Random", "Integer.SetSeed(0); [Integer.Random(100) from 1 to 5]", "[61,49,30,48,16]"),
+      ("NimInverse check",
+        """for n from 1 to 3000 do
+          |  if n NimProduct n.NimInverse != 1 then
+          |    error("NimInverse failed at " + n.ToString);
+          |  end
+          |end""".stripMargin, "Nothing"),
       ("Isqrt",
         """
           |for n from 0 to 3000 do
@@ -48,7 +59,7 @@ class GameTest extends CgscriptSpec {
 
   }
 
-  "game.GeneralizedOrdinal" should "implement methods correctly" in {
+  "game.GeneralizedOrdinal" should "implement unary methods correctly" in {
 
     val unaryInstances = Seq(
       ("omega", "\u03C9", "GeneralizedOrdinal", "\u03C9", "\u03C9", "1", "true", "L"),
@@ -56,8 +67,8 @@ class GameTest extends CgscriptSpec {
       ("omega+5", "\u03C9+5", "GeneralizedOrdinal", "\u03C9+5", "\u03C9+5", "1", "true", "L"),
       ("omega-5", "\u03C9-5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "1", "false", "L"),
       ("-omega+5", "-\u03C9+5", "GeneralizedOrdinal", "\u03C9-5", "\u03C9+5", "-1", "false", "R"),
-      ("omega*5", "5\u03C9", "GeneralizedOrdinal", "5\u03C9", "5\u03C9", "1", "true", "L"),
-      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-5\u03C9^19+\u03C9^2+1", "\u03C9^\u03C9+5\u03C9^19+\u03C9^2+1", "1", "false", "L")
+      ("omega*5", "\u03C9\u00d75", "GeneralizedOrdinal", "\u03C9\u00d75", "\u03C9\u00d75", "1", "true", "L"),
+      ("omega^omega-5*omega^19+omega^2+1", "\u03C9^\u03C9-\u03C9^19\u00d75+\u03C9^2+1", "GeneralizedOrdinal", "\u03C9^\u03C9-\u03C9^19\u00d75+\u03C9^2+1", "\u03C9^\u03C9+\u03C9^19\u00d75+\u03C9^2+1", "1", "false", "L")
     )
 
     val unaryTests = unaryInstances flatMap { case (x, xOut, cls, abs, birthday, sign, isOrdinal, outcomeClass) =>
@@ -73,6 +84,51 @@ class GameTest extends CgscriptSpec {
     } map { case (expr, result) => (expr, expr, result) }
 
     executeTests(Table(header, unaryTests : _*))
+
+  }
+
+  it should "implement >=2-ary methods correctly" in {
+
+    val instances = Seq(
+      ("(omega^omega*4 + omega^3*9 + 11) NimSum (omega^omega*6 + omega^3*5 + omega)", "ω^ω×2+ω^3×12+ω+11"),
+      ("omega NimProduct 7", "ω×7"),
+      ("omega NimProduct omega", "ω^2"),
+      ("omega NimProduct omega^2", "2"),
+      ("omega^3 NimProduct omega^3", "ω^6"),
+      ("omega^3 NimProduct omega^6", "ω"),
+      ("omega^3 NimProduct omega^8", "2"),
+      ("omega^8 NimProduct omega^8", "ω^5×2"),
+      ("omega^omega NimProduct omega^(omega*4)", "4"),
+      ("omega^(omega*49) NimProduct omega^(omega*100)", "4"),
+      ("omega^(omega^2*4) NimProduct omega^(omega^2*3)", "ω+1"),
+      ("omega^(omega^2*31) NimProduct omega^(omega^2*24)", "ω+1"),
+      ("omega^(omega^2*32) NimProduct omega^(omega^2*24)", "ω^(ω^2+1)+ω^ω^2"),
+      ("omega NimExp 3", "2"),
+      ("omega^3 NimExp 9", "2"),
+      ("omega^27 NimExp 81", "2"),
+      ("omega^(omega^41) NimExp 191", "ω^ω^6+ω^ω"),
+      ("omega^(omega^42) NimExp 193", "ω+65536"),
+      ("omega^omega^3 NimExp 66", "ω^(ω×4)+ω^(ω×2)+ω^ω×4+1"),   // The example on p. 449-450 of CGT
+      ("omega^omega^13 NimExp 47", "ω^ω^7+1"),                  // Lenstra's example
+      ("omega^omega^omega NimProduct 2", "!!NimProduct out of range."),
+      ("omega^omega^1000 NimProduct 2", "!!NimProduct out of range."),
+      ("(omega-1) NimSum 2", "!!NimSum applies only to ordinals."),
+      ("(omega-1) NimProduct 2", "!!NimProduct applies only to ordinals.")
+    )
+
+    executeTests(Table(
+      header,
+      instances map { case (expr, result) => (expr, expr, result) }: _*
+    ))
+
+  }
+
+  "game.TransfiniteNimber" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("ConwayProduct", "(*omega) ConwayProduct *(omega^2)", "*2")
+    ))
 
   }
 
@@ -166,12 +222,12 @@ class GameTest extends CgscriptSpec {
       ("{3||2+*|1+*}.Heat(-3)", "1"),
       ("{3||2+*|1+*}.Heat(-4)", "0"),
       ("{3||2+*|1+*}.Heat(*)", "{3*||2|1}"),
-      ("0.NortonMultiply(^)", "0"),
-      ("6.NortonMultiply(^)", "^6"),
-      ("(-4).NortonMultiply(^)", "v4"),
-      ("(1/2).NortonMultiply(^)", "{^^*|v*}"),
-      ("^.NortonMultiply(^)", "{^^*||0|v4}"),
-      ("Tiny(2).NortonMultiply(^)", "{^^*||0|v6}"),
+      ("0.NortonProduct(^)", "0"),
+      ("6.NortonProduct(^)", "^6"),
+      ("(-4).NortonProduct(^)", "v4"),
+      ("(1/2).NortonProduct(^)", "{^^*|v*}"),
+      ("^.NortonProduct(^)", "{^^*||0|v4}"),
+      ("Tiny(2).NortonProduct(^)", "{^^*||0|v6}"),
       ("{3||2+*|1+*}.Overheat(*,1+*)", "{1||+-(1*)|-1,{-1|-3}}"),
       ("(7/16).Overheat(0,0)", "^[3]"),
       ("^.Pow({pass|1})", "!!Invalid exponent."),
@@ -198,7 +254,14 @@ class GameTest extends CgscriptSpec {
       ("{0||0|-2}.PowTo({5|pass})", "{{Tiny(2)||0|-2|||0|-2||||0|-2}||0|-2|||{0|-2},pass}"),
       ("{0||0|-2}.PowTo(on)", "{pass||0|-2}"),
       ("(+-1).PowTo(3)", "{1,{1,+-1|-1}|-1}"),
-      ("(+-1).Pow(3)", "!!Invalid base for `Pow` operation (base must be of the form {0|H}).")
+      ("(+-1).Pow(3)", "!!Invalid base for `Pow` operation (base must be of the form {0|H})."),
+      ("(1/8).Subordinate(1)", "-3"),
+      ("(^.PowTo(5)+*).Subordinate(*)", "5"),
+      ("*.Subordinate(1)", "!!That game cannot be subordinated to the specified base."),
+      ("(+-1).Subordinate(0)", "+-1"),
+      ("(+-1).Subordinate(+-1)", "0"),
+      ("(-13/16).Subordinate(-1)", "3/8"),
+      ("^.PowTo(5).Subordinate('{*|*}')", "5")    // Subordinating to a non-canonical base
     )
 
     executeTests(Table(
@@ -221,6 +284,13 @@ class GameTest extends CgscriptSpec {
     val instances = Seq(
       ("upon.Downsum(^.Pow(on))", "^[on]"),
       ("upon.DownsumVariety(^.Pow(on))", "v<on>"),
+      ("over.Subordinate(1)", "off"),
+      ("(upon+*).Subordinate(*)", "on"),
+      ("upon.Subordinate('{*|*}')", "on"),
+      ("{0,*|0,pass}.Subordinate(*)", "over"),
+      ("on.Subordinate(1)", "on"),
+      ("over.Subordinate(1)", "off"),
+      ("on.Subordinate(*)", "!!That game cannot be subordinated to the specified base."),
       ("upon.Upsum(^.Pow(on))", "{0|^<on>*}"),
       ("upon.UpsumVariety(^.Pow(on))", "v<on>")
     )
@@ -295,6 +365,34 @@ class GameTest extends CgscriptSpec {
       //  "!!That game is loopy (not a short game). If that is intentional, it must implement the `DepthHint` method. See the CGSuite documentation for more details.")
     ))
 
+  }
+
+  it should "implement methods correctly" in {
+    executeTests(Table(
+      header,
+      ("Followers", """game.grid.Amazons("x...|o...").Followers.Size""", "2784")
+    ))
+  }
+
+  "game.CompoundGame" should "implement compounds correctly" in {
+
+    val tests = CompoundGameTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests : _*))
+
+  }
+
+  it should "implement negatives correctly" in {
+    executeTests(Table(
+      header,
+      ("-ConjunctiveSum", "-(1 ConjunctiveSum '{1|0}')", "-1 ConjunctiveSum '{0|-1}'"),
+      ("-ConwayProduct", "-(1 ConwayProduct '{1|0}')", "-(1 * '{1|0}')"),
+      ("-ConwayProduct", "-(1/2 ConwayProduct '{1|0}')", "-(1/2 ConwayProduct '{1|0}')"),
+      ("-DisjunctiveSum", "-(1 + '{1|0}')", "-1 + '{0|-1}'"),
+      ("-OrdinalProduct", "-(1 OrdinalProduct '{1|0}')", "-(1 OrdinalProduct '{1|0}')"),
+      ("-OrdinalSum", "-(1 : '{1|0}')", "-1 : '{0|-1}'"),
+      ("-ConjunctiveSum", "-(1 SelectiveSum '{1|0}')", "-1 SelectiveSum '{0|-1}'"),
+    ))
   }
 
   "game.Player" should "behave correctly" in {

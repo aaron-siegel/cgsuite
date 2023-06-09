@@ -1,25 +1,60 @@
 /*${cgsuite.banner}*/
 
+/** Base class for impartial rulesets with positions represented by a coordinate pair.
+  *
+  * A position in a coordinate ruleset `R` is represented by a pair of integers $(a,b)$.
+  * From a position $R((a,b))$,
+  * a typical legal move is to a disjunctive sum of coordinates
+  *
+  * $R((a_1_,b_1_)) + R((a_2_,b_2_)) + \cdots + R((a_k_,b_k_))$.
+  *
+  * Subclasses of `CoordinateRuleset` must implement [[#CoordinateOptions]], which takes as input a [[Coordinates]]
+  * and returns a [[Collection]] of `Coordinates`. For example, the ruleset `Mem^0^` (move from $(n,k)$ to any
+  * $(n-a,a)$, with $1 \leq a \leq n$ and $a \neq k$) might be implemented by:
+  *
+  * `override def CoordinateOptions(coord as Coordinates) begin` \\
+  * `\sp{}var n := coord.Row; var k := coord.Col;` \\
+  * `\sp{}[(n - a, a) for a from 1 to n where a != k]` \\
+  * `end`
+  */
 class CoordinateRuleset extends Ruleset
 
+  /** Creates a new `CoordinateRuleset` with options given by the specified function. */
   static def Eval(fn as Function) := FunctionalCoordinateRuleset(fn);
 
+  /** The position of this ruleset with the specified coordinates. */
   def Eval(coord as Coordinates) := Position(coord);
 
+  /** The position of this ruleset with the specified coordinates. Identical to `Eval((row, col))`. */
   def Eval(row as Integer, col as Integer) := Position((row, col));
 
-  /** The `CoordinateRuleset` obtained by adjoining moves from `that` to this ruleset.
+  /** The `CoordinateRuleset` obtained by adjoining options from `that` to this ruleset.
+    *
+    * The result will be a new ruleset whose options include all the options from both component rulesets.
     */
   def Adjoin(that as CoordinateRuleset) := FunctionalCoordinateRuleset
     ((m, n) -> CoordinateOptions((m, n)) Concat that.CoordinateOptions((m, n)));
 
+  /** The options from the specified `Coordinates`.
+    *
+    * `CoordinateOptions` must always return a [[Collection]] of `Coordinates`.
+    */
   def CoordinateOptions(coord as Coordinates) := error("Subclasses of `CoordinateRuleset` must implement `CoordinateOptions`.");
 
+  /** A table of nim values of positions of this ruleset.
+    *
+    * The table will contain the nim values of `R((a,b))` for `0 \leq a \leq maxRow` and `0 \leq b \leq maxCol`.
+    */
   def NimValueTable(maxRow as Integer, maxCol as Integer) begin
     Table([Position((m, n)).NimValue for n from 0 to maxCol] for m from 0 to maxRow)
   end
 
-  class Position(coord as Coordinates) extends ImpartialGame
+  /** A position of this ruleset.
+    *
+    * Subclasses of `CoordinateRuleset` do not need to implement a `Position` class directly and should instead implement
+    * [[#CoordinateOptions]].
+    */
+    class Position(coord as Coordinates) extends ImpartialGame
 
     def Coord := coord;
 

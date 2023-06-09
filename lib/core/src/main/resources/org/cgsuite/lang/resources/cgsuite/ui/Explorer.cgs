@@ -1,9 +1,21 @@
 /*${cgsuite.banner}*/
 
+/** A CGSuite explorer instance.
+  *
+  * An instance of this class corresponds to a single Explorer window in the CGSuite user interface.
+  * It can be used to interact with the explorer window from the Worksheet.
+  */
 system class Explorer
 
+  /** Creates a new Explorer window with the specified `Game` as the root.
+    * Shorthand for `Explorer.NewExplorer(g)`.
+    */
+  static def Eval(g as Game) := NewExplorer(g);
+
+  /** Creates a new Explorer window with the specified `Game` as the root. */
   external static def NewExplorer(g as Game);
 
+  /** The `Game` at the currently selected node in this `Explorer`. */
   external def Selection;
 
 end

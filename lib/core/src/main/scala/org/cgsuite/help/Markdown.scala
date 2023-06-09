@@ -59,15 +59,27 @@ object Markdown {
     "sim" -> "~",
     "sp" -> "&nbsp;&nbsp;",
     "cdot" -> "&middot;",
+    "cdots" -> "&ctdot;",
     "doubleup" -> "&uArr;",
     "times" -> "&times;",
     "otimes" -> "&otimes;",
     "oplus" -> "&oplus;",
+    "oast" -> "&circledast;",
     "lip" -> "&lip;",
     "Sigma" -> "&Sigma;",
     "lt" -> "&lt;",
+    "alpha" -> "&alpha;",
+    "beta" -> "&beta;",
+    "gamma" -> "&gamma;",
+    "delta" -> "&delta;",
     "epsilon" -> "&epsilon;",
+    "omega" -> "&omega;",
     "in" -> "&isin;",
+    "wedge" -> "&wedge;",
+    "vee" -> "&vee;",
+    "cong" -> "&cong;",
+    "tiny" -> "&#x2795;",
+    "miny" -> "&#x2796;",
     "comment" -> "<!--",
     "endcomment" -> "-->"
   )
@@ -80,7 +92,7 @@ object Markdown {
 
 }
 
-case class Markdown(text: String, hasFooter: Boolean, evalStatements: Vector[(String, Double)])
+case class Markdown(text: String, hasFooter: Boolean, evalStatements: Vector[(String, Double, Int)])
 
 trait LinkBuilder {
 
@@ -102,7 +114,7 @@ class MarkdownBuilder(
   private var style = Style.Normal
   private var location = Location.Normal
   private val result = new StringBuffer()
-  private val evalStatements = ArrayBuffer[(String, Double)]()
+  private val evalStatements = ArrayBuffer[(String, Double, Int)]()
   private var previousParagraphEnded = false
   private var hasFooter = false
 
@@ -119,10 +131,12 @@ class MarkdownBuilder(
     (state, style, location, stream.next) match {
 
       // Special commands
-      case (_, _, _, Special(str, arg)) => resolveSpecial(str, arg)
+      case (_, _, _, Special(str, args)) => resolveSpecial(str, args)
 
-      // If in a summary, just echo a link
-      case (_, _, _, Link(target, text)) if firstSentenceOnly => prepareParagraph(); text getOrElse { s"<code>$target</code>" }
+      // If in a summary, just echo a link, replacing # with .
+      case (_, _, _, Link(target, text)) if firstSentenceOnly =>
+        prepareParagraph()
+        text getOrElse { s"<code>${target.replace('#', '.')}</code>" }
 
       // Link to build
       case (_, _, _, Link(target, text)) => prepareParagraph(); linkBuilder.hyperlink(target, text)
@@ -190,16 +204,17 @@ class MarkdownBuilder(
     }
   }
 
-  def resolveSpecial(str: String, arg: Option[String]): String = {
+  def resolveSpecial(str: String, args: Vector[String]): String = {
 
     str match {
 
-      case "eval" => resolveExec(arg, showInput = false, showOutput = true)
-      case "evalHalf" => resolveExec(arg, showInput = false, showOutput = true, scale = 0.5)
-      case "evalText" => resolveExecText(arg)
-      case "display" => resolveExec(arg, showInput = true, showOutput = true)
-      case "displayAndHide" => resolveExec(arg, showInput = true, showOutput = false)
-      case "classDiagram" => classDiagram(arg getOrElse { sys.error("Missing hierarchy arg") })
+      case "eval" => resolveExec(args, showInput = false, showOutput = true)
+      case "evalHalf" => resolveExec(args, showInput = false, showOutput = true, scale = 0.5)
+      case "evalText" => resolveExecText(args)
+      case "display" => resolveExec(args, showInput = true, showOutput = true)
+      case "displayHalf" => resolveExec(args, showInput = true, showOutput = true, scale = 0.5)
+      case "displayAndHide" => resolveExec(args, showInput = true, showOutput = false)
+      case "classDiagram" => classDiagram(args.headOption getOrElse { sys.error("Missing hierarchy arg") })
 
       case "footer" => hasFooter = true; "\n</div>\n"
 
@@ -209,46 +224,56 @@ class MarkdownBuilder(
 
   }
 
-  def resolveExec(inputOpt: Option[String], showInput: Boolean, showOutput: Boolean, scale: Double = 1.0): String = {
-    prepareParagraph()
-    inputOpt match {
-      case None => sys.error("eval special missing input")
-      case Some(input) =>
+  def resolveExec(args: Vector[String], showInput: Boolean, showOutput: Boolean, scale: Double = 1.0): String = {
 
-        evalStatements += ((input, scale))
-
-        val inputString = {
-          if (showInput && showOutput)
-            s"<pre>&gt; $input</pre>"
-          else if (showInput)
-            s"<pre>$input</pre>"
-          else
-            ""
-        }
-
-        val imageFilePrefix = s"$imageTargetPrefix-${nextImageOrdinal + evalStatements.length - 1}"
-        val outputString = {
-          if (showOutput) {
-            val style = if (showInput) "" else " style=\"vertical-align: middle; margin: 2pt 0pt 2pt 0pt;\""
-            val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x"$style />"""
-            if (showInput) {
-              s"""<p style="margin-top:-10pt;">$imgString</p>"""
-            } else {
-              imgString
-            }
-          } else ""
-        }
-        s"$inputString$outputString"
-
+    if (args.isEmpty) {
+      sys.error("eval special missing input")
     }
+
+    prepareParagraph()
+    val input = args.head
+    val preferredImageWidth = {
+      if (args.length > 1) {
+        args(1).toInt
+      } else {
+        HelpBuilder.preferredImageWidth
+      }
+    }
+    evalStatements += ((input, scale, preferredImageWidth))
+
+    val inputString = {
+      if (showInput && showOutput)
+        s"<pre>&gt; $input</pre>"
+      else if (showInput)
+        s"<pre>$input</pre>"
+      else
+        ""
+    }
+
+    val imageFilePrefix = s"$imageTargetPrefix-${nextImageOrdinal + evalStatements.length - 1}"
+    val outputString = {
+      if (showOutput) {
+        val style = if (showInput) "" else " style=\"vertical-align: middle; margin: 2pt 0pt 2pt 0pt;\""
+        val imgString = s"""<img src="$imageFilePrefix-1.0x.png" srcset="$imageFilePrefix-2.0x.png 2x"$style />"""
+        if (showInput) {
+          s"""<p style="margin-top:-10pt;">$imgString</p>"""
+        } else {
+          imgString
+        }
+      } else ""
+    }
+    s"$inputString$outputString"
+
   }
 
-  def resolveExecText(arg: Option[String]): String = {
-    prepareParagraph()
-    arg match {
-      case None => sys.error("eval special missing input")
-      case Some(input) => org.cgsuite.lang.System.evaluateOrException(input, mutable.AnyRefMap()).head.toString
+  def resolveExecText(args: Vector[String]): String = {
+
+    if (args.isEmpty) {
+      sys.error("eval special missing input")
     }
+    prepareParagraph()
+    org.cgsuite.lang.System.evaluateOrException(args.head, mutable.AnyRefMap()).head.toString
+
   }
 
   def emit(ch: Char): Unit = result append ch

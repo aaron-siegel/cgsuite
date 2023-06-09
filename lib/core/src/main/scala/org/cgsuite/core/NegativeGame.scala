@@ -11,7 +11,13 @@ case class NegativeGame(g: Game) extends Game {
   override def toOutput = {
     val sto = new StyledTextOutput
     sto.appendMath("-")
-    sto.appendOutput(g.toOutput)
+    g match {
+      case _: CompoundGame =>
+        sto.appendMath("(")
+        sto.appendOutput(g.toOutput)
+        sto.appendMath(")")
+      case _ => sto.appendOutput(g.toOutput)
+    }
     sto
   }
 

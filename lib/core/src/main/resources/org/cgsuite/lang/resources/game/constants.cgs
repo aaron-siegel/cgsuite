@@ -5,23 +5,90 @@
  */
 singleton class constants
 
+  /** Convenience alias for [[Player#Left]]. */
   var Left := Player.Left;
+
+  /** Convenience alias for [[Player#Right]]. */
   var Right := Player.Right;
 
+  /** Convenience alias for [[Side#Onside]]. */
   var Onside := Side.Onside;
+
+  /** Convenience alias for [[Side#Offside]]. */
   var Offside := Side.Offside;
 
+  /** The constant value `inf`.
+    *
+    * `inf` is defined in CGSuite by:
+    *
+    * `inf := 1/0`
+    *
+    * It is an instance of [[Rational]] and is treated as a member of the rational number system, with the expected
+    * order-relations.
+    */
   var inf := 1/0;
+
+  /** The constant value `omega`.
+    *
+    * `omega` is the smallest infinite ordinal (equivalently, the ordinal supremum of the natural numbers). It is
+    * defined in CGSuite by:
+    *
+    * `omega := 1.OmegaPower`
+    */
   var omega := 1.OmegaPower;
 
+  /** The constant value `on`.
+    *
+    * `on` is the [[CanonicalStopper]] defined by:
+    *
+    * `on := {pass|}`
+    */
   var on := {pass|};
-  var off := -on;
-  var dud := on & off;
-  var over := {0|pass};
-  var under := -over;
-  var upon := {pass|*};
 
-  def Miny(g as CanonicalStopper) := {g|0||0};
-  def Tiny(g as CanonicalStopper) := {0||0|-g};
+  /** The constant value `off`.
+    *
+    * `off` is the [[CanonicalStopper]] defined by:
+    *
+    * `off := -on` (equivalently, `off := {|pass}`)
+    */
+  var off := -on;
+
+  /** The constant value `dud`.
+    *
+    * `dud` is the [[StopperSidedValue]] defined by:
+    *
+    * `dud := on + off` (equivalently, `dud := {pass|pass}`)
+    */
+  var dud := on & off;
+
+  /** The constant value `over`.
+    *
+    * `over` is the [[CanonicalStopper]] defined by:
+    *
+    * `over := {0|pass}`
+    */
+  var over := {0|pass};
+
+  /** The constant value `under`.
+    *
+    * `under` is the [[CanonicalStopper]] defined by:
+    *
+    * `under := -over` (equivalently, `under = {pass|0}`)
+    */
+  var under := -over;
+
+  /** The constant value `upon`.
+    *
+    * `upon` is the [[CanonicalStopper]] defined by:
+    *
+    * `upon := {pass|*}`
+    */
+    var upon := {pass|*};
+
+  /** The game $\miny_G$ (miny-$G$). Equal to ${G|0||0}$. */
+  def Miny(G as CanonicalStopper) := {G|0||0};
+
+  /** The game $\tiny_G$ (tiny-$G$). Equal to ${0||0|-G}$. */
+  def Tiny(G as CanonicalStopper) := {0||0|-G};
 
 end

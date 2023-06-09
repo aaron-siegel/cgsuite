@@ -1,9 +1,24 @@
 /*${cgsuite.banner}*/
 
+/** A CGScript script.
+  *
+  * A ~~script~~ is a sequence of CGScript statements that can be run as a single command. Any `.cgs` file that does
+  * not contain a `class` defines a script, which can be run using standard function notation:
+  *
+  * `> startup();`
+  *
+  * Scripts are discussed in more detail in the
+  * [[/tutorials/getting-started/using-the-worksheet]] tutorial.
+  */
 system class Script
 
+  /** The short name of this `Script`, as a [[String]]. */
   external def Name;
+
+  /** The class ordinal of this `Script`. See [[Class#Ordinal]] for details. */
   external def Ordinal;
+
+  /** The fully qualified name of this `Script`, as a [[String]]. */
   external def QualifiedName;
 
   override def ToOutput := Class.ToOutput;

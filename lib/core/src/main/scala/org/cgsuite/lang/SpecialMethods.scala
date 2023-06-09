@@ -2,10 +2,10 @@ package org.cgsuite.lang
 
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
-import org.cgsuite.exception.{EvalException, InvalidArgumentException}
+import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException}
 import org.cgsuite.lang.CgscriptClass.SafeCast
-import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Graph, Symmetry, Table}
+import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
+import org.cgsuite.util.{Coordinates, Graph, Symmetry, Table}
 
 import scala.collection.mutable
 
@@ -51,9 +51,18 @@ object SpecialMethods {
     "cgsuite.util.MutableList.Sort" -> { (list: mutable.ArrayBuffer[Any], _: Unit) => list.sortInPlace()(UniversalOrdering) },
     "cgsuite.util.MutableMap.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.util.Symmetry.Literal" -> { (symmetry: Symmetry, _: Unit) => symmetry.toString },
+    "game.CompoundType.Literal" -> { (compoundType: CompoundType, _: Unit) => compoundType.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
-    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString }
+    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString },
+    "cgsuite.lang.List.ScatterPlot" -> { (list: IndexedSeq[_], _: Unit) =>
+      val listOfInts = list map {
+        case n: Integer => n.intValue
+        case _ => throw NotNumberException("Invalid `ScatterPlot`: That list contains an element that is not an `Integer`.")
+      }
+      val coordinates = listOfInts.zipWithIndex map { case (n, index) => Coordinates(n, index + 1) }
+      ScatterPlotOutput(coordinates)
+    }
 
   )
 
@@ -123,6 +132,18 @@ object SpecialMethods {
     "cgsuite.util.MutableList.AddAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list ++= x; null },
     "cgsuite.util.MutableList.Remove" -> { (list: mutable.ArrayBuffer[Any], x: Any) => list -= x; null },
     "cgsuite.util.MutableList.RemoveAll" -> { (list: mutable.ArrayBuffer[Any], x: Iterable[_]) => list --= x; null },
+    "cgsuite.util.MutableList.RemoveAt" -> { (list: mutable.ArrayBuffer[Any], index: Integer) =>
+      val i = index.intValue
+      if (i >= 1 && i <= list.length) {
+        list.remove(i.intValue - 1)
+      } else {
+        throw EvalException(s"List index out of bounds: $index")
+      }
+    },
+    "cgsuite.util.MutableList.SortWith" -> { (list: mutable.ArrayBuffer[Any], fn: Function) =>
+      validateArity(fn, 2)
+      list.sortInPlace()((x: Any, y: Any) => fn.call(Array(x, y)).castAs[Integer].intValue)
+    },
     "cgsuite.util.MutableSet.Add" -> { (set: mutable.Set[Any], x: Any) => set += x; null },
     "cgsuite.util.MutableSet.AddAll" -> { (set: mutable.Set[Any], x: Iterable[_]) => set ++= x; null },
     "cgsuite.util.MutableSet.Remove" -> { (set: mutable.Set[Any], x: Any) => set -= x; null },

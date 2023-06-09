@@ -204,7 +204,7 @@ class CgscriptClass(
     case None => nameAsFullyScopedMember
   }
 
-  val qualifiedName: String = {
+  override val qualifiedName: String = {
     if (pkg.isRoot)
       name
     else
@@ -575,7 +575,7 @@ class CgscriptClass(
     }
 
     val localEnumElements: Vector[Var] = enumElementNodes map { declNode =>
-      Var(declNode.idNode, Some(declNode), declNode.modifiers)
+      Var(declNode.idNode, Some(declNode), declNode.modifiers, isEnumElement = true)
     }
 
     val systemConstructorMethods: Vector[Method] = {
@@ -775,7 +775,7 @@ class CgscriptClass(
 
     }
 
-    val staticVarLookup: Map[Symbol, Var] = localStaticVars.map { v => (v.id, v) }.toMap
+    val staticVarLookup: Map[Symbol, Var] = (localStaticVars ++ localEnumElements).map { v => (v.id, v) }.toMap
 
     val inheritedInstanceVars: Vector[CgscriptClass#Var] = supers.flatMap { _.classInfo.allInstanceVars }.distinct
     val allInstanceVars: Vector[CgscriptClass#Var] = constructorParamVars ++ inheritedInstanceVars ++ localInstanceVars
@@ -913,7 +913,12 @@ class CgscriptClass(
               token = Some(localDeclarations.head.idNode.token)
             )
           }
-          if (matchingMethods.size > 1 && !localDeclarations.head.modifiers.hasOverride) {
+          if (matchingMethods.size > 1 && !localDeclarations.head.modifiers.hasOverride &&
+              // There is an edge case in which a constructor parameter is externalized and is
+              // therefore treated as a Method. For now, we special-case system methods.
+              // (Example: CompoundImpartialGame constructor parameters)
+              // TODO Find a more graceful solution to this
+              !localDeclarations.head.isInstanceOf[SystemMethod]) {
             throw EvalException(
               s"Method `${localDeclarations.head.qualifiedName}` must be declared with `override`, since it overrides `${matchingMethods(1).qualifiedName}`",
               token = Some(localDeclarations.head.idNode.token)
@@ -938,7 +943,7 @@ class CgscriptClass(
         if (mostSpecificMethods.size > 1) {
           assert(localDeclarations.isEmpty)   // Otherwise, localDeclarations.head should have filtered out everything else
           throw EvalException(
-            s"Method `${mostSpecificMethods.head.methodName}` must be declared explicitly in class `$qualifiedName`, " +
+            s"Method `${mostSpecificMethods.head.name}` must be declared explicitly in class `$qualifiedName`, " +
               s"because it is defined in multiple superclasses (`${mostSpecificMethods.head.declaringClass.qualifiedName}`, `${mostSpecificMethods(1).declaringClass.qualifiedName}`)",
             token = Some(classDeclNode.idNode.token)
           )
@@ -1172,6 +1177,12 @@ class CgscriptClass(
       classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("NHat"))) = NHat
       classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("NCheck"))) = NCheck
     }
+    if (qualifiedName == "game.CompoundType") {
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("ConwayProduct"))) = ConwayProduct
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("DisjunctiveSum"))) = DisjunctiveSum
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("OrdinalSum"))) = OrdinalSum
+      classObjectRef.vars(classInfoRef.staticVarOrdinals(Symbol("OrdinalProduct"))) = OrdinalProduct
+    }
     if (qualifiedName == "cgsuite.util.Symmetry") {
       import Symmetry._
       Map(Symbol("Identity") -> Identity, Symbol("Inversion") -> Inversion, Symbol("HorizontalFlip") -> HorizontalFlip, Symbol("VerticalFlip") -> VerticalFlip,
@@ -1218,7 +1229,8 @@ class CgscriptClass(
     idNode: IdentifierNode,
     declNode: Option[MemberDeclarationNode],
     modifiers: Modifiers,
-    asConstructorParam: Option[Parameter] = None
+    asConstructorParam: Option[Parameter] = None,
+    isEnumElement: Boolean = false
   ) extends Member {
 
     def declaringClass = thisClass
@@ -1239,9 +1251,7 @@ class CgscriptClass(
 
     val methodsWithArguments = methods filter { !_.autoinvoke }
 
-    def name = methods.head.methodName
-
-    def qualifiedName = methods.head.qualifiedName
+    def name = methods.head.name
 
     def isStatic = methods.head.isStatic
 
@@ -1318,9 +1328,7 @@ class CgscriptClass(
 
     def call(obj: Any, args: Array[Any]): Any
 
-    val methodName = idNode.id.name
     val declaringClass = thisClass
-    val qualifiedName = declaringClass.qualifiedName + "." + methodName
     val qualifiedId = Symbol(qualifiedName)
     val parametersSignature = if (autoinvoke) "" else s"(${parameters.map { _.paramType.qualifiedName }.mkString(", ")})"
     val locationMessage = s"in call to `$qualifiedName`"
@@ -1403,6 +1411,8 @@ class CgscriptClass(
       */
       Profiler.start(reflect)
       try {
+        logger.debug(javaMethod.toString)
+        if (!isStatic) logger.debug(target.getClass.toString)
         internalize(javaMethod.invoke(target, args.asInstanceOf[Array[AnyRef]] : _*))
       } catch {
         case exc: IllegalArgumentException => throw EvalException(
@@ -1413,6 +1423,8 @@ class CgscriptClass(
             case nestedExc: CgsuiteException =>
               // TODO nestedExc.setInvocationTarget(qualifiedName)
               throw nestedExc
+            case nestedExc: StackOverflowError =>
+              throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", nestedExc)
             case nestedExc => throw EvalException(s"Error in call to `$qualifiedName`: ${nestedExc.getMessage}", nestedExc)
           }
         )

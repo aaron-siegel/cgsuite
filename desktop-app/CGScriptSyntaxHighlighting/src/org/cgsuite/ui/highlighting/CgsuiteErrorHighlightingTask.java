@@ -24,7 +24,7 @@ import org.netbeans.spi.editor.hints.Severity;
  *
  * @author asiegel
  */
-public class CgsuiteErrorHighlightingTask extends ParserResultTask
+public class CgsuiteErrorHighlightingTask extends ParserResultTask<Result>
 {
     @Override
     public void run(Result result, SchedulerEvent event)
@@ -32,11 +32,11 @@ public class CgsuiteErrorHighlightingTask extends ParserResultTask
         try
         {
             CgsuiteEditorParserResult cgsResult = (CgsuiteEditorParserResult) result;
-            List<SyntaxError> errors = new ArrayList<SyntaxError>();
+            List<SyntaxError> errors = new ArrayList<>();
             errors.addAll(cgsResult.getCgsuiteLexer().getErrors());
             errors.addAll(cgsResult.getCgsuiteParser().getErrors());
             Document document = result.getSnapshot().getSource().getDocument(false);
-            List<ErrorDescription> errorDescriptions = new ArrayList<ErrorDescription>();
+            List<ErrorDescription> errorDescriptions = new ArrayList<>();
             
             for (SyntaxError error : errors)
             {

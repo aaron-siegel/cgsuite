@@ -52,6 +52,10 @@ class EvalTest extends CgscriptSpec {
       ("Nim operator (misere spec - recursive", "*[[2],0]", "*[2#0]"),
       ("Nim operator (misere spec - invalid", "*[\"foo\"]", "!!Invalid misere game specifier: must be a `List` of `Integer`s or `MisereCanonicalGame`s"),
       ("Nim operator (negative value)", "*(-8)", "!!Nim value is negative: -8"),
+      ("Nim operator (transfinite)", "*(omega*omega)", "*ω^2"),
+      ("Nim operator (transfinite sum)", "*(omega+5)", "*(ω+5)"),
+      ("Nim operator (transfinite product)", "*(omega*5)", "*(ω×5)"),
+      ("Nim operator (non-ordinal)", "*(omega-1)", "!!Nim value is not an ordinal: ω-1"),
       ("Nim operator (invalid type)", "*\"foo\"", "!!No operation `nim` for argument of type `cgsuite.lang.String`"),
       ("Ups", "^^^^^^+vvv*+^19*3+v14", "^8*2"),
       ("Up operator (invalid type)", "^\"foo\"", "!!No operation `up` for arguments of types `cgsuite.lang.String`, `game.Zero`"),
@@ -64,9 +68,9 @@ class EvalTest extends CgscriptSpec {
       ("Dyadic times non-dyadic", "(1/2) * (1/3)", "1/6"),
       ("Ordinal plus integer", "omega + 5", "\u03C9+5"),
       ("Integer minus ordinal", "5 - omega", "-\u03C9+5"),
-      ("Multiple ordinal expression", "omega*3 + omega^(omega^2+omega) - omega^19*9*omega", "\u03C9^(\u03C9^2+\u03C9)-9\u03C9^20+3\u03C9"),
+      ("Multiple ordinal expression", "omega*3 + omega^(omega^2+omega) - omega^19*9*omega", "\u03C9^(\u03C9^2+\u03C9)-\u03C9^20\u00d79+\u03C9\u00d73"),
       ("Ordinal cancellation", "(omega + 5)-omega", "5"),
-      ("Ordinal exponentiation", "(omega^omega^2+1)^6", "\u03C9^(6\u03C9^2)+6\u03C9^(5\u03C9^2)+15\u03C9^(4\u03C9^2)+20\u03C9^(3\u03C9^2)+15\u03C9^(2\u03C9^2)+6\u03C9^\u03C9^2+1"),
+      ("Ordinal exponentiation", "(omega^omega^2+1)^6", "\u03C9^(\u03C9^2\u00d76)+\u03C9^(\u03C9^2\u00d75)\u00d76+\u03C9^(\u03C9^2\u00d74)\u00d715+\u03C9^(\u03C9^2\u00d73)\u00d720+\u03C9^(\u03C9^2\u00d72)\u00d715+\u03C9^\u03C9^2\u00d76+1"),
       ("Surreal number", "1/omega", "1/\u03C9"),
       ("Surreal number plus surreal number", "omega^omega + 1/(omega+1)", "(\u03C9^(\u03C9+1)+\u03C9^\u03C9+1)/(\u03C9+1)"),
       ("Surreal number simplification", "(omega^(omega+1)-omega^omega-omega+1)/(omega-1)", "\u03C9^\u03C9-1")
@@ -346,7 +350,7 @@ class EvalTest extends CgscriptSpec {
         """.stripMargin, """["foo","bar"]"""),
       ("Function involving assignment - syntax error", "x -> y := x", "!!Syntax error."),
       ("False eval", "5(3)", "!!No method `Eval` for class: `game.Integer`"),
-      ("Function eval - infinite recursion", "j := n -> j(n); j(5)", "!!Possible infinite recursion.")
+      ("Function eval - infinite recursion", "j := n -> j(n); j(5)", "!!Maximum recursive depth exceeded. (Possible infinite recursion?)")
     ))
 
   }
@@ -406,7 +410,7 @@ class EvalTest extends CgscriptSpec {
     executeTests(Table(
       header,
       ("Invalid argument type (System method)", "3.NimSum(1/2)",
-        "!!Argument `that` (in call to `game.Integer.NimSum`) has type `game.DyadicRational`, which does not match expected type `game.Integer`"),
+        "!!Method `NimSum` in class `game.Integer` cannot be applied to argument types: `game.DyadicRational`"),
       ("Invalid argument type (Special method)", "[1,2,3].Grouped(*)",
         "!!Argument `n` (in call to `cgsuite.lang.List.Grouped`) has type `game.Nimber`, which does not match expected type `game.Integer`")
     ))
@@ -438,15 +442,15 @@ class EvalTest extends CgscriptSpec {
       ("Overloaded - call unary CanonicalShortGame", "test.overloaded.OverloadedMethods.Method(*2)", "5"),
       ("Overloaded - call binary with named parameter", "test.overloaded.OverloadedMethods.Method2(9, y => 11)", "7"),
       ("Overloaded - invalid unary", "test.overloaded.OverloadedMethods.Method(true)",
-        "!!Method `test.overloaded.OverloadedMethods.Method` cannot be applied to argument types: `cgsuite.lang.Boolean`"),
+        "!!Method `Method` in class `test.overloaded.OverloadedMethods` cannot be applied to argument types: `cgsuite.lang.Boolean`"),
       ("Overloaded - invalid binary", "test.overloaded.OverloadedMethods.Method(3, true)",
-        "!!Method `test.overloaded.OverloadedMethods.Method` cannot be applied to argument types: `game.Integer`, `cgsuite.lang.Boolean`"),
+        "!!Method `Method` in class `test.overloaded.OverloadedMethods` cannot be applied to argument types: `game.Integer`, `cgsuite.lang.Boolean`"),
       ("Overloaded - ambiguous unary", "test.overloaded.OverloadedMethods.Method(1/2)",
-        "!!Method `test.overloaded.OverloadedMethods.Method` is ambiguous when applied to argument types: `game.DyadicRational`"),
+        "!!Method `Method` in class `test.overloaded.OverloadedMethods` is ambiguous when applied to argument types: `game.DyadicRational`"),
       ("Overloaded - invalid nullary", "test.overloaded.OverloadedMethods.Method2()",
-        "!!Method `test.overloaded.OverloadedMethods.Method2` cannot be applied to argument types: ()"),
+        "!!Method `Method2` in class `test.overloaded.OverloadedMethods` cannot be applied to argument types: ()"),
       ("Overloaded - invalid autoinvoke", "test.overloaded.OverloadedMethods.Method2",
-        "!!Expected arguments for method: `test.overloaded.OverloadedMethods.Method2`"),
+        "!!Expected arguments for method `Method2` in class `test.overloaded.OverloadedMethods`"),
       ("Overloaded - invalid parameter name", "test.overloaded.OverloadedMethods.Method2(z => 0)",
         "!!Invalid parameter name (in call to `test.overloaded.OverloadedMethods.Method2`): `z`"),
       ("Overloaded - named parameter shadows argument", "test.overloaded.OverloadedMethods.Method2(5, x => 6)",

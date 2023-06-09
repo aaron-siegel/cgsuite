@@ -1,23 +1,40 @@
 /*${cgsuite.banner}*/
 
+/** A mutable [[Collection]] with at most one copy of each element.
+  *
+  * `MutableSet` is the mutable analog of [[Set]]; it is a set whose elements may be modified.
+  *
+  * It is advisable to use mutable collections sparingly; see the [[/tutorials/getting-started/cgscript]] tutorial for further discussion.
+  */
 mutable system class MutableSet() extends Collection
 
+  /** Constructs a new `MutableSet` and populates it with the elements of the specified `Collection`. */
   static def Eval(initialElements as Collection) begin
     var set := MutableSet();
     set.AddAll(initialElements);
     set
   end
 
+  /** Adds the specified element to this `MutableSet`. */
   external def Add(element);
 
+  /** Adds all of the elements in the specified `Collection` to this `MutableSet`. */
   external def AddAll(elements as Collection);
 
+  /** Removes all elements from this `MutableSet`. */
   external def Clear();
 
+  /** `true` if this `MutableSet` contains the specified element. */
   external def Contains(element);
 
+  /** Removes the specified element from this `MutableSet`. If the specified element is not contained in this
+    * `MutableSet`, there will be no effect.
+    */
   external def Remove(element);
 
+  /** Removes all elements in the specified `Collection` from this `MutableSet`. Elements in the `Collection` that
+    * are not present in this `MutableSet` will be ignored.
+    */
   external def RemoveAll(elements as Collection);
 
   override def ToOutput := "MutableSet(" + ToList.Sorted.MkOutput(", ") + ")";

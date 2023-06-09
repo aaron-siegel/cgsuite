@@ -91,6 +91,28 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
     }
   }
 
+  private[lang] def validateResult[T: Manifest](methodName: String, className: String, obj: Any): T = {
+    obj match {
+      case t: T => t
+      case x =>
+        throw EvalException(
+          s"The `$methodName` method in class `${cls.qualifiedName}` returned an invalid value of type `${CgscriptClass.of(x).qualifiedName}` (expected a `$className`)."
+        )
+    }
+  }
+
+  private[lang] def validateResultCollection[T: Manifest](methodName: String, className: String, obj: Any): Iterable[T] = {
+    val result = validateResult[Iterable[_]](methodName, "cgsuite.lang.Collection", obj)
+    result foreach {
+      case _: T =>
+      case x =>
+        throw EvalException(
+          s"The `$methodName` returned by class `${cls.qualifiedName}` includes an element of type `${CgscriptClass.of(x).qualifiedName}`, which is not a `$className`."
+        )
+    }
+    result.asInstanceOf[Iterable[T]]
+  }
+
 }
 
 class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty)
@@ -99,42 +121,25 @@ class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = nu
   extends StandardObject(cls, objArgs, enclosingObj) with Game {
 
   def options(player: Player): Iterable[Game] = {
-
-    val collection: Iterable[_] = optionsToCollection(cls.classInfo.optionsMethodWithParameter.call(this, Array(player)))
-
-    collection map {
-      case g: Game => g
-      case x =>
-        throw EvalException(
-          s"The `Options` returned by class `${cls.qualifiedName}` include an object of type `${CgscriptClass.of(x).qualifiedName}`, which is not a `Game`."
-        )
-    }
-
+    val result = cls.classInfo.optionsMethodWithParameter.call(this, Array(player))
+    validateResultCollection[Game]("Options", "game.Game", result)
   }
 
   override def canonicalForm: CanonicalShortGame = canonicalForm(cls.transpositionCache)
 
   override def gameValue: SidedValue = gameValue(cls.transpositionCache)
 
-  override def decomposition: Iterable[_] = {
-    cls.classInfo.decompositionMethod.call(this, Array.empty).asInstanceOf[Iterable[_]]
+  override def decomposition: Iterable[Game] = {
+    val result = cls.classInfo.decompositionMethod.call(this, Array.empty)
+    validateResultCollection[Game]("Decomposition", "game.Game", result)
   }
 
   override def depthHint: Int = {
-    cls.classInfo.depthHintMethod.call(this, Array.empty).asInstanceOf[Integer].intValue
+    val result = cls.classInfo.depthHintMethod.call(this, Array.empty)
+    validateResult[Integer]("DepthHint", "game.Integer", result).intValue
   }
 
   override def gameName: String = cls.qualifiedName
-
-  private[lang] def optionsToCollection(obj: Any): Iterable[_] = {
-    obj match {
-      case it: Iterable[_] => it
-      case x =>
-        throw EvalException(
-          s"The `Options` method in class `${cls.qualifiedName}` returned an invalid value of type `${CgscriptClass.of(x).qualifiedName}` (expected a `Collection`)."
-        )
-    }
-  }
 
 }
 
@@ -142,21 +147,13 @@ class ImpartialGameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj:
   extends GameObject(cls, objArgs, enclosingObj) with ImpartialGame {
 
   override def options: Iterable[ImpartialGame] = {
+    val result = cls.classInfo.optionsMethod.call(this, Array.empty)
+    validateResultCollection[ImpartialGame]("Options", "game.ImpartialGame", result)
+  }
 
-    val collection = optionsToCollection(cls.classInfo.optionsMethod.call(this, Array.empty))
-
-    collection map {
-      case g: ImpartialGame => g
-      case g: Game =>
-        throw EvalException(
-          s"Class `${cls.qualifiedName}` is an `ImpartialGame`, but its `Options` include a partizan `Game`."
-        )
-      case x =>
-        throw EvalException(
-          s"The `Options` returned by class `${cls.qualifiedName}` include an object of type `${CgscriptClass.of(x).qualifiedName}`, which is not a `Game`."
-        )
-    }
-
+  override def decomposition: Iterable[ImpartialGame] = {
+    val result = cls.classInfo.decompositionMethod.call(this, Array.empty)
+    validateResultCollection[ImpartialGame]("Decomposition", "game.ImpartialGame", result)
   }
 
   override def misereCanonicalForm: MisereCanonicalGame = misereCanonicalForm(cls.transpositionCache)
@@ -169,7 +166,12 @@ class HeapRulesetObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: A
   extends StandardObject(cls, objArgs, enclosingObj) with HeapRuleset {
 
   override def heapOptions(heapSize: Integer) = {
-    cls.classInfo.heapOptionsMethod.call(this, Array(heapSize)).asInstanceOf[Iterable[IndexedSeq[Integer]]]   // TODO Better error handling
+    val result = cls.classInfo.heapOptionsMethod.call(this, Array(heapSize))
+    val collection = validateResultCollection[IndexedSeq[_]]("HeapOptions", "cgsuite.lang.List", result)
+    collection foreach {
+      validateResultCollection[Integer]("HeapOptions", "game.Integer", _)
+    }
+    collection.asInstanceOf[Iterable[IndexedSeq[Integer]]]
   }
 
 }

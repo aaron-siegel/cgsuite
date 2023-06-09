@@ -28,6 +28,8 @@
 
 package org.cgsuite.ui.worksheet;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JEditorPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
@@ -36,6 +38,22 @@ public class InputPane extends JEditorPane
 {
     public InputPane()
     {
+        addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    showPopupMenu(evt);
+                }
+            }
+            @Override public void mouseReleased(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    showPopupMenu(evt);
+                }
+            }
+        });
+    }
+
+    public void showPopupMenu(MouseEvent evt) {
+        PopupMenuHelper.INPUT_PANE_POPUP_MENU.show(this, evt.getX(), evt.getY());
     }
     
     public void insert(String str, int pos)

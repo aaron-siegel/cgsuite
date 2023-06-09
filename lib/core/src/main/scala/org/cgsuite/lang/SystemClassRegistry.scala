@@ -41,7 +41,6 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
 
     "cgsuite.util.Strip" -> classOf[Strip],
-    "cgsuite.util.Genus" -> classOf[Genus],
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.Graph" -> classOf[Graph[_]],
@@ -67,6 +66,7 @@ private[lang] object SystemClassRegistry {
     "game.Rational" -> classOf[RationalNumber],
     "game.SurrealNumber" -> classOf[SurrealNumber],
     "game.Nimber" -> classOf[Nimber],
+    "game.TransfiniteNimber" -> classOf[TransfiniteNimber],
     "game.Uptimal" -> classOf[Uptimal],
     "game.CanonicalShortGame" -> classOf[CanonicalShortGame],
     "game.Pseudonumber" -> classOf[Pseudonumber],
@@ -75,6 +75,7 @@ private[lang] object SystemClassRegistry {
     "game.SidedValue" -> classOf[SidedValue],
     "game.NormalValue" -> classOf[NormalValue],
 
+    "game.misere.Genus" -> classOf[Genus],
     "game.misere.MisereCanonicalGame" -> classOf[MisereCanonicalGame],
 
     "game.CompoundImpartialGame" -> classOf[CompoundImpartialGame],
@@ -85,6 +86,7 @@ private[lang] object SystemClassRegistry {
     "game.ImpartialGame" -> classOf[ImpartialGame],
     "game.Game" -> classOf[Game],
 
+    "game.CompoundType" -> classOf[CompoundType],
     "game.Player" -> classOf[Player],
     "game.Side" -> classOf[Side],
     "game.OutcomeClass" -> classOf[LoopyOutcomeClass],

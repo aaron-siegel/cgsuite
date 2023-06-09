@@ -1,6 +1,12 @@
 /*${cgsuite.banner}*/
 
-system class CompoundImpartialGame extends CompoundGame, ImpartialGame
+/** A compound of two component impartial games.
+  *
+  * This class is really just a skeleton that extends both [[CompoundGame]] and [[ImpartialGame]], in order to
+  * recognize compounds of `ImpartialGame`s as also impartial.
+  */
+system class CompoundImpartialGame(CompoundType as CompoundType, G as ImpartialGame, H as ImpartialGame)
+  extends CompoundGame, ImpartialGame
 
   external override def Options;
   

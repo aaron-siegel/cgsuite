@@ -1,17 +1,26 @@
 /*${cgsuite.banner}*/
 
+/** A finite loopy game value whose onside and offside are stoppers.
+  *
+  * An instance $G$ of `StopperSidedValue` is specified by a pair of [[CanonicalStopper]]s $S$ and $T$, the ~~onside~~ and
+  * ~~offside~~ of $G$, that satisfy $S \geq T$. Instances can arise as simplifications of general loopy games, or
+  * they may be constructed directly using the sidling operator. Here are two ways to define the game ~~tis~~
+  * discussed in \ww:
+  *
+  * \display{a{{|a}|}}
+  *
+  * \display{1 & 0}
+  *
+  * A `StopperSidedValue` is a value class only; it is not an explicit form, and hence is not a subclass of [[Game]].
+  * However, since instances of [[CanonicalStopper]] are in canonical form, and the onside and offside are uniquely
+  * determined for any given $G$, an instance of `StopperSidedValue` can be considered a canonical representation of $G$.
+  */
 system class StopperSidedValue extends SidedValue
 
-  external def op+(that as StopperSidedValue) as StopperSidedValue;
-
-  external def op-(that as StopperSidedValue) as StopperSidedValue;
-
-  external override def op unary+ as StopperSidedValue;
-
-  external override def op unary- as StopperSidedValue;
-
+  /** The offside of this `StopperSidedValue`. */
   external def Offside as CanonicalStopper;
 
+  /** The onside of this `StopperSidedValue`. */
   external def Onside as CanonicalStopper;
 
 end

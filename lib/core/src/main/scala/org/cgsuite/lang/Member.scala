@@ -16,6 +16,16 @@ trait Member extends MemberResolution {
 
   def name = id.name
 
+  def qualifiedName: String = s"${declaringClass.qualifiedName}.$name"
+
+  def displayName: String = {
+    if (declaringClass != null && declaringClass.name == "constants") {
+      s"${declaringClass.pkg.qualifiedName}.$name"
+    } else {
+      qualifiedName
+    }
+  }
+
   def isMutable = modifiers.hasMutable
 
   def isSingleton = modifiers.hasSingleton

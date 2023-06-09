@@ -29,59 +29,29 @@
 
 package org.cgsuite.output;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.LayoutManager;
-import java.awt.Stroke;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JButton;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.text.DefaultEditorKit;
 
 /**
- * A panel that displays {@link org.cgsuite.plugin.Output}.
+ * A panel that displays {@link org.cgsuite.output.Output}.
  */
-public class OutputBox extends JPanel implements MouseListener, FocusListener
+public class OutputBox extends JPanel implements FocusListener
 {
     private final static int CHARACTERS_AT_A_TIME = Integer.MAX_VALUE;
-    
-    private Action copyAction;
-    private Action quickSaveAction;
     
     private Output output;
     private int worksheetWidth;
     private int numCharactersDisplayed;
     private Dimension size;
-    
-    private JButton displayMoreButton;
-    private JPopupMenu displayMorePopupMenu;
-    private JPopupMenu mainPopupMenu;
-    private JMenuItem copyMenuItem;
-    private JMenuItem quickSaveMenuItem;
+
     private boolean highlighted;
     
-    private static Stroke dashStroke = new BasicStroke(
+    private final static Stroke DASH_STROKE = new BasicStroke(
         1.0f,
         BasicStroke.CAP_SQUARE,
         BasicStroke.JOIN_MITER,
@@ -102,11 +72,6 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
             @Override
             public void layoutContainer(Container parent)
             {
-                if (displayMoreButton != null)
-                {
-                    displayMoreButton.setLocation
-                        (size.width - displayMoreButton.getWidth(), size.height - displayMoreButton.getHeight());
-                }
             }
             
             @Override
@@ -126,46 +91,30 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
             {
             }
         });
-        
-        copyAction = new AbstractAction("Copy")
-        {
-            @Override
-            public void actionPerformed(ActionEvent evt)
-            {
-                //copy(); // TODO
-            }
-        };
-        
-        quickSaveAction = new AbstractAction("Save")
-        {
-            @Override
-            public void actionPerformed(ActionEvent evt)
-            {
-                quickSave();
-            }
-        };
-        
-        getActionMap().put(DefaultEditorKit.copyAction, copyAction);
-        copyMenuItem = new JMenuItem(copyAction);
-        quickSaveMenuItem = new JMenuItem(quickSaveAction);
-        
-        mainPopupMenu = new JPopupMenu();
-        mainPopupMenu.add(copyMenuItem);
-        mainPopupMenu.add(quickSaveMenuItem);
 
         setBackground(Color.white);
         worksheetWidth = 0;
         size = new Dimension(0, 0);
         numCharactersDisplayed = CHARACTERS_AT_A_TIME;
         
-        addMouseListener(this);
         addFocusListener(this);
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                requestFocusInWindow();
+            }
+        });
     }
     
     public OutputBox(Output initialOutput)
     {
         this();
         setOutput(initialOutput);
+    }
+
+    public OutputBox(Output initialOutput, int initialWorksheetWidth) {
+        this(initialOutput);
+        setWorksheetWidth(initialWorksheetWidth);
     }
     
     public void setWorksheetWidth(int newWorksheetWidth)
@@ -177,55 +126,19 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         worksheetWidth = newWorksheetWidth;
         recalc();
     }
+
+    public Output getOutput()
+    {
+        return output;
+    }
     
     public void setOutput(Output newOutput)
     {
         output = newOutput;
-        if (output instanceof StyledTextOutput && displayMoreButton == null)
-        {
-            displayMoreButton = new JButton("(More...)");
-            displayMoreButton.setVisible(false);
-            displayMoreButton.setSize(displayMoreButton.getPreferredSize());
-            displayMoreButton.addActionListener(new ActionListener()
-            {
-                @Override
-                public void actionPerformed(ActionEvent evt)
-                {
-                    showDisplayMorePopupMenu();
-                }
-            });
-            add(displayMoreButton);
-
-            JMenuItem showNextMenuItem = new JMenuItem("Show Next " + CHARACTERS_AT_A_TIME + " Characters");
-            showNextMenuItem.setMnemonic('N');
-            showNextMenuItem.addActionListener(new ActionListener()
-            {
-                @Override
-                public void actionPerformed(ActionEvent evt) {
-                    numCharactersDisplayed += CHARACTERS_AT_A_TIME;
-                    recalc();
-                }
-            });
-            JMenuItem showAllMenuItem = new JMenuItem("Show All Remaining Text");
-            showAllMenuItem.setMnemonic('A');
-            showAllMenuItem.addActionListener(new ActionListener()
-            {
-                @Override
-                public void actionPerformed(ActionEvent evt) {
-                    numCharactersDisplayed = -1;
-                    recalc();
-                }
-            });
-            
-            displayMorePopupMenu = new JPopupMenu();
-            displayMorePopupMenu.add(showNextMenuItem);
-            displayMorePopupMenu.add(showAllMenuItem);
-        }
         if (worksheetWidth != 0)
         {
             recalc();
         }
-        //copyMenuItem.setEnabled(output != null);
     }
     
     private void recalc()
@@ -238,7 +151,6 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
         {
             StyledTextOutput sto = (StyledTextOutput) output;
             size = sto.getSize(worksheetWidth, numCharactersDisplayed);
-            displayMoreButton.setVisible(numCharactersDisplayed >= 0 && numCharactersDisplayed < sto.characterCount());
         }
         else
         {
@@ -252,50 +164,6 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
     {
         numCharactersDisplayed = -1;
         recalc();
-    }
-
-    /*
-    public void copy()
-    {
-        StringSelection text = new StringSelection(output.toString());
-        getClipboard().setContents(text, text);
-    }
-
-    private Clipboard getClipboard()
-    {
-        Clipboard c = Lookup.getDefault().lookup(Clipboard.class);
-
-        if (c == null)
-        {
-            c = Toolkit.getDefaultToolkit().getSystemClipboard();
-        }
-        
-        return c;
-    }
-    */
-
-    private void quickSave()
-    {
-        try
-        {
-            BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
-            output.paint((Graphics2D) image.getGraphics(), worksheetWidth);
-            File file = new File("/Users/asiegel/CGSuite/image.png");
-            ImageIO.write(image, "png", file);
-        }
-        catch (IOException exc)
-        {
-        }
-    }
-    
-    private void showDisplayMorePopupMenu()
-    {
-        displayMorePopupMenu.show(this, displayMoreButton.getLocation().x, displayMoreButton.getLocation().y);
-    }
-    
-    private void showMainPopupMenu(MouseEvent evt)
-    {
-        mainPopupMenu.show(this, evt.getX(), evt.getY());
     }
 
     @Override
@@ -336,45 +204,11 @@ public class OutputBox extends JPanel implements MouseListener, FocusListener
             g.setColor(Color.white);
             g.drawRect(0, 0, size.width-1, size.height-1);
             g.setColor(Color.black);
-            ((Graphics2D) g).setStroke(dashStroke);
+            ((Graphics2D) g).setStroke(DASH_STROKE);
             g.drawRect(0, 0, size.width-1, size.height-1);
         }
     }
-    
-    @Override
-    public void mouseClicked(MouseEvent evt)
-    {
-        requestFocusInWindow();
-    }
-    
-    @Override
-    public void mouseEntered(MouseEvent evt)
-    {
-    }
-    
-    @Override
-    public void mouseExited(MouseEvent evt)
-    {
-    }
-    
-    @Override
-    public void mousePressed(MouseEvent evt)
-    {
-        if (evt.isPopupTrigger())
-        {
-            showMainPopupMenu(evt);
-        }
-    }
-    
-    @Override
-    public void mouseReleased(MouseEvent evt)
-    {
-        if (evt.isPopupTrigger())
-        {
-            showMainPopupMenu(evt);
-        }
-    }
-    
+
     @Override
     public void focusGained(FocusEvent evt)
     {

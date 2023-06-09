@@ -123,7 +123,7 @@ case class FunctionCallNode(
         exc addToken token
         throw exc
       case _: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
+        throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", token = Some(token))
     }
 
   }
@@ -196,7 +196,7 @@ case class FunctionCallNode(
         exc addToken token
         throw exc
       case _: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
+        throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", token = Some(token))
     }
 
   }
@@ -237,7 +237,7 @@ case class FunctionCallNode(
         exc addToken token
         throw exc
       case _: StackOverflowError =>
-        throw EvalException("Possible infinite recursion.", token = Some(token))
+        throw EvalException("Maximum recursive depth exceeded. (Possible infinite recursion?)", token = Some(token))
     }
 
   }
@@ -358,14 +358,14 @@ case class FunctionCallNode(
 
       if (reducedMatchingMethods.isEmpty) {
         throw EvalException(
-          s"Method `${methodGroup.qualifiedName}` cannot be applied to argument types: $argTypesString",
+          s"Method `${methodGroup.name}` in class `${methodGroup.declaringClass.qualifiedName}` cannot be applied to argument types: $argTypesString",
           token = Some(token)
         )
       }
 
       if (reducedMatchingMethods.size > 1) {
         throw EvalException(
-          s"Method `${methodGroup.qualifiedName}` is ambiguous when applied to argument types: $argTypesString",
+          s"Method `${methodGroup.name}` in class `${methodGroup.declaringClass.qualifiedName}` is ambiguous when applied to argument types: $argTypesString",
           token = Some(token)
         )
       }

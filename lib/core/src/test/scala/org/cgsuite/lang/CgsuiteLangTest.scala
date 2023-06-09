@@ -82,6 +82,20 @@ class CgsuiteLangTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.lang.Object" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("Object.Class", "3.Class", "\u27eagame.Integer\u27eb"),
+      ("Object.EnclosingObject 1", "3.EnclosingObject", "Nothing"),
+      ("Object.EnclosingObject 2", """game.grid.Amazons("x...|o...").EnclosingObject""", "Amazons"),
+      ("Object.JavaClass", "3.JavaClass", "\"org.cgsuite.core.SmallIntegerImpl\""),
+      ("Object.ToOutput", "3.ToOutput", "3"),
+      ("Object.ToString", "3.ToString", "\"3\"")
+    ))
+
+  }
+
   "cgsuite.lang.Range" should "implement Collection faithfully" in {
 
     executeTests(Table(
@@ -108,6 +122,7 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("Matches", """"On Numbers and Games" Matches ".*umber.*G+.*"""", "true"),
       ("Replace", """"Jangly".Replace("angl", "ohn H. Conwa")""", "\"John H. Conway\""),
       ("ReplaceRegex", """"Mathematical Plays".ReplaceRegex("(t|P)..", "")""", "\"Mamaal ys\""),
+      ("ReplaceRegex 2", """"Winning Ways".ReplaceRegex("W(.)[a-z]*", "M$1sh")""", "\"Mish Mash\""),
       ("Substring", "\"Clobber\".Substring(4, 6)", "\"bbe\""),
       ("ToLowerCase", "\"Toads and Frogs\".ToLowerCase", "\"toads and frogs\""),
       ("ToUpperCase", "\"Toads and Frogs\".ToUpperCase", "\"TOADS AND FROGS\""),

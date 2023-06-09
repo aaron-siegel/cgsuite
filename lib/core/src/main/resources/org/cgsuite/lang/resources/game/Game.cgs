@@ -27,9 +27,13 @@
   */
 system class Game
 
+  /** The atomic weight of this `Game`. This is simply shorthand for `CanonicalForm.AtomicWeight`;
+    * CGSuite will first compute the corresponding [[CanonicalShortGame]] and then call
+    * [[CanonicalShortGame#AtomicWeight]].
+    */
   def AtomicWeight := CanonicalForm.AtomicWeight;
 
-  /** The normal-play canonical form of this `Game`, given as a [[CanonicalShortGame]].
+  /** The normal-play canonical form of this `Game`, as a [[CanonicalShortGame]].
     *
     * This property can be used to find the canonical form of a game
     * (equivalently, its normal-play game value), as described in \ww.
@@ -40,26 +44,172 @@ system class Game
     * [[#GameValue]] property instead.
     */
   external def CanonicalForm;
-  external def ConwayProduct(h as Game);
+
+  /** The conjunctive sum of this `Game` and `that`.
+    *
+    * The ~~conjunctive sum~~ $G\wedge{}H$ of $G$ and $H$ is defined by:
+    *
+    * $G\wedge{}H = {G^L^\wedge{}H^L^ | G^R^\wedge{}H^R^}$
+    *
+    * (move in both components). In particular, $G\wedge{}H \cong 0$ whenever
+    * either $G \cong 0$ or $H \cong 0$.
+    */
+  external def ConjunctiveSum(that as Game);
+
+  /** The Conway product of this game and `that`. */
+  external def ConwayProduct(that as Game);
+
+  /** The normal-play game value of this `Game`, as a [[SidedValue]].
+    */
   external def GameValue;
-  external def OrdinalProduct(h as Game);
+
+  /** The ordinal product of this game and `that`.
+    *
+    * The ~~ordinal product~~ $G\oast{}H$ of $G$ and $H$ is defined by:
+    *
+    * $G\oast{}H = {G\oast{}H^L^:G^L^, G\oast{}H^R^:-G^R^ | G\oast{}H^L^:G^R^, G\oast{}H^R^:-G^L^}$.
+    *
+    * It is a generalization of the following operation on Hackenbush stalks: replace every blue edge in $H$ with a
+    * copy of $G$, and every red edge with a copy of $-G$.
+    *
+    * Ordinal product is associative and left-distributive over ordinal sum, and it satisfies
+    * $-(G\oast{}H) = G\oast{}-H$.
+    */
+  external def OrdinalProduct(that as Game);
+
+  /** The reduced canonical form of this `Game`.
+    *
+    * The ~~reduced canonical form~~ of $G$ is the simplest game infinitesimally close to $G$.
+    * In general, `G.ReducedCanonicalForm` is simply shorthand for
+    * `G.CanonicalForm.ReducedCanonicalForm`;
+    * CGSuite will first compute the corresponding [[CanonicalShortGame]] and then call
+    * [[CanonicalShortGame#ReducedCanonicalForm]].
+    */
   def ReducedCanonicalForm := CanonicalForm.ReducedCanonicalForm;
+
+  /** The selective sum of this `Game` and `that`.
+    *
+    * The ~~selective sum~~ $G\vee{}H$ of $G$ and $H$ is defined by:
+    *
+    * $G\wedge{}H = {G^L^\vee{}H, G\vee{}H^L^, G^L^\vee{}H^L^ | G^R^\wedge{}H, G\wedge{}H^R^, G^R^\wedge{}H^R^}$
+    *
+    * (move in one or both components).
+    */
+  external def SelectiveSum(that as Game);
+
+  /** The sensible Left options of this `Game`. This is simply an alias for `SensibleOptions(Left)`. */
   external def SensibleLeftOptions;
+
+  /** The sensible lines of play of this `Game` for the specified `Player`. The result will be
+    * returned as a [[List]] of [[List]] of `Game`s.
+    *
+    * Let $G$ be a game with canonical form $K$. Then a sequence
+    *
+    * $G^L^$, $G^LR^$, $G^LRL^$, ...
+    *
+    * is ~~sensible line of play~~ for Left if there is some $K^L^$ such that:
+    * \ul
+    * \li Each $G^L^$, $G^LRL^$, ... is $\geq K^L^$;
+    * \li Each $G^LR^$, $G^LRLR^$, ... is $\leq G$; and
+    * \li The last term of the sequence is exactly $K^L^$.
+    * \endul
+    * It is a reversible sequence terminating at a canonical follower of $G$.
+    *
+    * The sensible lines of play for $G$ indicate how the canonical form $K$ embeds in the structure of $G$.
+    */
   external def SensibleLines(player as Player);
+
+  /** The sensible options of this `Game` for the specified `Player`.
+    *
+    * Let $G$ be a game with canonical form $K$. Then a Left option $G^L^$ is ~~sensible~~ if there is some Left
+    * option $K^L^$ with $G^L^ \geq K^L^$.
+    */
   external def SensibleOptions(player as Player);
+
+  /** The sensible Right options of this `Game`. This is simply an alias for `SensibleOptions(Right)`. */
   external def SensibleRightOptions;
 
+  /** An optional indicator of the loopy structure of this `Game`.
+    *
+    * `DepthHint` is only meaningful for loopy games, and it need not be specified. Subclasses may override it to speed
+    * up the calculation of [[#GameValue]]s of loopy games. (There is no penalty for failing to override `DepthHint`,
+    * other than loss of efficiency.)
+    *
+    * The value must always be an [[Integer]], and the contract of `DepthHint` is as follows:
+    *
+    * If $G.DepthHint < H.DepthHint$, then $H$ cannot be a follower of $G$.
+    *
+    * In other words, as we progress from a game $G$ through its followers, the value of `DepthHint` must be
+    * monotonically decreasing. The idea is that if an option $G^L$ has `DepthHint` ~strictly~ less than $G$, then the
+    * value of $G^L^$ can be computed recursively, since it is guaranteed that $G$ will not be a follower of $G^L^$.
+    *
+    * The default implementation simply sets `DepthHint := 0`.
+    */
   def DepthHint := 0;
 
+  /** The options of this `Game` for the specified `Player`.
+    *
+    * This method is not implemented in the base class `Game`; each subclass of `Game` must implement it in order to
+    * define the structure of that subclass.
+    */
   def Options(player as Player) := error("Subclasses of `Game` must implement the `Options` method.");
 
-  def Options := Options(Left).ToSet Union Options(Right);
+  /** All options of this game. This will return a single [[Collection]] containing all the Left and Right options of
+    * this game combined. It is simply an alias for:
+    *
+    * `Options(Left) Concat Options(Right)`
+    */
+  def Options := Options(Left) Concat Options(Right);
 
+  /** The disjunctive decomposition of this `Game`.
+    *
+    * The result must be a [[Collection]] of `Game`s representing the summands of the decomposition.
+    * The default implementation simply returns `[this]`, the
+    * one-element [[List]] containing this `Game`. Subclasses may override in order to capture the modular
+    * decomposition properties of specific rulesets.
+    *
+    * The decomposition will be used by [[#CanonicalForm]] and related methods to speed up the calculation.
+    */
   def Decomposition := [this];
+
+  /** The number of distinct followers of this game. */
+  external def FollowerCount;
+
+  /** A [[Set]] of all the followers of this game. */
+  external def Followers;
+
+  /** The Left options of this `Game`. This is simply an alias for `Options(Left)`. */
   def LeftOptions := Options(Left);
+
+  /** The Right options of this `Game`. This is simply an alias for `Options(Right)`. */
   def RightOptions := Options(Right);
 
+  /** The dicotic (all-small) variant of this `Game`.
+    *
+    * The dicotic variant of $G$ is played identically to $G$, but terminates immediately if either player has no
+    * move. Formally, it is the game $d(G)$ given recursively by
+    *
+    * $d(G) = {d(G^L^) | d(G^R^)}$ if there is at least one $G^L^$ and at least one $G^R^$;\\
+    * $d(G) = 0$ otherwise.
+    */
   def DicoticVariant := game.variant.DicoticVariantGame(this);
+
+  /** The impartial variant of this `Game`.
+    *
+    * The impartial variant of $G$ is the game obtained from $G$ by allowing either player to make any available move
+    * (for Left and/or Right). Formally, it is the game $i(G)$ given recursively by
+    *
+    * $i(G) = {i(G^L^), i(G^R^) | i(G^L^), i(G^R^)}$.
+    */
   def ImpartialVariant := game.variant.ImpartialVariantGame(this);
+
+  /** The twisted variant of this `Game`.
+    *
+    * The twisted variant of $G$ is the game obtained from $G$ by reversing the roles of Left and Right after
+    * every move. Formally, it is the game $t(G)$ given recursively by
+    *
+    * $t(G) = {-t(G^L^) | -t(G^R^)}$.
+    */
+  def TwistedVariant := game.variant.TwistedVariantGame(this);
 
 end
