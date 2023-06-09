@@ -61,7 +61,7 @@ object Graph {
     Graph(edges, vertexTags)
   }
 
-  def parse(str: String, tagMap: Map[String, AnyRef] = Map.empty): Graph[AnyRef] = {
+  def parse(str: String, tagMap: scala.collection.Map[String, AnyRef] = Map.empty): Graph[AnyRef] = {
     val paths = str split ';'
     val edges = ArrayBuffer[ArrayBuffer[Int]]()
     val tags = ArrayBuffer[AnyRef]()
@@ -69,7 +69,7 @@ object Graph {
     Graph(edges.toArray map { _.distinct.sorted.toArray }, Option(tags.toVector))
   }
 
-  private def parsePath(tagMap: Map[String, AnyRef], edges: ArrayBuffer[ArrayBuffer[Int]], tags: ArrayBuffer[AnyRef], pathStr: String): Unit = {
+  private def parsePath(tagMap: scala.collection.Map[String, AnyRef], edges: ArrayBuffer[ArrayBuffer[Int]], tags: ArrayBuffer[AnyRef], pathStr: String): Unit = {
     var currentVertex = -1
     var direction = 0
     var index = 0

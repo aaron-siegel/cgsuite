@@ -33,7 +33,7 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.Range" -> classOf[NumericRange[_]],
     "cgsuite.lang.List" -> classOf[IndexedSeq[_]],
     "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
-    "cgsuite.lang.Map" -> classOf[scala.collection.immutable.Map[_,_]],
+    "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
     "cgsuite.lang.Function" -> classOf[Function],
     "cgsuite.lang.System" -> classOf[System],
