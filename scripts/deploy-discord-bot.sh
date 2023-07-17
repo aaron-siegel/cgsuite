@@ -27,11 +27,16 @@ version=`grep version "$basedir/lib/discord-bot/pom.xml" | head -1 | sed -E 's/.
 server_user="$(prop bot.server.user)"
 server_addr="$(prop bot.server.addr)"
 server_path="$(prop bot.server.path)"
+discord_key="$(prop bot.discord.key)"
 
-echo "Deploying discord bot to $(prop bot.server.addr)."
+echo "Deploying discord bot to $server_addr."
 echo "Current library version (from pom.xml) is $version."
 echo "Building ..."
 
+# Ensure cgsuite parent pom and cgsuite-core are installed in the local repository
+(cd "$basedir/lib"; mvn install -f pom.xml)
+(cd "$basedir/lib/core"; mvn install -f pom.xml)
+# Build cgsuite-discord-bot
 (cd "$basedir/lib/discord-bot"; mvn package -f pom.xml)
 
 echo "Copying jar ..."
@@ -48,7 +53,7 @@ cat << EOT >> "$restart_script"
 kill \$(pidof java)
 nohup java -Xmx1g -cp "cgsuite-discord-bot-$version-jar-with-dependencies.jar" \\
   org.cgsuite.bot.discord.DiscordBot \\
-  $(prop bot.discord.key)
+  $discord_key
 EOT
 
 chmod a+x "$restart_script"

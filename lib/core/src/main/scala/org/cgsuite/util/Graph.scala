@@ -161,7 +161,7 @@ case class Graph[T] private (underlying: Bigraph, vertexTagsOpt: Option[IndexedS
     Graph(underlying, Some(newTags))
   }
 
-  def updateTags(updatesMap: Map[Integer, T]): Graph[T] = {
+  def updateTags(updatesMap: scala.collection.Map[Integer, T]): Graph[T] = {
     val newTags = ArrayBuffer[T]()
     newTags ++= vertexTagsOpt.getOrElse { throw EvalException("That graph has no vertex tags.") }
     updatesMap foreach { case (vertex, t) =>
