@@ -2,12 +2,13 @@ package org.cgsuite.lang
 
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
-import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException}
-import org.cgsuite.lang.CgscriptClass.SafeCast
+import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException, OverflowException}
+import org.cgsuite.lang.CgscriptClass.{SafeCast, internalize}
 import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
 import org.cgsuite.util.{Coordinates, Symmetry, Table}
 
 import scala.collection.mutable
+import scala.util.Random
 
 object SpecialMethods {
 
@@ -70,6 +71,10 @@ object SpecialMethods {
 
     "cgsuite.lang.Collection.Adjoin" -> { (collection: Iterable[_], obj: Any) => collection ++ Iterable(obj) },
     "cgsuite.lang.Collection.Concat" -> { (collection: Iterable[_], that: Iterable[_]) => collection ++ that },
+    "cgsuite.lang.Collection.Count" -> { (collection: Iterable[_], fn: Function) =>
+      validateArity(fn, 1)
+      internalize(collection.count { x => fn.call(Array(x)).castAs[java.lang.Boolean] }.asInstanceOf[java.lang.Integer])
+    },
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
       validateArity(fn, 1)
       collection.exists { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
@@ -154,6 +159,22 @@ object SpecialMethods {
     "cgsuite.util.MutableMap.PutAll" -> { (map: mutable.Map[Any,Any], x: scala.collection.Map[_,_]) => map ++= x; null },
     "cgsuite.util.MutableMap.Remove" -> { (map: mutable.Map[Any,Any], x: Any) => map -= x; null },
     "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null },
+    "cgsuite.util.Random.Eval" -> { (_: ClassObject, seed: Integer) =>
+      if (!seed.isSmallInteger)
+        throw OverflowException("`seed` must satisfy `-2^31 <= seed < 2^31`.")
+      new Random(seed.intValue)
+    },
+    "cgsuite.util.Random.NextInteger" -> { (random: Random, upperBound: Integer) =>
+       if (upperBound < Values.one) {
+          throw EvalException("Upper bound for `NextInteger` must be >= 1.")
+        }
+        val bits = (upperBound - Values.one).lb.intValue + 1
+        var result: Integer = Integer(BigInt(bits, random))
+        while (result >= upperBound) {
+          result = Integer(BigInt(bits, random))
+        }
+        result
+    },
     "cgsuite.util.Table" -> { (_: ClassObject, rows: IndexedSeq[_]) =>
       Table { rows map {
         case list: IndexedSeq[_] => list

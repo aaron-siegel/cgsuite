@@ -8,6 +8,7 @@ import org.cgsuite.util._
 
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
+import scala.util.Random
 
 private[lang] object SystemClassRegistry {
 
@@ -42,6 +43,7 @@ private[lang] object SystemClassRegistry {
 
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Grid" -> classOf[Grid],
+    "cgsuite.util.Random" -> classOf[Random],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.Table" -> classOf[Table],
     "cgsuite.util.Thermograph" -> classOf[Thermograph],

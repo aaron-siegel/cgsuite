@@ -1,0 +1,9 @@
+/*${cgsuite.banner}*/
+
+mutable system class Random()
+
+  external static def Eval(seed as Integer);
+
+  external def NextInteger(upperBound as Integer);
+
+end
