@@ -367,8 +367,7 @@ public class WorksheetPanel extends JPanel
 
     private OutputBox makeOutputBox(Output output)
     {
-        OutputBox outputBox = new OutputBox();
-        outputBox.setOutput(output);
+        OutputBox outputBox = output.box();
         outputBox.setWorksheetWidth(getWidth());
         outputBox.setAlignmentX(Component.LEFT_ALIGNMENT);
         outputBox.addMouseListener(new MouseAdapter() {

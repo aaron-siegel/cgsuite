@@ -2,10 +2,10 @@ package org.cgsuite.lang
 
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
-import org.cgsuite.exception.{EvalException, InvalidArgumentException}
+import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException}
 import org.cgsuite.lang.CgscriptClass.SafeCast
-import org.cgsuite.output.StyledTextOutput
-import org.cgsuite.util.{Symmetry, Table}
+import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
+import org.cgsuite.util.{Coordinates, Symmetry, Table}
 
 import scala.collection.mutable
 
@@ -54,7 +54,15 @@ object SpecialMethods {
     "game.CompoundType.Literal" -> { (compoundType: CompoundType, _: Unit) => compoundType.toString },
     "game.Player.Literal" -> { (player: Player, _: Unit) => player.toString },
     "game.Side.Literal" -> { (side: Side, _: Unit) => side.toString },
-    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString }
+    "game.OutcomeClass.Literal" -> { (outcomeClass: LoopyOutcomeClass, _: Unit) => outcomeClass.toString },
+    "cgsuite.lang.List.ScatterPlot" -> { (list: IndexedSeq[_], _: Unit) =>
+      val listOfInts = list map {
+        case n: Integer => n.intValue
+        case _ => throw NotNumberException("Invalid `ScatterPlot`: That list contains an element that is not an `Integer`.")
+      }
+      val coordinates = listOfInts.zipWithIndex map { case (n, index) => Coordinates(n, index + 1) }
+      ScatterPlotOutput(coordinates)
+    }
 
   )
 

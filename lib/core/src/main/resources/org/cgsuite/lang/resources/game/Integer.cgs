@@ -66,9 +66,27 @@ system class Integer extends DyadicRational, GeneralizedOrdinal
     */
   external def Lb;
 
+  /** The nim quotient of this [[Integer]] and `that`.
+    *
+    * The nim quotient of two integers $a$ and $b$ (with $b \neq 0$)
+    * is the unique integer $c$ such that $c \otimes b = a$.
+    *
+    * See also [[#NimProduct]] and [[#NimInverse]].
+    */
+  external def NimDiv(that as Integer);
+
+  /** The nim inverse of this [[Integer]].
+    *
+    * The nim inverse of an integer $a \neq 0$ is the unique integer $b$
+    * such that $a \otimes b = 1$.
+    *
+    * See also [[#NimProduct]] and [[#NimDiv]].
+    */
+  external def NimInverse;
+
   /** The nim product of this [[Integer]] and `that`.
     *
-    * The nim product $a \otimes b$ of two integers $a,b$ is given by
+    * The nim product $a \otimes b$ of two integers $a$ and $b$ is given by
     *
     * $a \otimes b = mex{(a' \otimes b) \oplus (a \otimes b') \oplus (a' \otimes b') : a' < a, b' < b}$,
     *

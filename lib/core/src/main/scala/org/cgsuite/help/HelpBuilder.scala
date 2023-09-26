@@ -25,7 +25,7 @@ object HelpBuilder {
   def main(args: Array[String]): Unit = {
     val resourcesDir = if (args.isEmpty) "src/main/resources" else ""
     val buildDir = if (args.isEmpty) "target/classes" else args.head
-    val builder = HelpBuilder(resourcesDir, buildDir)
+    val builder = HelpBuilder(resourcesDir.toFile, buildDir.toFile, externalBuild = false)
     builder.run()
   }
 
@@ -48,11 +48,11 @@ object HelpBuilder {
 
 }
 
-case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder =>
+case class HelpBuilder(resourcesDir: File, buildDir: File, externalBuild: Boolean) { thisHelpBuilder =>
 
   private[help] val srcDir = resourcesDir/packagePath
 
-  private[help] val targetRootDir = buildDir/packagePath
+  private[help] val targetRootDir = if (externalBuild) buildDir else buildDir/packagePath
 
   private[help] val referenceDir = targetRootDir/"reference"
 
@@ -88,16 +88,36 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
   def run(): Unit = {
 
+    val allHelpSources = resourcesDir.glob("**/*.{cgs,cgsh}")
+    val lastModified = allHelpSources.toVector.map { _.lastModifiedTime.toEpochMilli }.max
+
+    if (searchIndex.exists && searchIndex.lastModifiedTime.toEpochMilli >= lastModified) {
+      println("Documentation is up to date.")
+    } else {
+      renderAll()
+    }
+
+  }
+
+  def renderAll(): Unit = {
+
     searchIndex overwrite ""
+    println("Rendering .cgsh files ...")
     renderCgshFiles()
+    println("Rendering overview ...")
     renderOverview()
+    println("Rendering index ...")
     renderIndex()
+    println("Rendering classes ...")
     renderClasses()
+    println("Rendering package members ...")
     renderPackageMembers()
 
     if (markdownErrors) {
       sys.error("There were markdown errors.")
     }
+
+    println("Documentation successfully generated.")
 
   }
 
@@ -122,7 +142,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
           backPath.toString
       }
 
-      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, backref + "/", fixedTargets, CgscriptPackage.root)
+      val linkBuilder = HelpLinkBuilder(targetRootDir, targetDir, externalBuild, backref + "/", fixedTargets, CgscriptPackage.root)
 
       generateMarkdown(targetFile, lines.tail mkString "\n", linkBuilder) match {
 
@@ -204,7 +224,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
       val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
       val file = packageDir/s"${cls.name}.${member.name}.html"
       val backref = "../" * (cls.pkg.path.length + 1)
-      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, backref, fixedTargets, cls.pkg, Some(cls))
+      val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, externalBuild, backref, fixedTargets, cls.pkg, Some(cls))
 
       val packageStr = s"""<p><code class="big">package <a href="constants.html#top">${cls.pkg.qualifiedName}</a></code>"""
       val memberTypeStr = member match {
@@ -252,7 +272,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 
     val packageDir = cls.pkg.path.foldLeft(referenceDir) { (file, pathComponent) => file/pathComponent }
 
-    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, "../" * (cls.pkg.path.length + 1), fixedTargets, cls.pkg, Some(cls))
+    val linkBuilder = HelpLinkBuilder(targetRootDir, packageDir, externalBuild, "../" * (cls.pkg.path.length + 1), fixedTargets, cls.pkg, Some(cls))
 
     val file = packageDir/s"${cls.name}.html"
 
@@ -908,6 +928,7 @@ case class HelpBuilder(resourcesDir: String, buildDir: String) { thisHelpBuilder
 case class HelpLinkBuilder(
   targetRootDir: File,
   targetDir: File,
+  externalBuild: Boolean,
   backPath: String,
   fixedTargets: Map[String, String],
   referringPackage: CgscriptPackage,
@@ -939,7 +960,11 @@ case class HelpLinkBuilder(
 
   def hyperlinkForExternalPath(ref: String, textOpt: Option[String]): String = {
 
-    s"""<a class="external" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a> (external link)"""
+    if (externalBuild) {
+      s"""<a class="external" href="$ref">${textOpt getOrElse "??????"}</a>"""
+    } else {
+      s"""<a class="external" href="javascript:cgsuite.openExternal('$ref')">${textOpt getOrElse "??????"}</a> (external link)"""
+    }
 
   }
 

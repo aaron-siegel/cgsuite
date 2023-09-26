@@ -91,6 +91,8 @@ public interface Output extends OutputTarget, Serializable
     void paint(Graphics2D graphics, int preferredWidth);
 
     BufferedImage toImage(int preferredWidth);
+
+    OutputBox box();
         
     /**
      * An output mode.

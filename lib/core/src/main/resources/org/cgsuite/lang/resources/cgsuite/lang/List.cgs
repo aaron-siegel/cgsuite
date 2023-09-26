@@ -59,6 +59,13 @@ system class List extends Collection
     */
   external def Length;
 
+  /** A scatter plot of the elements of this `List`.
+    *
+    * The output will be an image containing a dot at each point `(n,list[n])`,
+    * where `list` is this `List` and `n` ranges from `1` to `list.Length`.
+    */
+  external def ScatterPlot();
+
   /** Generates [[Output]] for this `List`, with elements separated by `sep`.
     *
     * Example:

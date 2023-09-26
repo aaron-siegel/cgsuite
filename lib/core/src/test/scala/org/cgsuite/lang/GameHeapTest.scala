@@ -8,29 +8,29 @@ class GameHeapTest extends CgscriptSpec {
 
     val instances = Seq(
 
-      ("game.heap.Nim", "0.[3]", "20", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "Nothing",
+      ("game.heap.Nim", "0.[3]", "20", "[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "Nothing",
         "[1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]", "[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]"),
 
-      ("game.heap.GrundysGame", "4!.0", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "Nothing",
+      ("game.heap.GrundysGame", "4!.0", "9", "[0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3,0]", "Nothing",
         "[1,1,1,0,1,2,0,1,2,0,1,2,0,1,2,0,1,2,0,1,2]", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3^1431,2,1,3^1431,2,4^0564,3^1431,0^20]"),
 
-      ("game.heap.Kayles", "0.77", "20", "[0,1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]",
+      ("game.heap.Kayles", "0.77", "20", "[1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1]",
         "Periodicity(Period => 12, Preperiod => 71, Saltus => 0)",
         "[1,0,2,3,0,1,3,2,1,0,2,4,0,1,2,5,1,6,3,2,0]",
         "[0,1,2,3,1,4^146,3,2^2,1^1,4^046,2^2,6^46,4^046,1^1,2^2,7^57,1^13,4^64,3^31,2^20,1^031]"),
 
-      ("game.heap.DawsonsKayles", "0.07", "10", "[0,0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]",
+      ("game.heap.DawsonsKayles", "0.07", "10", "[0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]",
         "Periodicity(Period => 34, Preperiod => 53, Saltus => 0)",
         "[1,1,0,0,2,1,3,0,0,1,1,3,0,2,1,1,0,0,2,1,3]", "[0,0,1,1,2,0,3,1,1,0,3^1431,3,2^0520,2,4^146,0,5^057,2^0520,2,3^1431,3]"),
 
-      ("game.heap.Subtraction([2,3,7])", "0.0330003", "3", "[0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0]",
+      ("game.heap.Subtraction([2,3,7])", "0.0330003", "3", "[0,1,1,2,0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0]",
         "Periodicity(Period => 5, Preperiod => 0, Saltus => 0)",
         "[1,1,0,0,2,1,1,0,0,2,1,1,0,0,2,1,1,0,0,2,1]", "[0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0,0,1,1,2,0]"),
 
-      ("game.heap.Subtraction([2,3,7], allbut => true)", "0.3003330[3]", "17", "[0,1,0,1,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]", "Nothing",
+      ("game.heap.Subtraction([2,3,7], allbut => true)", "0.3003330[3]", "17", "[1,0,1,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]", "Nothing",
         "[1,0,1,0,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]", "[0,1,0,1,2,3,2,3,4,5,4,5,6,7,6,7,8,9,8,9,10]"),
 
-      ("game.heap.TakeAndBreak(\"0.3F\")", "0.3F", "38", "[0,1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "Nothing",
+      ("game.heap.TakeAndBreak(\"0.3F\")", "0.3F", "38", "[1,2,0,1,2,3,4,5,3,4,5,6,7,8,6,7,8,9,10,11]", "Nothing",
         "[1,0,2,1,0,2,1,0,4,1,0,4,1,0,6,1,0,6,1,0,6]",
         "[0,1,2,0,1,2,3^1431,4^0564,5^46,3^1431,4^0564,5^4875,6^(1,9,10,8),7^075,8^6875,6^(1,9,10,8),7^075,8^(6,10,8),9^(1,9,12,11,9),10^(0,11,13,9,11),11^(6,10,8)]")
 
@@ -40,8 +40,9 @@ class GameHeapTest extends CgscriptSpec {
       Seq(
         (s"$rs.code", s"$rs.code", s"\"$code\""),
         (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
-        (s"$rs.NimValue", s"[$rs(n).NimValue for n from 0 to 20]", nimSequence),
+        (s"$rs.NimValue", s"[$rs(n).NimValue for n from 1 to 20]", nimSequence),
         (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence),
+        (s"$rs(0).NimValue", s"$rs(0).NimValue", "0"),
         (s"$rs.CheckPeriodicity(2000)", s"$rs.CheckPeriodicity(2000)", periodicity),
         (s"$rs.MisereNimValue", s"[$rs(n).MisereNimValue for n from 0 to 20]", misereNimValue),
         (s"$rs.Genus", s"[$rs(n).Genus for n from 0 to 20]", genus)
@@ -56,39 +57,50 @@ class GameHeapTest extends CgscriptSpec {
 
   }
 
+  it should "handle a TakeAndBreak edge case properly" in {
+
+    executeTests(Table(
+      header,
+      // This was responsible for a bug that first appeared at heap size 92679!
+      // This is because 46341 is the least integer with n^2 >= 2^31.
+      ("Grundy's Game edge case", "game.heap.GrundysGame(92679).Options.Size", "46339")
+    ))
+
+  }
+
   it should "define other heap games properly" in {
 
     val instances = Seq(
 
       // Mock Turtles
-      ("game.heap.Spawning(\"1-3\")", "191", "[0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37,38]"),
+      ("game.heap.Spawning(\"1-3\")", "191", "[1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37,38]"),
       // Moidores
-      ("game.heap.Spawning(\"1-9\")", "169766", "[0,1,2,4,8,16,32,64,128,256,511,512,1024,2048,4096,7711,8192,16384,26215,32768,43691]"),
+      ("game.heap.Spawning(\"1-9\")", "169766", "[1,2,4,8,16,32,64,128,256,511,512,1024,2048,4096,7711,8192,16384,26215,32768,43691]"),
       // Triplets
-      ("game.heap.Spawning(\"3\")", "171", "[0,0,0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35]"),
+      ("game.heap.Spawning(\"3\")", "171", "[0,0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35]"),
       // Ruler
-      ("game.heap.Spawning(\"1+C\")", "20", "[0,1,2,1,4,1,2,1,8,1,2,1,4,1,2,1,16,1,2,1,4]"),
+      ("game.heap.Spawning(\"1+C\")", "20", "[1,2,1,4,1,2,1,8,1,2,1,4,1,2,1,16,1,2,1,4]"),
       // Mock Turtle Fives
-      ("game.heap.Spawning(\"1-3C(5)\")", "11", "[0,1,2,4,7,8,1,2,4,7,8,1,2,4,7,8,1,2,4,7,8]"),
+      ("game.heap.Spawning(\"1-3C(5)\")", "11", "[1,2,4,7,8,1,2,4,7,8,1,2,4,7,8,1,2,4,7,8]"),
       // Triplet Fives
-      ("game.heap.Spawning(\"3C(5)\")", "6", "[0,0,0,1,2,4,0,0,1,2,4,0,0,1,2,4,0,0,1,2,4]"),
+      ("game.heap.Spawning(\"3C(5)\")", "6", "[0,0,1,2,4,0,0,1,2,4,0,0,1,2,4,0,0,1,2,4]"),
       // Ruler Fives
-      ("game.heap.Spawning(\"1-5C\")", "5", "[0,1,2,1,4,1,2,1,4,1,2,1,4,1,2,1,4,1,2,1,4]"),
+      ("game.heap.Spawning(\"1-5C\")", "5", "[1,2,1,4,1,2,1,4,1,2,1,4,1,2,1,4,1,2,1,4]"),
       // Turnips
-      ("game.heap.Spawning(\"3E\")", "9", "[0,0,0,1,0,0,1,2,2,1,0,0,1,0,0,1,2,2,1,4,4]"),
+      ("game.heap.Spawning(\"3E\")", "9", "[0,0,1,0,0,1,2,2,1,0,0,1,0,0,1,2,2,1,4,4]"),
       // Grunt
-      ("game.heap.Spawning(\"4FS\")", "9", "[0,0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3]"),
+      ("game.heap.Spawning(\"4FS\")", "9", "[0,0,0,1,0,2,1,0,2,1,0,2,1,3,2,1,3,2,4,3]"),
       // Sym
-      ("game.heap.Spawning(\"1+S\")", "2046", "[0,1,2,4,3,6,7,8,16,18,25,32,11,64,31,128,10,256,5,512,28]"),
+      ("game.heap.Spawning(\"1+S\")", "2046", "[1,2,4,3,6,7,8,16,18,25,32,11,64,31,128,10,256,5,512,28]"),
 
       ("game.heap.HeapRuleset(k -> [[a,b] for a from 0 to k - 1 for b from 0 to a - 1])",
-        "190", "[0,0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37]")
+        "190", "[0,1,2,4,7,8,11,13,14,16,19,21,22,25,26,28,31,32,35,37]")
 
     )
 
     val tests = instances flatMap { case (rs, optionCount, nimSequence) =>
       Seq(
-        (s"$rs.NimValue", s"[$rs(n).NimValue for n from 0 to 20]", nimSequence),
+        (s"$rs.NimValue", s"[$rs(n).NimValue for n from 1 to 20]", nimSequence),
         (s"$rs(20).Options.Size", s"$rs(20).Options.Size", optionCount),
         (s"$rs.NimValueSequence", s"$rs.NimValueSequence(20)", nimSequence)
       )

@@ -4,7 +4,7 @@ import java.util
 
 import org.cgsuite.core.CanonicalStopper._
 import org.cgsuite.core.Values._
-import org.cgsuite.exception.{CounterexampleException, InvalidOperationException, NotStopperException}
+import org.cgsuite.exception.{CounterexampleException, InvalidOperationException, NotStableException, NotStopperException}
 import org.cgsuite.output.StyledTextOutput.Symbol._
 import org.cgsuite.output.{Output, OutputTarget, StyledTextOutput}
 import org.cgsuite.util.TranspositionCache
@@ -205,6 +205,11 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     }
   }
 
+  def isStable: Boolean = {
+    val deg = degree
+    upsumVariety(deg) == downsumVariety(deg)
+  }
+
   override def isStopper = true
 
   def isSwitch: Boolean = this == -this
@@ -279,10 +284,7 @@ trait CanonicalStopper extends SimplifiedLoopyGame with StopperSidedValue with O
     if (v == downsumVariety(deg))
       v
     else
-      throw CounterexampleException(
-        "Congratulations! You've found a counterexample to the Stability Conjecture. " +
-          "Please report this finding to asiegel@users.sourceforge.net."
-      )
+      throw NotStableException("That game is not stable.")
   }
 
   def stop(player: Player): Pseudonumber = {

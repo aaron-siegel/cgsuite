@@ -17,8 +17,8 @@ cp -r ../local/jre-bundles/macos/prepared-jre-$3/* ../dist/macbundle/CGSuite.app
 
 ./create-dmg.sh \
   --volname CGSuite \
-  --background dmg-background.png \
-  --window-size 415 295 \
+  --background dmg-background-2.png \
+  --window-size 415 315 \
   --icon-size 48 \
   --icon CGSuite.app 110 150 \
   --icon Applications 300 150 \

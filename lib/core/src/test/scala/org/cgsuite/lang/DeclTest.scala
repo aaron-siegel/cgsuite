@@ -166,34 +166,63 @@ class DeclTest extends CgscriptSpec {
     decl("test.game.GameWithHackedOptions",
       """class GameWithHackedOptions(args) extends Game
         |  override def Options(player as Player) := args;
-        |end
-      """.stripMargin)
+        |end""".stripMargin)
+    decl("test.game.GameWithHackedDecomposition",
+      """class GameWithHackedDecomposition(args) extends Game
+        |  override def Decomposition := args;
+        |end""".stripMargin)
+    decl("test.game.GameWithHackedDepthHint",
+      """class GameWithHackedDepthHint(args) extends Game
+        |  override def Options(player as Player) := [this];
+        |  override def DepthHint := args;
+        |end""".stripMargin)
     decl("test.game.ImpartialGameWithHackedOptions",
       """class ImpartialGameWithHackedOptions(args) extends ImpartialGame
         |  override def Options := args;
-        |end
-      """.stripMargin)
+        |end""".stripMargin)
+    decl("test.game.ImpartialGameWithHackedDecomposition",
+      """class ImpartialGameWithHackedDecomposition(args) extends ImpartialGame
+        |  override def Decomposition := args;
+        |end""".stripMargin)
+    decl("test.game.HeapRulesetWithHackedOptions",
+      """class HeapRulesetWithHackedOptions(args) extends game.heap.HeapRuleset
+        |  override def HeapOptions(n as Integer) := args;
+        |end""".stripMargin)
 
     executeTests(Table(
       header,
       ("Game with String option", "test.game.GameWithHackedOptions([19,^,\"foo\"]).CanonicalForm",
-        "!!The `Options` returned by class `test.game.GameWithHackedOptions` include an object of type `cgsuite.lang.String`, which is not a `Game`."),
+        "!!The `Options` returned by class `test.game.GameWithHackedOptions` includes an element of type `cgsuite.lang.String`, which is not a `game.Game`."),
       ("Game with Nothing option", "test.game.GameWithHackedOptions([19,^,Nothing]).CanonicalForm",
-        "!!The `Options` returned by class `test.game.GameWithHackedOptions` include an object of type `cgsuite.lang.Nothing`, which is not a `Game`."),
+        "!!The `Options` returned by class `test.game.GameWithHackedOptions` includes an element of type `cgsuite.lang.Nothing`, which is not a `game.Game`."),
       ("Game with invalid options", "test.game.GameWithHackedOptions(\"foo\").CanonicalForm",
-        "!!The `Options` method in class `test.game.GameWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `Collection`)."),
+        "!!The `Options` method in class `test.game.GameWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `cgsuite.lang.Collection`)."),
       ("Game with null options", "test.game.GameWithHackedOptions(Nothing).CanonicalForm",
-        "!!The `Options` method in class `test.game.GameWithHackedOptions` returned an invalid value of type `cgsuite.lang.Nothing` (expected a `Collection`)."),
+        "!!The `Options` method in class `test.game.GameWithHackedOptions` returned an invalid value of type `cgsuite.lang.Nothing` (expected a `cgsuite.lang.Collection`)."),
+      ("Game with String component", "test.game.GameWithHackedDecomposition([\"foo\"]).CanonicalForm",
+        "!!The `Decomposition` returned by class `test.game.GameWithHackedDecomposition` includes an element of type `cgsuite.lang.String`, which is not a `game.Game`."),
+      ("Game with invalid decomposition", "test.game.GameWithHackedDecomposition(\"foo\").CanonicalForm",
+        "!!The `Decomposition` method in class `test.game.GameWithHackedDecomposition` returned an invalid value of type `cgsuite.lang.String` (expected a `cgsuite.lang.Collection`)."),
+      ("Game with invalid depth hint", "test.game.GameWithHackedDepthHint(\"foo\").GameValue",
+        "!!The `DepthHint` method in class `test.game.GameWithHackedDepthHint` returned an invalid value of type `cgsuite.lang.String` (expected a `game.Integer`)."),
       ("Impartial game with String option", "test.game.ImpartialGameWithHackedOptions([0,*2,\"foo\"]).CanonicalForm",
-        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` include an object of type `cgsuite.lang.String`, which is not a `Game`."),
+        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` includes an element of type `cgsuite.lang.String`, which is not a `game.ImpartialGame`."),
       ("Impartial game with Nothing option", "test.game.ImpartialGameWithHackedOptions([0,*2,Nothing]).CanonicalForm",
-        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` include an object of type `cgsuite.lang.Nothing`, which is not a `Game`."),
+        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` includes an element of type `cgsuite.lang.Nothing`, which is not a `game.ImpartialGame`."),
       ("Impartial game with invalid options", "test.game.ImpartialGameWithHackedOptions(\"foo\").CanonicalForm",
-        "!!The `Options` method in class `test.game.ImpartialGameWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `Collection`)."),
+        "!!The `Options` method in class `test.game.ImpartialGameWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `cgsuite.lang.Collection`)."),
       ("Impartial game with null options", "test.game.ImpartialGameWithHackedOptions(Nothing).CanonicalForm",
-        "!!The `Options` method in class `test.game.ImpartialGameWithHackedOptions` returned an invalid value of type `cgsuite.lang.Nothing` (expected a `Collection`)."),
+        "!!The `Options` method in class `test.game.ImpartialGameWithHackedOptions` returned an invalid value of type `cgsuite.lang.Nothing` (expected a `cgsuite.lang.Collection`)."),
       ("Impartial game with partizan option", "test.game.ImpartialGameWithHackedOptions([0,*2,9]).NimValue",
-        "!!Class `test.game.ImpartialGameWithHackedOptions` is an `ImpartialGame`, but its `Options` include a partizan `Game`.")
+        "!!The `Options` returned by class `test.game.ImpartialGameWithHackedOptions` includes an element of type `game.Integer`, which is not a `game.ImpartialGame`."),
+      ("Impartial game with partizan decomposition", "test.game.ImpartialGameWithHackedDecomposition([3]).NimValue",
+        "!!The `Decomposition` returned by class `test.game.ImpartialGameWithHackedDecomposition` includes an element of type `game.Integer`, which is not a `game.ImpartialGame`."),
+      ("Heap ruleset with String HeapOptions", "test.game.HeapRulesetWithHackedOptions(\"foo\").NimValueSequence(10)",
+        "!!The `HeapOptions` method in class `test.game.HeapRulesetWithHackedOptions` returned an invalid value of type `cgsuite.lang.String` (expected a `cgsuite.lang.Collection`)."),
+      ("Heap ruleset with String element", "test.game.HeapRulesetWithHackedOptions([[1],[2],\"foo\"]).NimValueSequence(10)",
+        "!!The `HeapOptions` returned by class `test.game.HeapRulesetWithHackedOptions` includes an element of type `cgsuite.lang.String`, which is not a `cgsuite.lang.List`."),
+      ("Heap ruleset with String sub-element", "test.game.HeapRulesetWithHackedOptions([[1],[2],[\"foo\"]]).NimValueSequence(10)",
+        "!!The `HeapOptions` returned by class `test.game.HeapRulesetWithHackedOptions` includes an element of type `cgsuite.lang.String`, which is not a `game.Integer`.")
     ))
 
   }

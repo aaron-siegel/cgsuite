@@ -2,7 +2,7 @@
 
 system class Table(rows as List)
 
-  external def IntensityPlot(unitSize as Integer ? 8);
+  external def IntensityPlot(pixelScale as Integer ? 8);
 
   override external def ToOutput;
 

@@ -186,6 +186,7 @@ object Ops {
 
   val MakeNimber = UnOp("nim", OperatorPrecedence.Nim, Some { "*" + _ }) {
     case x: SmallInteger => Nimber(x)
+    case ord: GeneralizedOrdinal => TransfiniteNimber(ord)
     case collection: Iterable[_] => MisereCanonicalGame(collection)
   }
 

@@ -51,14 +51,14 @@ case class Table (
     TableOutput(rows map { _ map { outputBuilder } }, format, Int.MaxValue)
   }
 
-  def intensityPlot(unitSize: Integer): IntensityPlotOutput = {
+  def intensityPlot(pixelScale: Integer): IntensityPlotOutput = {
     val numbers = rows map {
       _ map {
         case x: RationalNumber => x
-        case _ => throw NotNumberException(s"Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
+        case _ => throw NotNumberException("Invalid `IntensityPlot`: That table contains an element that is not a `RationalNumber`.")
       }
     }
-    IntensityPlotOutput(numbers, unitSize.intValue)
+    IntensityPlotOutput(numbers, pixelScale.intValue)
   }
 
 }

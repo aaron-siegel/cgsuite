@@ -38,6 +38,23 @@ system class CanonicalStopper extends StopperSidedValue, Game
     */
   external def DownsumVariety(deg as CanonicalStopper);
 
+  /** `true` if this game is stable.
+    *
+    * A stopper `G` of degree `D` is ~~stable~~ if its upsum and downsum variety
+    * relative to degree `D` are equal, i.e., if
+    *
+    * `(G UpsumVariety D) == (G DownsumVariety D)`.
+    *
+    * It was previously conjectured that every stopper whose degree is an idempotent
+    * is stable (and hence has a well-defined variety), but in 2022 Ian Grenville
+    * found a counterexample to this conjecture: the unstable game
+    *
+    * `U := a{0|{0||||0,*2|||a|0||0}||0}`
+    *
+    * See \ww, Chapter 11 or \cgt, Chapter VI for the relevant theory.
+    */
+  external def IsStable;
+
   /** The Left stop of this game. `G.LeftStop` is equivalent to `G.Stop(Left)`.
     *
     * See [[#Stop]] for the definition and discussion.
@@ -127,17 +144,15 @@ system class CanonicalStopper extends StopperSidedValue, Game
 
   /** The variety of this stopper.
     *
-    * The ~Stability Conjecture~ asserts that
-    * `G UpsumVariety D == G DownsumVariety D`
-    * for every stopper `G`, where `D = G.Degree`. When this identity holds,
-    * the common value is the ~variety~ of `G`.
+    * A stopper `G` of degree `D` is ~~stable~~ if its upsum and downsum variety
+    * relative to degree `D` are equal, i.e., if
     *
-    * Since the Stability Conjecture is unproven, `G.Variety` will first test it
-    * against `G`. If the Stability Conjecture fails for `G`, then an error
-    * will be raised. If you ever see this error, congratulations! You've
-    * found a counterexample.
+    * `(G UpsumVariety D) == (G DownsumVariety D)`.
     *
-    * See \ww, Chapter 11 or \cgt, Chapter VI for the relevant theory.
+    * When this identity holds, the common value is the ~~variety~~ of `G`.
+    *
+    * If `G` is not stable, then an error will be raised. Stability can be checked
+    * in advance with the [[#IsStable]] method.
     */
   external def Variety;
 
