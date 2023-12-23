@@ -11,7 +11,7 @@
   * therefore extends both the [[Game]] and [[NormalValue]] classes. It is the most general class of game values
   * for which this is the case.
   */
-system class CanonicalStopper extends Game, StopperSidedValue
+system class CanonicalStopper extends StopperSidedValue, Game
 
   /** The degree of loopiness of this stopper.
     *
@@ -66,6 +66,8 @@ system class CanonicalStopper extends Game, StopperSidedValue
   def Miny := {this|0||0};
 
   override external def Options(player as Player);
+
+  override external def OutcomeClass;
 
   /** The Right stop of this game. `G.RightStop` is equivalent to `G.Stop(Right)`.
     *

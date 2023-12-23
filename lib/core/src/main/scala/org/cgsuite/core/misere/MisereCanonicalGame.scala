@@ -1,7 +1,7 @@
 package org.cgsuite.core.misere
 
 import org.cgsuite.core.misere.{MisereCanonicalGameOps => ops}
-import org.cgsuite.core.{ImpartialGame, Integer, OutcomeClass, SmallInteger}
+import org.cgsuite.core.{ImpartialGame, ImpartialOutcomeClass, Integer, OutcomeClass, SmallInteger}
 import org.cgsuite.exception.{InvalidArgumentException, InvalidOperationException}
 import org.cgsuite.output.StyledTextOutput
 
@@ -74,7 +74,7 @@ trait MisereCanonicalGame extends ImpartialGame {
     }
   }
 
-  def misereOutcomeClass: OutcomeClass = {
+  override def misereOutcomeClass: ImpartialOutcomeClass = {
     if (ops.isPPosition(misereGameId)) OutcomeClass.P else OutcomeClass.N
   }
 
