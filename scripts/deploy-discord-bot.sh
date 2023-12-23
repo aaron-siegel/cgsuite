@@ -32,7 +32,7 @@ echo "Deploying discord bot to $(prop bot.server.addr)."
 echo "Current library version (from pom.xml) is $version."
 echo "Building ..."
 
-(cd "$basedir/lib/discord-bot"; mvn package -f pom.xml)
+(cd "$basedir/lib/discord-bot"; mvn clean; mvn package -f pom.xml)
 
 echo "Copying jar ..."
 
