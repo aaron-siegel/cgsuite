@@ -82,6 +82,20 @@ class Strip private[util] (private val values: Array[Byte]) extends Serializable
     new Strip(newValues)
   }
 
+  def decomposition(boundaryValue: Integer): IndexedSeq[Strip] = {
+    val boundaryValueInt = boundaryValue.intValue
+    val boundaryIndices = values.indices filter { values(_) == boundaryValueInt }
+    val tail = boundaryIndices.indices collect {
+      case k if boundaryIndices(k) + 1 < values.length && values(boundaryIndices(k) + 1) != boundaryValueInt =>
+        new Strip(values.slice(boundaryIndices(k) + 1, if (k + 1 < boundaryIndices.length) boundaryIndices(k + 1) else values.length))
+    }
+    if (values.isEmpty || values(0) == boundaryValueInt)
+      tail
+    else
+      new Strip(values.slice(0, if (boundaryIndices.isEmpty) values.length else boundaryIndices(0))) +: tail
+
+  }
+
   def findAll(value: Integer): IndexedSeq[Integer] = {
     val byte = value.intValue.toByte
     var cnt = 0
