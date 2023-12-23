@@ -41,6 +41,12 @@ system class Strip
     */
   external def op[](index as Integer) as Integer;
 
+  /** The decomposition of this `Strip` into connected components separated by entries with the specified `boundaryValue`.
+    * The result will be a `List` of `Strip`s, each corresponding to a single nonempty connected component of the
+    * original `Strip`.
+    */
+  external def Decomposition(boundaryValue as Integer) as List;
+
   /** A `List` of all indices at which this `Strip` has the specified value. */
   external def FindAll(value as Integer) as List;
 
