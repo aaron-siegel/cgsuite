@@ -1,6 +1,6 @@
 package org.cgsuite.lang
 
-import org.cgsuite.core.CanonicalShortGame
+import org.cgsuite.core.{CanonicalShortGame, RationalNumber}
 import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.util.Coordinates
 
@@ -12,6 +12,7 @@ object UniversalOrdering extends Ordering[Any] {
       case (null, null) => 0
       case (null, _) => -1
       case (_, null) => 1
+      case (x: RationalNumber, y: RationalNumber) => x compare y      // This is consistent with CanonicalShortGame.DeterministicOrdering
       case (g: CanonicalShortGame, h: CanonicalShortGame) => CanonicalShortGame.DeterministicOrdering.compare(g, h)
       case (_: CanonicalShortGame, _) => -1
       case (_, _: CanonicalShortGame) => 1

@@ -63,6 +63,11 @@ system class Game
     */
   external def GameValue;
 
+  /** The misère-play [[OutcomeClass][outcome class]] of this game. It is defined only for
+    * short games and will throw an error if invoked on a loopy game.
+    */
+  external def MisereOutcomeClass;
+
   /** The ordinal product of this game and `that`.
     *
     * The ~~ordinal product~~ $G\oast{}H$ of $G$ and $H$ is defined by:
@@ -76,6 +81,12 @@ system class Game
     * $-(G\oast{}H) = G\oast{}-H$.
     */
   external def OrdinalProduct(that as Game);
+
+
+  /** The (normal-play) [[OutcomeClass][outcome class]] of this game. `G.OutcomeClass` is exactly
+    * equivalent to `G.GameValue.OutcomeClass`.
+    */
+  def OutcomeClass := GameValue.OutcomeClass;
 
   /** The reduced canonical form of this `Game`.
     *

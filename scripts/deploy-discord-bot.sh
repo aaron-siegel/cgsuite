@@ -37,7 +37,7 @@ echo "Building ..."
 (cd "$basedir/lib"; mvn install -f pom.xml)
 (cd "$basedir/lib/core"; mvn install -f pom.xml)
 # Build cgsuite-discord-bot
-(cd "$basedir/lib/discord-bot"; mvn package -f pom.xml)
+(cd "$basedir/lib/discord-bot"; mvn clean; mvn package -f pom.xml)
 
 echo "Copying jar ..."
 
