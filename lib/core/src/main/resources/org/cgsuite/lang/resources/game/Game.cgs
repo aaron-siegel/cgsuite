@@ -82,7 +82,6 @@ system class Game
     */
   external def OrdinalProduct(that as Game);
 
-
   /** The (normal-play) [[OutcomeClass][outcome class]] of this game. `G.OutcomeClass` is exactly
     * equivalent to `G.GameValue.OutcomeClass`.
     */
