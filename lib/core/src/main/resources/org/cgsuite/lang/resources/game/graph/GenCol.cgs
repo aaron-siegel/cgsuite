@@ -1,12 +1,13 @@
 /*${cgsuite.banner}*/
 
-singleton class Snort extends GraphRuleset
+class GenCol(leftPermitted as List, rightPermitted as List) extends GraphRuleset
 
   class Position(graph as Graph) extends GraphGame
 
     override def Options(player as Player) begin
+      var permitted := if player == Left then leftPermitted else rightPermitted end;
       for vertex from 1 to graph.VertexCount
-      where graph.VertexTag(vertex) != player.Opponent
+      where permitted Contains graph.VertexTag(vertex)
       yield
         var tagUpdates :=
           { target => player for target in graph.Outedges(vertex) where graph.VertexTag(target) == Nothing };

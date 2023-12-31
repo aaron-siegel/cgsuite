@@ -1,0 +1,13 @@
+/*${cgsuite.banner}*/
+
+/** Ruleset library for games played on graphs.
+  */
+singleton class constants
+
+  var Col := GenCol([Nothing, Player.Right], [Nothing, Player.Left]);
+
+  var Fjords := GenCol([Player.Left], [Player.Right]);
+
+  var Snort := GenCol([Nothing, Player.Left], [Nothing, Player.Right]);
+
+end
