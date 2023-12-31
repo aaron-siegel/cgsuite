@@ -1,16 +1,18 @@
 package org.cgsuite.util
 
-import org.cgsuite.core.Bigraph
+import org.cgsuite.core.{Bigraph, Integer, Left, Player, Right}
+import org.cgsuite.exception.EvalException
+import org.cgsuite.output.StyledTextOutput
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-object ColoredGraph {
+object EdgeColoredGraph {
 
-  def apply[T](
+  def apply[T >: Null](
     leftEdges: IndexedSeq[IndexedSeq[Integer]],
     rightEdges: IndexedSeq[IndexedSeq[Integer]],
-    vertexTags: Option[IndexedSeq[T]]): ColoredGraph[T] = {
+    vertexTagsOpt: Option[IndexedSeq[T]]): EdgeColoredGraph[T] = {
 
     val mappedLeftEdges = {
       leftEdges.map { _.map { _.intValue - 1 }.toArray }.toArray
@@ -18,18 +20,22 @@ object ColoredGraph {
     val mappedRightEdges = {
       rightEdges.map { _.map { _.intValue - 1 }.toArray }.toArray
     }
-    ColoredGraph(mappedLeftEdges, mappedRightEdges, vertexTags)
+    EdgeColoredGraph(mappedLeftEdges, mappedRightEdges, vertexTagsOpt)
 
   }
 
-  private def apply[T](
+  private[cgsuite] def apply[T >: Null](
     leftEdges: Array[Array[Int]],
     rightEdges: Array[Array[Int]],
-    vertexTags: Option[IndexedSeq[T]]): ColoredGraph[T] = {
-    new ColoredGraph(new Bigraph(leftEdges, rightEdges), vertexTags)
+    vertexTagsOpt: Option[IndexedSeq[T]]): EdgeColoredGraph[T] = {
+    EdgeColoredGraph(new Bigraph(leftEdges, rightEdges), vertexTagsOpt)
   }
 
-  def parse[T >: Null](str: String, tagMap: scala.collection.Map[Char, T] = Map.empty): ColoredGraph[T] = {
+  private[cgsuite] def apply[T >: Null](underlying: Bigraph, vertexTagsOpt: Option[IndexedSeq[T]]): EdgeColoredGraph[T] = {
+    new EdgeColoredGraph[T](underlying, vertexTagsOpt)
+  }
+
+  def parse[T >: Null](str: String, tagMap: scala.collection.Map[Char, T] = Map.empty): EdgeColoredGraph[T] = {
     val leftEdges = ArrayBuffer[ArrayBuffer[Int]]()
     val rightEdges = ArrayBuffer[ArrayBuffer[Int]]()
     val vertexNames = mutable.Map[String, Int]()
@@ -41,7 +47,7 @@ object ColoredGraph {
     if (next < str.length) {
       sys.error("parse error")
     }
-    ColoredGraph(
+    EdgeColoredGraph(
       leftEdges.toArray map { _.distinct.sorted.toArray },
       rightEdges.toArray map { _.distinct.sorted.toArray },
       Option(tags.toVector)
@@ -154,8 +160,78 @@ object ColoredGraph {
 
 }
 
-class ColoredGraph[T] private (val underlying: Bigraph, val vertexTagsOpt: Option[IndexedSeq[T]]) {
+class EdgeColoredGraph[T >: Null] private(val underlying: Bigraph, val vertexTagsOpt: Option[IndexedSeq[T]]) {
 
+  def vertexCount: Int = underlying.getNumVertices
 
+  def totalEdgeCount(player: Player): Int = (0 until vertexCount map {
+    i => outedgeCount(Integer(i), player)
+  }).sum
+
+  def outedgeCount(vertex: Integer, player: Player) = {
+    player match {
+      case Left => underlying.getNumLeftEdges(vertex.intValue - 1)
+      case Right => underlying.getNumRightEdges(vertex.intValue - 1)
+    }
+  }
+
+  def outedge(vertex: Integer, player: Player, index: Integer): Int = {
+    player match {
+      case Left => underlying.getLeftEdgeTarget(vertex.intValue - 1, index.intValue - 1) + 1
+      case Right => underlying.getRightEdgeTarget(vertex.intValue - 1, index.intValue - 1) + 1
+    }
+  }
+
+  def outedges(vertex: Integer, player: Player): IndexedSeq[Integer] = {
+    0 until outedgeCount(vertex, player) map { i =>
+      Integer(outedge(vertex, player, Integer(i)))
+    }
+  }
+
+  def vertexTag(vertex: Integer): T = {
+    vertexTagsOpt.map { _(vertex.intValue - 1) }.orNull
+  }
+
+  def vertexTags: IndexedSeq[T] = {
+    vertexTagsOpt getOrElse {
+      throw EvalException("That graph has no vertex tags.")
+    }
+  }
+
+  def deleteVertex(vertex: Integer): EdgeColoredGraph[T] = {
+    EdgeColoredGraph(
+      underlying.deleteVertex(vertex.intValue - 1),
+      vertexTagsOpt map { tags => tags.take(vertex.intValue - 1) ++ tags.drop(vertex.intValue) }
+    )
+  }
+
+  def deleteVertices(vertices: IndexedSeq[Integer]): EdgeColoredGraph[T] = {
+    // This is a bit inefficient, but will do for now
+    vertices.sortBy {
+      -_
+    }.foldLeft(this) { case (graph, vertex) => graph.deleteVertex(vertex) }
+  }
+
+  def updateTag(vertex: Integer, tag: T): Graph[T] = {
+    val newTags = vertexTagsOpt getOrElse {
+      throw EvalException("That graph has no vertex tags.")
+    } updated(vertex.intValue - 1, tag)
+    Graph(underlying, Some(newTags))
+  }
+
+  def updateTags(updatesMap: scala.collection.Map[Integer, T]): Graph[T] = {
+    val newTags = ArrayBuffer[T]()
+    newTags ++= vertexTagsOpt.getOrElse {
+      throw EvalException("That graph has no vertex tags.")
+    }
+    updatesMap foreach { case (vertex, t) =>
+      newTags(vertex.intValue - 1) = t
+    }
+    Graph(underlying, Some(newTags.toIndexedSeq))
+  }
+
+  //override def toString = s"<Graph with $vertexCount vertices and $totalEdgeCount edges>"
+
+  def toOutput = new StyledTextOutput(toString)
 
 }
