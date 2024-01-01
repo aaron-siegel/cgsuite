@@ -1,6 +1,6 @@
 package org.cgsuite.util
 
-import org.cgsuite.core.{Bigraph, Integer, Left, Player, Right}
+import org.cgsuite.core.{Bigraph, Integer, Left, Player, Right, Values}
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.StyledTextOutput
 
@@ -48,7 +48,7 @@ object EdgeColoredGraph {
     }
   }
 
-  def parse[T >: Null](str: String, tagMap: scala.collection.Map[String, T] = Map.empty): EdgeColoredGraph[T] = {
+  def parse[T >: Null](str: String, tagMap: scala.collection.Map[String, T] = scala.collection.Map.empty[String, T]): EdgeColoredGraph[T] = {
     val leftEdges = ArrayBuffer[ArrayBuffer[Int]]()
     val rightEdges = ArrayBuffer[ArrayBuffer[Int]]()
     val vertexNames = mutable.Map[String, Int]()
@@ -243,6 +243,16 @@ case class EdgeColoredGraph[T >: Null] private[cgsuite] (
       newTags(vertex.intValue - 1) = t
     }
     EdgeColoredGraph(underlying, Some(newTags.toIndexedSeq))
+  }
+
+  // TODO This is not efficient
+  def isConnected: Boolean = {
+    vertexCount == 0 || connectedComponent(Values.one).vertexCount == vertexCount
+  }
+
+  // TODO Preserve vertex tags
+  def connectedComponent(vertex: Integer): EdgeColoredGraph[T] = {
+    EdgeColoredGraph(underlying.packGraph(vertex.intValue - 1), None)
   }
 
   override def toString = {
