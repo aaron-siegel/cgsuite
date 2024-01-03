@@ -44,7 +44,6 @@ private[lang] object SystemClassRegistry {
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.Graph" -> classOf[Graph[_]],
-    "cgsuite.util.EdgeColoredGraph" -> classOf[EdgeColoredGraph[_]],
     "cgsuite.util.Table" -> classOf[Table],
     "cgsuite.util.Thermograph" -> classOf[Thermograph],
     "cgsuite.util.Trajectory" -> classOf[Trajectory],

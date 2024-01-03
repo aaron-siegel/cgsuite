@@ -5,7 +5,7 @@ import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException}
 import org.cgsuite.lang.CgscriptClass.SafeCast
 import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
-import org.cgsuite.util.{Coordinates, EdgeColoredGraph, Graph, Symmetry, Table}
+import org.cgsuite.util.{Coordinates, Graph, Symmetry, Table}
 
 import scala.collection.mutable
 
@@ -166,8 +166,10 @@ object SpecialMethods {
 
   private val specialMethods2: Map[String, (_, _) => Any] = Map(
 
+    /*
     "cgsuite.util.Graph.FromList" -> { (_: ClassObject, args: (IndexedSeq[Any], IndexedSeq[Any])) =>
       Graph(args._1.map { _.asInstanceOf[IndexedSeq[Integer]] }, Option(args._2)) },
+     */
     "cgsuite.lang.List.Sublist" -> { (list: IndexedSeq[_], range: (Integer, Integer)) =>
       list.slice(range._1.intValue - 1, range._2.intValue)
     },
@@ -192,22 +194,11 @@ object SpecialMethods {
     "cgsuite.util.MutableMap.Put" -> { (map: mutable.Map[Any,Any], kv: (Any, Any)) => map(kv._1) = kv._2; null }
 
   )
-  private val specialMethods3: Map[String, (_, _) => Any] = Map(
-
-    "cgsuite.util.EdgeColoredGraph.FromList" -> { (_: ClassObject, args: (IndexedSeq[Any], IndexedSeq[Any], IndexedSeq[Any])) =>
-      EdgeColoredGraph(
-        args._1.map { _.asInstanceOf[IndexedSeq[Integer]] },
-        args._2.map { _.asInstanceOf[IndexedSeq[Integer]] },
-        Option(args._3)
-      ) }
-
-  )
 
   val specialMethods =
     specialMethods0.asInstanceOf[Map[String, (Any, Any) => Any]] ++
     specialMethods1.asInstanceOf[Map[String, (Any, Any) => Any]] ++
-    specialMethods2.asInstanceOf[Map[String, (Any, Any) => Any]] ++
-    specialMethods3.asInstanceOf[Map[String, (Any, Any) => Any]]
+    specialMethods2.asInstanceOf[Map[String, (Any, Any) => Any]]
 
   def validateArity(fn: Function, arity: Int): Unit = {
     if (fn.parameters.length != arity) {

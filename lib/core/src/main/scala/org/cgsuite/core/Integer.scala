@@ -8,8 +8,11 @@ package org.cgsuite.core
 
 import org.cgsuite.core.GeneralizedOrdinal.Term
 import org.cgsuite.core.Values._
+import org.cgsuite.dsl.IntegerIsIntegral
 import org.cgsuite.exception.{ArithmeticException, OverflowException}
 import org.cgsuite.util.Coordinates
+
+import scala.collection.immutable.NumericRange
 
 object Integer {
   
@@ -196,6 +199,8 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   def min(other: Integer) = if (this < other) this else other
 
   def max(other: Integer) = if (this > other) this else other
+
+  def to(that: Integer): NumericRange[Integer] = NumericRange(this, that, one)
 
   override def nimProduct(that: GeneralizedOrdinal): GeneralizedOrdinal = {
     that match {
