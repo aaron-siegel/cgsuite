@@ -1,8 +1,6 @@
 /*${cgsuite.banner}*/
 
-system class Graph extends EdgeColoredGraph
-
-  external static def FromList(list as List, vertexTags as List ? Nothing) as Graph;
+system class Graph
 
   external static def Parse(str as String, tagMap as Map ? { => }) as Graph;
 

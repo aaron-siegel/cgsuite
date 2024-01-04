@@ -203,22 +203,19 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
     }
   }
 
-  def deleteVertices(vs: IndexedSeq[Integer]): Graph[T] = Graph {
+  def retainVertices(vs: IndexedSeq[Integer]): Graph[T] = Graph {
     var next: Integer = zero
-    val vertexMap = {
-      one to vertexCount collect {
-        case n if !vs.contains(n) =>
-          next += one
-          n -> next
-      }
+    val sorted = vs.sorted
+    val vertexMap = sorted.map { n =>
+      next += one
+      n -> next
     }.toMap
-    one to vertexCount collect {
-      case n if !vs.contains(n) =>
-        val edges = vertex(n).edges collect {
-          case edge if !vs.contains(edge.outVertex) =>
-            Edge[T](edge.tag, vertexMap(edge.outVertex))
-        }
-        Vertex(vertex(n).tag, edges)
+    sorted.map { n =>
+      val edges = vertex(n).edges collect {
+        case edge if sorted contains edge.outVertex =>
+          Edge[T](edge.tag, vertexMap(edge.outVertex))
+      }
+      Vertex(vertex(n).tag, edges)
     }
   }
 
@@ -254,11 +251,11 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
     val visited = new mutable.BitSet(vertices.length)
     connectedCount(v, visited)
     val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
-    deleteVertices(vs)
+    retainVertices(vs)
   }
 
   override def toString = {
-    s"<EdgeColoredGraph with $vertexCount vertices and $edgeCount edges>"
+    s"<Graph with $vertexCount vertices and $edgeCount edges>"
   }
 
 }
