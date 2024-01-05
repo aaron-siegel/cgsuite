@@ -18,7 +18,7 @@
   * the new elements, without modifying the original map. A separate [[MutableMap]]
   * class is provided for applications that specifically need a modifiable map.
   */
-system class Map extends Collection
+system class Map extends Collection, Function
 
   /** The value corresponding to the specified key. If the specified key is not
     * present in this map, the result will be [[Nothing]].
@@ -40,6 +40,8 @@ system class Map extends Collection
   /** All the values of this map, as a [[Set]].
     */
   external def Values;
+
+  def Eval(key) := this[key];
 
   override def ToOutput begin
     var entries := Entries;

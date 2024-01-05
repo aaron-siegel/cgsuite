@@ -2,6 +2,7 @@ package org.cgsuite.util
 
 import org.cgsuite.core.Integer
 import org.cgsuite.core.Values.{one, zero}
+import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
 
 import scala.collection.mutable
@@ -103,8 +104,13 @@ object Graph {
 
     val vertexTag: T = {
       if (stream.nonEmpty && vertexTypes.lift(stream.head).isDefined) {
-        vertexTypes(stream.head)
+        val vt = stream.head
+        stream = stream.tail
+        vertexTypes(vt)
       } else {
+        if (stream.headOption.contains(".")) {
+          stream = stream.tail
+        }
         vertexTypes("")
       }
     }
@@ -164,7 +170,7 @@ object Graph {
 
 }
 
-case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
+case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
 
   def edgeCount: Integer = Integer(vertices.map { _.edges.size }.sum)
 
@@ -187,20 +193,18 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
     }
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: Option[T], symmetric: Boolean): Graph[T] = Graph {
+  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: T, symmetric: Boolean): Graph[T] = Graph {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).outVertex == vTo &&
-            (tag.isEmpty || vertex(n).edge(k).tag == tag)
+          vertex(n).edge(k).outVertex == vTo && vertex(n).edge(k).tag == tag
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
         }
       case n if symmetric && vFrom != vTo && n == vTo =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).outVertex == vFrom &&
-            (tag.isEmpty || vertex(n).edge(k).tag == tag)
+          vertex(n).edge(k).outVertex == vFrom && vertex(n).edge(k).tag == tag
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
@@ -266,6 +270,10 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
     connectedCount(v, visited)
     val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
     retainVertices(vs)
+  }
+
+  override def toOutput: StyledTextOutput = {
+    new StyledTextOutput(toString)
   }
 
   override def toString = {

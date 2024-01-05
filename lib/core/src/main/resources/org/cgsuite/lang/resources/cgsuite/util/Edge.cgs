@@ -1,0 +1,7 @@
+/*${cgsuite.banner}*/
+
+system class Edge
+
+  external def OutVertex as Integer;
+
+end

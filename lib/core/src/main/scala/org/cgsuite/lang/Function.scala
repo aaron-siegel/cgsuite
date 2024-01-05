@@ -6,7 +6,12 @@ import org.cgsuite.lang.node.FunctionDefNode
 import org.cgsuite.output.StyledTextOutput.Style
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 
-case class Function(node: FunctionDefNode, domain: EvaluationDomain) extends CallSite with OutputTarget {
+case class Function(node: FunctionDefNode, domain: EvaluationDomain)
+  extends CallSite with OutputTarget with PartialFunction[Array[Any], Any] {
+
+  override def isDefinedAt(x: Array[Any]): Boolean = true
+
+  override def apply(args: Array[Any]): Any = call(args)
 
   override def parameters = node.parameters
 

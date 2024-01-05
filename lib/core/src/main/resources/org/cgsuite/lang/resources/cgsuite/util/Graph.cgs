@@ -2,9 +2,15 @@
 
 system class Graph
 
-  external static def Parse(str as String, tagMap as Map ? { => }) as Graph;
+  external static def Parse(
+    str as String,
+    vertexTypes as Function ? { "" => Nothing },
+    edgeTypes as Function ? { "" => Nothing }
+  ) as Graph;
 
 //  def AdjacencyList := [Outedges(vertex) for vertex from 1 to VertexCount];
+
+  def op[](index as Integer) := Vertices[index];
 
   external def DeleteVertex(vertex as Integer) as Graph;
 
@@ -13,6 +19,8 @@ system class Graph
   external def RetainVertices(vertices as List) as Graph;
 
   external def VertexCount as Integer;
+
+  external def Vertices as List;
 
   external override def ToOutput as Output;
 

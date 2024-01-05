@@ -4,10 +4,10 @@
   */
 singleton class constants
 
-  var Col := GenCol([Nothing, Player.Right], [Nothing, Player.Left]);
+  var Col := GenCol([Nothing, Right], [Nothing, Left]);
 
-  var Fjords := GenCol([Player.Left], [Player.Right]);
+  var Fjords := GenCol([Left], [Right]);
 
-  var Snort := GenCol([Nothing, Player.Left], [Nothing, Player.Right]);
+  var Snort := GenCol([Nothing, Left], [Nothing, Right]);
 
 end

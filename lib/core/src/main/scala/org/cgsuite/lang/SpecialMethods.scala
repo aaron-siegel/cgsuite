@@ -41,6 +41,7 @@ object SpecialMethods {
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.tail
     },
     "cgsuite.lang.Collection.ToList" -> { (collection: Iterable[_], _: Unit) => collection.toIndexedSeq },
+    "cgsuite.lang.Function.ToOutput" -> { (fn: Function, _: Unit) => fn.toOutput },
     "cgsuite.lang.List.Sorted" -> { (list: IndexedSeq[_], _: Unit) => list.sorted(UniversalOrdering) },
     "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.lang.Map.Keys" -> { (map: scala.collection.Map[_,_], _: Unit) => map.keySet },
