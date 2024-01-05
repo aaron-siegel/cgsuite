@@ -1,7 +1,9 @@
 /*${cgsuite.banner}*/
 
 enum Color
+
   Blue,
   Green,
-  Red
+  Red;
+
 end

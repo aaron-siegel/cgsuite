@@ -180,7 +180,7 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
 
   def vertex(n: Integer): Vertex[T] = vertices(n.intValue - 1)
 
-  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, symmetric: Boolean): Graph[T] = Graph {
+  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, symmetric: java.lang.Boolean): Graph[T] = Graph {
     val edge = vertex(vFrom).edge(eIndex)
     one to vertexCount map {
       case n if n == vFrom => vertex(n).deleteEdgeByIndex(eIndex)
@@ -195,7 +195,7 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
     }
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: T, symmetric: Boolean): Graph[T] = Graph {
+  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: T, symmetric: java.lang.Boolean): Graph[T] = Graph {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>

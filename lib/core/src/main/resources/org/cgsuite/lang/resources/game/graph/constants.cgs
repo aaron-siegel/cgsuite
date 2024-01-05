@@ -4,9 +4,13 @@
   */
 singleton class constants
 
+  var ChildishHackenbush := GenHackenbush(childish => true);
+
   var Col := GenCol([Nothing, Right], [Nothing, Left]);
 
   var Fjords := GenCol([Left], [Right]);
+
+  var Hackenbush := GenHackenbush();
 
   var Snort := GenCol([Nothing, Left], [Nothing, Right]);
 
