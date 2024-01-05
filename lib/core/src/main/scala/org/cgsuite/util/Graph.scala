@@ -9,16 +9,21 @@ import scala.collection.mutable.ArrayBuffer
 
 object Graph {
 
+  def parse(str: String): Graph[AnyRef] = {
+    parse(str, Map("" -> null), Map("" -> null))
+  }
+
   def parse[T](
     str: String,
-    tagMap: scala.collection.Map[String, T] = scala.collection.Map.empty[String, T]
+    vertexTypes: PartialFunction[String, T],
+    edgeTypes: PartialFunction[String, T]
   ): Graph[T] = {
 
     val tokens = tokenize(str, 0)
-    val vertexTags = ArrayBuffer[Option[T]]()
+    val vertexTags = ArrayBuffer[T]()
     val edges = ArrayBuffer[ArrayBuffer[Edge[T]]]()
     val vertexNames = mutable.Map[String, Integer]()
-    parse(tokens, tagMap, vertexTags, edges, vertexNames, None)
+    parse(tokens, vertexTypes, edgeTypes, vertexTags, edges, vertexNames, None)
     Graph {
       vertexTags.zip(edges).toIndexedSeq map { case (tag, edges) =>
         Vertex(tag, edges.toIndexedSeq)
@@ -48,8 +53,9 @@ object Graph {
 
   private def parse[T](
     tokens: List[String],
-    tagMap: scala.collection.Map[String, T],
-    vertexTags: ArrayBuffer[Option[T]],
+    vertexTypes: PartialFunction[String, T],
+    edgeTypes: PartialFunction[String, T],
+    vertexTags: ArrayBuffer[T],
     edges: ArrayBuffer[ArrayBuffer[Edge[T]]],
     vertexNames: mutable.Map[String, Integer],
     precOpt: Option[Integer]
@@ -61,7 +67,7 @@ object Graph {
 
     var inedge: Boolean = true
     var outedge: Boolean = true
-    var edgeTag: Option[String] = None
+    var edgeTag: Option[T] = None
 
     var stream = tokens
 
@@ -69,7 +75,7 @@ object Graph {
 
       if (stream.head == "(") {
         do {
-          stream = parse(stream.tail, tagMap, vertexTags, edges, vertexNames, precOpt)
+          stream = parse(stream.tail, vertexTypes, edgeTypes, vertexTags, edges, vertexNames, precOpt)
         } while (stream.nonEmpty && stream.head == ";")
         if (stream.isEmpty || stream.head != ")") {
           sys.error("parse error")
@@ -78,28 +84,28 @@ object Graph {
       }
 
       stream.head match {
-        case "-" =>
-        case ">" => inedge = false
-        case "<" => outedge = false
-        case "l" | "r" | "e" => edgeTag = Some(stream.head)
+        case "-" => edgeTag = Some(edgeTypes(""))
+        case ">" => inedge = false; edgeTag = Some(edgeTypes(""))
+        case "<" => outedge = false; edgeTag = Some(edgeTypes(""))
         case ";" | ")" => return stream
-        case _ => sys.error("parse error")
+        case x =>
+          edgeTag = Some(edgeTypes(x))
+          stream.headOption match {
+            case Some(">") => inedge = false
+            case Some("<") => outedge = false
+            case _ =>
+          }
       }
 
       stream = stream.tail
 
     }
 
-    var tag: Option[T] = None
-
-    if (stream.nonEmpty) {
-      stream.head match {
-        case "." =>
-          stream = stream.tail
-        case x if tagMap contains x =>
-          tag = Some(tagMap(x))
-          stream = stream.tail
-        case _ =>
+    val vertexTag: T = {
+      if (stream.nonEmpty && vertexTypes.lift(stream.head).isDefined) {
+        vertexTypes(stream.head)
+      } else {
+        vertexTypes("")
       }
     }
 
@@ -114,12 +120,12 @@ object Graph {
 
     if (vertexName.exists(vertexNames.contains)) {
       vertex = vertexNames(vertexName.get)
-      if (vertexTags(vertex.intValue - 1) != tag) {
+      if (vertexTags(vertex.intValue - 1) != vertexTag) {
         sys.error("parse error (conflicting tags)")
       }
     } else {
       vertex = Integer(vertexTags.length + 1)
-      vertexTags += tag
+      vertexTags += vertexTag
       edges += ArrayBuffer[Edge[T]]()
       vertexName foreach { vertexNames(_) = vertex }
     }
@@ -128,22 +134,22 @@ object Graph {
 
       case Some(prec) =>
         if (outedge)
-          edges(prec.intValue - 1) += Edge(edgeTag, vertex)
+          edges(prec.intValue - 1) += Edge(edgeTag.get, vertex)
         if (inedge)
-          edges(vertex.intValue - 1) += Edge(edgeTag, prec)
+          edges(vertex.intValue - 1) += Edge(edgeTag.get, prec)
       case None =>
 
     }
 
-    parse(stream, tagMap, vertexTags, edges, vertexNames, Some(vertex))
+    parse(stream, vertexTypes, edgeTypes, vertexTags, edges, vertexNames, Some(vertex))
 
   }
 
-  case class Vertex[T](tag: Option[T], edges: IndexedSeq[Edge[T]]) {
+  case class Vertex[T](tag: T, edges: IndexedSeq[Edge[T]]) {
 
     def edgeCount: Integer = Integer(edges.length)
 
-    def edge(n: Integer) = edges(n.intValue - 1)
+    def edge(n: Integer): Edge[T] = edges(n.intValue - 1)
 
     def deleteEdgeByIndex(eIndex: Integer): Vertex[T] = Vertex(
       tag,
@@ -154,7 +160,7 @@ object Graph {
 
   }
 
-  case class Edge[T](tag: Option[String], outVertex: Integer)
+  case class Edge[T](tag: T, outVertex: Integer)
 
 }
 
@@ -166,9 +172,17 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
 
   def vertex(n: Integer): Vertex[T] = vertices(n.intValue - 1)
 
-  def deleteEdgeByIndex(v: Integer, eIndex: Integer): Graph[T] = Graph {
+  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, symmetric: Boolean): Graph[T] = Graph {
+    val edge = vertex(vFrom).edge(eIndex)
     one to vertexCount map {
-      case n if n == v => vertex(n).deleteEdgeByIndex(eIndex)
+      case n if n == vFrom => vertex(n).deleteEdgeByIndex(eIndex)
+      case n if symmetric && vFrom != edge.outVertex && n == edge.outVertex =>
+        one to vertex(n).edgeCount find { k =>
+          vertex(n).edge(k).outVertex == vFrom && (vertex(n).edge(k).tag == edge.tag)
+        } match {
+          case Some(k) => vertex(n).deleteEdgeByIndex(k)
+          case None => vertex(n)
+        }
       case n => vertex(n)
     }
   }
@@ -219,7 +233,7 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) {
     }
   }
 
-  def updateVertexTag(v: Integer, tag: Option[T]): Graph[T] = Graph {
+  def updateVertexTag(v: Integer, tag: T): Graph[T] = Graph {
     one to vertexCount map {
       case n if n == v => Vertex(tag, vertex(n).edges)
       case n => vertex(n)
