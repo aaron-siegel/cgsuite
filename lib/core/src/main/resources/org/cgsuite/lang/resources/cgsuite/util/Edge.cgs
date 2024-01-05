@@ -4,4 +4,6 @@ system class Edge
 
   external def OutVertex as Integer;
 
+  external def Tag;
+
 end

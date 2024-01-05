@@ -8,6 +8,8 @@ system class Vertex
 
   external def EdgeCount;
 
+  external def OutVertices;
+
   external def Tag;
 
 end

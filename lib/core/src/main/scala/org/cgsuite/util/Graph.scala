@@ -164,6 +164,8 @@ object Graph {
       }
     )
 
+    def outVertices: IndexedSeq[Integer] = edges map { _.outVertex }
+
   }
 
   case class Edge[T](tag: T, outVertex: Integer)
@@ -221,6 +223,11 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
     }
   }
 
+  def deleteVertices(vs: IndexedSeq[Integer]): Graph[T] = {
+    // TODO This is inefficient for large graphs
+    retainVertices(one to vertexCount filterNot vs.contains)
+  }
+
   def retainVertices(vs: IndexedSeq[Integer]): Graph[T] = Graph {
     var next: Integer = zero
     val sorted = vs.sorted
@@ -237,9 +244,16 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
     }
   }
 
-  def updateVertexTag(v: Integer, tag: T): Graph[T] = Graph {
+  def updatedVertexTag(v: Integer, tag: T): Graph[T] = Graph {
     one to vertexCount map {
       case n if n == v => Vertex(tag, vertex(n).edges)
+      case n => vertex(n)
+    }
+  }
+
+  def updatedVertexTags(tagMap: scala.collection.Map[Integer, T]): Graph[T] = Graph {
+    one to vertexCount map {
+      case n if tagMap contains n => Vertex(tagMap(n), vertex(n).edges)
       case n => vertex(n)
     }
   }

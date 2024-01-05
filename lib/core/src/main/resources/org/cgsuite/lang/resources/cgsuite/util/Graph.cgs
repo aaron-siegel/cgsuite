@@ -14,9 +14,13 @@ system class Graph
 
   external def DeleteVertex(vertex as Integer) as Graph;
 
+  external def DeleteVertices(vertices as List) as Graph;
+
   external def EdgeCount as Integer;
 
   external def RetainVertices(vertices as List) as Graph;
+
+  external def UpdatedVertexTags(updates as Map) as Graph;
 
   external def VertexCount as Integer;
 

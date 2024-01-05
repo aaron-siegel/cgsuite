@@ -200,7 +200,7 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
 
   def max(other: Integer) = if (this > other) this else other
 
-  def to(that: Integer): NumericRange[Integer] = NumericRange(this, that, one)
+  def to(that: Integer): NumericRange[Integer] = NumericRange.inclusive(this, that, one)
 
   override def nimProduct(that: GeneralizedOrdinal): GeneralizedOrdinal = {
     that match {
