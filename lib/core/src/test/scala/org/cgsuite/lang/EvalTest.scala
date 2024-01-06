@@ -207,6 +207,16 @@ class EvalTest extends CgscriptSpec {
     ))
   }
 
+  it should "compare enumerated objects properly" in {
+    executeTests(Table(
+      header,
+      ("System enums that are equal", "Player.Left == Player.Left", "true"),
+      ("System enums that are not equal", "Player.Left == Player.Right", "false"),
+      ("Non-system enums that are equal", "Icon.BlackQueen == Icon.BlackQueen", "true"),
+      ("Non-system enums that are not equal", "Icon.BlackQueen == Icon.WhiteQueen", "false"),
+    ))
+  }
+
   it should "handle explicit and compound games" in {
     executeTests(Table(
       header,

@@ -115,7 +115,17 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
 
 }
 
-class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty)
+class EnumObject(cls: CgscriptClass, val literal: String) extends StandardObject(cls, Array.empty) {
+
+  override def equals(that: Any): Boolean = {
+    super.equals(that) && literal == that.asInstanceOf[EnumObject].literal
+  }
+
+  override def hashCode(): Int = {
+    super.hashCode ^ literal.hashCode
+  }
+
+}
 
 class GameObject(cls: CgscriptClass, objArgs: Array[Any], enclosingObj: Any = null)
   extends StandardObject(cls, objArgs, enclosingObj) with Game {
