@@ -5,14 +5,15 @@ class GenHackenbush(childish as Boolean ? false) extends GraphRuleset
   class Position(graph as Graph) extends GraphGame
 
     override def Options(player as Player) begin
-      for vertex from 1 to graph.VertexCount
-      for edge from 1 to graph[vertex].EdgeCount
-      where vertex <= graph[vertex][edge].OutVertex and
-        (graph[vertex][edge].Tag == Color.Green
-          or (player == Left and graph[vertex][edge].Tag == Color.Blue)
-          or (player == Right and graph[vertex][edge].Tag == Color.Red))
+      for edge in graph.Edges
+      where edge.FromVertex <= edge.ToVertex and
+        (edge.Tag == Color.Green
+          or (player == Left and edge.Tag == Color.Blue)
+          or (player == Right and edge.Tag == Color.Red)) and
+        // TODO This can be made more efficient
+        (not childish or graph.DeleteEdge(edge, true).ConnectedComponent(1).EdgeCount == graph.EdgeCount - 2)
       yield
-        Position(graph.DeleteEdgeByIndex(vertex, edge, true).ConnectedComponent(1))
+        Position(graph.DeleteEdge(edge, true).ConnectedComponent(1))
       end
     end
 

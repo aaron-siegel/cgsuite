@@ -140,9 +140,9 @@ object Graph {
 
       case Some(prec) =>
         if (outedge)
-          edges(prec.intValue - 1) += Edge(edgeTag.get, vertex)
+          edges(prec.intValue - 1) += Edge(prec, vertex, edgeTag.get)
         if (inedge)
-          edges(vertex.intValue - 1) += Edge(edgeTag.get, prec)
+          edges(vertex.intValue - 1) += Edge(vertex, prec, edgeTag.get)
       case None =>
 
     }
@@ -164,11 +164,11 @@ object Graph {
       }
     )
 
-    def outVertices: IndexedSeq[Integer] = edges map { _.outVertex }
+    def outVertices: IndexedSeq[Integer] = edges map { _.toVertex }
 
   }
 
-  case class Edge[T](tag: T, outVertex: Integer)
+  case class Edge[T](fromVertex: Integer, toVertex: Integer, tag: T)
 
 }
 
@@ -180,13 +180,19 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
 
   def vertex(n: Integer): Vertex[T] = vertices(n.intValue - 1)
 
-  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, symmetric: java.lang.Boolean): Graph[T] = Graph {
+  def edges: IndexedSeq[Edge[T]] = vertices flatMap { _.edges }
+
+  def deleteEdge(edge: Edge[T], symmetric: java.lang.Boolean = false): Graph[T] = {
+    deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.tag, symmetric)
+  }
+
+  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, symmetric: java.lang.Boolean = false): Graph[T] = Graph {
     val edge = vertex(vFrom).edge(eIndex)
     one to vertexCount map {
       case n if n == vFrom => vertex(n).deleteEdgeByIndex(eIndex)
-      case n if symmetric && vFrom != edge.outVertex && n == edge.outVertex =>
+      case n if symmetric && vFrom != edge.toVertex && n == edge.toVertex =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).outVertex == vFrom && (vertex(n).edge(k).tag == edge.tag)
+          vertex(n).edge(k).toVertex == vFrom && (vertex(n).edge(k).tag == edge.tag)
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
@@ -195,18 +201,18 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
     }
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: T, symmetric: java.lang.Boolean): Graph[T] = Graph {
+  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: T, symmetric: java.lang.Boolean = false): Graph[T] = Graph {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).outVertex == vTo && vertex(n).edge(k).tag == tag
+          vertex(n).edge(k).toVertex == vTo && vertex(n).edge(k).tag == tag
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
         }
       case n if symmetric && vFrom != vTo && n == vTo =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).outVertex == vFrom && vertex(n).edge(k).tag == tag
+          vertex(n).edge(k).toVertex == vFrom && vertex(n).edge(k).tag == tag
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
@@ -217,8 +223,12 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
 
   def deleteVertex(v: Integer): Graph[T] = Graph {
     one to vertexCount collect { case n if n != v =>
-      Vertex(vertex(n).tag, vertex(n).edges collect { case e if e.outVertex != v =>
-        if (e.outVertex < v) e else Edge(e.tag, e.outVertex - one)
+      Vertex(vertex(n).tag, vertex(n).edges collect { case e if e.toVertex != v =>
+        Edge(
+          if (e.fromVertex < v) e.fromVertex else e.fromVertex - one,
+          if (e.toVertex < v) e.toVertex else e.toVertex - one,
+          e.tag
+        )
       })
     }
   }
@@ -237,8 +247,8 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
     }.toMap
     sorted.map { n =>
       val edges = vertex(n).edges collect {
-        case edge if sorted contains edge.outVertex =>
-          Edge[T](edge.tag, vertexMap(edge.outVertex))
+        case edge if sorted contains edge.toVertex =>
+          Edge[T](vertexMap(edge.fromVertex), vertexMap(edge.toVertex), edge.tag)
       }
       Vertex(vertex(n).tag, edges)
     }
@@ -273,7 +283,7 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget {
       visited += v.intValue - 1
       var cnt = if (countEdges) vertex(v).edges.length else 1
       for (edge <- vertex(v).edges) {
-        cnt += connectedCount(edge.outVertex, visited, countEdges)
+        cnt += connectedCount(edge.toVertex, visited, countEdges)
       }
       cnt
     }

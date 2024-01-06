@@ -10,8 +10,8 @@ class GenCol(leftPermitted as List, rightPermitted as List) extends GraphRuleset
       where permitted Contains graph[vertex].Tag
       yield
         var tagUpdates :=
-          { target.OutVertex => player
-            for target in graph[vertex].Edges where graph[target.OutVertex].Tag == Nothing };
+          { target.ToVertex => player
+            for target in graph[vertex].Edges where graph[target.ToVertex].Tag == Nothing };
         var blockedVertices :=
           graph[vertex].OutVertices Filter (target -> graph[target].Tag == player.Opponent);
         var deletedVertices := blockedVertices Adjoin vertex;

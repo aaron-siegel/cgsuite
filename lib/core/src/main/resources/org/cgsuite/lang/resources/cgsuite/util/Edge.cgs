@@ -2,7 +2,9 @@
 
 system class Edge
 
-  external def OutVertex as Integer;
+  external def FromVertex as Integer;
+
+  external def ToVertex as Integer;
 
   external def Tag;
 
