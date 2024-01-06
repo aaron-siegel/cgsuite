@@ -356,7 +356,7 @@ methodParameterList
     
 methodParameter
     : IDENTIFIER asClause? (questionClause | DOTDOTDOT)?
-      -> ^(METHOD_PARAMETER IDENTIFIER asClause? questionClause? DOTDOTDOT?)
+      -> ^(METHOD_PARAMETER[$IDENTIFIER] IDENTIFIER asClause? questionClause? DOTDOTDOT?)
     ;
 
 asClause
@@ -474,7 +474,7 @@ functionExpression
     ;
 
 functionAntecedent
-    : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER $a IDENTIFIER["Object"]))
+    : a=IDENTIFIER -> ^(METHOD_PARAMETER_LIST ^(METHOD_PARAMETER[$a] $a IDENTIFIER["Object"]))
     | LPAREN! methodParameterList RPAREN!
     ;
 
