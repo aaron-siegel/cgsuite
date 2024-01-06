@@ -59,6 +59,8 @@ class CgsuiteLangTest extends CgscriptSpec {
           |9""".stripMargin),
       ("List: Sorted", "[[5,3,7],[1,6,3],[9,2,8]].Sorted", "[[1,6,3],[5,3,7],[9,2,8]]"),
       ("List: Sorted with non-dyadic rationals", "[92/47, 41/23, 9/4, 3].Sorted", "[41/23,92/47,9/4,3]"),
+      ("List: Sorted with surreal numbers", "[0, 1, 1/omega, omega, (omega+7)/(omega*7), 1/4, 1/7].Sorted",
+        "[0,1/\u03C9,1/7,(\u03C9+7)/\u03C9\u00d77,1/4,1,\u03C9]"),
       ("List: SortedWith", "[[5,3,7],[1,6,3],[9,2,8]].SortedWith((a, b) -> a[2] - b[2])", "[[9,2,8],[5,3,7],[1,6,3]]"),
       ("List: SortedWith invalid comparator", "[[5,3,7],[1,6,3],[9,2,8]].SortedWith((a, b) -> \"I am a banana.\")",
         "!!Expected `game.Integer`; found `cgsuite.lang.String`."),
