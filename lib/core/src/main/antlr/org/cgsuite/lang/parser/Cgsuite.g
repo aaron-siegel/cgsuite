@@ -741,12 +741,18 @@ loopAntecedent
 
 forLoopAntecedent
     : (forClause FROM) => forFromLoopAntecedent
+    | (forClause ASSIGN) => forAssignLoopAntecedent
     | forInLoopAntecedent
     ;
 
 forFromLoopAntecedent
     : forClause fromClause toClause? byClause? whileClause? whereClause?
       -> ^(LOOP_SPEC[$forClause.tree.getToken()] forClause fromClause toClause? byClause? whileClause? whereClause?)
+    ;
+
+forAssignLoopAntecedent
+    : forClause ASSIGN expression
+      -> ^(LOOP_SPEC[$forClause.tree.getToken()] forClause ^(ASSIGN expression))
     ;
 
 forInLoopAntecedent
@@ -760,7 +766,7 @@ whileLoopAntecedent
     ;
 
 forClause
-    : FOR^ expression
+    : FOR^ IDENTIFIER
     ;
 
 fromClause
