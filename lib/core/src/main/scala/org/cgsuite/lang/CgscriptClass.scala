@@ -385,7 +385,7 @@ class CgscriptClass(
       enclosingClass match {
         case Some(cls) =>
           cls.ensureInitialized()
-          if (stage != LifecycleStage.Initialized)
+          if (stage == LifecycleStage.Unloaded)
             throw EvalException(s"Class no longer exists: `$qualifiedName`")
         case _ => initialize()
       }
