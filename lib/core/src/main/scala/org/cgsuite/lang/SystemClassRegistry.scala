@@ -44,12 +44,12 @@ private[lang] object SystemClassRegistry {
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.Edge" -> classOf[Graph.Edge[_]],
-    "cgsuite.util.Graph" -> classOf[Graph[_]],
+    "cgsuite.util.Graph" -> classOf[Graph[_, _]],
     "cgsuite.util.Table" -> classOf[Table],
     "cgsuite.util.Thermograph" -> classOf[Thermograph],
     "cgsuite.util.Trajectory" -> classOf[Trajectory],
     "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
-    "cgsuite.util.Vertex" -> classOf[Graph.Vertex[_]],
+    "cgsuite.util.Vertex" -> classOf[Graph.Vertex[_, _]],
 
     "cgsuite.ui.Explorer" -> classOf[Explorer],
 

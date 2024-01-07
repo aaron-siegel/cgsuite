@@ -10,21 +10,21 @@ import scala.collection.mutable.ArrayBuffer
 
 object Graph {
 
-  def parse[T](
+  def parse[V, E](
     str: String,
-    vertexTypes: PartialFunction[String, T],
-    edgeTypes: PartialFunction[String, T]
-  ): Graph[T] = {
+    vertexTypes: PartialFunction[String, V],
+    edgeTypes: PartialFunction[String, E]
+  ): Graph[V, E] = {
     GraphParser.parse(str, vertexTypes, edgeTypes, allowDirected = false)(Graph.apply)
   }
 
-  case class Vertex[T](tag: T, edges: IndexedSeq[Edge[T]]) {
+  case class Vertex[V, E](tag: V, edges: IndexedSeq[Edge[E]]) {
 
     def edgeCount: Integer = Integer(edges.length)
 
-    def edge(n: Integer): Edge[T] = edges(n.intValue - 1)
+    def edge(n: Integer): Edge[E] = edges(n.intValue - 1)
 
-    def deleteEdgeByIndex(eIndex: Integer): Vertex[T] = Vertex(
+    def deleteEdgeByIndex(eIndex: Integer): Vertex[V, E] = Vertex(
       tag,
       one to edgeCount collect { case n if n != eIndex =>
         edge(n)
@@ -35,13 +35,13 @@ object Graph {
 
   }
 
-  case class Edge[T](fromVertex: Integer, toVertex: Integer, tag: T)
+  case class Edge[E](fromVertex: Integer, toVertex: Integer, tag: E)
 
 }
 
-case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget with GraphOps[T, Graph[T]] {
+case class Graph[V, E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarget with GraphOps[V, E, Graph[V, E]] {
 
-  override def fromVertices(vertices: IndexedSeq[Vertex[T]]): Graph[T] = {
+  override def fromVertices(vertices: IndexedSeq[Vertex[V, E]]): Graph[V, E] = {
     Graph(vertices)
   }
 
@@ -49,7 +49,7 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget with G
     (one to vertexCount).map { v => vertex(v).edges.count { v <= _.toVertex } }.sum
   }
 
-  override def edges: IndexedSeq[Edge[T]] = {
+  override def edges: IndexedSeq[Edge[E]] = {
     vertices flatMap { _.edges filter { e => e.fromVertex <= e.toVertex } }
   }
 
@@ -65,18 +65,18 @@ case class Graph[T](vertices: IndexedSeq[Vertex[T]]) extends OutputTarget with G
 
 object GraphParser {
 
-  private[cgsuite] def parse[T, C](
+  private[cgsuite] def parse[E, V, C](
     str: String,
-    vertexTypes: PartialFunction[String, T],
-    edgeTypes: PartialFunction[String, T],
+    vertexTypes: PartialFunction[String, V],
+    edgeTypes: PartialFunction[String, E],
     allowDirected: Boolean
   )(
-    fromVertices: IndexedSeq[Vertex[T]] => C
+    fromVertices: IndexedSeq[Vertex[V, E]] => C
   ): C = {
 
     val tokens = tokenize(str, 0)
-    val vertexTags = ArrayBuffer[T]()
-    val edges = ArrayBuffer[ArrayBuffer[Edge[T]]]()
+    val vertexTags = ArrayBuffer[V]()
+    val edges = ArrayBuffer[ArrayBuffer[Edge[E]]]()
     val vertexNames = mutable.Map[String, Integer]()
     parse(tokens, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
     fromVertices {
@@ -106,13 +106,13 @@ object GraphParser {
     }
   }
 
-  private def parse[T](
+  private def parse[V, E](
     tokens: List[String],
-    vertexTypes: PartialFunction[String, T],
-    edgeTypes: PartialFunction[String, T],
+    vertexTypes: PartialFunction[String, V],
+    edgeTypes: PartialFunction[String, E],
     allowDirected: Boolean,
-    vertexTags: ArrayBuffer[T],
-    edges: ArrayBuffer[ArrayBuffer[Edge[T]]],
+    vertexTags: ArrayBuffer[V],
+    edges: ArrayBuffer[ArrayBuffer[Edge[E]]],
     vertexNames: mutable.Map[String, Integer],
     precOpt: Option[Integer]
     ): List[String] = {
@@ -123,7 +123,7 @@ object GraphParser {
 
     var inedge: Boolean = true
     var outedge: Boolean = true
-    var edgeTag: Option[T] = None
+    var edgeTag: Option[E] = None
 
     var stream = tokens
 
@@ -161,7 +161,7 @@ object GraphParser {
 
     }
 
-    val vertexTag: T = {
+    val vertexTag: V = {
       if (stream.nonEmpty && vertexTypes.lift(stream.head).isDefined) {
         val vt = stream.head
         stream = stream.tail
@@ -191,7 +191,7 @@ object GraphParser {
     } else {
       vertex = Integer(vertexTags.length + 1)
       vertexTags += vertexTag
-      edges += ArrayBuffer[Edge[T]]()
+      edges += ArrayBuffer[Edge[E]]()
       vertexName foreach { vertexNames(_) = vertex }
     }
 
@@ -212,21 +212,21 @@ object GraphParser {
 
 }
 
-trait GraphOps[T, +C] {
+trait GraphOps[V, E, +C] {
 
-  def vertices: IndexedSeq[Vertex[T]]
+  def vertices: IndexedSeq[Vertex[V, E]]
 
   def edgeCount: Integer //= Integer(vertices.map { _.edges.size }.sum)
 
   def vertexCount: Integer = Integer(vertices.length)
 
-  def vertex(n: Integer): Vertex[T] = vertices(n.intValue - 1)
+  def vertex(n: Integer): Vertex[V, E] = vertices(n.intValue - 1)
 
-  def edges: IndexedSeq[Edge[T]] //= vertices flatMap { _.edges }
+  def edges: IndexedSeq[Edge[E]] //= vertices flatMap { _.edges }
 
-  def fromVertices(vertices: IndexedSeq[Vertex[T]]): C
+  def fromVertices(vertices: IndexedSeq[Vertex[V, E]]): C
 
-  def deleteEdge(edge: Edge[T], symmetric: java.lang.Boolean = false): C = {
+  def deleteEdge(edge: Edge[E], symmetric: java.lang.Boolean = false): C = {
     deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.tag, symmetric)
   }
 
@@ -245,7 +245,7 @@ trait GraphOps[T, +C] {
     }
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: T, symmetric: java.lang.Boolean = false): C = fromVertices {
+  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: E, symmetric: java.lang.Boolean = false): C = fromVertices {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>
@@ -292,20 +292,20 @@ trait GraphOps[T, +C] {
     sorted.map { n =>
       val edges = vertex(n).edges collect {
         case edge if sorted contains edge.toVertex =>
-          Edge[T](vertexMap(edge.fromVertex), vertexMap(edge.toVertex), edge.tag)
+          Edge[E](vertexMap(edge.fromVertex), vertexMap(edge.toVertex), edge.tag)
       }
       Vertex(vertex(n).tag, edges)
     }
   }
 
-  def updatedVertexTag(v: Integer, tag: T): C = fromVertices {
+  def updatedVertexTag(v: Integer, tag: V): C = fromVertices {
     one to vertexCount map {
       case n if n == v => Vertex(tag, vertex(n).edges)
       case n => vertex(n)
     }
   }
 
-  def updatedVertexTags(tagMap: scala.collection.Map[Integer, T]): C = fromVertices {
+  def updatedVertexTags(tagMap: scala.collection.Map[Integer, V]): C = fromVertices {
     one to vertexCount map {
       case n if tagMap contains n => Vertex(tagMap(n), vertex(n).edges)
       case n => vertex(n)

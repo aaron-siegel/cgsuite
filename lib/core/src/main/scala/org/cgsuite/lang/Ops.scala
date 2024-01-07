@@ -225,8 +225,8 @@ object Ops {
       }
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
-    case (graph: Graph[_], index: Integer) => graph.vertex(index)
-    case (vertex: Graph.Vertex[_], index: Integer) => vertex.edge(index)
+    case (graph: Graph[_, _], index: Integer) => graph.vertex(index)
+    case (vertex: Graph.Vertex[_, _], index: Integer) => vertex.edge(index)
     case (str: String, index: Integer) =>
       val i = index.intValue
       if (i >= 1 && i <= str.length)
