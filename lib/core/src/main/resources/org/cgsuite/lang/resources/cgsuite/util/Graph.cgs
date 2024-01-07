@@ -14,9 +14,9 @@ system class Graph
 
   external def ConnectedComponent(vertex as Integer) as Graph;
 
-  external def DeleteEdge(edge as Edge, symmetric as Boolean ? false) as Graph;
+  external def DeleteEdge(edge as Edge) as Graph;
 
-  external def DeleteEdgeByIndex(vertex as Integer, edge as Integer, symmetric as Boolean ? false) as Graph;
+  external def DeleteEdgeByIndex(vertex as Integer, edge as Integer) as Graph;
 
   external def DeleteVertex(vertex as Integer) as Graph;
 

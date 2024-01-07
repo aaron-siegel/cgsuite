@@ -45,12 +45,28 @@ case class Graph[V, E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarget 
     Graph(vertices)
   }
 
-  override def edgeCount: Integer = Integer {
+  def edgeCount: Integer = Integer {
     (one to vertexCount).map { v => vertex(v).edges.count { v <= _.toVertex } }.sum
   }
 
-  override def edges: IndexedSeq[Edge[E]] = {
+  def edges: IndexedSeq[Edge[E]] = {
     vertices flatMap { _.edges filter { e => e.fromVertex <= e.toVertex } }
+  }
+
+  def deleteEdge(edge: Edge[E]): Graph[V, E] = {
+    super.deleteEdge(edge, undirected = true)
+  }
+
+  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: E): Graph[V, E] = {
+    super.deleteEdgeByEndpoints(vFrom, vTo, tag, undirected = true)
+  }
+
+  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer): Graph[V, E] = {
+    super.deleteEdgeByIndex(vFrom, eIndex, undirected = true)
+  }
+
+  def connectedEdgeCount(v: Integer): Integer = {
+    Integer(connectedCount(v, new mutable.BitSet(vertices.length), countEdges = true, undirected = true))
   }
 
   override def toOutput: StyledTextOutput = {
@@ -216,25 +232,21 @@ trait GraphOps[V, E, +C] {
 
   def vertices: IndexedSeq[Vertex[V, E]]
 
-  def edgeCount: Integer //= Integer(vertices.map { _.edges.size }.sum)
-
   def vertexCount: Integer = Integer(vertices.length)
 
   def vertex(n: Integer): Vertex[V, E] = vertices(n.intValue - 1)
 
-  def edges: IndexedSeq[Edge[E]] //= vertices flatMap { _.edges }
-
   def fromVertices(vertices: IndexedSeq[Vertex[V, E]]): C
 
-  def deleteEdge(edge: Edge[E], symmetric: java.lang.Boolean = false): C = {
-    deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.tag, symmetric)
+  private[cgsuite] def deleteEdge(edge: Edge[E], undirected: Boolean): C = {
+    deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.tag, undirected)
   }
 
-  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, symmetric: java.lang.Boolean = false): C = fromVertices {
+  private[cgsuite] def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, undirected: Boolean): C = fromVertices {
     val edge = vertex(vFrom).edge(eIndex)
     one to vertexCount map {
       case n if n == vFrom => vertex(n).deleteEdgeByIndex(eIndex)
-      case n if symmetric && vFrom != edge.toVertex && n == edge.toVertex =>
+      case n if undirected && vFrom != edge.toVertex && n == edge.toVertex =>
         one to vertex(n).edgeCount find { k =>
           vertex(n).edge(k).toVertex == vFrom && (vertex(n).edge(k).tag == edge.tag)
         } match {
@@ -245,7 +257,7 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: E, symmetric: java.lang.Boolean = false): C = fromVertices {
+  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: E, undirected: Boolean): C = fromVertices {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>
@@ -254,7 +266,7 @@ trait GraphOps[V, E, +C] {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
         }
-      case n if symmetric && vFrom != vTo && n == vTo =>
+      case n if undirected && vFrom != vTo && n == vTo =>
         one to vertex(n).edgeCount find { k =>
           vertex(n).edge(k).toVertex == vFrom && vertex(n).edge(k).tag == tag
         } match {
@@ -312,22 +324,33 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def connectedEdgeCount(v: Integer): Integer = {
-    Integer(connectedCount(v, new mutable.BitSet(vertices.length), countEdges = true))
-  }
-
   def connectedVertexCount(v: Integer): Integer = {
-    Integer(connectedCount(v, new mutable.BitSet(vertices.length)))
+    Integer(connectedCount(v, new mutable.BitSet(vertices.length), countEdges = false, undirected = false))
   }
 
-  private def connectedCount(v: Integer, visited: mutable.BitSet, countEdges: Boolean = false): Int = {
+  private[cgsuite] def connectedCount(
+    v: Integer,
+    visited: mutable.BitSet,
+    countEdges: Boolean,
+    undirected: Boolean
+  ): Int = {
     if (visited.contains(v.intValue - 1)) {
       0
     } else {
       visited += v.intValue - 1
-      var cnt = if (countEdges) vertex(v).edges.length else 1
+      var cnt = {
+        if (countEdges) {
+          if (undirected) {
+            vertex(v).edges.count { v <= _.toVertex }
+          } else {
+            vertex(v).edges.length
+          }
+        } else {
+          1
+        }
+      }
       for (edge <- vertex(v).edges) {
-        cnt += connectedCount(edge.toVertex, visited, countEdges)
+        cnt += connectedCount(edge.toVertex, visited, countEdges, undirected)
       }
       cnt
     }
@@ -335,7 +358,7 @@ trait GraphOps[V, E, +C] {
 
   def connectedComponent(v: Integer): C = {
     val visited = new mutable.BitSet(vertices.length)
-    connectedCount(v, visited)
+    connectedCount(v, visited, countEdges = false, undirected = false)
     val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
     retainVertices(vs)
   }
