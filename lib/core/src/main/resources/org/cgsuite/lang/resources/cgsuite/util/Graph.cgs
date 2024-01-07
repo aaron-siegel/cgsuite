@@ -10,6 +10,8 @@ system class Graph
 
   external static def Cycle(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
 
+  external static def FromAdjacencyList(adjacencyList as List, vertexTag ? Nothing, edgeTag ? Nothing);
+
   external static def Parse(
     str as String,
     vertexTypes as Function ? { "" => Nothing },

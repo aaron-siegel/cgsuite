@@ -18,6 +18,15 @@ object Graph {
     GraphParser.parse(str, vertexTypes, edgeTypes, allowDirected = false)(Graph.apply)
   }
 
+  def fromAdjacencyList[V, E](adjacencyList: IndexedSeq[IndexedSeq[Integer]], vTag: V, eTag: E): Graph[V, E] = Graph {
+    adjacencyList.indices map { vIndex =>
+      val v = Integer(vIndex + 1)
+      Vertex(vTag, adjacencyList(vIndex) map { toVertex =>
+        Edge(v, toVertex, eTag)
+      })
+    }
+  }
+
   val empty: Graph[Nothing, Nothing] = Graph(IndexedSeq.empty)
 
   def singleton[V](vTag: V): Graph[V, Nothing] = {

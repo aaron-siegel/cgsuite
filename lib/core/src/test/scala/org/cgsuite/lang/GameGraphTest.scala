@@ -15,7 +15,15 @@ class GameGraphTest extends CgscriptSpec {
       header,
       ("Arc Kayles paths are Dawson's Kayles heaps",
         "[game.graph.ArcKayles(Graph.Path(n)).NimValue for n from 1 to 50]",
-        "[0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3,0,1,1,3,0,2,1,1,0,4,5,2,7,4,0,1,1,2,0,3,1,1,0,3,3,2,2,4,4,5]")
+        "[0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3,0,1,1,3,0,2,1,1,0,4,5,2,7,4,0,1,1,2,0,3,1,1,0,3,3,2,2,4,4,5]"),
+      ("Arc Kayles looped paths are Kayles heaps",
+        """def loopedPath(n) begin
+          |  var pathAdj := Graph.Path(n).AdjacencyList;
+          |  var loopedPathAdj := [pathAdj[i] Adjoin i for i from 1 to pathAdj.Length];
+          |  Graph.FromAdjacencyList(loopedPathAdj)
+          |end;
+          |[game.graph.ArcKayles(loopedPath(n)).NimValue for n from 1 to 50]""".stripMargin,
+        "[1,2,3,1,4,3,2,1,4,2,6,4,1,2,7,1,4,3,2,1,4,6,7,4,1,2,8,5,4,7,2,1,8,6,7,4,1,2,3,1,4,7,2,1,8,2,7,4,1,2]")
     ))
   }
 
