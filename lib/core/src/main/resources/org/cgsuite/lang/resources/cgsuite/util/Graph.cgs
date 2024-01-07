@@ -8,9 +8,9 @@ system class Graph
     edgeTypes as Function ? { "" => Nothing }
   ) as Graph;
 
-//  def AdjacencyList := [Outedges(vertex) for vertex from 1 to VertexCount];
-
   def op[](index as Integer) := Vertices[index];
+
+  def AdjacencyList := [[edge.ToVertex for edge in vertex.Edges] for vertex in Vertices];
 
   external def ConnectedComponent(vertex as Integer) as Graph;
 
