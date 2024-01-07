@@ -1,6 +1,6 @@
 package org.cgsuite.util
 
-import org.cgsuite.core.Integer
+import org.cgsuite.core.{Integer, Values}
 import org.cgsuite.core.Values._
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
@@ -21,18 +21,51 @@ object Graph {
   val empty: Graph[Nothing, Nothing] = Graph(IndexedSeq.empty)
 
   def singleton[V](vTag: V): Graph[V, Nothing] = {
-    Graph[V, Nothing](IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
+    Graph(IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
+  }
+
+  def loop[V, E](vTag: V, eTag: E): Graph[V, E] = {
+    Graph(IndexedSeq(Vertex(vTag, IndexedSeq(Edge(one, one, eTag)))))
+  }
+
+  def clique[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = Graph {
+    one to size map { n =>
+      Vertex(vTag, one to size collect {
+        case k if k != n => Edge(n, k, eTag)
+      })
+    }
   }
 
   def path[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
-    case zero => empty
-    case one => singleton(vTag)
+    case Values.zero => empty
+    case Values.one => singleton(vTag)
     case _ => Graph {
       one to size map {
         case one => Vertex(vTag, IndexedSeq(Edge(one, two, eTag)))
         case size => Vertex(vTag, IndexedSeq(Edge(size, size - one, eTag)))
         case n => Vertex(vTag, IndexedSeq(Edge(n, n - one, eTag), Edge(n, n + one, eTag)))
       }
+    }
+  }
+
+  def cycle[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
+    case Values.zero => empty
+    case Values.one => loop(vTag, eTag)
+    case _ => Graph {
+      one to size map { n =>
+        Vertex(vTag, IndexedSeq(
+          Edge(n, if (n == one) size else n - one, eTag),
+          Edge(n, if (n == size) one else n + one, eTag)
+        ))
+      }
+    }
+  }
+
+  def star[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
+    case Values.zero => empty
+    case _ => Graph {
+      Vertex(vTag, two to size map { Edge(one, _, eTag) }) +:
+        (two to size map { n => Vertex(vTag, IndexedSeq(Edge(n, one, eTag))) })
     }
   }
 

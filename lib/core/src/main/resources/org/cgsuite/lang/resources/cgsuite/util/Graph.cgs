@@ -2,11 +2,23 @@
 
 system class Graph
 
+  static var Empty := Path(0);
+
+  external static def Clique(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
+
+  external static def Cycle(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
+
   external static def Parse(
     str as String,
     vertexTypes as Function ? { "" => Nothing },
     edgeTypes as Function ? { "" => Nothing }
   ) as Graph;
+
+  external static def Path(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
+
+  external static def Singleton(vertexTag ? Nothing);
+
+  external static def Star(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
 
   def op[](index as Integer) := Vertices[index];
 
