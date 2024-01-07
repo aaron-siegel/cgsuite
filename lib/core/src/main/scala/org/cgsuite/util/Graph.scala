@@ -113,11 +113,6 @@ object GraphParser {
         if (end == -1)
           sys.error("parse error")
         str.substring(index + 1, end) :: tokenize(str, end + 1)
-      case '[' =>
-        val end = str.indexOf(']', index + 1)
-        if (end == -1)
-          sys.error("parse error")
-        "[" :: str.substring(index + 1, end) :: tokenize(str, end + 1)
       case ch => ch.toString :: tokenize(str, index + 1)
     }
   }
@@ -192,7 +187,7 @@ object GraphParser {
 
     var vertexName: Option[String] = None
 
-    if (stream.nonEmpty && stream.head == "[") {
+    if (stream.nonEmpty && stream.head == ":") {
       vertexName = Some(stream.tail.head)
       stream = stream.tail.tail
     }
