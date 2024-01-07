@@ -14,6 +14,12 @@ singleton class PartizanArcKayles extends GraphRuleset
       end
     end
 
+    override def Decomposition begin
+      for component in graph.ConnectedComponents yield
+        Position(component)
+      end
+    end
+
   end
 
   override def EdgeTypes := { "l" => Color.Blue, "r" => Color.Red, "e" => Color.Green };

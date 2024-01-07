@@ -62,4 +62,12 @@ class GameGraphTest extends CgscriptSpec {
     ))
   }
 
+  it should "define Partizan Arc Kayles properly" in {
+    executeTests(Table(
+      header,
+      ("Partizan Arc Kayles", """game.graph.PartizanArcKayles("llr").CanonicalForm""", "1/2"),
+      ("Partizan Arc Kayles with Green", """game.graph.PartizanArcKayles("lrlr(ll;ree(rl;l))").CanonicalForm""", "{3*|2*||3/2,3/2*|1/2*}")
+    ))
+  }
+
 }
