@@ -39,7 +39,9 @@ class GameGraphTest extends CgscriptSpec {
       header,
       ("Childish Hackenbush", """game.graph.ChildishHackenbush("l(l;rl)").CanonicalForm""", "2"),
       ("Childish Hackenbush hot", """game.graph.ChildishHackenbush(":{ground}llllllrrrr:{ground}").CanonicalForm""", "{4|-2}"),
-      ("Childish Hackenbush fractional", """game.graph.ChildishHackenbush("r(l:T;r(l:T;r(l:T;r(l:T;rl:T))))").CanonicalForm""", "15/16")
+      ("Childish Hackenbush fractional", """game.graph.ChildishHackenbush("r(l:T;r(l:T;r(l:T;r(l:T;rl:T))))").CanonicalForm""", "15/16"),
+      ("Childish Hackenbush lollipop", """game.graph.ChildishHackenbush("(e:B;e:Bllllllrrr:B)").CanonicalForm""", "{0|^[4]*||vv}"),
+      ("Childish Hackenbush lollipop 2", """game.graph.ChildishHackenbush("(e:B;e:B;e:Blllllllllrr:B)").AtomicWeight""", "3/2")
     ))
   }
 

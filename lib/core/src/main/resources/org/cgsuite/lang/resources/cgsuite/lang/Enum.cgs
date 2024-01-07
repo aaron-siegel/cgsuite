@@ -7,6 +7,6 @@ system class Enum
   /** The [[String]] literal of this enumerated value. */
   external def Literal as String;
 
-  override def ToOutput := Literal;
+  override def ToOutput := cgsuite.util.output.TextOutput(Literal);
 
 end

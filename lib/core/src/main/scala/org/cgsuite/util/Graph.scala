@@ -35,7 +35,9 @@ object Graph {
 
   }
 
-  case class Edge[E](fromVertex: Integer, toVertex: Integer, tag: E)
+  case class Edge[E](fromVertex: Integer, toVertex: Integer, tag: E) {
+    def toOutput = new StyledTextOutput(toString)
+  }
 
 }
 
