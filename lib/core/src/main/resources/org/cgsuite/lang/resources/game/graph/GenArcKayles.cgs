@@ -19,6 +19,13 @@ class GenArcKayles(weighted as Boolean ? false) extends GraphRuleset
       end
     end
 
+    override def Decomposition begin
+      var components := if weighted then graph.Decomposition(0) else graph.ConnectedComponents end;
+      for component in components yield
+        Position(component)
+      end
+    end
+
   end
 
 end

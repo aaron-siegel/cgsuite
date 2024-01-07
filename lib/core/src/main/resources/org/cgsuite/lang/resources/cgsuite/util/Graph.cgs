@@ -28,6 +28,10 @@ system class Graph
 
   external def ConnectedComponent(vertex as Integer) as Graph;
 
+  external def ConnectedComponents as List;
+
+  external def Decomposition(boundaryTag) as List;
+
   external def DeleteEdge(edge as Edge) as Graph;
 
   external def DeleteEdgeByIndex(vertex as Integer, edge as Integer) as Graph;

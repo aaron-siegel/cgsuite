@@ -376,13 +376,14 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     Integer(connectedCount(v, new mutable.BitSet(vertices.length), countEdges = false, undirected = false))
   }
 
-  private[cgsuite] def connectedCount(
+  private[cgsuite] def connectedCount[W >: V](
     v: Integer,
     visited: mutable.BitSet,
     countEdges: Boolean,
-    undirected: Boolean
+    undirected: Boolean,
+    avoidTag: Option[W] = None
   ): Int = {
-    if (visited.contains(v.intValue - 1)) {
+    if (avoidTag.contains(vertex(v).tag) || visited.contains(v.intValue - 1)) {
       0
     } else {
       visited += v.intValue - 1
@@ -409,6 +410,27 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     connectedCount(v, visited, countEdges = false, undirected = false)
     val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
     retainVertices(vs)
+  }
+
+  def connectedComponents[W >: V, F >: E]: IndexedSeq[CC[W, F]] = {
+    connectedComponentsOptionalDecomp(None)
+  }
+
+  def decomposition[W >: V, F >: E](tag: W): IndexedSeq[CC[W, F]] = {
+    connectedComponentsOptionalDecomp(Some(tag))
+  }
+
+  private def connectedComponentsOptionalDecomp[W >: V, F >: E](avoidTag: Option[W]): IndexedSeq[CC[W, F]] = {
+    val allVisited = new mutable.BitSet(vertices.length)
+    val visited = new mutable.BitSet(vertices.length)
+    one to vertexCount collect {
+      case v if !allVisited.contains(v.intValue - 1) =>
+        visited.clear()
+        connectedCount(v, visited, countEdges = false, undirected = false, avoidTag)
+        allVisited ++= visited
+        val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
+        retainVertices(vs)
+    }
   }
 
 }
