@@ -21,22 +21,22 @@ object Graph {
   val empty: Graph[Nothing, Nothing] = Graph(IndexedSeq.empty)
 
   def singleton[V](vTag: V): Graph[V, Nothing] = {
-    Graph(IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
+    Graph[V, Nothing](IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
   }
 
   def path[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
-    //case zero => empty
-    //case one => singleton(vTag)
+    case zero => empty
+    case one => singleton(vTag)
     case _ => Graph {
       one to size map {
         case one => Vertex(vTag, IndexedSeq(Edge(one, two, eTag)))
         case size => Vertex(vTag, IndexedSeq(Edge(size, size - one, eTag)))
-        case n => Vertex(vTag, IndexedSeq(Edge(n, n - 1, eTag), Edge(n, n + 1, eTag)))
+        case n => Vertex(vTag, IndexedSeq(Edge(n, n - one, eTag), Edge(n, n + one, eTag)))
       }
     }
   }
 
-  case class Vertex[V, E](tag: V, edges: IndexedSeq[Edge[E]]) {
+  case class Vertex[+V, +E](tag: V, edges: IndexedSeq[Edge[E]]) {
 
     def edgeCount: Integer = Integer(edges.length)
 
@@ -53,15 +53,15 @@ object Graph {
 
   }
 
-  case class Edge[E](fromVertex: Integer, toVertex: Integer, tag: E) {
+  case class Edge[+E](fromVertex: Integer, toVertex: Integer, tag: E) {
     def toOutput = new StyledTextOutput(toString)
   }
 
 }
 
-case class Graph[V, E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarget with GraphOps[V, E, Graph[V, E]] {
+case class Graph[+V, +E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarget with GraphOps[V, E, Graph, Graph[V, E]] {
 
-  override def fromVertices(vertices: IndexedSeq[Vertex[V, E]]): Graph[V, E] = {
+  override def fromVertices[W >: V, F >: E](vertices: IndexedSeq[Vertex[W, F]]): Graph[W, F] = {
     Graph(vertices)
   }
 
@@ -73,15 +73,15 @@ case class Graph[V, E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarget 
     vertices flatMap { _.edges filter { e => e.fromVertex <= e.toVertex } }
   }
 
-  def deleteEdge(edge: Edge[E]): Graph[V, E] = {
+  def deleteEdge[W >: V, F >: E](edge: Edge[F]): Graph[W, F] = {
     super.deleteEdge(edge, undirected = true)
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: E): Graph[V, E] = {
+  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, tag: F): Graph[W, F] = {
     super.deleteEdgeByEndpoints(vFrom, vTo, tag, undirected = true)
   }
 
-  def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer): Graph[V, E] = {
+  def deleteEdgeByIndex[W >: V, F >: E](vFrom: Integer, eIndex: Integer): Graph[W, F] = {
     super.deleteEdgeByIndex(vFrom, eIndex, undirected = true)
   }
 
@@ -243,7 +243,7 @@ object GraphParser {
 
 }
 
-trait GraphOps[V, E, +C] {
+trait GraphOps[+V, +E, +CC[_, _], +C] {
 
   def vertices: IndexedSeq[Vertex[V, E]]
 
@@ -251,13 +251,13 @@ trait GraphOps[V, E, +C] {
 
   def vertex(n: Integer): Vertex[V, E] = vertices(n.intValue - 1)
 
-  def fromVertices(vertices: IndexedSeq[Vertex[V, E]]): C
+  def fromVertices[W >: V, F >: E](vertices: IndexedSeq[Vertex[W, F]]): CC[W, F]
 
-  private[cgsuite] def deleteEdge(edge: Edge[E], undirected: Boolean): C = {
+  private[cgsuite] def deleteEdge[W >: V, F >: E](edge: Edge[F], undirected: Boolean): CC[W, F] = {
     deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.tag, undirected)
   }
 
-  private[cgsuite] def deleteEdgeByIndex(vFrom: Integer, eIndex: Integer, undirected: Boolean): C = fromVertices {
+  private[cgsuite] def deleteEdgeByIndex[W >: V, F >: E](vFrom: Integer, eIndex: Integer, undirected: Boolean): CC[W, F] = fromVertices {
     val edge = vertex(vFrom).edge(eIndex)
     one to vertexCount map {
       case n if n == vFrom => vertex(n).deleteEdgeByIndex(eIndex)
@@ -272,7 +272,7 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def deleteEdgeByEndpoints(vFrom: Integer, vTo: Integer, tag: E, undirected: Boolean): C = fromVertices {
+  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, tag: F, undirected: Boolean): CC[W, F] = fromVertices {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>
@@ -292,7 +292,7 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def deleteVertex(v: Integer): C = fromVertices {
+  def deleteVertex[W >: V, F >: E](v: Integer): CC[W, F] = fromVertices {
     one to vertexCount collect { case n if n != v =>
       Vertex(vertex(n).tag, vertex(n).edges collect { case e if e.toVertex != v =>
         Edge(
@@ -304,12 +304,12 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def deleteVertices(vs: IndexedSeq[Integer]): C = {
+  def deleteVertices[W >: V, F >: E](vs: IndexedSeq[Integer]): CC[W, F] = {
     // TODO This is inefficient for large graphs
     retainVertices(one to vertexCount filterNot vs.contains)
   }
 
-  def retainVertices(vs: IndexedSeq[Integer]): C = fromVertices {
+  def retainVertices[W >: V, F >: E](vs: IndexedSeq[Integer]): CC[W, F] = fromVertices {
     var next: Integer = zero
     val sorted = vs.sorted
     val vertexMap = sorted.map { n =>
@@ -325,14 +325,14 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def updatedVertexTag(v: Integer, tag: V): C = fromVertices {
+  def updatedVertexTag[W >: V, F >: E](v: Integer, tag: W): CC[W, F] = fromVertices {
     one to vertexCount map {
       case n if n == v => Vertex(tag, vertex(n).edges)
       case n => vertex(n)
     }
   }
 
-  def updatedVertexTags(tagMap: scala.collection.Map[Integer, V]): C = fromVertices {
+  def updatedVertexTags[W >: V, F >: E](tagMap: scala.collection.Map[Integer, W]): CC[W, F] = fromVertices {
     one to vertexCount map {
       case n if tagMap contains n => Vertex(tagMap(n), vertex(n).edges)
       case n => vertex(n)
@@ -371,7 +371,7 @@ trait GraphOps[V, E, +C] {
     }
   }
 
-  def connectedComponent(v: Integer): C = {
+  def connectedComponent[W >: V, F >: E](v: Integer): CC[W, F] = {
     val visited = new mutable.BitSet(vertices.length)
     connectedCount(v, visited, countEdges = false, undirected = false)
     val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
