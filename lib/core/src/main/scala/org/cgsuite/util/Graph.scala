@@ -1,7 +1,7 @@
 package org.cgsuite.util
 
 import org.cgsuite.core.Integer
-import org.cgsuite.core.Values.{one, zero}
+import org.cgsuite.core.Values._
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
 
@@ -16,6 +16,24 @@ object Graph {
     edgeTypes: PartialFunction[String, E]
   ): Graph[V, E] = {
     GraphParser.parse(str, vertexTypes, edgeTypes, allowDirected = false)(Graph.apply)
+  }
+
+  val empty: Graph[Nothing, Nothing] = Graph(IndexedSeq.empty)
+
+  def singleton[V](vTag: V): Graph[V, Nothing] = {
+    Graph(IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
+  }
+
+  def path[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
+    //case zero => empty
+    //case one => singleton(vTag)
+    case _ => Graph {
+      one to size map {
+        case one => Vertex(vTag, IndexedSeq(Edge(one, two, eTag)))
+        case size => Vertex(vTag, IndexedSeq(Edge(size, size - one, eTag)))
+        case n => Vertex(vTag, IndexedSeq(Edge(n, n - 1, eTag), Edge(n, n + 1, eTag)))
+      }
+    }
   }
 
   case class Vertex[V, E](tag: V, edges: IndexedSeq[Edge[E]]) {
