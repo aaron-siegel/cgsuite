@@ -1,0 +1,24 @@
+/*${cgsuite.banner}*/
+
+class GenArcKayles(weighted as Boolean ? false) extends GraphRuleset
+
+  class Position(graph as Graph) extends GraphGame, ImpartialGame
+
+    override def Options begin
+      for edge in graph.Edges
+      where not weighted or (graph[edge.FromVertex].Tag > 0 and graph[edge.ToVertex].Tag > 0)
+      yield
+        if weighted then
+          Position(graph UpdatedVertexTags {
+            edge.FromVertex => graph[edge.FromVertex].Tag - 1,
+            edge.ToVertex => graph[edge.ToVertex].Tag - 1
+          })
+        else
+          Position(graph DeleteVertices [edge.FromVertex, edge.ToVertex])
+        end
+      end
+    end
+
+  end
+
+end

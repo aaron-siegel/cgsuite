@@ -1,5 +1,7 @@
 /*${cgsuite.banner}*/
 
+/** An undirected graph.
+  */
 system class Graph
 
   static var Empty := Path(0);

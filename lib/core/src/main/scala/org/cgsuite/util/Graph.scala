@@ -1,7 +1,7 @@
 package org.cgsuite.util
 
-import org.cgsuite.core.{Integer, Values}
 import org.cgsuite.core.Values._
+import org.cgsuite.core.{Integer, Values}
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
 
@@ -41,8 +41,8 @@ object Graph {
     case Values.one => singleton(vTag)
     case _ => Graph {
       one to size map {
-        case one => Vertex(vTag, IndexedSeq(Edge(one, two, eTag)))
-        case size => Vertex(vTag, IndexedSeq(Edge(size, size - one, eTag)))
+        case Values.one => Vertex(vTag, IndexedSeq(Edge(one, two, eTag)))
+        case n if n == size => Vertex(vTag, IndexedSeq(Edge(size, size - one, eTag)))
         case n => Vertex(vTag, IndexedSeq(Edge(n, n - one, eTag), Edge(n, n + one, eTag)))
       }
     }

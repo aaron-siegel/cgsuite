@@ -4,6 +4,8 @@
   */
 singleton class constants
 
+  var ArcKayles := GenArcKayles();
+
   var ChildishHackenbush := GenHackenbush(childish => true);
 
   var Col := GenCol([Nothing, Right], [Nothing, Left]);
@@ -13,5 +15,7 @@ singleton class constants
   var Hackenbush := GenHackenbush();
 
   var Snort := GenCol([Nothing, Left], [Nothing, Right]);
+
+  var WeightedArcKayles := GenArcKayles(weighted => true);
 
 end

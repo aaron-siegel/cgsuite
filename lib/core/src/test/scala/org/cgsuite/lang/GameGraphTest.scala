@@ -10,6 +10,14 @@ class GameGraphTest extends CgscriptSpec {
     ))
   }
 
+  it should "define ArcKayles properly" in {
+    executeTests(Table(
+      header,
+      ("Arc Kayles paths are Dawson's Kayles",
+        "[game.graph.ArcKayles(Graph.Path(n)).NimValue for n from 1 to 20]", "[0,1,1,2,0,3,1,1,0,3,3,2,2,4,0,5,2,2,3,3]")
+    ))
+  }
+
   it should "define Col properly" in {
     executeTests(Table(
       header,
