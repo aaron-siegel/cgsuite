@@ -281,7 +281,7 @@ class EvalTest extends CgscriptSpec {
 
   it should "handle various types of loops correctly" in {
 
-    // (name, initializer, fn, for-snippet, result, optional-sorted-result, sum)
+    // (name, initializer, fn, for-snippet, result, multi-result, optional-sorted-result, sum)
     val loopScenarios = Seq(
       ("for-from-to", "", "x*x", "for x from 1 to 5", "1,4,9,16,25", "1,2,4,5,9,10,16,17,25,26", None, "55"),
       ("for-from-to-by", "", "x*x", "for x from 1 to 10 by 3", "1,16,49,100", "1,2,16,17,49,50,100,101", None, "166"),
@@ -293,7 +293,8 @@ class EvalTest extends CgscriptSpec {
       ("for-in", "", "x*x", "for x in [1,2,3,2]", "1,4,9,4", "1,2,4,5,9,10,4,5", Some("1,4,9"), "18"),
       ("for-in-where", "", "x", "for x in [1,2,3,2] where x % 2 == 1", "1,3", "1,2,3,4", None, "4"),
       ("for-in-while", "", "x", "for x in [1,2,3,2] while x % 2 == 1", "1", "1,2", None, "1"),
-      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", "", Some(""), "!!That `Collection` is empty.")
+      ("for-in-while-where", "", "x", "for x in [1,2,3,2] while x % 2 == 1 where x != 1", "", "", Some(""), "!!That `Collection` is empty."),
+      ("for-assign", "", "x*x", "for x := 5", "25", "25,26", None, "25")
     )
 
     val listComprehensionLoops = loopScenarios map { case (name, init, fn, snippet, result, _, _, _) =>
@@ -322,6 +323,15 @@ class EvalTest extends CgscriptSpec {
     executeTests(Table(header, yieldLoops : _*))
     executeTests(Table(header, multiYieldLoops : _*))
     executeTests(Table(header, sumLoops : _*))
+
+  }
+
+  it should "give the right error messages on malformed loops" in {
+
+    executeTests(Table(
+      header,
+      ("malformed forClause", "for 3 from 1 to 5 yield 6 end", "!!Syntax error.")
+    ))
 
   }
 
