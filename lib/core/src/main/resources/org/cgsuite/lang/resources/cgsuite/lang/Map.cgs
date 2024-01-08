@@ -37,6 +37,12 @@ system class Map extends Collection, Function
     */
   external def Keys;
 
+  /** The `Map` obtained by swapping the keys and values of this `Map`.
+    * If `y == map.Reversed[x]`, it will always be the case that `map[y] == x`. However, if there are multiple `y`
+    * that satisfy `map[y] == x`, then the specific choice of `map.Reversed[x]` is not deterministic.
+    */
+  external def Reversed;
+
   /** All the values of this map, as a [[Set]].
     */
   external def Values;

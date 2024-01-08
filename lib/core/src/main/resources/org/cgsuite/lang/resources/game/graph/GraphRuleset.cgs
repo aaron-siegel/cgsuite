@@ -12,7 +12,12 @@ class GraphRuleset extends Ruleset
 
   def EdgeTypes := { "" => Nothing };
 
+  def VertexToString := VertexTypes.Reversed;
+
+  def EdgeToString := EdgeTypes.Reversed;
+
   class GraphGame(graph as Graph) extends Game
+    override def ToOutput := this.Class.Name + "(\"" + graph.ToString(VertexToString, EdgeToString) + "\")";
   end
 
 end

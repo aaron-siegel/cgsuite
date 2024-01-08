@@ -45,6 +45,7 @@ object SpecialMethods {
     "cgsuite.lang.List.Sorted" -> { (list: IndexedSeq[_], _: Unit) => list.sorted(UniversalOrdering) },
     "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.lang.Map.Keys" -> { (map: scala.collection.Map[_,_], _: Unit) => map.keySet },
+    "cgsuite.lang.Map.Reversed" -> { (map: scala.collection.Map[Any,Any], _: Unit) => map map { _.swap } },
     "cgsuite.lang.Map.Values" -> { (map: scala.collection.Map[_,_], _: Unit) => map.values.toSet },
     "cgsuite.lang.MapEntry.Key" -> { (entry: (_,_), _: Unit) => entry._1 },
     "cgsuite.lang.MapEntry.ToOutput" -> { (entry: (_,_), _: Unit) => OutputBuilder.toOutput(entry) },

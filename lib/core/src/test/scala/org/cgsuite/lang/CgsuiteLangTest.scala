@@ -80,6 +80,7 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("Map: ContainsKey", "{7 => true, 1/2 => ^^*} ContainsKey 7", "true"),
       ("Map: Entries", "{7 => true, 1/2 => ^^*}.Entries", "{1/2 => ^^*,7 => true}"),
       ("Map: Keys", "{7 => true, 1/2 => ^^*}.Keys", "{1/2,7}"),
+      ("Map: Reversed", "{7 => true, 1/2 => ^^*}.Reversed", "{^^* => 1/2, true => 7}"),
       ("Map: Values", "{7 => true, 1/2 => ^^*}.Values", "{^^*,true}")
     ))
 

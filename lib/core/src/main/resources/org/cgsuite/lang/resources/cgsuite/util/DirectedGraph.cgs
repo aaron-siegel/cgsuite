@@ -1,5 +1,19 @@
 /*${cgsuite.banner}*/
 
+/** A directed multigraph. A `DirectedGraph` is analogous to a [[Graph]], but with directed edges. Most of the
+  * `Graph` documentation applies equally to `DirectedGraph`s.
+  *
+  * Mathematically, every `Graph` is also a `DirectedGraph` whose directed edges are symmetrical (i.e., in which edge
+  * reversal is a graph automorphism). In CGSuite, they are implemented separately, because despite the mathematical
+  * relationship, the expected behavior of the APIs is different. For example, consider the graph `g` with two vertices
+  * connected by a single undirected edge, considered separately as an undirected and a directed graph:
+  *
+  * \display{Graph.Parse("-").EdgeCount}
+  *
+  * \display{DirectedGraph.Parse("-").EdgeCount}
+  *
+  * Similar considerations apply to other edge-manipulation methods, such as [[#DeleteEdge]].
+  */
 system class DirectedGraph
 
   static var Empty := DirectedPath(0);
@@ -40,6 +54,18 @@ system class DirectedGraph
 
   external def Vertices as List;
 
-  external override def ToOutput as Output;
+  external def ToOutput(
+    vertexTypes as Function ? { => },
+    edgeTypes as Function ? { => }
+  ) as Output;
+
+  override def ToOutput := ToOutput();
+
+  external def ToString(
+    vertexTypes as Function ? { => },
+    edgeTypes as Function ? { => }
+  ) as String;
+
+  override def ToString := ToString();
 
 end

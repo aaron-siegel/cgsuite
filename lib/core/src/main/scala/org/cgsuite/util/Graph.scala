@@ -6,7 +6,7 @@ import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 object Graph {
 
@@ -131,13 +131,121 @@ case class Graph[+V, +E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarge
     Integer(connectedCount(v, new mutable.BitSet(vertices.length), countEdges = true, undirected = true))
   }
 
-  override def toOutput: StyledTextOutput = {
-    new StyledTextOutput(toString)
+  override def toOutput: StyledTextOutput = toOutput(PartialFunction.empty, PartialFunction.empty)
+
+  def toOutput(
+    vertexTagStrings: PartialFunction[V, String],
+    edgeTagStrings: PartialFunction[E, String]
+  ): StyledTextOutput = {
+    new StyledTextOutput(toString(vertexTagStrings, edgeTagStrings))
   }
 
-  override def toString = {
-    s"<Graph with $vertexCount vertices and $edgeCount edges>"
+  override def toString: String = toString(PartialFunction.empty, PartialFunction.empty)
+
+  def toString(
+    vertexTagStrings: PartialFunction[V, String],
+    edgeTagStrings: PartialFunction[E, String]
+  ): String = {
+    val edgesRemaining = vertices map { vertex => ArrayBuffer(vertex.edges : _*) }
+    val refCount = ArrayBuffer.fill[Int](vertices.length)(0)
+    val trees = vertices.indices collect {
+      case n if refCount(n) == 0 =>
+        treeify(n, edgesRemaining, refCount)
+    }
+    trees map { stringify(_, refCount, vertexTagStrings, edgeTagStrings) } mkString ";"
   }
+
+  private def treeify[F](vertex: Int, edgesRemaining: IndexedSeq[ArrayBuffer[Edge[F]]], refCount: ArrayBuffer[Int]): Tree[F] = {
+    refCount(vertex) += 1
+    if (refCount(vertex) == 1) {
+      val children = ArrayBuffer[(Tree[F], F, Boolean)]()
+      while (edgesRemaining(vertex).nonEmpty) {
+        val nextEdge = edgesRemaining(vertex).head
+        edgesRemaining(vertex).remove(0)
+        val target = nextEdge.toVertex.intValue - 1
+        val backIndex = edgesRemaining(target) indexOf Edge(nextEdge.toVertex, nextEdge.fromVertex, nextEdge.tag)
+        if (backIndex >= 0) {
+          edgesRemaining(target).remove(backIndex)
+        }
+        children += ((treeify(target, edgesRemaining, refCount), nextEdge.tag, backIndex == -1))
+      }
+      Tree(vertex, children.toIndexedSeq)
+    } else {
+      Tree(vertex, IndexedSeq.empty)
+    }
+  }
+
+  private def stringify[F](
+    tree: Tree[F],
+    refCount: ArrayBuffer[Int],
+    vertexTagStrings: PartialFunction[V, String],
+    edgeTagStrings: PartialFunction[F, String]
+  ): String = {
+    val builder = new StringBuilder()
+    stringifyR(tree, refCount, vertexTagStrings, edgeTagStrings, builder)
+    builder.toString
+  }
+
+  private def stringifyR[F](
+    tree: Tree[F],
+    refCount: ArrayBuffer[Int],
+    vertexTagStrings: PartialFunction[V, String],
+    edgeTagStrings: PartialFunction[F, String],
+    builder: StringBuilder
+  ): Unit = {
+    val vTag = vertices(tree.vertex).tag
+    val vTagStr = vertexTagStrings lift vTag match {
+      case Some(str) => str
+      case None => if (vTag == null) "" else vTag.toString
+    }
+    stringifyAppend(builder, vTagStr)
+    if (refCount(tree.vertex) > 1) {
+      builder += ':'
+      stringifyAppend(builder, stringifyVertexName(tree.vertex))
+    }
+    if (tree.children.size > 1) {
+      builder += '('
+    }
+    for (i <- tree.children.indices) {
+      val (subtree, eTag, isDirected) = tree.children(i)
+      val eTagStr = edgeTagStrings lift eTag match {
+        case Some(str) => str
+        case None => if (eTag == null) "" else eTag.toString
+      }
+      if (!isDirected && eTagStr.isEmpty) {
+        builder += '-'
+      }
+      stringifyAppend(builder, eTagStr)
+      if (isDirected) {
+        builder += '>'
+      }
+      stringifyR(subtree, refCount, vertexTagStrings, edgeTagStrings, builder)
+      if (i < tree.children.size - 1) {
+        builder += ';'
+      }
+    }
+    if (tree.children.size > 1) {
+      builder += ')'
+    }
+  }
+
+  private def stringifyAppend(builder: StringBuilder, tagStr: String): Unit = {
+    if (tagStr.length > 1) {
+      builder append s"{$tagStr}"
+    } else {
+      builder append tagStr
+    }
+  }
+
+  private def stringifyVertexName(vertex: Int): String = {
+    if (vertex < 26) {
+      ('A' + vertex).toChar.toString
+    } else {
+      s"v$vertex"
+    }
+  }
+
+  private case class Tree[+F](vertex: Int, children: IndexedSeq[(Tree[F], F, Boolean)])
 
 }
 
