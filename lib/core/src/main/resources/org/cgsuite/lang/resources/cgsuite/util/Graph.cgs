@@ -70,18 +70,11 @@ system class Graph
 
   external def Vertices as List;
 
-  external def ToOutput(
-    vertexTypes as Function ? { => },
-    edgeTypes as Function ? { => }
-  ) as Output;
-
-  override def ToOutput := ToOutput();
+  external override def ToOutput;
 
   external def ToString(
     vertexTypes as Function ? { => },
     edgeTypes as Function ? { => }
   ) as String;
-
-  override def ToString := ToString();
 
 end

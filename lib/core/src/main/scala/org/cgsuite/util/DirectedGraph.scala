@@ -1,7 +1,7 @@
 package org.cgsuite.util
 
+import org.cgsuite.core.Integer
 import org.cgsuite.core.Values._
-import org.cgsuite.core.{Integer, Values}
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph.{Edge, Vertex}
 
@@ -68,12 +68,6 @@ case class DirectedGraph[+V, +E](vertices: IndexedSeq[Vertex[V, E]])
     super.deleteEdgeByIndex(vFrom, eIndex, undirected = false)
   }
 
-  override def toOutput: StyledTextOutput = {
-    new StyledTextOutput(toString)
-  }
-
-  override def toString = {
-    s"<DirectedGraph with $vertexCount vertices and $edgeCount directed edges>"
-  }
+  override def toOutput: StyledTextOutput = new StyledTextOutput(toString)
 
 }
