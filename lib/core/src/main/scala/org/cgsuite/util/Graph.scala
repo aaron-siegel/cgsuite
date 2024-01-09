@@ -2,6 +2,7 @@ package org.cgsuite.util
 
 import org.cgsuite.core.Values._
 import org.cgsuite.core.{Integer, Values}
+import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
 
@@ -160,7 +161,7 @@ object GraphParser {
     stream = parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
     while (stream.nonEmpty) {
       if (stream.head != ";") {
-        sys.error("parse error")
+        throw EvalException("Invalid graph specification.")
       }
       stream = stream.tail
       stream = parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
@@ -182,7 +183,7 @@ object GraphParser {
       case '{' =>
         val end = str.indexOf('}', index + 1)
         if (end == -1)
-          sys.error("parse error")
+          throw EvalException("Invalid graph specification.")
         str.substring(index + 1, end) :: tokenize(str, end + 1)
       case ch => ch.toString :: tokenize(str, index + 1)
     }
@@ -216,7 +217,7 @@ object GraphParser {
           stream = parse(stream.tail, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, precOpt)
         } while (stream.nonEmpty && stream.head == ";")
         if (stream.isEmpty || stream.head != ")") {
-          sys.error("parse error")
+          throw EvalException("Invalid graph specification: Unmatched `(`")
         }
         return stream.tail
       }
@@ -236,7 +237,7 @@ object GraphParser {
       }
 
       if (!allowDirected && inedge != outedge) {
-        sys.error("Directed edge not allowed here")
+        throw EvalException("Invalid graph specification: Directed graph edges are not allowed here")
       }
 
       stream = stream.tail
@@ -268,7 +269,7 @@ object GraphParser {
     if (vertexName.exists(vertexNames.contains)) {
       vertex = vertexNames(vertexName.get)
       if (vertexTags(vertex.intValue - 1) != vertexTag) {
-        sys.error("parse error (conflicting tags)")
+        throw EvalException("Invalid graph specification: The same named vertex has multiple distinct tags")
       }
     } else {
       vertex = Integer(vertexTags.length + 1)
