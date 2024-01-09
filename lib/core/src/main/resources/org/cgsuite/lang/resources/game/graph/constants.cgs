@@ -12,6 +12,38 @@ singleton class constants
 
   var Fjords := GenCol([Left], [Right]);
 
+  /** Ruleset for Blue-Red-Green Hackenbush.
+    *
+    * Hackenbush is played on an undirected graph with edges colored blue, red, or green. A single vertex of the graph
+    * is identified as the ~~ground~~. On her turn, a player removes an edge corresponding to her color: Left may remove
+    * a bLue edge; Right may remove a Red edge; and Either player may remove a grEen edge. Any edges no longer connected
+    * to the ground are also removed. (Thus the entire graph is constrained to be a single connected component.)
+    *
+    * Hackenbush positions are typically constructed by specifiying the graph as a [[String]]. The symbols `l`, `r`,
+    * and `e` are used for bLue, Red, and grEen edges, respectively. A Hackenbush ~~stalk~~ (line graph) may be
+    * constructed as follows:
+    *
+    * \display{game.graph.Hackenbush("lrlrr")}
+    *
+    * We can verify that it has the expected value $9/16$:
+    *
+    * \display{game.graph.Hackenbush("lrlrr").CanonicalForm}
+    *
+    * To input a tree, enclose branching sub-trees in parentheses, with branches separated by semicolons:
+    *
+    * \display{game.graph.Hackenbush("eee(e;ee)")}
+    *
+    * To input cycles, you can name a vertex by appending `:N` for a single-letter name, or `:{Name}` for a multi-letter
+    * name, to any edge. Appending the same name to multiple vertices will identify them. Thus
+    *
+    * \display{game.graph.Hackenbush("ee:Aeeee:A")}
+    *
+    * constructs a ``bulb'' with a 4-cycle standing on top of a stalk of two edges.
+    *
+    * \display{game.graph.Hackenbush(":Geeee:G")}
+    *
+    * would give a 4-cycle rooted at the ground.
+    */
   var Hackenbush := GenHackenbush();
 
   var Snort := GenCol([Nothing, Left], [Nothing, Right]);

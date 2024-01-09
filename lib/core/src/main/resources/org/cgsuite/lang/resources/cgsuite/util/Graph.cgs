@@ -62,7 +62,13 @@ system class Graph
 
   external def Edges as List;
 
+  external def IsConnected as Boolean;
+
+  external def IsEmpty as Boolean;
+
   external def RetainVertices(vertices as List) as Graph;
+
+  external def ToDirectedGraph as DirectedGraph;
 
   external def UpdatedVertexTags(updates as Map) as Graph;
 

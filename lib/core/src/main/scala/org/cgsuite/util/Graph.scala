@@ -131,6 +131,12 @@ case class Graph[+V, +E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarge
     Integer(connectedCount(v, new mutable.BitSet(vertices.length), countEdges = true, undirected = true))
   }
 
+  def isConnected: Boolean = isEmpty || connectedVertexCount(one) == vertexCount
+
+  def isEmpty: Boolean = vertexCount.isZero
+
+  def toDirectedGraph: DirectedGraph[V, E] = DirectedGraph(vertices)
+
   override def toOutput: StyledTextOutput = new StyledTextOutput(toString)
 
 }
@@ -146,11 +152,20 @@ object GraphParser {
     fromVertices: IndexedSeq[Vertex[V, E]] => C
   ): C = {
 
-    val tokens = tokenize(str, 0)
+    var stream = tokenize(str, 0)
     val vertexTags = ArrayBuffer[V]()
     val edges = ArrayBuffer[ArrayBuffer[Edge[E]]]()
     val vertexNames = mutable.Map[String, Integer]()
-    parse(tokens, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
+
+    stream = parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
+    while (stream.nonEmpty) {
+      if (stream.head != ";") {
+        sys.error("parse error")
+      }
+      stream = stream.tail
+      stream = parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
+    }
+
     fromVertices {
       vertexTags.zip(edges).toIndexedSeq map { case (tag, edges) =>
         Vertex(tag, edges.toIndexedSeq)
