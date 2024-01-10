@@ -221,6 +221,29 @@ object GraphTestCase {
       updatedVertexTags = """Graph("{Left}-;--;---")""",
       vertexCount = "9",
       vertex1 = "Vertex.instance"
+    ),
+
+    // Decomposition
+    GraphTestCase(
+      """Graph.Parse(".-.-L-L-.-.-L", vertexTypes => { "" => Nothing, "L" => Left })""",
+      """Graph("--{Left}-{Left}---{Left}")""",
+      adjacencyList = "[[2],[1,3],[2,4],[3,5],[4,6],[5,7],[6]]",
+      connectedComponent = """Graph("--{Left}-{Left}---{Left}")""",
+      connectedComponents = """[Graph("--{Left}-{Left}---{Left}")]""",
+      decomposition = """[Graph("-"),Graph("-")]""",
+      deleteEdge = """Graph(".;-{Left}-{Left}---{Left}")""",
+      deleteVertex = """Graph("-{Left}-{Left}---{Left}")""",
+      deleteVertices = """Graph("{Left}-{Left}---{Left}")""",
+      edgeCount = "6",
+      edge1 = "Edge.instance",
+      fromAdjacencyList = Some("""Graph("------")"""),
+      isConnected = "true",
+      isEmpty = "false",
+      isSimple = "true",
+      retainVertices = """Graph("-")""",
+      updatedVertexTags = """Graph("{Left}--{Left}-{Left}---{Left}")""",
+      vertexCount = "7",
+      vertex1 = "Vertex.instance"
     )
 
   )
@@ -239,6 +262,7 @@ case class GraphTestCase(
   deleteVertices: String,
   edgeCount: String,
   edge1: String,
+  fromAdjacencyList: Option[String] = None,   // If different from xOut
   isConnected: String,
   isEmpty: String,
   isSimple: String,
@@ -250,7 +274,7 @@ case class GraphTestCase(
 
   def toTests = Seq(
     (x, xOut),
-    (s"Graph.FromAdjacencyList($adjacencyList)", xOut),
+    (s"Graph.FromAdjacencyList($adjacencyList)", fromAdjacencyList getOrElse xOut),
     (s"($x).AdjacencyList", adjacencyList),
     (s"($x).ConnectedComponent(1)", connectedComponent),
     (s"($x).ConnectedComponents", connectedComponents),

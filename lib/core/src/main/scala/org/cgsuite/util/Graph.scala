@@ -451,7 +451,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
         }
       }
       for (edge <- vertex(v).edges) {
-        cnt += connectedCount(edge.toVertex, visited, countEdges, undirected)
+        cnt += connectedCount(edge.toVertex, visited, countEdges, undirected, avoidTag)
       }
       cnt
     }
@@ -480,9 +480,10 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
         visited.clear()
         connectedCount(v, visited, countEdges = false, undirected = false, avoidTag)
         allVisited ++= visited
-        val vs = visited.toIndexedSeq map { n => Integer(n + 1) }
-        retainVertices(vs)
-    }
+        visited.toIndexedSeq map { n => Integer(n + 1) }
+    } filter {
+      _.nonEmpty
+    } map retainVertices
   }
 
   def isEmpty: Boolean = vertexCount.isZero
