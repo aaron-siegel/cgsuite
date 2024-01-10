@@ -113,7 +113,29 @@ object GraphTestCase {
       vertex1 = "Vertex.instance"
     ),
 
-    // Undirected cycle of length 5
+    // Multigraph (two identical edges)
+    GraphTestCase(
+      """Graph(":A--:A")""",
+      """Graph(":A--:A")""",
+      adjacencyList = "[[2,2],[1,1]]",
+      connectedComponent = """Graph(":A--:A")""",
+      connectedComponents = """[Graph(":A--:A")]""",
+      decomposition = """[Graph(":A--:A")]""",
+      deleteEdge = """Graph("-")""",
+      deleteVertex = """Graph(".")""",
+      deleteVertices = """Graph("")""",
+      edgeCount = "2",
+      edge1 = "Edge.instance",
+      isConnected = "true",
+      isEmpty = "false",
+      isSimple = "false",
+      retainVertices = """Graph(":A--:A")""",
+      updatedVertexTags = """Graph("{Left}:A--{Left}:A")""",
+      vertexCount = "2",
+      vertex1 = "Vertex.instance"
+    ),
+
+    // Undirected cycle of size 5
     GraphTestCase(
       """Graph.Cycle(5)""",
       """Graph(":A-----:A")""",
@@ -132,6 +154,72 @@ object GraphTestCase {
       retainVertices = """Graph("-")""",
       updatedVertexTags = """Graph("{Left}:A-----{Left}:A")""",
       vertexCount = "5",
+      vertex1 = "Vertex.instance"
+    ),
+
+    // Star graph of size 5
+    GraphTestCase(
+      """Graph.Star(5)""",
+      """Graph("(-;-;-;-)")""",
+      adjacencyList = "[[2,3,4,5],[1],[1],[1],[1]]",
+      connectedComponent = """Graph("(-;-;-;-)")""",
+      connectedComponents = """[Graph("(-;-;-;-)")]""",
+      decomposition = """[Graph("(-;-;-;-)")]""",
+      deleteEdge = """Graph("(-;-;-);.")""",
+      deleteVertex = """Graph(".;.;.;.")""",
+      deleteVertices = """Graph(".;.;.")""",
+      edgeCount = "4",
+      edge1 = "Edge.instance",
+      isConnected = "true",
+      isEmpty = "false",
+      isSimple = "true",
+      retainVertices = """Graph("-")""",
+      updatedVertexTags = """Graph("{Left}(-;-;-;-)")""",
+      vertexCount = "5",
+      vertex1 = "Vertex.instance"
+    ),
+
+    // Clique of size 5
+    GraphTestCase(
+      """Graph.Clique(5)""",
+      """Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")""",
+      adjacencyList = "[[2,3,4,5],[1,3,4,5],[1,2,4,5],[1,2,3,5],[1,2,3,4]]",
+      connectedComponent = """Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")""",
+      connectedComponents = """[Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")]""",
+      decomposition = """[Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")]""",
+      deleteEdge = """Graph(":A-:C-:B-(-:A;-:C;-(-:A;-:B;-:C))")""",
+      deleteVertex = """Graph(":A-:B-(-:A;-(-:A;-:B))")""",
+      deleteVertices = """Graph(":A---:A")""",
+      edgeCount = "10",
+      edge1 = "Edge.instance",
+      isConnected = "true",
+      isEmpty = "false",
+      isSimple = "true",
+      retainVertices = """Graph("-")""",
+      updatedVertexTags = """Graph("{Left}:A-:B-:C(-{Left}:A;-(-{Left}:A;-:B;-(-{Left}:A;-:B;-:C)))")""",
+      vertexCount = "5",
+      vertex1 = "Vertex.instance"
+    ),
+
+    // Several disconnected subgraphs
+    GraphTestCase(
+      """Graph("-;--;---")""",
+      """Graph("-;--;---")""",
+      adjacencyList = "[[2],[1],[4],[3,5],[4],[7],[6,8],[7,9],[8]]",
+      connectedComponent = """Graph("-")""",
+      connectedComponents = """[Graph("-"),Graph("--"),Graph("---")]""",
+      decomposition = """[Graph("-"),Graph("--"),Graph("---")]""",
+      deleteEdge = """Graph(".;.;--;---")""",
+      deleteVertex = """Graph(".;--;---")""",
+      deleteVertices = """Graph("--;---")""",
+      edgeCount = "6",
+      edge1 = "Edge.instance",
+      isConnected = "false",
+      isEmpty = "false",
+      isSimple = "true",
+      retainVertices = """Graph("-")""",
+      updatedVertexTags = """Graph("{Left}-;--;---")""",
+      vertexCount = "9",
       vertex1 = "Vertex.instance"
     )
 
