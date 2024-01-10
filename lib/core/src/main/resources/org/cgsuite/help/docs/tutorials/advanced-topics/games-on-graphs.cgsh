@@ -1,0 +1,75 @@
+Games on Graphs
+
+CGSuite includes a rich library for graph manipulations, in order to support rulesets such as [[game.graph.Hackenbush]]
+and [[game.graph.Snort]]. This section describes the general structure and syntax of CGSuite graphs; implementations of
+specific rulesets are described in the appropriate ruleset docs.
+
++++ Unlabeled Graphs +++
+
+A graph may be undirected or directed; because the API behavior is different, these are implemented as separate classes:
+[[Graph]] and [[DirectedGraph]], respectively. In both cases, vertices and/or edges may be
+~~labeled~~ with arbitrary CGSuite objects. For example, edges may be labeled with a color, as in Hackenbush; or
+vertices may be labeled with non-negative integers, as in rulesets such as Weighted Arc Kayles.
+
+The most convenient way to construct a graph is via a [[String]] that encodes the graph structure. In a `String`
+encoding, a `.` indicates an unlabeled vertex and a `-` indicates an unlabeled, undirected edge. For example,
+`.-.-.-.` is an unlabeled, undirected path with four vertices.
+
+\display{Graph.Parse(".-.-.-.")}
+
+Notice that in the output, the vertex dots are suppressed. Dots for unlabeled vertices are ~always~ optional; they
+will be inferred as necessary to terminate edges. So the above path may alternatively be specified as follows:
+
+\display{Graph.Parse("---")}
+
+To input trees, use parentheses to delineate sub-expressions. A sub-expression that appears in parentheses is
+interpreted as a sequence of branches off the preceding node, with the individual branches separated by semicolons
+inside the sub-expression. For example,
+
+\display{Graph.Parse("--(-;--;---)")}
+
+would yield a tree consisting of a "trunk" with 2 edges, followed by three branches with 1, 2, and 3 edges,
+respectively.
+
+To input cycles: Suffix any vertex with `:A` to name that vertex `A`. All vertices with the same name will be
+identified. Thus a 4-cycle could be given by
+
+\display{Graph.Parse(".:A-.-.-.-.:A")}
+
+or simply:
+
+\display{Graph.Parse(":A----:A")}
+
+Vertices can also be given longer names by enclosing the names in brackets:
+
+\display{Graph.Parse(":{root}----:{root}")}
+
++++ Labeled Graphs +++
+
+To parse graphs with labels, specify an appropriate mapping from `String`s to CGSuite objects. Then the shorthand
+`String`s may be used in place of `.` or `-`, depending on whether the labels apply to vertices or edges.
+Here's an example with colored vertices.
+
+\display{labels := { "L" => game.graph.Color.Blue, "R" => game.graph.Color.Red }}
+
+\display{graph := Graph.Parse("L-R-L", vertexTags => labels)}
+
+Note that CGSuite expands the object names by default; it doesn't know how to abbreviate them! A specialized `ToString`
+method may be used to recover the shorthand notation:
+
+\display{graph.ToString(vertexTags => labels)}
+
+You can also freely omit unlabeled, undirected edges, and they will be inferred as necessary between vertices.
+
+\display{Graph.Parse("LRL", vertexTags => labels)}
+
+When working with rulesets, it is usually not necessary to specify a label mapping explicitly, as the notation will
+be baked into the ruleset. For example:
+
+\display{game.graph.Col("LR..L")}
+
+\footer
+
+~~Congratulations! You've reached the end of the [[/tutorials/advanced-topics/advanced-topics]] tutorial.
+Feel free to try one of the other
+[[/contents][tutorials]] or browse the [[/reference/overview][package overview]].~~
