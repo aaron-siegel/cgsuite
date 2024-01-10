@@ -50,7 +50,8 @@ class GameGraphTest extends CgscriptSpec {
       ("Hackenbush Moderately Hard Bed",    // Figure 31 from WW, Chapter 7
         """game.graph.Hackenbush("(lr:A(rr:B;rr:D;rr:F);lr:B(r(r:D;r:E));lr:C(rr:F;rr:G);lr:D;lr:E(r(r:F;r:G));lr:F;lr:G)").CanonicalForm""", "1/128"),
        */
-      ("Hackenbush Disconnected", """game.graph.Hackenbush("lrlr;lr").CanonicalForm""", "!!That `Graph` is not connected.")
+      ("Hackenbush Disconnected", """game.graph.Hackenbush("lrlr;lr").CanonicalForm""", "!!That `Graph` is not connected."),
+      ("Hackenbush Empty", """game.graph.Hackenbush("").CanonicalForm""", "!!That `Graph` is empty (no ground).")
     ))
   }
 

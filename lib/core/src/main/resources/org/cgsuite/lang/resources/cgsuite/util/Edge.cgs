@@ -8,6 +8,4 @@ system class Edge
 
   external def Tag;
 
-  external override def ToOutput;
-
 end

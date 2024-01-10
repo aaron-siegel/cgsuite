@@ -81,9 +81,16 @@ object Graph {
 
   case class Vertex[+V, +E](tag: V, edges: IndexedSeq[Edge[E]]) {
 
-    def edgeCount: Integer = Integer(edges.length)
+    val edgeCount: Integer = Integer(edges.length)
 
-    def edge(n: Integer): Edge[E] = edges(n.intValue - 1)
+    def edge(n: Integer): Edge[E] = {
+      val nInt = n.intValue - 1
+      if (nInt >= 0 && nInt < edges.length) {
+        edges(nInt)
+      } else {
+        throw EvalException(s"Edge is out of bounds: $n")
+      }
+    }
 
     def deleteEdgeByIndex(eIndex: Integer): Vertex[V, E] = Vertex(
       tag,
@@ -134,11 +141,15 @@ case class Graph[+V, +E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarge
 
   def isConnected: Boolean = isEmpty || connectedVertexCount(one) == vertexCount
 
-  def isEmpty: Boolean = vertexCount.isZero
+  def isSimple: Boolean = {
+    val edges = this.edges
+    edges.forall { edge => edge.toVertex != edge.fromVertex } &&
+      edges.distinct.size == edges.size
+  }
 
   def toDirectedGraph: DirectedGraph[V, E] = DirectedGraph(vertices)
 
-  override def toOutput: StyledTextOutput = new StyledTextOutput(toString)
+  override def toOutput: StyledTextOutput = new StyledTextOutput(s"""Graph("$toString")""")
 
 }
 
@@ -299,9 +310,16 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
 
   def vertices: IndexedSeq[Vertex[V, E]]
 
-  def vertexCount: Integer = Integer(vertices.length)
+  val vertexCount: Integer = Integer(vertices.length)
 
-  def vertex(n: Integer): Vertex[V, E] = vertices(n.intValue - 1)
+  def vertex(n: Integer): Vertex[V, E] = {
+    val nInt = n.intValue - 1
+    if (nInt >= 0 && nInt < vertices.length) {
+      vertices(n.intValue - 1)
+    } else {
+      throw EvalException(s"Vertex is out of bounds: $n")
+    }
+  }
 
   def fromVertices[W >: V, F >: E](vertices: IndexedSeq[Vertex[W, F]]): CC[W, F]
 
@@ -345,6 +363,9 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   }
 
   def deleteVertex[W >: V, F >: E](v: Integer): CC[W, F] = fromVertices {
+    if (v < one || v > vertexCount) {
+      throw EvalException(s"Vertex is out of bounds: $v")
+    }
     one to vertexCount collect { case n if n != v =>
       Vertex(vertex(n).tag, vertex(n).edges collect { case e if e.toVertex != v =>
         Edge(
@@ -357,11 +378,17 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   }
 
   def deleteVertices[W >: V, F >: E](vs: IndexedSeq[Integer]): CC[W, F] = {
+    for (v <- vs if v < one || v > vertexCount) {
+      throw EvalException(s"Vertex is out of bounds: $v")
+    }
     // TODO This is inefficient for large graphs
     retainVertices(one to vertexCount filterNot vs.contains)
   }
 
   def retainVertices[W >: V, F >: E](vs: IndexedSeq[Integer]): CC[W, F] = fromVertices {
+    for (v <- vs if v < one || v > vertexCount) {
+      throw EvalException(s"Vertex is out of bounds: $v")
+    }
     var next: Integer = zero
     val sorted = vs.sorted
     val vertexMap = sorted.map { n =>
@@ -378,6 +405,9 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   }
 
   def updatedVertexTag[W >: V, F >: E](v: Integer, tag: W): CC[W, F] = fromVertices {
+    if (v < one || v > vertexCount) {
+      throw EvalException(s"Vertex is out of bounds: $v")
+    }
     one to vertexCount map {
       case n if n == v => Vertex(tag, vertex(n).edges)
       case n => vertex(n)
@@ -385,6 +415,9 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   }
 
   def updatedVertexTags[W >: V, F >: E](tagMap: scala.collection.Map[Integer, W]): CC[W, F] = fromVertices {
+    for (v <- tagMap.keys if v < one || v > vertexCount) {
+      throw EvalException(s"Vertex is out of bounds: $v")
+    }
     one to vertexCount map {
       case n if tagMap contains n => Vertex(tagMap(n), vertex(n).edges)
       case n => vertex(n)
@@ -452,6 +485,8 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     }
   }
 
+  def isEmpty: Boolean = vertexCount.isZero
+
   override def toString: String = toString(PartialFunction.empty, PartialFunction.empty)
 
   def toString(
@@ -475,11 +510,16 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
         val nextEdge = edgesRemaining(vertex).head
         edgesRemaining(vertex).remove(0)
         val target = nextEdge.toVertex.intValue - 1
-        val backIndex = edgesRemaining(target) indexOf Edge(nextEdge.toVertex, nextEdge.fromVertex, nextEdge.tag)
-        if (backIndex >= 0) {
-          edgesRemaining(target).remove(backIndex)
+        var isDirected: Boolean = false
+        if (nextEdge.toVertex != nextEdge.fromVertex) {
+          val backIndex = edgesRemaining(target) indexOf Edge(nextEdge.toVertex, nextEdge.fromVertex, nextEdge.tag)
+          if (backIndex >= 0) {
+            edgesRemaining(target).remove(backIndex)
+          } else {
+            isDirected = true
+          }
         }
-        children += ((treeify(target, edgesRemaining, refCount), nextEdge.tag, backIndex == -1))
+        children += ((treeify(target, edgesRemaining, refCount), nextEdge.tag, isDirected))
       }
       Tree(vertex, children.toIndexedSeq)
     } else {
@@ -495,7 +535,12 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   ): String = {
     val builder = new StringBuilder()
     stringifyR(tree, refCount, vertexTagStrings, edgeTagStrings, builder)
-    builder.toString
+    if (builder.isEmpty) {
+      // Special case: a single vertex with no name, whose tag maps to ""
+      "."
+    } else {
+      builder.toString
+    }
   }
 
   private def stringifyR[F](

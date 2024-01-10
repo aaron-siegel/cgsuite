@@ -26,6 +26,8 @@ system class Graph
 
   external static def Cycle(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
 
+  static def Eval(str as String) := Parse(str);
+
   external static def FromAdjacencyList(adjacencyList as List, vertexTag ? Nothing, edgeTag ? Nothing);
 
   external static def Parse(
@@ -42,7 +44,7 @@ system class Graph
 
   def op[](index as Integer) := Vertices[index];
 
-  def AdjacencyList := [[edge.ToVertex for edge in vertex.Edges] for vertex in Vertices];
+  def AdjacencyList := [[edge.ToVertex for edge in vertex.Edges].Sorted for vertex in Vertices];
 
   external def ConnectedComponent(vertex as Integer) as Graph;
 
@@ -65,6 +67,8 @@ system class Graph
   external def IsConnected as Boolean;
 
   external def IsEmpty as Boolean;
+
+  external def IsSimple as Boolean;
 
   external def RetainVertices(vertices as List) as Graph;
 

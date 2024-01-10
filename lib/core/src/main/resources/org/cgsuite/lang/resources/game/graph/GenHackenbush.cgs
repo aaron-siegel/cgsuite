@@ -5,6 +5,8 @@ class GenHackenbush(childish as Boolean ? false) extends GraphRuleset
   override def Eval(graph as Graph) begin
     if (not graph.IsConnected) then
       System.Error("That `Graph` is not connected.");
+    elseif graph.IsEmpty then
+      System.Error("That `Graph` is empty (no ground).");
     end
     Position(graph);
   end
