@@ -18,17 +18,17 @@ system class DirectedGraph
 
   static var Empty := DirectedPath(0);
 
-  external static def DirectedPath(n as Integer, vertexTag ? Nothing, edgeTag ? Nothing);
+  external static def DirectedPath(n as Integer, vertexLabel ? Nothing, edgeLabel ? Nothing);
 
-  external static def FromAdjacencyList(adjacencyList as List, vertexTag ? Nothing, edgeTag ? Nothing);
+  external static def FromAdjacencyList(adjacencyList as List, vertexLabel ? Nothing, edgeLabel ? Nothing);
 
   external static def Parse(
     str as String,
-    vertexTypes as Function ? { "" => Nothing },
-    edgeTypes as Function ? { "" => Nothing }
+    vertexLabels as Function ? { "" => Nothing },
+    edgeLabels as Function ? { "" => Nothing }
   ) as DirectedGraph;
 
-  external static def Singleton(vertexTag ? Nothing);
+  external static def Singleton(vertexLabel ? Nothing);
 
   def op[](index as Integer) := Vertices[index];
 
@@ -48,7 +48,7 @@ system class DirectedGraph
 
   external def RetainVertices(vertices as List) as DirectedGraph;
 
-  external def UpdatedVertexTags(updates as Map) as DirectedGraph;
+  external def UpdatedVertexLabels(updates as Map) as DirectedGraph;
 
   external def VertexCount as Integer;
 
@@ -57,8 +57,8 @@ system class DirectedGraph
   external override def ToOutput;
 
   external def ToString(
-    vertexTypes as Function ? { => },
-    edgeTypes as Function ? { => }
+    vertexLabels as Function ? { => },
+    edgeLabels as Function ? { => }
   ) as String;
 
 end

@@ -16,11 +16,11 @@ class GenHackenbush(childish as Boolean ? false) extends GraphRuleset
     override def Options(player as Player) begin
       for edge in graph.Edges
       where edge.FromVertex <= edge.ToVertex and
-        (edge.Tag == Color.Green
-          or (player == Left and edge.Tag == Color.Blue)
-          or (player == Right and edge.Tag == Color.Red)) and
+        (edge.Label == Color.Green
+          or (player == Left and edge.Label == Color.Blue)
+          or (player == Right and edge.Label == Color.Red)) and
         // TODO This can be made more efficient
-        (not childish or edge.Tag == Color.Green or graph.DeleteEdge(edge).ConnectedComponent(1).EdgeCount == graph.EdgeCount - 1)
+        (not childish or edge.Label == Color.Green or graph.DeleteEdge(edge).ConnectedComponent(1).EdgeCount == graph.EdgeCount - 1)
       yield
         Position(graph.DeleteEdge(edge).ConnectedComponent(1))
       end

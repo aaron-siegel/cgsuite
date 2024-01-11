@@ -6,12 +6,12 @@ class GenArcKayles(weighted as Boolean ? false) extends GraphRuleset
 
     override def Options begin
       for edge in graph.Edges
-      where not weighted or (graph[edge.FromVertex].Tag > 0 and graph[edge.ToVertex].Tag > 0)
+      where not weighted or (graph[edge.FromVertex].Label > 0 and graph[edge.ToVertex].Label > 0)
       yield
         if weighted then
-          Position(graph UpdatedVertexTags {
-            edge.FromVertex => graph[edge.FromVertex].Tag - 1,
-            edge.ToVertex => graph[edge.ToVertex].Tag - 1
+          Position(graph UpdatedVertexLabels {
+            edge.FromVertex => graph[edge.FromVertex].Label - 1,
+            edge.ToVertex => graph[edge.ToVertex].Label - 1
           })
         else
           Position(graph DeleteVertices [edge.FromVertex, edge.ToVertex])

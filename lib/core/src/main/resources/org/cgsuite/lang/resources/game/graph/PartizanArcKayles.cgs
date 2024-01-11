@@ -6,9 +6,9 @@ singleton class PartizanArcKayles extends GraphRuleset
 
     override def Options(player as Player) begin
       for edge in graph.Edges
-      where edge.Tag == Color.Green or
-        (player == Left and edge.Tag == Color.Blue) or
-        (player == Right and edge.Tag == Color.Red)
+      where edge.Label == Color.Green or
+        (player == Left and edge.Label == Color.Blue) or
+        (player == Right and edge.Label == Color.Red)
       yield
         Position(graph DeleteVertices [edge.FromVertex, edge.ToVertex])
       end

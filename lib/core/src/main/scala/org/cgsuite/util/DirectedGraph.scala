@@ -9,34 +9,34 @@ object DirectedGraph {
 
   def parse[V, E](
     str: String,
-    vertexTypes: PartialFunction[String, V],
-    edgeTypes: PartialFunction[String, E]
+    vertexLabels: PartialFunction[String, V],
+    edgeLabels: PartialFunction[String, E]
   ): DirectedGraph[V, E] = {
-    GraphParser.parse(str, vertexTypes, edgeTypes, allowDirected = true)(DirectedGraph.apply)
+    GraphParser.parse(str, vertexLabels, edgeLabels, allowDirected = true)(DirectedGraph.apply)
   }
 
-  def fromAdjacencyList[V, E](adjacencyList: IndexedSeq[IndexedSeq[Integer]], vTag: V, eTag: E): DirectedGraph[V, E] = DirectedGraph {
+  def fromAdjacencyList[V, E](adjacencyList: IndexedSeq[IndexedSeq[Integer]], vLabel: V, eLabel: E): DirectedGraph[V, E] = DirectedGraph {
     adjacencyList.indices map { vIndex =>
       val v = Integer(vIndex + 1)
-      Vertex(vTag, adjacencyList(vIndex) map { toVertex =>
-        Edge(v, toVertex, eTag)
+      Vertex(vLabel, adjacencyList(vIndex) map { toVertex =>
+        Edge(v, toVertex, eLabel)
       })
     }
   }
 
   val empty: DirectedGraph[Nothing, Nothing] = DirectedGraph(IndexedSeq.empty)
 
-  def directedPath[V, E](size: Integer, vTag: V, eTag: E): DirectedGraph[V, E] = {
+  def directedPath[V, E](size: Integer, vLabel: V, eLabel: E): DirectedGraph[V, E] = {
     DirectedGraph {
       one to size map {
-        case n if n == size => Vertex(vTag, IndexedSeq.empty)
-        case n => Vertex(vTag, IndexedSeq(Edge(n, n + one, eTag)))
+        case n if n == size => Vertex(vLabel, IndexedSeq.empty)
+        case n => Vertex(vLabel, IndexedSeq(Edge(n, n + one, eLabel)))
       }
     }
   }
 
-  def singleton[V](vTag: V): DirectedGraph[V, Nothing] = {
-    DirectedGraph(IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
+  def singleton[V](vLabel: V): DirectedGraph[V, Nothing] = {
+    DirectedGraph(IndexedSeq(Vertex(vLabel, IndexedSeq.empty)))
   }
 
 }
@@ -60,8 +60,8 @@ case class DirectedGraph[+V, +E](vertices: IndexedSeq[Vertex[V, E]])
     super.deleteEdge(edge, undirected = false)
   }
 
-  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, tag: F): DirectedGraph[W, F] = {
-    super.deleteEdgeByEndpoints(vFrom, vTo, tag, undirected = false)
+  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, label: F): DirectedGraph[W, F] = {
+    super.deleteEdgeByEndpoints(vFrom, vTo, label, undirected = false)
   }
 
   def deleteEdgeByIndex[W >: V, F >: E](vFrom: Integer, eIndex: Integer): DirectedGraph[W, F] = {

@@ -20,7 +20,7 @@ object GraphTestCase {
       isEmpty = "true",
       isSimple = "true",
       retainVertices = "!!Vertex is out of bounds: 1",
-      updatedVertexTags = "!!Vertex is out of bounds: 1",
+      updatedVertexLabels = "!!Vertex is out of bounds: 1",
       vertexCount = "0",
       vertex1 = "!!List index out of bounds: 1"
     ),
@@ -42,7 +42,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """!!Vertex is out of bounds: 2""",
-      updatedVertexTags = """Graph("{Left}")""",
+      updatedVertexLabels = """Graph("{Left}")""",
       vertexCount = "1",
       vertex1 = "Vertex.instance"
     ),
@@ -64,7 +64,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}-")""",
+      updatedVertexLabels = """Graph("{Left}-")""",
       vertexCount = "2",
       vertex1 = "Vertex.instance"
     ),
@@ -86,7 +86,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}----")""",
+      updatedVertexLabels = """Graph("{Left}----")""",
       vertexCount = "5",
       vertex1 = "Vertex.instance"
     ),
@@ -108,7 +108,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "false",
       retainVertices = """!!Vertex is out of bounds: 2""",
-      updatedVertexTags = """Graph("{Left}:A-{Left}:A")""",
+      updatedVertexLabels = """Graph("{Left}:A-{Left}:A")""",
       vertexCount = "1",
       vertex1 = "Vertex.instance"
     ),
@@ -130,7 +130,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "false",
       retainVertices = """Graph(":A--:A")""",
-      updatedVertexTags = """Graph("{Left}:A--{Left}:A")""",
+      updatedVertexLabels = """Graph("{Left}:A--{Left}:A")""",
       vertexCount = "2",
       vertex1 = "Vertex.instance"
     ),
@@ -152,7 +152,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}:A-----{Left}:A")""",
+      updatedVertexLabels = """Graph("{Left}:A-----{Left}:A")""",
       vertexCount = "5",
       vertex1 = "Vertex.instance"
     ),
@@ -174,7 +174,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}(-;-;-;-)")""",
+      updatedVertexLabels = """Graph("{Left}(-;-;-;-)")""",
       vertexCount = "5",
       vertex1 = "Vertex.instance"
     ),
@@ -196,7 +196,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}:A-:B-:C(-{Left}:A;-(-{Left}:A;-:B;-(-{Left}:A;-:B;-:C)))")""",
+      updatedVertexLabels = """Graph("{Left}:A-:B-:C(-{Left}:A;-(-{Left}:A;-:B;-(-{Left}:A;-:B;-:C)))")""",
       vertexCount = "5",
       vertex1 = "Vertex.instance"
     ),
@@ -218,14 +218,14 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}-;--;---")""",
+      updatedVertexLabels = """Graph("{Left}-;--;---")""",
       vertexCount = "9",
       vertex1 = "Vertex.instance"
     ),
 
     // Decomposition
     GraphTestCase(
-      """Graph.Parse(".-.-L-L-.-.-L", vertexTypes => { "" => Nothing, "L" => Left })""",
+      """Graph.Parse(".-.-L-L-.-.-L", vertexLabels => { "" => Nothing, "L" => Left })""",
       """Graph("--{Left}-{Left}---{Left}")""",
       adjacencyList = "[[2],[1,3],[2,4],[3,5],[4,6],[5,7],[6]]",
       connectedComponent = """Graph("--{Left}-{Left}---{Left}")""",
@@ -241,7 +241,7 @@ object GraphTestCase {
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
-      updatedVertexTags = """Graph("{Left}--{Left}-{Left}---{Left}")""",
+      updatedVertexLabels = """Graph("{Left}--{Left}-{Left}---{Left}")""",
       vertexCount = "7",
       vertex1 = "Vertex.instance"
     )
@@ -262,12 +262,12 @@ case class GraphTestCase(
   deleteVertices: String,
   edgeCount: String,
   edge1: String,
-  fromAdjacencyList: Option[String] = None,   // If different from xOut
+  fromAdjacencyList: Option[String] = None, // If different from xOut
   isConnected: String,
   isEmpty: String,
   isSimple: String,
   retainVertices: String,
-  updatedVertexTags: String,
+  updatedVertexLabels: String,
   vertexCount: String,
   vertex1: String
 ) {
@@ -289,7 +289,7 @@ case class GraphTestCase(
     (s"($x).IsEmpty", isEmpty),
     (s"($x).IsSimple", isSimple),
     (s"($x).RetainVertices([1, 2])", retainVertices),
-    (s"($x).UpdatedVertexTags({ 1 => Left })", updatedVertexTags),
+    (s"($x).UpdatedVertexLabels({ 1 => Left })", updatedVertexLabels),
     (s"($x).VertexCount", vertexCount),
     (s"($x).Vertices[1]", vertex1)
   ) map { case (expr, result) => (expr, expr, result) }

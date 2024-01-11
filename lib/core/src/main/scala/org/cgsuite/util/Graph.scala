@@ -13,73 +13,73 @@ object Graph {
 
   def parse[V, E](
     str: String,
-    vertexTypes: PartialFunction[String, V],
-    edgeTypes: PartialFunction[String, E]
+    vertexLabels: PartialFunction[String, V],
+    edgeLabels: PartialFunction[String, E]
   ): Graph[V, E] = {
-    GraphParser.parse(str, vertexTypes, edgeTypes, allowDirected = false)(Graph.apply)
+    GraphParser.parse(str, vertexLabels, edgeLabels, allowDirected = false)(Graph.apply)
   }
 
-  def fromAdjacencyList[V, E](adjacencyList: IndexedSeq[IndexedSeq[Integer]], vTag: V, eTag: E): Graph[V, E] = Graph {
+  def fromAdjacencyList[V, E](adjacencyList: IndexedSeq[IndexedSeq[Integer]], vLabel: V, eLabel: E): Graph[V, E] = Graph {
     adjacencyList.indices map { vIndex =>
       val v = Integer(vIndex + 1)
-      Vertex(vTag, adjacencyList(vIndex) map { toVertex =>
-        Edge(v, toVertex, eTag)
+      Vertex(vLabel, adjacencyList(vIndex) map { toVertex =>
+        Edge(v, toVertex, eLabel)
       })
     }
   }
 
   val empty: Graph[Nothing, Nothing] = Graph(IndexedSeq.empty)
 
-  def singleton[V](vTag: V): Graph[V, Nothing] = {
-    Graph(IndexedSeq(Vertex(vTag, IndexedSeq.empty)))
+  def singleton[V](vLabel: V): Graph[V, Nothing] = {
+    Graph(IndexedSeq(Vertex(vLabel, IndexedSeq.empty)))
   }
 
-  def loop[V, E](vTag: V, eTag: E): Graph[V, E] = {
-    Graph(IndexedSeq(Vertex(vTag, IndexedSeq(Edge(one, one, eTag)))))
+  def loop[V, E](vLabel: V, eLabel: E): Graph[V, E] = {
+    Graph(IndexedSeq(Vertex(vLabel, IndexedSeq(Edge(one, one, eLabel)))))
   }
 
-  def clique[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = Graph {
+  def clique[V, E](size: Integer, vLabel: V, eLabel: E): Graph[V, E] = Graph {
     one to size map { n =>
-      Vertex(vTag, one to size collect {
-        case k if k != n => Edge(n, k, eTag)
+      Vertex(vLabel, one to size collect {
+        case k if k != n => Edge(n, k, eLabel)
       })
     }
   }
 
-  def path[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
+  def path[V, E](size: Integer, vLabel: V, eLabel: E): Graph[V, E] = size match {
     case Values.zero => empty
-    case Values.one => singleton(vTag)
+    case Values.one => singleton(vLabel)
     case _ => Graph {
       one to size map {
-        case Values.one => Vertex(vTag, IndexedSeq(Edge(one, two, eTag)))
-        case n if n == size => Vertex(vTag, IndexedSeq(Edge(size, size - one, eTag)))
-        case n => Vertex(vTag, IndexedSeq(Edge(n, n - one, eTag), Edge(n, n + one, eTag)))
+        case Values.one => Vertex(vLabel, IndexedSeq(Edge(one, two, eLabel)))
+        case n if n == size => Vertex(vLabel, IndexedSeq(Edge(size, size - one, eLabel)))
+        case n => Vertex(vLabel, IndexedSeq(Edge(n, n - one, eLabel), Edge(n, n + one, eLabel)))
       }
     }
   }
 
-  def cycle[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
+  def cycle[V, E](size: Integer, vLabel: V, eLabel: E): Graph[V, E] = size match {
     case Values.zero => empty
-    case Values.one => loop(vTag, eTag)
+    case Values.one => loop(vLabel, eLabel)
     case _ => Graph {
       one to size map { n =>
-        Vertex(vTag, IndexedSeq(
-          Edge(n, if (n == one) size else n - one, eTag),
-          Edge(n, if (n == size) one else n + one, eTag)
+        Vertex(vLabel, IndexedSeq(
+          Edge(n, if (n == one) size else n - one, eLabel),
+          Edge(n, if (n == size) one else n + one, eLabel)
         ))
       }
     }
   }
 
-  def star[V, E](size: Integer, vTag: V, eTag: E): Graph[V, E] = size match {
+  def star[V, E](size: Integer, vLabel: V, eLabel: E): Graph[V, E] = size match {
     case Values.zero => empty
     case _ => Graph {
-      Vertex(vTag, two to size map { Edge(one, _, eTag) }) +:
-        (two to size map { n => Vertex(vTag, IndexedSeq(Edge(n, one, eTag))) })
+      Vertex(vLabel, two to size map { Edge(one, _, eLabel) }) +:
+        (two to size map { n => Vertex(vLabel, IndexedSeq(Edge(n, one, eLabel))) })
     }
   }
 
-  case class Vertex[+V, +E](tag: V, edges: IndexedSeq[Edge[E]]) {
+  case class Vertex[+V, +E](label: V, edges: IndexedSeq[Edge[E]]) {
 
     val edgeCount: Integer = Integer(edges.length)
 
@@ -93,7 +93,7 @@ object Graph {
     }
 
     def deleteEdgeByIndex(eIndex: Integer): Vertex[V, E] = Vertex(
-      tag,
+      label,
       one to edgeCount collect { case n if n != eIndex =>
         edge(n)
       }
@@ -103,7 +103,7 @@ object Graph {
 
   }
 
-  case class Edge[+E](fromVertex: Integer, toVertex: Integer, tag: E) {
+  case class Edge[+E](fromVertex: Integer, toVertex: Integer, label: E) {
     def toOutput = new StyledTextOutput(toString)
   }
 
@@ -127,8 +127,8 @@ case class Graph[+V, +E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarge
     super.deleteEdge(edge, undirected = true)
   }
 
-  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, tag: F): Graph[W, F] = {
-    super.deleteEdgeByEndpoints(vFrom, vTo, tag, undirected = true)
+  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, label: F): Graph[W, F] = {
+    super.deleteEdgeByEndpoints(vFrom, vTo, label, undirected = true)
   }
 
   def deleteEdgeByIndex[W >: V, F >: E](vFrom: Integer, eIndex: Integer): Graph[W, F] = {
@@ -157,30 +157,30 @@ object GraphParser {
 
   private[cgsuite] def parse[E, V, C](
     str: String,
-    vertexTypes: PartialFunction[String, V],
-    edgeTypes: PartialFunction[String, E],
+    vertexLabels: PartialFunction[String, V],
+    edgeLabels: PartialFunction[String, E],
     allowDirected: Boolean
   )(
     fromVertices: IndexedSeq[Vertex[V, E]] => C
   ): C = {
 
     var stream = tokenize(str, 0)
-    val vertexTags = ArrayBuffer[V]()
+    val assignedVertexLabels = ArrayBuffer[V]()
     val edges = ArrayBuffer[ArrayBuffer[Edge[E]]]()
     val vertexNames = mutable.Map[String, Integer]()
 
-    stream = parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
+    stream = parse(stream, vertexLabels, edgeLabels, allowDirected, assignedVertexLabels, edges, vertexNames, None)
     while (stream.nonEmpty) {
       if (stream.head != ";") {
         throw EvalException("Invalid graph specification.")
       }
       stream = stream.tail
-      stream = parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, None)
+      stream = parse(stream, vertexLabels, edgeLabels, allowDirected, assignedVertexLabels, edges, vertexNames, None)
     }
 
     fromVertices {
-      vertexTags.zip(edges).toIndexedSeq map { case (tag, edges) =>
-        Vertex(tag, edges.toIndexedSeq)
+      assignedVertexLabels.zip(edges).toIndexedSeq map { case (label, edges) =>
+        Vertex(label, edges.toIndexedSeq)
       }
     }
 
@@ -202,10 +202,10 @@ object GraphParser {
 
   private def parse[V, E](
     tokens: List[String],
-    vertexTypes: PartialFunction[String, V],
-    edgeTypes: PartialFunction[String, E],
+    vertexLabels: PartialFunction[String, V],
+    edgeLabels: PartialFunction[String, E],
     allowDirected: Boolean,
-    vertexTags: ArrayBuffer[V],
+    assignedVertexLabels: ArrayBuffer[V],
     edges: ArrayBuffer[ArrayBuffer[Edge[E]]],
     vertexNames: mutable.Map[String, Integer],
     precOpt: Option[Integer]
@@ -217,7 +217,7 @@ object GraphParser {
 
     var inedge: Boolean = true
     var outedge: Boolean = true
-    var edgeTag: Option[E] = None
+    var edgeLabel: Option[E] = None
 
     var stream = tokens
 
@@ -225,7 +225,7 @@ object GraphParser {
 
       if (stream.head == "(") {
         do {
-          stream = parse(stream.tail, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, precOpt)
+          stream = parse(stream.tail, vertexLabels, edgeLabels, allowDirected, assignedVertexLabels, edges, vertexNames, precOpt)
         } while (stream.nonEmpty && stream.head == ";")
         if (stream.isEmpty || stream.head != ")") {
           throw EvalException("Invalid graph specification: Unmatched `(`")
@@ -234,37 +234,37 @@ object GraphParser {
       }
 
       stream.head match {
-        case "-" => edgeTag = Some(edgeTypes(""))
-        case ">" => inedge = false; edgeTag = Some(edgeTypes(""))
-        case "<" => outedge = false; edgeTag = Some(edgeTypes(""))
+        case "-" => edgeLabel = Some(edgeLabels(""))
+        case ">" => inedge = false; edgeLabel = Some(edgeLabels(""))
+        case "<" => outedge = false; edgeLabel = Some(edgeLabels(""))
         case ";" | ")" => return stream
         case x =>
-          edgeTag = Some(edgeTypes(x))
-          stream.headOption match {
-            case Some(">") => inedge = false
-            case Some("<") => outedge = false
+          edgeLabel = Some(edgeLabels(x))
+          stream.tail.headOption match {
+            case Some(">") => inedge = false; stream = stream.tail
+            case Some("<") => outedge = false; stream = stream.tail
             case _ =>
           }
       }
+
+      stream = stream.tail
 
       if (!allowDirected && inedge != outedge) {
         throw EvalException("Invalid graph specification: Directed graph edges are not allowed here")
       }
 
-      stream = stream.tail
-
     }
 
-    val vertexTag: V = {
-      if (stream.nonEmpty && vertexTypes.lift(stream.head).isDefined) {
+    val vertexLabel: V = {
+      if (stream.nonEmpty && vertexLabels.lift(stream.head).isDefined) {
         val vt = stream.head
         stream = stream.tail
-        vertexTypes(vt)
+        vertexLabels(vt)
       } else {
         if (stream.headOption.contains(".")) {
           stream = stream.tail
         }
-        vertexTypes("")
+        vertexLabels("")
       }
     }
 
@@ -279,12 +279,12 @@ object GraphParser {
 
     if (vertexName.exists(vertexNames.contains)) {
       vertex = vertexNames(vertexName.get)
-      if (vertexTags(vertex.intValue - 1) != vertexTag) {
-        throw EvalException("Invalid graph specification: The same named vertex has multiple distinct tags")
+      if (assignedVertexLabels(vertex.intValue - 1) != vertexLabel) {
+        throw EvalException("Invalid graph specification: The same named vertex has multiple distinct labels")
       }
     } else {
-      vertex = Integer(vertexTags.length + 1)
-      vertexTags += vertexTag
+      vertex = Integer(assignedVertexLabels.length + 1)
+      assignedVertexLabels += vertexLabel
       edges += ArrayBuffer[Edge[E]]()
       vertexName foreach { vertexNames(_) = vertex }
     }
@@ -293,14 +293,14 @@ object GraphParser {
 
       case Some(prec) =>
         if (outedge)
-          edges(prec.intValue - 1) += Edge(prec, vertex, edgeTag.get)
+          edges(prec.intValue - 1) += Edge(prec, vertex, edgeLabel.get)
         if (inedge)
-          edges(vertex.intValue - 1) += Edge(vertex, prec, edgeTag.get)
+          edges(vertex.intValue - 1) += Edge(vertex, prec, edgeLabel.get)
       case None =>
 
     }
 
-    parse(stream, vertexTypes, edgeTypes, allowDirected, vertexTags, edges, vertexNames, Some(vertex))
+    parse(stream, vertexLabels, edgeLabels, allowDirected, assignedVertexLabels, edges, vertexNames, Some(vertex))
 
   }
 
@@ -324,7 +324,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   def fromVertices[W >: V, F >: E](vertices: IndexedSeq[Vertex[W, F]]): CC[W, F]
 
   private[cgsuite] def deleteEdge[W >: V, F >: E](edge: Edge[F], undirected: Boolean): CC[W, F] = {
-    deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.tag, undirected)
+    deleteEdgeByEndpoints(edge.fromVertex, edge.toVertex, edge.label, undirected)
   }
 
   private[cgsuite] def deleteEdgeByIndex[W >: V, F >: E](vFrom: Integer, eIndex: Integer, undirected: Boolean): CC[W, F] = fromVertices {
@@ -333,7 +333,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
       case n if n == vFrom => vertex(n).deleteEdgeByIndex(eIndex)
       case n if undirected && vFrom != edge.toVertex && n == edge.toVertex =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).toVertex == vFrom && (vertex(n).edge(k).tag == edge.tag)
+          vertex(n).edge(k).toVertex == vFrom && (vertex(n).edge(k).label == edge.label)
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
@@ -342,18 +342,18 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     }
   }
 
-  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, tag: F, undirected: Boolean): CC[W, F] = fromVertices {
+  def deleteEdgeByEndpoints[W >: V, F >: E](vFrom: Integer, vTo: Integer, label: F, undirected: Boolean): CC[W, F] = fromVertices {
     one to vertexCount map {
       case n if n == vFrom =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).toVertex == vTo && vertex(n).edge(k).tag == tag
+          vertex(n).edge(k).toVertex == vTo && vertex(n).edge(k).label == label
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
         }
       case n if undirected && vFrom != vTo && n == vTo =>
         one to vertex(n).edgeCount find { k =>
-          vertex(n).edge(k).toVertex == vFrom && vertex(n).edge(k).tag == tag
+          vertex(n).edge(k).toVertex == vFrom && vertex(n).edge(k).label == label
         } match {
           case Some(k) => vertex(n).deleteEdgeByIndex(k)
           case None => vertex(n)
@@ -367,11 +367,11 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
       throw EvalException(s"Vertex is out of bounds: $v")
     }
     one to vertexCount collect { case n if n != v =>
-      Vertex(vertex(n).tag, vertex(n).edges collect { case e if e.toVertex != v =>
+      Vertex(vertex(n).label, vertex(n).edges collect { case e if e.toVertex != v =>
         Edge(
           if (e.fromVertex < v) e.fromVertex else e.fromVertex - one,
           if (e.toVertex < v) e.toVertex else e.toVertex - one,
-          e.tag
+          e.label
         )
       })
     }
@@ -398,28 +398,28 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     sorted.map { n =>
       val edges = vertex(n).edges collect {
         case edge if sorted contains edge.toVertex =>
-          Edge[E](vertexMap(edge.fromVertex), vertexMap(edge.toVertex), edge.tag)
+          Edge[E](vertexMap(edge.fromVertex), vertexMap(edge.toVertex), edge.label)
       }
-      Vertex(vertex(n).tag, edges)
+      Vertex(vertex(n).label, edges)
     }
   }
 
-  def updatedVertexTag[W >: V, F >: E](v: Integer, tag: W): CC[W, F] = fromVertices {
+  def updatedVertexLabel[W >: V, F >: E](v: Integer, label: W): CC[W, F] = fromVertices {
     if (v < one || v > vertexCount) {
       throw EvalException(s"Vertex is out of bounds: $v")
     }
     one to vertexCount map {
-      case n if n == v => Vertex(tag, vertex(n).edges)
+      case n if n == v => Vertex(label, vertex(n).edges)
       case n => vertex(n)
     }
   }
 
-  def updatedVertexTags[W >: V, F >: E](tagMap: scala.collection.Map[Integer, W]): CC[W, F] = fromVertices {
-    for (v <- tagMap.keys if v < one || v > vertexCount) {
+  def updatedVertexLabels[W >: V, F >: E](labelMap: scala.collection.Map[Integer, W]): CC[W, F] = fromVertices {
+    for (v <- labelMap.keys if v < one || v > vertexCount) {
       throw EvalException(s"Vertex is out of bounds: $v")
     }
     one to vertexCount map {
-      case n if tagMap contains n => Vertex(tagMap(n), vertex(n).edges)
+      case n if labelMap contains n => Vertex(labelMap(n), vertex(n).edges)
       case n => vertex(n)
     }
   }
@@ -433,9 +433,9 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     visited: mutable.BitSet,
     countEdges: Boolean,
     undirected: Boolean,
-    avoidTag: Option[W] = None
+    avoidLabel: Option[W] = None
   ): Int = {
-    if (avoidTag.contains(vertex(v).tag) || visited.contains(v.intValue - 1)) {
+    if (avoidLabel.contains(vertex(v).label) || visited.contains(v.intValue - 1)) {
       0
     } else {
       visited += v.intValue - 1
@@ -451,7 +451,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
         }
       }
       for (edge <- vertex(v).edges) {
-        cnt += connectedCount(edge.toVertex, visited, countEdges, undirected, avoidTag)
+        cnt += connectedCount(edge.toVertex, visited, countEdges, undirected, avoidLabel)
       }
       cnt
     }
@@ -468,17 +468,17 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     connectedComponentsOptionalDecomp(None)
   }
 
-  def decomposition[W >: V, F >: E](tag: W): IndexedSeq[CC[W, F]] = {
-    connectedComponentsOptionalDecomp(Some(tag))
+  def decomposition[W >: V, F >: E](label: W): IndexedSeq[CC[W, F]] = {
+    connectedComponentsOptionalDecomp(Some(label))
   }
 
-  private def connectedComponentsOptionalDecomp[W >: V, F >: E](avoidTag: Option[W]): IndexedSeq[CC[W, F]] = {
+  private def connectedComponentsOptionalDecomp[W >: V, F >: E](avoidLabel: Option[W]): IndexedSeq[CC[W, F]] = {
     val allVisited = new mutable.BitSet(vertices.length)
     val visited = new mutable.BitSet(vertices.length)
     one to vertexCount collect {
       case v if !allVisited.contains(v.intValue - 1) =>
         visited.clear()
-        connectedCount(v, visited, countEdges = false, undirected = false, avoidTag)
+        connectedCount(v, visited, countEdges = false, undirected = false, avoidLabel)
         allVisited ++= visited
         visited.toIndexedSeq map { n => Integer(n + 1) }
     } filter {
@@ -491,8 +491,8 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   override def toString: String = toString(PartialFunction.empty, PartialFunction.empty)
 
   def toString(
-    vertexTagStrings: PartialFunction[V, String],
-    edgeTagStrings: PartialFunction[E, String]
+    vertexLabelStrings: PartialFunction[V, String],
+    edgeLabelStrings: PartialFunction[E, String]
   ): String = {
     val edgesRemaining = vertices map { vertex => ArrayBuffer(vertex.edges : _*) }
     val refCount = ArrayBuffer.fill[Int](vertices.length)(0)
@@ -500,7 +500,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
       case n if refCount(n) == 0 =>
         treeify(n, edgesRemaining, refCount)
     }
-    trees map { stringify(_, refCount, vertexTagStrings, edgeTagStrings) } mkString ";"
+    trees map { stringify(_, refCount, vertexLabelStrings, edgeLabelStrings) } mkString ";"
   }
 
   private def treeify[F](vertex: Int, edgesRemaining: IndexedSeq[ArrayBuffer[Edge[F]]], refCount: ArrayBuffer[Int]): Tree[F] = {
@@ -513,14 +513,14 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
         val target = nextEdge.toVertex.intValue - 1
         var isDirected: Boolean = false
         if (nextEdge.toVertex != nextEdge.fromVertex) {
-          val backIndex = edgesRemaining(target) indexOf Edge(nextEdge.toVertex, nextEdge.fromVertex, nextEdge.tag)
+          val backIndex = edgesRemaining(target) indexOf Edge(nextEdge.toVertex, nextEdge.fromVertex, nextEdge.label)
           if (backIndex >= 0) {
             edgesRemaining(target).remove(backIndex)
           } else {
             isDirected = true
           }
         }
-        children += ((treeify(target, edgesRemaining, refCount), nextEdge.tag, isDirected))
+        children += ((treeify(target, edgesRemaining, refCount), nextEdge.label, isDirected))
       }
       Tree(vertex, children.toIndexedSeq)
     } else {
@@ -531,13 +531,13 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   private def stringify[F](
     tree: Tree[F],
     refCount: ArrayBuffer[Int],
-    vertexTagStrings: PartialFunction[V, String],
-    edgeTagStrings: PartialFunction[F, String]
+    vertexLabelStrings: PartialFunction[V, String],
+    edgeLabelStrings: PartialFunction[F, String]
   ): String = {
     val builder = new StringBuilder()
-    stringifyR(tree, refCount, vertexTagStrings, edgeTagStrings, builder)
+    stringifyR(tree, refCount, vertexLabelStrings, edgeLabelStrings, builder)
     if (builder.isEmpty) {
-      // Special case: a single vertex with no name, whose tag maps to ""
+      // Special case: a single vertex with no name, whose label maps to ""
       "."
     } else {
       builder.toString
@@ -547,16 +547,16 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
   private def stringifyR[F](
     tree: Tree[F],
     refCount: ArrayBuffer[Int],
-    vertexTagStrings: PartialFunction[V, String],
-    edgeTagStrings: PartialFunction[F, String],
+    vertexLabelStrings: PartialFunction[V, String],
+    edgeLabelStrings: PartialFunction[F, String],
     builder: StringBuilder
   ): Unit = {
-    val vTag = vertices(tree.vertex).tag
-    val vTagStr = vertexTagStrings lift vTag match {
+    val vLabel = vertices(tree.vertex).label
+    val vLabelStr = vertexLabelStrings lift vLabel match {
       case Some(str) => str
-      case None => if (vTag == null) "" else vTag.toString
+      case None => if (vLabel == null) "" else vLabel.toString
     }
-    stringifyAppend(builder, vTagStr)
+    stringifyAppend(builder, vLabelStr)
     if (refCount(tree.vertex) > 1) {
       builder += ':'
       stringifyAppend(builder, stringifyVertexName(tree.vertex))
@@ -565,19 +565,19 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
       builder += '('
     }
     for (i <- tree.children.indices) {
-      val (subtree, eTag, isDirected) = tree.children(i)
-      val eTagStr = edgeTagStrings lift eTag match {
+      val (subtree, eLabel, isDirected) = tree.children(i)
+      val eLabelStr = edgeLabelStrings lift eLabel match {
         case Some(str) => str
-        case None => if (eTag == null) "" else eTag.toString
+        case None => if (eLabel == null) "" else eLabel.toString
       }
-      if (!isDirected && eTagStr.isEmpty) {
+      if (!isDirected && eLabelStr.isEmpty) {
         builder += '-'
       }
-      stringifyAppend(builder, eTagStr)
+      stringifyAppend(builder, eLabelStr)
       if (isDirected) {
         builder += '>'
       }
-      stringifyR(subtree, refCount, vertexTagStrings, edgeTagStrings, builder)
+      stringifyR(subtree, refCount, vertexLabelStrings, edgeLabelStrings, builder)
       if (i < tree.children.size - 1) {
         builder += ';'
       }
@@ -587,11 +587,11 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     }
   }
 
-  private def stringifyAppend(builder: StringBuilder, tagStr: String): Unit = {
-    if (tagStr.length > 1) {
-      builder append s"{$tagStr}"
+  private def stringifyAppend(builder: StringBuilder, labelStr: String): Unit = {
+    if (labelStr.length > 1) {
+      builder append s"{$labelStr}"
     } else {
-      builder append tagStr
+      builder append labelStr
     }
   }
 

@@ -1,8 +1,9 @@
 Games on Graphs
 
-CGSuite includes a rich library for graph manipulations, in order to support rulesets such as [[game.graph.Hackenbush]]
-and [[game.graph.Snort]]. This section describes the general structure and syntax of CGSuite graphs; implementations of
-specific rulesets are described in the appropriate ruleset docs.
+CGSuite includes a rich library for graph manipulations, in order to support rulesets such as
+[[game.graph.constants#Hackenbush][Hackenbush]] and [[game.graph.constants#Snort]]. This section describes the general
+structure and syntax of CGSuite graphs; implementations of specific rulesets are described in the appropriate ruleset
+docs.
 
 +++ Unlabeled Graphs +++
 
@@ -59,19 +60,19 @@ Here's an example with colored vertices.
 
 \display{labels := { "L" => game.graph.Color.Blue, "R" => game.graph.Color.Red }}
 
-\display{graph := Graph.Parse("L-R-L", vertexTags => labels)}
+\display{graph := Graph.Parse("L-R-L", vertexLabels => labels)}
 
 Note that CGSuite expands the object names by default; it doesn't know how to abbreviate them! A specialized `ToString`
 method may be used to recover the shorthand notation.
 
-\display{graph.ToString(vertexTags => labels)}
+\display{graph.ToString(vertexLabels => labels)}
 
 Edges may be labeled as well. Conventionally, uppercase letters are used for vertex labels and lowercase letters for
 edge labels, although this is not a requirement.
 
 \display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
 
-\display{graph := Graph.Parse("lllrr", edgeTags => labels)}
+\display{graph := Graph.Parse("lllrr", edgeLabels => labels)}
 
 When working with rulesets, it is usually not necessary to specify a label mapping explicitly, as the notation will
 be baked into the ruleset. For example:
@@ -85,12 +86,12 @@ be baked into the ruleset. For example:
 Labels can also be specified by a function rather than a map. The typical use case is weighted graphs, where
 the weights are arbitrary [[Integer]]s rather than a finite list of fixed values.
 
-\display{Graph.Parse("9-1-2", vertexTags => str -> Integer.Parse(str))}
+\display{Graph.Parse("9-1-2", vertexLabels => str -> Integer.Parse(str))}
 
 Like vertex names, all labels are assumed to be single-letter or single-digit, unless enclosed in brackets; weights
 greater than 9 can be input like so:
 
-\display{Graph.Parse("{12}-5-{14}", vertexTags => str -> Integer.Parse(str))}
+\display{Graph.Parse("{12}-5-{14}", vertexLabels => str -> Integer.Parse(str))}
 
 +++ Graph Manipulations +++
 
@@ -133,7 +134,7 @@ Directed edges are specified by using `>` and `<` in place of `-`. For example, 
 
 \display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
 
-\display{DirectedGraph.Parse("l>l>l>r>r>", edgeTags => labels)}
+\display{DirectedGraph.Parse("l>l>l>r>r>", edgeLabels => labels)}
 
 For the full API, see the documentation for the [[DirectedGraph]] class.
 

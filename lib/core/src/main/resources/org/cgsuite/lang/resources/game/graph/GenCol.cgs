@@ -7,15 +7,15 @@ class GenCol(leftPermitted as List, rightPermitted as List) extends GraphRuleset
     override def Options(player as Player) begin
       var permitted := if player == Left then leftPermitted else rightPermitted end;
       for vertex from 1 to graph.VertexCount
-      where permitted Contains graph[vertex].Tag
+      where permitted Contains graph[vertex].Label
       yield
-        var tagUpdates :=
+        var labelUpdates :=
           { target.ToVertex => player
-            for target in graph[vertex].Edges where graph[target.ToVertex].Tag == Nothing };
+            for target in graph[vertex].Edges where graph[target.ToVertex].Label == Nothing };
         var blockedVertices :=
-          graph[vertex].OutVertices Filter (target -> graph[target].Tag == player.Opponent);
+          graph[vertex].OutVertices Filter (target -> graph[target].Label == player.Opponent);
         var deletedVertices := blockedVertices Adjoin vertex;
-        Position(graph UpdatedVertexTags tagUpdates DeleteVertices deletedVertices)
+        Position(graph UpdatedVertexLabels labelUpdates DeleteVertices deletedVertices)
       end
     end
 

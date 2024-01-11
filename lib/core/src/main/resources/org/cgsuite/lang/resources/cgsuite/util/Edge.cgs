@@ -6,6 +6,6 @@ system class Edge
 
   external def ToVertex as Integer;
 
-  external def Tag;
+  external def Label;
 
 end
