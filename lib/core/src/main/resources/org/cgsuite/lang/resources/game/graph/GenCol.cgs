@@ -21,6 +21,6 @@ class GenCol(leftPermitted as List, rightPermitted as List) extends GraphRuleset
 
   end
 
-  override def VertexTypes := { "" => Nothing, "L" => Left, "R" => Right };
+  override def VertexLabels := { "" => Nothing, "L" => Left, "R" => Right };
 
 end

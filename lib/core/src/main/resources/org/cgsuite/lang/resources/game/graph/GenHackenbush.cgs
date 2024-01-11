@@ -29,6 +29,6 @@ class GenHackenbush(childishEdges as List ? []) extends GraphRuleset
 
   end
 
-  override def EdgeTypes := { "l" => Color.Blue, "r" => Color.Red, "e" => Color.Green };
+  override def EdgeLabels := { "l" => Color.Blue, "r" => Color.Red, "e" => Color.Green };
 
 end
