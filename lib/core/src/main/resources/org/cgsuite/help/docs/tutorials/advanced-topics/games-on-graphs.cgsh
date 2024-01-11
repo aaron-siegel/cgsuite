@@ -1,20 +1,20 @@
 Games on Graphs
 
 CGSuite includes a rich library for graph manipulations, in order to support rulesets such as
-[[game.graph.constants#Hackenbush][Hackenbush]] and [[game.graph.constants#Snort]]. This section describes the general
-structure and syntax of CGSuite graphs; implementations of specific rulesets are described in the appropriate ruleset
-docs.
-
-+++ Unlabeled Graphs +++
+[[game.graph.constants#Hackenbush][Hackenbush]] and [[game.graph.constants#Snort][Snort]]. This section describes the
+general structure and syntax of CGSuite graphs; implementations of specific rulesets are described in the appropriate
+ruleset docs.
 
 A graph may be undirected or directed; because the API behavior is different, these are implemented as separate classes:
 [[Graph]] and [[DirectedGraph]], respectively. In both cases, vertices and/or edges may be
 ~~labeled~~ with arbitrary CGSuite objects. For example, edges may be labeled with a color, as in Hackenbush; or
 vertices may be labeled with non-negative integers, as in rulesets such as Weighted Arc Kayles.
 
++++ Unlabeled, Undirected Graphs +++
+
 The most convenient way to construct a graph is via a [[String]] that encodes the graph structure. In a `String`
 encoding, a `.` indicates an unlabeled vertex and a `-` indicates an unlabeled, undirected edge. For example,
-`.-.-.-.` is an unlabeled, undirected path with four vertices.
+`".-.-.-."` represents an unlabeled, undirected path with 4 vertices and 3 edges.
 
 \display{Graph.Parse(".-.-.-.")}
 
@@ -23,9 +23,9 @@ will be inferred as necessary to terminate edges. So the above path may alternat
 
 \display{Graph.Parse("---")}
 
-To input trees, use parentheses to delineate sub-expressions. A sub-expression that appears in parentheses is
+To input trees, use parentheses to delineate subexpressions. A subexpression that appears in parentheses is
 interpreted as a sequence of branches off the preceding node, with the individual branches separated by semicolons
-inside the sub-expression. For example,
+inside the subexpression. For example,
 
 \display{Graph.Parse("--(-;--;---)")}
 
@@ -65,7 +65,7 @@ Here's an example with colored vertices.
 Note that CGSuite expands the object names by default; it doesn't know how to abbreviate them! A specialized `ToString`
 method may be used to recover the shorthand notation.
 
-\display{graph.ToString(vertexLabels => labels)}
+\display{graph.ToString(vertexLabels => labels.Reversed)}
 
 Edges may be labeled as well. Conventionally, uppercase letters are used for vertex labels and lowercase letters for
 edge labels, although this is not a requirement.
@@ -77,9 +77,9 @@ edge labels, although this is not a requirement.
 When working with rulesets, it is usually not necessary to specify a label mapping explicitly, as the notation will
 be baked into the ruleset. For example:
 
-\display{game.graph.Col("L-R---L").CanonicalForm}
+\display{game.graph.Col("L-R---L")}
 
-\display{game.graph.Hackenbush("llrlrr").CanonicalForm}
+\display{game.graph.Hackenbush("llrlrr")}
 
 +++ Weighted Graphs +++
 

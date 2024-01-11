@@ -149,7 +149,9 @@ case class Graph[+V, +E](vertices: IndexedSeq[Vertex[V, E]]) extends OutputTarge
 
   def toDirectedGraph: DirectedGraph[V, E] = DirectedGraph(vertices)
 
-  override def toOutput: StyledTextOutput = new StyledTextOutput(s"""Graph("$toString")""")
+  override def toOutput: StyledTextOutput = {
+    new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, s"""Graph("$toString")""")
+  }
 
 }
 
@@ -294,7 +296,8 @@ object GraphParser {
       case Some(prec) =>
         if (outedge)
           edges(prec.intValue - 1) += Edge(prec, vertex, edgeLabel.get)
-        if (inedge)
+        // We need to be slightly careful not to "double-count" the edge in the case where prec == vertex
+        if (inedge && (!outedge || prec != vertex))
           edges(vertex.intValue - 1) += Edge(vertex, prec, edgeLabel.get)
       case None =>
 

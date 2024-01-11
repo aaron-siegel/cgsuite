@@ -93,7 +93,7 @@ object GraphTestCase {
 
     // Simple loop (cycle of length 1)
     GraphTestCase(
-      """Graph.Cycle(1)""",
+      """Graph(":A-:A")""",
       """Graph(":A-:A")""",
       adjacencyList = "[[1]]",
       connectedComponent = """Graph(":A-:A")""",

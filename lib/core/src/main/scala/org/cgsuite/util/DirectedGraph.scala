@@ -68,6 +68,8 @@ case class DirectedGraph[+V, +E](vertices: IndexedSeq[Vertex[V, E]])
     super.deleteEdgeByIndex(vFrom, eIndex, undirected = false)
   }
 
-  override def toOutput: StyledTextOutput = new StyledTextOutput(toString)
+  override def toOutput: StyledTextOutput = {
+    new StyledTextOutput(StyledTextOutput.Style.FACE_MATH, s"""DirectedGraph("$toString")""")
+  }
 
 }
