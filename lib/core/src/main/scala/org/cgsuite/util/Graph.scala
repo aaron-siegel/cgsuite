@@ -503,7 +503,8 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
       case n if refCount(n) == 0 =>
         treeify(n, edgesRemaining, refCount)
     }
-    trees map { stringify(_, refCount, vertexLabelStrings, edgeLabelStrings) } mkString ";"
+    val vertexNames = mutable.Map[Int, String]()
+    trees map { stringify(_, refCount, vertexLabelStrings, edgeLabelStrings, vertexNames) } mkString ";"
   }
 
   private def treeify[F](vertex: Int, edgesRemaining: IndexedSeq[ArrayBuffer[Edge[F]]], refCount: ArrayBuffer[Int]): Tree[F] = {
@@ -535,10 +536,11 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     tree: Tree[F],
     refCount: ArrayBuffer[Int],
     vertexLabelStrings: PartialFunction[V, String],
-    edgeLabelStrings: PartialFunction[F, String]
+    edgeLabelStrings: PartialFunction[F, String],
+    namedVertices: mutable.Map[Int, String]
   ): String = {
     val builder = new StringBuilder()
-    stringifyR(tree, refCount, vertexLabelStrings, edgeLabelStrings, builder)
+    stringifyR(tree, refCount, vertexLabelStrings, edgeLabelStrings, namedVertices, builder)
     if (builder.isEmpty) {
       // Special case: a single vertex with no name, whose label maps to ""
       "."
@@ -552,6 +554,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     refCount: ArrayBuffer[Int],
     vertexLabelStrings: PartialFunction[V, String],
     edgeLabelStrings: PartialFunction[F, String],
+    namedVertices: mutable.Map[Int, String],
     builder: StringBuilder
   ): Unit = {
     val vLabel = vertices(tree.vertex).label
@@ -562,7 +565,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     stringifyAppend(builder, vLabelStr)
     if (refCount(tree.vertex) > 1) {
       builder += ':'
-      stringifyAppend(builder, stringifyVertexName(tree.vertex))
+      stringifyAppend(builder, stringifyVertexName(namedVertices, tree.vertex))
     }
     if (tree.children.size > 1) {
       builder += '('
@@ -580,7 +583,7 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
       if (isDirected) {
         builder += '>'
       }
-      stringifyR(subtree, refCount, vertexLabelStrings, edgeLabelStrings, builder)
+      stringifyR(subtree, refCount, vertexLabelStrings, edgeLabelStrings, namedVertices, builder)
       if (i < tree.children.size - 1) {
         builder += ';'
       }
@@ -598,12 +601,14 @@ trait GraphOps[+V, +E, +CC[_, _], +C] {
     }
   }
 
-  private def stringifyVertexName(vertex: Int): String = {
-    if (vertex < 26) {
-      ('A' + vertex).toChar.toString
-    } else {
-      s"v$vertex"
-    }
+  private def stringifyVertexName(namedVertices: mutable.Map[Int, String], vertex: Int): String = {
+    namedVertices.getOrElseUpdate(vertex,
+      if (namedVertices.size < 26) {
+        ('A' + namedVertices.size).toChar.toString
+      } else {
+        s"v${namedVertices.size}"
+      }
+    )
   }
 
   private case class Tree[+F](vertex: Int, children: IndexedSeq[(Tree[F], F, Boolean)])

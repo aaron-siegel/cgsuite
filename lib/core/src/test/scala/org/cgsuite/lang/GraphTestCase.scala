@@ -187,7 +187,7 @@ object GraphTestCase {
       connectedComponent = """Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")""",
       connectedComponents = """[Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")]""",
       decomposition = """[Graph(":A-:B-:C(-:A;-(-:A;-:B;-(-:A;-:B;-:C)))")]""",
-      deleteEdge = """Graph(":A-:C-:B-(-:A;-:C;-(-:A;-:B;-:C))")""",
+      deleteEdge = """Graph(":A-:B-:C-(-:A;-:B;-(-:A;-:C;-:B))")""",
       deleteVertex = """Graph(":A-:B-(-:A;-(-:A;-:B))")""",
       deleteVertices = """Graph(":A---:A")""",
       edgeCount = "10",
