@@ -108,7 +108,7 @@ API, see the documentation page for the [[Graph]] class.
 
 \display{graph[3]   // Vertex number 3}
 
-\display{graph.Edges}
+\display{graph.EdgeCount}
 
 \display{graph.ConnectedComponents}
 

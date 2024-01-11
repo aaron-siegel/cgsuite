@@ -12,4 +12,6 @@ system class Vertex
 
   external def OutVertices;
 
+  override def ToOutput := "Vertex(" + Label.ToOutput + ", " + OutVertices.Sorted.ToOutput + ")";
+
 end

@@ -8,4 +8,6 @@ system class Edge
 
   external def Label;
 
+  override def ToOutput := "Edge(" + Label.ToOutput + ", " + FromVertex.ToOutput + ", " + ToVertex.ToOutput + ")";
+
 end

@@ -44,7 +44,7 @@ object GraphTestCase {
       retainVertices = """!!Vertex is out of bounds: 2""",
       updatedVertexLabels = """Graph("{Left}")""",
       vertexCount = "1",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [])"
     ),
 
     // Two vertices, single undirected edge
@@ -59,14 +59,14 @@ object GraphTestCase {
       deleteVertex = """Graph(".")""",
       deleteVertices = """Graph("")""",
       edgeCount = "1",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}-")""",
       vertexCount = "2",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2])"
     ),
 
     // Undirected path of length 5
@@ -81,14 +81,14 @@ object GraphTestCase {
       deleteVertex = """Graph("---")""",
       deleteVertices = """Graph("--")""",
       edgeCount = "4",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}----")""",
       vertexCount = "5",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2])"
     ),
 
     // Simple loop (cycle of length 1)
@@ -103,14 +103,14 @@ object GraphTestCase {
       deleteVertex = """Graph("")""",
       deleteVertices = """!!Vertex is out of bounds: 2""",
       edgeCount = "1",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 1)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "false",
       retainVertices = """!!Vertex is out of bounds: 2""",
       updatedVertexLabels = """Graph("{Left}:A-{Left}:A")""",
       vertexCount = "1",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [1])"
     ),
 
     // Multigraph (two identical edges)
@@ -125,14 +125,14 @@ object GraphTestCase {
       deleteVertex = """Graph(".")""",
       deleteVertices = """Graph("")""",
       edgeCount = "2",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "false",
       retainVertices = """Graph(":A--:A")""",
       updatedVertexLabels = """Graph("{Left}:A--{Left}:A")""",
       vertexCount = "2",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2,2])"
     ),
 
     // Undirected cycle of size 5
@@ -147,14 +147,14 @@ object GraphTestCase {
       deleteVertex = """Graph("---")""",
       deleteVertices = """Graph("--")""",
       edgeCount = "5",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 5)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}:A-----{Left}:A")""",
       vertexCount = "5",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2,5])"
     ),
 
     // Star graph of size 5
@@ -169,14 +169,14 @@ object GraphTestCase {
       deleteVertex = """Graph(".;.;.;.")""",
       deleteVertices = """Graph(".;.;.")""",
       edgeCount = "4",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}(-;-;-;-)")""",
       vertexCount = "5",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2,3,4,5])"
     ),
 
     // Clique of size 5
@@ -191,14 +191,14 @@ object GraphTestCase {
       deleteVertex = """Graph(":A-:B-(-:A;-(-:A;-:B))")""",
       deleteVertices = """Graph(":A---:A")""",
       edgeCount = "10",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       isConnected = "true",
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}:A-:B-:C(-{Left}:A;-(-{Left}:A;-:B;-(-{Left}:A;-:B;-:C)))")""",
       vertexCount = "5",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2,3,4,5])"
     ),
 
     // Several disconnected subgraphs
@@ -213,14 +213,14 @@ object GraphTestCase {
       deleteVertex = """Graph(".;--;---")""",
       deleteVertices = """Graph("--;---")""",
       edgeCount = "6",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       isConnected = "false",
       isEmpty = "false",
       isSimple = "true",
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}-;--;---")""",
       vertexCount = "9",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2])"
     ),
 
     // Decomposition
@@ -235,7 +235,7 @@ object GraphTestCase {
       deleteVertex = """Graph("-{Left}-{Left}---{Left}")""",
       deleteVertices = """Graph("{Left}-{Left}---{Left}")""",
       edgeCount = "6",
-      edge1 = "Edge.instance",
+      edge1 = "Edge(Nothing, 1, 2)",
       fromAdjacencyList = Some("""Graph("------")"""),
       isConnected = "true",
       isEmpty = "false",
@@ -243,7 +243,7 @@ object GraphTestCase {
       retainVertices = """Graph("-")""",
       updatedVertexLabels = """Graph("{Left}--{Left}-{Left}---{Left}")""",
       vertexCount = "7",
-      vertex1 = "Vertex.instance"
+      vertex1 = "Vertex(Nothing, [2])"
     )
 
   )
