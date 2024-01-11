@@ -751,8 +751,8 @@ forFromLoopAntecedent
     ;
 
 forAssignLoopAntecedent
-    : forClause ASSIGN expression
-      -> ^(LOOP_SPEC[$forClause.tree.getToken()] forClause ^(ASSIGN expression))
+    : forClause ASSIGN expression whileClause? whereClause?
+      -> ^(LOOP_SPEC[$forClause.tree.getToken()] forClause ^(ASSIGN expression) whileClause? whereClause?)
     ;
 
 forInLoopAntecedent

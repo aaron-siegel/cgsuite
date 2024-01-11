@@ -13,7 +13,7 @@ vertices may be labeled with non-negative integers, as in rulesets such as Weigh
 +++ Unlabeled, Undirected Graphs +++
 
 The most convenient way to construct a graph is via a [[String]] that encodes the graph structure. In a `String`
-encoding, a `.` indicates an unlabeled vertex and a `-` indicates an unlabeled, undirected edge. For example,
+encoding, a `"."` indicates an unlabeled vertex and a `"-"` indicates an unlabeled, undirected edge. For example,
 `".-.-.-."` represents an unlabeled, undirected path with 4 vertices and 3 edges.
 
 \display{Graph.Parse(".-.-.-.")}
@@ -60,19 +60,19 @@ Here's an example with colored vertices.
 
 \display{labels := { "L" => game.graph.Color.Blue, "R" => game.graph.Color.Red }}
 
-\display{graph := Graph.Parse("L-R-L", vertexLabels => labels)}
+\display{gr := Graph.Parse("L-R-L", vertexLabels => labels)}
 
 Note that CGSuite expands the object names by default; it doesn't know how to abbreviate them! A specialized `ToString`
 method may be used to recover the shorthand notation.
 
-\display{graph.ToString(vertexLabels => labels.Reversed)}
+\display{gr.ToString(vertexLabels => labels.Reversed)}
 
 Edges may be labeled as well. Conventionally, uppercase letters are used for vertex labels and lowercase letters for
 edge labels, although this is not a requirement.
 
 \display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
 
-\display{graph := Graph.Parse("lllrr", edgeLabels => labels)}
+\display{gr := Graph.Parse("lllrr", edgeLabels => labels)}
 
 When working with rulesets, it is usually not necessary to specify a label mapping explicitly, as the notation will
 be baked into the ruleset. For example:
@@ -95,24 +95,28 @@ greater than 9 can be input like so:
 
 +++ Graph Manipulations +++
 
-The vertices of a `Graph` object are always numbered from `1` to `n`. Internally, the edges of a graph
+The vertices of a `Graph` object are always numbered from `1` to `n`. Internally, the edges of a graph are stored as
+pairs of `Integer`s. These `Integer` indices can provide a convenient way of manipulating the `Graph` object
+programmatically.
 
 CGScript has a robust library for graph manipulations. Here are a few examples of things that you can do; for the full
 API, see the documentation page for the [[Graph]] class.
 
-\display{graph := Graph.Cycle(5)}
+\display{gr := Graph.Cycle(5)}
 
-\display{graph.AdjacencyList}
+\display{gr.AdjacencyList}
 
-\display{graph.DeleteVertex(1)}
+\display{gr.DeleteVertex(1)}
 
-\display{graph[3]   // Vertex number 3}
+\display{gr[3]   // Vertex number 3}
 
-\display{graph.EdgeCount}
+\display{gr.EdgeCount}
 
-\display{graph.ConnectedComponents}
+\display{gr.ConnectedComponents}
 
-\display{graph.DeleteVertices([1,3]).ConnectedComponents}
+\display{gr.DeleteVertices([1,3]).ConnectedComponents}
+
+\display{Graph.FromAdjacencyList([[2,3],[1,3],[1,2]])}
 
 +++ Directed Graphs +++
 
@@ -124,13 +128,19 @@ CGScript supports directed graphs through a separate class, [[DirectedGraph]]. T
 \display{DirectedGraph.Parse("----").EdgeCount}
 
 Mathematically, the two graphs are the same, but the directed variant is treated as having twice as many edges, four in
-each direction.
+each direction. Similar considerations apply to methods such as [[Graph#DeleteEdge]], as evidenced by the following
+example.
 
-Directed edges are specified by using `>` and `<` in place of `-`. For example, here's a directed path with 4 edges:
+\display{Graph.Parse("-").DeleteEdgeByIndex(2, 1)}
+
+\display{DirectedGraph.Parse("-").DeleteEdgeByIndex(2, 1)}
+
+The preceding example also illustrates the notation for directed edges:
+they're specified by using `">"` or `"<"` in place of `"-"`. For example, here's a directed path with 4 edges:
 
 \display{DirectedGraph.Parse(">>>>")}
 
-~Labeled~ directed edges can be input by appending a `>` or `<` after the label.
+~Labeled~ directed edges can be input by appending a `">"` or `"<"` after the label.
 
 \display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
 

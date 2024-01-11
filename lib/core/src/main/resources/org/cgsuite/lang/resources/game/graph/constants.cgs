@@ -6,7 +6,7 @@ singleton class constants
 
   var ArcKayles := GenArcKayles();
 
-  var ChildishHackenbush := GenHackenbush(childish => true);
+  var ChildishHackenbush := GenHackenbush(childishEdges => [Color.Blue, Color.Red]);
 
   var Col := GenCol([Nothing, Right], [Nothing, Left]);
 
@@ -38,11 +38,15 @@ singleton class constants
     *
     * \display{game.graph.Hackenbush("ee:Aeeee:A")}
     *
-    * constructs a ``bulb'' with a 4-cycle standing on top of a stalk of two edges.
+    * constructs a "bulb" with a 4-cycle standing on top of a stalk of two edges.
     *
     * \display{game.graph.Hackenbush(":Geeee:G")}
     *
     * would give a 4-cycle rooted at the ground.
+    *
+    * In the underlying graph for a Hackenbush position, the ground is always vertex number `1`. For a full discussion
+    * of the notation and structure of [[Graph]] objects, refer to the [[/tutorials/advanced-topics/games-on-graphs]]
+    * tutorial.
     */
   var Hackenbush := GenHackenbush();
 
