@@ -7,7 +7,7 @@ import org.cgsuite.output.{OutputTarget, StyledTextOutput}
 import org.cgsuite.util.Graph._
 
 import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ArrayBuffer
 
 object Graph {
 

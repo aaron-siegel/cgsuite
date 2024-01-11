@@ -36,6 +36,8 @@ object Integer {
     }
   }
 
+  def parse(str: String) = parseInteger(str)
+
   def parseInteger(str: String) = {
     if (str.length() <= 9) {
       SmallInteger(str.toInt)

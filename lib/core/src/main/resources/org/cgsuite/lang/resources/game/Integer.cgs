@@ -14,6 +14,8 @@
   */
 system class Integer extends DyadicRational, GeneralizedOrdinal
 
+  external static def Parse(str as String) as Integer;
+
   /** The integer quotient of this [[Integer]] and `that`.
     * Unlike `a/b`, which will be a noninteger unless `b` divides `a`,
     * the expression `a.Div(b)` will always be another [[Integer]].

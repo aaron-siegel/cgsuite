@@ -44,6 +44,13 @@ Vertices can also be given longer names by enclosing the names in brackets:
 
 \display{Graph.Parse(":{root}----:{root}")}
 
+The `Graph` structure is very flexible, and loops (edges from a vertex to itself) and multigraphs (multiple edges with
+identical endpoints) are both permitted. Here are some simple examples.
+
+\display{Graph.Parse(":A-:A")  // Loop (1-cycle)}
+
+\display{Graph.Parse(":A--:A") // Multigraph}
+
 +++ Labeled Graphs +++
 
 To parse graphs with labels, specify an appropriate mapping from `String`s to CGSuite objects. Then the shorthand
@@ -55,18 +62,80 @@ Here's an example with colored vertices.
 \display{graph := Graph.Parse("L-R-L", vertexTags => labels)}
 
 Note that CGSuite expands the object names by default; it doesn't know how to abbreviate them! A specialized `ToString`
-method may be used to recover the shorthand notation:
+method may be used to recover the shorthand notation.
 
 \display{graph.ToString(vertexTags => labels)}
 
-You can also freely omit unlabeled, undirected edges, and they will be inferred as necessary between vertices.
+Edges may be labeled as well. Conventionally, uppercase letters are used for vertex labels and lowercase letters for
+edge labels, although this is not a requirement.
 
-\display{Graph.Parse("LRL", vertexTags => labels)}
+\display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
+
+\display{graph := Graph.Parse("lllrr", edgeTags => labels)}
 
 When working with rulesets, it is usually not necessary to specify a label mapping explicitly, as the notation will
 be baked into the ruleset. For example:
 
-\display{game.graph.Col("LR..L")}
+\display{game.graph.Col("L-R---L").CanonicalForm}
+
+\display{game.graph.Hackenbush("llrlrr").CanonicalForm}
+
++++ Weighted Graphs +++
+
+Labels can also be specified by a function rather than a map. The typical use case is weighted graphs, where
+the weights are arbitrary [[Integer]]s rather than a finite list of fixed values.
+
+\display{Graph.Parse("9-1-2", vertexTags => str -> Integer.Parse(str))}
+
+Like vertex names, all labels are assumed to be single-letter or single-digit, unless enclosed in brackets; weights
+greater than 9 can be input like so:
+
+\display{Graph.Parse("{12}-5-{14}", vertexTags => str -> Integer.Parse(str))}
+
++++ Graph Manipulations +++
+
+The vertices of a `Graph` object are always numbered from `1` to `n`. Internally, the edges of a graph
+
+CGScript has a robust library for graph manipulations. Here are a few examples of things that you can do; for the full
+API, see the documentation page for the [[Graph]] class.
+
+\display{graph := Graph.Cycle(5)}
+
+\display{graph.AdjacencyList}
+
+\display{graph.DeleteVertex(1)}
+
+\display{graph[3]   // Vertex number 3}
+
+\display{graph.Edges}
+
+\display{graph.ConnectedComponents}
+
+\display{graph.DeleteVertices([1,3]).ConnectedComponents}
+
++++ Directed Graphs +++
+
+CGScript supports directed graphs through a separate class, [[DirectedGraph]]. To appreciate the difference between
+`Graph` and `DirectedGraph`, consider this example:
+
+\display{Graph.Parse("----").EdgeCount}
+
+\display{DirectedGraph.Parse("----").EdgeCount}
+
+Mathematically, the two graphs are the same, but the directed variant is treated as having twice as many edges, four in
+each direction.
+
+Directed edges are specified by using `>` and `<` in place of `-`. For example, here's a directed path with 4 edges:
+
+\display{DirectedGraph.Parse(">>>>")}
+
+~Labeled~ directed edges can be input by appending a `>` or `<` after the label.
+
+\display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
+
+\display{DirectedGraph.Parse("l>l>l>r>r>", edgeTags => labels)}
+
+For the full API, see the documentation for the [[DirectedGraph]] class.
 
 \footer
 
