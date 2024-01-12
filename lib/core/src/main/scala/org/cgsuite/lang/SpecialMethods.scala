@@ -2,7 +2,7 @@ package org.cgsuite.lang
 
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
-import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException, OverflowException}
+import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException}
 import org.cgsuite.lang.CgscriptClass.{SafeCast, internalize}
 import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
 import org.cgsuite.util.{Coordinates, Symmetry, Table}
