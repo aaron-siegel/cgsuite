@@ -1,0 +1,34 @@
+/*${cgsuite.banner}*/
+
+/** A pseudorandom number generator.
+  *
+  * To construct an instance of `Random`, specify an integer seed:
+  *
+  * \display{random := Random(1474)}
+  *
+  * Then use the [[#NextInteger]] method to generate output. This example produces integers `n` with `0 <= n < 100`:
+  *
+  * \display{random.NextInteger(100)}
+  *
+  * \display{[random.NextInteger(100) for n from 1 to 20]}
+  */
+mutable system class Random(
+  /** The seed for this `Random`. The seed must satisfy:
+    *
+    * `-2^63 <= seed < 2^63`
+    */
+  seed as Integer
+  )
+
+  /** The next `Integer` in this stream of pseudorandom numbers. The output `n` of `NextInteger(upperBound)` will always
+    * satisfy
+    *
+    * `0 <= n < upperBound`
+    *
+    * and will be (pseudo-)uniformly distributed within that range.
+    */
+  external def NextInteger(upperBound as Integer);
+
+  override def ToOutput := "Random(" + seed.ToOutput + ")";
+
+end

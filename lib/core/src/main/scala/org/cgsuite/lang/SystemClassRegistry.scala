@@ -42,6 +42,7 @@ private[lang] object SystemClassRegistry {
 
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Grid" -> classOf[Grid],
+    "cgsuite.util.Random" -> classOf[Random],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
     "cgsuite.util.DirectedGraph" -> classOf[DirectedGraph[_, _]],
     "cgsuite.util.Edge" -> classOf[Graph.Edge[_]],

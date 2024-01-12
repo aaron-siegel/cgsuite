@@ -3,7 +3,7 @@ package org.cgsuite.lang
 import org.cgsuite.core._
 import org.cgsuite.core.impartial.Spawning
 import org.cgsuite.exception.{EvalException, InvalidArgumentException, NotNumberException}
-import org.cgsuite.lang.CgscriptClass.SafeCast
+import org.cgsuite.lang.CgscriptClass.{SafeCast, internalize}
 import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
 import org.cgsuite.util.{Coordinates, Symmetry, Table}
 
@@ -72,6 +72,10 @@ object SpecialMethods {
 
     "cgsuite.lang.Collection.Adjoin" -> { (collection: Iterable[_], obj: Any) => collection ++ Iterable(obj) },
     "cgsuite.lang.Collection.Concat" -> { (collection: Iterable[_], that: Iterable[_]) => collection ++ that },
+    "cgsuite.lang.Collection.Count" -> { (collection: Iterable[_], fn: Function) =>
+      validateArity(fn, 1)
+      internalize(collection.count { x => fn.call(Array(x)).castAs[java.lang.Boolean] }.asInstanceOf[java.lang.Integer])
+    },
     "cgsuite.lang.Collection.Exists" -> { (collection: Iterable[_], fn: Function) =>
       validateArity(fn, 1)
       collection.exists { x => fn.call(Array(x)).castAs[java.lang.Boolean] }
@@ -168,10 +172,6 @@ object SpecialMethods {
 
   private val specialMethods2: Map[String, (_, _) => Any] = Map(
 
-    /*
-    "cgsuite.util.Graph.FromList" -> { (_: ClassObject, args: (IndexedSeq[Any], IndexedSeq[Any])) =>
-      Graph(args._1.map { _.asInstanceOf[IndexedSeq[Integer]] }, Option(args._2)) },
-     */
     "cgsuite.lang.List.Sublist" -> { (list: IndexedSeq[_], range: (Integer, Integer)) =>
       list.slice(range._1.intValue - 1, range._2.intValue)
     },
