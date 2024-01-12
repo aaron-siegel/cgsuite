@@ -73,4 +73,16 @@ class CgsuiteUtilTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.util.Random" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("Construct a Random", "random := Random(1474)", "Random(1474)"),
+      ("Random.NextInteger", "[random.NextInteger(100) for n from 1 to 20]",
+        "[64,92,17,25,63,58,88,49,0,30,85,46,58,24,72,31,98,61,61,69]"),
+      ("Random overflow", "Random(2^63)", "!!Overflow.")
+    ))
+
+  }
+
 }

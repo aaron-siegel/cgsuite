@@ -8,7 +8,6 @@ import org.cgsuite.output.{ScatterPlotOutput, StyledTextOutput}
 import org.cgsuite.util.{Coordinates, Symmetry, Table}
 
 import scala.collection.mutable
-import scala.util.Random
 
 object SpecialMethods {
 
@@ -161,22 +160,6 @@ object SpecialMethods {
     "cgsuite.util.MutableMap.PutAll" -> { (map: mutable.Map[Any,Any], x: scala.collection.Map[_,_]) => map ++= x; null },
     "cgsuite.util.MutableMap.Remove" -> { (map: mutable.Map[Any,Any], x: Any) => map -= x; null },
     "cgsuite.util.MutableMap.RemoveAll" -> { (map: mutable.Map[Any,Any], x: Iterable[_]) => map --= x; null },
-    "cgsuite.util.Random.Eval" -> { (_: ClassObject, seed: Integer) =>
-      if (!seed.isSmallInteger)
-        throw OverflowException("`seed` must satisfy `-2^31 <= seed < 2^31`.")
-      new Random(seed.intValue)
-    },
-    "cgsuite.util.Random.NextInteger" -> { (random: Random, upperBound: Integer) =>
-       if (upperBound < Values.one) {
-          throw EvalException("Upper bound for `NextInteger` must be >= 1.")
-        }
-        val bits = (upperBound - Values.one).lb.intValue + 1
-        var result: Integer = Integer(BigInt(bits, random))
-        while (result >= upperBound) {
-          result = Integer(BigInt(bits, random))
-        }
-        result
-    },
     "cgsuite.util.Table" -> { (_: ClassObject, rows: IndexedSeq[_]) =>
       Table { rows map {
         case list: IndexedSeq[_] => list
@@ -189,10 +172,6 @@ object SpecialMethods {
 
   private val specialMethods2: Map[String, (_, _) => Any] = Map(
 
-    /*
-    "cgsuite.util.Graph.FromList" -> { (_: ClassObject, args: (IndexedSeq[Any], IndexedSeq[Any])) =>
-      Graph(args._1.map { _.asInstanceOf[IndexedSeq[Integer]] }, Option(args._2)) },
-     */
     "cgsuite.lang.List.Sublist" -> { (list: IndexedSeq[_], range: (Integer, Integer)) =>
       list.slice(range._1.intValue - 1, range._2.intValue)
     },

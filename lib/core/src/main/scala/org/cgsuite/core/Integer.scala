@@ -87,12 +87,17 @@ trait Integer extends DyadicRationalNumber with GeneralizedOrdinal {
   
   def bigIntValue: BigInt
   override def intValue = {
-    if (bigIntValue.bigInteger.bitLength() <= 32)
+    if (bigIntValue.bigInteger.bitLength() < 32)
       bigIntValue.intValue
     else
       throw OverflowException("Overflow.")
   }
-  def longValue = bigIntValue.longValue
+  def longValue = {
+    if (bigIntValue.bigInteger.bitLength() < 64)
+      bigIntValue.longValue
+    else
+      throw OverflowException("Overflow.")
+  }
   def floatValue = bigIntValue.floatValue
   def doubleValue = bigIntValue.doubleValue
   def byteValue = bigIntValue.byteValue

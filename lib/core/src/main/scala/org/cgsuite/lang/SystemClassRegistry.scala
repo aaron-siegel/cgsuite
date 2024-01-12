@@ -8,7 +8,6 @@ import org.cgsuite.util._
 
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
-import scala.util.Random
 
 private[lang] object SystemClassRegistry {
 
