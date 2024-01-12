@@ -1,0 +1,26 @@
+/*${cgsuite.banner}*/
+
+class GenCol(leftPermitted as List, rightPermitted as List) extends GraphRuleset
+
+  class Position(graph as Graph) extends GraphGame
+
+    override def Options(player as Player) begin
+      var permitted := if player == Left then leftPermitted else rightPermitted end;
+      for vertex from 1 to graph.VertexCount
+      where permitted Contains graph[vertex].Label
+      yield
+        var labelUpdates :=
+          { target.ToVertex => player
+            for target in graph[vertex].Edges where graph[target.ToVertex].Label == Nothing };
+        var blockedVertices :=
+          graph[vertex].OutVertices Filter (target -> graph[target].Label == player.Opponent);
+        var deletedVertices := blockedVertices Adjoin vertex;
+        Position(graph UpdatedVertexLabels labelUpdates DeleteVertices deletedVertices)
+      end
+    end
+
+  end
+
+  override def VertexLabels := { "" => Nothing, "L" => Left, "R" => Right };
+
+end

@@ -17,7 +17,7 @@ import scala.collection.mutable
 
 object System extends LazyLogging {
 
-  val copyrightYear = "2003-2023"
+  val copyrightYear = "2003-2024"
 
   val version = "2.2-beta1"
 

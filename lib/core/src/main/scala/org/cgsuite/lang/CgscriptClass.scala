@@ -385,7 +385,7 @@ class CgscriptClass(
       enclosingClass match {
         case Some(cls) =>
           cls.ensureInitialized()
-          if (stage != LifecycleStage.Initialized)
+          if (stage == LifecycleStage.Unloaded)
             throw EvalException(s"Class no longer exists: `$qualifiedName`")
         case _ => initialize()
       }
@@ -1082,6 +1082,7 @@ class CgscriptClass(
           javaClass.getMethod(externalName, externalParameterTypes: _*)
         } catch {
           case _: NoSuchMethodException =>
+            logger.debug(s"$logPrefix `$qualifiedName.$methodName`: failed to map $parameters to $externalParameterTypes")
             throw EvalException(s"Method is declared `external`, but has no corresponding Java method (expecting `$javaClass.$externalName`): `$qualifiedName.$methodName`", node.tree)
         }
         logger.debug(s"$logPrefix   Found the Java method: $externalMethod")

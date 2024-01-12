@@ -1,0 +1,27 @@
+/*${cgsuite.banner}*/
+
+singleton class PartizanArcKayles extends GraphRuleset
+
+  class Position(graph as Graph) extends GraphGame
+
+    override def Options(player as Player) begin
+      for edge in graph.Edges
+      where edge.Label == Color.Green or
+        (player == Left and edge.Label == Color.Blue) or
+        (player == Right and edge.Label == Color.Red)
+      yield
+        Position(graph DeleteVertices [edge.FromVertex, edge.ToVertex])
+      end
+    end
+
+    override def Decomposition begin
+      for component in graph.ConnectedComponents yield
+        Position(component)
+      end
+    end
+
+  end
+
+  override def EdgeLabels := { "l" => Color.Blue, "r" => Color.Red, "e" => Color.Green };
+
+end

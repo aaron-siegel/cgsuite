@@ -104,7 +104,7 @@ public class Bigraph
                 }
                 else if (value != -1)
                 {
-                    throw new IllegalArgumentException("leftEdges[" + i + "][" + j + "] is not a valid vertex number.");
+                    throw new IllegalArgumentException("leftEdges[" + i + "][" + j + "] is not a valid vertex number: " + value);
                 }
             }
             this.leftEdges[i] = new int[numLeftEdges];
@@ -435,6 +435,46 @@ public class Bigraph
         inverse.flags = new int[numVertices];
         inverse.markVertices();
         return inverse;
+    }
+
+    public Bigraph deleteVertex(int vertex) {
+
+        int[][] newLeftEdges = new int[numVertices - 1][];
+        int[][] newRightEdges = new int[numVertices - 1][];
+        for (int oldIndex = 0; oldIndex < leftEdges.length; oldIndex++) {
+            if (oldIndex != vertex) {
+                int newIndex = oldIndex < vertex ? oldIndex : oldIndex - 1;
+                int indexInLeftEdges = Arrays.binarySearch(leftEdges[oldIndex], vertex);
+                int indexInRightEdges = Arrays.binarySearch(rightEdges[oldIndex], vertex);
+                newLeftEdges[newIndex] = indexInLeftEdges < 0 ? new int[leftEdges[oldIndex].length] : new int[leftEdges[oldIndex].length - 1];
+                int newEdgeIndex = 0;
+                for (int oldEdgeIndex = 0; oldEdgeIndex < leftEdges[oldIndex].length; oldEdgeIndex++) {
+                    int oldEdgeTarget = leftEdges[oldIndex][oldEdgeIndex];
+                    if (oldEdgeTarget < vertex) {
+                        newLeftEdges[newIndex][newEdgeIndex] = oldEdgeTarget;
+                        newEdgeIndex++;
+                    } else if (oldEdgeTarget > vertex) {
+                        newLeftEdges[newIndex][newEdgeIndex] = oldEdgeTarget - 1;
+                        newEdgeIndex++;
+                    }
+                }
+                newRightEdges[newIndex] = indexInRightEdges < 0 ? new int[rightEdges[oldIndex].length] : new int[rightEdges[oldIndex].length - 1];
+                newEdgeIndex = 0;
+                for (int oldEdgeIndex = 0; oldEdgeIndex < rightEdges[oldIndex].length; oldEdgeIndex++) {
+                    int oldEdgeTarget = rightEdges[oldIndex][oldEdgeIndex];
+                    if (oldEdgeTarget < vertex) {
+                        newRightEdges[newIndex][newEdgeIndex] = oldEdgeTarget;
+                        newEdgeIndex++;
+                    } else if (oldEdgeTarget > vertex) {
+                        newRightEdges[newIndex][newEdgeIndex] = oldEdgeTarget - 1;
+                        newEdgeIndex++;
+                    }
+                }
+            }
+        }
+
+        return new Bigraph(newLeftEdges, newRightEdges);
+
     }
     
     /**

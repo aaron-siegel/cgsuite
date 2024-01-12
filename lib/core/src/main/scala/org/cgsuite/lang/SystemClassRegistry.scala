@@ -35,7 +35,7 @@ private[lang] object SystemClassRegistry {
     "cgsuite.lang.Set" -> classOf[scala.collection.Set[_]],
     "cgsuite.lang.Map" -> classOf[scala.collection.Map[_,_]],
     "cgsuite.lang.MapEntry" -> classOf[(_,_)],
-    "cgsuite.lang.Function" -> classOf[Function],
+    "cgsuite.lang.Function" -> classOf[PartialFunction[_, _]],
     "cgsuite.lang.System" -> classOf[System],
     "cgsuite.lang.Collection" -> classOf[Iterable[_]],
     "cgsuite.lang.InstanceClass" -> classOf[InstanceClass],
@@ -43,10 +43,14 @@ private[lang] object SystemClassRegistry {
     "cgsuite.util.Strip" -> classOf[Strip],
     "cgsuite.util.Grid" -> classOf[Grid],
     "cgsuite.util.Symmetry" -> classOf[Symmetry],
+    "cgsuite.util.DirectedGraph" -> classOf[DirectedGraph[_, _]],
+    "cgsuite.util.Edge" -> classOf[Graph.Edge[_]],
+    "cgsuite.util.Graph" -> classOf[Graph[_, _]],
     "cgsuite.util.Table" -> classOf[Table],
     "cgsuite.util.Thermograph" -> classOf[Thermograph],
     "cgsuite.util.Trajectory" -> classOf[Trajectory],
     "cgsuite.util.UptimalExpansion" -> classOf[UptimalExpansion],
+    "cgsuite.util.Vertex" -> classOf[Graph.Vertex[_, _]],
 
     "cgsuite.ui.Explorer" -> classOf[Explorer],
 

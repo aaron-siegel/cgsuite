@@ -59,9 +59,7 @@ class StandardObject(val cls: CgscriptClass, val objArgs: Array[Any], val enclos
     }
   }
 
-  def toOutput: Output = {
-    cls.classInfo.toOutputMethod.call(this, Array.empty).asInstanceOf[Output]
-  }
+  def toOutput: Output = CgscriptClass.instanceToOutput(this)
 
   def toDefaultOutput: StyledTextOutput = {
     if (cls.isMutable) {

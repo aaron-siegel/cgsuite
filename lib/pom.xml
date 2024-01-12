@@ -202,6 +202,9 @@
             </goals>
             <configuration>
               <recompileMode>incremental</recompileMode>
+              <excludes>
+                <exclude>**/org/cgsuite/local/**</exclude>
+              </excludes>
               <args>
                 <arg>-feature</arg>
                 <arg>-deprecation</arg>

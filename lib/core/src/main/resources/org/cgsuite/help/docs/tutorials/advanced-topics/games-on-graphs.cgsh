@@ -1,0 +1,155 @@
+Games on Graphs
+
+CGSuite includes a rich library for graph manipulations, in order to support rulesets such as
+[[game.graph.constants#Hackenbush][Hackenbush]] and [[game.graph.constants#Snort][Snort]]. This section describes the
+general structure and syntax of CGSuite graphs; implementations of specific rulesets are described in the appropriate
+ruleset docs.
+
+A graph may be undirected or directed; because the API behavior is different, these are implemented as separate classes:
+[[Graph]] and [[DirectedGraph]], respectively. In both cases, vertices and/or edges may be
+~~labeled~~ with arbitrary CGSuite objects. For example, edges may be labeled with a color, as in Hackenbush; or
+vertices may be labeled with non-negative integers, as in rulesets such as Weighted Arc Kayles.
+
++++ Unlabeled, Undirected Graphs +++
+
+The most convenient way to construct a graph is via a [[String]] that encodes the graph structure. In a `String`
+encoding, a `"."` indicates an unlabeled vertex and a `"-"` indicates an unlabeled, undirected edge. For example,
+`".-.-.-."` represents an unlabeled, undirected path with 4 vertices and 3 edges.
+
+\display{Graph.Parse(".-.-.-.")}
+
+Notice that in the output, the vertex dots are suppressed. Dots for unlabeled vertices are ~always~ optional; they
+will be inferred as necessary to terminate edges. So the above path may alternatively be specified as follows:
+
+\display{Graph.Parse("---")}
+
+To input trees, use parentheses to delineate subexpressions. A subexpression that appears in parentheses is
+interpreted as a sequence of branches off the preceding node, with the individual branches separated by semicolons
+inside the subexpression. For example,
+
+\display{Graph.Parse("--(-;--;---)")}
+
+would yield a tree consisting of a "trunk" with 2 edges, followed by three branches with 1, 2, and 3 edges,
+respectively.
+
+To input cycles: Suffix any vertex with `:A` to name that vertex `A`. All vertices with the same name will be
+identified. Thus a 4-cycle could be given by
+
+\display{Graph.Parse(".:A-.-.-.-.:A")}
+
+or simply:
+
+\display{Graph.Parse(":A----:A")}
+
+Vertices can also be given longer names by enclosing the names in brackets:
+
+\display{Graph.Parse(":{root}----:{root}")}
+
+The `Graph` structure is very flexible, and loops (edges from a vertex to itself) and multigraphs (multiple edges with
+identical endpoints) are both permitted. Here are some simple examples.
+
+\display{Graph.Parse(":A-:A")  // Loop (1-cycle)}
+
+\display{Graph.Parse(":A--:A") // Multigraph}
+
++++ Labeled Graphs +++
+
+To parse graphs with labels, specify an appropriate mapping from `String`s to CGSuite objects. Then the shorthand
+`String`s may be used in place of `.` or `-`, depending on whether the labels apply to vertices or edges.
+Here's an example with colored vertices.
+
+\display{labels := { "L" => game.graph.Color.Blue, "R" => game.graph.Color.Red }}
+
+\display{gr := Graph.Parse("L-R-L", vertexLabels => labels)}
+
+Note that CGSuite expands the object names by default; it doesn't know how to abbreviate them! A specialized `ToString`
+method may be used to recover the shorthand notation.
+
+\display{gr.ToString(vertexLabels => labels.Reversed)}
+
+Edges may be labeled as well. Conventionally, uppercase letters are used for vertex labels and lowercase letters for
+edge labels, although this is not a requirement.
+
+\display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
+
+\display{gr := Graph.Parse("lllrr", edgeLabels => labels)}
+
+When working with rulesets, it is usually not necessary to specify a label mapping explicitly, as the notation will
+be baked into the ruleset. For example:
+
+\display{game.graph.Col("L-R---L")}
+
+\display{game.graph.Hackenbush("llrlrr")}
+
++++ Weighted Graphs +++
+
+Labels can also be specified by a function rather than a map. The typical use case is weighted graphs, where
+the weights are arbitrary [[Integer]]s rather than a finite list of fixed values.
+
+\display{Graph.Parse("9-1-2", vertexLabels => str -> Integer.Parse(str))}
+
+Like vertex names, all labels are assumed to be single-letter or single-digit, unless enclosed in brackets; weights
+greater than 9 can be input like so:
+
+\display{Graph.Parse("{12}-5-{14}", vertexLabels => str -> Integer.Parse(str))}
+
++++ Graph Manipulations +++
+
+The vertices of a `Graph` object are always numbered from `1` to `n`. Internally, the edges of a graph are stored as
+pairs of `Integer`s. These `Integer` indices can provide a convenient way of manipulating the `Graph` object
+programmatically.
+
+CGScript has a robust library for graph manipulations. Here are a few examples of things that you can do; for the full
+API, see the documentation page for the [[Graph]] class.
+
+\display{gr := Graph.Cycle(5)}
+
+\display{gr.AdjacencyList}
+
+\display{gr.DeleteVertex(1)}
+
+\display{gr[3]   // Vertex number 3}
+
+\display{gr.EdgeCount}
+
+\display{gr.ConnectedComponents}
+
+\display{gr.DeleteVertices([1,3]).ConnectedComponents}
+
+\display{Graph.FromAdjacencyList([[2,3],[1,3],[1,2]])}
+
++++ Directed Graphs +++
+
+CGScript supports directed graphs through a separate class, [[DirectedGraph]]. To appreciate the difference between
+`Graph` and `DirectedGraph`, consider this example:
+
+\display{Graph.Parse("----").EdgeCount}
+
+\display{DirectedGraph.Parse("----").EdgeCount}
+
+Mathematically, the two graphs are the same, but the directed variant is treated as having twice as many edges, four in
+each direction. Similar considerations apply to methods such as [[Graph#DeleteEdge]], as evidenced by the following
+example.
+
+\display{Graph.Parse("-").DeleteEdgeByIndex(2, 1)}
+
+\display{DirectedGraph.Parse("-").DeleteEdgeByIndex(2, 1)}
+
+The preceding example also illustrates the notation for directed edges:
+they're specified by using `">"` or `"<"` in place of `"-"`. For example, here's a directed path with 4 edges:
+
+\display{DirectedGraph.Parse(">>>>")}
+
+~Labeled~ directed edges can be input by appending a `">"` or `"<"` after the label.
+
+\display{labels := { "l" => game.graph.Color.Blue, "r" => game.graph.Color.Red }}
+
+\display{DirectedGraph.Parse("l>l>l>r>r>", edgeLabels => labels)}
+
+For the full API, see the documentation for the [[DirectedGraph]] class.
+
+\footer
+
+~~Congratulations! You've reached the end of the [[/tutorials/advanced-topics/advanced-topics]] tutorial.
+Feel free to try one of the other
+[[/contents][tutorials]] or browse the [[/reference/overview][package overview]].~~

@@ -1,0 +1,64 @@
+/*${cgsuite.banner}*/
+
+/** A directed multigraph. A `DirectedGraph` is analogous to a [[Graph]], but with directed edges. Most of the
+  * `Graph` documentation applies equally to `DirectedGraph`s.
+  *
+  * Mathematically, every `Graph` is also a `DirectedGraph` whose directed edges are symmetrical (i.e., in which edge
+  * reversal is a graph automorphism). In CGSuite, they are implemented separately, because despite the mathematical
+  * relationship, the expected behavior of the APIs is different. For example, consider the graph `g` with two vertices
+  * connected by a single undirected edge, considered separately as an undirected and a directed graph:
+  *
+  * \display{Graph.Parse("-").EdgeCount}
+  *
+  * \display{DirectedGraph.Parse("-").EdgeCount}
+  *
+  * Similar considerations apply to other edge-manipulation methods, such as [[#DeleteEdge]].
+  */
+system class DirectedGraph
+
+  static var Empty := DirectedPath(0);
+
+  external static def DirectedPath(n as Integer, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  external static def FromAdjacencyList(adjacencyList as List, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  external static def Parse(
+    str as String,
+    vertexLabels as Function ? { "" => Nothing },
+    edgeLabels as Function ? { "" => Nothing }
+  ) as DirectedGraph;
+
+  external static def Singleton(vertexLabel ? Nothing);
+
+  def op[](index as Integer) := Vertices[index];
+
+  def AdjacencyList := [[edge.ToVertex for edge in vertex.Edges] for vertex in Vertices];
+
+  external def DeleteEdge(edge as Edge) as DirectedGraph;
+
+  external def DeleteEdgeByIndex(vertex as Integer, edge as Integer) as DirectedGraph;
+
+  external def DeleteVertex(vertex as Integer) as DirectedGraph;
+
+  external def DeleteVertices(vertices as List) as DirectedGraph;
+
+  external def EdgeCount as Integer;
+
+  external def Edges as List;
+
+  external def RetainVertices(vertices as List) as DirectedGraph;
+
+  external def UpdatedVertexLabels(updates as Map) as DirectedGraph;
+
+  external def VertexCount as Integer;
+
+  external def Vertices as List;
+
+  external override def ToOutput;
+
+  external def ToString(
+    vertexLabels as Function ? { => },
+    edgeLabels as Function ? { => }
+  ) as String;
+
+end

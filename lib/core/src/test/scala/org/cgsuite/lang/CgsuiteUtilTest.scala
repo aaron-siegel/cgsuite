@@ -65,4 +65,12 @@ class CgsuiteUtilTest extends CgscriptSpec {
 
   }
 
+  "cgsuite.util.Graph" should "implement methods correctly" in {
+
+    val tests = GraphTestCase.instances flatMap { _.toTests }
+
+    executeTests(Table(header, tests: _*))
+
+  }
+
 }

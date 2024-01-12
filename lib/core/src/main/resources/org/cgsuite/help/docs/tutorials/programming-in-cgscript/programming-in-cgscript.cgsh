@@ -7,6 +7,6 @@ This tutorial explores the language features of CGScript. It assumes you've alre
 \li [[three-examples]] - Examples that demonstrate Ruleset implementation in CGScript.
 \li [[classes-and-packages]] - The structure of CGScript classes.
 \li [[control-flow-and-scope]] - Conditionals, loops, and variable scope.
-\li [[grids-and-strips]] - Utilities for streamlining game implementation.
+\li [[grids-and-strips]] - Utilities for streamlining ruleset implementation.
 \li [[advanced-language-features]].
 \endol

@@ -1,0 +1,13 @@
+/*${cgsuite.banner}*/
+
+system class Edge
+
+  external def FromVertex as Integer;
+
+  external def ToVertex as Integer;
+
+  external def Label;
+
+  override def ToOutput := "Edge(" + Label.ToOutput + ", " + FromVertex.ToOutput + ", " + ToVertex.ToOutput + ")";
+
+end
