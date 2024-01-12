@@ -22,6 +22,10 @@ system class Collection
     */
   external def Concat(elements as Collection);
 
+  /** The number of elements of this `Collection` that match the
+    * specified predicate. `predicate` must be a [[Boolean]]-valued
+    * function.
+    */
   external def Count(predicate as Function);
 
   /** `true` if there exists an element in this collection
