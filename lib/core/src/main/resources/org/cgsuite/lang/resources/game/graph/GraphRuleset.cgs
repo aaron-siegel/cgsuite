@@ -1,0 +1,35 @@
+/*${cgsuite.banner}*/
+
+class GraphRuleset extends Ruleset
+
+  def Eval(graph as Graph) := Position(graph);
+
+  def Eval(str as String) := Eval(Graph.Parse(str, VertexLabels, EdgeLabels));
+
+  def Position(graph as Graph) := error("Subclasses of `GridRuleset` must define `Position`.");
+
+  def VertexLabels := { "" => Nothing };
+
+  def EdgeLabels := { "" => Nothing };
+
+  def VertexToString begin
+    if VertexLabels is Map then
+      VertexLabels.Reversed
+    else
+      x -> x.ToString
+    end
+  end
+
+  def EdgeToString begin
+    if EdgeLabels is Map then
+      EdgeLabels.Reversed
+    else
+      x -> x.ToString
+    end
+  end
+
+  class GraphGame(graph as Graph) extends Game
+    override def ToOutput := this.Class.Name + "(\"" + graph.ToString(VertexToString, EdgeToString) + "\")";
+  end
+
+end

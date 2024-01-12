@@ -481,7 +481,10 @@ case class FunctionCallNode(
             parameters(i).paramType
           }
         }
-        if (!(cls.ancestors contains expectedType)) {
+        val matchesType = {
+          cls.ancestors.contains(expectedType) || cls == CgscriptClass.NothingClass
+        }
+        if (!matchesType) {
           throw EvalException(
             s"Argument `${parameters(i).id.name}` ($locationMessage) " +
               s"has type `${cls.qualifiedName}`, which does not match expected type `${parameters(i).paramType.qualifiedName}`",

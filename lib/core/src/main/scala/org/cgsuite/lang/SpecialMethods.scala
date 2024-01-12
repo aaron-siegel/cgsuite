@@ -42,9 +42,11 @@ object SpecialMethods {
       if (collection.isEmpty) throw EvalException("That `Collection` is empty.") else collection.tail
     },
     "cgsuite.lang.Collection.ToList" -> { (collection: Iterable[_], _: Unit) => collection.toIndexedSeq },
+    "cgsuite.lang.Function.ToOutput" -> { (fn: Function, _: Unit) => fn.toOutput },
     "cgsuite.lang.List.Sorted" -> { (list: IndexedSeq[_], _: Unit) => list.sorted(UniversalOrdering) },
     "cgsuite.lang.Map.Entries" -> { (map: scala.collection.Map[_,_], _: Unit) => map.toSet },
     "cgsuite.lang.Map.Keys" -> { (map: scala.collection.Map[_,_], _: Unit) => map.keySet },
+    "cgsuite.lang.Map.Reversed" -> { (map: scala.collection.Map[Any,Any], _: Unit) => map map { _.swap } },
     "cgsuite.lang.Map.Values" -> { (map: scala.collection.Map[_,_], _: Unit) => map.values.toSet },
     "cgsuite.lang.MapEntry.Key" -> { (entry: (_,_), _: Unit) => entry._1 },
     "cgsuite.lang.MapEntry.ToOutput" -> { (entry: (_,_), _: Unit) => OutputBuilder.toOutput(entry) },
@@ -187,6 +189,10 @@ object SpecialMethods {
 
   private val specialMethods2: Map[String, (_, _) => Any] = Map(
 
+    /*
+    "cgsuite.util.Graph.FromList" -> { (_: ClassObject, args: (IndexedSeq[Any], IndexedSeq[Any])) =>
+      Graph(args._1.map { _.asInstanceOf[IndexedSeq[Integer]] }, Option(args._2)) },
+     */
     "cgsuite.lang.List.Sublist" -> { (list: IndexedSeq[_], range: (Integer, Integer)) =>
       list.slice(range._1.intValue - 1, range._2.intValue)
     },

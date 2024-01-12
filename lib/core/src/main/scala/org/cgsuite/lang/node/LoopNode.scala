@@ -30,13 +30,14 @@ object LoopNode {
       Vector(LoopNode(
         loopSpecTree,
         loopType,
-        loopSpecTree.children find { _.getType == FOR   } map { t => IdentifierNode(t.head) },
-        loopSpecTree.children find { _.getType == IN    } map { t => EvalNode(t.head) },
-        loopSpecTree.children find { _.getType == FROM  } map { t => EvalNode(t.head) },
-        loopSpecTree.children find { _.getType == TO    } map { t => EvalNode(t.head) },
-        loopSpecTree.children find { _.getType == BY    } map { t => EvalNode(t.head) },
-        loopSpecTree.children find { _.getType == WHILE } map { t => EvalNode(t.head) },
-        loopSpecTree.children find { _.getType == WHERE } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == FOR    } map { t => IdentifierNode(t.head) },
+        loopSpecTree.children find { _.getType == IN     } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == FROM   } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == TO     } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == BY     } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == WHILE  } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == WHERE  } map { t => EvalNode(t.head) },
+        loopSpecTree.children find { _.getType == ASSIGN } map { t => EvalNode(t.head) },
         nextNodes
       ))
     }
@@ -63,10 +64,11 @@ case class LoopNode(
   by      : Option[EvalNode],
   `while` : Option[EvalNode],
   where   : Option[EvalNode],
+  assign  : Option[EvalNode],
   body    : Vector[EvalNode]
 ) extends EvalNode {
 
-  override val children = forId.toVector ++ in ++ from ++ to ++ by ++ `while` ++ where ++ body
+  override val children = forId.toVector ++ in ++ from ++ to ++ by ++ `while` ++ where ++ assign ++ body
 
   private val prepareLoop = Symbol(s"PrepareLoop [${tree.location}]")
   private val loop = Symbol(s"Loop [${tree.location}]")
@@ -129,7 +131,8 @@ case class LoopNode(
       to map { "to " + _.toNodeString },
       by map { "by " + _.toNodeString },
       `while` map { "while " + _.toNodeString },
-      where map { "where " + _.toNodeString }
+      where map { "where " + _.toNodeString },
+      assign map { ":= " + _.toNodeString },
     ).flatten.mkString(" ")
     val bodyStr = body map { loopTypeStr + " " + _.toNodeString } mkString " "
     antecedent + " " + bodyStr + " end"
@@ -155,14 +158,19 @@ case class LoopNode(
 
     var continue = true
 
+    if (assign.isDefined) {
+      domain.localScope(forIndex) = assign.get.evaluate(domain)
+    }
+
     while (continue) {
 
       if (Thread.interrupted())
         throw CalculationCanceledException("Calculation canceled by user.", token = Some(token))
 
       if (iterator == null) {
-        if (forIndex >= 0)
+        if (forIndex >= 0 && counter != null) {
           domain.localScope(forIndex) = counter
+        }
         continue = toVal == null || (checkLeq && Ops.leq(counter, toVal)) || (!checkLeq && Ops.leq(toVal, counter))
       } else {
         if (iterator.hasNext)
@@ -193,6 +201,10 @@ case class LoopNode(
         }
         if (counter != null)
           counter = Ops.Plus(tree, counter, byVal)
+      }
+
+      if (assign.isDefined) {
+        continue = false
       }
 
     }

@@ -1,0 +1,90 @@
+/*${cgsuite.banner}*/
+
+/** An undirected multigraph. The `Graph` structure in CGSuite is quite general: there may be multiple edges
+  * connecting the same pair of vertices, and loops (edges that connect a vertex to itself) are permitted. Moreover,
+  * vertices and edges may be labeled with arbitrary CGScript objects, providing for a wide variety of annotated
+  * structures such as colored edges or vertex counters.
+  *
+  * Each vertex is identified by an [[Integer]]. Like other structures in CGSuite, graphs are one-based: the vertices
+  * of a graph of size `n` are numbered from `1` to `n`. There are several ways to construct `Graph` objects:
+  *
+  * \ul
+  * \li From a [[String]] via the [[#Parse]] method. The syntax is described in the ((TODO)) tutorial.
+  * \li From an ~adjacency list~ specifying the edges explicitly.
+  * \ul
+  */
+system class Graph
+
+  /** The empty graph with `0` vertices. */
+  static var Empty := Path(0);
+
+  /** A clique with `n` vertices. In the clique graph, each pair of distinct vertices is connected by a single edge.
+    * If `vertexLabel` and/or `edgeLabel` is specified, then every vertex and/or edge will be labeled with the specified
+    * object.
+    */
+  external static def Clique(n as Integer, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  external static def Cycle(n as Integer, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  static def Eval(str as String) := Parse(str);
+
+  external static def FromAdjacencyList(adjacencyList as List, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  external static def Parse(
+    str as String,
+    vertexLabels as Function ? { "" => Nothing },
+    edgeLabels as Function ? { "" => Nothing }
+  ) as Graph;
+
+  external static def Path(n as Integer, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  external static def Singleton(vertexLabel ? Nothing);
+
+  external static def Star(n as Integer, vertexLabel ? Nothing, edgeLabel ? Nothing);
+
+  def op[](index as Integer) := Vertices[index];
+
+  def AdjacencyList := [[edge.ToVertex for edge in vertex.Edges].Sorted for vertex in Vertices];
+
+  external def ConnectedComponent(vertex as Integer) as Graph;
+
+  external def ConnectedComponents as List;
+
+  external def Decomposition(boundaryLabel) as List;
+
+  external def DeleteEdge(edge as Edge) as Graph;
+
+  external def DeleteEdgeByIndex(vertex as Integer, edge as Integer) as Graph;
+
+  external def DeleteVertex(vertex as Integer) as Graph;
+
+  external def DeleteVertices(vertices as List) as Graph;
+
+  external def EdgeCount as Integer;
+
+  external def Edges as List;
+
+  external def IsConnected as Boolean;
+
+  external def IsEmpty as Boolean;
+
+  external def IsSimple as Boolean;
+
+  external def RetainVertices(vertices as List) as Graph;
+
+  external def ToDirectedGraph as DirectedGraph;
+
+  external def UpdatedVertexLabels(updates as Map) as Graph;
+
+  external def VertexCount as Integer;
+
+  external def Vertices as List;
+
+  external override def ToOutput;
+
+  external def ToString(
+    vertexLabels as Function ? { => },
+    edgeLabels as Function ? { => }
+  ) as String;
+
+end

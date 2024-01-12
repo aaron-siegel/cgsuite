@@ -7,7 +7,7 @@ import org.cgsuite.core.misere.MisereCanonicalGame
 import org.cgsuite.dsl.IntegerIsIntegral
 import org.cgsuite.exception.EvalException
 import org.cgsuite.output.{Output, StyledTextOutput}
-import org.cgsuite.util.{Coordinates, Grid, Strip}
+import org.cgsuite.util.{Coordinates, Graph, Grid, Strip}
 
 import scala.collection.immutable.NumericRange
 import scala.collection.mutable
@@ -225,6 +225,8 @@ object Ops {
       }
     case (grid: Grid, coord: Coordinates) => grid.get(coord)
     case (strip: Strip, index: Integer) => strip.get(index)
+    case (graph: Graph[_, _], index: Integer) => graph.vertex(index)
+    case (vertex: Graph.Vertex[_, _], index: Integer) => vertex.edge(index)
     case (str: String, index: Integer) =>
       val i = index.intValue
       if (i >= 1 && i <= str.length)

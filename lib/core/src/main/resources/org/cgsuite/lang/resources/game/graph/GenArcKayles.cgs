@@ -1,0 +1,31 @@
+/*${cgsuite.banner}*/
+
+class GenArcKayles(weighted as Boolean ? false) extends GraphRuleset
+
+  class Position(graph as Graph) extends GraphGame, ImpartialGame
+
+    override def Options begin
+      for edge in graph.Edges
+      where not weighted or (graph[edge.FromVertex].Label > 0 and graph[edge.ToVertex].Label > 0)
+      yield
+        if weighted then
+          Position(graph UpdatedVertexLabels {
+            edge.FromVertex => graph[edge.FromVertex].Label - 1,
+            edge.ToVertex => graph[edge.ToVertex].Label - 1
+          })
+        else
+          Position(graph DeleteVertices [edge.FromVertex, edge.ToVertex])
+        end
+      end
+    end
+
+    override def Decomposition begin
+      var components := if weighted then graph.Decomposition(0) else graph.ConnectedComponents end;
+      for component in components yield
+        Position(component)
+      end
+    end
+
+  end
+
+end

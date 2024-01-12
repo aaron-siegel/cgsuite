@@ -1,0 +1,17 @@
+/*${cgsuite.banner}*/
+
+system class Vertex
+
+  def op[](index as Integer) := Edges[index];
+
+  external def Edges as List;
+
+  external def EdgeCount;
+
+  external def Label;
+
+  external def OutVertices;
+
+  override def ToOutput := "Vertex(" + Label.ToOutput + ", " + OutVertices.Sorted.ToOutput + ")";
+
+end

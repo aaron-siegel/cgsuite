@@ -1,0 +1,34 @@
+/*${cgsuite.banner}*/
+
+class GenHackenbush(childishEdges as List ? []) extends GraphRuleset
+
+  override def Eval(graph as Graph) begin
+    if (not graph.IsConnected) then
+      System.Error("That `Graph` is not connected.");
+    elseif graph.IsEmpty then
+      System.Error("That `Graph` is empty (no ground).");
+    end
+    Position(graph);
+  end
+
+  class Position(graph as Graph) extends GraphGame
+
+    override def Options(player as Player) begin
+      for edge in graph.Edges
+      where edge.Label == Color.Green
+        or (player == Left and edge.Label == Color.Blue)
+        or (player == Right and edge.Label == Color.Red)
+      for option := graph.DeleteEdge(edge).ConnectedComponent(1)
+      // If the edge color is childish and removing it would cause additional edges to become
+      // disconnected from the ground, then we must skip this option
+      where not (childishEdges Contains edge.Label and option.EdgeCount != graph.EdgeCount - 1)
+      yield
+        Position(graph.DeleteEdge(edge).ConnectedComponent(1))
+      end
+    end
+
+  end
+
+  override def EdgeLabels := { "l" => Color.Blue, "r" => Color.Red, "e" => Color.Green };
+
+end
