@@ -43,6 +43,17 @@ system class Map extends Collection, Function
     */
   external def Reversed;
 
+  /** The `Map` obtained from this `Map` by replacing the value with the specified `key` with `value`.
+    * If the specified `key` is not already contained in this `Map`, then it will be added.
+    */
+  external def Updated(key, value);
+
+  /** The `Map` obtained from this `Map` by replacing all entries specified in `newValues`. The value of each `key` in
+    * `newValues` will be updated to `newValues[key]`. If `key` is not already contained in this `Map`, then it will be
+    * added.
+    */
+  external def Updated(newValues as Map);
+
   /** All the values of this map, as a [[Set]].
     */
   external def Values;
