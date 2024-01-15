@@ -218,7 +218,7 @@ object Ops {
         list(i - 1)
       else
         throw EvalException(s"List index out of bounds: $i")
-    case (map: Map[Any @unchecked, _], key: Any) =>
+    case (map: scala.collection.Map[Any @unchecked, _], key: Any) =>
       map get key match {
         case Some(value) => value
         case None => throw EvalException(s"Key not found: $key")

@@ -24,8 +24,18 @@ class CgsuiteLangTest extends CgscriptSpec {
       (s"Set: $call", s"{$seq}.$call", result)
     }
 
+    val mutableLists = collectionScenarios map { case (call, seq, result) =>
+      (s"MutableList: $call", s"x := MutableList(); x.AddAll([$seq]); x.$call", result)
+    }
+
+    val mutableSets = collectionScenarios map { case (call, seq, result) =>
+      (s"MutableSet: $call", s"x := MutableSet(); x.AddAll([$seq]); x.$call", result)
+    }
+
     executeTests(Table(header, lists : _*))
     executeTests(Table(header, sets : _*))
+    executeTests(Table(header, mutableLists : _*))
+    executeTests(Table(header, mutableSets : _*))
 
   }
 
@@ -81,6 +91,9 @@ class CgsuiteLangTest extends CgscriptSpec {
       ("Map: Entries", "{7 => true, 1/2 => ^^*}.Entries", "{1/2 => ^^*,7 => true}"),
       ("Map: Keys", "{7 => true, 1/2 => ^^*}.Keys", "{1/2,7}"),
       ("Map: Reversed", "{7 => true, 1/2 => ^^*}.Reversed", "{^^* => 1/2, true => 7}"),
+      ("Map: Updated 1", "{7 => true, 1/2 => ^^*}.Updated(6, 19)", "{1/2 => ^^*, 6 => 19, 7 => true}"),
+      ("Map: Updated 2", "{7 => true, 1/2 => ^^*}.Updated(7, Left)", "{1/2 => ^^*, 7 => Left}"),
+      ("Map: Updated 3", "{7 => true, 1/2 => ^^*}.Updated({6 => 19, 7 => Left})", "{1/2 => ^^*, 6 => 19, 7 => Left}"),
       ("Map: Values", "{7 => true, 1/2 => ^^*}.Values", "{^^*,true}")
     ))
 

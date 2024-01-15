@@ -124,6 +124,13 @@ object SpecialMethods {
     "cgsuite.lang.Map.ContainsKey" -> { (map: scala.collection.Map[Any,_], key: Any) =>
       map contains key
     },
+    "cgsuite.lang.Map.Updated" -> { (map: scala.collection.Map[Any,_], arg: Any) =>
+      arg match {
+        case (key, value) => map.toMap.updated(key, value)
+        case entries: Map[_, _] => map.toMap ++ entries
+        case _ => sys.error("this should never happen")
+      }
+    },
     "cgsuite.lang.Set.Intersection" -> { (set: scala.collection.Set[Any], that: scala.collection.Set[Any]) =>
       set intersect that
     },

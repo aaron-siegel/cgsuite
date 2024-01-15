@@ -1450,7 +1450,13 @@ class CgscriptClass(
         case 1 => args(0)
         case 2 => (args(0), args(1))
       }
-      fn(if (isStatic) classObject else obj, argsTuple)
+      try {
+        fn(if (isStatic) classObject else obj, argsTuple)
+      } catch {
+        case exc: CgsuiteException => throw exc
+        case exc: Throwable =>
+          throw EvalException(s"An unexpected error occured in a call to `$qualifiedName`.", exc)
+      }
     }
 
   }
