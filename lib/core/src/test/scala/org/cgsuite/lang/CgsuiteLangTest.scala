@@ -24,8 +24,18 @@ class CgsuiteLangTest extends CgscriptSpec {
       (s"Set: $call", s"{$seq}.$call", result)
     }
 
+    val mutableLists = collectionScenarios map { case (call, seq, result) =>
+      (s"MutableList: $call", s"x := MutableList(); x.AddAll([$seq]); x.$call", result)
+    }
+
+    val mutableSets = collectionScenarios map { case (call, seq, result) =>
+      (s"MutableSet: $call", s"x := MutableSet(); x.AddAll([$seq]); x.$call", result)
+    }
+
     executeTests(Table(header, lists : _*))
     executeTests(Table(header, sets : _*))
+    executeTests(Table(header, mutableLists : _*))
+    executeTests(Table(header, mutableSets : _*))
 
   }
 

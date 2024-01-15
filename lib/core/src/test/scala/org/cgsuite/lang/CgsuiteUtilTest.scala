@@ -4,6 +4,62 @@ import org.scalatest.prop.TableDrivenPropertyChecks.Table
 
 class CgsuiteUtilTest extends CgscriptSpec {
 
+  "cgsuite.util.MutableList" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("MutableList: Construction (empty)", "MutableList()", "MutableList()"),
+      ("MutableList: Construction (seeded)", "x := MutableList([3,4,5])", "MutableList(3, 4, 5)"),
+      ("MutableList: Lookup", "x[2]", "4"),
+      ("MutableList: Lookup (not in list)", "x[0]", "!!List index out of bounds: 0"),
+      ("MutableList: Add", "x.Add(*); x", "MutableList(3, 4, 5, *)"),
+      ("MutableList: AddAll", "x.AddAll([1/2, 1/4, *2, *3, 1/2, 1/4, *3]); x", "MutableList(3, 4, 5, *, 1/2, 1/4, *2, *3, 1/2, 1/4, *3)"),
+      ("MutableList: Contains", "x.Contains(*3)", "true"),
+      ("MutableList: Remove", "x.Remove(1/2); x", "MutableList(3, 4, 5, *, 1/4, *2, *3, 1/2, 1/4, *3)"),
+      ("MutableList: RemoveAll", "x.RemoveAll([4, *2]); x", "MutableList(3, 5, *, 1/4, *3, 1/2, 1/4, *3)"),
+      ("MutableList: RemoveAll (multi)", "x.RemoveAll([1/4, 1/4]); x", "MutableList(3, 5, *, *3, 1/2, *3)"),
+      ("MutableList: RemoveAt", "x.RemoveAt(2); x", "MutableList(3, *, *3, 1/2, *3)"),
+      ("MutableList: Sort", "x.Sort(); x", "MutableList(1/2, 3, *, *3, *3)"),
+      ("MutableList: SortWith", "x.SortWith((a, b) -> if a < b then -1 elseif a > b then 1 else 0 end)", "MutableList(*, *3, *3, 1/2, 3)"),
+      ("MutableList: Clear", "x.Clear(); x", "MutableList()"),
+
+    ))
+
+  }
+
+  "cgsuite.util.MutableSet" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("MutableSet: Construction (empty)", "MutableSet()", "MutableSet()"),
+      ("MutableSet: Construction (seeded)", "x := MutableSet([3,4,5])", "MutableSet(3, 4, 5)"),
+      ("MutableSet: Add", "x.Add(*); x", "MutableSet(3, 4, 5, *)"),
+      ("MutableSet: AddAll", "x.AddAll([1/2, 1/4, *2, *3, 1/2, 1/4, *3]); x", "MutableSet(1/4, 1/2, 3, 4, 5, *, *2, *3)"),
+      ("MutableSet: Contains", "x.Contains(*3)", "true"),
+      ("MutableSet: Remove", "x.Remove(1/4); x", "MutableSet(1/2, 3, 4, 5, *, *2, *3)"),
+      ("MutableSet: RemoveAll", "x.RemoveAll([3, 5, *2, 5, 19]); x", "MutableSet(1/2, 4, *, *3)"),
+      ("MutableSet: Clear", "x.Clear(); x", "MutableSet()")
+    ))
+
+  }
+  "cgsuite.util.MutableMap" should "implement methods correctly" in {
+
+    executeTests(Table(
+      header,
+      ("MutableMap: Construction (empty)", "MutableMap()", "MutableMap()"),
+      ("MutableMap: Construction (seeded)", "x := MutableMap({3 => true, 5 => Left})", "MutableMap(3 => true, 5 => Left)"),
+      ("MutableMap: Lookup", "x[5]", "Left"),
+      ("MutableMap: Lookup (not in map)", "x[*]", "!!Key not found: *"),
+      ("MutableMap: ContainsKey", "x.ContainsKey(5)", "true"),
+      ("MutableMap: Entries", "x.Entries", "{3 => true,5 => Left}"),
+      ("MutableMap: Put 1", "x.Put(3, false); x", "MutableMap(3 => false, 5 => Left)"),
+      ("MutableMap: Put 2", "x.Put(*, 101); x", "MutableMap(3 => false, 5 => Left, * => 101)"),
+      ("MutableMap: PutAll", "x.PutAll({Right => 1474, 3 => 1/7}); x", "MutableMap(3 => 1/7, 5 => Left, * => 101, Right => 1474)"),
+      ("MutableMap: Clear", "x.Clear(); x", "MutableMap()")
+    ))
+
+  }
+
   "cgsuite.util.Strip" should "implement methods correctly" in {
 
     executeTests(Table(
